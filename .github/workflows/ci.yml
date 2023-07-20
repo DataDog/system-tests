@@ -45,6 +45,24 @@ jobs:
   scenarios:
     uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
 
+  parametric:
+    if: needs.scenarios.outputs.run_parametric == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: datadog/system-tests/.github/workflows/parametric.yml@main
+    secrets: inherit
+
+  experimental:
+    if: needs.scenarios.outputs.run_libinjection == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: datadog/system-tests/.github/workflows/experimental.yml@main
+    secrets: inherit
+
   main:
     runs-on: ubuntu-latest
     needs:
@@ -204,6 +222,15 @@ jobs:
       uses: ./.github/actions/pull_images
       with:
         pull-all: ${{ needs.scenarios.outputs.run_all == 'true' }}
+    - name: Build python's weblog base images
+      if: matrix.variant.library == 'python' && contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
+      run: |
+        docker build --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
+        docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v0 .
+        docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
+    - name: Build proxy image
+      if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+      run: ./build.sh -i proxy
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -232,7 +259,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -247,7 +274,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -378,6 +405,16 @@ jobs:
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_METHOD_PROBES_STATUS scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_LINE_PROBES_STATUS scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh DEBUGGER_LINE_PROBES_STATUS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: |
@@ -410,6 +447,8 @@ jobs:
         ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
         # ./run.sh SAMPLING --replay  # currently not working on replay mode
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
+        ./run.sh DEBUGGER_METHOD_PROBES_STATUS --replay
+        ./run.sh DEBUGGER_LINE_PROBES_STATUS --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -477,6 +516,9 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+    - name: Build proxy image
+      if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+      run: ./build.sh -i proxy
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - name: Build weblog
@@ -488,7 +530,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -503,7 +545,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -665,7 +707,10 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
-      run: docker pull datadog/system-tests:proxy-v0
+      run: docker pull datadog/system-tests:proxy-v1 || true
+    - name: Build proxy image
+      if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+      run: ./build.sh -i proxy
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i agent
     - name: Build weblog

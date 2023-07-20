@@ -52,6 +52,7 @@ class Test_Headers_Tracecontext:
         assert traceparent.parent_id != "1234567890123456"
 
     @temporary_enable_optin_tracecontext()
+    @missing_feature(context.library == "cpp", reason="the first observed traceparent is used")
     @missing_feature(
         context.library == "nodejs",
         reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -537,6 +538,7 @@ class Test_Headers_Tracecontext:
         assert tracestate3["foo"] == "1"
 
     @temporary_enable_optin_tracecontext()
+    @missing_feature(context.library == "cpp", reason="the first observed tracestate is used")
     @missing_feature(
         context.library == "nodejs",
         reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -597,6 +599,7 @@ class Test_Headers_Tracecontext:
         assert tracestate3["foo"] == "1"
 
     @temporary_enable_optin_tracecontext()
+    @missing_feature(context.library == "cpp", reason="the first observed tracestate is used")
     @missing_feature(
         context.library == "golang",
         reason="golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",

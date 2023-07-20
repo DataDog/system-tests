@@ -1,5 +1,5 @@
 from tests.apm_tracing_e2e.test_single_span import _get_spans_submitted, _assert_msg
-from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant
+from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant, flaky
 
 
 @missing_feature(

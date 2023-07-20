@@ -8,6 +8,7 @@ import os
 import random
 import string
 import urllib
+import re
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -56,12 +57,21 @@ class HttpResponse:
 
 
 class _Weblog:
-    _grpc_port = 7778
-
     def __init__(self):
-        if "DOCKER_HOST" in os.environ:
-            self.domain = os.environ["DOCKER_HOST"]
-            self.domain = self.domain.replace("ssh://docker@", "")
+        if "SYSTEM_TESTS_WEBLOG_PORT" in os.environ:
+            self.port = int(os.environ["SYSTEM_TESTS_WEBLOG_PORT"])
+        else:
+            self.port = 7777
+
+        if "SYSTEM_TESTS_WEBLOG_GRPC_PORT" in os.environ:
+            self._grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
+        else:
+            self._grpc_port = 7778
+
+        if "SYSTEM_TESTS_WEBLOG_HOST" in os.environ:
+            self.domain = os.environ["SYSTEM_TESTS_WEBLOG_HOST"]
+        elif "DOCKER_HOST" in os.environ:
+            self.domain = re.sub(r"^ssh://([^@]+@|)", "", os.environ["DOCKER_HOST"])
         else:
             self.domain = "localhost"
 
@@ -103,7 +113,7 @@ class _Weblog:
         headers=None,
         stream=None,
         domain=None,
-        port=7777,
+        port=None,
         allow_redirects=True,
         rid_in_user_agent=True,
         **kwargs,
@@ -182,13 +192,19 @@ class _Weblog:
 
         return self.responses[self.current_nodeid].pop(0)
 
-    def _get_url(self, path, domain, port, query=None):
+    def warmup_request(self, domain=None, port=None, timeout=10):
+        requests.get(weblog._get_url("/", domain, port), timeout=timeout)
+
+    def _get_url(self, path, domain=None, port=None, query=None):
         """Return a query with the passed host"""
         # Make all absolute paths to be relative
         if path.startswith("/"):
             path = path[1:]
 
-        domain = domain if domain is not None else self.domain
+        if domain is None:
+            domain = self.domain
+        if port is None:
+            port = self.port
 
         res = f"http://{domain}:{port}/{path}"
 

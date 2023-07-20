@@ -1,3 +1,5 @@
+#OBSOLETE!!: Host + Container scenario is not supported. 
+#Fix this file when this scenario would be supported
 ami:
 - name: ubuntu-x86-22.04
   ami_id: ami-0557a15b87f6559cf

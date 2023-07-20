@@ -5,7 +5,7 @@ const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto');
 const { execSync } = require('child_process');
-const https = require('http');
+const https = require('https');
 
 function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
@@ -55,7 +55,6 @@ function init (app, tracer) {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
   
-    console.error('/iast/insecure_hashing/test_md5_algorithm')
     res.send(crypto.createHash('md5').update('insecure').digest('hex'));
   });
   
@@ -69,7 +68,12 @@ function init (app, tracer) {
   app.get('/iast/insecure_cipher/test_secure_algorithm', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
-    const cipher = crypto.createCipheriv('sha256', '1111111111111111', 'abcdefgh')
+ 
+    const key = crypto.randomBytes(32);
+ 
+    const iv = crypto.randomBytes(16);
+ 
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
     res.send(Buffer.concat([cipher.update('12345'), cipher.final()]))
   });
   

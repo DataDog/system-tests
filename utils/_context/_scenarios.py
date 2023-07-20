@@ -183,8 +183,16 @@ class _Scenario:
 
 class TestTheTestScenario(_Scenario):
     @property
-    def host_log_folder(self):
-        return "logs"
+    def agent_version(self):
+        return "0.77.0"
+
+    @property
+    def components(self):
+        return {"mock_comp1": "mock_comp1_value"}
+
+    @property
+    def parametrized_tests_metadata(self):
+        return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
 
     @property
     def library(self):
@@ -270,6 +278,7 @@ class _DockerScenario(_Scenario):
                 logger.exception(f"Failed to remove container {container}")
 
     def collect_logs(self):
+        """ Get stdout/stderr for all docker containers """
 
         for container in self._required_containers:
             try:
@@ -459,7 +468,9 @@ class EndToEndScenario(_DockerScenario):
 
         if self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
+            self.weblog_container.stop()
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
+            self.agent_container.stop()
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
             self.collect_logs()
@@ -686,13 +697,13 @@ class PerformanceScenario(EndToEndScenario):
         return result
 
     def _extra_weblog_warmup(self):
-        import requests
+        from utils import weblog
 
         WARMUP_REQUEST_COUNT = 10
         WARMUP_LAST_SLEEP_DURATION = 3
 
         for _ in range(WARMUP_REQUEST_COUNT):
-            requests.get("http://localhost:7777", timeout=10)
+            weblog.warmup_request(timeout=10)
             time.sleep(0.6)
 
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
@@ -827,6 +838,7 @@ class ParametricScenario(_Scenario):
 class scenarios:
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
+    mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
     default = EndToEndScenario(
         "DEFAULT",
@@ -1129,6 +1141,32 @@ class scenarios:
     onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL", doc="")
     onboarding_host_container_auto_install = OnBoardingScenario("ONBOARDING_HOST_CONTAINER_AUTO_INSTALL", doc="")
     onboarding_container_auto_install = OnBoardingScenario("ONBOARDING_CONTAINER_AUTO_INSTALL", doc="")
+
+    debugger_method_probes_status = EndToEndScenario(
+        "DEBUGGER_METHOD_PROBES_STATUS",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_STATUS"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+        },
+        library_interface_timeout=50,
+        doc="",
+    )
+
+    debugger_line_probes_status = EndToEndScenario(
+        "DEBUGGER_LINE_PROBES_STATUS",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_STATUS"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+        },
+        library_interface_timeout=50,
+        doc="",
+    )
 
 
 def _main():

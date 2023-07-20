@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import base64
+import gzip
 import json
 import logging
 import traceback
@@ -77,9 +79,24 @@ def _decode_v_0_5_traces(content):
                 "type": strings[int(span[11])],
             }
 
+            meta = decoded_span["meta"]
+
+            for key in list(meta):
+                if key.startswith("_dd.appsec.s."):
+                    meta[key] = deserialize_dd_appsec_s_meta(key, meta[key])
+
             decoded_spans.append(decoded_span)
 
     return result
+
+
+def deserialize_dd_appsec_s_meta(key, payload):
+    """ meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings """
+
+    try:
+        return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
+    except Exception as e:
+        raise ValueError(f"meta {key} should be b64/gziped JSON.\nPayload: {payload}") from e
 
 
 def deserialize_http_message(path, message, content: bytes, interface, key):

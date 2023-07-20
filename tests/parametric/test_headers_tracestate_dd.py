@@ -322,6 +322,9 @@ class Test_Headers_Tracestate_DD:
 
     @temporary_enable_propagationstyle_default()
     @missing_feature(
+        context.library == "cpp", reason="_dd.p.dm is reset to DEFAULT because we made the sampling decision"
+    )
+    @missing_feature(
         context.library == "golang",
         reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
     )
@@ -435,6 +438,7 @@ class Test_Headers_Tracestate_DD:
                 )
 
     @temporary_enable_propagationstyle_default()
+    @missing_feature(context.library == "cpp", reason="_dd.p.dm is never dropped")
     @missing_feature(
         context.library == "nodejs", reason="Issue: the decision maker is removed. Is that allowed behavior?"
     )
@@ -505,6 +509,7 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
+    @missing_feature(context.library == "cpp", reason="_dd.p.dm does not change when a sampling priority was extracted")
     @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
