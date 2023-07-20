@@ -26,6 +26,7 @@ if context.library == "cpp":
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestHeaderName:
     """Verify that request headers name are tainted"""
+
     source_name = "user"
     if context.library.library == "python":
         source_name = "User"

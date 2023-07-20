@@ -27,6 +27,7 @@ if context.library == "cpp":
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestHeaderValue:
     """Verify that request headers are tainted"""
+
     source_name = "table"
     if context.library.library == "python" and context.weblog_variant == "django-poc":
         source_name = "HTTP_TABLE"
@@ -50,7 +51,10 @@ class TestHeaderValue:
     def setup_telemetry_metric_instrumented_source(self):
         self.source_fixture.setup_telemetry_metric_instrumented_source()
 
-    @missing_feature(context.library < "java@1.13.0" or not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    @missing_feature(
+        context.library < "java@1.13.0" or not context.weblog_variant.startswith("spring-boot"),
+        reason="Not implemented",
+    )
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
 

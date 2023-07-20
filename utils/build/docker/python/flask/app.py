@@ -192,7 +192,7 @@ def view_weak_cipher_secure():
 
 
 def _sink_point(table="user", id="1"):
-    sql = "SELECT * FROM " + table + " WHERE id = '" + id+ "'"
+    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     cursor.execute(sql)

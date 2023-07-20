@@ -71,7 +71,9 @@ class TestParameterValue:
         self.source_post_fixture.setup_telemetry_metric_instrumented_source()
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
-    @missing_feature(context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    @missing_feature(
+        context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented"
+    )
     @missing_feature(library="nodejs", reason="Not implemented")
     def test_post_telemetry_metric_instrumented_source(self):
         self.source_post_fixture.test_telemetry_metric_instrumented_source()
@@ -80,7 +82,9 @@ class TestParameterValue:
         self.source_post_fixture.setup_telemetry_metric_executed_source()
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
-    @missing_feature(context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    @missing_feature(
+        context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented"
+    )
     @missing_feature(library="nodejs", reason="Not implemented")
     def test_post_telemetry_metric_executed_source(self):
         self.source_post_fixture.test_telemetry_metric_executed_source()

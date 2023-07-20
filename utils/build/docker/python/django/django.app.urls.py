@@ -148,7 +148,7 @@ def view_sqli_secure(request):
 
 
 def _sink_point(table="user", id="1"):
-    sql = "SELECT * FROM " + table + " WHERE id = '" + id+ "'"
+    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     with connection.cursor() as cursor:
         cursor.execute(sql)
 
@@ -157,6 +157,7 @@ def _sink_point(table="user", id="1"):
 def view_iast_source_body(request):
     # TODO: migrate to a django rest framework view with request.data
     import json
+
     table = json.loads(request.body).get("name")
     user = json.loads(request.body).get("value")
     _sink_point(table=table, id=user)
