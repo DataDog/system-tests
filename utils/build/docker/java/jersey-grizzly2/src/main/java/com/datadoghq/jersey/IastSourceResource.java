@@ -7,7 +7,13 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -21,9 +27,35 @@ public class IastSourceResource {
 
     @POST
     @Path("/parameter/test")
-    public String sourceParameter(@FormParam("table") final String source) {
+    public String sourceParameterPost(@FormParam("table") final String source) {
         sql.insecureSql(source, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Parameters => source: %s", source);
+    }
+
+    @GET
+    @Path("/parameter/test")
+    public String sourceParameterGet(@QueryParam("table") final String source) {
+        sql.insecureSql(source, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Parameters => source: %s", source);
+    }
+
+    @GET
+    @Path("/parametername/test")
+    public String sourceParameterNameGet(@Context final UriInfo uriInfo) {
+        List<String> parameterNames = new ArrayList<>(uriInfo.getQueryParameters().keySet());
+        final String table = parameterNames.get(0);
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Parameter Names => %s", parameterNames);
+    }
+
+    @POST
+    @Path("/parametername/test")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String sourceParameterNamePost(MultivaluedMap<String, String> form) {
+        List<String> parameterNames = new ArrayList<>(form.keySet());
+        final String table = parameterNames.get(0);
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Parameter Names => %s", parameterNames);
     }
 
     @GET
@@ -31,6 +63,15 @@ public class IastSourceResource {
     public String sourceHeaders(@HeaderParam("table") String header) {
         sql.insecureSql(header, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Headers => %s", header);
+    }
+
+    @GET
+    @Path("/headername/test")
+    public String sourceHeaderName(@Context final HttpHeaders headers) {
+        List<String> headerNames = new ArrayList<>(headers.getRequestHeaders().keySet());
+        String table = find(headerNames, header -> header.equalsIgnoreCase("user"));
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Headers => %s", headerNames);
     }
 
     @GET
@@ -51,8 +92,8 @@ public class IastSourceResource {
 
     @POST
     @Path("/body/test")
-    public String sourceBody(TestBean testBean) {
-        System.out.println("Inside body test testbean: " + testBean);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String sourceBody(final TestBean testBean) {
         String value = testBean.getValue();
         sql.insecureSql(value, (statement, sql) -> statement.executeQuery(sql));
         return String.format("@RequestBody to Test bean -> value:%s", value);
@@ -63,5 +104,10 @@ public class IastSourceResource {
                             final Predicate<E> matcher,
                             final Function<E, String> provider) {
         return provider.apply(list.stream().filter(matcher).findFirst().get());
+    }
+
+    private String find(final Collection<String> list,
+                        final Predicate<String> matcher) {
+        return find(list, matcher, Function.identity());
     }
 }

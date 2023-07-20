@@ -14,20 +14,17 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", php_appsec="?", python="1.17.0", ruby="?")
 @released(
     java={
-        "spring-boot": "1.5.0",
-        "spring-boot-jetty": "1.5.0",
-        "spring-boot-openliberty": "1.5.0",
-        "spring-boot-payara": "1.5.0",
-        "spring-boot-wildfly": "1.5.0",
-        "spring-boot-undertow": "1.5.0",
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "vertx4": "1.12.0",
         "akka-http": "1.12.0",
-        "*": "?",
+        "ratpack": "?",
+        "*": "1.5.0",
     }
 )
 @released(nodejs={"express4": "3.19.0", "*": "?"})
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestParameterValue:
     """Verify that request parameters are tainted"""
 
@@ -49,8 +46,8 @@ class TestParameterValue:
     def setup_source_post_reported(self):
         self.source_post_fixture.setup()
 
-    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    @bug(context.library == "python", reason="Python frameworks need a header, if not, 415 status code")
+    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
+    @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
     def test_source_post_reported(self):
         self.source_post_fixture.test()
 
@@ -66,7 +63,7 @@ class TestParameterValue:
     def setup_source_get_reported(self):
         self.source_get_fixture.setup()
 
-    @missing_feature(context.library.library == "java", reason="Pending to add GET test")
+    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     def test_source_get_reported(self):
         self.source_get_fixture.test()
 

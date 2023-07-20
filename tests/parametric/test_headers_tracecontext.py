@@ -134,7 +134,6 @@ class Test_Headers_Tracecontext:
         assert traceparent3.trace_id == "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "cpp", reason="trace id is not regenerated for second case")
     def test_traceparent_version_0x00(self, test_agent, test_library):
         """
         harness sends an invalid traceparent with extra trailing characters

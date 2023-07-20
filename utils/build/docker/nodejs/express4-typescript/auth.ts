@@ -7,7 +7,7 @@ const { BasicStrategy } = require('passport-http')
 
 const users = [
   {
-    id: '1',
+    id: 'social-security-id',
     username: 'test',
     password: '1234',
     email: 'testuser@ddog.com'
@@ -48,7 +48,10 @@ module.exports = function (app: Express, passport: any, tracer: Tracer) {
     const userMail = req.query.sdk_mail as  string || 'system_tests_user@system_tests_user.com'
     const exists = req.query.sdk_user_exists === 'true'
 
-    if (err) { return next(err)}
+    if (err) {
+      console.error('unexpected login error', err)
+      return next(err)
+    }
     if (!user) {
       if (event === 'failure') {
         tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });

@@ -56,12 +56,16 @@ TRACER_RELEASE_SCENARIOS=(
     LIBRARY_CONF_CUSTOM_HEADERS_SHORT 
     LIBRARY_CONF_CUSTOM_HEADERS_LONG
     INTEGRATIONS
-    APM_TRACING_E2E_SINGLE_SPAN
-    APM_TRACING_E2E 
-    APM_TRACING_E2E_OTEL
     "${APPSEC_SCENARIOS[@]}"
     "${REMOTE_CONFIG_SCENARIOS[@]}"
     "${TELEMETRY_SCENARIOS[@]}"
+)
+
+# Scenarios that rely on backend (and thus, may be a little bit hard to avoid flakyness)
+APM_TRACING_E2E_SCENARIOS=(
+    APM_TRACING_E2E_SINGLE_SPAN
+    APM_TRACING_E2E 
+    APM_TRACING_E2E_OTEL
 )
 
 # Scenarios to run on tracers PR.
@@ -113,13 +117,11 @@ elif [[ $SCENARIO == "PARAMETRIC" ]]; then
     DEFAULT_COUNT=auto
     # FIXME: all languages should be supported
     if [ "${TEST_LIBRARY-}" ]; then
-        for library in $(echo $TEST_LIBRARY | sed "s/,/ /g"); do
-            # default to "1" for languages with concurrency issues
-            if [[ "${library}" == "dotnet" || "${library}" == "go" ||"${library}" == "python_http" ]]; then
-                DEFAULT_COUNT=1
-                break
-            fi
-        done
+        # default to "1" for languages with concurrency issues
+        if [[ "${TEST_LIBRARY}" == "dotnet" || "${TEST_LIBRARY}" == "go" ||"${TEST_LIBRARY}" == "python_http" ]]; then
+            DEFAULT_COUNT=1
+            break
+        fi
     else
         # default to "1" for all languages since that includes problematic languages
         DEFAULT_COUNT=1

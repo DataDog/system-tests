@@ -186,6 +186,9 @@ class TestedContainer:
         with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
             f.write(self._container.logs(stdout=False, stderr=True))
 
+    def stop(self):
+        self._container.stop()
+
     def remove(self):
 
         if not self._container:
@@ -516,9 +519,10 @@ class SqlServerContainer(TestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
+        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
         super().__init__(
-            image_name="otel/opentelemetry-collector-contrib:latest",
+            image_name=image,
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
@@ -533,14 +537,14 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         for i in range(61):
             try:
-                r = requests.get("http://localhost:13133", timeout=1)
-                logger.debug(f"Healthcheck #{i} on localhost:13133: {r}")
+                r = requests.get("http://0.0.0.0:13133", timeout=1)
+                logger.debug(f"Healthcheck #{i} on 0.0.0.0:13133: {r}")
                 if r.status_code == 200:
                     return
             except Exception as e:
-                logger.debug(f"Healthcheck #{i} on localhost:13133: {e}")
+                logger.debug(f"Healthcheck #{i} on 0.0.0.0:13133: {e}")
             time.sleep(1)
-        pytest.exit("localhost:13133 never answered to healthcheck request", 1)
+        pytest.exit("0.0.0.0:13133 never answered to healthcheck request", 1)
 
     def start(self) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,

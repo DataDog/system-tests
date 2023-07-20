@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released, missing_feature
+from utils import context, coverage, released, missing_feature, irrelevant
 from ..iast_fixtures import SinkFixture
 
 if context.library == "cpp":
@@ -23,19 +23,13 @@ def _expected_location():
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", nodejs="?")
 @released(
-    java={
-        "spring-boot": "1.16.0",
-        "spring-boot-jetty": "1.16.0",
-        "spring-boot-openliberty": "1.16.0",
-        "spring-boot-wildfly": "1.16.0",
-        "spring-boot-undertow": "1.16.0",
-        "resteasy-netty3": "1.16.0",
-        "jersey-grizzly2": "1.16.0",
-        "vertx3": "1.16.0",
-        "vertx4": "1.17.0",
-        "*": "?",
-    }
+    java={"vertx4": "1.17.0", "*": "1.16.0",}
 )
+@irrelevant(weblog_variant="ratpack", reason="No forward")
+@irrelevant(weblog_variant="akka-http", reason="No forward")
+@irrelevant(weblog_variant="jersey-grizzly2", reason="No forward")
+@irrelevant(weblog_variant="resteasy-netty3", reason="No forward")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestUnvalidatedForward:
     """Verify Unvalidated redirect forward detection."""
 
