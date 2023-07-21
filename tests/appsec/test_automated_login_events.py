@@ -265,6 +265,14 @@ class Test_Login_Events:
 @coverage.good
 @scenarios.appsec_auto_events_extended
 @released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="0.89.0", python="?", ruby="?")
+@missing_feature(
+    weblog_variant="rails32",
+    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
+)
+@missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
+@missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
+@missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
+@missing_feature(weblog_variant="sinatra20", reason="We do not support authentication framework for sinatra")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 
@@ -298,18 +306,20 @@ class Test_Login_Events_Extended:
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "social-security-id"
 
-            if context.library != "php":
-                assert meta["usr.email"] == "testuser@ddog.com"
-            else:
-                assert meta["appsec.events.users.login.success.email"] == "testuser@ddog.com"
-
             if context.library == "dotnet":
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
+                assert meta["usr.email"] == "testuser@ddog.com"
                 assert meta["usr.name"] == "test"
             elif context.library == "php":
                 assert meta["appsec.events.users.login.success.username"] == "test"
+                assert meta["appsec.events.users.login.success.email"] == "testuser@ddog.com"
+            elif context.library == "ruby":
+                # theres no login field in ruby
+                assert meta["usr.email"] == "testuser@ddog.com"
+                assert meta["usr.username"] == "test"
             else:
+                assert meta["usr.email"] == "testuser@ddog.com"
                 assert meta["usr.username"] == "test"
                 assert meta["usr.login"] == "test"
 
@@ -326,18 +336,15 @@ class Test_Login_Events_Extended:
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "social-security-id"
-
-            if context.library != "php":
-                assert meta["usr.email"] == "testuser@ddog.com"
-            else:
-                assert meta["appsec.events.users.login.success.email"] == "testuser@ddog.com"
+            assert meta["usr.email"] == "testuser@ddog.com"
 
             if context.library == "dotnet":
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
                 assert meta["usr.name"] == "test"
-            elif context.library == "php":
-                assert meta["appsec.events.users.login.success.username"] == "test"
+            elif context.library == "ruby":
+                # theres no login field in ruby
+                assert meta["usr.username"] == "test"
             else:
                 assert meta["usr.username"] == "test"
                 assert meta["usr.login"] == "test"
@@ -384,31 +391,37 @@ class Test_Login_Events_Extended:
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"
-            if context.library != "dotnet":
-                assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
-            else:
+            if context.library == "ruby":
+                # In ruby we do not have access to the user object since it fails with invalid username
+                # For that reason we can not extract id, email or username
+                assert meta.get("appsec.events.users.login.failure.usr.id") == None
+                assert meta.get("appsec.events.users.login.failure.usr.email") == None
+                assert meta.get("appsec.events.users.login.failure.usr.username") == None
+            elif context.library == "dotnet":
                 # in dotnet if the user doesn't exist, there is no id (generated upon user creation)
                 assert meta["appsec.events.users.login.failure.username"] == "invalidUser"
+            else:
+                assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
             assert_priority(span, meta)
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, "password": "12345"}
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
         )
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
+            if context.library == "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
+                assert meta["appsec.events.users.login.failure.usr.id"] == "test"
+            else:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
                 assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
                 assert meta["appsec.events.users.login.failure.username"] == "test"
-            else:
-                assert meta["appsec.events.users.login.failure.usr.id"] == "test"
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"

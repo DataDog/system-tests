@@ -90,6 +90,7 @@ function die() {
 function lookup_scenario_group() {
     local group="$1"
 
+    activate_venv
     cat < scenario_groups.yml | python -c 'import yaml; import sys; key = sys.argv[1]; data = sys.stdin.read(); g = yaml.safe_load(data)[key]; [[print(t) for t in s] if isinstance(s, list) else print(s) for s in g]' "${group}"
 }
 
