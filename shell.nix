@@ -31,6 +31,9 @@ in llvm.stdenv.mkDerivation {
     pinned.bash
     pinned.fswatch
     pinned.rsync
+    pinned.perl536
+    pinned.perl536Packages.DBFile
+    pinned.perl536Packages.YAML
 
     # for c++ dependencies such as grpcio-tools
     llvm.libcxx.dev
