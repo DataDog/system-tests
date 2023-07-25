@@ -2,7 +2,6 @@ import base64
 import contextlib
 import dataclasses
 import os
-import json
 import shutil
 import socket
 import subprocess
@@ -17,6 +16,7 @@ import pytest
 from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
+from utils.parametric.spec import remoteconfig
 from utils.parametric._library_client import APMLibraryClientGRPC
 from utils.parametric._library_client import APMLibraryClientHTTP
 from utils.parametric._library_client import APMLibrary
@@ -668,9 +668,7 @@ class _TestAgentAPI:
         raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
 
     def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
-        """Wait for a given telemetry event type to be available in the test agent. Returns all events
-        that were received by the test agent.
-        """
+        """Wait for and return the given telemetry event from the test agent."""
         for i in range(wait_loops):
             try:
                 events = self.telemetry(clear=False)
@@ -691,15 +689,10 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("Telemetry event %r not found" % event_name)
 
-    def wait_for_apply_status(
-        self, product: str, state: Literal[0, 1, 2, 3] = 2, clear: bool = False, wait_loops: int = 100
+    def wait_for_rc_apply_state(
+        self, product: str, state: remoteconfig.APPLY_STATUS, clear: bool = False, wait_loops: int = 100
     ):
-        """
-        UNKNOWN = 0
-        UNACKNOWLEDGED = 1
-        ACKNOWLEDGED = 2
-        ERROR = 3
-        """
+        """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         for i in range(wait_loops):
             try:
@@ -869,7 +862,19 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
     with open(log_path, "w+") as f:
         yield f
         f.seek(0)
-        request.node._report_sections.append(("teardown", f"Test Agent Output", "".join(f.readlines())))
+        agent_output = ""
+        for line in f.readlines():
+            # Remove log lines that are not relevant to the test
+            if "GET /test/session/traces" in line:
+                continue
+            if "GET /test/session/requests" in line:
+                continue
+            if "GET /test/session/clear" in line:
+                continue
+            if "GET /test/session/apmtelemetry" in line:
+                continue
+            agent_output += line
+        request.node._report_sections.append(("teardown", f"Test Agent Output", agent_output))
 
 
 @pytest.fixture
@@ -896,7 +901,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.11.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,
@@ -906,7 +911,7 @@ def test_agent(
         network_name=docker_network,
     ):
         client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
-        # Wait for the agent to start (we also depend of the network speed to pull images fro registry)
+        # Wait for the agent to start (potentially have to pull the image from the registry)
         for i in range(30):
             try:
                 resp = client.info()

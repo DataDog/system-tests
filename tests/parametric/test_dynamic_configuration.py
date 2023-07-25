@@ -78,7 +78,7 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
 
     # Wait for both the telemetry event and the RC apply status.
     test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-    return test_agent.wait_for_apply_status("APM_TRACING", clear=True, state=2)
+    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
 
 
 def assert_sampling_rate(trace: List[Dict], rate: float):
@@ -113,14 +113,14 @@ class TestDynamicConfig:
         assert len(events) > 0
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_apply_status(self, library_env, test_agent, test_library):
-        """Create a default RC record and ensure the apply_status is correctly set.
+    def test_apply_state(self, library_env, test_agent, test_library):
+        """Create a default RC record and ensure the apply_state is correctly set.
 
         This signal, along with the telemetry event, is used to determine when the
         configuration has been applied by the tracer.
         """
         set_and_wait_rc(test_agent, {})
-        cfg_state = test_agent.wait_for_apply_status("APM_TRACING", state=2)
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2)
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
 
@@ -142,7 +142,7 @@ class TestDynamicConfig:
     )
     @missing_feature(context.library in ["java", "dotnet", "ruby", "nodejs"], reason="Not implemented yet")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
-        """Test that the library reports an erroneous apply_status when the service targeting is not correct.
+        """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
         This can occur if the library requests Remote Configuration with an initial service + env pair and then
         one or both of the values changes.
@@ -151,7 +151,7 @@ class TestDynamicConfig:
         target in the RC record.
         """
         _set_rc(test_agent, _default_config(DEFAULT_SERVICE, DEFAULT_ENV))
-        cfg_state = test_agent.wait_for_apply_status("APM_TRACING", state=3)
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3)
         assert cfg_state["apply_state"] == 3
         assert cfg_state["apply_error"] != ""
 
