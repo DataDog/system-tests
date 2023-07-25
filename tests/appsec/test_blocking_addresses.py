@@ -6,7 +6,6 @@ from utils import (
     bug,
     context,
     coverage,
-    flaky,
     interfaces,
     irrelevant,
     missing_feature,
@@ -14,6 +13,7 @@ from utils import (
     rfc,
     scenarios,
     weblog,
+    flaky,
 )
 
 # Compatibility matrix for blocking across Java variants, to be reused for multiple test suites.
@@ -658,10 +658,7 @@ class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
     def setup_blocking(self):
-        self.rm_req_block = {
-            (i, status): weblog.get(f"/tag_value/anything/{status}")
-            for i, status in enumerate((415, 416, 417, 418) * 1000)
-        }
+        self.rm_req_block = {status: weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)}
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
