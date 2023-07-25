@@ -90,6 +90,7 @@ function die() {
 function lookup_scenario_group() {
     local group="$1"
 
+    activate_venv
     cat < scenario_groups.yml | python -c 'import yaml; import sys; key = sys.argv[1]; data = sys.stdin.read(); g = yaml.safe_load(data)[key]; [[print(t) for t in s] if isinstance(s, list) else print(s) for s in g]' "${group}"
 }
 
@@ -99,10 +100,6 @@ function upcase() {
 
 function downcase() {
     tr '[:upper:]' '[:lower:]'
-}
-
-function clean_pycache() {
-    find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 }
 
 function is_using_nix() {
@@ -298,9 +295,6 @@ function main() {
         run_mode='docker'
     else
         run_mode='direct'
-
-        # cleanups
-        clean_pycache
 
         # ensure environment
         if ! is_using_nix; then

@@ -1,3 +1,5 @@
+import logging
+
 import psycopg2
 import requests
 from ddtrace import tracer
@@ -21,6 +23,8 @@ except ImportError:
 POSTGRES_CONFIG = dict(
     host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
 )
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
