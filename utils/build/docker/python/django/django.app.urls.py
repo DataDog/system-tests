@@ -184,12 +184,7 @@ def view_iast_source_header_name(request):
 
 
 def view_iast_source_header_value(request):
-    # table = request.headers.get("Table")
     table = request.META.get("HTTP_TABLE")
-    print("request.headers!!!!!!!!!!!!!!!!!!")
-    print(request.headers)
-    print("request.META!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(request.META)
     _sink_point(table=table)
     return HttpResponse("OK")
 
@@ -208,12 +203,8 @@ def view_iast_source_parametername(request):
 def view_iast_source_parameter(request):
     if request.method == "GET":
         table = request.GET.get("table")
-        print("request.GET!!!!!!!!!!!!")
-        print(request.GET)
         _sink_point(table=table[0])
     elif request.method == "POST":
-        print("request.POST!!!!!!!!!!!!")
-        print(request.POST)
         table = request.POST.get("table")
         _sink_point(table=table[0])
 
