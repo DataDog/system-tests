@@ -26,7 +26,6 @@ def enable_b3() -> Any:
 class Test_Headers_B3:
     @enable_b3()
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
-    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_headers_b3_extract_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are extracted
         and activated properly.
@@ -57,7 +56,6 @@ class Test_Headers_B3:
 
     @enable_b3()
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
-    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_headers_b3_inject_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are injected properly.
         """
@@ -78,7 +76,6 @@ class Test_Headers_B3:
 
     @enable_b3()
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
-    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_headers_b3multi_propagate_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are extracted
         and injected properly.
@@ -102,7 +99,6 @@ class Test_Headers_B3:
 
     @enable_b3()
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
-    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_headers_b3multi_propagate_invalid(self, test_agent, test_library):
         """Ensure that invalid b3 distributed tracing headers are not extracted
         and the new span context is injected properly.
