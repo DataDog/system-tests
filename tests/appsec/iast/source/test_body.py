@@ -12,9 +12,7 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?")
-@released(
-    python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?",}
-)
+@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?"})
 @released(
     java={
         "jersey-grizzly2": "?",
