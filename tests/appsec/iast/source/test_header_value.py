@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="1.17.0", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="1.18.0", ruby="?")
 @released(
     java={
         "resteasy-netty3": "1.11.0",
