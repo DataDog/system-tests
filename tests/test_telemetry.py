@@ -52,7 +52,7 @@ class Test_Telemetry:
         for data in telemetry_data:
             content = data["request"]["content"]
             language_name = content["application"]["language_name"]
-            language_enum =  ['cpp', 'dotnet', 'go', 'node', 'java', 'php', 'python', 'ruby']
+            language_enum = ["cpp", "dotnet", "go", "node", "java", "php", "python", "ruby"]            
             if language_name not in language_enum:
                 raise Exception(f"Received language_name : {language_name} is not valid")
 
