@@ -48,7 +48,7 @@ class Test_Telemetry:
             language_enum = ["cpp", "dotnet", "go", "node", "java", "php", "python", "ruby"]
             if language_name not in language_enum:
                 raise Exception(f"Received language_name : {language_name} is not valid")
- 
+
     def test_telemetry_message_data_size(self):
         """Test telemetry message data size"""
 
