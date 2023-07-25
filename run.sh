@@ -31,6 +31,9 @@ SYNOPSIS
 OPTIONS
     Using option flags is the recommended way to use ${program}.
 
+    +v, ++verbose
+      Increase verbosity.
+
     +d, ++docker
       Run tests in a Docker container. The runner image must be built beforehand.
 
@@ -156,6 +159,7 @@ function run_scenario() {
 
 function main() {
     local docker="${DOCKER_MODE:-0}"
+    local verbosity=0
     local scenarios=()
     local libraries=()
     local pytest_args=()
@@ -174,6 +178,9 @@ function main() {
             +h|++help)
                 help
                 exit
+                ;;
+            +v|++verbose)
+                verbosity=$(( verbosity + 1 ))
                 ;;
             +d|++docker)
                 docker=1
@@ -300,6 +307,15 @@ function main() {
         if ! is_using_nix; then
             activate_venv
         fi
+    fi
+
+    if [[ "${verbosity}" -gt 0 ]]; then
+        echo "plan:"
+        echo "  mode: ${run_mode}"
+        echo "  scenarios:"
+        for scenario in "${scenarios[@]}"; do
+            echo "    - ${scenario}"
+        done
     fi
 
     for scenario in "${scenarios[@]}"; do
