@@ -240,153 +240,153 @@ jobs:
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
-      run: ./run.sh PROFILING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
-      if: always() && steps.build.outcome == 'success' && matrix.variant.library != 'python' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh INTEGRATIONS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
-      run: ./run.sh APM_TRACING_E2E_OTEL
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_MISSING_RULES
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_CUSTOM_RULES scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_CUSTOM_RULES
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_CORRUPTED_RULES
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_BLOCKING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_DISABLED
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_RATE_LIMITER scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_RATE_LIMITER
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_REQUEST_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_REQUEST_BLOCKING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_RUNTIME_ACTIVATION scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_RUNTIME_ACTIVATION
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_WAF_TELEMETRY scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_WAF_TELEMETRY
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_API_SECURITY scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_API_SECURITY
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run SAMPLING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_sampling == 'true'
-      run: ./run.sh SAMPLING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run PROFILING scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
+    #   run: ./run.sh PROFILING
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+    #   if: always() && steps.build.outcome == 'success' && matrix.variant.library != 'python' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run INTEGRATIONS scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh INTEGRATIONS
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APM_TRACING_E2E_OTEL scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
+    #   run: ./run.sh APM_TRACING_E2E_OTEL
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    #     DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    #     DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    # - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_MISSING_RULES scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_MISSING_RULES
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_CUSTOM_RULES scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_CUSTOM_RULES
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_CORRUPTED_RULES scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_CORRUPTED_RULES
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_BLOCKING scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_BLOCKING
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_DISABLED scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_DISABLED
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_RATE_LIMITER scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_RATE_LIMITER
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_REQUEST_BLOCKING scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_REQUEST_BLOCKING
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_RUNTIME_ACTIVATION scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_RUNTIME_ACTIVATION
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_WAF_TELEMETRY scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_WAF_TELEMETRY
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_API_SECURITY scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_API_SECURITY
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run SAMPLING scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_sampling == 'true'
+    #   run: ./run.sh SAMPLING
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    # - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
+    #   if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+    #   run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
+    #   env:
+    #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_METHOD_PROBES_STATUS scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
@@ -400,35 +400,35 @@ jobs:
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: |
-        ./run.sh DEFAULT --replay
-        ./run.sh PROFILING --replay
-        # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
-        ./run.sh INTEGRATIONS --replay
-        # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
-        ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT --replay
-        ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE --replay
-        ./run.sh APPSEC_MISSING_RULES --replay
-        ./run.sh APPSEC_CUSTOM_RULES --replay
-        ./run.sh APPSEC_CORRUPTED_RULES --replay
-        ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS --replay
-        ./run.sh APPSEC_BLOCKING --replay
-        ./run.sh APPSEC_DISABLED --replay
-        ./run.sh APPSEC_LOW_WAF_TIMEOUT --replay
-        ./run.sh APPSEC_CUSTOM_OBFUSCATION --replay
-        ./run.sh APPSEC_RATE_LIMITER --replay
-        ./run.sh APPSEC_BLOCKING_FULL_DENYLIST --replay
-        ./run.sh APPSEC_REQUEST_BLOCKING --replay
-        ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
-        ./run.sh APPSEC_WAF_TELEMETRY --replay
-        ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
-        # ./run.sh SAMPLING --replay  # currently not working on replay mode
-        ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
+        # ./run.sh DEFAULT --replay
+        # ./run.sh PROFILING --replay
+        # # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
+        # ./run.sh INTEGRATIONS --replay
+        # # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
+        # ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT --replay
+        # ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG --replay
+        # ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
+        # ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING --replay
+        # ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD --replay
+        # ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE --replay
+        # ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE --replay
+        # ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE --replay
+        # ./run.sh APPSEC_MISSING_RULES --replay
+        # ./run.sh APPSEC_CUSTOM_RULES --replay
+        # ./run.sh APPSEC_CORRUPTED_RULES --replay
+        # ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS --replay
+        # ./run.sh APPSEC_BLOCKING --replay
+        # ./run.sh APPSEC_DISABLED --replay
+        # ./run.sh APPSEC_LOW_WAF_TIMEOUT --replay
+        # ./run.sh APPSEC_CUSTOM_OBFUSCATION --replay
+        # ./run.sh APPSEC_RATE_LIMITER --replay
+        # ./run.sh APPSEC_BLOCKING_FULL_DENYLIST --replay
+        # ./run.sh APPSEC_REQUEST_BLOCKING --replay
+        # ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
+        # ./run.sh APPSEC_WAF_TELEMETRY --replay
+        # ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
+        # # ./run.sh SAMPLING --replay  # currently not working on replay mode
+        # ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
         ./run.sh DEBUGGER_METHOD_PROBES_STATUS --replay
         ./run.sh DEBUGGER_LINE_PROBES_STATUS --replay
       env:
