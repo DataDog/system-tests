@@ -34,6 +34,10 @@ OPTIONS
     +v, ++verbose
       Increase verbosity.
 
+    +y, ++dry
+      Do a dry run, i.e pretend to run but do nothing, instead outputting
+      commands that would be run.
+
     +d, ++docker
       Run tests in a Docker container. The runner image must be built beforehand.
 
@@ -148,11 +152,19 @@ function activate_venv() {
 }
 
 function run_scenario() {
+    local dry="$1"
+    shift
     local mode="$1"
     shift
     local scenario="$1"
     shift
     local pytest_args=("$@")
+
+    local cmd=()
+
+    if [[ "${dry}" -gt 0 ]]; then
+        cmd+=(echo)
+    fi
 
     case "${mode}" in
         'docker')
@@ -167,32 +179,37 @@ function run_scenario() {
                 log_dir="logs_$(echo "${scenario}" | downcase )"
             fi
 
-            docker run \
-                --network system-tests_default \
-                --rm -it \
-                -v "${PWD}"/.env:/app/.env \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                -v "${PWD}/${log_dir}":"/app/${log_dir}" \
-                -e SYSTEM_TESTS_WEBLOG_HOST=weblog \
-                -e SYSTEM_TESTS_WEBLOG_PORT=7777 \
-                -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778 \
-                -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}" \
-                --name system-tests-runner \
-                system_tests/runner \
-                venv/bin/pytest -S "${scenario}" "${pytest_args[@]}"
+            cmd+=(
+              docker run
+              --network system-tests_default
+              --rm -it
+              -v "${PWD}"/.env:/app/.env
+              -v /var/run/docker.sock:/var/run/docker.sock
+              -v "${PWD}/${log_dir}":"/app/${log_dir}"
+              -e SYSTEM_TESTS_WEBLOG_HOST=weblog
+              -e SYSTEM_TESTS_WEBLOG_PORT=7777
+              -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778
+              -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}"
+              --name system-tests-runner
+              system_tests/runner
+              venv/bin/pytest -S "${scenario}" "${pytest_args[@]}"
+            )
             ;;
         'direct')
-            pytest -S "${scenario}" "${pytest_args[@]}"
+            cmd+=(pytest -S "${scenario}" "${pytest_args[@]}")
             ;;
         *)
             die "unsupported run mode: ${mode}"
             ;;
     esac
+
+    "${cmd[@]}"
 }
 
 function main() {
     local docker="${DOCKER_MODE:-0}"
     local verbosity=0
+    local dry=0
     local scenarios=()
     local libraries=()
     local pytest_args=()
@@ -214,6 +231,9 @@ function main() {
                 ;;
             +v|++verbose)
                 verbosity=$(( verbosity + 1 ))
+                ;;
+            +y|++dry)
+                dry=1
                 ;;
             +d|++docker)
                 docker=1
@@ -345,6 +365,7 @@ function main() {
     if [[ "${verbosity}" -gt 0 ]]; then
         echo "plan:"
         echo "  mode: ${run_mode}"
+        echo "  dry run: ${dry}"
         echo "  scenarios:"
         for scenario in "${scenarios[@]}"; do
             echo "    - ${scenario}"
@@ -352,7 +373,7 @@ function main() {
     fi
 
     for scenario in "${scenarios[@]}"; do
-        run_scenario "${run_mode}" "${scenario}" "${pytest_args[@]}"
+        run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
 }
 
