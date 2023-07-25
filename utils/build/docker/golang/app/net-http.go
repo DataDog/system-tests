@@ -1,18 +1,31 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"strconv"
+	"time"
+	"os"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func main() {
-	tracer.Start()
-	defer tracer.Stop()
+	ddtracer.Start()
+	defer ddtracer.Stop()
 	mux := httptrace.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -82,11 +95,11 @@ func main() {
 	mux.HandleFunc("/headers/", headers)
 
 	identify := func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := tracer.SpanFromContext(r.Context()); ok {
-			tracer.SetUser(
-				span, "usr.id", tracer.WithUserEmail("usr.email"),
-				tracer.WithUserName("usr.name"), tracer.WithUserSessionID("usr.session_id"),
-				tracer.WithUserRole("usr.role"), tracer.WithUserScope("usr.scope"),
+		if span, ok := ddtracer.SpanFromContext(r.Context()); ok {
+			ddtracer.SetUser(
+				span, "usr.id", ddtracer.WithUserEmail("usr.email"),
+				ddtracer.WithUserName("usr.name"), ddtracer.WithUserSessionID("usr.session_id"),
+				ddtracer.WithUserRole("usr.role"), ddtracer.WithUserScope("usr.scope"),
 			)
 		}
 		w.Write([]byte("Hello, identify!"))
@@ -94,8 +107,8 @@ func main() {
 	mux.HandleFunc("/identify/", identify)
 	mux.HandleFunc("/identify", identify)
 	mux.HandleFunc("/identify-propagate", func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := tracer.SpanFromContext(r.Context()); ok {
-			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
+		if span, ok := ddtracer.SpanFromContext(r.Context()); ok {
+			ddtracer.SetUser(span, "usr.id", ddtracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
 	})
@@ -134,13 +147,132 @@ func main() {
 		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	mux.HandleFunc("/e2e_otel_span", func(w http.ResponseWriter, r *http.Request) {
+		parentName := r.URL.Query().Get("parentName")
+		childName := r.URL.Query().Get("childName")
+
+		tags := []attribute.KeyValue{}
+		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
+		// and the traces/spans that will be generated below, so that we can reference to them in our tests.
+		// See https://github.com/DataDog/system-tests/blob/2d6ae4d5bf87d55855afd36abf36ee710e7d8b3c/utils/interfaces/_core.py#L156
+		userAgent := r.UserAgent()
+		tags = append(tags, attribute.String("http.useragent", userAgent))
+
+		if r.URL.Query().Get("shouldIndex") == "1" {
+			tags = append(tags,
+				attribute.Int("_dd.filter.kept", 1),
+				attribute.String("_dd.filter.id", "system_tests_e2e"),
+			)
+		}
+
+		p := ddotel.NewTracerProvider()
+		tracer := p.Tracer("")
+		otel.SetTracerProvider(p)
+		otel.SetTextMapPropagator(propagation.TraceContext{})
+		defer p.ForceFlush(time.Second, func(ok bool) {})
+
+		// Parent span will have the following traits :
+		// - spanId of 10000
+		// - tags {'attributes':'values'}
+		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
+		// - error tag with 'testing_end_span_options' message
+		parentCtx, parentSpan := tracer.Start(ddotel.ContextWithStartOptions(context.Background(),
+			ddtracer.WithSpanID(10000)), parentName,
+			trace.WithAttributes(tags...))
+		parentSpan.SetAttributes(attribute.String("attributes", "values"))
+		ddotel.EndOptions(parentSpan, ddtracer.WithError(errors.New("testing_end_span_options")))
+
+		// Child span will have the following traits :
+		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
+		// - duration of one second
+		// - span kind of SpanKind - Internal
+		start := time.Now()
+		_, childSpan := tracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
+		childSpan.End(oteltrace.WithTimestamp(start.Add(time.Second)))
+		parentSpan.End()
+
+		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/e2e_otel_span/mixed_contrib", func(w http.ResponseWriter, r *http.Request) {
+		parentName := r.URL.Query().Get("parentName")
+
+		tags := []attribute.KeyValue{}
+		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
+		// and the traces/spans that will be generated below, so that we can reference to them in our tests.
+		// See https://github.com/DataDog/system-tests/blob/2d6ae4d5bf87d55855afd36abf36ee710e7d8b3c/utils/interfaces/_core.py#L156
+		userAgent := r.UserAgent()
+		tags = append(tags, attribute.String("http.useragent", userAgent))
+
+		if r.URL.Query().Get("shouldIndex") == "1" {
+			tags = append(tags,
+				attribute.Int("_dd.filter.kept", 1),
+				attribute.String("_dd.filter.id", "system_tests_e2e"),
+			)
+		}
+
+		p := ddotel.NewTracerProvider()
+		tracer := p.Tracer("")
+		otel.SetTracerProvider(p)
+		otel.SetTextMapPropagator(propagation.TraceContext{})
+		defer p.ForceFlush(time.Second, func(ok bool) {})
+
+		parentCtx, parentSpan := tracer.Start(context.Background(), parentName, trace.WithAttributes(tags...))
+
+		h := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			receivedSpan := oteltrace.SpanFromContext(r.Context())
+			// Need to propagate the user agent header to retain the mapping between
+			// the system-tests/weblog request id and the traces/spans
+			receivedSpan.SetAttributes(tags...)
+			if receivedSpan.SpanContext().TraceID() != parentSpan.SpanContext().TraceID() {
+				log.Fatalln("error in distributed tracing: Datadog OTel API and Otel net/http package span are not connected")
+				w.WriteHeader(500)
+				return
+			}
+		}), "testOperation")
+		testServer := httptest.NewServer(h)
+		defer testServer.Close()
+
+		// Need to propagate the user agent header to retain the mapping between
+		// the system-tests/weblog request id and the traces/spans
+		c := http.Client{Transport: otelhttp.NewTransport(nil, otelhttp.WithSpanOptions(oteltrace.WithAttributes(tags...)))}
+		req, err := http.NewRequestWithContext(parentCtx, http.MethodGet, testServer.URL, nil)
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+			return
+		}
+		resp, err := c.Do(req)
+		err = resp.Body.Close() // Need to close body to cause otel span to end
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+			return
+		}
+		parentSpan.End()
+
+		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/read_file", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Query().Get("file")
+		content, err := os.ReadFile(path)
+
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+			return
+		}
+		w.Write([]byte(content))
+	})
+
 	initDatadog()
 	go listenAndServeGRPC()
 	http.ListenAndServe(":7777", mux)
 }
 
 func write(w http.ResponseWriter, r *http.Request, d []byte) {
-	span, _ := tracer.StartSpanFromContext(r.Context(), "child.span")
+	span, _ := ddtracer.StartSpanFromContext(r.Context(), "child.span")
 	defer span.Finish()
 	w.Write(d)
 }

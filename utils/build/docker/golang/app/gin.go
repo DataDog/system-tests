@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"os"
 
 	"github.com/gin-gonic/gin"
 
@@ -45,6 +46,15 @@ func main() {
 	})
 	r.Any("/params/:myParam", func(ctx *gin.Context) {
 		ctx.Writer.Write([]byte("OK"))
+	})
+
+	r.Any("/tag_value/:tag/:status", func(ctx *gin.Context) {
+		tag := ctx.Param("tag")
+		status, _ := strconv.Atoi(ctx.Param("status"))
+		span, _ := tracer.SpanFromContext(ctx.Request.Context())
+		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		ctx.Writer.WriteHeader(status)
+		ctx.Writer.Write([]byte("Value tagged"))
 	})
 
 	r.Any("/status", func(ctx *gin.Context) {
@@ -122,6 +132,17 @@ func main() {
 			name = q
 		}
 		appsec.TrackCustomEvent(ctx.Request.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	r.GET("/read_file", func(ctx *gin.Context) {
+		path := ctx.Query("file")
+		content, err := os.ReadFile(path)
+
+		if err != nil {
+			log.Fatalln(err)
+			ctx.Writer.WriteHeader(500)
+		}
+		ctx.Writer.Write(content)
 	})
 
 	initDatadog()
