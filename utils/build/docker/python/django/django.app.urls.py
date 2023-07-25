@@ -1,21 +1,19 @@
 # pages/urls.py
+import requests
 from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from iast import (
-    weak_hash_secure_algorithm,
-    weak_hash,
-    weak_hash_multiple,
-    weak_hash_duplicates,
     weak_cipher,
     weak_cipher_secure_algorithm,
+    weak_hash,
+    weak_hash_duplicates,
+    weak_hash_multiple,
+    weak_hash_secure_algorithm,
 )
-
-import requests
-
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -33,7 +31,16 @@ def sample_rate(request, i):
     return HttpResponse("OK")
 
 
+_TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
+
+
+@csrf_exempt
 def waf(request, *args, **kwargs):
+    if "value" in kwargs:
+        appsec_trace_utils.track_custom_event(
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+        )
+        return HttpResponse("Value tagged", status=int(kwargs["code"]), headers=request.GET.dict())
     return HttpResponse("Hello, World!")
 
 
@@ -156,6 +163,66 @@ def make_distant_call(request):
     return JsonResponse(result)
 
 
+_TRACK_METADATA = {
+    "metadata0": "value0",
+    "metadata1": "value1",
+}
+
+
+_TRACK_USER = "system_tests_user"
+
+
+def track_user_login_success_event(request):
+    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    return HttpResponse("OK")
+
+
+def track_user_login_failure_event(request):
+    appsec_trace_utils.track_user_login_failure_event(
+        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+    )
+    return HttpResponse("OK")
+
+
+_TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
+
+
+def track_custom_event(request):
+    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    return HttpResponse("OK")
+
+
+def read_file(request):
+
+    if "file" not in request.GET:
+        return HttpResponseBadRequest("Please provide a file parameter")
+
+    filename = request.GET["file"]
+
+    with open(filename, "r") as f:
+        return HttpResponse(f.read())
+
+
+VALUE_STORED = ""
+
+
+@csrf_exempt
+def set_value(request, value, code=200):
+    """set_value entry point.
+    First parameter after the /set_value/ is used to set internal value
+    Second optional parameter is to set status response code
+    Any query parameter is used to set header reponse
+    """
+
+    global VALUE_STORED
+    VALUE_STORED = value
+    return HttpResponse("Value set", status=code, headers=request.GET.dict())
+
+
+def get_value(request):
+    return HttpResponse(VALUE_STORED)
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -163,6 +230,7 @@ urlpatterns = [
     path("waf/", waf),
     path("waf/<url>", waf),
     path("params/<appscan_fingerprint>", waf),
+    path("tag_value/<str:value>/<int:code>", waf),
     path("headers", headers),
     path("status", status_code),
     path("identify", identify),
@@ -177,4 +245,8 @@ urlpatterns = [
     path("iast/sqli/test_secure", view_sqli_secure),
     path("iast/sqli/test_insecure", view_sqli_insecure),
     path("make_distant_call", make_distant_call),
+    path("user_login_success_event", track_user_login_success_event),
+    path("user_login_failure_event", track_user_login_failure_event),
+    path("custom_event", track_custom_event),
+    path("read_file", read_file),
 ]

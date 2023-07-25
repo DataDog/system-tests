@@ -2,4 +2,7 @@ venv/
 .git/
 .vscode/
 vendor
-logs
+logs*
+shell.nix
+__pycache__
+scenario_groups.yml

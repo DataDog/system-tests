@@ -1,10 +1,4 @@
-FROM python:3.9
-
-# print versions
-RUN python --version && curl --version
-
-# install hello world app
-RUN pip install flask uwsgi requests pycryptodome psycopg2
+FROM datadog/system-tests:uwsgi-poc.base-v0
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py

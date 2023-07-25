@@ -13,10 +13,12 @@ from .utils import rules
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+if context.weblog_variant in ("akka-http", "spring-boot-payara"):
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
+
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Scanners:
@@ -36,7 +38,6 @@ class Test_Scanners:
 
 @released({"gin": "1.37.0", "*": "1.36.1"})
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_HttpProtocol:
@@ -64,7 +65,6 @@ class Test_HttpProtocol:
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(python={"flask-poc": "1.5.2", "uds-flask": "1.5.2", "*": "?"})
 @released(nodejs="2.0.0", php_appsec="0.1.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_LFI:
@@ -94,10 +94,10 @@ class Test_LFI:
     def setup_lfi_in_path(self):
         self.r_5 = weblog.get("/waf/..")
 
-    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(context.library < "java@0.92.0")
     @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     @irrelevant(library="python", weblog_variant="django-poc")
+    @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
@@ -105,7 +105,6 @@ class Test_LFI:
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RFI:
@@ -123,7 +122,6 @@ class Test_RFI:
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
@@ -150,7 +148,6 @@ class Test_CommandInjection:
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_PhpCodeInjection:
@@ -186,7 +183,6 @@ class Test_PhpCodeInjection:
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_JsInjection:
@@ -204,7 +200,6 @@ class Test_JsInjection:
 
 @released({"gin": "1.37.0", "echo": "1.36.0", "*": "1.35.0"})
 @released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.3.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_XSS:
@@ -233,7 +228,6 @@ class Test_XSS:
     def setup_xss2(self):
         self.r_xss2 = weblog.get("/waf/", cookies={"value": '<vmlframe src="xss">'})
 
-    @bug(library="dotnet", reason="APPSEC-2290")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_xss2(self):
         """XSS patterns in cookie, with special char"""
@@ -242,7 +236,6 @@ class Test_XSS:
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="1.3.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
@@ -295,7 +288,6 @@ class Test_SQLI:
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="2.12.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="1.8.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
@@ -328,7 +320,6 @@ class Test_NoSqli:
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_JavaCodeInjection:
@@ -348,7 +339,6 @@ class Test_JavaCodeInjection:
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_SSRF:
@@ -365,7 +355,6 @@ class Test_SSRF:
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released({"gin": "1.37.0", "*": "1.36.0"})
 @released(dotnet="2.3.0", nodejs="2.0.0", python="0.58.5")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_DiscoveryScan:

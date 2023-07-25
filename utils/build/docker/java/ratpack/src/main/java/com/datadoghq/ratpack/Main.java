@@ -1,5 +1,8 @@
 package com.datadoghq.ratpack;
 
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import datadog.trace.api.interceptor.MutableSpan;
+import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ratpack.http.HttpMethod;
@@ -46,107 +49,128 @@ public class Main {
         return h;
     }
 
+    private static void setRootSpanTag(final String key, final String value) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) span).getLocalRootSpan();
+            if (rootSpan != null) {
+                rootSpan.setTag(key, value);
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
+        var iastHandlers = new IastHandlers();
         var server = RatpackServer.start(s ->
                 s.serverConfig(action -> action
                         .address(InetAddress.getByName("0.0.0.0"))
                         .port(7777)
-                ).handlers(chain -> chain
-                        .get("", ctx -> {
-                            var tracer = GlobalTracer.get();
-                            Span span = tracer.buildSpan("test-span").start();
-                            span.setTag("test-tag", "my value");
-                            try {
-                                ctx.getResponse().send("text/plain", "Hello World!");
-                            } finally {
-                                span.finish();
-                            }
-                        })
-                        .get("headers", ctx -> {
-                            Response response = ctx.getResponse();
-                            response.getHeaders()
-                                    .add("content-language", "en-US");
-                            response.send("text/plain", "012345678901234567890123456789012345678901");
-                        })
-                        .get("make_distant_call", ctx -> {
-                            String url = ctx.getRequest().getQueryParams().get("url");
+                ).handlers(chain -> {
+                    chain
+                            .get("", ctx -> {
+                                var tracer = GlobalTracer.get();
+                                Span span = tracer.buildSpan("test-span").start();
+                                span.setTag("test-tag", "my value");
+                                try {
+                                    ctx.getResponse().send("text/plain", "Hello World!");
+                                } finally {
+                                    span.finish();
+                                }
+                            })
+                            .get("headers", ctx -> {
+                                Response response = ctx.getResponse();
+                                response.getHeaders()
+                                        .add("content-language", "en-US");
+                                response.send("text/plain", "012345678901234567890123456789012345678901");
+                            })
+                            .get("make_distant_call", ctx -> {
+                                String url = ctx.getRequest().getQueryParams().get("url");
 
-                            URL urlObject = new URL(url);
+                                URL urlObject = new URL(url);
 
-                            HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-                            con.setRequestMethod("GET");
+                                HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
+                                con.setRequestMethod("GET");
 
-                            // Save request headers
-                            HashMap<String, String> request_headers = new HashMap<String, String>();
-                            for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
-                                if (header.getKey() == null) {
-                                    continue;
+                                // Save request headers
+                                HashMap<String, String> request_headers = new HashMap<String, String>();
+                                for (Map.Entry<String, List<String>> header : con.getRequestProperties().entrySet()) {
+                                    if (header.getKey() == null) {
+                                        continue;
+                                    }
+
+                                    request_headers.put(header.getKey(), header.getValue().get(0));
                                 }
 
-                                request_headers.put(header.getKey(), header.getValue().get(0));
-                            }
+                                // Save response headers and status code
+                                int status_code = con.getResponseCode();
+                                HashMap<String, String> response_headers = new HashMap<String, String>();
+                                for (Map.Entry<String, List<String>> header : con.getHeaderFields().entrySet()) {
+                                    if (header.getKey() == null) {
+                                        continue;
+                                    }
 
-                            // Save response headers and status code
-                            int status_code = con.getResponseCode();
-                            HashMap<String, String> response_headers = new HashMap<String, String>();
-                            for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
-                                if (header.getKey() == null) {
-                                    continue;
+                                    response_headers.put(header.getKey(), header.getValue().get(0));
                                 }
 
-                                response_headers.put(header.getKey(), header.getValue().get(0));
-                            }
+                                DistantCallResponse result = new DistantCallResponse();
+                                result.url = url;
+                                result.status_code = status_code;
+                                result.request_headers = request_headers;
+                                result.response_headers = response_headers;
 
-                            DistantCallResponse result = new DistantCallResponse();
-                            result.url = url;
-                            result.status_code = status_code;
-                            result.request_headers = request_headers;
-                            result.response_headers = response_headers;
-
-                            Response response = ctx.getResponse();
-                            response.send("application/json", (new ObjectMapper()).writeValueAsString(result));
-                        })
-                        .path("waf", ctx -> {
-                            HttpMethod method = ctx.getRequest().getMethod();
-                            if (method.equals(HttpMethod.GET)) {
-
-                                ctx.getResponse().send("text/plain", "(empty url params)");
-                            } else if (method.equals(HttpMethod.POST)) {
-                                ctx.insert(new WafPostHandler());
-                            } else {
-                                ctx.next();
-                            }
-                        })
-                        .get("params/:params?:.*",
-                                ctx -> ctx.getResponse().send("text/plain", ctx.getPathTokens().toString()))
-                        .path("status", ctx -> {
-                            String codeParam = ctx.getRequest().getQueryParams().get("code");
-                            int code = Integer.parseInt(codeParam);
-                            ctx.getResponse().status(code).send();
-                        })
-                        .get("user_login_success_event", ctx -> {
-                            MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
-                            datadog.trace.api.GlobalTracer.getEventTracker()
-                                    .trackLoginSuccessEvent(
-                                            qp.getOrDefault("event_user_id", "system_tests_user"), METADATA);
-                            ctx.getResponse().send("ok");
-                        })
-                        .get("user_login_failure_event", ctx -> {
-                            MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
-                            datadog.trace.api.GlobalTracer.getEventTracker()
-                                    .trackLoginFailureEvent(
-                                            qp.getOrDefault("event_user_id", "system_tests_user"),
-                                            Boolean.parseBoolean(qp.getOrDefault("event_user_exists", "true")),
-                                            METADATA);
-                            ctx.getResponse().send("ok");
-                        })
-                        .get("custom_event", ctx -> {
-                            MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
-                            datadog.trace.api.GlobalTracer.getEventTracker()
-                                    .trackCustomEvent(
-                                            qp.getOrDefault("event_name", "system_tests_event"), METADATA);
-                            ctx.getResponse().send("ok");
-                        })
+                                Response response = ctx.getResponse();
+                                response.send("application/json", (new ObjectMapper()).writeValueAsString(result));
+                            })
+                            .path("tag_value/:value/:code", ctx -> {
+                                final String value = ctx.getPathTokens().get("value");
+                                final int code = Integer.parseInt(ctx.getPathTokens().get("code"));
+                                WafPostHandler.consumeParsedBody(ctx).then(v -> {
+                                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+                                    ctx.getResponse().status(code).send("Value tagged");
+                                });
+                            })
+                            .path("waf/:params?", ctx -> {
+                                HttpMethod method = ctx.getRequest().getMethod();
+                                if (method.equals(HttpMethod.GET)) {
+                                    ctx.getResponse().send("text/plain", "(empty url params)");
+                                } else if (method.equals(HttpMethod.POST)) {
+                                    ctx.insert(new WafPostHandler());
+                                } else {
+                                    ctx.next();
+                                }
+                            })
+                            .get("params/:params?:.*",
+                                    ctx -> ctx.getResponse().send("text/plain", ctx.getPathTokens().toString()))
+                            .path("status", ctx -> {
+                                String codeParam = ctx.getRequest().getQueryParams().get("code");
+                                int code = Integer.parseInt(codeParam);
+                                ctx.getResponse().status(code).send();
+                            })
+                            .get("user_login_success_event", ctx -> {
+                                MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                                datadog.trace.api.GlobalTracer.getEventTracker()
+                                        .trackLoginSuccessEvent(
+                                                qp.getOrDefault("event_user_id", "system_tests_user"), METADATA);
+                                ctx.getResponse().send("ok");
+                            })
+                            .get("user_login_failure_event", ctx -> {
+                                MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                                datadog.trace.api.GlobalTracer.getEventTracker()
+                                        .trackLoginFailureEvent(
+                                                qp.getOrDefault("event_user_id", "system_tests_user"),
+                                                Boolean.parseBoolean(qp.getOrDefault("event_user_exists", "true")),
+                                                METADATA);
+                                ctx.getResponse().send("ok");
+                            })
+                            .get("custom_event", ctx -> {
+                                MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                                datadog.trace.api.GlobalTracer.getEventTracker()
+                                        .trackCustomEvent(
+                                                qp.getOrDefault("event_name", "system_tests_event"), METADATA);
+                                ctx.getResponse().send("ok");
+                            });
+                        iastHandlers.setup(chain);
+                        }
                 )
         );
         System.out.println("Ratpack server started on port 7777");

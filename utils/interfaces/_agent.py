@@ -8,11 +8,11 @@ This files will validate data flow between agent and backend
 
 import json
 import threading
+import copy
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span
 from utils.interfaces._schemas_validators import SchemaValidator
-from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
@@ -23,12 +23,9 @@ class AgentInterfaceValidator(InterfaceValidator):
         super().__init__("agent")
         self.ready = threading.Event()
 
-    def append_data(self, data):
-        data = super().append_data(data)
-
+    def ingest_file(self, src_path):
         self.ready.set()
-
-        return data
+        return super().ingest_file(src_path)
 
     def get_appsec_data(self, request):
 
@@ -68,11 +65,8 @@ class AgentInterfaceValidator(InterfaceValidator):
         validator = SchemaValidator("agent", allowed_errors)
         self.validate(validator, success_by_default=True)
 
-    def add_profiling_validation(self, validator, success_by_default=False):
-        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
-
-    def profiling_assert_field(self, field_name, content_pattern=None):
-        self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
+    def get_profiling_data(self):
+        yield from self.get_data(path_filters="/api/v2/profile")
 
     def validate_appsec(self, request, validator):
         for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
@@ -81,8 +75,22 @@ class AgentInterfaceValidator(InterfaceValidator):
 
         raise Exception("No data validate this test")
 
-    def get_telemetry_data(self):
-        yield from self.get_data(path_filters="/api/v2/apmtelemetry")
+    def get_telemetry_data(self, flatten_message_batches=True):
+        all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
+        if flatten_message_batches:
+            yield from all_data
+        else:
+            for data in all_data:
+                if data["request"]["content"].get("request_type") == "message-batch":
+                    for batch_payload in data["request"]["content"]["payload"]:
+                        # create a fresh copy of the request for each payload in the
+                        # message batch, as though they were all sent independently
+                        copied = copy.deepcopy(data)
+                        copied["request"]["content"]["request_type"] = batch_payload.get("request_type")
+                        copied["request"]["content"]["payload"] = batch_payload.get("payload")
+                        yield copied
+                else:
+                    yield data
 
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)

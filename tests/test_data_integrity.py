@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import weblog, interfaces, context, bug, rfc, scenarios
+from utils import weblog, interfaces, context, bug, rfc, scenarios, missing_feature
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
@@ -46,7 +46,7 @@ class Test_TraceHeaders:
         def validator(data):
             request_headers = {h[0].lower() for h in data["request"]["headers"]}
             if "x-datadog-diagnostic-check" in request_headers and len(data["request"]["content"]) != 0:
-                raise Exception("Tracer sent a dignostic request with traces in it")
+                raise ValueError("Tracer sent a dignostic request with traces in it")
 
         interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
 
@@ -59,36 +59,30 @@ class Test_TraceHeaders:
                     try:
                         trace_count = int(value)
                     except ValueError:
-                        raise Exception(f"'x-datadog-trace-count' request header is not an integer: {value}")
+                        raise ValueError(f"'x-datadog-trace-count' request header is not an integer: {value}")
 
                     if trace_count != len(data["request"]["content"]):
-                        raise Exception("x-datadog-trace-count request header didn't match the number of traces")
+                        raise ValueError("x-datadog-trace-count request header didn't match the number of traces")
 
         interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
 
     def setup_trace_header_container_tags(self):
-        self.weblog_container_id = None
+        self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
 
-        USE_NEW_CGROUP_GETTER = context.weblog_variant in ("flask-poc",)
+    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
+    @missing_feature(context.library == "java" and context.weblog_variant != "spring-boot", reason="Missing endpoint")
+    @missing_feature(context.library == "nodejs" and context.weblog_variant != "express4", reason="Missing endpoint")
+    @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
+    def test_trace_header_container_tags(self):
+        """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 
-        if USE_NEW_CGROUP_GETTER:
-            logger.debug("cgroup: using HTTP endpoint")
-            r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
-            infos = r.text.split("\n")
-        else:
-            logger.debug("cgroup: using log file")
-            with open("logs/docker/weblog/logs/weblog.cgroup", mode="r", encoding="utf-8") as fp:
-                infos = fp.readlines()
+        assert self.r.status_code == 200
+        infos = self.r.text.split("\n")
 
         logger.info(f"cgroup: file content is {infos}")
 
-        self.weblog_container_id = get_container_id(infos)
-        logger.info(f"cgroup: weblog container id is {self.weblog_container_id}")
-
-    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
-    @scenarios.cgroup
-    def test_trace_header_container_tags(self):
-        """Datadog-Container-ID header value is right in all traces submitted to the agent"""
+        weblog_container_id = get_container_id(infos)
+        logger.info(f"cgroup: weblog container id is {weblog_container_id}")
 
         def validator(data):
 
@@ -109,13 +103,13 @@ class Test_TraceHeaders:
 
             request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
 
-            if self.weblog_container_id is not None:
+            if weblog_container_id is not None:
                 if "datadog-container-id" not in request_headers:
-                    raise Exception(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
+                    raise ValueError(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
 
-                if request_headers["datadog-container-id"] != self.weblog_container_id:
-                    raise Exception(
-                        f"Expected Datadog-Container-ID header to be {self.weblog_container_id}, "
+                if request_headers["datadog-container-id"] != weblog_container_id:
+                    raise ValueError(
+                        f"Expected Datadog-Container-ID header to be {weblog_container_id}, "
                         f"but got {request_headers['datadog-container-id']} "
                         f"in request {data['log_filename']}"
                     )

@@ -3,7 +3,7 @@
 First of all, it'll be more confortable to set-up your dev env. The repo contains basic conf for VSCode, feel free to add conf for other IDE.
 
 ```bash
-python3 -m venv venv
+python3.9 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```

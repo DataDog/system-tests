@@ -126,3 +126,22 @@ if [ $TEST_CASE == "TestCase5" ]; then
     ${BASE_DIR}/execFunction.sh check-for-disabled-pod-metadata
     echo "[run-auto-lib-injection] Completed successfully"
 fi
+
+if [ $TEST_CASE == "TestCase6" ]; then
+    # Inject-all case (for batch instrumentation)
+    #   - use language name "all" in RC config
+    #   - all supported language libraries should be injected into the container
+    #   - ensure traces are produced and the pods are modified correctly
+    echo "[run-auto-lib-injection] Deploying deployment"
+    ${BASE_DIR}/execFunction.sh deploy-app-auto
+    echo "[run-auto-lib-injection] Deploying agents"
+    ${BASE_DIR}/execFunction.sh deploy-agents-auto
+    echo "[run-auto-lib-injection] Apply config"
+    INJECT_ALL="1" ${BASE_DIR}/execFunction.sh apply-config-auto
+    echo "[run-auto-lib-injection] Running tests"
+    ${BASE_DIR}/execFunction.sh test-for-traces
+    ${BASE_DIR}/execFunction.sh check-for-env-vars
+    INJECT_ALL="1" ${BASE_DIR}/execFunction.sh check-for-pod-metadata
+    ${BASE_DIR}/execFunction.sh check-for-deploy-metadata
+    echo "[run-auto-lib-injection] Completed successfully"
+fi

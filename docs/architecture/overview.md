@@ -51,7 +51,7 @@ The tests then wait on the results, which are available as the logs are collecte
 
 ## What are system-tests bad for?
 
- - Combinatorial-style tests (Permutations of frameowrk runtimes, 3rd libraries versions, operating systems)
+ - Combinatorial-style tests (Permutations of framework runtimes, 3rd libraries versions, operating systems)
  - Cloud deployments, kubernetes, distributed deployments
  - Immediately knowing the reason a feature fails
  - Problems or features which are not shared across tracers
@@ -92,9 +92,7 @@ As system tests is blackbox testing, there will likely be very little informatio
 
 The first method of troubleshooting should be to inspect the logs folder.
 
-The folder is usually `./logs/`.
-
-If you are running a non-default scenario: the logs folder is set with the `SYSTEMTESTS_LOG_FOLDER` variable in in the `./run.sh` file.
+The folder is `./logs/` for the default scenario, or `./logs_<scenario_name>` for other scenatrios
 
 ```mermaid
 flowchart TD

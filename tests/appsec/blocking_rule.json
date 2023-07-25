@@ -30,6 +30,31 @@
       ]
     },
     {
+      "id": "blk-001-001",
+      "name": "Block IP Addresses",
+      "tags": {
+        "type": "block_ip",
+        "category": "security_response"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "http.client_ip"
+              }
+            ],
+            "data": "blocked_ips"
+          },
+          "operator": "ip_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
       "id": "arachni_rule",
       "name": "Arachni",
       "tags": {
@@ -52,7 +77,9 @@
           "operator": "match_regex"
         }
       ],
-      "on_match": ["block"]
+      "on_match": [
+        "block"
+      ]
     },
     {
       "id": "canary_rule1",
@@ -77,7 +104,9 @@
           "operator": "match_regex"
         }
       ],
-      "on_match": ["block1"]
+      "on_match": [
+        "block1"
+      ]
     },
     {
       "id": "canary_rule2",
@@ -125,9 +154,12 @@
                 ]
               }
             ],
-            "regex": "en-us"
+            "regex": "en-us|krypton"
           },
-          "operator": "match_regex"
+          "operator": "match_regex",
+          "options": {
+            "case_sensitive": true
+          }
         }
       ],
       "transformers": [],
@@ -215,7 +247,7 @@
     },
     {
       "id": "tst-037-003",
-      "name": "Test block on body raw",
+      "name": "Test block on request headers",
       "tags": {
         "type": "lfi",
         "crs_id": "000003",
@@ -226,7 +258,7 @@
           "parameters": {
             "inputs": [
               {
-                "address": "server.request.body.raw"
+                "address": "server.request.headers.no_cookies"
               }
             ],
             "regex": "asldhkuqwgervf"
@@ -333,7 +365,72 @@
                 "address": "server.response.status"
               }
             ],
-            "regex": "418"
+            "regex": "415|416|417|418"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-010",
+      "name": "Test block on not found",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000005",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.response.status"
+              }
+            ],
+            "regex": "404"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "operator": "phrase_match",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "list": [
+              "/finger_print"
+            ]
+          }
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-011",
+      "name": "Test block on uri that should not block",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000011",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "regex": "^/waf/uri_raw_should_not_include_scheme_domain_and_port$"
           },
           "operator": "match_regex"
         }
@@ -363,6 +460,16 @@
     }
   ],
   "rules_data": [
+    {
+      "id": "blocked_ips",
+      "type": "ip_with_expiration",
+      "data": [
+        {
+          "value": "1.1.1.1",
+          "expiration": 0
+        }
+      ]
+    },
     {
       "id": "blocked_users",
       "type": "data_with_expiration",
