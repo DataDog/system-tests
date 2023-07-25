@@ -23,23 +23,23 @@ public class DebuggerController {
 // Dummy line
     @GetMapping("/metric")
     public @ResponseBody String metricProbe() {
-        // int id = 0;
-        return "Metric Probe " + "id";
+        int id = 0;
+        return "Metric Probe " + id;
     }
 
 // Dummy line
 // Dummy line
     @GetMapping("/span")
     public @ResponseBody String spanProbe() {
-        // String span = "some";
-        return "Span Probe " + "span";
+        String span = "some";
+        return "Span Probe " + span;
     }
 
 // Dummy line
 // Dummy line
     @GetMapping("/span-decoration/{arg}/{intArg}")
     public @ResponseBody String spanDecorationProbe(@PathVariable String arg, @PathVariable int intArg) {
-        // int intLocal = arg.length() * 2;
-        return "Span Decoration Probe " + "intLocal";
+        int intLocal = arg.length() * 2;
+        return "Span Decoration Probe " + intLocal;
     }
 }
