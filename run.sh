@@ -192,16 +192,21 @@ function run_scenario() {
               -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}"
               --name system-tests-runner
               system_tests/runner
-              venv/bin/pytest -S "${scenario}" "${pytest_args[@]}"
+              venv/bin/pytest
             )
             ;;
         'direct')
-            cmd+=(pytest -S "${scenario}" "${pytest_args[@]}")
+            cmd+=(pytest)
             ;;
         *)
             die "unsupported run mode: ${mode}"
             ;;
     esac
+
+    cmd+=(
+        -S "${scenario}"
+        "${pytest_args[@]}"
+    )
 
     "${cmd[@]}"
 }
