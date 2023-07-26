@@ -491,7 +491,6 @@ class Test_Headers_Tracecontext:
         assert len(tracestate1.split(",")) == len(tracestate2.split(","))
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "ruby", reason="Issue initializing tracestate with other vendor")
     def test_tracestate_included_traceparent_included(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent
@@ -586,7 +585,6 @@ class Test_Headers_Tracecontext:
         context.library == "python_http",
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
-    @missing_feature(context.library == "ruby", reason="Issue initializing tracestate with other vendor")
     def test_tracestate_empty_header(self, test_agent, test_library):
         """
         harness sends a request with empty tracestate header
@@ -647,7 +645,6 @@ class Test_Headers_Tracecontext:
         context.library == "python_http",
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
-    @missing_feature(context.library == "ruby", reason="Issue initializing tracestate with other vendor")
     def test_tracestate_multiple_headers_different_keys(self, test_agent, test_library):
         """
         harness sends a request with multiple tracestate headers, each contains different set of keys
@@ -676,7 +673,6 @@ class Test_Headers_Tracecontext:
         assert str(tracestate).index("congo=2") < str(tracestate).index("baz=3")
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "ruby", reason="Issue initializing tracestate with other vendor")
     def test_tracestate_duplicated_keys(self, test_agent, test_library):
         """
         harness sends a request with an invalid tracestate header with duplicated keys
@@ -731,7 +727,6 @@ class Test_Headers_Tracecontext:
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "ruby", reason="Issue initializing tracestate with other vendor")
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
         """
         harness sends a request with a valid tracestate header with all legal characters
@@ -776,7 +771,6 @@ class Test_Headers_Tracecontext:
     @missing_feature(
         context.library == "php", reason="PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)"
     )
-    @missing_feature(context.library == "ruby", reason="Issue initializing tracestate with other vendor")
     def test_tracestate_ows_handling(self, test_agent, test_library):
         """
         harness sends a request with a valid tracestate header with OWS
