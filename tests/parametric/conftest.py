@@ -930,20 +930,30 @@ def check_library_version(request, test_library, test_agent):
     to be installed and used so that the version reported by the library can be verified against a source of
     truth. Right now we assume that the library version reported is correct.
     """
+    if not hasattr(request.instance, "__released__"):
+        return
+    released_version = version.parse(request.instance.__released__[context.library.library])
+
+    # Create a trace to get the library to make a request to the agent.
     with test_library:
         with test_library.start_span("operation"):
             pass
-    test_agent.wait_for_num_traces(1)
-    trace_request = [r for r in test_agent.requests() if "trace" in r["url"]][0]
+
+    # Try to find a library version in the request(s) made to the agent.
+    for r in test_agent.requests():
+        if "Datadog-Meta-Tracer-Version" in r["headers"]:
+            library_version = r["headers"]["Datadog-Meta-Tracer-Version"]
+            break
+    else:
+        raise ValueError("Failed to detect library version in requests")
 
     # Clear the requests made to the agent so that they don't interfere with the test case.
     test_agent.clear()
-    reported_tracer_version = version.parse(trace_request["headers"]["Datadog-Meta-Tracer-Version"])
 
-    if hasattr(request.instance, "__released__"):
-        released_version = version.parse(request.instance.__released__[context.library.library])
-        if reported_tracer_version < released_version:
-            pytest.skip(
-                "Tested library version %s is older than the released version %s"
-                % (reported_tracer_version, released_version)
-            )
+    reported_tracer_version = version.parse(library_version)
+
+    if reported_tracer_version < released_version:
+        pytest.skip(
+            "Tested library version %s is older than the released version %s"
+            % (reported_tracer_version, released_version)
+        )
