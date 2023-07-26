@@ -1,7 +1,6 @@
 import base64
 import contextlib
 import dataclasses
-from distutils.version import LooseVersion
 import os
 import shutil
 import socket
@@ -12,6 +11,7 @@ from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, Type
 import urllib.parse
 
 import requests
+from packaging import version
 import pytest
 
 from utils.parametric.spec.trace import V06StatsPayload
@@ -920,11 +920,15 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
 
 
 @pytest.fixture(autouse=True)
-def check_library_version(request, test_library, test_agent) -> LooseVersion:
+def check_library_version(request, test_library, test_agent):
     """Check and skip parametric test cases if the library version does not match.
 
     The library version is detected by querying the library with a trace and checking the version
     return by the library in the HTTP header DataDog-Meta-Tracer-Version.
+
+    A better version of this fixture would be to have APMLibraryTestServer declare the version of the library
+    to be installed and used so that the version reported by the library can be verified against a source of
+    truth. Right now we assume that the library version reported is correct.
     """
     with test_library:
         with test_library.start_span("operation"):
@@ -934,13 +938,12 @@ def check_library_version(request, test_library, test_agent) -> LooseVersion:
 
     # Clear the requests made to the agent so that they don't interfere with the test case.
     test_agent.clear()
-    reported_tracer_version = LooseVersion(trace_request["headers"]["Datadog-Meta-Tracer-Version"])
+    reported_tracer_version = version.parse(trace_request["headers"]["Datadog-Meta-Tracer-Version"])
 
-    if getattr(request.instance, "__released__"):
-        released_version = request.instance.__released__[context.library.library]
+    if hasattr(request.instance, "__released__"):
+        released_version = version.parse(request.instance.__released__[context.library.library])
         if reported_tracer_version < released_version:
             pytest.skip(
-                "Tracer version %s is older than the released version %s"
-                % (reported_tracer_version, request.instance.__released__)
+                "Tested library version %s is older than the released version %s"
+                % (reported_tracer_version, released_version)
             )
-    return reported_tracer_version
