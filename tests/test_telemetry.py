@@ -522,7 +522,7 @@ class Test_ProductsDisabled:
                     products["appsec"]["enabled"] == False 
                     and products["profiler"]["enabled"] == False 
                     and products["dynamic_instrumentation"]["enabled"] == False
-                    ), "Product information is not reported correctly on app-started event when all products are disabled, 'enabled' field should be false"
+                ), "Product information is not reported correctly on app-started event when all products are disabled, 'enabled' field should be false"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
