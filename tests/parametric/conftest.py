@@ -97,7 +97,6 @@ def _get_base_directory():
 def python_library_factory() -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
@@ -697,13 +696,14 @@ class _TestAgentAPI:
         for i in range(wait_loops):
             try:
                 reqs = self.requests()
-                # TODO: need testagent endpoint for remoteconfig requests
+                # Get all remoteconfig requests.
                 rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
                 for r in rc_reqs:
                     r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
             except requests.exceptions.RequestException:
                 pass
             else:
+                # Look for the given apply state in the requests.
                 for req in rc_reqs:
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
                         if cfg_state["product"] == product and cfg_state["apply_state"] == state:
@@ -724,7 +724,7 @@ def docker_run(
     ports: List[Tuple[str, str]],
     log_file: TextIO,
     network_name: str,
-):
+) -> Generator[None, None, None]:
     _cmd: List[str] = [
         shutil.which("docker"),
         "run",

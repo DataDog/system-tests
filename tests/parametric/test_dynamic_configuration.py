@@ -1,12 +1,17 @@
 """
 Test the dynamic configuration via Remote Config (RC) feature of the APM libraries.
+
+TODO:
+ - test case for new version of config, ensure it doesn't break libraries
+ - test no config change = no telemetry event
 """
 import json
 from typing import Any
 from typing import Dict
 from typing import List
 
-from utils import context, missing_feature, scenarios
+from utils.parametric.spec.trace import Span
+from utils import context, missing_feature, released, rfc, scenarios
 
 import pytest
 
@@ -15,13 +20,11 @@ parametrize = pytest.mark.parametrize
 
 
 DEFAULT_SAMPLE_RATE = 1.0
-
-
-DEFAULT_SERVICE = "test_service"
-DEFAULT_ENV = "test_env"
+TEST_SERVICE = "test_service"
+TEST_ENV = "test_env"
 DEFAULT_ENVVARS = {
-    "DD_SERVICE": DEFAULT_SERVICE,
-    "DD_ENV": DEFAULT_ENV,
+    "DD_SERVICE": TEST_SERVICE,
+    "DD_ENV": TEST_ENV,
     # Needed for .NET until Telemetry V2 is released
     "DD_INTERNAL_TELEMETRY_V2_ENABLED": "1",
     # Decrease the heartbeat/poll intervals to speed up the tests
@@ -30,7 +33,7 @@ DEFAULT_ENVVARS = {
 }
 
 
-def send_and_wait_trace(test_library, test_agent, **span_kwargs):
+def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
     with test_library.start_span(**span_kwargs):
         pass
     traces = test_agent.wait_for_num_traces(num=1, clear=True)
@@ -38,7 +41,7 @@ def send_and_wait_trace(test_library, test_agent, **span_kwargs):
     return traces[0]
 
 
-def _default_config(service, env) -> Dict[str, Any]:
+def _default_config(service: str, env: str) -> Dict[str, Any]:
     return {
         "action": "enable",
         "service_target": {"service": service, "env": env},
@@ -70,7 +73,7 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
 
     It is assumed that the configuration is successfully applied.
     """
-    rc_config = _default_config(DEFAULT_SERVICE, DEFAULT_ENV)
+    rc_config = _default_config(TEST_SERVICE, TEST_ENV)
     for k, v in config_overrides.items():
         rc_config["lib_config"][k] = v
 
@@ -97,8 +100,20 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
 ENV_SAMPLING_RULE_RATE = 0.55
 
 
+@released(
+    java="1.17.0", dotnet="2.33.0", nodejs="?", python="?", ruby="1.13.0", golang="?", php="?", cpp="?",
+)
+@rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
-class TestDynamicConfig:
+class TestDynamicConfigV1:
+    """Tests covering the v1 release of the dynamic configuration feature.
+
+    v1 includes support for:
+        - tracing_sampling_rate
+        - log_injection_enabled
+        - tracing_header_tags
+    """
+
     @parametrize("library_env", [{"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"}])
     def test_telemetry_app_started(self, library_env, test_agent, test_library):
         """Ensure that the app-started telemetry event is being submitted.
@@ -124,6 +139,7 @@ class TestDynamicConfig:
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
 
+    @missing_feature(context.library in ["java", "dotnet", "ruby", "nodejs"], reason="Not implemented yet")
     @parametrize(
         "library_env",
         [
@@ -140,7 +156,6 @@ class TestDynamicConfig:
             ]
         ],
     )
-    @missing_feature(context.library in ["java", "dotnet", "ruby", "nodejs"], reason="Not implemented yet")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
@@ -150,7 +165,7 @@ class TestDynamicConfig:
         We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ from the service
         target in the RC record.
         """
-        _set_rc(test_agent, _default_config(DEFAULT_SERVICE, DEFAULT_ENV))
+        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3)
         assert cfg_state["apply_state"] == 3
         assert cfg_state["apply_error"] != ""
@@ -259,6 +274,7 @@ class TestDynamicConfig:
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
+    @missing_feature(context.library in ["java", "dotnet"], reason="RPC not implemented yet")
     @parametrize(
         "library_env",
         [
@@ -324,7 +340,3 @@ class TestDynamicConfig:
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
         assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
         assert int(trace[0][0]["meta"]["content_length_env"]) > 0
-
-
-# TODO test case for new version of config, ensure it doesn't break libraries
-# TODO: test no config change = no telemetry event

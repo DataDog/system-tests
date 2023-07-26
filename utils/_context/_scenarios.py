@@ -1,10 +1,13 @@
+from distutils.version import LooseVersion
 from logging import FileHandler
 import os
 from pathlib import Path
+import re
 import shutil
 import time
 
 import pytest
+import requests
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
@@ -823,13 +826,60 @@ class OnBoardingScenario(_Scenario):
 
 
 class ParametricScenario(_Scenario):
+    # ref: https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+    semver_regex = "(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
+
+    def __init__(self, *args, **kwargs) -> None:
+        self._version_cache = {}
+        super().__init__(*args, **kwargs)
+
     def configure(self, option):
         super().configure(option)
         assert "TEST_LIBRARY" in os.environ
 
     @property
     def library(self):
-        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "0.00")
+        test_lib = os.getenv("TEST_LIBRARY", "**not-set**")
+        version = "0.00"
+
+        # Cache versions to avoid rate limits with network requests
+        if test_lib in self._version_cache:
+            return LibraryVersion(test_lib, self._version_cache[test_lib])
+
+        if test_lib == "python":
+            # parametric pulls in the latest published python library
+            if "PYTHON_DDTRACE_PACKAGE" in os.environ:
+                print(
+                    "WARNING: python version comparison does not work for custom branches, defaulting to latest version"
+                )
+            data = requests.get("https://pypi.org/pypi/ddtrace/json").json()
+            versions = list(data["releases"].keys())
+            versions.sort(key=LooseVersion, reverse=True)
+            version = versions[0]
+        elif test_lib == "ruby":
+            if "RUBY_DDTRACE_SHA" in os.environ:
+                print(
+                    "WARNING: ruby version comparison does not work for custom branches, defaulting to latest version"
+                )
+            data = requests.get("https://rubygems.org/api/v1/gems/ddtrace.json").json()
+            version = data["version"]
+        elif test_lib == "java":
+            data = requests.get("https://api.github.com/repos/datadog/dd-trace-java/releases/latest").json()
+            version = data["tag_name"]
+        elif test_lib == "dotnet":
+            # Right now the version is fixed in the csproj file, so read it from there.
+            with open("utils/build/docker/dotnet/parametric/ApmTestClient.csproj", "r") as f:
+                for line in f.readlines():
+                    if "Datadog.Trace" in line:
+                        version = re.search(self.semver_regex, line).group(0)
+            # When latest is used then we can use the code below to get the latest version.
+            ##  data = requests.get("https://www.nuget.org/packages/dd-trace")
+            ##  Pretty sketchy, but assume that the first matching semver string
+            ##  in the webpage is the Datadog library version.
+            ##  version = re.search(self.semver_regex, data.text).group(0)
+        self._version_cache[test_lib] = version
+        # assert version == "0.0", version
+        return LibraryVersion(test_lib, version)
 
 
 class scenarios:
