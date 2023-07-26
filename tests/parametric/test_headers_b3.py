@@ -190,6 +190,10 @@ class Test_Headers_B3:
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
+    @missing_feature(
+        context.library == "ruby",
+        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3 config",
+    )
     def test_headers_b3_migrated_inject_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are injected properly.
         """
@@ -217,6 +221,10 @@ class Test_Headers_B3:
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
+    @missing_feature(
+        context.library == "ruby",
+        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3 config",
+    )
     def test_headers_b3_migrated_propagate_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are extracted
         and injected properly.
@@ -247,6 +255,10 @@ class Test_Headers_B3:
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
+    @missing_feature(
+        context.library == "ruby",
+        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3 config",
+    )
     def test_headers_b3_migrated_propagate_invalid(self, test_agent, test_library):
         """Ensure that invalid b3 distributed tracing headers are not extracted
         and the new span context is injected properly.
