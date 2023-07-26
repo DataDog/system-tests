@@ -82,6 +82,10 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi()
+    @missing_feature(
+        context.library == "ruby",
+        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3multi config",
+    )
     def test_headers_b3multi_inject_valid(self, test_agent, test_library):
         """Ensure that b3multi distributed tracing headers are injected properly.
         """
@@ -100,6 +104,10 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi()
+    @missing_feature(
+        context.library == "ruby",
+        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3multi config",
+    )
     def test_headers_b3multi_propagate_valid(self, test_agent, test_library):
         """Ensure that b3multi distributed tracing headers are extracted
         and injected properly.
@@ -127,6 +135,10 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi()
+    @missing_feature(
+        context.library == "ruby",
+        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3multi config",
+    )
     def test_headers_b3multi_propagate_invalid(self, test_agent, test_library):
         """Ensure that invalid b3multi distributed tracing headers are not extracted
         and the new span context is injected properly.
