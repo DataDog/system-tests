@@ -1,13 +1,10 @@
-from distutils.version import LooseVersion
 from logging import FileHandler
 import os
 from pathlib import Path
-import re
 import shutil
 import time
 
 import pytest
-import requests
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
@@ -829,22 +826,13 @@ class OnBoardingScenario(_Scenario):
 
 
 class ParametricScenario(_Scenario):
-    # ref: https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-    semver_regex = "(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
-
-    def __init__(self, *args, **kwargs) -> None:
-        self._version_cache = {}
-        super().__init__(*args, **kwargs)
-
     def configure(self, option):
         super().configure(option)
         assert "TEST_LIBRARY" in os.environ
 
     @property
     def library(self):
-        # The library version is checked by the check_library_version fixture.
-        test_lib = os.getenv("TEST_LIBRARY", "**not-set**")
-        return LibraryVersion(test_lib, "0.0.0")
+        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "0.00")
 
 
 class scenarios:
