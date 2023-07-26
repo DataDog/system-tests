@@ -73,6 +73,10 @@ class Test_Headers_Tracecontext:
         context.library == "golang",
         reason="golang does not reconcile duplicate http headers, if duplicate headers received the propagator will not be used",
     )
+    @missing_feature(
+        context.library == "ruby",
+        reason="the tracer should reject the incoming traceparent(s) when there are multiple traceparent headers",
+    )
     def test_traceparent_duplicated(self, test_agent, test_library):
         """
         harness sends a request with two traceparent headers
