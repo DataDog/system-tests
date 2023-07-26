@@ -35,6 +35,10 @@ def enable_none_invalid() -> Any:
 @scenarios.parametric
 class Test_Headers_None:
     @enable_none()
+    @missing_feature(
+        context.library == "ruby",
+        reason="None propagator not configured for DD_TRACE_PROPAGATION_STYLE=none config",
+    )
     def test_headers_none_extract(self, test_agent, test_library):
         """Ensure that no distributed tracing headers are extracted.
         """
@@ -83,6 +87,10 @@ class Test_Headers_None:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
     @enable_none()
+    @missing_feature(
+        context.library == "ruby",
+        reason="None propagator not configured for DD_TRACE_PROPAGATION_STYLE=none config",
+    )
     def test_headers_none_inject(self, test_agent, test_library):
         """Ensure that the 'none' propagator is used and
         no Datadog distributed tracing headers are injected.
@@ -112,6 +120,10 @@ class Test_Headers_None:
         assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
 
     @enable_none()
+    @missing_feature(
+        context.library == "ruby",
+        reason="None propagator not configured for DD_TRACE_PROPAGATION_STYLE=none config",
+    )
     def test_headers_none_propagate(self, test_agent, test_library):
         """Ensure that the 'none' propagator is used and
         no Datadog distributed tracing headers are extracted or injected.
