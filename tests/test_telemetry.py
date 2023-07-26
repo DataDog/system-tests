@@ -420,7 +420,7 @@ class Test_Telemetry:
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(library="golang", reason="products info is always in app-started for golang")
 class Test_ProductsDisabled:
-    """Assert that product informations are not reported when products are disabled in telemetry"""
+    """Assert that product informations are reported with enabled as false when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
     def test_app_started_product_disabled(self):
@@ -432,9 +432,10 @@ class Test_ProductsDisabled:
         for data in telemetry_data:
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
+                products = content["payload"]["products"]
                 assert (
-                    "products" not in content["payload"]
-                ), "Product information is present telemetry data on app-started event when all products are disabled"
+                   products["appsec"]["enabled"] == False and products["profiler"]["enabled"] == False and products["dynamic_instrumentation"]["enabled"] == False
+                ), "Product information is not reported correctly on app-started event when all products are disabled, 'enabled' field should be false"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
