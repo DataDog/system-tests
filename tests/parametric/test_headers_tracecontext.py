@@ -45,6 +45,9 @@ class Test_Headers_Tracecontext:
             traceparent, tracestate = make_single_request_and_get_tracecontext(test_library, [])
 
     @temporary_enable_optin_tracecontext_single_key()
+    @missing_feature(
+        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
+    )
     def test_single_key_traceparent_included_tracestate_missing(self, test_agent, test_library):
         """
         harness sends a request with traceparent but without tracestate

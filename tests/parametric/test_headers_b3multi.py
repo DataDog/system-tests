@@ -27,18 +27,14 @@ def enable_b3multi_single_key() -> Any:
 
 
 def enable_b3_deprecated() -> Any:
-    env = {
+    env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3",
     }
-    return parametrize("library_env", [env])
-
-
-def enable_b3_deprecated_single_key() -> Any:
-    env = {
+    env2 = {
         "DD_TRACE_PROPAGATION_STYLE": "b3",
     }
-    return parametrize("library_env", [env])
+    return parametrize("library_env", [env1, env2])
 
 
 def enable_case_insensitive_b3multi() -> Any:
@@ -167,7 +163,7 @@ class Test_Headers_B3multi:
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
 
-    @enable_case_insensitive_b3multi()
+    @enable_b3multi_single_key()
     @missing_feature(
         context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
     )
