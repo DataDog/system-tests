@@ -1,5 +1,3 @@
-import logging
-
 import psycopg2
 import requests
 from ddtrace import tracer
@@ -23,8 +21,6 @@ except ImportError:
 POSTGRES_CONFIG = dict(
     host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
 )
-
-logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -192,6 +188,73 @@ def view_weak_cipher_insecure():
 @app.route("/iast/insecure_cipher/test_secure_algorithm")
 def view_weak_cipher_secure():
     weak_cipher_secure_algorithm()
+    return Response("OK")
+
+
+def _sink_point(table="user", id="1"):
+    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql)
+
+
+@app.route("/iast/source/body/test", methods=["POST"])
+def view_iast_source_body():
+    table = flask_request.json.get("name")
+    user = flask_request.json.get("value")
+    _sink_point(table=table, id=user)
+    return Response("OK")
+
+
+@app.route("/iast/source/cookiename/test")
+def view_iast_source_cookie_name():
+    param = [key for key in flask_request.cookies.keys() if key == "user"]
+    _sink_point(id=param[0])
+    return Response("OK")
+
+
+@app.route("/iast/source/cookievalue/test")
+def view_iast_source_cookie_value():
+    table = flask_request.cookies.get("table")
+    _sink_point(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/headername/test")
+def view_iast_source_header_name():
+    param = [key for key in flask_request.headers.keys() if key == "User"]
+    _sink_point(id=param[0])
+    return Response("OK")
+
+
+@app.route("/iast/source/header/test")
+def view_iast_source_header_value():
+    table = flask_request.headers.get("table")
+    _sink_point(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/parametername/test", methods=["GET"])
+def view_iast_source_parametername_get():
+    param = [key for key in flask_request.args.keys() if key == "user"]
+    _sink_point(id=param[0])
+    return Response("OK")
+
+
+@app.route("/iast/source/parametername/test", methods=["POST"])
+def view_iast_source_parametername_post():
+    param = [key for key in flask_request.json.keys() if key == "user"]
+    _sink_point(id=param[0])
+    return Response("OK")
+
+
+@app.route("/iast/source/parameter/test", methods=["GET", "POST"])
+def view_iast_source_parameter():
+    if flask_request.args:
+        table = flask_request.args.get("table")
+    else:
+        table = flask_request.json.get("table")
+    _sink_point(table=table)
     return Response("OK")
 
 
