@@ -281,6 +281,7 @@ class _DockerScenario(_Scenario):
                 logger.exception(f"Failed to remove container {container}")
 
     def collect_logs(self):
+        """ Get stdout/stderr for all docker containers """
 
         for container in self._required_containers:
             try:
@@ -470,7 +471,9 @@ class EndToEndScenario(_DockerScenario):
 
         if self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
+            self.weblog_container.stop()
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
+            self.agent_container.stop()
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
             self.collect_logs()
@@ -697,13 +700,13 @@ class PerformanceScenario(EndToEndScenario):
         return result
 
     def _extra_weblog_warmup(self):
-        import requests
+        from utils import weblog
 
         WARMUP_REQUEST_COUNT = 10
         WARMUP_LAST_SLEEP_DURATION = 3
 
         for _ in range(WARMUP_REQUEST_COUNT):
-            requests.get("http://localhost:7777", timeout=10)
+            weblog.warmup_request(timeout=10)
             time.sleep(0.6)
 
         time.sleep(WARMUP_LAST_SLEEP_DURATION)

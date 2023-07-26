@@ -11,7 +11,7 @@ if context.weblog_variant == "akka-http":
     golang="1.53.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.12", "flask-poc": "1.12", "*": "?"},
+    python={"django-poc": "1.12", "flask-poc": "1.12", "*": "1.16.1"},
     ruby="1.11.0",
     cpp="?",
 )

@@ -18,7 +18,7 @@ class Test_Telemetry:
     agent_requests = {}
 
     def validate_library_telemetry_data(self, validator, success_by_default=False):
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0:
             if not success_by_default:
@@ -47,13 +47,13 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
-    @flaky(True, reason="Backend is not stable")
+    @flaky(True, reason="Backend is far away from being stable enough")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
         def validator(data):
             response_code = data["response"]["status_code"]
-            assert 200 <= response_code < 300, f"Got response code {response_code}"
+            assert 200 <= response_code < 300, f"Got response code {response_code} in {data['log_filename']}"
 
         self.validate_agent_telemetry_data(validator)
         self.validate_library_telemetry_data(validator)
@@ -100,7 +100,7 @@ class Test_Telemetry:
         )
 
     @missing_feature(library="python")
-    @flaky(True, reason="Under investigation")
+    # @flaky(library="ruby", reason="Sometimes, seq_id jump from N to N+2")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -112,13 +112,17 @@ class Test_Telemetry:
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
+
             seq_id = data["request"]["content"]["seq_id"]
-            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+            timestamp_start = data["request"]["timestamp_start"]
+            curr_message_time = datetime.strptime(timestamp_start, fmt)
+            logger.debug(f"Telemetry message at {timestamp_start.split('T')[1]} {seq_id} in {data['log_filename']}")
+
             if 200 <= data["response"]["status_code"] < 300:
                 seq_ids.append((seq_id, data["log_filename"]))
             if seq_id > max_seq_id:
@@ -163,13 +167,20 @@ class Test_Telemetry:
 
     @bug(library="ruby", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
+    @flaky(library="nodejs", reason="APPSEC-10465")
     def test_app_started_is_first_message(self):
-        """Request type app-started is the first telemetry message"""
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        """Request type app-started is the first telemetry message or in the first batch"""
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
-        assert (
-            telemetry_data[0]["request"]["content"].get("request_type") == "app-started"
-        ), "app-started was not the first message"
+        if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
+            for payload in telemetry_data[0]["request"]["content"]["payload"]:
+                if payload.get("request_type") == "app-started":
+                    return
+
+            raise Exception("app-started was not in the first message-batch")
+        else:
+            first_message = telemetry_data[0]["request"]["content"]
+            assert first_message.get("request_type") == "app-started", "app-started was not the first message"
 
     @bug(
         library="java",
@@ -252,15 +263,21 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
+    # @flaky(library="dotnet", reason="Heartbeats are sometimes sent too slowly")
+    # @flaky(library="python", reason="Heartbeats are sometimes sent too slowly")
+    @flaky(library="nodejs", reason="AIT-7943")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(True, reason="Under investigation")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
-        prev_message_time = -1
-        TELEMETRY_HEARTBEAT_INTERVAL = context.telemetry_heartbeat_interval
-        ALLOWED_INTERVALS = 2
+        prev_message_time = None
+        expected_heartbeat_interval = context.telemetry_heartbeat_interval
+
+        # This interval can't be perfeclty exact, give some room for tests
+        UPPER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 2).total_seconds()
+        LOWER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 0.75).total_seconds()
+
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
@@ -271,12 +288,19 @@ class Test_Telemetry:
 
         for data in heartbeats:
             curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
-            if prev_message_time != -1:
-                delta = curr_message_time - prev_message_time
-                assert delta <= timedelta(
-                    seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL
-                ), f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
-                assert delta >= timedelta(seconds=TELEMETRY_HEARTBEAT_INTERVAL * 0.75), "Heartbeat sent too fast"
+            if prev_message_time is None:
+                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time}")
+            else:
+                delta = (curr_message_time - prev_message_time).total_seconds()
+                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time} => {delta}s ellapsed")
+
+                assert (
+                    delta < UPPER_LIMIT
+                ), f"Heartbeat sent too slow ({delta}s). It should be sent every {expected_heartbeat_interval}s"
+                assert (
+                    delta > LOWER_LIMIT
+                ), f"Heartbeat sent too fast ({delta}s). It should be sent every {expected_heartbeat_interval}s"
+
             prev_message_time = curr_message_time
 
     def setup_app_dependencies_loaded(self):
@@ -528,7 +552,7 @@ class Test_ForceBatchingEnabled:
     def test_message_batch_event_order(self):
         """Test that the events in message-batch are in chronological order"""
         event_list = []
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
             event_list.append(content.get("request_type"))
 
