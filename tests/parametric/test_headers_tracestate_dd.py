@@ -190,6 +190,7 @@ class Test_Headers_Tracestate_DD:
         assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
+    @missing_feature(context.library == "ruby", reason="The encoding logic to convert '=' to '~' and remaining invalid characters to '_' is not implemented")
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent
