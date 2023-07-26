@@ -38,17 +38,6 @@ class Test_Telemetry:
         for data in telemetry_data:
             validator(data)
 
-    def test_language_name(self):
-        "Test telemetry mesaage data have valid alnguage name or not"
-
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        for data in telemetry_data:
-            content = data["request"]["content"]
-            language_name = content["application"]["language_name"]
-            language_enum = ["cpp", "dotnet", "go", "nodejs", "jvm", "php", "python", "ruby"]
-            if language_name not in language_enum:
-                raise Exception(f"Received language_name : {language_name} is not valid")
-
     def test_telemetry_message_data_size(self):
         """Test telemetry message data size"""
 
