@@ -338,16 +338,20 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_name="ruby-test-client",
         container_tag="ruby-test-client",
         container_img=f"""
-            FROM ruby:3.2.1-bullseye
+            FROM --platform=linux/amd64 ruby:3.2.1-bullseye
             WORKDIR /client
+
+            COPY ./apm_test_client.proto /client/
+            COPY ./generate_proto.sh /client/
+            RUN bash generate_proto.sh
+
             RUN gem install ddtrace # Install a baseline ddtrace version, to cache all dependencies
+
             COPY ./Gemfile /client/
             COPY ./install_dependencies.sh /client/
             ENV RUBY_DDTRACE_SHA='{ddtrace_sha}'
             RUN bash install_dependencies.sh # Cache dependencies before copying application code
-            COPY ./apm_test_client.proto /client/
-            COPY ./generate_proto.sh /client/
-            RUN bash generate_proto.sh
+
             COPY ./server.rb /client/
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
