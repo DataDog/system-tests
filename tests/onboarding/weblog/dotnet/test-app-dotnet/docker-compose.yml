@@ -1,0 +1,7 @@
+version: '3'
+services:
+  test-app-dotnet:
+    container_name: test-app-dotnet
+    image: system-tests/local:latest
+    ports:
+      - 5985:18080 
