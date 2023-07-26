@@ -26,6 +26,13 @@ def temporary_enable_optin_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
+def temporary_enable_optin_tracecontext_single_key() -> Any:
+    env = {
+        "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
+    }
+    return parametrize("library_env", [env])
+
+
 @scenarios.parametric
 class Test_Headers_Tracecontext:
     @temporary_enable_optin_tracecontext()
@@ -36,6 +43,20 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(test_library, [])
+
+    @temporary_enable_optin_tracecontext_single_key()
+    def test_single_key_traceparent_included_tracestate_missing(self, test_agent, test_library):
+        """
+        harness sends a request with traceparent but without tracestate
+        expects a valid traceparent from the output header, with the same trace_id but different parent_id
+        """
+        with test_library:
+            traceparent, tracestate = make_single_request_and_get_tracecontext(
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
+            )
+
+        assert traceparent.trace_id == "12345678901234567890123456789012"
+        assert traceparent.parent_id != "1234567890123456"
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_included_tracestate_missing(self, test_agent, test_library):

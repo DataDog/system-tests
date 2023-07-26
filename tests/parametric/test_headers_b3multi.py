@@ -12,25 +12,33 @@ parametrize = pytest.mark.parametrize
 
 
 def enable_b3multi() -> Any:
-    env1 = {
+    env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3multi",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3multi",
     }
-    env2 = {
+    return parametrize("library_env", [env])
+
+
+def enable_b3multi_single_key() -> Any:
+    env = {
         "DD_TRACE_PROPAGATION_STYLE": "b3multi",
     }
-    return parametrize("library_env", [env1, env2])
+    return parametrize("library_env", [env])
 
 
 def enable_b3_deprecated() -> Any:
-    env1 = {
+    env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3",
     }
-    env2 = {
+    return parametrize("library_env", [env])
+
+
+def enable_b3_deprecated_single_key() -> Any:
+    env = {
         "DD_TRACE_PROPAGATION_STYLE": "b3",
     }
-    return parametrize("library_env", [env1, env2])
+    return parametrize("library_env", [env])
 
 
 def enable_case_insensitive_b3multi() -> Any:
@@ -83,8 +91,7 @@ class Test_Headers_B3multi:
 
     @enable_b3multi()
     @missing_feature(
-        context.library == "ruby",
-        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3multi config",
+        context.library == "ruby", reason="b3 traceid should be padded to 16 or 32 hex characters",
     )
     def test_headers_b3multi_inject_valid(self, test_agent, test_library):
         """Ensure that b3multi distributed tracing headers are injected properly.
@@ -105,8 +112,7 @@ class Test_Headers_B3multi:
 
     @enable_b3multi()
     @missing_feature(
-        context.library == "ruby",
-        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3multi config",
+        context.library == "ruby", reason="b3 traceid should be padded to 16 or 32 hex characters",
     )
     def test_headers_b3multi_propagate_valid(self, test_agent, test_library):
         """Ensure that b3multi distributed tracing headers are extracted
@@ -136,8 +142,7 @@ class Test_Headers_B3multi:
 
     @enable_b3multi()
     @missing_feature(
-        context.library == "ruby",
-        reason="1) b3 traceid should be padded to 16 or 32 hex characters and 2) b3 header not injected for DD_TRACE_PROPAGATION_STYLE=b3multi config",
+        context.library == "ruby", reason="b3 traceid should be padded to 16 or 32 hex characters",
     )
     def test_headers_b3multi_propagate_invalid(self, test_agent, test_library):
         """Ensure that invalid b3multi distributed tracing headers are not extracted
@@ -160,6 +165,36 @@ class Test_Headers_B3multi:
         assert int(b3_trace_id, base=16) == span.get("trace_id")
         assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
+        assert span["meta"].get(ORIGIN) is None
+
+    @enable_case_insensitive_b3multi()
+    @missing_feature(
+        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
+    )
+    def test_headers_b3multi_single_key_propagate_valid(self, test_agent, test_library):
+        """Ensure that b3multi distributed tracing headers are extracted
+        and injected properly.
+        """
+        with test_library:
+            headers = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["x-b3-traceid", "000000000000000000000000075bcd15"],
+                    ["x-b3-spanid", "000000003ade68b1"],
+                    ["x-b3-sampled", "1"],
+                ],
+            )
+
+        span = get_span(test_agent)
+        assert "x-b3-traceid" in headers
+        b3_trace_id = headers["x-b3-traceid"]
+        b3_span_id = headers["x-b3-spanid"]
+        b3_sampling = headers["x-b3-sampled"]
+
+        assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
+        assert int(b3_trace_id, base=16) == span.get("trace_id")
+        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert b3_sampling == "1"
         assert span["meta"].get(ORIGIN) is None
 
     @enable_case_insensitive_b3multi()
