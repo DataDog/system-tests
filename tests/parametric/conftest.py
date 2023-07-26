@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import dataclasses
+from distutils.version import LooseVersion
 import os
 import shutil
 import socket
@@ -916,3 +917,30 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
         raise ValueError("interface %s not supported" % test_server.protocol)
     tracer = APMLibrary(client, test_server.lang)
     yield tracer
+
+
+@pytest.fixture(autouse=True)
+def test_library_version(request, test_library, test_agent) -> LooseVersion:
+    """Check and skip parametric test cases if the library version does not match.
+
+    The library version is detected by querying the library with a trace and checking the version
+    return by the library in the HTTP header DataDog-Meta-Tracer-Version.
+    """
+    with test_library:
+        with test_library.start_span("operation"):
+            pass
+    test_agent.wait_for_num_traces(1)
+    trace_request = [r for r in test_agent.requests() if "trace" in r["url"]][0]
+
+    # Clear the requests made to the agent so that they don't interfere with the test case.
+    test_agent.clear()
+    reported_tracer_version = LooseVersion(trace_request["headers"]["Datadog-Meta-Tracer-Version"])
+
+    if getattr(request.instance, "__released__"):
+        released_version = request.instance.__released__[context.library.library]
+        if reported_tracer_version < released_version:
+            pytest.skip(
+                "Tracer version %s is older than the released version %s"
+                % (reported_tracer_version, request.instance.__released__)
+            )
+    return reported_tracer_version
