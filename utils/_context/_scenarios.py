@@ -842,53 +842,9 @@ class ParametricScenario(_Scenario):
 
     @property
     def library(self):
+        # The library version is checked by the check_library_version fixture.
         test_lib = os.getenv("TEST_LIBRARY", "**not-set**")
-        version = "0.00"
-
-        # Cache versions to avoid rate limits with network requests
-        if test_lib in self._version_cache:
-            return LibraryVersion(test_lib, self._version_cache[test_lib])
-
-        if test_lib == "python":
-            # https://pypi.org/project/ddtrace/
-            # parametric pulls in the latest published python library
-            if "PYTHON_DDTRACE_PACKAGE" in os.environ:
-                print(
-                    "WARNING: python version comparison does not work for custom branches, defaulting to latest version"
-                )
-            data = requests.get("https://pypi.org/pypi/ddtrace/json").json()
-            versions = list(data["releases"].keys())
-            versions.sort(key=LooseVersion, reverse=True)
-            version = versions[0]
-        elif test_lib == "ruby":
-            # https://rubygems.org/gems/ddtrace
-            if "RUBY_DDTRACE_SHA" in os.environ:
-                print(
-                    "WARNING: ruby version comparison does not work for custom branches, defaulting to latest version"
-                )
-            data = requests.get("https://rubygems.org/api/v1/gems/ddtrace.json").json()
-            version = data["version"]
-        elif test_lib == "java":
-            # https://github.com/DataDog/dd-trace-java/releases
-            data = requests.get("https://api.github.com/repos/datadog/dd-trace-java/releases/latest").json()
-            version = data["tag_name"]
-        elif test_lib == "dotnet":
-            # https://www.nuget.org/packages/dd-trace
-            # Right now the version is fixed in the csproj file, so read it from there.
-            with open("utils/build/docker/dotnet/parametric/ApmTestClient.csproj", "r") as f:
-                for line in f.readlines():
-                    if "Datadog.Trace" in line:
-                        version = re.search(self.semver_regex, line).group(0)
-            # When latest is used then we can use the code below to get the latest version.
-            ##  data = requests.get("https://www.nuget.org/packages/dd-trace")
-            ##  Pretty sketchy, but assume that the first matching semver string
-            ##  in the webpage is the Datadog library version.
-            ##  version = re.search(self.semver_regex, data.text).group(0)
-        elif test_lib == "nodejs":
-            data = requests.get("https://registry.npmjs.org/dd-trace").json()
-            version = data["dist-tags"]["latest"]
-        self._version_cache[test_lib] = version
-        return LibraryVersion(test_lib, version)
+        return LibraryVersion(test_lib, "0.0.0")
 
 
 class scenarios:

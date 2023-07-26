@@ -920,7 +920,7 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
 
 
 @pytest.fixture(autouse=True)
-def test_library_version(request, test_library, test_agent) -> LooseVersion:
+def check_library_version(request, test_library, test_agent) -> LooseVersion:
     """Check and skip parametric test cases if the library version does not match.
 
     The library version is detected by querying the library with a trace and checking the version
