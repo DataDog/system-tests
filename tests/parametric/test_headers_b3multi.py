@@ -28,6 +28,7 @@ def enable_b3multi() -> Any:
     }
     return parametrize("library_env", [env1, env2, env3, env4])
 
+
 def enable_case_insensitive_b3multi() -> Any:
     env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "B3MULTI",

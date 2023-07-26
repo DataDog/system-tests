@@ -21,6 +21,7 @@ def enable_b3() -> Any:
     }
     return parametrize("library_env", [env1, env2])
 
+
 def enable_migrated_b3() -> Any:
     env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3",
@@ -30,6 +31,7 @@ def enable_migrated_b3() -> Any:
         "DD_TRACE_PROPAGATION_STYLE": "b3",
     }
     return parametrize("library_env", [env1, env2])
+
 
 @scenarios.parametric
 class Test_Headers_B3:
@@ -144,7 +146,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
-    def  test_headers_b3_migrated_extract_valid(self, test_agent, test_library):
+    def test_headers_b3_migrated_extract_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are extracted
         and activated properly.
         """
@@ -168,7 +170,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
-    def  test_headers_b3_migrated_extract_invalid(self, test_agent, test_library):
+    def test_headers_b3_migrated_extract_invalid(self, test_agent, test_library):
         """Ensure that invalid b3 distributed tracing headers are not extracted.
         """
         with test_library:
@@ -188,7 +190,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
-    def  test_headers_b3_migrated_inject_valid(self, test_agent, test_library):
+    def test_headers_b3_migrated_inject_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are injected properly.
         """
         with test_library:
@@ -215,7 +217,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
-    def  test_headers_b3_migrated_propagate_valid(self, test_agent, test_library):
+    def test_headers_b3_migrated_propagate_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are extracted
         and injected properly.
         """
@@ -245,7 +247,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
-    def  test_headers_b3_migrated_propagate_invalid(self, test_agent, test_library):
+    def test_headers_b3_migrated_propagate_invalid(self, test_agent, test_library):
         """Ensure that invalid b3 distributed tracing headers are not extracted
         and the new span context is injected properly.
         """
