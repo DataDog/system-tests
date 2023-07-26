@@ -169,15 +169,13 @@ class Test_Telemetry:
     @bug(library="python", reason="app-started not sent first")
     @flaky(library="nodejs", reason="APPSEC-10465")
     def test_app_started_is_first_message(self):
-        """Request type app-started is the first telemetry message or in the first batch"""
+        """Request type app-started is the first telemetry message of the first message of the message batch"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
         if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
-            for payload in telemetry_data[0]["request"]["content"]["payload"]:
-                if payload.get("request_type") == "app-started":
-                    return
-
-            raise Exception("app-started was not in the first message-batch")
+            payloads = telemetry_data[0]["request"]["content"]["payload"]
+            if payloads[0].get("request_type") != "app-started":
+                raise Exception("app-started was not the first message in the first message-batch")
         else:
             first_message = telemetry_data[0]["request"]["content"]
             assert first_message.get("request_type") == "app-started", "app-started was not the first message"
