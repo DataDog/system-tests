@@ -221,7 +221,8 @@ function main() {
                   exit 64
                 fi
                 # upcase via ${2^^} is unsupported on bash 3.x
-                mapfile -t group <<< "$(lookup_scenario_group "$(echo "$2" | upcase)")"
+                # bash 3.x does not support mapfile, dance around with tr and IFS
+                IFS=',' read -r -a group <<< "$(lookup_scenario_group "$(echo "$2" | upcase)" | tr '\n' ',')"
                 scenarios+=("${group[@]}")
                 shift
                 ;;
@@ -260,7 +261,8 @@ function main() {
             *)
                 # handle positional arguments
                 if [[ "$1" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
-                    mapfile -t group <<< "$(lookup_scenario_group "$1")"
+                    # bash 3.x does not support mapfile, dance around with tr and IFS
+                    IFS=',' read -r -a group <<< "$(lookup_scenario_group "$1" | tr '\n' ',')"
                     scenarios+=("${group[@]}")
                 elif [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
                     scenarios+=("$1")
