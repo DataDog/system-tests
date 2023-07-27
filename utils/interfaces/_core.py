@@ -179,7 +179,7 @@ def get_rid_from_span(span):
         # java does not fill this tag; it uses the normal http tags
 
     if not user_agent and metrics.get("_dd.top_level") == 1.0:
-        # code version
+        # The top level span (aka root span) is mark via the _dd.top_level tag by the tracers
         user_agent = meta.get("http.request.headers.user-agent")
 
     if not user_agent:  # try something for .NET
