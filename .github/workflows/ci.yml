@@ -46,12 +46,13 @@ jobs:
         uses: actions/checkout@v3
       - name: Install runner
         uses: ./.github/actions/install_runner
+      # force /bin/bash in order to test against bash 3.2 on macOS
       - name: Test the test (direct)
-        run: ./run.sh TEST_THE_TEST
+        run: /bin/bash run.sh TEST_THE_TEST
       - name: Test group parsing
         run: |
-          ./run.sh ++dry APPSEC_SCENARIOS
-          ./run.sh ++dry TRACER_RELEASE_SCENARIOS
+          /bin/bash run.sh ++dry APPSEC_SCENARIOS
+          /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
     uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
