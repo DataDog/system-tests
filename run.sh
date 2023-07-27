@@ -97,41 +97,7 @@ function die() {
 function lookup_scenario_group() {
     local group="$1"
 
-    # formatted perl code with -e for readabiliy
-    # shellcheck disable=SC2016
-    cat < scenario_groups.yml \
-        | env GROUP="${group}" perl -0777 \
-               -e '    use v5.30;                                          ' \
-               -e '    use YAML qw[ Load ];                                ' \
-               -e '                                                        ' \
-               -e '    # get group                                         ' \
-               -e '    my $group = $ENV{"GROUP"};                          ' \
-               -e '                                                        ' \
-               -e '    # parse yaml by surlping (0777) from stdin          ' \
-               -e '    my $yaml = Load(<>);                                ' \
-               -e '                                                        ' \
-               -e '    # dereference ref to hash                           ' \
-               -e '    my %groups = %{ $yaml };                            ' \
-               -e '                                                        ' \
-               -e '    # test if key exists                                ' \
-               -e '    if (! exists $groups{$group}) {                     ' \
-               -e '      print STDERR "error: group ${group} not found\n"; ' \
-               -e '      exit 1                                            ' \
-               -e '    }                                                   ' \
-               -e '                                                        ' \
-               -e '    # get list, dereference ref to array                ' \
-               -e '    my @scenarios = @{ %groups{$group} };               ' \
-               -e '                                                        ' \
-               -e '    foreach my $e (@scenarios) {                        ' \
-               -e '      if (ref $e eq "ARRAY") {                          ' \
-               -e '        # flatten second level array                    ' \
-               -e '        foreach my $f (@{ $e }) {                       ' \
-               -e '           print "${f}\n";                              ' \
-               -e '        }                                               ' \
-               -e '      } else { # string                                 ' \
-               -e '        print "${e}\n";                                 ' \
-               -e '      }                                                 ' \
-               -e '    }                                                   '
+    cat < scenario_groups.yml | python -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]' "${group}"
 }
 
 function upcase() {
@@ -219,6 +185,11 @@ function main() {
     local libraries=()
     local pytest_args=()
     local pytest_numprocesses='auto'
+
+    # ensure environment
+    if ! is_using_nix; then
+        activate_venv
+    fi
 
     ## handle environment variables
 
@@ -360,11 +331,6 @@ function main() {
         run_mode='docker'
     else
         run_mode='direct'
-
-        # ensure environment
-        if ! is_using_nix; then
-            activate_venv
-        fi
     fi
 
     if [[ "${verbosity}" -gt 0 ]]; then
