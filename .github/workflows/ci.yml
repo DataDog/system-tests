@@ -49,6 +49,10 @@ jobs:
       # force /bin/bash in order to test against bash 3.2 on macOS
       - name: Test the test (direct)
         run: /bin/bash run.sh TEST_THE_TEST
+      - name: Test the test (docker)
+        run: |
+          /bin/bash build.sh -i runner -d
+          /bin/bash run.sh +d TEST_THE_TEST
       - name: Test group parsing
         run: |
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
