@@ -11,7 +11,7 @@ from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, Type
 import urllib.parse
 
 import requests
-from packaging import version
+import packaging.version
 import pytest
 
 from utils.parametric.spec.trace import V06StatsPayload
@@ -536,6 +536,7 @@ class _TestAgentAPI:
     def __init__(self, base_url: str, pytest_request: None):
         self._base_url = base_url
         self._session = requests.Session()
+        self._pytest_request = pytest_request
         self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
         os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
 
@@ -547,7 +548,31 @@ class _TestAgentAPI:
             log.write(f"\n{type}>>>>\n")
             log.write(json.dumps(json_trace))
 
+    def _version_check(self, reqs=None):
+        """Check if the version of the library is compatible with the test case based on the library version reported
+        in requests.
+
+        A better way to do with check would be to have APMLibraryTestServer declare the version of the library
+        to be installed and used so that the version reported by the library can be verified against a source of
+        truth. Right now we assume that the library version reported is correct.
+        """
+        if not hasattr(self._pytest_request.instance, "__released__"):
+            return
+
+        released_version = packaging.version.parse(self._pytest_request.instance.__released__[context.library.library])
+        for r in reqs or self.requests():
+            if "Datadog-Meta-Tracer-Version" in r["headers"]:
+                library_version = r["headers"]["Datadog-Meta-Tracer-Version"]
+                reported_tracer_version = packaging.version.parse(library_version)
+                if reported_tracer_version < released_version:
+                    pytest.skip(
+                        "Tested library version %s is older than the released version %s"
+                        % (reported_tracer_version, released_version)
+                    )
+                break
+
     def traces(self, clear=False, **kwargs):
+        self._version_check()
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
@@ -556,6 +581,7 @@ class _TestAgentAPI:
         return json
 
     def tracestats(self, **kwargs):
+        self._version_check()
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
         json = resp.json()
         self._write_log("tracestats", json)
@@ -564,10 +590,12 @@ class _TestAgentAPI:
     def requests(self, **kwargs) -> List[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
         json = resp.json()
+        self._version_check(reqs=json)
         self._write_log("requests", json)
         return json
 
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
+        self._version_check()
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
         for raw in raw_requests:
@@ -917,43 +945,3 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
         raise ValueError("interface %s not supported" % test_server.protocol)
     tracer = APMLibrary(client, test_server.lang)
     yield tracer
-
-
-@pytest.fixture(autouse=True)
-def check_library_version(request, test_library, test_agent):
-    """Check and skip parametric test cases if the library version does not match.
-
-    The library version is detected by querying the library with a trace and checking the version
-    return by the library in the HTTP header DataDog-Meta-Tracer-Version.
-
-    A better version of this fixture would be to have APMLibraryTestServer declare the version of the library
-    to be installed and used so that the version reported by the library can be verified against a source of
-    truth. Right now we assume that the library version reported is correct.
-    """
-    if not hasattr(request.instance, "__released__"):
-        return
-    released_version = version.parse(request.instance.__released__[context.library.library])
-
-    # Create a trace to get the library to make a request to the agent.
-    with test_library:
-        with test_library.start_span("operation"):
-            pass
-
-    # Try to find a library version in the request(s) made to the agent.
-    for r in test_agent.requests():
-        if "Datadog-Meta-Tracer-Version" in r["headers"]:
-            library_version = r["headers"]["Datadog-Meta-Tracer-Version"]
-            break
-    else:
-        raise ValueError("Failed to detect library version in requests")
-
-    # Clear the requests made to the agent so that they don't interfere with the test case.
-    test_agent.clear()
-
-    reported_tracer_version = version.parse(library_version)
-
-    if reported_tracer_version < released_version:
-        pytest.skip(
-            "Tested library version %s is older than the released version %s"
-            % (reported_tracer_version, released_version)
-        )
