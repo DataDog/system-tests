@@ -1111,10 +1111,7 @@ class scenarios:
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario("APM_TRACING_E2E_OTEL", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_tracecontext = EndToEndScenario(
-        "APM_TRACING_E2E_TRACECONTEXT",
-        weblog_env={"DD_TRACE_PROPAGATION_STYLE": "tracecontext"},
-        backend_interface_timeout=5,
-        doc="",
+        "APM_TRACING_E2E_TRACECONTEXT", weblog_env={"DD_TRACE_PROPAGATION_STYLE": "tracecontext"}, doc=""
     )
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
