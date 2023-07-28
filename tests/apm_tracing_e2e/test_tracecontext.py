@@ -38,9 +38,9 @@ class Test_Tracecontext_Span:
         assert "x-datadog-tags" not in data["request_headers"]
         assert "x-datadog-trace-id" not in data["request_headers"]
 
-        _, traceparent_trace_id, traceparent_span_id, _ = data["request_headers"]["traceparent"].split('-')
+        _, traceparent_trace_id, traceparent_span_id, _ = data["request_headers"]["traceparent"].split("-")
 
-        span_id = str(int(traceparent_span_id, 16)) 
+        span_id = str(int(traceparent_span_id, 16))
         trace_id = str(int(traceparent_trace_id, 16))
         assert span_id in spans
 
