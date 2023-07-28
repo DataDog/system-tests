@@ -44,9 +44,10 @@ jobs:
       - name: Compute run_open_telemetry
         id: compute_open_telemetry
         run: |
-          if [ "${{ contains(github.event.pull_request.labels.*.name, 'run-open-telemetry-scenarios') }}" == "true" ]; then
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
             echo "result=true" >> $GITHUB_OUTPUT
-
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-open-telemetry-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
           else
             echo "result=false" >> $GITHUB_OUTPUT
           fi
