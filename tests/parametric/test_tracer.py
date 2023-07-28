@@ -1,21 +1,21 @@
 from typing import Dict
 
+import packaging.version
 import pytest
-import time
 
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span
 from .conftest import _TestAgentAPI
 from .conftest import APMLibrary
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, released
+
+
+parametrize = pytest.mark.parametrize
 
 
 @scenarios.parametric
 class Test_Tracer:
-
-    parametrize = pytest.mark.parametrize
-
     @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
     @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
     def test_tracer_span_top_level_attributes(self, test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
@@ -42,7 +42,11 @@ class Test_Tracer:
         assert child_span["name"] == "operation.child"
         assert child_span["meta"]["key"] == "val"
 
-    @missing_feature(reason="Libraries use empty string for service")
+
+@scenarios.parametric
+@released(python="0.36.0", java="1.0.0", golang="1.0.0")
+class Test_TracerUniversalServiceTagging:
+    @missing_feature(reason="FIXME: library test client sets empty string as the service name")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])
     def test_tracer_service_name_environment_variable(
         self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
@@ -82,3 +86,33 @@ class Test_Tracer:
         span = find_span(trace, Span(name="operation"))
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
+
+
+@released(
+    python="1.0.0", golang="1.0.0", dotnet="2.0.0", ruby="1.0.0",
+)
+@scenarios.parametric
+class Test_TracerVersion:
+    """Test that the tracer reports its version correctly."""
+
+    def test_tracer_version_traces(self, test_library, test_agent):
+        """Ensure the tracer is reporting the version that is installed for trace requests."""
+        with test_library:
+            with test_library.start_span("operation"):
+                pass
+
+        test_agent.wait_for_num_traces(1)
+
+        trace_requests = [
+            r for r in test_agent.requests() if any(r["url"].endswith(p) for p in ["/v0.4/traces", "/v0.5/traces"])
+        ]
+        print(trace_requests)
+        for r in trace_requests:
+            # go uses DD-Client-Library-Version
+            if any(h in r["headers"] for h in ("DD-Client-Library-Version", "Datadog-Meta-Tracer-Version")):
+                library_version = r["headers"]["Datadog-Meta-Tracer-Version"]
+                reported_tracer_version = packaging.version.parse(library_version)
+                assert test_library.version == reported_tracer_version
+                break
+        else:
+            assert False, "Tracer version not reported"

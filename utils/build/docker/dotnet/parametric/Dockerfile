@@ -7,6 +7,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # restore nuget packages
 COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
+RUN sed -i 's/DDTRACE_VERSION/2.34.0/g' ./ApmTestClient.csproj
 RUN dotnet restore "./ApmTestClient.csproj"
 
 # build and publish

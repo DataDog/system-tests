@@ -11,6 +11,7 @@ from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, Type
 import urllib.parse
 
 import requests
+import packaging.version
 import pytest
 
 from utils.parametric.spec.trace import V06StatsPayload
@@ -20,6 +21,7 @@ from utils.parametric._library_client import APMLibraryClientGRPC
 from utils.parametric._library_client import APMLibraryClientHTTP
 from utils.parametric._library_client import APMLibrary
 
+from utils import apm_library
 from utils import context
 from utils.tools import logger
 import json
@@ -66,6 +68,7 @@ def _request_token(request):
 class APMLibraryTestServer:
     # The library of the interface.
     lang: str
+    library_version: packaging.version.Version
     # The interface that this test server implements.
     protocol: Union[Literal["grpc"], Literal["http"]]
     container_name: str
@@ -93,13 +96,28 @@ def _get_base_directory():
     return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
 
 
+def _python_library():
+    # Use a dev branch (git+https://github.com/Datadog/dd-trace-py@1.x) if provided
+    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE")
+    if python_package is None:
+        library_version = apm_library.latest_version("python")
+        python_package = "ddtrace==%s" % library_version
+    else:
+        # Use latest for the dev version of libraries.
+        # This could be made more accurate by using the git_scm
+        # version computed for the package.
+        library_version = apm_library.latest_version("python")
+    return python_package, library_version
+
+
 def python_library_factory() -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    # By default run parametric tests against the development branch
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
+
+    python_package, library_version = _python_library()
     return APMLibraryTestServer(
         lang="python",
+        library_version=library_version,
         protocol="grpc",
         container_name="python-test-library",
         container_tag="python-test-library",
@@ -123,10 +141,11 @@ RUN python3.9 -m pip install %s
 def python_http_library_factory() -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python_http", "parametric")
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    # By default run parametric tests against the development branch
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
+
+    python_package, library_version = _python_library()
     return APMLibraryTestServer(
         lang="python",
+        library_version=library_version,
         protocol="http",
         container_name="python-test-library-http",
         container_tag="python-test-library",
@@ -148,12 +167,15 @@ RUN python3.9 -m pip install %s
 
 
 def node_library_factory() -> APMLibraryTestServer:
-
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
-    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
+    node_module = os.getenv("NODEJS_DDTRACE_MODULE")
+    library_version = apm_library.latest_version("nodejs")
+    if node_module is None:
+        node_module = f"dd-trace@{library_version}"
     return APMLibraryTestServer(
         lang="nodejs",
+        library_version=library_version,
         protocol="grpc",
         container_name="node-test-client",
         container_tag="node-test-client",
@@ -182,12 +204,13 @@ RUN npm install {node_module}
 
 
 def golang_library_factory():
-
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
     golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
 
+    library_version = apm_library.latest_version("golang")
     return APMLibraryTestServer(
         lang="golang",
+        library_version=library_version,
         protocol="grpc",
         container_name="go-test-library",
         container_tag="go118-test-library",
@@ -197,6 +220,7 @@ WORKDIR /client
 COPY ./go.mod /client
 COPY ./go.sum /client
 COPY . /client
+RUN go get gopkg.in/DataDog/dd-trace-go.v1@v{library_version}
 RUN go install
 """,
         container_cmd=["main"],
@@ -211,8 +235,10 @@ RUN go install
 def dotnet_library_factory():
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
+    library_version = apm_library.latest_version("dotnet")
     server = APMLibraryTestServer(
         lang="dotnet",
+        library_version=library_version,
         protocol="grpc",
         container_name="dotnet-test-client",
         container_tag="dotnet7_0-test-client",
@@ -225,6 +251,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # restore nuget packages
 COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
+RUN sed -i 's/DDTRACE_VERSION/%s/g' ./ApmTestClient.csproj
 RUN dotnet restore "./ApmTestClient.csproj"
 
 # build and publish
@@ -244,7 +271,8 @@ ENV DD_TRACE_Grpc_ENABLED=false
 ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
-""",
+"""
+        % (library_version,),
         container_cmd=["./ApmTestClient"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=dotnet_absolute_appdir,
@@ -266,6 +294,7 @@ def java_library_factory():
 
     return APMLibraryTestServer(
         lang="java",
+        library_version=apm_library.latest_version("java"),
         protocol="grpc",
         container_name="java-test-client",
         container_tag="java-test-client",
@@ -296,6 +325,7 @@ def php_library_factory() -> APMLibraryTestServer:
     php_reldir = php_appdir.replace("\\", "/")
     return APMLibraryTestServer(
         lang="php",
+        library_version=apm_library.latest_version("php"),
         protocol="http",
         container_name="php-test-library",
         container_tag="php-test-library",
@@ -333,6 +363,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
     )
     return APMLibraryTestServer(
         lang="ruby",
+        library_version=apm_library.latest_version("ruby"),
         protocol="grpc",
         container_name="ruby-test-client",
         container_tag="ruby-test-client",
@@ -367,6 +398,7 @@ def cpp_library_factory() -> APMLibraryTestServer:
     )
     return APMLibraryTestServer(
         lang="cpp",
+        library_version=apm_library.latest_version("cpp"),
         protocol="grpc",
         container_name="cpp-test-client",
         container_tag="cpp-test-client",
@@ -914,5 +946,24 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
         client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
     else:
         raise ValueError("interface %s not supported" % test_server.protocol)
-    tracer = APMLibrary(client, test_server.lang)
+    tracer = APMLibrary(client, test_server.lang, test_server.library_version)
     yield tracer
+
+
+@pytest.fixture(autouse=True)
+def check_library_version(request, test_library, test_agent):
+    """Check and skip parametric test cases if the library version does not match.
+    The library version is detected by querying the library with a trace and checking the version
+    return by the library in the HTTP header DataDog-Meta-Tracer-Version.
+    A better version of this fixture would be to have APMLibraryTestServer declare the version of the library
+    to be installed and used so that the version reported by the library can be verified against a source of
+    truth. Right now we assume that the library version reported is correct.
+    """
+    if not hasattr(request.instance, "__released__"):
+        return
+    released_version = packaging.version.parse(request.instance.__released__[context.library.library])
+
+    if test_library.version < released_version:
+        pytest.skip(
+            "Tested library version %s is older than the released version %s" % (test_library.version, released_version)
+        )
