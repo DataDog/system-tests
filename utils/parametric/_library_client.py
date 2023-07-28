@@ -8,6 +8,7 @@ from typing import Tuple
 from typing import TypedDict
 
 import grpc
+import packaging
 import requests
 
 from utils.parametric.protos import apm_test_client_pb2 as pb
@@ -381,9 +382,10 @@ class APMLibraryClientGRPC:
 
 
 class APMLibrary:
-    def __init__(self, client: APMLibraryClient, lang):
+    def __init__(self, client: APMLibraryClient, lang: str, version: packaging.version.Version):
         self._client = client
         self.lang = lang
+        self.version = version
 
     def __enter__(self) -> "APMLibrary":
         return self

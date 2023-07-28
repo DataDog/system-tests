@@ -832,7 +832,7 @@ class ParametricScenario(_Scenario):
 
     @property
     def library(self):
-        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "0.00")
+        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "999999.0")
 
 
 class scenarios:
