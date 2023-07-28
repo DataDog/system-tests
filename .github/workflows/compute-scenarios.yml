@@ -46,8 +46,10 @@ jobs:
         run: |
           if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
             echo "result=true" >> $GITHUB_OUTPUT
+
           elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-open-telemetry-scenarios') }}" == "true" ]; then
             echo "result=true" >> $GITHUB_OUTPUT
+
           else
             echo "result=false" >> $GITHUB_OUTPUT
           fi
