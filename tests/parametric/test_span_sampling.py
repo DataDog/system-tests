@@ -273,7 +273,7 @@ class Test_Span_Sampling:
         assert len(sampled) in range(30, 70)
         assert len(unsampled) in range(30, 70)
 
-    @missing_feature(context.library == "cpp", reason="span is marked -1 / drop")
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
         context.library == "*",
         reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
@@ -490,7 +490,7 @@ class Test_Span_Sampling:
     )
     def test_root_span_selected_by_sss014(self, test_agent, test_library):
         """Single spans selected by SSS must be kept and shouldn't affect child span sampling priority.
-        
+
         We're essentially testing to make sure that the span sampling rule keeps selected spans regardless of the trace sampling decision
         and doesn't affect child spans that are dropped by the tracer sampling mechanism.
         """
@@ -533,7 +533,7 @@ class Test_Span_Sampling:
     )
     def test_child_span_selected_by_sss015(self, test_agent, test_library):
         """Single spans selected by SSS must be kept even if its parent has been dropped.
-        
+
         We're essentially testing to make sure that the span sampling rule keeps selected spans despite of the trace sampling decision
         and doesn't affect parent spans that are dropped by the tracer sampling mechanism.
         """

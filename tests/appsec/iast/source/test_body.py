@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released, missing_feature
+from utils import context, coverage, released, missing_feature, bug
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -11,21 +11,21 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?"})
 @released(
     java={
-        "spring-boot": "1.7.0",
-        "spring-boot-jetty": "1.7.0",
-        "spring-boot-openliberty": "1.7.0",
-        "spring-boot-payara": "1.7.0",
-        "spring-boot-wildfly": "1.7.0",
-        "spring-boot-undertow": "1.7.0",
+        "jersey-grizzly2": "?",
+        "resteasy-netty3": "?",
         "vertx3": "1.12.0",
+        "vertx4": "1.12.0",
         "akka-http": "1.12.0",
-        "*": "?",
+        "ratpack": "?",
+        "*": "1.7.0",
     }
 )
 @released(nodejs={"express4": "3.19.0", "*": "?"})
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestRequestBody:
     """Verify that request json body is tainted"""
 
@@ -41,6 +41,7 @@ class TestRequestBody:
     def setup_source_reported(self):
         self.source_fixture.setup()
 
+    @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
     def test_source_reported(self):
         self.source_fixture.test()
 

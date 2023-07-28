@@ -1,1 +1,0 @@
-System test often uses a simple desing pattern for test logic: validator.

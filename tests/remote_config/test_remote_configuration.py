@@ -54,6 +54,7 @@ class RemoteConfigurationFieldsBasicTests:
     @bug(context.library < "java@0.93.0")
     @bug(context.library >= "dotnet@2.24.0")
     @bug(context.library >= "nodejs@3.14.1")
+    @bug(context.library == "php" and context.php_appsec >= "0.10.0")
     def test_schemas(self):
         """ Test all library schemas """
         interfaces.library.assert_schemas()
@@ -86,6 +87,11 @@ class RemoteConfigurationFieldsBasicTests:
             allowed_errors = (
                 # value is missing in configuration object in telemetry payloads
                 r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
+            )
+        elif context.library == "php":
+            allowed_errors = (
+                r"'interval' is a required property on instance \['payload'\]\['series'\]\[\d+\]",
+                r"'namespace' is a required property on instance \['payload'\]",
             )
 
         interfaces.library.assert_schemas(allowed_errors=allowed_errors)

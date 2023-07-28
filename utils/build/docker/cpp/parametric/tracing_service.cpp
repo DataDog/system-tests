@@ -67,10 +67,14 @@ TracingService::~TracingService() {}
     logger_->log_info("StartSpan response trace_id:" + std::to_string(span.trace_id().low) + " span_id:" + std::to_string(span.id()));
     active_spans_.insert({span.id(), std::move(span)});
   } else {
-    auto span = tracer_->extract_or_create_span(DistributedHTTPHeadersReader(request->http_headers()), config);
-    if (!span) {
-      logger_->log_error(span.error().with_prefix("could not extract span from http_headers"));
-      return ::grpc::Status(::grpc::StatusCode::INTERNAL, "could not extract span from http_headers");
+    auto extracted = tracer_->extract_or_create_span(DistributedHTTPHeadersReader(request->http_headers()), config);
+    std::optional<datadog::tracing::Span> span;
+    if (!extracted) {
+      const auto error = extracted.error().with_prefix("could not extract span from http_headers: ");
+      logger_->log_error(error);
+      span.emplace(tracer_->create_span(config));
+    } else {
+      span.emplace(std::move(*extracted));
     }
 
     response->set_trace_id(span->trace_id().low);

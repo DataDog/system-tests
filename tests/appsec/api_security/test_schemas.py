@@ -2,21 +2,16 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import base64
-import gzip
-import json
-
-import pytest
-from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
+from utils import coverage, interfaces, released, rfc, scenarios, weblog
 
 
 def get_schema(request, address):
     """get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
-        payload = meta.get("_dd.appsec.s." + address, None)
+        payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
-            return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
+            return payload
     return
 
 
@@ -41,7 +36,14 @@ def equal_value(t1, t2):
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
+    cpp="?",
+    dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
+    php_appsec="?",
+    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -62,7 +64,14 @@ class Test_Schema_Request_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
+    cpp="?",
+    dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
+    php_appsec="?",
+    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -85,7 +94,14 @@ class Test_Schema_Request_Query_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
+    cpp="?",
+    dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
+    php_appsec="?",
+    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -110,7 +126,14 @@ class Test_Schema_Request_Path_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
+    cpp="?",
+    dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
+    php_appsec="?",
+    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -130,7 +153,14 @@ class Test_Schema_Request_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
+    cpp="?",
+    dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
+    php_appsec="?",
+    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -163,7 +193,6 @@ class Test_Schema_Reponse_Body:
     def setup_request_method(self):
         pass
 
-    @pytest.mark.skip
     def test_request_method(self):
         """can provide response body schema"""
         pass
