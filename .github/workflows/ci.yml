@@ -379,6 +379,11 @@ jobs:
       run: ./run.sh APPSEC_API_SECURITY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_sampling == 'true'
       run: ./run.sh SAMPLING
@@ -632,6 +637,11 @@ jobs:
     - name: Run APPSEC_WAF_TELEMETRY scenario
       if: always() && steps.build.outcome == 'success'
       run: ./run.sh APPSEC_WAF_TELEMETRY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
