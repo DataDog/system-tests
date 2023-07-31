@@ -124,7 +124,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def get_telemetry_data(self, flatten_message_batches=True):
         all_data = self.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry")
-        if flatten_message_batches:
+        if not flatten_message_batches:
             yield from all_data
         else:
             for data in all_data:
