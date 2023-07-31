@@ -174,7 +174,9 @@ class Test_Telemetry:
         assert len(telemetry_data) > 0, "No telemetry messages"
         if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
             first_message = telemetry_data[0]["request"]["content"]["payload"][0]
-            assert first_message.get("request_type") == "app-started", "app-started was not the first message in the first batch"
+            assert (
+                first_message.get("request_type") == "app-started"
+            ), "app-started was not the first message in the first batch"
         else:
             first_message = telemetry_data[0]["request"]["content"]
             assert first_message.get("request_type") == "app-started", "app-started was not the first message"
@@ -524,7 +526,6 @@ class Test_ProductsDisabled:
                     ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
-
 @released(cpp="?", dotnet="?", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
@@ -557,9 +558,7 @@ class Test_MessageBatch:
             content = data["request"]["content"]
             event_list.append(content.get("request_type"))
 
-        assert (
-            "message-batch" in event_list
-        ), f"Expected one or more message-batch events: {event_list}"
+        assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
