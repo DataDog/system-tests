@@ -31,6 +31,13 @@ SYNOPSIS
 OPTIONS
     Using option flags is the recommended way to use ${program}.
 
+    +v, ++verbose
+      Increase verbosity.
+
+    +y, ++dry
+      Do a dry run, i.e pretend to run but do nothing, instead outputting
+      commands that would be run.
+
     +d, ++docker
       Run tests in a Docker container. The runner image must be built beforehand.
 
@@ -90,8 +97,7 @@ function die() {
 function lookup_scenario_group() {
     local group="$1"
 
-    activate_venv
-    cat < scenario_groups.yml | python -c 'import yaml; import sys; key = sys.argv[1]; data = sys.stdin.read(); g = yaml.safe_load(data)[key]; [[print(t) for t in s] if isinstance(s, list) else print(s) for s in g]' "${group}"
+    cat < scenario_groups.yml | python -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]' "${group}"
 }
 
 function upcase() {
@@ -112,11 +118,19 @@ function activate_venv() {
 }
 
 function run_scenario() {
+    local dry="$1"
+    shift
     local mode="$1"
     shift
     local scenario="$1"
     shift
     local pytest_args=("$@")
+
+    local cmd=()
+
+    if [[ "${dry}" -gt 0 ]]; then
+        cmd+=(echo)
+    fi
 
     case "${mode}" in
         'docker')
@@ -131,35 +145,51 @@ function run_scenario() {
                 log_dir="logs_$(echo "${scenario}" | downcase )"
             fi
 
-            docker run \
-                --network system-tests_default \
-                --rm -it \
-                -v "${PWD}"/.env:/app/.env \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                -v "${PWD}/${log_dir}":"/app/${log_dir}" \
-                -e SYSTEM_TESTS_WEBLOG_HOST=weblog \
-                -e SYSTEM_TESTS_WEBLOG_PORT=7777 \
-                -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778 \
-                -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}" \
-                --name system-tests-runner \
-                system_tests/runner \
-                venv/bin/pytest -S "${scenario}" "${pytest_args[@]}"
+            cmd+=(
+              docker run
+              --network system-tests_default
+              --rm -it
+              -v "${PWD}"/.env:/app/.env
+              -v /var/run/docker.sock:/var/run/docker.sock
+              -v "${PWD}/${log_dir}":"/app/${log_dir}"
+              -e SYSTEM_TESTS_WEBLOG_HOST=weblog
+              -e SYSTEM_TESTS_WEBLOG_PORT=7777
+              -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778
+              -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}"
+              --name system-tests-runner
+              system_tests/runner
+              venv/bin/pytest
+            )
             ;;
         'direct')
-            pytest -S "${scenario}" "${pytest_args[@]}"
+            cmd+=(pytest)
             ;;
         *)
             die "unsupported run mode: ${mode}"
             ;;
     esac
+
+    cmd+=(
+        -S "${scenario}"
+        "${pytest_args[@]}"
+    )
+
+    "${cmd[@]}"
 }
 
 function main() {
     local docker="${DOCKER_MODE:-0}"
+    local verbosity=0
+    local dry=0
     local scenarios=()
     local libraries=()
     local pytest_args=()
     local pytest_numprocesses='auto'
+
+    # ensure environment
+    if ! is_using_nix; then
+        activate_venv
+    fi
 
     ## handle environment variables
 
@@ -175,6 +205,12 @@ function main() {
                 help
                 exit
                 ;;
+            +v|++verbose)
+                verbosity=$(( verbosity + 1 ))
+                ;;
+            +y|++dry)
+                dry=1
+                ;;
             +d|++docker)
                 docker=1
                 ;;
@@ -185,7 +221,8 @@ function main() {
                   exit 64
                 fi
                 # upcase via ${2^^} is unsupported on bash 3.x
-                mapfile -t group <<< "$(lookup_scenario_group "$(echo "$2" | upcase)")"
+                # bash 3.x does not support mapfile, dance around with tr and IFS
+                IFS=',' read -r -a group <<< "$(lookup_scenario_group "$(echo "$2" | upcase)" | tr '\n' ',')"
                 scenarios+=("${group[@]}")
                 shift
                 ;;
@@ -224,7 +261,8 @@ function main() {
             *)
                 # handle positional arguments
                 if [[ "$1" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
-                    mapfile -t group <<< "$(lookup_scenario_group "$1")"
+                    # bash 3.x does not support mapfile, dance around with tr and IFS
+                    IFS=',' read -r -a group <<< "$(lookup_scenario_group "$1" | tr '\n' ',')"
                     scenarios+=("${group[@]}")
                 elif [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
                     scenarios+=("$1")
@@ -295,15 +333,20 @@ function main() {
         run_mode='docker'
     else
         run_mode='direct'
+    fi
 
-        # ensure environment
-        if ! is_using_nix; then
-            activate_venv
-        fi
+    if [[ "${verbosity}" -gt 0 ]]; then
+        echo "plan:"
+        echo "  mode: ${run_mode}"
+        echo "  dry run: ${dry}"
+        echo "  scenarios:"
+        for scenario in "${scenarios[@]}"; do
+            echo "    - ${scenario}"
+        done
     fi
 
     for scenario in "${scenarios[@]}"; do
-        run_scenario "${run_mode}" "${scenario}" "${pytest_args[@]}"
+        run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
 }
 
