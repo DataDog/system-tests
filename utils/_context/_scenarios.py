@@ -908,6 +908,7 @@ class scenarios:
             "DD_PROFILING_ENABLED": "false",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
         },
+        appsec_enabled=False,
         doc="Disable all tracers products",
     )
 

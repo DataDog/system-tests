@@ -518,8 +518,14 @@ class Test_ProductsDisabled:
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
                 assert (
-                    "products" not in content["payload"]
-                ), "Product information is present telemetry data on app-started event when all products are disabled"
+                    "products" in content["payload"]
+                ), "Product information was expected in app-started event, but was missing"
+                products = content["payload"]["products"]
+                for product, details in products.items():
+                    assert (
+                        details.get("enabled") is False
+                    ), f"Product information expected to indicate {product} is disabled, but found enabled"
+
 
 
 @released(cpp="?", dotnet="?", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
