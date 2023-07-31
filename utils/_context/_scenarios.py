@@ -832,7 +832,10 @@ class ParametricScenario(_Scenario):
 
     @property
     def library(self):
-        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "0.00")
+        # Use large version here as it is checked by the standard system-tests version checking.
+        # Parametric version checking is done via the check_library_version pytest fixture
+        # which uses the reported library version.
+        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
 
 
 class scenarios:
