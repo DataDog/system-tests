@@ -912,11 +912,6 @@ class scenarios:
         doc="Disable all tracers products",
     )
 
-    telemetry_message_batch_event_order = EndToEndScenario(
-        "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER",
-        weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"},
-        doc="Test env var `DD_FORCE_BATCHING_ENABLE=false`",
-    )
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},

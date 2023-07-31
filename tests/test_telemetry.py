@@ -545,28 +545,24 @@ class Test_DependencyEnable:
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@missing_feature(library="ruby", reason="DD_FORCE_BATCHING_ENABLE not yet supported")
-@scenarios.telemetry_message_batch_event_order
-class Test_ForceBatchingEnabled:
-    """ Tests on DD_FORCE_BATCHING_ENABLE environment variable """
+class Test_MessageBatch:
+    """ Tests on Message batching """
 
-    def setup_message_batch_event_order(self):
+    def setup_message_batch_enabled(self):
         weblog.get("/load_dependency")
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
-    def test_message_batch_event_order(self):
-        """Test that the events in message-batch are in chronological order"""
+    def test_message_batch_enabled(self):
+        """Test that events are sent in message batches"""
         event_list = []
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
             event_list.append(content.get("request_type"))
 
         assert (
-            event_list.index("app-dependencies-loaded")
-            < event_list.index("app-integrations-change")
-            < event_list.index("app-product-change")
-        ), f"Events in message-batch are not in chronological order of event triggered: {event_list}"
+            "message-batch" in event_list
+        ), f"Expected one or more message-batch events: {event_list}"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
