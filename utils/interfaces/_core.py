@@ -170,6 +170,7 @@ def get_rid_from_span(span):
         return None
 
     meta = span.get("meta", {})
+    metrics = span.get("metrics", {})
 
     user_agent = None
 
@@ -177,8 +178,8 @@ def get_rid_from_span(span):
         user_agent = meta.get("grpc.metadata.user-agent")
         # java does not fill this tag; it uses the normal http tags
 
-    if not user_agent:
-        # code version
+    if not user_agent and metrics.get("_dd.top_level") == 1.0:
+        # The top level span (aka root span) is mark via the _dd.top_level tag by the tracers
         user_agent = meta.get("http.request.headers.user-agent")
 
     if not user_agent:  # try something for .NET
