@@ -274,6 +274,18 @@ public class AppSecIast {
         return "XPath secure";
     }
 
+    @GetMapping("/trust-boundary-violation/test_insecure")
+    public String trustBoundaryViolationInSecureSpringBoot(final HttpServletRequest request) {
+      String paramValue = request.getParameter("username");
+      request.getSession().putValue("name", paramValue);
+      return "Trust Boundary violation page";
+    }
+
+    @GetMapping("/trust-boundary-violation/test_secure")
+    public String trustBoundaryViolationSecureSpringBoot(final HttpServletRequest request) {
+      return "Trust Boundary violation page";
+    }
+
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily
      *

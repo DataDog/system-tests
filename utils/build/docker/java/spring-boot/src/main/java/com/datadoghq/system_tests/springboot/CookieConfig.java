@@ -7,7 +7,7 @@ import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @Configuration
-public class CookieThingy {
+public class CookieConfig {
 
     @Bean
     CookieSerializer cookieSerializer() {

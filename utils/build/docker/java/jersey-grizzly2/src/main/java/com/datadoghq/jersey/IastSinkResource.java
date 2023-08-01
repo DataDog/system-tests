@@ -253,4 +253,20 @@ public class IastSinkResource {
         return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
     }
 
+    @GET
+    @Path("/trust-boundary-violation/test_insecure")
+    public String trustBoundaryViolationSecure(final HttpServletRequest request) {
+      String paramValue = request.getParameter("username");
+      request.getSession().setAttribute("name", paramValue);
+      return "Trust Boundary violation page";
+    }
+
+    @GET
+    @Path("/trust-boundary-violation/test_secure")
+    public String trustBoundaryViolationInsecure(final HttpServletRequest request) {
+      String paramValue = request.getParameter("paramValue");
+      return "Trust Boundary violation page";
+    }
+
+
 }
