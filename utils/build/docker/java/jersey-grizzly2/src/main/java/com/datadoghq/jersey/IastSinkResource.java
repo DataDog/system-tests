@@ -5,14 +5,19 @@ import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Request;
+import org.glassfish.grizzly.http.server.Session;
+
 
 import static com.datadoghq.jersey.Main.DATA_SOURCE;
 import static com.datadoghq.jersey.Main.LDAP_CONTEXT;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
 
 @Path("/iast")
 @Produces(MediaType.TEXT_PLAIN)
@@ -252,21 +257,5 @@ public class IastSinkResource {
     public Response  noHttpOnlyCookieSecure() {
         return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
     }
-
-    @GET
-    @Path("/trust-boundary-violation/test_insecure")
-    public String trustBoundaryViolationSecure(final HttpServletRequest request) {
-      String paramValue = request.getParameter("username");
-      request.getSession().setAttribute("name", paramValue);
-      return "Trust Boundary violation page";
-    }
-
-    @GET
-    @Path("/trust-boundary-violation/test_secure")
-    public String trustBoundaryViolationInsecure(final HttpServletRequest request) {
-      String paramValue = request.getParameter("paramValue");
-      return "Trust Boundary violation page";
-    }
-
 
 }

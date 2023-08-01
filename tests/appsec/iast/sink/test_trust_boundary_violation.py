@@ -12,14 +12,23 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
-@released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.19.0"})
+@released(java={
+    "resteasy-netty3": "?",
+    "jersey-grizzly2": "?",
+    "vertx3": "?",
+    "vertx4": "?",
+    "akka-http": "?", 
+    "ratpack": "?", 
+    "spring-boot-3-native": "?", 
+    "*": "1.19.0"})
+
 class TestTrustBoundaryViolation:
     """Test Trust Boundary Violation detection."""
 
     sink_fixture = SinkFixture(
         vulnerability_type="TRUST_BOUNDARY_VIOLATION",
         http_method="GET",
-        insecure_endpoint="/iast/trust-boundary-violation/test_insecure?username=bob",
+        insecure_endpoint="/iast/trust-boundary-violation/test_insecure",
         secure_endpoint="/iast/trust-boundary-violation/test_secure",
         data={"username": "shaquille_oatmeal", "password": "123456"},
         location_map={"nodejs": "iast/index.js",},
