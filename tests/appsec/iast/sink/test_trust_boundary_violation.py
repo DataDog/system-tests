@@ -12,16 +12,18 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
-@released(java={
-    "resteasy-netty3": "?",
-    "jersey-grizzly2": "?",
-    "vertx3": "?",
-    "vertx4": "?",
-    "akka-http": "?", 
-    "ratpack": "?", 
-    "spring-boot-3-native": "?", 
-    "*": "1.19.0"})
-
+@released(
+    java={
+        "resteasy-netty3": "?",
+        "jersey-grizzly2": "?",
+        "vertx3": "?",
+        "vertx4": "?",
+        "akka-http": "?",
+        "ratpack": "?",
+        "spring-boot-3-native": "?",
+        "*": "1.19.0",
+    }
+)
 class TestTrustBoundaryViolation:
     """Test Trust Boundary Violation detection."""
 
