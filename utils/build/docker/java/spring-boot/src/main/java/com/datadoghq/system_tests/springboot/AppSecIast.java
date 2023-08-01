@@ -283,6 +283,7 @@ public class AppSecIast {
 
     @GetMapping("/trust-boundary-violation/test_secure")
     public String trustBoundaryViolationSecureSpringBoot(final HttpServletRequest request) {
+      request.getSession().putValue("name", "value");
       return "Trust Boundary violation page";
     }
 
