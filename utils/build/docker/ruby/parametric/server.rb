@@ -13,6 +13,12 @@ Datadog.configure do |c|
   c.tracing.instrument :http # Used for `http_client_request`
 end
 
+if Datadog::Core::Remote.active_remote
+  # TODO: Remove this whole `if` condition if remote configuration is started by default.
+  raise "Remote Configuration worker already started! Remove this check and `Datadog::Core::Remote.active_remote.start` below." if Datadog::Core::Remote.active_remote.started?
+  Datadog::Core::Remote.active_remote.start
+end
+
 # Ensure output is always flushed, to prevent a forced shutdown from losing all logs.
 STDOUT.sync = true
 puts 'Loading server classes...'
