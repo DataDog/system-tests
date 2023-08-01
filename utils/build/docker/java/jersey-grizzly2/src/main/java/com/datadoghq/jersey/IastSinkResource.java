@@ -208,19 +208,19 @@ public class IastSinkResource {
     @GET
     @Path("/insecure-cookie/test_insecure")
     public Response  insecureCookie() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict").build();
     }
 
     @GET
     @Path("/insecure-cookie/test_secure")
     public Response  secureCookie() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").build();
     }
 
     @GET
     @Path("/no-samesite-cookie/test_insecure")
     public Response  noSameSiteCookieInsecure() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly=true;Secure").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly;Secure").build();
     }
 
     @GET
@@ -232,7 +232,7 @@ public class IastSinkResource {
     @GET
     @Path("/no-samesite-cookie/test_secure")
     public Response  noSameSiteCookieSecure() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").build();
     }
 
     @GET
@@ -250,7 +250,7 @@ public class IastSinkResource {
     @GET
     @Path("/no-httponly-cookie/test_secure")
     public Response  noHttpOnlyCookieSecure() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").build();
     }
 
 }
