@@ -34,7 +34,6 @@ class Test_Headers_Datadog:
         assert span["meta"].get("_dd.p.dm") == "-4"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
-    @bug(context.library == "cpp", reason="trace-id 0 not treated as error")
     def test_distributed_headers_extract_datadog_invalid_D002(self, test_agent, test_library):
         """Ensure that invalid Datadog distributed tracing headers are not extracted.
         """
@@ -91,7 +90,6 @@ class Test_Headers_Datadog:
         assert headers["x-datadog-origin"] == "synthetics"
         assert "_dd.p.dm=-4" in headers["x-datadog-tags"]
 
-    @bug(context.library == "cpp", reason="trace-id 0 not treated as error")
     def test_distributed_headers_extractandinject_datadog_invalid_D005(self, test_agent, test_library):
         """Ensure that invalid Datadog distributed tracing headers are not extracted
         and the new span context is injected properly.

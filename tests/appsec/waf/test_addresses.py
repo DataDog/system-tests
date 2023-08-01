@@ -175,7 +175,7 @@ class Test_Headers:
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
         "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
-        "uwsgi-poc": "?",
+        "uwsgi-poc": "1.16.1",
         "pylons": "1.1.0rc2.dev",
     }
 )

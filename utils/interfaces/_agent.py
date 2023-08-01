@@ -8,6 +8,7 @@ This files will validate data flow between agent and backend
 
 import json
 import threading
+import copy
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span
@@ -74,8 +75,22 @@ class AgentInterfaceValidator(InterfaceValidator):
 
         raise Exception("No data validate this test")
 
-    def get_telemetry_data(self):
-        yield from self.get_data(path_filters="/api/v2/apmtelemetry")
+    def get_telemetry_data(self, flatten_message_batches=True):
+        all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
+        if flatten_message_batches:
+            yield from all_data
+        else:
+            for data in all_data:
+                if data["request"]["content"].get("request_type") == "message-batch":
+                    for batch_payload in data["request"]["content"]["payload"]:
+                        # create a fresh copy of the request for each payload in the
+                        # message batch, as though they were all sent independently
+                        copied = copy.deepcopy(data)
+                        copied["request"]["content"]["request_type"] = batch_payload.get("request_type")
+                        copied["request"]["content"]["payload"] = batch_payload.get("payload")
+                        yield copied
+                else:
+                    yield data
 
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)

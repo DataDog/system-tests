@@ -34,16 +34,46 @@ jobs:
       uses: ./.github/actions/lint_code
 
   test_the_test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+    name: Test the test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install runner
         uses: ./.github/actions/install_runner
-      - run: ./run.sh TEST_THE_TEST
+      # force /bin/bash in order to test against bash 3.2 on macOS
+      - name: Test the test (direct)
+        run: /bin/bash run.sh TEST_THE_TEST
+      - name: Test group parsing
+        run: |
+          /bin/bash run.sh ++dry APPSEC_SCENARIOS
+          /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
     uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
+
+  parametric:
+    if: needs.scenarios.outputs.run_parametric == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: datadog/system-tests/.github/workflows/parametric.yml@main
+    secrets: inherit
+
+  experimental:
+    if: needs.scenarios.outputs.run_libinjection == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: datadog/system-tests/.github/workflows/experimental.yml@main
+    secrets: inherit
 
   main:
     runs-on: ubuntu-latest
@@ -241,7 +271,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -256,7 +286,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -498,6 +528,9 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+    - name: Build proxy image
+      if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+      run: ./build.sh -i proxy
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - name: Build weblog
@@ -509,7 +542,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -524,7 +557,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -686,7 +719,10 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
-      run: docker pull datadog/system-tests:proxy-v0
+      run: docker pull datadog/system-tests:proxy-v1 || true
+    - name: Build proxy image
+      if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+      run: ./build.sh -i proxy
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i agent
     - name: Build weblog

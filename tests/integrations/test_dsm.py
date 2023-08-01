@@ -7,10 +7,11 @@ from utils.tools import logger
 import time
 
 
-@released(cpp="?", golang="?", nodejs="?", php="?", ruby="?")
+@released(cpp="?", golang="?", php="?", ruby="?")
 @released(dotnet="2.29.0")
 @released(python="1.15.1")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
+@released(nodejs="4.4.0")
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -24,14 +25,23 @@ class Test_DsmKafka:
         #assert self.r.text == "ok"
         #time.sleep(20)
 
+        # Hashes are created by applying the FNV-1 algorithm on
+        # checkpoint strings (e.g. service:foo)
+        # There is currently no FNV-1 library availble for node.js
+        # So we are using a different algorithm for node.js for now
+        if context.library == "nodejs":
+            consumer_hash = 2931833227331067675
+            producer_hash = 271115008390912609
+        else:
+            consumer_hash = 4463699290244539355
+            producer_hash = 3735318893869752335
+
         DsmHelper.assert_checkpoint_presence(
-            hash_=4463699290244539355,
-            parent_hash=0,
-            tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
+            hash_=consumer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=3735318893869752335,
-            parent_hash=4463699290244539355,
+            hash_=producer_hash,
+            parent_hash=consumer_hash,
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
@@ -82,7 +92,7 @@ class Test_DsmRabbitmq:
     def setup_dsm_rabbitmq_dotnet_legacy(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
 
-    @irrelevant(context.library != "dotnet", reason="legacy dotnet behavior")
+    @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
     def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 

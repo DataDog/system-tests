@@ -37,7 +37,7 @@ _released_java_blocking = {
     cpp="?",
     dotnet="2.27.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     nodejs="3.19.0",
     golang="1.51.0",
     ruby="1.0.0",
@@ -236,7 +236,7 @@ def _assert_custom_event_tag_absence():
     golang="1.51.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.12.0",
     java=_released_java_blocking,
 )
@@ -287,7 +287,7 @@ class Test_Blocking_request_method:
     golang="1.51.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.15", "flask-poc": "1.15", "*": "?"},
+    python={"django-poc": "1.15", "flask-poc": "1.15", "*": "1.16.1"},
     ruby="1.0.0",
     java=_released_java_blocking,
 )
@@ -349,7 +349,7 @@ class Test_Blocking_request_uri:
     java="1.15.0",
     nodejs="?",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.13", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.13", "*": "1.16.1"},
     ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -403,7 +403,7 @@ class Test_Blocking_request_path_params:
     golang="1.51.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
     java=_released_java_blocking,
 )
@@ -460,7 +460,7 @@ class Test_Blocking_request_query:
     golang="1.51.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
     java=_released_java_blocking,
 )
@@ -517,7 +517,7 @@ class Test_Blocking_request_headers:
     golang="1.51.0",
     nodejs="?",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
     java=_released_java_blocking,
 )
@@ -575,7 +575,7 @@ class Test_Blocking_request_cookies:
     java="1.15.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -647,7 +647,7 @@ class Test_Blocking_request_body:
     java="?",
     nodejs="?",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.10.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -685,7 +685,7 @@ class Test_Blocking_response_status:
     java="?",
     nodejs="?",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")

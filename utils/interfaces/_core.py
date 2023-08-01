@@ -44,9 +44,6 @@ class InterfaceValidator:
     def wait(self, timeout):
         time.sleep(timeout)
 
-        # sort data, as, file system observer may have sent them in the wrong order
-        self._data_list.sort(key=lambda data: data["log_filename"])
-
         for data in self._data_list:
             filename = data["log_filename"]
             if "content" not in data["request"]:
@@ -74,6 +71,9 @@ class InterfaceValidator:
 
             self._data_list.append(data)
             self._ingested_files.add(src_path)
+
+            # make 100% sure that the list is sorted
+            self._data_list.sort(key=lambda data: data["log_filename"])
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
@@ -170,6 +170,7 @@ def get_rid_from_span(span):
         return None
 
     meta = span.get("meta", {})
+    metrics = span.get("metrics", {})
 
     user_agent = None
 
@@ -177,8 +178,8 @@ def get_rid_from_span(span):
         user_agent = meta.get("grpc.metadata.user-agent")
         # java does not fill this tag; it uses the normal http tags
 
-    if not user_agent:
-        # code version
+    if not user_agent and metrics.get("_dd.top_level") == 1.0:
+        # The top level span (aka root span) is mark via the _dd.top_level tag by the tracers
         user_agent = meta.get("http.request.headers.user-agent")
 
     if not user_agent:  # try something for .NET

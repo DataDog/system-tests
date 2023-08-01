@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released, missing_feature
+from utils import context, coverage, released, missing_feature, bug
 from ..iast_fixtures import SinkFixture
 
 if context.library == "cpp":
@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?")
 @released(nodejs={"express4": "4.1.0", "*": "?"})
 @released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
 class TestInsecureCookie:
@@ -44,6 +44,7 @@ class TestInsecureCookie:
     def setup_secure(self):
         self.sink_fixture.setup_secure()
 
+    @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
     def test_secure(self):
         self.sink_fixture.test_secure()
 
