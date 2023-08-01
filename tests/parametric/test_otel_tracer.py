@@ -17,7 +17,6 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "dotnet", reason="Span names don't match expectations")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_simple_trace(self, test_agent, test_library):
@@ -58,10 +57,6 @@ class Test_Otel_Tracer:
         assert child_span["name"] == "child"
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(
-        context.library == "dotnet",
-        reason="Span names don't match expectations: 'ApmTestClient.internal' == 'test_span'",
-    )
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_force_flush_otel(self, test_agent, test_library):

@@ -7,14 +7,14 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span
 from .conftest import _TestAgentAPI
 from .conftest import APMLibrary
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, released
+
+
+parametrize = pytest.mark.parametrize
 
 
 @scenarios.parametric
 class Test_Tracer:
-
-    parametrize = pytest.mark.parametrize
-
     @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
     @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
     def test_tracer_span_top_level_attributes(self, test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
@@ -41,7 +41,11 @@ class Test_Tracer:
         assert child_span["name"] == "operation.child"
         assert child_span["meta"]["key"] == "val"
 
-    @missing_feature(reason="Libraries use empty string for service")
+
+@scenarios.parametric
+@released(python="0.36.0")
+class Test_TracerUniversalServiceTagging:
+    @missing_feature(reason="FIXME: library test client sets empty string as the service name")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])
     def test_tracer_service_name_environment_variable(
         self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary

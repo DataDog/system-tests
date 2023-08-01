@@ -3,7 +3,7 @@
   pkgs ? import <nixpkgs> {},
 
   # use a pinned package state
-  pinned ? import(fetchTarball("https://github.com/NixOS/nixpkgs/archive/14d9b465c71.tar.gz")) {},
+  pinned ? import(fetchTarball("https://github.com/NixOS/nixpkgs/archive/88f63d51109.tar.gz")) {},
 }:
 let
   # get these python packages from nix
