@@ -7,7 +7,7 @@ from utils import missing_feature, bug, context, scenarios
 @scenarios.parametric
 class Test_Partial_Flushing:
     @pytest.mark.parametrize(
-            "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1","DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
+        "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1","DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(
@@ -34,7 +34,7 @@ class Test_Partial_Flushing:
         assert root_span["name"] == "root"
 
     @pytest.mark.parametrize(
-            "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5","DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
+        "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5","DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(
@@ -51,7 +51,7 @@ class Test_Partial_Flushing:
         no_partial_flush_test(self, test_agent, test_library)
 
     @pytest.mark.parametrize(
-            "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",}]
+        "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",}]
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(context.library == "java", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
