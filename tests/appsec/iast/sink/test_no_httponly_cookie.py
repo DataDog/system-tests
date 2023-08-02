@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released, missing_feature
+from utils import context, coverage, released, missing_feature, bug
 from ..iast_fixtures import SinkFixture
 
 if context.library == "cpp":
@@ -43,6 +43,7 @@ class TestNoHttponlyCookie:
     def setup_secure(self):
         self.sink_fixture.setup_secure()
 
+    @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
     def test_secure(self):
         self.sink_fixture.test_secure()
 
