@@ -11,6 +11,7 @@ from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, Type
 import urllib.parse
 
 import requests
+import packaging.version
 import pytest
 
 from utils.parametric.spec.trace import V06StatsPayload
@@ -23,6 +24,8 @@ from utils.parametric._library_client import APMLibrary
 from utils import context
 from utils.tools import logger
 import json
+
+from filelock import FileLock
 
 
 @pytest.fixture
@@ -82,7 +85,7 @@ def library_env() -> Dict[str, str]:
     return {}
 
 
-ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
+ClientLibraryServerFactory = Callable[[], APMLibraryTestServer]
 
 
 def _get_base_directory():
@@ -91,7 +94,7 @@ def _get_base_directory():
     return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
 
 
-def python_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+def python_library_factory() -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     # By default run parametric tests against the development branch
@@ -99,7 +102,7 @@ def python_library_factory(env: Dict[str, str], container_id: str, port: str) ->
     return APMLibraryTestServer(
         lang="python",
         protocol="grpc",
-        container_name="python-test-library-%s" % container_id,
+        container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
@@ -113,12 +116,12 @@ RUN python3.9 -m pip install %s
         container_build_dir=python_absolute_appdir,
         container_build_context=python_absolute_appdir,
         volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/client/apm_test_client"),],
-        env=env,
-        port=port,
+        env={},
+        port="",
     )
 
 
-def python_http_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+def python_http_library_factory() -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python_http", "parametric")
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     # By default run parametric tests against the development branch
@@ -126,7 +129,7 @@ def python_http_library_factory(env: Dict[str, str], container_id: str, port: st
     return APMLibraryTestServer(
         lang="python",
         protocol="http",
-        container_name="python-test-library-http-%s" % container_id,
+        container_name="python-test-library-http",
         container_tag="python-test-library",
         container_img="""
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
@@ -140,12 +143,12 @@ RUN python3.9 -m pip install %s
         container_build_dir=python_absolute_appdir,
         container_build_context=python_absolute_appdir,
         volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/client/apm_test_client"),],
-        env=env,
-        port=port,
+        env={},
+        port="",
     )
 
 
-def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+def node_library_factory() -> APMLibraryTestServer:
 
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
@@ -153,7 +156,7 @@ def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
     return APMLibraryTestServer(
         lang="nodejs",
         protocol="grpc",
-        container_name="node-test-client-%s" % container_id,
+        container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
@@ -174,12 +177,12 @@ RUN npm install {node_module}
                 "/client/apm_test_client.proto",
             ),
         ],
-        port=port,
-        env=env,
+        env={},
+        port="",
     )
 
 
-def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
+def golang_library_factory():
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
     golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
@@ -187,7 +190,7 @@ def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
-        container_name="go-test-library-%s" % container_id,
+        container_name="go-test-library",
         container_tag="go118-test-library",
         container_img=f"""
 FROM golang:1.18
@@ -201,18 +204,18 @@ RUN go install
         container_build_dir=golang_absolute_appdir,
         container_build_context=golang_absolute_appdir,
         volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
-        env=env,
-        port=port,
+        env={},
+        port="",
     )
 
 
-def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
+def dotnet_library_factory():
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
-        container_name=f"dotnet-test-client-{container_id}",
+        container_name="dotnet-test-client",
         container_tag="dotnet7_0-test-client",
         container_img="""
 FROM mcr.microsoft.com/dotnet/sdk:7.0
@@ -247,14 +250,14 @@ ENV DD_TRACE_OTEL_ENABLED=false
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=dotnet_absolute_appdir,
         volumes=[],
-        env=env,
-        port=port,
+        env={},
+        port="",
     )
 
     return server
 
 
-def java_library_factory(env: Dict[str, str], container_id: str, port: str):
+def java_library_factory():
     java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
     java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
 
@@ -265,8 +268,8 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
     return APMLibraryTestServer(
         lang="java",
         protocol="grpc",
-        container_name="java-test-client-%s" % container_id,
-        container_tag="java8-test-client",
+        container_name="java-test-client",
+        container_tag="java-test-client",
         container_img=f"""
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
@@ -283,21 +286,19 @@ COPY {java_reldir}/run.sh .
         container_build_dir=java_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes=[],
-        env=env,
-        port=port,
+        env={},
+        port="",
     )
 
 
-def php_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+def php_library_factory() -> APMLibraryTestServer:
     php_appdir = os.path.join("utils", "build", "docker", "php", "parametric")
     php_absolute_appdir = os.path.join(_get_base_directory(), php_appdir)
     php_reldir = php_appdir.replace("\\", "/")
-    env = env.copy()
-    # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
     return APMLibraryTestServer(
         lang="php",
         protocol="http",
-        container_name="php-test-library-%s" % container_id,
+        container_name="php-test-library",
         container_tag="php-test-library",
         container_img=f"""
 FROM datadog/dd-trace-ci:php-8.2_buster
@@ -315,12 +316,12 @@ RUN composer install
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
-        env=env,
-        port=port,
+        env={},
+        port="",
     )
 
 
-def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+def ruby_library_factory() -> APMLibraryTestServer:
 
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
@@ -334,7 +335,7 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
     return APMLibraryTestServer(
         lang="ruby",
         protocol="grpc",
-        container_name="ruby-test-client-%s" % container_id,
+        container_name="ruby-test-client",
         container_tag="ruby-test-client",
         container_img=f"""
             FROM ruby:3.2.1-bullseye
@@ -352,12 +353,12 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_absolute_appdir,
         container_build_context=ruby_absolute_appdir,
-        env=env,
-        port=port,
+        env={},
+        port="",
     )
 
 
-def cpp_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+def cpp_library_factory() -> APMLibraryTestServer:
     cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
 
@@ -368,7 +369,7 @@ def cpp_library_factory(env: Dict[str, str], container_id: str, port: str) -> AP
     return APMLibraryTestServer(
         lang="cpp",
         protocol="grpc",
-        container_name="cpp-test-client-%s" % container_id,
+        container_name="cpp-test-client",
         container_tag="cpp-test-client",
         container_img=f"""
 FROM datadog/docker-library:dd-trace-cpp-ci AS build
@@ -385,12 +386,12 @@ COPY --from=build /usr/local/bin/cpp-parametric-test /usr/local/bin/cpp-parametr
         container_cmd=["cpp-parametric-test"],
         container_build_dir=cpp_absolute_appdir,
         container_build_context=cpp_absolute_appdir,
-        env=env,
-        port=port,
+        env={},
+        port="",
     )
 
 
-_libs = {
+_libs: Dict[str, ClientLibraryServerFactory] = {
     "cpp": cpp_library_factory,
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
@@ -413,13 +414,104 @@ def get_open_port():
     return port
 
 
-@pytest.fixture
-def apm_test_server(request, library_env, test_id):
-    # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
-    # in pytest.
-    apm_test_library = _libs[context.scenario.library.library]
+@pytest.fixture(scope="session")
+def apm_test_server_definition() -> APMLibraryTestServer:
+    """Session level definition of the library test server"""
+    # There is only one language at a time in a pytest run
+    yield _libs[context.scenario.library.library]()
 
-    yield apm_test_library(library_env, test_id, get_open_port())
+
+def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer,) -> str:
+    log_path = f"{context.scenario.host_log_folder}/outputs/docker_build_log.log"
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    log_file = open(log_path, "w+")
+    # Write dockerfile to the build directory
+    # Note that this needs to be done as the context cannot be
+    # specified if Dockerfiles are read from stdin.
+    dockf_path = os.path.join(apm_test_server_definition.container_build_dir, "Dockerfile")
+    with open(dockf_path, "w") as dockf:
+        dockf.write(apm_test_server_definition.container_img)
+    # Build the container
+    docker = shutil.which("docker")
+    root_path = ".."
+    cmd = [
+        docker,
+        "build",
+        "--progress=plain",  # use plain output to assist in debugging
+        "-t",
+        apm_test_server_definition.container_tag,
+        "-f",
+        dockf_path,
+        apm_test_server_definition.container_build_context,
+    ]
+    log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
+    log_file.flush()
+
+    env = os.environ.copy()
+    env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
+
+    p = subprocess.run(
+        cmd,
+        cwd=root_path,
+        text=True,
+        input=apm_test_server_definition.container_img,
+        stdout=log_file,
+        stderr=log_file,
+        env=env,
+    )
+
+    failure_text: str = None
+    if p.returncode != 0:
+        log_file.seek(0)
+        failure_text = "".join(log_file.readlines())
+    log_file.close()
+
+    return failure_text
+
+
+@pytest.fixture(scope="session")
+def apm_test_server_image(
+    docker, apm_test_server_definition: APMLibraryTestServer, worker_id, tmp_path_factory
+) -> APMLibraryTestServer:
+    """Session level definition of the library test server with the Docker image built"""
+    # all this is only needed since xdist will execute session scopes once for every worker
+    # and here we want to make sure that we build the Docker image once and only once
+    failure_text: str = None
+    if worker_id == "master":
+        # not executing with multiple workers just build the image
+        failure_text = build_apm_test_server_image(apm_test_server_definition)
+    else:
+        # get the temp directory shared by all workers
+        root_tmp_dir = tmp_path_factory.getbasetemp().parent
+        fn = root_tmp_dir / apm_test_server_definition.container_tag
+        with FileLock(str(fn) + ".lock"):
+            if not fn.is_file():
+                failure_text = build_apm_test_server_image(apm_test_server_definition)
+                if failure_text == None:
+                    fn.write_text("success")
+                else:
+                    fn.write_text("failure")
+            else:
+                if fn.read_text() == "failure":
+                    failure_text = "Failed to build docker image. See output from other worker."
+
+    if failure_text != None:
+        pytest.fail(failure_text, pytrace=False)
+
+    yield apm_test_server_definition
+
+
+@pytest.fixture
+def apm_test_server(request, library_env, test_id, apm_test_server_image):
+    """Request level definition of the library test server with the session Docker image built"""
+    new_env = dict(library_env)
+    new_env.update(apm_test_server_image.env)
+    yield dataclasses.replace(
+        apm_test_server_image,
+        container_name="%s-%s" % (apm_test_server_image.container_name, test_id),
+        env=new_env,
+        port=get_open_port(),
+    )
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -444,6 +536,7 @@ class _TestAgentAPI:
     def __init__(self, base_url: str, pytest_request: None):
         self._base_url = base_url
         self._session = requests.Session()
+        self._pytest_request = pytest_request
         self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
         os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
 
@@ -455,7 +548,31 @@ class _TestAgentAPI:
             log.write(f"\n{type}>>>>\n")
             log.write(json.dumps(json_trace))
 
+    def _version_check(self, reqs=None):
+        """Check if the version of the library is compatible with the test case based on the library version reported
+        in requests.
+
+        A better way to do with check would be to have APMLibraryTestServer declare the version of the library
+        to be installed and used so that the version reported by the library can be verified against a source of
+        truth. Right now we assume that the library version reported is correct.
+        """
+        if not hasattr(self._pytest_request.instance, "__released__"):
+            return
+
+        released_version = packaging.version.parse(self._pytest_request.instance.__released__[context.library.library])
+        for r in reqs or self.requests():
+            if "Datadog-Meta-Tracer-Version" in r["headers"]:
+                library_version = r["headers"]["Datadog-Meta-Tracer-Version"]
+                reported_tracer_version = packaging.version.parse(library_version)
+                if reported_tracer_version < released_version:
+                    pytest.skip(
+                        "Tested library version %s is older than the released version %s"
+                        % (reported_tracer_version, released_version)
+                    )
+                break
+
     def traces(self, clear=False, **kwargs):
+        self._version_check()
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
@@ -464,6 +581,7 @@ class _TestAgentAPI:
         return json
 
     def tracestats(self, **kwargs):
+        self._version_check()
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
         json = resp.json()
         self._write_log("tracestats", json)
@@ -472,10 +590,12 @@ class _TestAgentAPI:
     def requests(self, **kwargs) -> List[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
         json = resp.json()
+        self._version_check(reqs=json)
         self._write_log("requests", json)
         return json
 
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
+        self._version_check()
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
         for raw in raw_requests:
@@ -728,9 +848,9 @@ def test_agent(
     if os.getenv("DEV_MODE") is not None:
         env["SNAPSHOT_CI"] = "0"
 
-    # Not all clients (go for example) submit the tracer version
-    # go client doesn't submit content length header
-    env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
+    # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
+    # (trace_content_length) go client doesn't submit content length header
+    env["ENABLED_CHECKS"] = "trace_count_header"
 
     test_agent_external_port = get_open_port()
     with docker_run(
@@ -788,44 +908,6 @@ def test_server(
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
 ):
-    # Write dockerfile to the build directory
-    # Note that this needs to be done as the context cannot be
-    # specified if Dockerfiles are read from stdin.
-    dockf_path = os.path.join(apm_test_server.container_build_dir, "Dockerfile")
-    with open(dockf_path, "w") as dockf:
-        dockf.write(apm_test_server.container_img)
-    # Build the container
-    docker = shutil.which("docker")
-    root_path = ".."
-    cmd = [
-        docker,
-        "build",
-        "--progress=plain",  # use plain output to assist in debugging
-        "-t",
-        apm_test_server.container_tag,
-        "-f",
-        dockf_path,
-        apm_test_server.container_build_context,
-    ]
-    test_server_log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
-    test_server_log_file.flush()
-
-    env = os.environ.copy()
-    env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
-
-    p = subprocess.run(
-        cmd,
-        cwd=root_path,
-        text=True,
-        input=apm_test_server.container_img,
-        stdout=test_server_log_file,
-        stderr=test_server_log_file,
-        env=env,
-    )
-    if p.returncode != 0:
-        test_server_log_file.seek(0)
-        pytest.fail("".join(test_server_log_file.readlines()), pytrace=False)
-
     env = {
         "DD_TRACE_DEBUG": "true",
         "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),

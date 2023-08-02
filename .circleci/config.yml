@@ -21,6 +21,10 @@ jobs:
             pip --version
 
       - run:
+          name: Build proxy
+          command: ./build.sh -i proxy
+
+      - run:
           name: Build
           command: ./build.sh java
 

@@ -11,8 +11,8 @@ ami:
   os_type: linux
   os_distro: deb
 
-- name: amazon-linux-x86
-  ami_id: ami-0dfcb1ef8550277af
+- name: amazon-linux-2023-x86
+  ami_id: ami-06b09bfacae1453cb
   user: ec2-user
   os_type: linux
   os_distro: rpm
@@ -50,7 +50,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          bash execute_install_script_dev.sh js --host-inject false --container-inject true --install-agent false
+          bash execute_install_script_dev.sh js --inject-mode docker --install-agent false
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     - env: prod
       install:
@@ -61,8 +61,9 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=js DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=js DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+   
   - java: 
     - env: dev
       install:
@@ -75,7 +76,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          bash execute_install_script_dev.sh java --host-inject false --container-inject true --install-agent false
+          bash execute_install_script_dev.sh java --inject-mode docker --install-agent false
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     - env: prod
       install:
@@ -86,7 +87,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=java DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=java DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
   - python: 
     - env: dev
@@ -100,7 +101,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: | 
-          bash execute_install_script_dev.sh python --host-inject false --container-inject true --install-agent false
+          bash execute_install_script_dev.sh python --inject-mode docker --install-agent false
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     - env: prod
       install:
@@ -111,7 +112,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=python DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=python DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
   - dotnet: 
     - env: dev
@@ -125,7 +126,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          bash execute_install_script_dev.sh dotnet --host-inject false --container-inject true --install-agent false
+          bash execute_install_script_dev.sh dotnet --inject-mode docker --install-agent false
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     - env: prod
       install:
@@ -136,8 +137,9 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=dotnet DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=dotnet DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
 autoinjection: 
   - java: 
     - env: dev
@@ -341,7 +343,7 @@ language-variants:
 
         - os_type: linux
           os_distro: rpm
-          command: sudo amazon-linux-extras install java-openjdk11
+          command: sudo dnf -y install java-11-amazon-corretto-devel
 
 
 weblogs:
@@ -366,6 +368,47 @@ weblogs:
               local_path: test-app-java.tar
 
           command: sh test-app-java_docker_compose_run.sh
+
+    - name: test-app-java-alpine
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          local-command: tar cvf test-app-java.tar -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_docker_compose_run.sh
+
+            - name: copy-docker-file
+              local_path: tests/onboarding/weblog/java/test-app-java/Dockerfile.alpine
+              remote_path: Dockerfile
+
+            - name: copy-entrypoint-docker
+              local_path: tests/onboarding/weblog/java/test-app-java/docker_entrypoint_docker.sh
+
+            - name: copy-docker-compose-file
+              local_path: tests/onboarding/weblog/java/test-app-java/docker-compose.yml
+
+            - name: copy-java-app
+              local_path: test-app-java.tar
+
+          command: sh test-app-java_docker_compose_run.sh
+
+    - name: test-app-java-buildpack
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          local-command: tar cvf test-app-java.tar -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_docker_compose_run_buildpack.sh
+            - name: copy-docker-compose-file
+              local_path: tests/onboarding/weblog/java/test-app-java/docker-compose.yml
+            - name: copy-java-app
+              local_path: test-app-java.tar
+
+          command: sh test-app-java_docker_compose_run_buildpack.sh
   - nodejs: 
     - name: test-app-nodejs
       install: 

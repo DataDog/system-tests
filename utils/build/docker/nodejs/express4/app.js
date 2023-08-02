@@ -5,6 +5,7 @@ const tracer = require('dd-trace').init({
 });
 
 const app = require("express")();
+const { Kafka } = require("kafkajs")
 const axios = require('axios');
 const fs = require('fs');
 const passport = require('passport')
@@ -131,6 +132,51 @@ app.get("/users", (req, res) => {
   } else {
     res.send(`Hello ${user.id}`)
   }
+});
+
+app.get("/dsm", (req, res) => {
+  const kafka = new Kafka({
+    clientId: 'my-app',
+    brokers: ['kafka:9092'],
+    retry: {
+      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+      retries: 20, // Number of retries before giving up
+    },
+  })
+  const producer = kafka.producer()
+  const doKafkaOperations = async () => {
+    await producer.connect()
+    await producer.send({
+      topic: 'dsm-system-tests-queue',
+      messages: [
+        { value: 'hello world!' },
+      ],
+    })
+    await producer.disconnect()
+
+    const consumer = kafka.consumer({ groupId: 'testgroup1' })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
+
+    await consumer.run({
+      eachMessage: async ({topic, partition, message}) => {
+        console.log({
+          value: message.value.toString(),
+        });
+        await consumer.stop();
+        await consumer.disconnect();
+      },
+    })
+  }
+  doKafkaOperations()
+      .then(() => {
+        res.send('ok');
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      });
 });
 
 app.get('/load_dependency', (req, res) => {

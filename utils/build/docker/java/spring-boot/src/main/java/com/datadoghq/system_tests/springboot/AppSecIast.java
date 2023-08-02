@@ -216,19 +216,19 @@ public class AppSecIast {
     }
     @GetMapping("/insecure-cookie/test_insecure")
     String insecureCookie(final HttpServletResponse response) {
-        response.addHeader("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict");
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
         return "ok";
     }
 
     @GetMapping("/insecure-cookie/test_secure")
     String secureCookie(final HttpServletResponse response) {
-        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
         return "ok";
     }
 
     @GetMapping("/no-samesite-cookie/test_insecure")
     String noSameSiteCookieInsecure(final HttpServletResponse response) {
-        response.addHeader("Set-Cookie", "user-id=7;HttpOnly=true;Secure");
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly;Secure");
         return "ok";
     }
 
@@ -240,7 +240,7 @@ public class AppSecIast {
 
     @GetMapping("/no-samesite-cookie/test_secure")
     String noSameSiteCookieSecure(final HttpServletResponse response) {
-        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
         return "ok";
     }
 
@@ -257,7 +257,7 @@ public class AppSecIast {
 
     @GetMapping("/no-httponly-cookie/test_secure")
     String noHttpOnlyCookieSecure(final HttpServletResponse response) {
-        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
         return "ok";
     }
 
@@ -272,6 +272,19 @@ public class AppSecIast {
     String secureXPath(final ServletRequest request) {
         xPathExamples.secureXPath();
         return "XPath secure";
+    }
+
+    @GetMapping("/trust-boundary-violation/test_insecure")
+    public String trustBoundaryViolationInSecureSpringBoot(final HttpServletRequest request) {
+      String paramValue = request.getParameter("username");
+      request.getSession().putValue("name", paramValue);
+      return "Trust Boundary violation page";
+    }
+
+    @GetMapping("/trust-boundary-violation/test_secure")
+    public String trustBoundaryViolationSecureSpringBoot(final HttpServletRequest request) {
+      request.getSession().putValue("name", "value");
+      return "Trust Boundary violation page";
     }
 
     /**

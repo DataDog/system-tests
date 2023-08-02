@@ -1,12 +1,7 @@
 ARG AGENT_IMAGE=datadog/agent:latest
 FROM $AGENT_IMAGE
 
-# Old agents (e.g. 7.43.0) have /etc/apt/mirrorlist rather than /etc/apt/mirrorlist.main.
-# We create mirrorlist.main to work with both old and new agent images.
 RUN set -eux;\
-    echo "http://us-east-1.ec2.archive.ubuntu.com/ubuntu	priority:1" > /etc/apt/mirrorlist.main;\
-    echo "http://archive.ubuntu.com/ubuntu" >> /etc/apt/mirrorlist.main;\
-    echo "deb mirror+file:/etc/apt/mirrorlist.main jammy main" > /etc/apt/sources.list;\
     apt-get update;\
     apt-get --no-install-recommends -y install ca-certificates --option=Dpkg::Options::=--force-confdef;\
     rm -rf /var/lib/apt/lists/*;

@@ -16,7 +16,11 @@
     "cookie-parser": "^1.4.6",
     "express": "^4.18.2",
     "express-xml-bodyparser": "^0.3.0",
-    "glob": "^8.0.3"
+    "glob": "^8.0.3",
+    "kafkajs": "^2.2.4",
+    "passport": "^0.6.0",
+    "passport-http": "^0.3.0",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.4",

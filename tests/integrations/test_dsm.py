@@ -2,13 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, released
+from utils import weblog, interfaces, scenarios, released, irrelevant, context, bug
 from utils.tools import logger
 
 
-@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", php="?", python="?", ruby="?")
 @released(dotnet="2.29.0")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
+@released(nodejs="4.4.0")
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -19,14 +20,23 @@ class Test_DsmKafka:
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
+        # Hashes are created by applying the FNV-1 algorithm on
+        # checkpoint strings (e.g. service:foo)
+        # There is currently no FNV-1 library availble for node.js
+        # So we are using a different algorithm for node.js for now
+        if context.library == "nodejs":
+            consumer_hash = 2931833227331067675
+            producer_hash = 271115008390912609
+        else:
+            consumer_hash = 4463699290244539355
+            producer_hash = 3735318893869752335
+
         DsmHelper.assert_checkpoint_presence(
-            hash_=4463699290244539355,
-            parent_hash=0,
-            tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
+            hash_=consumer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=3735318893869752335,
-            parent_hash=4463699290244539355,
+            hash_=producer_hash,
+            parent_hash=consumer_hash,
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
@@ -48,8 +58,9 @@ class Test_DsmHttp:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
+@released(dotnet="2.29.0")
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -57,6 +68,7 @@ class Test_DsmRabbitmq:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
 
+    @bug(library="dotnet", reason="bug in dotnet behavior")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -64,6 +76,111 @@ class Test_DsmRabbitmq:
             hash_=6176024609184775446,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=1648106384315938543,
+            parent_hash=6176024609184775446,
+            tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
+        )
+
+    def setup_dsm_rabbitmq_dotnet_legacy(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq")
+
+    @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
+    def test_dsm_rabbitmq_dotnet_legacy(self):
+        assert self.r.text == "ok"
+
+        # Dotnet sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
+        # the other tracer libraries, which causes the resulting hash to be different.
+        DsmHelper.assert_checkpoint_presence(
+            hash_=12547013883960139159,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:True", "type:rabbitmq"),
+        )
+
+        # There seems to be a bug in dotnet currently where the queue is not passed, causing DSM to default to setting
+        # the routing key as the topic.
+        # See https://github.com/DataDog/dd-trace-dotnet/blob/6aab5e1b02bec9c9b68a33cd06cc9e7a774f14de/tracer/src/Datadog.Trace/ClrProfiler/AutoInstrumentation/RabbitMQ/RabbitMQIntegration.cs#L144
+        # where `queue` is not passed
+        DsmHelper.assert_checkpoint_presence(
+            hash_=12449081340987959886,
+            parent_hash=12547013883960139159,
+            tags=("direction:in", "topic:testRoutingKey", "type:rabbitmq"),
+        )
+
+
+@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(java={"spring-boot": "1.13.0", "*": "?"})
+@scenarios.integrations
+class Test_DsmRabbitmq_TopicExchange:
+    """ Verify DSM stats points for RabbitMQ Topic Exchange"""
+
+    def setup_dsm_rabbitmq(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
+
+    def test_dsm_rabbitmq(self):
+        assert self.r.text == "ok"
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=18436203392999142109,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=11364757106893616177,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=15562446431583779,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=13344154764958581569,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
+        )
+
+
+@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(java={"spring-boot": "1.13.0", "*": "?"})
+@scenarios.integrations
+class Test_DsmRabbitmq_FanoutExchange:
+    """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
+
+    def setup_dsm_rabbitmq(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+
+    def test_dsm_rabbitmq(self):
+        assert self.r.text == "ok"
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=877077567891168935,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=6900956252542091373,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=497609944035068818,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=15446107644012012909,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
         )
 
 
