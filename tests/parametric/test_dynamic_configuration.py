@@ -101,7 +101,14 @@ ENV_SAMPLING_RULE_RATE = 0.55
 
 
 @released(
-    java="1.17.0", dotnet="2.33.0", nodejs="?", python="?", ruby="1.13.0", golang="?", php="?", cpp="?",
+    java="1.17.0",
+    dotnet="2.33.0",
+    ruby="1.13.0",
+    nodejs="4.11.0",  # also in 3.32.0 and 2.45.0
+    python="?",
+    golang="?",
+    php="?",
+    cpp="?",
 )
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
@@ -274,7 +281,7 @@ class TestDynamicConfigV1:
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
-    @missing_feature(context.library in ["java", "dotnet"], reason="RPC not implemented yet")
+    @missing_feature(context.library in ["java", "dotnet", "python_http"], reason="RPC not implemented yet")
     @parametrize(
         "library_env",
         [
