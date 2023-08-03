@@ -70,6 +70,25 @@ class Test_Partial_Flushing:
         no_partial_flush_test(self, test_agent, test_library)
 
 
+def do_partial_flush_test(self, test_agent, test_library):
+    """
+        Create a trace with a root span and a single child. Finish the child, and ensure
+        partial flushing triggers.
+    """
+    with test_library:
+        with test_library.start_span(name="root") as parent_span:
+            with test_library.start_span(name="child1", parent_id=parent_span.span_id):
+                pass
+            partial_trace = test_agent.wait_for_num_traces(1, clear=True, wait_loops=30)
+            child_span = find_span_in_traces(partial_trace, Span(name="child1"))
+            assert len(partial_trace) == 1
+            assert child_span["name"] == "child1"
+    traces = test_agent.wait_for_num_traces(1, clear=True)
+    root_span = find_span_in_traces(traces, Span(name="root"))
+    assert len(traces) == 1
+    assert root_span["name"] == "root"
+
+
 def no_partial_flush_test(self, test_agent, test_library):
     """
         Create a trace with a root span and one child. Finish the child, and ensure
@@ -84,24 +103,6 @@ def no_partial_flush_test(self, test_agent, test_library):
                 assert partial_traces is None
             except ValueError:
                 pass  # We expect there won't be a flush, so catch this exception
-    traces = test_agent.wait_for_num_traces(1, clear=True)
-    root_span = find_span_in_traces(traces, Span(name="root"))
-    assert len(traces) == 1
-    assert root_span["name"] == "root"
-
-def do_partial_flush_test(self, test_agent, test_library):
-    """
-        Create a trace with a root span and a single child. Finish the child, and ensure
-        partial flushing triggers.
-    """
-    with test_library:
-        with test_library.start_span(name="root") as parent_span:
-            with test_library.start_span(name="child1", parent_id=parent_span.span_id):
-                pass
-            partial_trace = test_agent.wait_for_num_traces(1, clear=True, wait_loops=30)
-            child_span = find_span_in_traces(partial_trace, Span(name="child1"))
-            assert len(partial_trace) == 1
-            assert child_span["name"] == "child1"
     traces = test_agent.wait_for_num_traces(1, clear=True)
     root_span = find_span_in_traces(traces, Span(name="root"))
     assert len(traces) == 1
