@@ -993,9 +993,10 @@ def test_server(
     }
     test_server_env = {}
     for k, v in apm_test_server.env.items():
+        # Don't set `None` env vars.
         if v is not None:
             test_server_env[k] = v
-    env.update(apm_test_server.env)
+    env.update(test_server_env)
 
     with docker_run(
         image=apm_test_server.container_tag,
