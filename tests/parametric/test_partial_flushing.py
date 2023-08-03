@@ -46,7 +46,7 @@ class Test_Partial_Flushing:
     def test_partial_flushing_under_limit_one_payload(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure
-            partial flushing does NOT trigger, since the partial flushing limit is set to 5.
+            partial flushing does NOT trigger, since the partial flushing min spans is set to 5.
         """
         no_partial_flush_test(self, test_agent, test_library)
 
@@ -57,11 +57,10 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "java", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
-    @bug(context.library == "python", reason="test hangs")
-    @bug(context.library == "dotnet", reason="test hangs")
+    @bug(context.library == "dotnet", reason="partial flushing wasn't disabled")
     def test_partial_flushing_disabled(self, test_agent, test_library):
         """
-            Create a trace with a root span and one child. Finish the child, and ensure
+            Create a trace with a root span and a single child. Finish the child, and ensure
             partial flushing does NOT trigger, since it's explicitly disabled.
         """
         no_partial_flush_test(self, test_agent, test_library)
