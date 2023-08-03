@@ -348,9 +348,8 @@ def ruby_library_factory() -> APMLibraryTestServer:
             RUN gem install ddtrace # Install a baseline ddtrace version, to cache all dependencies
 
             COPY ./Gemfile /client/
-            COPY ./install_dependencies.sh /client/
             ENV RUBY_DDTRACE_SHA='{ddtrace_sha}'
-            RUN bash install_dependencies.sh # Cache dependencies before copying application code
+            RUN bundle install
 
             COPY ./server.rb /client/
             """,
