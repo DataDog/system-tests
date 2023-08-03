@@ -668,11 +668,6 @@ jobs:
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run TELEMETRY_MESSAGE_BATCH_EVENT_ORDER scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh TELEMETRY_MESSAGE_BATCH_EVENT_ORDER
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
