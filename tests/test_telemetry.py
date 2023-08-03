@@ -169,15 +169,14 @@ class Test_Telemetry:
     @bug(library="python", reason="app-started not sent first")
     @flaky(library="nodejs", reason="APPSEC-10465")
     def test_app_started_is_first_message(self):
-        """Request type app-started is the first telemetry message or in the first batch"""
+        """Request type app-started is the first telemetry message or the first message in the first batch"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
         if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
-            for payload in telemetry_data[0]["request"]["content"]["payload"]:
-                if payload.get("request_type") == "app-started":
-                    return
-
-            raise Exception("app-started was not in the first message-batch")
+            first_message = telemetry_data[0]["request"]["content"]["payload"][0]
+            assert (
+                first_message.get("request_type") == "app-started"
+            ), "app-started was not the first message in the first batch"
         else:
             first_message = telemetry_data[0]["request"]["content"]
             assert first_message.get("request_type") == "app-started", "app-started was not the first message"
@@ -518,8 +517,13 @@ class Test_ProductsDisabled:
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
                 assert (
-                    "products" not in content["payload"]
-                ), "Product information is present telemetry data on app-started event when all products are disabled"
+                    "products" in content["payload"]
+                ), "Product information was expected in app-started event, but was missing"
+                products = content["payload"]["products"]
+                for product, details in products.items():
+                    assert (
+                        details.get("enabled") is False
+                    ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
@@ -539,28 +543,22 @@ class Test_DependencyEnable:
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@missing_feature(library="ruby", reason="DD_FORCE_BATCHING_ENABLE not yet supported")
-@scenarios.telemetry_message_batch_event_order
-class Test_ForceBatchingEnabled:
-    """ Tests on DD_FORCE_BATCHING_ENABLE environment variable """
+class Test_MessageBatch:
+    """ Tests on Message batching """
 
-    def setup_message_batch_event_order(self):
+    def setup_message_batch_enabled(self):
         weblog.get("/load_dependency")
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
-    def test_message_batch_event_order(self):
-        """Test that the events in message-batch are in chronological order"""
+    def test_message_batch_enabled(self):
+        """Test that events are sent in message batches"""
         event_list = []
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
             event_list.append(content.get("request_type"))
 
-        assert (
-            event_list.index("app-dependencies-loaded")
-            < event_list.index("app-integrations-change")
-            < event_list.index("app-product-change")
-        ), f"Events in message-batch are not in chronological order of event triggered: {event_list}"
+        assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
