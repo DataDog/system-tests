@@ -39,8 +39,8 @@ Build images used for system tests.
 ## Weblog variantions
 
 * For `cpp`: `poc` (default)
-* For `dotnet`: `poc` (default)
-* For `golang`: `net-http` (default), `gorilla`
+* For `dotnet`: `poc` (default), `uds`
+* For `golang`: `net-http` (default), `gin`, `echo`, `chi`
 * For `java`: `spring-boot` (default)
 * For `nodejs`: `express4` (default), `express4-typescript`
 * For `php`: `apache-mod-8.1`, `apache-mod-8.0` (default), `apache-mod-7.4`, `apache-mod-7.3`, `apache-mod-7.2`, `apache-mod-7.1`, `apache-mod-7.0`, `apache-mod-8.1-zts`, `apache-mod-8.0-zts`, `apache-mod-7.4-zts`, `apache-mod-7.3-zts`, `apache-mod-7.2-zts`, `apache-mod-7.1-zts`, `apache-mod-7.0-zts`, `php-fpm-8.1`, `php-fpm-8.0`, `php-fpm-7.4`, `php-fpm-7.3`, `php-fpm-7.2`, `php-fpm-7.1`, `php-fpm-7.0`

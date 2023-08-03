@@ -1,0 +1,42 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  datadog:
+    traces:
+      span_name_as_resource_name: true
+    api:
+      key: ${DD_API_KEY}
+      site: ${DD_SITE}
+      fail_on_invalid_key: true
+    metrics:
+      histograms:
+        mode: distributions
+        send_aggregation_metrics: true
+  logging:
+    verbosity: detailed
+
+processors:
+  batch:
+
+extensions:
+  health_check:
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, logging]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, logging]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, logging]

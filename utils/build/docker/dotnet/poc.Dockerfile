@@ -11,6 +11,7 @@ COPY utils/build/docker/dotnet/Dependencies/*.cs ./Dependencies/
 COPY utils/build/docker/dotnet/Endpoints/*.cs ./Endpoints/
 COPY utils/build/docker/dotnet/Controllers/*.cs ./Controllers/
 COPY utils/build/docker/dotnet/Models/*.cs ./Models/
+COPY utils/build/docker/dotnet/IdentityStores/*.cs ./IdentityStores/
 
 COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
@@ -33,6 +34,8 @@ COPY --from=build /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS
 COPY utils/build/docker/dotnet/app.sh app.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_DATA_STREAMS_ENABLED=true
+
+RUN apt-get update && apt-get install -y curl
 
 CMD [ "./app.sh" ]
 

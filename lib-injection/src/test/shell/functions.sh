@@ -199,7 +199,11 @@ function deploy-agents-auto() {
 function apply-config-auto() {
     echo "[Auto Config] Triggering config change"
     config_name="${CONFIG_NAME:-config}"
-    kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/${config_name}.yaml
+    if [ ${INJECT_ALL} == "1" ]; then
+        kubectl apply -f ${BASE_DIR}/build/docker/all/${config_name}.yaml
+    else
+        kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/${config_name}.yaml
+    fi
     echo "[Auto Config] Waiting on the cluster agent to pick up the changes"
     sleep 120
     echo "[Auto Config] apply-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
@@ -296,6 +300,9 @@ function check-for-pod-metadata() {
         echo "[Test] annotation 'admission.datadoghq.com/enabled' wasn't \"true\", got \"${enabled}\""
         exit 1
     fi
+    if [ ${INJECT_ALL} == "1" ]; then
+        library="all"
+    fi
     kubectl get ${pod} -ojson | jq .metadata.annotations | grep "admission.datadoghq.com/${library}-lib.version"
     kubectl get ${pod} -ojson | jq .metadata.annotations | grep "admission.datadoghq.com/${library}-lib.config.v1"
 }
@@ -308,10 +315,8 @@ function check-for-no-pod-metadata() {
     has_enabled_key=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq 'has("admission.datadoghq.com/enabled")')
     if [[ $has_enabled_key != "false" ]]; then
         echo "[Test] label 'admission.datadoghq.com/enabled' was unexpectedly applied to the pod!"
-        print-debug-info || true
         exit 1
     fi
-    print-debug-info || true
 }
 
 # check-for-no-pod-metadata ensures that admission is disabled on the targeted pod.
@@ -352,26 +357,24 @@ function test-for-traces() {
     echo "[Test] ${traces}"
     if [[ ${#traces} -lt 3 ]] ; then
         echoerr "No traces reported - ${traces}"
-        print-debug-info || true
         exit 1
     else
         count=`jq '. | length' <<< "${traces}"`
         echo "Received ${count} traces so far"
     fi
-    print-debug-info || true
     echo "[Test] test-for-traces completed successfully"
 }
 
 # print-debug-info prints and zip debug information
 function print-debug-info() {
-    if [[ $MODE == "manual" ]]; then print-debug-info-manual; else print-debug-info-auto; fi
+    if [[ $MODE == manual* ]]; then print-debug-info-manual; else print-debug-info-auto; fi
 }
 
 # print-debug-info-auto prints and zip debug information for auto library injection tests
 function print-debug-info-auto() {
     log_dir=${BASE_DIR}/../logs_lib-injection
     mkdir -p ${log_dir}/pod
-    echo "[debug] Generating debug log files... (${log_dir})"
+    echo "[debug] Generating debug log files (auto lib injection)... (${log_dir})"
     echo "[debug] Export: Current cluster status"
     kubectl get pods > "${log_dir}/cluster_pods.log"
     kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
@@ -395,10 +398,10 @@ function print-debug-info-auto() {
 function print-debug-info-manual() {
     log_dir=${BASE_DIR}/../logs_lib-injection
     mkdir -p ${log_dir}/pod
-    echo "[debug] Generating debug log files... (${log_dir})"
+    echo "[debug] Generating debug log files (manual lib injection)... (${log_dir})"
     echo "[debug] Export: Current cluster status"
     kubectl get pods > "${log_dir}/cluster_pods.log"
-    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
+    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log" || true
 
     echo "[debug] Export: Describe my-app status"
     kubectl describe pod my-app > "${log_dir}/my-app_describe.log"

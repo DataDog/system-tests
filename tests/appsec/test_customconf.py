@@ -9,6 +9,9 @@ from utils import weblog, context, coverage, interfaces, released, bug, missing_
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
+
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
@@ -16,7 +19,6 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 @released(java="0.93.0", php_appsec="0.3.0", ruby="1.0.0.beta2")
 @coverage.basic
 @scenarios.appsec_corrupted_rules
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
@@ -44,7 +46,6 @@ class Test_CorruptedRules:
 @released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="1.0.0.beta2")
 @coverage.basic
 @scenarios.appsec_missing_rules
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_MissingRules:
     """AppSec do not report anything if rule file is missing"""
@@ -76,7 +77,6 @@ class Test_MissingRules:
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
 @released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="1.1.0rc2.dev", ruby="1.0.0.beta2")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 @scenarios.appsec_custom_rules
@@ -108,7 +108,6 @@ class Test_ConfRuleSet:
     python="1.1.0rc2.dev",
     ruby="1.0.0.beta2",
 )
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_custom_rules
