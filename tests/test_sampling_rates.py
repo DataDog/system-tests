@@ -144,7 +144,7 @@ class Test_SamplingDecisions:
                     f"Message: {data['log_filename']}:"
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
-            
+
             expected_priority = get_sampling_decision(context.tracer_sampling_rate, root_span["trace_id"])
             if sampling_priority != expected_priority:
                 raise ValueError(
@@ -204,9 +204,6 @@ class Test_SamplingDecisions:
         self.traces_determinism = [
             {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)
         ]
-
-        for t in self.traces_determinism:
-            interfaces.library.uniqueness_exceptions.add_trace_id(t["trace_id"])
 
         # Send requests with the same trace and parent id twice
         for _ in range(2):

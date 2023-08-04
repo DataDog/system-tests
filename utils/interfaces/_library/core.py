@@ -27,7 +27,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def __init__(self):
         super().__init__("library")
         self.ready = threading.Event()
-        self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
     def ingest_file(self, src_path):
         self.ready.set()
@@ -303,17 +302,3 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
-
-
-class _TraceIdUniquenessExceptions:
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self.traces_ids = set()
-
-    def add_trace_id(self, trace_id):
-        with self._lock:
-            self.traces_ids.add(trace_id)
-
-    def should_be_unique(self, trace_id):
-        with self._lock:
-            return trace_id not in self.traces_ids
