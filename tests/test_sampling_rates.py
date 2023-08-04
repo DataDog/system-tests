@@ -15,22 +15,18 @@ AUTO_KEEP = 1
 USER_KEEP = 2
 
 
-def get_sampling_decision(sampling_rate, trace_id, meta):
+def get_sampling_decision(sampling_rate, trace_id):
     """Algorithm described in the priority sampling RFC
     https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md"""
     MAX_TRACE_ID = 2 ** 64
     KNUTH_FACTOR = 1111111111111111111
+
     AUTO_REJECT = 0
     AUTO_KEEP = 1
-    MANUAL_KEEP = 2
-    MANUAL_REJECT = -1
-
-    if meta.get("appsec.event", None) == "true" or meta.get("_dd.appsec.event_rules.errors", None) is not None:
-        return (MANUAL_KEEP,)
 
     if ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID):
-        return (AUTO_KEEP, MANUAL_KEEP)
-    return (AUTO_REJECT, MANUAL_REJECT)
+        return AUTO_KEEP
+    return AUTO_REJECT
 
 
 def _spans_with_parent(traces, parent_ids):
@@ -148,14 +144,12 @@ class Test_SamplingDecisions:
                     f"Message: {data['log_filename']}:"
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
-            if sampling_priority not in (
-                expected := get_sampling_decision(
-                    context.tracer_sampling_rate, root_span["trace_id"], root_span["meta"]
-                )
-            ):
+            
+            expected_priority = get_sampling_decision(context.tracer_sampling_rate, root_span["trace_id"])
+            if sampling_priority != expected_priority:
                 raise ValueError(
                     f"Trace id {root_span['trace_id']} "
-                    f"sampling priority is {sampling_priority}, should be {expected}"
+                    f"sampling priority is {sampling_priority}, should be {expected_priority}"
                 )
 
         for data, span in interfaces.library.get_root_spans():
