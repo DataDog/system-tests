@@ -42,7 +42,7 @@ def equal_value(t1, t2):
     java="?",
     nodejs="?",
     php_appsec="?",
-    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
     ruby="?",
 )
 @coverage.basic
@@ -70,7 +70,7 @@ class Test_Schema_Request_Headers:
     java="?",
     nodejs="?",
     php_appsec="?",
-    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
     ruby="?",
 )
 @coverage.basic
@@ -100,7 +100,7 @@ class Test_Schema_Request_Query_Parameters:
     java="?",
     nodejs="?",
     php_appsec="?",
-    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
     ruby="?",
 )
 @coverage.basic
@@ -132,7 +132,7 @@ class Test_Schema_Request_Path_Parameters:
     java="?",
     nodejs="?",
     php_appsec="?",
-    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
     ruby="?",
 )
 @coverage.basic
@@ -159,7 +159,7 @@ class Test_Schema_Request_Body:
     java="?",
     nodejs="?",
     php_appsec="?",
-    python={"django-poc": "1.16", "flask-poc": "1.16", "*": "1.16.1"},
+    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
     ruby="?",
 )
 @coverage.basic
