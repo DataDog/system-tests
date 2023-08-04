@@ -31,5 +31,7 @@ RUN chmod +x /app/app.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV APP_EXTRA_ARGS="--port 7777"
+# https://docs.hazelcast.com/hazelcast/lat/phone-homes
+ENV HZ_PHONE_HOME_ENABLED=false
 
 CMD [ "/app/app.sh" ]
