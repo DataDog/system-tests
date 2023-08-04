@@ -31,8 +31,7 @@ class Test_DsmKafka:
 
         self.r = weblog.get("/dsm?integration=kafka", timeout=request_timeout)
         if self.r.status_code == 200:
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(self.consumer_hash))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(self.producer_hash))
+            DsmHelper.wait_for_hashes((self.consumer_hash, self.producer_hash))
 
     def test_dsm_kafka(self):
         assert (self.r.status_code, self.r.text) == (200, "ok")
@@ -56,14 +55,13 @@ class Test_DsmHttp:
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
         # and will be instrumented as such
         self.r = weblog.get("/dsm?integration=kafka")
+        self.hash_ = 3883033147046472598
         if self.r.status_code == 200:
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(3883033147046472598))
+            DsmHelper.wait_for_hashes((self.hash_,))
 
     def test_dsm_http(self):
         assert (self.r.status_code, self.r.text) == (200, "ok")
-        DsmHelper.assert_checkpoint_presence(
-            hash_=3883033147046472598, parent_hash=0, tags=("direction:in", "type:http")
-        )
+        DsmHelper.assert_checkpoint_presence(hash_=self.hash_, parent_hash=0, tags=("direction:in", "type:http"))
 
 
 @released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
@@ -75,30 +73,32 @@ class Test_DsmRabbitmq:
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
+        self.hash_out = 6176024609184775446
+        self.hash_in = 1648106384315938543
         if self.r.status_code == 200:
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(6176024609184775446))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(1648106384315938543))
+            DsmHelper.wait_for_hashes((self.hash_out, self.hash_in))
 
     @bug(library="dotnet", reason="bug in dotnet behavior")
     def test_dsm_rabbitmq(self):
         assert (self.r.status_code, self.r.text) == (200, "ok")
         DsmHelper.assert_checkpoint_presence(
-            hash_=6176024609184775446,
+            hash_=self.hash_out,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=1648106384315938543,
-            parent_hash=6176024609184775446,
+            hash_=self.hash_in,
+            parent_hash=self.hash_out,
             tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
         )
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
+        self.hash_out_dotnet = 12547013883960139159
+        self.hash_in_dotnet = 12449081340987959886
         if self.r.status_code == 200:
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(12547013883960139159))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(12449081340987959886))
+            DsmHelper.wait_for_hashes((self.hash_out_dotnet, self.hash_in_dotnet))
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
     def test_dsm_rabbitmq_dotnet_legacy(self):
@@ -107,7 +107,7 @@ class Test_DsmRabbitmq:
         # Dotnet sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
         # the other tracer libraries, which causes the resulting hash to be different.
         DsmHelper.assert_checkpoint_presence(
-            hash_=12547013883960139159,
+            hash_=self.hash_out_dotnet,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:True", "type:rabbitmq"),
         )
@@ -117,8 +117,8 @@ class Test_DsmRabbitmq:
         # See https://github.com/DataDog/dd-trace-dotnet/blob/6aab5e1b02bec9c9b68a33cd06cc9e7a774f14de/tracer/src/Datadog.Trace/ClrProfiler/AutoInstrumentation/RabbitMQ/RabbitMQIntegration.cs#L144
         # where `queue` is not passed
         DsmHelper.assert_checkpoint_presence(
-            hash_=12449081340987959886,
-            parent_hash=12547013883960139159,
+            hash_=self.hash_in_dotnet,
+            parent_hash=self.hash_out_dotnet,
             tags=("direction:in", "topic:testRoutingKey", "type:rabbitmq"),
         )
 
@@ -131,35 +131,36 @@ class Test_DsmRabbitmq_TopicExchange:
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
+        self.hash_out = 18436203392999142109
+        self.hash_in_1 = 11364757106893616177
+        self.hash_in_2 = 15562446431583779
+        self.hash_in_3 = 13344154764958581569
         if self.r.status_code == 200:
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(18436203392999142109))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(11364757106893616177))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(15562446431583779))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(13344154764958581569))
+            DsmHelper.wait_for_hashes((self.hash_out, self.hash_in_1, self.hash_in_2, self.hash_in_3))
 
     def test_dsm_rabbitmq(self):
         assert (self.r.status_code, self.r.text) == (200, "ok")
         DsmHelper.assert_checkpoint_presence(
-            hash_=18436203392999142109,
+            hash_=self.hash_out,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=11364757106893616177,
-            parent_hash=18436203392999142109,
+            hash_=self.hash_in_1,
+            parent_hash=self.hash_out,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=15562446431583779,
-            parent_hash=18436203392999142109,
+            hash_=self.hash_in_2,
+            parent_hash=self.hash_out,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=13344154764958581569,
-            parent_hash=18436203392999142109,
+            hash_=self.hash_in_3,
+            parent_hash=self.hash_out,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
         )
 
@@ -172,40 +173,50 @@ class Test_DsmRabbitmq_FanoutExchange:
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+        self.hash_out = 877077567891168935
+        self.hash_in_1 = 6900956252542091373
+        self.hash_in_2 = 497609944035068818
+        self.hash_in_3 = 15446107644012012909
         if self.r.status_code == 200:
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(877077567891168935))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(6900956252542091373))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(497609944035068818))
-            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(15446107644012012909))
+            DsmHelper.wait_for_hashes((self.hash_out, self.hash_in_1, self.hash_in_2, self.hash_in_3))
 
     def test_dsm_rabbitmq(self):
         assert (self.r.status_code, self.r.text) == (200, "ok")
         DsmHelper.assert_checkpoint_presence(
-            hash_=877077567891168935,
+            hash_=self.hash_out,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=6900956252542091373,
-            parent_hash=877077567891168935,
+            hash_=self.hash_in_1,
+            parent_hash=self.hash_out,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=497609944035068818,
-            parent_hash=877077567891168935,
+            hash_=self.hash_in_2,
+            parent_hash=self.hash_out,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=15446107644012012909,
-            parent_hash=877077567891168935,
+            hash_=self.hash_in_3,
+            parent_hash=self.hash_out,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
         )
 
 
 class DsmHelper:
+    @staticmethod
+    def wait_for_hashes(hashes):
+        if isinstance(hashes, int):
+            hashes = (hashes,)
+        for hash_ in hashes:
+            interfaces.library.add_wait_condition(
+                timeout=40, condition=lambda: DsmHelper.check_checkpoint_by_hash(hash_)
+            )
+
     @staticmethod
     def assert_checkpoint_presence(hash_, parent_hash, tags):
 
