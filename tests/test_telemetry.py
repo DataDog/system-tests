@@ -638,10 +638,69 @@ class Test_Log_Generation:
 
 @released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_metric_generation_disabled
-class Test_Metric_Generation:
+class Test_Metric_Generation_Disabled:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
 
     def test_metric_generation_disabled(self):
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "generate-metrics":
                 raise Exception("Metric generate event is sent when metric generation is disabled")
+
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@scenarios.telemetry_metric_generation_enabled
+class Test_Metric_Generation_Enabled:
+    """Assert that metrics are reported when metric generation is enabled in telemetry"""
+
+    def setup_metric_generation_enabled(self):
+        weblog.get("/")
+        # Wait for at least 2 metric flushes, i.e. 20s
+        METRIC_FLUSH_INTERVAL = 10 # This is constant by design
+        logger.debug("Waiting 20s for metric flushes...")
+        time.sleep(METRIC_FLUSH_INTERVAL * 2)
+        logger.debug("Wait complete")
+
+    def test_metric_generation_enabled(self):
+        self.assert_general_metrics()
+        self.assert_tracer_metrics()
+        self.assert_telemetry_metrics()
+
+    def assert_general_metrics(self):
+
+        namespace = 'general'
+        self.assert_count_metric(namespace, 'logs_created', expect_at_least=1)
+
+    def assert_tracer_metrics(self):
+
+        namespace = 'tracers'
+        self.assert_count_metric(namespace, 'spans_created', expect_at_least=1)
+        self.assert_count_metric(namespace, 'spans_finished', expect_at_least=1)
+        self.assert_count_metric(namespace, 'spans_enqueued_for_serialization', expect_at_least=1)
+        self.assert_count_metric(namespace, 'trace_segments_created', expect_at_least=1)
+        self.assert_count_metric(namespace, 'trace_chunks_enqueued_for_serialization', expect_at_least=1)
+        self.assert_count_metric(namespace, 'trace_chunks_sent', expect_at_least=1)
+        self.assert_count_metric(namespace, 'trace_segments_closed', expect_at_least=1)
+        self.assert_count_metric(namespace, 'trace_api.requests', expect_at_least=1)
+        self.assert_count_metric(namespace, 'trace_api.responses', expect_at_least=1)
+
+    def assert_telemetry_metrics(self):
+
+        namespace = 'telemetry'
+        self.assert_count_metric(namespace, 'telemetry_api.requests', expect_at_least=1)
+        self.assert_count_metric(namespace, 'telemetry_api.responses', expect_at_least=1)
+
+    def assert_count_metric(self, namespace, metric, expect_at_least):
+        series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
+        if len(series) == 0 and expect_at_least > 0:
+            raise Exception(f"No telemetry data received for metric {namespace}.{metric}")
+
+        count = 0
+        for s in series:
+            # assert correct type (count)
+            # assert points total
+            assert s["common"] is True
+            assert s["type"] == "count"
+            assert len(s["points"]) >= 1
+            for p in s["points"]:
+                count = count + p[1]
+
+        assert count >= expect_at_least

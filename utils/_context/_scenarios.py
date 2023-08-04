@@ -890,6 +890,11 @@ class scenarios:
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
     )
+    telemetry_metric_generation_enabled = EndToEndScenario(
+        "TELEMETRY_METRIC_GENERATION_ENABLED",
+        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true",},
+        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
+    )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
