@@ -80,12 +80,9 @@ class _Scenario:
         self.print_info("Executing warmups...")
 
         try:
-            t0 = time.time()
             for warmup in self._get_warmups():
                 logger.info(f"Executing warmup {warmup}")
                 warmup()
-            t = time.time() - t0
-            logger.debug(f"Warmups ran in {t} seconds")
         except:
             self.collect_logs()
             self.close_targets()
@@ -428,17 +425,14 @@ class EndToEndScenario(_DockerScenario):
 
         if self.use_proxy:
             logger.debug("Wait for app readiness")
-            t0 = time.time()
+
             if not interfaces.library.ready.wait(40):
                 raise Exception("Library not ready")
-            t = time.time() - t0
-            logger.debug(f"Library ready in {t} seconds")
+            logger.debug("Library ready")
 
-            t0 = time.time()
             if not interfaces.agent.ready.wait(40):
                 raise Exception("Datadog agent not ready")
-            t = time.time() - t0
-            logger.debug(f"Agent ready in {t} seconds")
+            logger.debug("Agent ready")
 
     def post_setup(self):
         from utils import interfaces
