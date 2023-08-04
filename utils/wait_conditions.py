@@ -2,6 +2,11 @@ import time
 
 from utils.tools import logger
 
+# Time to sleep between iterations. We'd like this to be as slow as possible,
+# but given that we ingest requests at intervals of 1 seconds, it does not make
+# sense to go much lower than that.
+_ITER_SLEEP_TIME = 0.5
+
 
 def wait_for_all(terminal, library_name, post_setup_timeout, tracer_sampling_rate, proxy_state):
     """Wait for all wait conditions."""
@@ -89,7 +94,7 @@ def _wait_for_request(terminal, deadline, tracer_sampling_rate):
                         return n
         if time.time() >= deadline:
             break
-        time.sleep(0.1)
+        time.sleep(_ITER_SLEEP_TIME)
 
     _print_log("Waiting for watermark trace exceeded the deadline", file=terminal)
 
@@ -123,7 +128,7 @@ def _wait_for_request_in_agent(terminal, deadline):
             return
         if time.time() >= deadline:
             break
-        time.sleep(0.1)
+        time.sleep(_ITER_SLEEP_TIME)
 
     _print_log("Waiting for trace in agent exceeded the deadline", file=terminal)
 
@@ -164,7 +169,7 @@ def _wait_for_telemetry(terminal, skip_n, deadline):
             return
         if time.time() >= deadline:
             break
-        time.sleep(0.1)
+        time.sleep(_ITER_SLEEP_TIME)
 
     _print_log("Waiting for telemetry exceeded the deadline", file=terminal)
 
@@ -197,7 +202,7 @@ def _wait_for_remote_config(terminal, deadline, proxy_state):
             return
         if time.time() >= deadline:
             break
-        time.sleep(0.1)
+        time.sleep(_ITER_SLEEP_TIME)
 
     _print_log("Waiting for remote config exceeded the deadline", file=terminal)
 
@@ -207,12 +212,12 @@ def _wait_for_otel_request(terminal, deadline):
 
     _print_log("Waiting for watermark otel trace", file=terminal)
 
-    watermark_request = weblog.get("/", post_setup=True)
+    request = weblog.get("/basic/trace", post_setup=True)
     while time.time() < deadline:
-        otel_trace_ids = list(interfaces.open_telemetry.get_otel_trace_id(request=watermark_request))
+        otel_trace_ids = list(interfaces.open_telemetry.get_otel_trace_id(request=request))
         if otel_trace_ids:
             return
-        time.sleep(0.1)
+        time.sleep(_ITER_SLEEP_TIME)
 
     _print_log("Waiting for watermark otel trace exceeded the deadline", file=terminal)
 

@@ -558,7 +558,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     def __init__(self, name, doc, include_agent=True, include_collector=True, include_intake=True) -> None:
         super().__init__(name, doc=doc, use_proxy=True)
-        self.post_setup_timeout = 5
+        self.post_setup_timeout = 10
         if include_agent:
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
             self._required_containers.append(self.agent_container)
