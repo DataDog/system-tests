@@ -210,12 +210,13 @@ class Test_DsmRabbitmq_FanoutExchange:
 class DsmHelper:
     @staticmethod
     def wait_for_hashes(hashes):
+        from utils import wait_conditions
+
         if isinstance(hashes, int):
             hashes = (hashes,)
         for hash_ in hashes:
-            interfaces.library.add_wait_condition(
-                timeout=40, condition=lambda: DsmHelper.check_checkpoint_by_hash(hash_)
-            )
+
+            wait_conditions.add(timeout=40, condition=lambda: DsmHelper.check_checkpoint_by_hash(hash_))
 
     @staticmethod
     def assert_checkpoint_presence(hash_, parent_hash, tags):

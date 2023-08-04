@@ -8,6 +8,21 @@ from utils.tools import logger
 _ITER_SLEEP_TIME = 0.5
 
 
+# List of custom wait conditions to be added by tests.
+_WAIT_CONDITIONS = []
+
+
+def add(timeout, condition):
+    """Sets up a wait condition that will be checked after setup."""
+    _WAIT_CONDITIONS.append(WaitCondition(timeout=timeout, condition=condition))
+
+
+class WaitCondition:
+    def __init__(self, timeout, condition) -> None:
+        self.timeout = timeout
+        self.condition = condition
+
+
 def wait_for_all(terminal, library_name, post_setup_timeout, tracer_sampling_rate, proxy_state):
     """Wait for all wait conditions."""
     start_time = time.time()
@@ -22,7 +37,7 @@ def wait_for_all(terminal, library_name, post_setup_timeout, tracer_sampling_rat
     _wait_for_request_in_agent(terminal=terminal, deadline=deadline)
     _wait_for_telemetry(terminal=terminal, skip_n=watermark_n, deadline=deadline)
     _wait_for_remote_config(terminal=terminal, deadline=deadline, proxy_state=proxy_state)
-    _wait_for_conditions(terminal=terminal, start_time=start_time)
+    _wait_for_custom_conditions(terminal=terminal, start_time=start_time, post_setup_timeout=post_setup_timeout)
 
 
 def wait_for_all_otel(terminal, post_setup_timeout):
@@ -210,28 +225,44 @@ def _wait_for_remote_config(terminal, deadline, proxy_state):
 def _wait_for_otel_request(terminal, deadline):
     from utils import interfaces, weblog
 
-    _print_log("Waiting for watermark otel trace", file=terminal)
+    remaining_time = round(max(0, deadline - time.time()))
+    _print_log(f"Waiting for watermark otel trace, remaining time: {remaining_time}s", file=terminal)
 
     request = weblog.get("/basic/trace", post_setup=True)
-    while time.time() < deadline:
+    while True:
         otel_trace_ids = list(interfaces.open_telemetry.get_otel_trace_id(request=request))
         if otel_trace_ids:
             return
+        if time.time() >= deadline:
+            break
         time.sleep(_ITER_SLEEP_TIME)
 
     _print_log("Waiting for watermark otel trace exceeded the deadline", file=terminal)
 
 
-def _wait_for_conditions(terminal, start_time):
-    from utils import interfaces
+def _wait_for_custom_conditions(terminal, start_time, post_setup_timeout):
+    global _WAIT_CONDITIONS
 
-    deadline = start_time + 40
+    if not _WAIT_CONDITIONS:
+        logger.debug("No wait conditions")
+        return
+
+    deadline = start_time + post_setup_timeout
     elapsed_time = time.time() - start_time
-    timeout = max(0, deadline - time.time())
-    _print_log(f"Waiting for additional wait conditions, remaining time: >={round(timeout)}s", file=terminal)
+    default_timeout = max(0, deadline - time.time())
 
-    success = True
-    for iface in interfaces.all_interfaces:
-        success &= iface.wait(default_timeout=timeout, elapsed_time=elapsed_time)
-    if not success:
-        _print_log("Wait conditions timed out", file=terminal)
+    timeout = max(c.timeout for c in _WAIT_CONDITIONS)
+    timeout = max(timeout, default_timeout)
+    timeout = max(0, timeout - elapsed_time)
+
+    deadline = time.time() + timeout
+
+    _print_log(f"Waiting for {len(_WAIT_CONDITIONS)} conditions, remaining time: {round(timeout)}s", file=terminal)
+    while True:
+        _WAIT_CONDITIONS = [c for c in _WAIT_CONDITIONS if not c.condition()]
+        if not _WAIT_CONDITIONS:
+            return
+        if time.time() >= deadline:
+            break
+        time.sleep(_ITER_SLEEP_TIME)
+    _print_log(f"Waiting for custom conditions exceeded deadline ({len(_WAIT_CONDITIONS)} not met)", file=terminal)

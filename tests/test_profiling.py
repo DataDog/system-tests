@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 import json
 import re
-from utils import weblog, interfaces, bug, scenarios, missing_feature
+from utils import weblog, interfaces, bug, scenarios, missing_feature, wait_conditions
 
 
 TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z")
@@ -40,9 +40,7 @@ class Test_Profile:
 
         # Wait until the tracer uploads profiles. But avoid it if none of the requests was successful.
         if any(r.status_code == 200 for r in requests):
-            interfaces.library.add_wait_condition(
-                timeout=160, condition=lambda: bool(list(interfaces.library.get_profiling_data()))
-            )
+            wait_conditions.add(timeout=160, condition=lambda: bool(list(interfaces.library.get_profiling_data())))
 
     def setup_library(self):
         self._common_setup()

@@ -33,8 +33,6 @@ class InterfaceValidator:
         self.replay = False
         self.configured = False
 
-        self.wait_conditions = []
-
     def configure(self, replay):
         self.configured = True
         self.replay = replay
@@ -152,39 +150,6 @@ class InterfaceValidator:
             logger.error(f"Wait for {wait_for_function} finished in error")
 
         self._wait_for_function = None
-
-    def add_wait_condition(self, timeout, condition):
-        """
-        Sets up a wait condition that will be checked after setup.
-        """
-        self.wait_conditions.append(WaitCondition(timeout=timeout, condition=condition))
-
-    def wait(self, default_timeout, elapsed_time):
-        if not self.wait_conditions:
-            logger.debug(f"No wait conditions for {self.name}")
-            return True
-
-        timeout = max(c.timeout for c in self.wait_conditions)
-        timeout = max(timeout, default_timeout)
-        timeout = max(0, timeout - elapsed_time)
-
-        logger.debug(f"Waiting for {len(self.wait_conditions)} wait conditions for {timeout}s")
-        t0 = time.time()
-        while self.wait_conditions:
-            self.wait_conditions = [c for c in self.wait_conditions if not c.condition()]
-            if not self.wait_conditions:
-                break
-            if time.time() >= t0 + timeout:
-                logger.warning(f"Wait conditions timed out for {self.name}")
-                return False
-            time.sleep(0.10)
-        return True
-
-
-class WaitCondition:
-    def __init__(self, timeout, condition) -> None:
-        self.timeout = timeout
-        self.condition = condition
 
 
 class ValidationError(Exception):
