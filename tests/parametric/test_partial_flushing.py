@@ -30,6 +30,7 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
     @missing_feature(context.library == "golang", reason="partial flushing not enabled by default")
+    @missing_feature(context.library == "dotnet", reason="partial flushing not enabled by default")
     def test_partial_flushing_one_span_default(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure
@@ -41,10 +42,6 @@ class Test_Partial_Flushing:
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
-    @missing_feature(
-        context.library == "dotnet",
-        reason="due to the way the child span is made it's not part of the spanContext so a flush still happens here",
-    )
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     def test_partial_flushing_under_limit_one_payload(self, test_agent, test_library):
@@ -61,7 +58,6 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "java", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
-    @bug(context.library == "dotnet", reason="partial flushing wasn't disabled")
     def test_partial_flushing_disabled(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure
