@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import pytest
 from utils import context, coverage, released, missing_feature
-from ..iast_fixtures import SinkFixture
+from .._test_iast_fixtures import SinkFixture
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
