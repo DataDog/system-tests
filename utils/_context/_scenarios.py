@@ -661,25 +661,11 @@ class OpenTelemetryScenario(_DockerScenario):
                 iface.stop()
 
     def _wait(self):
-        deadline = time.time() + self.post_setup_timeout
-        self._wait_for_otel_request(deadline=deadline)
+        from utils import wait_conditions
 
-    def _wait_for_otel_request(self, deadline):
-        from utils import interfaces
-        from utils import weblog
-
-        self.terminal.write_sep("-", "Wait for watermark trace")
-        self.terminal.flush()
-
-        watermark_request = weblog.get("/", post_setup=True)
-
-        while time.time() < deadline:
-            otel_trace_ids = list(interfaces.open_telemetry.get_otel_trace_id(request=watermark_request))
-            if otel_trace_ids:
-                return
-            time.sleep(0.1)
-
-        logger.warning("Waiting for watermark trace exceeded the deadline")
+        self.terminal.write_sep("-", "Wait for setup to be ready")
+        wait_conditions.wait_for_all_otel(terminal=self.terminal, post_setup_timeout=self.post_setup_timeout)
+        self.terminal.write_sep("-", "Setup ready")
 
     def _wait_interface(self, interface, timeout):
         self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")

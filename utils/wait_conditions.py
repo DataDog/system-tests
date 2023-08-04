@@ -20,6 +20,11 @@ def wait_for_all(terminal, library_name, post_setup_timeout, tracer_sampling_rat
     _wait_for_conditions(terminal=terminal, start_time=start_time)
 
 
+def wait_for_all_otel(terminal, post_setup_timeout):
+    deadline = time.time() + post_setup_timeout
+    _wait_for_otel_request(terminal=terminal, deadline=deadline)
+
+
 def _print_log(msg, file):
     logger.debug(msg)
     print(msg, file=file)
@@ -195,6 +200,21 @@ def _wait_for_remote_config(terminal, deadline, proxy_state):
         time.sleep(0.1)
 
     _print_log("Waiting for remote config exceeded the deadline", file=terminal)
+
+
+def _wait_for_otel_request(terminal, deadline):
+    from utils import interfaces, weblog
+
+    _print_log("Waiting for watermark otel trace", file=terminal)
+
+    watermark_request = weblog.get("/", post_setup=True)
+    while time.time() < deadline:
+        otel_trace_ids = list(interfaces.open_telemetry.get_otel_trace_id(request=watermark_request))
+        if otel_trace_ids:
+            return
+        time.sleep(0.1)
+
+    _print_log("Waiting for watermark otel trace exceeded the deadline", file=terminal)
 
 
 def _wait_for_conditions(terminal, start_time):
