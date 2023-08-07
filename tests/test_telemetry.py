@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime, timedelta
 import time
 from utils import context, interfaces, missing_feature, bug, flaky, released, irrelevant, weblog, scenarios
@@ -125,65 +126,68 @@ class Test_Telemetry:
         """Test that messages are sent sequentially"""
 
         MAX_OUT_OF_ORDER_LAG = 0.3  # s
-
-        max_seq_id = 0
-        received_max_time = None
-        seq_ids = []
-
-        fmt = "%Y-%m-%dT%H:%M:%S.%f"
+        FMT = "%Y-%m-%dT%H:%M:%S.%f"
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
             raise Exception("No telemetry data to validate on")
 
-        for data in telemetry_data:
+        runtime_ids = set((data["request"]["content"]["runtime_id"] for data in telemetry_data))
+        for runtime_id in runtime_ids:
+            max_seq_id = 0
+            received_max_time = None
+            seq_ids = []
 
-            seq_id = data["request"]["content"]["seq_id"]
-            timestamp_start = data["request"]["timestamp_start"]
-            curr_message_time = datetime.strptime(timestamp_start, fmt)
-            logger.debug(f"Telemetry message at {timestamp_start.split('T')[1]} {seq_id} in {data['log_filename']}")
+            for data in telemetry_data:
+                if runtime_id != data["request"]["content"]["runtime_id"]:
+                    continue
+                seq_id = data["request"]["content"]["seq_id"]
+                timestamp_start = data["request"]["timestamp_start"]
+                curr_message_time = datetime.strptime(timestamp_start, FMT)
+                logger.debug(f"Telemetry message at {timestamp_start.split('T')[1]} {seq_id} in {data['log_filename']}")
 
-            if 200 <= data["response"]["status_code"] < 300:
-                seq_ids.append((seq_id, data["log_filename"]))
-            if seq_id > max_seq_id:
-                max_seq_id = seq_id
-                received_max_time = curr_message_time
-            else:
-                if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
-                    seconds=MAX_OUT_OF_ORDER_LAG
-                ):
+                if 200 <= data["response"]["status_code"] < 300:
+                    seq_ids.append((seq_id, data["log_filename"]))
+                if seq_id > max_seq_id:
+                    max_seq_id = seq_id
+                    received_max_time = curr_message_time
+                else:
+                    if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
+                        seconds=MAX_OUT_OF_ORDER_LAG
+                    ):
+                        raise Exception(
+                            f"Received message with seq_id {seq_id} to far more than"
+                            f"100ms after message with seq_id {max_seq_id}"
+                        )
+
+            seq_ids.sort()
+            for i in range(len(seq_ids) - 1):
+                diff = seq_ids[i + 1][0] - seq_ids[i][0]
+                if diff == 0:
                     raise Exception(
-                        f"Received message with seq_id {seq_id} to far more than"
-                        f"100ms after message with seq_id {max_seq_id}"
+                        f"Detected 2 telemetry messages with same seq_id {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
                     )
 
-        seq_ids.sort()
-        for i in range(len(seq_ids) - 1):
-            diff = seq_ids[i + 1][0] - seq_ids[i][0]
-            if diff == 0:
-                raise Exception(
-                    f"Detected 2 telemetry messages with same seq_id {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
-                )
-
-            if diff > 1:
-                logger.error(f"{seq_ids[i + 1][0]} {seq_ids[i][0]}")
-                raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
+                if diff > 1:
+                    logger.error(f"{seq_ids[i + 1][0]} {seq_ids[i][0]}")
+                    raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
     @bug(library="ruby", reason="app-started not sent")
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
 
-        count = 0
+        count_by_runtime_id = defaultdict(lambda : 0)
 
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-started":
                 logger.debug(
                     f"Found app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
                 )
+                runtime_id = data["request"]["content"]["runtime_id"]
                 if data["response"]["status_code"] == 202:
-                    count += 1
+                    count_by_runtime_id[runtime_id] += 1
 
-        assert count == 1
+        assert all((count == 1 for count in count_by_runtime_id.values()))
 
     @bug(library="ruby", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
