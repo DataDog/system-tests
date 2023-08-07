@@ -414,6 +414,7 @@ class Test_Telemetry:
     @irrelevant(library="ruby")
     @irrelevant(library="golang")
     @irrelevant(library="dotnet")
+    @irrelevant(library="python")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
@@ -517,6 +518,7 @@ class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
     @missing_feature(library="golang", reason="Product started missing")
+    @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
@@ -529,6 +531,7 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
+    @missing_feature(library="ruby", reason="dd-client-library-version missing")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads """
 
