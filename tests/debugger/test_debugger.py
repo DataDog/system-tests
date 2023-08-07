@@ -77,7 +77,6 @@ def check_info_endpoint():
 
 
 @released(cpp="?", golang="?", dotnet="2.33.0", java="1.17.0", php_appsec="?", python="?", ruby="?", nodejs="?")
-@missing_feature(context.library == "java" and context.weblog_variant != "spring-boot", reason="Missing endpoint")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
@@ -85,7 +84,6 @@ class Test_Debugger_Method_Probe_Statuses:
 
 
 @released(cpp="?", golang="?", dotnet="2.33.0", java="1.17.0", php_appsec="?", python="?", ruby="?", nodejs="?")
-@missing_feature(context.library == "java" and context.weblog_variant != "spring-boot", reason="Missing endpoint")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
