@@ -519,6 +519,7 @@ class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
     @missing_feature(library="golang", reason="Product started missing")
+    @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
