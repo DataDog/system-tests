@@ -20,6 +20,7 @@ Once your PR is reviewed, you can merge it! :heart:
 * [ ] Check what scenarios are modified. If needed, add the relevant label (`run-parametric-scenario`, `run-profiling-scenario`...). If this PR modifies any system-tests internal, then add the `run-all-scenarios` label ([more info](https://github.com/DataDog/system-tests/blob/main/docs/CI/labels.md)). 
 * [ ] CI is green
    * [ ] If not, failing jobs are not related to this change (and you are 100% sure about this statement)
-* if any of `build-some-image` label is present
+* [ ] if any of `build-some-image` label is present
   1. is the image labl have been updated ? 
   2. just before merging, locally build and push the image to hub.docker.com
+* [ ] if a scenario is added (or removed), add (or remove) it in system-test-dasboard nightly

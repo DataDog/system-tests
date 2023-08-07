@@ -61,4 +61,4 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-You now have the basics. It proably won't be as easy, and you may needs to dive into internals, so please do not hesitate to ask for help on slack at [#apm-integrations-reliability-and-performance-team](https://dd.slack.com/archives/C01CGB22DC2)
+You now have the basics. It proably won't be as easy, and you may needs to dive into internals, so please do not hesitate to ask for help on slack at [#apm-shared-testing](https://dd.slack.com/archives/C025TJ4RZ8X)

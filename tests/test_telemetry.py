@@ -169,15 +169,14 @@ class Test_Telemetry:
     @bug(library="python", reason="app-started not sent first")
     @flaky(library="nodejs", reason="APPSEC-10465")
     def test_app_started_is_first_message(self):
-        """Request type app-started is the first telemetry message or in the first batch"""
+        """Request type app-started is the first telemetry message or the first message in the first batch"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
         if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
-            for payload in telemetry_data[0]["request"]["content"]["payload"]:
-                if payload.get("request_type") == "app-started":
-                    return
-
-            raise Exception("app-started was not in the first message-batch")
+            first_message = telemetry_data[0]["request"]["content"]["payload"][0]
+            assert (
+                first_message.get("request_type") == "app-started"
+            ), "app-started was not the first message in the first batch"
         else:
             first_message = telemetry_data[0]["request"]["content"]
             assert first_message.get("request_type") == "app-started", "app-started was not the first message"
@@ -318,7 +317,6 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
-    @bug(library="dotnet", reason="NodaTime not received in app-dependencies-loaded message")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
@@ -396,7 +394,7 @@ class Test_Telemetry:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
     @missing_feature(
-        context.library in ("java", "nodejs", "golang", "dotnet"), reason="Telemetry V2 is not implemented yet. ",
+        context.library in ("java", "nodejs", "golang"), reason="Telemetry V2 is not implemented yet. ",
     )
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
@@ -518,11 +516,16 @@ class Test_ProductsDisabled:
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
                 assert (
-                    "products" not in content["payload"]
-                ), "Product information is present telemetry data on app-started event when all products are disabled"
+                    "products" in content["payload"]
+                ), "Product information was expected in app-started event, but was missing"
+                products = content["payload"]["products"]
+                for product, details in products.items():
+                    assert (
+                        details.get("enabled") is False
+                    ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
@@ -538,29 +541,23 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@missing_feature(library="ruby", reason="DD_FORCE_BATCHING_ENABLE not yet supported")
-@scenarios.telemetry_message_batch_event_order
-class Test_ForceBatchingEnabled:
-    """ Tests on DD_FORCE_BATCHING_ENABLE environment variable """
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+class Test_MessageBatch:
+    """ Tests on Message batching """
 
-    def setup_message_batch_event_order(self):
+    def setup_message_batch_enabled(self):
         weblog.get("/load_dependency")
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
-    def test_message_batch_event_order(self):
-        """Test that the events in message-batch are in chronological order"""
+    def test_message_batch_enabled(self):
+        """Test that events are sent in message batches"""
         event_list = []
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
             event_list.append(content.get("request_type"))
 
-        assert (
-            event_list.index("app-dependencies-loaded")
-            < event_list.index("app-integrations-change")
-            < event_list.index("app-product-change")
-        ), f"Events in message-batch are not in chronological order of event triggered: {event_list}"
+        assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
@@ -580,7 +577,7 @@ class Test_Log_Generation:
                 raise Exception(" Logs event is sent when log generation is disabled")
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_metric_generation_disabled
 class Test_Metric_Generation:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""

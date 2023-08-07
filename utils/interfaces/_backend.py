@@ -182,6 +182,26 @@ class _BackendInterfaceValidator(InterfaceValidator):
         return self.rid_to_library_trace_ids[rid]
 
     def _request(self, method, path, host=None, json_payload=None, dd_api_key=None, dd_app_key=None):
+        while True:
+            data = self._request_one(
+                method=method,
+                path=path,
+                host=host,
+                json_payload=json_payload,
+                dd_api_key=dd_api_key,
+                dd_app_key=dd_app_key,
+            )
+            status_code = data["response"]["status_code"]
+            if status_code == 429:
+                # https://docs.datadoghq.com/api/latest/rate-limits/
+                logger.debug(f"Got rate limit error: {data['response']}")
+                sleep_time_s = int(data["response"]["headers"]["x-ratelimit-reset"])
+                logger.warning(f"Rate limit hit, sleeping {sleep_time_s}")
+                time.sleep(sleep_time_s)
+                continue
+            return data
+
+    def _request_one(self, method, path, host=None, json_payload=None, dd_api_key=None, dd_app_key=None):
         if dd_api_key is None:
             dd_api_key = os.environ["DD_API_KEY"]
         if dd_app_key is None:
@@ -194,6 +214,11 @@ class _BackendInterfaceValidator(InterfaceValidator):
         if host is None:
             host = self.dd_site_url
         r = requests.request(method, url=f"{host}{path}", headers=headers, json=json_payload, timeout=10)
+
+        if r.status_code == 403:
+            raise ValueError(
+                "Request to the backend returned error 403: check DD_API_KEY and DD_APP_KEY environment variables"
+            )
 
         if "?" in path:
             path, query = path.split("?", 1)
@@ -242,6 +267,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             if status_code != 404:
                 return data
 
+            logger.debug(f"Sleeping {sleep_interval_s} seconds")
             time.sleep(sleep_interval_s)
             sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
 
@@ -372,7 +398,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         sleep_interval_s = 1
         current_retry = 1
         while current_retry <= retries:
-            logger.info(f"Retry {current_retry}")
+            logger.info(f"Getting logs from {path}, retry {current_retry}")
             current_retry += 1
             data = self._request(
                 "GET", host=self._get_logs_metrics_api_host(), path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key
@@ -380,6 +406,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
             if status_code != 404 and status_code != 200:
+                logger.error(f"Backend response: {data['response']}")
                 raise ValueError(f"Backend did not provide logs: {data['path']}. Status is {status_code}.")
             if status_code != 404:
                 logs = data["response"]["content"]["data"]
