@@ -71,7 +71,9 @@ class _Weblog:
         if "SYSTEM_TESTS_WEBLOG_HOST" in os.environ:
             self.domain = os.environ["SYSTEM_TESTS_WEBLOG_HOST"]
         elif "DOCKER_HOST" in os.environ:
-            self.domain = re.sub(r"^ssh://([^@]+@|)", "", os.environ["DOCKER_HOST"])
+            m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+            if m is not None:
+                self.domain = m.group(1)
         else:
             self.domain = "localhost"
 
