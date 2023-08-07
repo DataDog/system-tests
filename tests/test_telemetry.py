@@ -496,6 +496,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
+@irrelevant(True, reason="The test must be adapted to handle correctly v1/v2 payloads")
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
@@ -514,12 +515,12 @@ class Test_ProductsDisabled:
 
         for data in telemetry_data:
             if data["request"]["content"].get("request_type") == "app-started":
-                content = data["request"]["content"]
+                payload = data["request"]["content"]["payload"]
                 assert (
-                    "products" in content["payload"]
-                ), "Product information was expected in app-started event, but was missing"
-                products = content["payload"]["products"]
-                for product, details in products.items():
+                    "products" in payload
+                ), f"Product information was expected in app-started event, but was missing in {data['log_filename']}"
+
+                for product, details in payload["products"].items():
                     assert (
                         details.get("enabled") is False
                     ), f"Product information expected to indicate {product} is disabled, but found enabled"
