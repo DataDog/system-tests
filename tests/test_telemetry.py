@@ -317,7 +317,6 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
-    @bug(library="dotnet", reason="NodaTime not received in app-dependencies-loaded message")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
@@ -395,7 +394,7 @@ class Test_Telemetry:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
     @missing_feature(
-        context.library in ("java", "nodejs", "golang", "dotnet"), reason="Telemetry V2 is not implemented yet. ",
+        context.library in ("java", "nodejs", "golang"), reason="Telemetry V2 is not implemented yet. ",
     )
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
@@ -526,7 +525,7 @@ class Test_ProductsDisabled:
                     ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
@@ -542,7 +541,7 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MessageBatch:
     """ Tests on Message batching """
 
@@ -578,7 +577,7 @@ class Test_Log_Generation:
                 raise Exception(" Logs event is sent when log generation is disabled")
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_metric_generation_disabled
 class Test_Metric_Generation:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
