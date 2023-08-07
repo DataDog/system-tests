@@ -515,7 +515,7 @@ class Test_Telemetry:
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
-    @missing_feature(library = "golang", reason="Product started missing")
+    @missing_feature(library="golang", reason="Product started missing")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 

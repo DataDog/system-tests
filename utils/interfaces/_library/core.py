@@ -9,7 +9,7 @@ import copy
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
-from utils.interfaces._library._utils import get_trace_request_path, split_telemetry_message_batch
+from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.telemetry import (
