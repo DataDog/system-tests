@@ -134,6 +134,7 @@ class Test_SamplingDecisions:
     )
     @bug(context.library >= "python@1.11.0rc2.dev8", reason="Under investigation")
     @bug(library="golang", reason="Need investigation")
+    @bug(library="ruby", reason="Route /sample_rate_route not implemented")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
@@ -166,7 +167,7 @@ class Test_SamplingDecisions:
             )
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
-    @bug(library="ruby", reason="Unknown reason")
+    @bug(library="ruby", reason="Route /sample_rate_route not implemented")
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
     @missing_feature(library="ruby", reason="Endpoint not implemented on weblog")
     def test_sampling_decision_added(self):
