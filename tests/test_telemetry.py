@@ -335,7 +335,6 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
-    @bug(library="dotnet", reason="NodaTime not received in app-dependencies-loaded message")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
@@ -411,21 +410,6 @@ class Test_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
-
-    def test_app_started_product_info(self):
-        """Assert that product information is accurately reported by telemetry"""
-
-        def validator(data):
-            if not is_v2_payload(data):
-                return True
-            if get_request_type(data) == "app-started":
-                content = data["request"]["content"]
-                products = content["application"]["products"]
-                assert (
-                    "appsec" in products
-                ), "Product information is not accurately reported by telemetry on app-started event"
-
-        self.validate_library_telemetry_data(validator)
 
     @irrelevant(library="ruby")
     @irrelevant(library="golang")
@@ -526,11 +510,30 @@ class Test_Telemetry:
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
+
 @released(cpp="?", dotnet="?", golang="1.49.1", java="?", python="?", nodejs="?", php="0.90", ruby="1.11")
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
+
+    @missing_feature(library = "golang", reason="Product started missing")
+    def test_app_started_product_info(self):
+        """Assert that product information is accurately reported by telemetry"""
+
+        def validator(data):
+            if not is_v2_payload(data):
+                return True
+            if get_request_type(data) == "app-started":
+                content = data["request"]["content"]
+                products = content["application"]["products"]
+                assert (
+                    "appsec" in products
+                ), "Product information is not accurately reported by telemetry on app-started event"
+
+        self.validate_library_telemetry_data(validator)
+
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads """
+
         def validator(data):
             telemetry = data["request"]["content"]
             assert get_header(data, "request", "dd-telemetry-api-version") == telemetry.get("api_version")
@@ -540,7 +543,6 @@ class Test_TelemetryV2:
             assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
 
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
-
 
 
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
@@ -572,7 +574,7 @@ class Test_ProductsDisabled:
                     ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
@@ -588,7 +590,7 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MessageBatch:
     """ Tests on Message batching """
 
@@ -618,7 +620,7 @@ class Test_Log_Generation:
                 raise Exception(" Logs event is sent when log generation is disabled")
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_metric_generation_disabled
 class Test_Metric_Generation:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""

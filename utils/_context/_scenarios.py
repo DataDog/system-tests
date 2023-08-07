@@ -1011,7 +1011,7 @@ class scenarios:
         "APPSEC_API_SECURITY",
         appsec_enabled=True,
         weblog_env={
-            "_DD_API_SECURITY_ENABLED": "true",
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "true",
             "_DD_API_SECURITY_INTERVAL_PER_ROUTE": "0.0",
         },

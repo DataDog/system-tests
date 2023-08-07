@@ -185,6 +185,10 @@ def get_rid_from_span(span):
     if not user_agent:  # try something for .NET
         user_agent = meta.get("http_request_headers_user-agent")
 
+    if not user_agent:
+        # cpp tracer
+        user_agent = meta.get("http_user_agent")
+
     if not user_agent:  # last hope
         user_agent = meta.get("http.useragent")
 
