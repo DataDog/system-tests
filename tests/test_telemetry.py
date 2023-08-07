@@ -427,15 +427,15 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
     @irrelevant(library="cpp")
-    # @missing_feature(
-    #     context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
-    # )
-    # @bug(
-    #     library="python",
-    #     reason="""
-    #         configuration is not properly populating for python
-    #     """,
-    # )
+    @missing_feature(
+        context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
+    )
+    @bug(
+        library="python",
+        reason="""
+            configuration is not properly populating for python
+        """,
+    )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
