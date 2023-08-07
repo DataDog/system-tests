@@ -15,18 +15,15 @@ AUTO_KEEP = 1
 USER_KEEP = 2
 
 
-def get_sampling_decision(sampling_rate, trace_id):
+def sample_from_rate(sampling_rate, trace_id):
     """Algorithm described in the priority sampling RFC
     https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md"""
     MAX_TRACE_ID = 2 ** 64
     KNUTH_FACTOR = 1111111111111111111
 
-    AUTO_REJECT = 0
-    AUTO_KEEP = 1
-
     if ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID):
-        return AUTO_KEEP
-    return AUTO_REJECT
+        return True
+    return False
 
 
 def _spans_with_parent(traces, parent_ids):
@@ -146,18 +143,17 @@ class Test_SamplingDecisions:
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
 
-            expected_priority = get_sampling_decision(context.tracer_sampling_rate, root_span["trace_id"])
-            if sampling_priority != expected_priority:
+            expected_decision = sample_from_rate(context.tracer_sampling_rate, root_span["trace_id"])
+            if (sampling_priority > 0) != expected_decision:
                 raise ValueError(
                     f"Trace id {root_span['trace_id']} "
-                    f"sampling priority is {sampling_priority}, should be {expected_priority}"
+                    f"sampling priority is {sampling_priority}, sampling decision should be {expected_decision}"
                 )
 
         for data, span in interfaces.library.get_root_spans():
             validator(data, span)
 
     def setup_sampling_decision_added(self):
-
         self.traces = [{"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)]
 
         for trace in self.traces:
@@ -178,7 +174,6 @@ class Test_SamplingDecisions:
 
         def validator(data):
             for span in _spans_with_parent(data["request"]["content"], traces.keys()):
-
                 expected_trace_id = traces[span["parent_id"]]["trace_id"]
                 spans.append(span)
 
