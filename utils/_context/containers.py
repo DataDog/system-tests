@@ -283,7 +283,10 @@ class AgentContainer(TestedContainer):
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
-            healthcheck={"test": f"curl --fail http://localhost:{self.agent_port}/info", "retries": 60},
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{self.agent_port}/info",
+                "retries": 60,
+            },
             ports={self.agent_port: f"{self.agent_port}/tcp"},
         )
 
@@ -334,7 +337,7 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail localhost:{weblog.port}", "retries": 60},
+            healthcheck={"test": f"curl --fail --silent --show-error localhost:{weblog.port}", "retries": 60},
             ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
         )
 
