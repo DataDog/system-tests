@@ -34,7 +34,6 @@ def is_v1_payload(data):
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0", php="0.90")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
-@missing_feature(library="php")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
@@ -428,15 +427,15 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
     @irrelevant(library="cpp")
-    @missing_feature(
-        context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
-    )
-    @bug(
-        library="python",
-        reason="""
-            configuration is not properly populating for python
-        """,
-    )
+    # @missing_feature(
+    #     context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
+    # )
+    # @bug(
+    #     library="python",
+    #     reason="""
+    #         configuration is not properly populating for python
+    #     """,
+    # )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
