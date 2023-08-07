@@ -413,6 +413,7 @@ class Test_Telemetry:
 
     @irrelevant(library="ruby")
     @irrelevant(library="golang")
+    @irrelevant(library="dotnet")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
@@ -519,17 +520,14 @@ class Test_TelemetryV2:
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
-        def validator(data):
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if not is_v2_payload(data):
-                return True
+                continue
             if get_request_type(data) == "app-started":
-                content = data["request"]["content"]
-                products = content["application"]["products"]
+                products = data["request"]["content"]["application"]["products"]
                 assert (
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
-
-        self.validate_library_telemetry_data(validator)
 
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads """
