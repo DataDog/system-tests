@@ -415,6 +415,7 @@ class Test_Telemetry:
     @irrelevant(library="golang")
     @irrelevant(library="dotnet")
     @irrelevant(library="python")
+    @irrelevant(library="php")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
@@ -513,7 +514,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
-@released(cpp="?", dotnet="?", golang="1.49.1", java="?", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
+@released(cpp="?", dotnet="2.35.0", golang="1.49.1", java="?", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
