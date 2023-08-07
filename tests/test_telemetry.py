@@ -31,7 +31,7 @@ def is_v1_payload(data):
     return data["request"]["content"].get("api_version") == "v1"
 
 
-@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0")
+@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0", php="0.90")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(library="php")
@@ -119,19 +119,6 @@ class Test_Telemetry:
             request_headers=["dd-telemetry-api-version", "dd-telemetry-request-type"],
             check_condition=not_onboarding_event,
         )
-
-    def test_telemetry_v2_required_headers(self):
-        def validator(data):
-            if not is_v2_payload(data):
-                return
-            telemetry = data["request"]["content"]
-            assert get_header(data, "request", "dd-telemetry-api-version") == telemetry.get("api_version")
-            assert get_header(data, "request", "dd-telemetry-request-type") == telemetry.get("request_type")
-            application = telemetry.get("application", {})
-            assert get_header(data, "request", "dd-client-library-language") == application.get("language_name")
-            assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
-
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
     @missing_feature(library="python")
     # @flaky(library="ruby", reason="Sometimes, seq_id jump from N to N+2")
@@ -440,19 +427,13 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @released(cpp="?", dotnet="?", golang="1.49.1", java="?", python="?", nodejs="?", php="?", ruby="1.11")
-    def test_api_upgraded_to_v2(self):
-        """Test that the telemetry api is upgraded to v2"""
-
-        def validator(data):
-            assert is_v2_payload(data)
-
-        self.validate_library_telemetry_data(validator=validator, success_by_default=True)
-
     @irrelevant(library="ruby")
     @irrelevant(library="golang")
     def test_api_still_v1(self):
-        """Test that the telemetry api is still at version v1"""
+        """Test that the telemetry api is still at version v1
+        If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
+        and this test as no longer relevant
+        """
 
         def validator(data):
             assert is_v1_payload(data)
@@ -544,6 +525,22 @@ class Test_Telemetry:
 
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
+
+@released(cpp="?", dotnet="?", golang="1.49.1", java="?", python="?", nodejs="?", php="0.90", ruby="1.11")
+class Test_TelemetryV2:
+    """Test telemetry v2 specific constraints"""
+    def test_telemetry_v2_required_headers(self):
+        """Assert library add the relevant headers to telemetry v2 payloads """
+        def validator(data):
+            telemetry = data["request"]["content"]
+            assert get_header(data, "request", "dd-telemetry-api-version") == telemetry.get("api_version")
+            assert get_header(data, "request", "dd-telemetry-request-type") == telemetry.get("request_type")
+            application = telemetry.get("application", {})
+            assert get_header(data, "request", "dd-client-library-language") == application.get("language_name")
+            assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
+
+        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+
 
 
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
