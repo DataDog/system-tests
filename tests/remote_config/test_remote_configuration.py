@@ -283,17 +283,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         interfaces.library.validate_remote_configuration(validator=validate)
 
 
-@released(cpp="?",
-          dotnet="2.33.0",
-          golang="?",
-          java="?",
-          php_appsec="?",
-          python="?",
-          ruby="?",
-          nodejs="?")
+@released(cpp="?", dotnet="2.33.0", golang="?", java="?", php_appsec="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
-class Test_RemoteConfigurationExtraServices():
+class Test_RemoteConfigurationExtraServices:
     """Tests that """
 
     def setup_tracer_extra_services(self):
@@ -308,16 +301,14 @@ class Test_RemoteConfigurationExtraServices():
 
             if not ("extra_services" in client_tracer):
                 raise ValidationError(
-                    "client_tracer should contain extra_services",
-                    extra_info={"client_tracer": client_tracer},
+                    "client_tracer should contain extra_services", extra_info={"client_tracer": client_tracer},
                 )
 
             extra_services = client_tracer["extra_services"]
 
             if extra_services is None or len(extra_services) != 1 or extra_services[0] != "extraVegetables":
                 raise ValidationError(
-                    "extra_services should be reported",
-                    extra_info={"extra_services": extra_services},
+                    "extra_services should be reported", extra_info={"extra_services": extra_services},
                 )
 
             return True
