@@ -556,13 +556,8 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
-@irrelevant(True, reason="The test must be adapted to handle correctly v1/v2 payloads")
-@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
-@bug(context.uds_mode and context.library < "nodejs@3.7.0")
-@missing_feature(library="cpp")
-@missing_feature(library="php")
+@released(dotnet="2.12.0", ruby="1.4.0", golang="1.53")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@irrelevant(library="golang", reason="products info is always in app-started for golang")
 class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
@@ -574,16 +569,18 @@ class Test_ProductsDisabled:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
-            if get_request_type(data) == "app-started":
-                payload = data["request"]["content"]["payload"]
-                assert (
-                    "products" in payload
-                ), f"Product information was expected in app-started event, but was missing in {data['log_filename']}"
+            payload = data["request"]["content"]["payload"]
+            if get_request_type(data) != "app-started":
+                continue
 
-                for product, details in payload["products"].items():
-                    assert (
-                        details.get("enabled") is False
-                    ), f"Product information expected to indicate {product} is disabled, but found enabled"
+            assert (
+                "products" in payload
+            ), f"Product information was expected in app-started event, but was missing in {data['log_filename']}"
+
+            for product, details in payload["products"].items():
+                assert (
+                    details.get("enabled") is False
+                ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
 @released(cpp="?", dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
