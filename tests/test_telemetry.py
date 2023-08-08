@@ -285,6 +285,11 @@ class Test_Telemetry:
         heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
         assert len(heartbeats) >= 2, "Did not receive, at least, 2 heartbeats"
 
+        # depending on the tracer, the very first heartbeat may be sent in a request that pays the
+        # connection initialization time. This time is very unpredictible, so we remove the very
+        # first heartbeat from the list
+        heartbeats.pop(0)
+
         for data in heartbeats:
             curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if prev_message_time is None:
