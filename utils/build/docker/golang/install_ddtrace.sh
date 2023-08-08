@@ -15,7 +15,8 @@ else
     go get -v -d -u gopkg.in/DataDog/dd-trace-go.v1
 fi
 
-go mod tidy -compat=1.17
+# Downloading a newer version of the tracer may require to resolve again all dependencies
+go mod tidy
 
 # Read the library version out of the version.go file
 mod_dir=$(go list -f '{{.Dir}}' -m gopkg.in/DataDog/dd-trace-go.v1)
