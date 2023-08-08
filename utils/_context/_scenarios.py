@@ -845,12 +845,16 @@ class scenarios:
 
     default = EndToEndScenario(
         "DEFAULT",
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "disabled"},
         include_postgres_db=True,
-        doc="Default scenario, spwan tracer and agent, and run most of exisiting tests",
+        include_mysql_db=True,
+        include_sqlserver=True,
+        doc="Default scenario, spawn tracer, some databases and agent, and run most of exisiting tests",
     )
+
     sleep = EndToEndScenario(
         "SLEEP",
-        doc="Fake scenario that spawn tracer and agentm then sleep indefinitly. Help you to manually test container",
+        doc="Fake scenario that spawn tracer and agent then sleep indefinitly. Help you to manually test container",
     )
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
@@ -868,7 +872,16 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
-        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
+        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
+    )
+
+    integrations_service = EndToEndScenario(
+        "INTEGRATIONS_SERVICE",
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
+        include_postgres_db=True,
+        include_mysql_db=True,
+        include_sqlserver=True,
+        doc="Integrations service scenario, spawn tracer, some databases and agent, and runs the DBM test",
     )
 
     profiling = EndToEndScenario(
