@@ -5,73 +5,79 @@
     "id": "logProbe-received",
     "where": {
       "typeName": "NotReallyExists",
-      "methodName": "SomeMethod"
-    }
+      "methodName": "SomeMethod",
+      "sourceFile": null
+    },
+    "evaluateAt": "ENTRY"
   },
   {
     "language": "",
     "id": "logProbe-installed",
     "where": {
-      "typeName": "weblog.DebuggerController",
-      "methodName": "LogProbe"
-    }
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "LogProbe",
+      "sourceFile": null
+    },
+    "evaluateAt": "ENTRY"
   },
   {
     "language": "",
     "id": "metricProbe-received",
     "metricName": "MetricCountInt",
-    "kind": 0,
+    "kind": "COUNT",
     "value": {
-      "str": "",
       "json": {
         "ref": "id"
       }
     },
     "where": {
       "typeName": "NotReallyExists",
-      "methodName": "SomeMethod"
+      "methodName": "SomeMethod",
+      "sourceFile": null
     },
-    "evaluateAt": 1
+    "evaluateAt": "ENTRY"
   },
   {
     "language": "",
     "id": "metricProbe-installed",
     "metricName": "MetricCountInt",
-    "kind": 0,
+    "kind": "COUNT",
     "value": {
-      "str": "",
       "json": {
         "ref": "id"
       }
     },
     "where": {
-      "typeName": "weblog.DebuggerController",
-      "methodName": "MetricProbe"
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "MetricProbe",
+      "sourceFile": null
     },
-    "evaluateAt": 1
+    "evaluateAt": "ENTRY"
   },
   {
     "language": "",
     "id": "spanProbe-received",
     "where": {
       "typeName": "NotReallyExists",
-      "methodName": "SomeMethod"
+      "methodName": "SomeMethod",
+      "sourceFile": null
     },
-    "evaluateAt": 1
+    "evaluateAt": "ENTRY"
   },
   {
     "language": "",
     "id": "spanProbe-installed",
     "where": {
-      "typeName": "weblog.DebuggerController",
-      "methodName": "SpanProbe"
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "SpanProbe",
+      "sourceFile": null
     },
-    "evaluateAt": 1
+    "evaluateAt": "ENTRY"
   },
   {
     "language": "",
     "id": "spanDecorationProbe-received",
-    "targetSpan": 0,
+    "targetSpan": "ACTIVE",
     "decorations": [
       {
         "when": {
@@ -90,14 +96,15 @@
     ],
     "where": {
       "typeName": "NotReallyExists",
-      "methodName": "SomeMethod"
+      "methodName": "SomeMethod",
+      "sourceFile": null
     },
-    "evaluateAt": 1
+    "evaluateAt": "ENTRY"
   },
   {
     "language": "",
     "id": "spanDecorationProbe-installed",
-    "targetSpan": 0,
+    "targetSpan": "ACTIVE",
     "decorations": [
       {
         "when": {
@@ -115,9 +122,10 @@
       }
     ],
     "where": {
-      "typeName": "weblog.DebuggerController",
-      "methodName": "SpanDecorationProbe"
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "SpanDecorationProbe",
+      "sourceFile": null
     },
-    "evaluateAt": 1
+    "evaluateAt": "ENTRY"
   }
 ]
