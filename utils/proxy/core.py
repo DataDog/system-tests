@@ -203,6 +203,7 @@ class _RequestLogger:
                 if self.state.get("mock_remote_config_backend") in (
                     "DEBUGGER_LINE_PROBES_STATUS",
                     "DEBUGGER_METHOD_PROBES_STATUS",
+                    "DEBUGGER_METHOD_PROBES_SNAPSHOT",
                 ):
                     response = rc_debugger.create_rcm_probe_response(
                         request_content["client"]["client_tracer"]["language"],
