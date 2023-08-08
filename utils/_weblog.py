@@ -47,6 +47,9 @@ class HttpRequest:
         self.method = data["method"]
         self.url = data["url"]
 
+    def __repr__(self) -> str:
+        return f"HttpRequest(method:{self.method}, url:{self.url}, headers:{self.headers})"
+
 
 class HttpResponse:
     def __init__(self, data):
