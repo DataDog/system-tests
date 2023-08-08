@@ -10,6 +10,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
     context.library in ["python"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
 )
 @scenarios.integrations
+@scenarios.integrations_service
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
 

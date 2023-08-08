@@ -37,6 +37,7 @@ TRACER_RELEASE_SCENARIOS:
   - LIBRARY_CONF_CUSTOM_HEADERS_SHORT
   - LIBRARY_CONF_CUSTOM_HEADERS_LONG
   - INTEGRATIONS
+  - INTEGRATIONS_SERVICE
   - *appsec_scenarios
   - *remote_config_scenarios
   - *telemetry_scenarios
@@ -48,6 +49,7 @@ TRACER_ESSENTIAL_SCENARIOS:
   - APPSEC_BLOCKING
   - REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
   - INTEGRATIONS
+  - INTEGRATIONS_SERVICE
 
 # Scenarios that rely on backend (and thus, may be a little bit hard to avoid flakyness)
 APM_TRACING_E2E_SCENARIOS:
