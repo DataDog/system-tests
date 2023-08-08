@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import pytest
 from utils import weblog, interfaces, context, bug, missing_feature, coverage, released
-from ..iast_fixtures import SinkFixture, get_iast_event, assert_iast_vulnerability
+from .._test_iast_fixtures import SinkFixture, get_iast_event, assert_iast_vulnerability
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")

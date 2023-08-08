@@ -4,7 +4,7 @@
 
 import pytest
 from utils import context, coverage, missing_feature, released, bug
-from ..iast_fixtures import SourceFixture
+from .._test_iast_fixtures import SourceFixture
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")

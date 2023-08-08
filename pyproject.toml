@@ -24,6 +24,8 @@ markers =[
     "scenario: run a test only for a specified scenario"
 ]
 
+python_files = "test_*.py _test_*.py"
+
 [tool.pylint]
 init-hook='import sys; sys.path.append(".")'
 max-line-length = 120
