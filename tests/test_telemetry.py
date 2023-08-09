@@ -570,9 +570,9 @@ class Test_ProductsDisabled:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
-            payload = data["request"]["content"]["payload"]
             if get_request_type(data) != "app-started":
                 continue
+            payload = data["request"]["content"]["payload"]
 
             assert (
                 "products" in payload
