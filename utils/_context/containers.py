@@ -531,7 +531,9 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
 
         if "DOCKER_HOST" in os.environ:
-            self._otel_host = re.sub(r"^ssh://([^@]+@|)", "", os.environ["DOCKER_HOST"])
+            m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+            if m is not None:
+                self._otel_host = m.group(1)
         else:
             self._otel_host = "localhost"
 
