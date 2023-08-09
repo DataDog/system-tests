@@ -556,7 +556,7 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
-@released(dotnet="2.12.0", ruby="1.4.0", golang="1.53", nodejs="?", php="?", python="?", java="?")
+@released(dotnet="2.12.0", golang="1.53", ruby="?", nodejs="?", php="?", python="?", java="?")
 @irrelevant(library="cpp")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ProductsDisabled:
