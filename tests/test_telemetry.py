@@ -556,7 +556,8 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
-@released(dotnet="2.12.0", ruby="1.4.0", golang="1.53")
+@released(dotnet="2.12.0", ruby="1.4.0", golang="1.53", nodejs="?", php="?", python="?", java="?")
+@irrelevant(library="cpp")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
@@ -583,7 +584,7 @@ class Test_ProductsDisabled:
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
