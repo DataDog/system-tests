@@ -624,7 +624,7 @@ class Test_Log_Generation:
     """Assert that logs are not reported when logs generation is disabled in telemetry"""
 
     def test_log_generation_disabled(self):
-        for data in interfaces.library.get_telemetry_data(split_message_batch=True):
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "logs":
                 raise Exception(" Logs event is sent when log generation is disabled")
 
@@ -635,6 +635,6 @@ class Test_Metric_Generation:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
 
     def test_metric_generation_disabled(self):
-        for data in interfaces.library.get_telemetry_data(split_message_batch=True):
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "generate-metrics":
                 raise Exception("Metric generate event is sent when metric generation is disabled")
