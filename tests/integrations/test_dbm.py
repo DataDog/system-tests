@@ -9,14 +9,13 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 @missing_feature(
     context.library in ["python"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
 )
-@scenarios.integrations
-@scenarios.integrations_service
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
+    
+    requests = []
 
     def setup_trace_payload(self):
         self.library_name = context.library
-        self.requests = []
 
         if self.library_name == "python":
             self.requests = [
@@ -30,12 +29,49 @@ class Test_Dbm:
                 weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
 
-    def test_trace_payload(self):
+    def test_propagation_disabled_behaviour(self):
         for r in self.requests:
-            assert r.status_code == 200, f"{r.request.url} is not successful"
-            for _, _, span in interfaces.library.get_spans(request=r):
-                if span.get("span_type") != "sql":
-                    return
+            assert r.status_code == 200, f"Request: {r.request.url} wasn't successful."
+            for _, trace in interfaces.library.get_traces(request=r):
+                db_span = None
+                for span in trace:
+                    if span.get("resource") == "SELECT version()" or span.get("resource") == "SELECT @@version":
+                        db_span = span
+                        break
 
-                meta = span.get("meta", {})
-                assert "_dd.dbm_trace_injected" in meta
+                assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
+                meta = db_span.get("meta", {}) 
+                assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected not found in span meta."
+                break
+    
+    @scenarios.integrations_service
+    def test_propagation_service_behaviour(self):
+        for r in self.requests:
+            assert r.status_code == 200, f"Request: {r.request.url} wasn't successful."
+            for _, trace in interfaces.library.get_traces(request=r):
+                db_span = None
+                for span in trace:
+                    if span.get("resource") == "SELECT version()" or span.get("resource") == "SELECT @@version":
+                        db_span = span
+                        break
+
+                assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
+                meta = db_span.get("meta", {}) 
+                assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected not found in span meta."
+                break
+
+    @scenarios.integrations
+    def test_propagation_full_behaviour(self):
+        for r in self.requests:
+            assert r.status_code == 200, f"Request: {r.request.url} wasn't successful."
+            for _, trace in interfaces.library.get_traces(request=r):
+                db_span = None
+                for span in trace:
+                    if span.get("resource") == "SELECT version()" or span.get("resource") == "SELECT @@version":
+                        db_span = span
+                        break
+
+                assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
+                meta = db_span.get("meta", {}) 
+                assert "_dd.dbm_trace_injected" in meta, "_dd.dbm_trace_injected not found in span meta."
+                break
