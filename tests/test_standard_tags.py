@@ -134,10 +134,6 @@ class Test_StandardTagsStatusCode:
 
 @released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
-@irrelevant(
-    (context.library, context.weblog_variant) == ("golang", "net-http"),
-    reason="net-http does not handle route parameters",
-)
 @irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
 @missing_feature(
     context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
@@ -156,10 +152,12 @@ class Test_StandardTagsRoute:
         # specify the route syntax if needed
         if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
-        if context.library == "golang" and context.weblog_variant not in [
-            "chi",
-        ]:
-            tags["http.route"] = "/sample_rate_route/:i"
+        if context.library == "golang":
+            if context.weblog_variant == "net-http":
+                # net/http doesn't support parametrized routes but a path catches anything down the tree.
+                tags["http.route"] = "/sample_rate_route/"
+            if context.weblog_variant in ("gin", "echo", "uds-echo"):
+                tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
         if context.library == "python":
