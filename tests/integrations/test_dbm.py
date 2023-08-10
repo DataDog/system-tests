@@ -12,10 +12,9 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
     
-    requests = []
-
-    def setup_trace_payload(self):
+    def weblog_trace_payload(self):
         self.library_name = context.library
+        self.requests = []
 
         if self.library_name == "python":
             self.requests = [
@@ -29,7 +28,18 @@ class Test_Dbm:
                 weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
 
-    def test_propagation_disabled_behaviour(self):
+    def setup_trace_payload_disabled(self):
+        self.weblog_trace_payload()
+
+    @scenarios.integrations_service
+    def setup_trace_payload_service(self):
+        self.weblog_trace_payload()
+
+    @scenarios.integrations
+    def setup_trace_payload_full(self):
+        self.weblog_trace_payload()
+
+    def test_trace_payload_disabled(self):
         for r in self.requests:
             assert r.status_code == 200, f"Request: {r.request.url} wasn't successful."
             for _, trace in interfaces.library.get_traces(request=r):
@@ -41,11 +51,11 @@ class Test_Dbm:
 
                 assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
                 meta = db_span.get("meta", {}) 
-                assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected not found in span meta."
+                assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected found in span meta."
                 break
     
     @scenarios.integrations_service
-    def test_propagation_service_behaviour(self):
+    def test_trace_payload_service(self):
         for r in self.requests:
             assert r.status_code == 200, f"Request: {r.request.url} wasn't successful."
             for _, trace in interfaces.library.get_traces(request=r):
@@ -57,11 +67,11 @@ class Test_Dbm:
 
                 assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
                 meta = db_span.get("meta", {}) 
-                assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected not found in span meta."
+                assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected found in span meta."
                 break
 
     @scenarios.integrations
-    def test_propagation_full_behaviour(self):
+    def test_trace_payload_full(self):
         for r in self.requests:
             assert r.status_code == 200, f"Request: {r.request.url} wasn't successful."
             for _, trace in interfaces.library.get_traces(request=r):
