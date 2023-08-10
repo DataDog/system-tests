@@ -283,11 +283,11 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         interfaces.library.validate_remote_configuration(validator=validate)
 
 
-@released(cpp="?", dotnet="2.33.0", golang="?", java="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.34.0", golang="?", java="?", php_appsec="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
 class Test_RemoteConfigurationExtraServices:
-    """Tests that """
+    """Tests that extra services are sent in the RC message"""
 
     def setup_tracer_extra_services(self):
         self.r_outgoing = weblog.get("/createextraservice/?serviceName=extraVegetables")
