@@ -283,7 +283,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         interfaces.library.validate_remote_configuration(validator=validate)
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.36.0", golang="?", java="?", php_appsec="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
 class Test_RemoteConfigurationExtraServices:
