@@ -189,6 +189,10 @@ The endpoint executes a unique operation of String hashing with unsecure MD5 alg
 This endpoint executes database queries for DBM supported libraries. A 200 response is returned if the query
 is executed successfully.
 
+Expected SQL query:
+- For SqlServer: `SELECT @@version`
+- For PostgreSQL & MySQL: `SELECT version()`
+
 Expected query params:
   - `integration`: Name of DBM supported library
     - Possible Values: `psycopg`
