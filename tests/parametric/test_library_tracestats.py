@@ -29,6 +29,8 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
         "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
     }
+    if context.library == "golang" and context.library.version < "v1.55.0":
+        env["DD_TRACE_FEATURES"] = "discovery"
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
         env.update(
