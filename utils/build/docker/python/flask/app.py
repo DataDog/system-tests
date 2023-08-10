@@ -148,7 +148,7 @@ def dbm():
             cursor.execute("SELECT version()")
             return Response("OK")
         elif operation == "executemany":
-            cursor.executemany("SELECT version()")
+            cursor.executemany("SELECT version()", [((),)])
             return Response("OK")
         return Response(f"Cursor method is not supported: {operation}", 406)
 
