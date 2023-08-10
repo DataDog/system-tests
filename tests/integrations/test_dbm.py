@@ -52,7 +52,6 @@ class Test_Dbm:
                 assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
                 meta = db_span.get("meta", {}) 
                 assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected found in span meta."
-                break
     
     @scenarios.integrations_service
     def test_trace_payload_service(self):
@@ -68,7 +67,6 @@ class Test_Dbm:
                 assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
                 meta = db_span.get("meta", {}) 
                 assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected found in span meta."
-                break
 
     @scenarios.integrations
     def test_trace_payload_full(self):
@@ -84,4 +82,3 @@ class Test_Dbm:
                 assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
                 meta = db_span.get("meta", {}) 
                 assert "_dd.dbm_trace_injected" in meta, "_dd.dbm_trace_injected not found in span meta."
-                break
