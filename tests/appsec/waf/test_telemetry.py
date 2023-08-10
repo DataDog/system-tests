@@ -66,7 +66,12 @@ class Test_TelemetryMetrics:
             "waf_version",
             "event_rules_version",
         }
-        valid_tag_prefixes = mandatory_tag_prefixes
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "version",
+            "lib_language",
+        }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
         if context.library == "python" and context.weblog_variant != "uwsgi-poc":
@@ -99,7 +104,12 @@ class Test_TelemetryMetrics:
             "waf_version",
             "event_rules_version",
         }
-        valid_tag_prefixes = mandatory_tag_prefixes
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "version",
+            "lib_language",
+        }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         assert len(series) == 1
         s = series[0]
@@ -130,6 +140,8 @@ class Test_TelemetryMetrics:
             "request_blocked",
             "request_excluded",
             "waf_timeout",
+            "version",
+            "lib_language",
         }
         mandatory_tag_prefixes = {
             "waf_version",
