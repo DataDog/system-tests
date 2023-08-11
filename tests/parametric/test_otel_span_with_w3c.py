@@ -19,7 +19,6 @@ pytestmark = pytest.mark.parametrize(
 class Test_Otel_Span_With_W3c:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_start_span_with_w3c(self, test_agent, test_library):
         """
             - Start/end a span with start and end options
@@ -44,7 +43,6 @@ class Test_Otel_Span_With_W3c:
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_span_with_w3c_headers(self, test_agent, test_library):
         with test_library:
             with test_library.otel_start_span(

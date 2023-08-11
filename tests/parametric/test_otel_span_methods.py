@@ -22,7 +22,6 @@ pytestmark = pytest.mark.parametrize(
 class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_start_span(self, test_agent, test_library):
         """
             - Start/end a span with start and end options
@@ -47,7 +46,6 @@ class Test_Otel_Span_Methods:
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
         """
             - Update the service name on a span
@@ -64,7 +62,6 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_set_attributes_different_types(self, test_agent, test_library):
         """
             - Set attributes of multiple types for an otel span
@@ -110,13 +107,21 @@ class Test_Otel_Span_Methods:
             assert root_span["meta"]["d_bool_val"] == "false"
             assert root_span["meta"]["array_val_int"] == "[10, 20]"
             assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
-        elif root_span["meta"]["language"] == "dotnet":
+        elif root_span["meta"]["language"] in "dotnet":
             assert root_span["meta"]["bool_val"] == "true"
             assert root_span["meta"]["array_val_bool"] == "[true,false]"
             assert root_span["meta"]["array_val_str"] == '["val1","val2"]'
             assert root_span["meta"]["d_bool_val"] == "false"
             assert root_span["meta"]["array_val_int"] == "[10,20]"
             assert root_span["meta"]["array_val_double"] == "[10.1,20.2]"
+        elif root_span["meta"]["language"] in "ruby":
+            assert root_span["meta"]["bool_val"] == "true"
+            assert root_span["meta"]["array_val_bool"] == "[true, false]"
+            assert root_span["meta"]["array_val_str"] == '["val1", "val2"]'
+
+            assert root_span["meta"]["d_bool_val"] == "false"
+            assert root_span["meta"]["array_val_int"] == "[10, 20]"
+            assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
         else:
             assert root_span["meta"]["bool_val"] == "True"
             assert root_span["meta"]["array_val_bool"] == "[True, False]"
@@ -137,7 +142,6 @@ class Test_Otel_Span_Methods:
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_span_is_recording(self, test_agent, test_library):
         """
         Test functionality of ending a span.
@@ -156,7 +160,6 @@ class Test_Otel_Span_Methods:
         context.library == "dotnet",
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_finished_end_options(self, test_agent, test_library):
         """
@@ -179,7 +182,6 @@ class Test_Otel_Span_Methods:
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_span_end(self, test_agent, test_library):
         """
         Test functionality of ending a span. After ending:
@@ -212,7 +214,6 @@ class Test_Otel_Span_Methods:
         context.library == "dotnet",
         reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
     )
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_set_span_status_error(self, test_agent, test_library):
         """
@@ -238,7 +239,6 @@ class Test_Otel_Span_Methods:
         context.library == "dotnet",
         reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
     )
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(
         context.library == "python",
@@ -269,7 +269,6 @@ class Test_Otel_Span_Methods:
         assert span.get("name") == "ok_span"
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_get_span_context(self, test_agent, test_library):
         """
