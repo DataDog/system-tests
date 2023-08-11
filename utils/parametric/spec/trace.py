@@ -71,6 +71,7 @@ SINGLE_SPAN_SAMPLING_RATE = "_dd.span_sampling.rule_rate"
 SINGLE_SPAN_SAMPLING_MAX_PER_SEC = "_dd.span_sampling.max_per_second"
 
 SAMPLING_DECISION_MAKER_KEY = "_dd.p.dm"
+SAMPLING_AGENT_PRIORITY_RATE = "_dd.agent_psr"
 
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
