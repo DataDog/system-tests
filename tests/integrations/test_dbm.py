@@ -11,7 +11,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 )
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
-    
+
     def weblog_trace_payload(self):
         self.library_name = context.library
         self.requests = []
@@ -23,8 +23,8 @@ class Test_Dbm:
             ]
         elif self.library_name == "dotnet":
             self.requests = [
-                weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
                 weblog.get("/dbm", params={"integration": "mysql"}),
+                weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
                 weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
 
@@ -49,10 +49,12 @@ class Test_Dbm:
                         db_span = span
                         break
 
-                assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
-                meta = db_span.get("meta", {}) 
+                assert (
+                    db_span is not None
+                ), "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
+                meta = db_span.get("meta", {})
                 assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected found in span meta."
-    
+
     @scenarios.integrations_service
     def test_trace_payload_service(self):
         for r in self.requests:
@@ -64,8 +66,10 @@ class Test_Dbm:
                         db_span = span
                         break
 
-                assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
-                meta = db_span.get("meta", {}) 
+                assert (
+                    db_span is not None
+                ), "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
+                meta = db_span.get("meta", {})
                 assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected found in span meta."
 
     @scenarios.integrations
@@ -79,6 +83,8 @@ class Test_Dbm:
                         db_span = span
                         break
 
-                assert db_span is not None, "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
-                meta = db_span.get("meta", {}) 
+                assert (
+                    db_span is not None
+                ), "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
+                meta = db_span.get("meta", {})
                 assert "_dd.dbm_trace_injected" in meta, "_dd.dbm_trace_injected not found in span meta."
