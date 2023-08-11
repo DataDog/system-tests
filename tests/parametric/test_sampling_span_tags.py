@@ -28,9 +28,9 @@ def _get_parent_and_child_span(test_agent, test_library):
 
 
 def _assert_sampling_tags(parent_span, child_span, child_dm, parent_dm, parent_priority, parent_rate):
-    if child_dm is not None and "meta" in child_span:
+    if child_dm is not None or "meta" in child_span:
         assert child_span["meta"].get(SAMPLING_DECISION_MAKER_KEY) == child_dm
-    if parent_dm is not None and "meta" in parent_span:
+    if parent_dm is not None or "meta" in parent_span:
         assert parent_span["meta"].get(SAMPLING_DECISION_MAKER_KEY) == parent_dm
     assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == parent_priority
     assert parent_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == parent_rate
