@@ -7,7 +7,7 @@ from utils.parametric.spec.trace import Span  # noqa
 from utils.parametric.spec.trace import find_span_in_traces  # noqa
 
 
-@flaky(True, library="php")
+@flaky(True, library="php", reason="I don't know")
 @flaky(True, library="cpp")
 @flaky(True, library="ruby")
 @scenarios.parametric
