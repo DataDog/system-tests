@@ -1,0 +1,8 @@
+tests/:
+  appsec/:
+    test_alpha.py:
+      Test_Basic:
+        "*": "v0.87.0"
+        akka-http: missing_feature (No AppSec support)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature (No AppSec support)

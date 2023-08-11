@@ -36,7 +36,6 @@ def equal_value(t1, t2):
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?",
     dotnet="?",
     golang="?",
     java="?",
@@ -64,7 +63,6 @@ class Test_Schema_Request_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?",
     dotnet="?",
     golang="?",
     java="?",
@@ -94,7 +92,6 @@ class Test_Schema_Request_Query_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?",
     dotnet="?",
     golang="?",
     java="?",
@@ -126,7 +123,6 @@ class Test_Schema_Request_Path_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?",
     dotnet="?",
     golang="?",
     java="?",
@@ -153,7 +149,6 @@ class Test_Schema_Request_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?",
     dotnet="?",
     golang="?",
     java="?",
@@ -183,7 +178,7 @@ class Test_Schema_Reponse_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
+    dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
 )
 @coverage.not_implemented
 @scenarios.appsec_api_security
