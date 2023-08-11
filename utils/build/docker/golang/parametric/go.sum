@@ -169,8 +169,8 @@ google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQ
 google.golang.org/protobuf v1.27.1/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.30.0 h1:kPPoIgf3TsEvrm0PFe15JQ+570QVxYzEvvHqChK+cng=
 google.golang.org/protobuf v1.30.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
-gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20230801190547-5ebe300ac718 h1:lurfzON3rJTalJlBfnsWR1aDsFGNoGgIbKAvrrP3GNI=
-gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20230801190547-5ebe300ac718/go.mod h1:9l+gJVds2iYls2ySSNNPm842vz2clDn4eRL2uoabz2U=
+gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20230808142237-30bfd5205d6a h1:RMV0bJU3f8/g33nmxJrHiC+l9jxOWFvU1klZSI6TiE4=
+gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20230808142237-30bfd5205d6a/go.mod h1:1JqaWiPl1+vHNYuVNmHOG4HDyHbF84z98BW/hwq8FeU=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
