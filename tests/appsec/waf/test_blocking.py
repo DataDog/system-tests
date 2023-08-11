@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature
+from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky
 from utils._context.core import context
 
 if context.library == "cpp":
@@ -95,6 +95,7 @@ class Test_Blocking:
     def setup_blocking_appsec_blocked_tag(self):
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
+    @flaky(context.library >= "java@1.19.0", reason="APPSEC-10798")
     def test_blocking_appsec_blocked_tag(self):
         """Tag appsec.blocked is set when blocking"""
         assert self.r_abt.status_code == 403
