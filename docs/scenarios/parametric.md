@@ -105,7 +105,7 @@ cd dd-trace-java
 3. Run Parametric tests from the `system-tests/parametric` folder:
 
 ```bash
-CLIENTS_ENABLED=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
+TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
 ```
 
 
@@ -134,9 +134,9 @@ PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@1.x ./run.sh .
 There is two ways for running the NodeJS tests with a custom tracer:
 - Place the ddtrace NPM package in the folder ``apps/nodejs/npm`` and then set the environment variable ``NODEJS_DDTRACE_MODULE``
 with the filename placed in the aforementioned folder. For example:
-``CLIENTS_ENABLED=nodejs NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz" ./run.sh``
+``TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz" ./run.sh``
 - Set the environment variable ``NODEJS_DDTRACE_MODULE`` to hold a commit in a remote branch. The following example will run
-the tests with a specific commit: ``CLIENTS_ENABLED=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh``
+the tests with a specific commit: ``TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh``
 
 #### Ruby
 
