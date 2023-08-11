@@ -547,6 +547,7 @@ class Test_TelemetryV2:
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
     @missing_feature(library="ruby", reason="dd-client-library-version missing")
+    @bug(library="python", reason="library versions do not match due to different origins")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads """
 
