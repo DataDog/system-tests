@@ -8,7 +8,7 @@ runs:
         python-version: "3.9"
         cache: "pip"
     # TODO update to black 22+
-    - run: pip install black==19.10b0 click==7.1.2
+    - run: pip install black==19.10b0 click==7.1.2 pylint==2.17.5
       shell: bash
     - run: black --check --diff .
       shell: bash
@@ -20,6 +20,8 @@ runs:
         exit 1
 
         '
+    - run: pylint utils
+      shell: bash
     - name: 'Install shellcheck'
       shell: bash
       run: sudo apt-get install -y shellcheck
