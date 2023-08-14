@@ -122,7 +122,7 @@ class _Weblog:
     ):
 
         if self.current_nodeid is None:
-            raise Exception("Weblog calls can only be done during setup")
+            raise ValueError("Weblog calls can only be done during setup")
 
         if self.replay:
             return self.get_request_from_logs()
@@ -195,7 +195,7 @@ class _Weblog:
         return self.responses[self.current_nodeid].pop(0)
 
     def warmup_request(self, domain=None, port=None, timeout=10):
-        requests.get(weblog._get_url("/", domain, port), timeout=timeout)
+        requests.get(self._get_url("/", domain, port), timeout=timeout)
 
     def _get_url(self, path, domain=None, port=None, query=None):
         """Return a query with the passed host"""
@@ -221,7 +221,7 @@ class _Weblog:
             return self.get_grpc_request_from_logs()
 
         if self.current_nodeid is None:
-            raise Exception("Weblog calls can only be done during setup")
+            raise ValueError("Weblog calls can only be done during setup")
 
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 

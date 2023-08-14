@@ -2,10 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from collections import namedtuple
+import copy
 import json
 import threading
-import copy
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
@@ -166,7 +165,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                     return
 
         if not success_by_default:
-            raise Exception("No appsec event has been found")
+            raise ValueError("No appsec event has been found")
 
     ######################################################
 
@@ -181,7 +180,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
             if span.get("type") == "web":
                 return
 
-        raise Exception("Nothing has been reported. No request root span with has been found")
+        raise ValueError("Nothing has been reported. No request root span with has been found")
 
     def assert_schemas(self, allowed_errors=None):
         validator = SchemaValidator("library", allowed_errors)
@@ -203,7 +202,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
             for path in paths:
                 logger.error(f"A path has not been transmitted: {path}")
 
-            raise Exception("Some path has not been transmitted")
+            raise ValueError("Some path has not been transmitted")
 
     def assert_trace_id_uniqueness(self):
         trace_ids = {}
@@ -218,18 +217,20 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 trace_id = span["trace_id"]
 
                 if trace_id in trace_ids:
-                    raise Exception(f"Found duplicated trace id {trace_id} in {log_filename} and {trace_ids[trace_id]}")
+                    raise ValueError(
+                        f"Found duplicated trace id {trace_id} in {log_filename} and {trace_ids[trace_id]}"
+                    )
 
                 trace_ids[trace_id] = log_filename
 
     def assert_no_appsec_event(self, request):
         for data, _, _, appsec_data in self.get_appsec_events(request=request):
             logger.error(json.dumps(appsec_data, indent=2))
-            raise Exception(f"An appsec event has been reported in {data['log_filename']}")
+            raise ValueError(f"An appsec event has been reported in {data['log_filename']}")
 
         for data, event in self.get_legacy_appsec_events(request=request):
             logger.error(json.dumps(event, indent=2))
-            raise Exception(f"An appsec event has been reported in {data['log_filename']}")
+            raise ValueError(f"An appsec event has been reported in {data['log_filename']}")
 
     def assert_waf_attack(
         self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
@@ -258,7 +259,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 return
 
         if not success_by_default:
-            raise Exception("No span validates this test")
+            raise ValueError("No span validates this test")
 
     def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
@@ -270,7 +271,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 raise
 
         if not success_by_default:
-            raise Exception("No span validates this test")
+            raise ValueError("No span validates this test")
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
         validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
@@ -279,7 +280,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
             success = success or validator(span)
 
         if not success:
-            raise Exception("Can't find anything to validate this test")
+            raise ValueError("Can't find anything to validate this test")
 
     def assert_seq_ids_are_roughly_sequential(self):
         validator = _SeqIdLatencyValidation()
@@ -299,7 +300,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
             if span_type is None or span.get("type") == span_type:
                 return
 
-        raise Exception(f"No trace has been found for request {get_rid_from_request(request)}")
+        raise ValueError(f"No trace has been found for request {get_rid_from_request(request)}")
 
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
