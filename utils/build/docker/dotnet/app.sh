@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 set -eu
 
 echo starting app
@@ -17,7 +16,7 @@ export COMPlus_DbgEnableMiniDump=1
 # MiniDumpWithPrivateReadWriteMemory is 2
 export COMPlus_DbgMiniDumpType=2
 
-if [ "${UDS_WEBLOG:-0}" = "1" ]; then
+if [[ "${UDS_WEBLOG:-0}" = "1" ]]; then
     ./set-uds-transport.sh
 fi
 

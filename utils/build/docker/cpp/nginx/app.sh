@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -eu
 
 if [[ "${DDPROF_ENABLE:-,,}" == "yes" ]]; then
-  ddprof -l notice nginx -g 'daemon off;'
+  exec ddprof -l notice nginx -g 'daemon off;'
 else
-  nginx -g 'daemon off;'
+  exec nginx -g 'daemon off;'
 fi
