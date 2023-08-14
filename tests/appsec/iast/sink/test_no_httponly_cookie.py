@@ -13,6 +13,7 @@ if context.library == "cpp":
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?", nodejs="?")
 @released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
+@bug(library="python")
 class TestNoHttponlyCookie:
     """Test no HttpOnly cookie detection."""
 
