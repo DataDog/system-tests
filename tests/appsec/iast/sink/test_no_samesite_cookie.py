@@ -10,6 +10,7 @@ from .._test_iast_fixtures import SinkFixture
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?", nodejs="?")
 @released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
+@bug(library="python")
 class TestNoSamesiteCookie:
     """Test No SameSite cookie detection."""
 

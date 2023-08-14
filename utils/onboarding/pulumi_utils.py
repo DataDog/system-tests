@@ -1,13 +1,10 @@
 import os
-from utils.tools import logger
-import pulumi
-import pulumi_aws as aws
-import pulumi_command as command
-from pulumi import Output
-
 import logging
 import logging.config
-from random import randint
+
+import pulumi
+from pulumi import Output
+import pulumi_command as command
 
 
 def remote_docker_login(command_id, user, password, connection, depends_on):

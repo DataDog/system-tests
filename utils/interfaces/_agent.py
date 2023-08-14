@@ -59,7 +59,7 @@ class AgentInterfaceValidator(InterfaceValidator):
             domain = data["host"][-len(expected_domain) :]
 
             if domain != expected_domain:
-                raise Exception(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
+                raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
 
     def assert_schemas(self, allowed_errors=None):
         validator = SchemaValidator("agent", allowed_errors)
@@ -73,7 +73,7 @@ class AgentInterfaceValidator(InterfaceValidator):
             if validator(data, payload, chunk, span, appsec_data):
                 return
 
-        raise Exception("No data validate this test")
+        raise ValueError("No data validate this test")
 
     def get_telemetry_data(self, flatten_message_batches=True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
@@ -130,7 +130,7 @@ class AgentInterfaceValidator(InterfaceValidator):
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
             if "tracerPayloads" not in data["request"]["content"]:
-                raise Exception("Trace property is missing in agent payload")
+                raise ValueError("Trace property is missing in agent payload")
 
             content = data["request"]["content"]["tracerPayloads"]
 

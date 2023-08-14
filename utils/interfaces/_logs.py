@@ -91,7 +91,9 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             self._data_list.append(parsed)
 
-    def validate(self, validator, success_by_default=False):
+    def validate(self, validator, path_filters=None, success_by_default=False):
+        assert path_filters is None, "There is no concpet of path in a log file"
+
         for data in self.get_data():
             try:
                 if validator(data) is True:
@@ -101,7 +103,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
                 raise
 
         if not success_by_default:
-            raise Exception("Test has not been validated by any data")
+            raise ValueError("Test has not been validated by any data")
 
     def assert_presence(self, pattern, **extra_conditions):
         validator = _LogPresence(pattern, **extra_conditions)
@@ -274,7 +276,7 @@ class _LogAbsence:
                     return
 
             logger.error(json.dumps(data["raw"], indent=2))
-            raise Exception("Found unexpcted log")
+            raise ValueError("Found unexpected log")
 
 
 class Test:

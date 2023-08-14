@@ -123,7 +123,7 @@ class InterfaceValidator:
                 raise
 
         if not success_by_default:
-            raise Exception("Test has not been validated by any data")
+            raise ValueError("Test has not been validated by any data")
 
     def wait_for(self, wait_for_function, timeout):
 
