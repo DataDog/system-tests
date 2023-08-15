@@ -40,6 +40,7 @@ def _assert_sampling_tags(parent_span, child_span, child_dm, parent_dm, parent_p
 class Test_Sampling_Span_Tags:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     @bug(library="python", reason="Python sets dm tag on child span")
+    @bug(library="nodejs", reason="NodeJS does not set priority on parent span")
     def test_tags_child_dropped_sst001(self, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="parent", service="webserver") as parent_span:
@@ -53,16 +54,16 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, None, "-3", 1, 1)
+        _assert_sampling_tags(parent_span, child_span, None, "-3", 2, 1)
         # golang: parent pri 2
         # php: parent pri 2
-        # python: child dm -3
         # java: parent dm -3
         # dotnet: parent dm -3
         # nodejs: parent dm None
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     @bug(library="python", reason="Python sets dm tag on child span")
+    @bug(library="nodejs", reason="NodeJS sets dm tag -3 on parent span")
     def test_tags_child_kept_sst007(self, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="parent", service="webserver") as parent_span:
@@ -76,27 +77,12 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, None, "-4", 2, 1)
-        # golang: parent dm -3
-        # php: parent dm -3
-        # python: agent rate None
-        # dotnet: child dm None
-        # java: child dm None
-        # nodejs: child dm None
-        # ruby: child dm None
-        # cpp: child dm None
+        _assert_sampling_tags(parent_span, child_span, None, "-3", 2, 1)
 
     @bug(library="python", reason="Python sets dm tag on child span")
     def test_tags_defaults_sst002(self, test_agent, test_library):
         parent_span, child_span = _get_parent_and_child_span(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, None, "-0", 1, 1)
-        # golang: parent dm -1
-        # php: parent dm -1
-        # dotnet: child dm None
-        # java: child dm None
-        # nodejs: child dm None
-        # ruby: child dm None
-        # cpp: child dm None
+        _assert_sampling_tags(parent_span, child_span, None, "-1", 1, None)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     @bug(library="python", reason="Python sets dm tag on child span")
