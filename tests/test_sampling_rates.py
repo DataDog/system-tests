@@ -21,9 +21,7 @@ def sample_from_rate(sampling_rate, trace_id):
     MAX_TRACE_ID = 2 ** 64
     KNUTH_FACTOR = 1111111111111111111
 
-    if ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID):
-        return True
-    return False
+    return ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID)
 
 
 def _spans_with_parent(traces, parent_ids):
@@ -131,7 +129,7 @@ class Test_SamplingDecisions:
     )
     @bug(context.library >= "python@1.11.0rc2.dev8", reason="Under investigation")
     @bug(library="golang", reason="Need investigation")
-    @bug(library="ruby", reason="Route /sample_rate_route not implemented")
+    @missing_feature(library="ruby", reason="Route /sample_rate_route not implemented")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
@@ -143,11 +141,12 @@ class Test_SamplingDecisions:
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
 
+            sampling_decision = sampling_priority > 0
             expected_decision = sample_from_rate(context.tracer_sampling_rate, root_span["trace_id"])
-            if (sampling_priority > 0) != expected_decision:
+            if sampling_decision != expected_decision:
                 raise ValueError(
-                    f"Trace id {root_span['trace_id']} "
-                    f"sampling priority is {sampling_priority}, sampling decision should be {expected_decision}"
+                    f"Trace id {root_span['trace_id']}, sampling priority {sampling_priority}, "
+                    f"sampling decision {sampling_decision} differs from the expected {expected_decision}"
                 )
 
         for data, span in interfaces.library.get_root_spans():
@@ -163,9 +162,8 @@ class Test_SamplingDecisions:
             )
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
-    @bug(library="ruby", reason="Route /sample_rate_route not implemented")
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
-    @missing_feature(library="ruby", reason="Endpoint not implemented on weblog")
+    @missing_feature(library="ruby", reason="Route /sample_rate_route not implemented")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
