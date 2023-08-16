@@ -38,7 +38,7 @@ class Test_Dbm:
                     if span.get("resource") == "SELECT version()" or span.get("resource") == "SELECT @@version":
                         self.db_span = span
                         break
-                        
+
     def assert_span_is_tagged(self):
         assert (
             self.db_span is not None
