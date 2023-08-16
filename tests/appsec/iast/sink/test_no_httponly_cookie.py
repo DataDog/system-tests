@@ -6,9 +6,6 @@ import pytest
 from utils import context, coverage, released, missing_feature, bug
 from .._test_iast_fixtures import SinkFixture
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?", nodejs="?")

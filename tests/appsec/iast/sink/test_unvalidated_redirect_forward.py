@@ -6,9 +6,6 @@ import pytest
 from utils import context, coverage, released, missing_feature, irrelevant
 from .._test_iast_fixtures import SinkFixture
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
 
 def _expected_location():
     if context.library.library == "java":

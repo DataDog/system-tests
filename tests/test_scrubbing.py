@@ -3,12 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-import pytest
 from utils import bug, context, coverage, interfaces, released, rfc, weblog, missing_feature
 from utils.tools import logger
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 def validate_no_leak(needle, whitelist_pattern=None):

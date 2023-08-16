@@ -9,10 +9,6 @@ import pytest
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, context, interfaces, released, irrelevant, coverage, scenarios, missing_feature
 
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
