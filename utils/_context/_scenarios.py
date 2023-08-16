@@ -456,13 +456,17 @@ class EndToEndScenario(_DockerScenario):
         from utils import interfaces
 
         if self.replay:
-            interfaces.library.load_data_from_logs(f"{self.host_log_folder}/interfaces/library")
-            interfaces.agent.load_data_from_logs(f"{self.host_log_folder}/interfaces/agent")
-            interfaces.backend.load_data_from_logs(f"{self.host_log_folder}/interfaces/backend")
 
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
-            self._wait_interface(interfaces.agent_stdout, 0)
+            self.terminal.write_sep("-", "Load all data from logs")
+            self.terminal.flush()
+
+            interfaces.library.load_data_from_logs()
+            interfaces.agent.load_data_from_logs()
+            interfaces.backend.load_data_from_logs()
+
+            interfaces.library_stdout.load_data()
+            interfaces.library_dotnet_managed.load_data()
+            interfaces.agent_stdout.load_data()
 
             return
 
@@ -475,9 +479,9 @@ class EndToEndScenario(_DockerScenario):
 
             self.collect_logs()
 
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
-            self._wait_interface(interfaces.agent_stdout, 0)
+            interfaces.library_stdout.load_data()
+            interfaces.library_dotnet_managed.load_data()
+            interfaces.agent_stdout.load_data()
         else:
             self.collect_logs()
 
@@ -649,8 +653,8 @@ class OpenTelemetryScenario(_DockerScenario):
 
             self.collect_logs()
 
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
+            interfaces.library_stdout.load_data()
+            interfaces.library_dotnet_managed.load_data()
         else:
             self.collect_logs()
 
