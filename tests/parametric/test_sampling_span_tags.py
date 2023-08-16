@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from utils import bug, scenarios
+from utils import bug, scenarios  # noqa
 from utils.parametric.spec.trace import MANUAL_DROP_KEY  # noqa
 from utils.parametric.spec.trace import MANUAL_KEEP_KEY  # noqa
 from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE  # noqa
@@ -12,7 +12,7 @@ from utils.parametric.spec.trace import Span  # noqa
 from utils.parametric.spec.trace import find_span_in_traces  # noqa
 
 
-def _get_parent_and_child_span(test_agent, test_library):
+def _get_spans(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="parent", service="webserver") as parent_span:
             with test_library.start_span(
@@ -24,16 +24,16 @@ def _get_parent_and_child_span(test_agent, test_library):
 
     parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
     child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
-    return parent_span, child_span
+    return parent_span, child_span, traces[0][0]
 
 
-def _assert_sampling_tags(parent_span, child_span, child_dm, parent_dm, parent_priority, parent_rate):
-    if child_dm is not None or "meta" in child_span:
-        assert child_span["meta"].get(SAMPLING_DECISION_MAKER_KEY) == child_dm
-    if parent_dm is not None or "meta" in parent_span:
-        assert parent_span["meta"].get(SAMPLING_DECISION_MAKER_KEY) == parent_dm
+def _assert_sampling_tags(parent_span, child_span, first_span, dm, parent_priority, parent_rate):
+    if dm is not None or "meta" in first_span:
+        assert first_span["meta"].get(SAMPLING_DECISION_MAKER_KEY) == dm
     assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == parent_priority
     assert parent_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == parent_rate
+    assert child_span.get("metrics", {}).get(SAMPLING_RULE_PRIORITY_RATE) is None
+    assert child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None
 
 
 @scenarios.parametric
@@ -55,7 +55,7 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, None, "-3", 2, 1)
+        _assert_sampling_tags(parent_span, child_span, "-3", 2, 1)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     @bug(library="python", reason="Python sets dm tag on child span")
@@ -74,7 +74,7 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, None, "-3", 2, 1)
+        _assert_sampling_tags(parent_span, child_span, traces[0], "-3", 2, 1)
 
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
@@ -82,23 +82,23 @@ class Test_Sampling_Span_Tags:
     @bug(library="golang", reason="golang sets dm tag -1 on parent span")
     @bug(library="java", reason="java sets dm tag -1 on parent span")
     def test_tags_defaults_sst002(self, test_agent, test_library):
-        parent_span, child_span = _get_parent_and_child_span(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, None, "-0", 1, None)
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library)
+        _assert_sampling_tags(parent_span, child_span, first_span, "-0", 1, None)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
     def test_tags_defaults_rate_1_sst003(self, test_agent, test_library):
-        parent_span, child_span = _get_parent_and_child_span(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, None, "-3", 2, 1)
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library)
+        _assert_sampling_tags(parent_span, child_span, first_span, "-3", 2, 1)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1e-06}])
     @bug(library="php", reason="PHP sets dm tag -1 on parent span")
     @bug(library="java", reason="Java sets rate tag 9.9999 on parent span")
     @bug(library="dotnet", reason="Dotnet sets rate tag 9.9999 on parent span")
     def test_tags_defaults_rate_tiny_sst004(self, test_agent, test_library):
-        parent_span, child_span = _get_parent_and_child_span(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, None, None, -1, 1e-06)
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library)
+        _assert_sampling_tags(parent_span, child_span, first_span, "-3", -1, 1e-06)
 
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 1}])}]
@@ -106,13 +106,13 @@ class Test_Sampling_Span_Tags:
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
     def test_tags_defaults_rate_1_and_rule_1_sst005(self, test_agent, test_library):
-        parent_span, child_span = _get_parent_and_child_span(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, None, "-3", 2, 1)
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library)
+        _assert_sampling_tags(parent_span, child_span, first_span, "-3", 2, 1)
 
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}])}]
     )
     @bug(library="golang", reason="golang sets dm tag on parent span")
     def test_tags_defaults_rate_1_and_rule_0_sst006(self, test_agent, test_library):
-        parent_span, child_span = _get_parent_and_child_span(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, None, None, -1, 0)
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library)
+        _assert_sampling_tags(parent_span, child_span, first_span, None, -1, 0)
