@@ -14,10 +14,8 @@ from utils.parametric.spec.trace import find_span_in_traces  # noqa
 
 def _get_spans(test_agent, test_library):
     with test_library:
-        with test_library.start_span(name="parent", service="webserver") as parent_span:
-            with test_library.start_span(
-                name="child", service="webserver", parent_id=parent_span.span_id
-            ) as child_span:
+        with test_library.start_span(name="parent", service="webserver") as ps:
+            with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id):
                 pass
 
     traces = test_agent.wait_for_num_spans(2, clear=True)
