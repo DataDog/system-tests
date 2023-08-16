@@ -3,14 +3,9 @@ description: "Run lints checks for project"
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v4
-      with:
-        python-version: "3.9"
-        cache: "pip"
-    # TODO update to black 22+
-    - run: pip install black==19.10b0 click==7.1.2
-      shell: bash
-    - run: black --check --diff .
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    - run: source venv/bin/activate && black --check --diff .
       shell: bash
     - if: ${{ failure() }}
       shell: bash
@@ -20,6 +15,8 @@ runs:
         exit 1
 
         '
+    - run: source venv/bin/activate && pylint utils
+      shell: bash
     - name: 'Install shellcheck'
       shell: bash
       run: sudo apt-get install -y shellcheck

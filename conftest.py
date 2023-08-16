@@ -6,11 +6,13 @@ import json
 import pytest
 from pytest_jsonreport.plugin import JSONReport
 
+from manifests.parser.core import load as load_manifest
 from utils import context
 from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
+from utils._decorators import released, _get_skipped_item, _get_expected_failure_item
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -127,8 +129,51 @@ def _get_skip_reason_from_marker(marker):
     return None
 
 
+def pytest_pycollect_makemodule(module_path, parent):
+
+    manifest = load_manifest(context.scenario.library.library, context.scenario.weblog_variant)
+
+    relative_path = str(module_path.relative_to(module_path.cwd()))
+
+    if relative_path in manifest:
+        reason = manifest[relative_path]
+        mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+
+        if reason.startswith("not relevant") or reason.startswith("flaky"):
+            mod.add_marker(pytest.mark.skip(reason=reason))
+            logger.debug(f"Module {relative_path} is skipped by manifest file because {reason}")
+        else:
+            mod.add_marker(pytest.mark.xfail(reason=reason))
+            logger.debug(f"Module {relative_path} is xfailed by manifest file because {reason}")
+
+        return mod
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_pycollect_makeitem(collector, name, obj):
+
+    if collector.istestclass(obj, name):
+
+        manifest = load_manifest(context.scenario.library.library, context.scenario.weblog_variant)
+        nodeid = f"{collector.nodeid}::{name}"
+
+        if nodeid in manifest:
+            declaration = manifest[nodeid]
+            logger.info(f"Manifest declaration for {nodeid}: {declaration}")
+
+            if declaration.startswith("v"):
+                if not hasattr(obj, "__released__"):  # let priority to inline declaration
+                    released(**{context.scenario.library.library: declaration[1:]})(obj)
+            elif declaration.startswith("not relevant") or declaration.startswith("flaky"):
+                _get_skipped_item(obj, declaration)
+            else:
+                _get_expected_failure_item(obj, declaration)
+
+
 def pytest_collection_modifyitems(session, config, items):
     """unselect items that are not included in the current scenario"""
+
+    logger.debug("pytest_collection_modifyitems")
 
     def get_declared_scenario(item):
         for marker in item.own_markers:
@@ -180,6 +225,12 @@ def _item_is_skipped(item):
     for marker in item.parent.own_markers:
         if marker.name in ("skip",):
             return True
+
+    # for test methods in classes, item.parent.parent is the module
+    if item.parent.parent:
+        for marker in item.parent.parent.own_markers:
+            if marker.name in ("skip",):
+                return True
 
     return False
 
@@ -251,6 +302,8 @@ def pytest_runtest_call(item):
 
 @pytest.hookimpl(optionalhook=True)
 def pytest_json_runtest_metadata(item, call):
+    logger.debug("pytest_json_runtest_metadata")
+
     if call.when != "setup":
         return {}
 

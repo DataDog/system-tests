@@ -2,16 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 from utils import context, coverage, missing_feature, released, bug
 from .._test_iast_fixtures import SourceFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?")
+@bug(library="python")
 @released(
     java={
         "resteasy-netty3": "1.11.0",
