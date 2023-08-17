@@ -30,8 +30,8 @@ def _assert_sampling_tags(parent_span, child_span, first_span, dm, parent_priori
         assert first_span["meta"].get(SAMPLING_DECISION_MAKER_KEY) == dm
     assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == parent_priority
     assert parent_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == parent_rate
+    assert child_span.get("metrics", {}).get(SAMPLING_RULE_PRIORITY_RATE) is None
     if child_span != first_span:
-        assert child_span.get("metrics", {}).get(SAMPLING_RULE_PRIORITY_RATE) is None
         assert child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None
 
 
