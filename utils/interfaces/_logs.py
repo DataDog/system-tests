@@ -73,9 +73,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self, timeout):
-        super().wait(timeout)
-
+    def load_data(self):
         for log_line in self._read():
 
             parsed = {}
@@ -91,7 +89,11 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             self._data_list.append(parsed)
 
+    def get_data(self):
+        yield from self._data_list
+
     def validate(self, validator, success_by_default=False):
+
         for data in self.get_data():
             try:
                 if validator(data) is True:
@@ -101,7 +103,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
                 raise
 
         if not success_by_default:
-            raise Exception("Test has not been validated by any data")
+            raise ValueError("Test has not been validated by any data")
 
     def assert_presence(self, pattern, **extra_conditions):
         validator = _LogPresence(pattern, **extra_conditions)
@@ -274,7 +276,7 @@ class _LogAbsence:
                     return
 
             logger.error(json.dumps(data["raw"], indent=2))
-            raise Exception("Found unexpcted log")
+            raise ValueError("Found unexpected log")
 
 
 class Test:
@@ -282,7 +284,7 @@ class Test:
         """Test example"""
         i = _LibraryStdout()
         i.configure(False)
-        i.wait(0)
+        i.load_data()
         i.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 

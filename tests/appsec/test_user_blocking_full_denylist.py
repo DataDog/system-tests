@@ -2,7 +2,6 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
 
 
 @released(
-    cpp="?",
     dotnet="2.30.0",
     golang="1.48.0",
     java={

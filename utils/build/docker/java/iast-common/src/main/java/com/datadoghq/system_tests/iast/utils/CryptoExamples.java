@@ -73,8 +73,7 @@ public class CryptoExamples {
 
     private static String doCipher(final String password, final String algorithm) {
         try {
-            Cipher cipher = Cipher.getInstance(algorithm);
-            cipher.init(Cipher.ENCRYPT_MODE, KeyGenerator.getInstance(algorithm).generateKey());
+            Cipher cipher = Cipher.getInstance(algorithm); cipher.init(Cipher.ENCRYPT_MODE, KeyGenerator.getInstance(algorithm).generateKey());
             return new String(cipher.doFinal(password.getBytes()));
         } catch (final Exception e) {
             throw new UndeclaredThrowableException(e);

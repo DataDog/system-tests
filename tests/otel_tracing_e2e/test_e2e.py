@@ -1,11 +1,12 @@
 import base64
 import os
 import time
+
+from utils import context, weblog, interfaces, scenarios, irrelevant
+from utils.tools import get_rid_from_request
 from ._test_validator_trace import validate_all_traces
 from ._test_validator_log import validate_log, validate_log_trace_correlation
 from ._test_validator_metric import validate_metrics
-from utils import context, weblog, interfaces, scenarios, irrelevant
-from utils.interfaces._core import get_rid_from_request
 
 
 def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:

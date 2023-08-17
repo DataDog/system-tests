@@ -2,12 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-import pytest
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
 from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 @released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="1.8.0")

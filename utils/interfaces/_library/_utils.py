@@ -3,8 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from urllib.parse import urlparse
-from utils.tools import logger
-from utils.interfaces._core import get_rid_from_span
+from utils.tools import logger, get_rid_from_span
 
 
 def get_spans_related_to_rid(traces, rid):
