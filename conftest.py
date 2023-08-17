@@ -60,10 +60,13 @@ def pytest_configure(config):
 # Called at the very begening
 def pytest_sessionstart(session):
 
+    # get the terminal to allow logging directly in stdout
+    setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
+
     if session.config.option.collectonly:
         return
 
-    context.scenario.session_start(session)
+    context.scenario.session_start()
 
 
 # called when each test item is collected
@@ -241,8 +244,6 @@ def pytest_collection_finish(session):
     if session.config.option.collectonly:
         return
 
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-
     last_file = ""
     for item in session.items:
 
@@ -262,9 +263,9 @@ def pytest_collection_finish(session):
 
         if last_file != item.location[0]:
             if len(last_file) == 0:
-                terminal.write_sep("-", "tests setup", bold=True)
+                logger.terminal.write_sep("-", "tests setup", bold=True)
 
-            terminal.write(f"\n{item.location[0]} ")
+            logger.terminal.write(f"\n{item.location[0]} ")
             last_file = item.location[0]
 
         setup_method = getattr(item.instance, setup_method_name)
@@ -275,15 +276,15 @@ def pytest_collection_finish(session):
             weblog.current_nodeid = None
         except Exception:
             logger.exception("Unexpected failure during setup method call")
-            terminal.write("x", bold=True, red=True)
+            logger.terminal.write("x", bold=True, red=True)
             context.scenario.close_targets()
             raise
         else:
-            terminal.write(".", bold=True, green=True)
+            logger.terminal.write(".", bold=True, green=True)
         finally:
             weblog.current_nodeid = None
 
-    terminal.write("\n\n")
+    logger.terminal.write("\n\n")
 
     context.scenario.post_setup()
 
@@ -302,7 +303,6 @@ def pytest_runtest_call(item):
 
 @pytest.hookimpl(optionalhook=True)
 def pytest_json_runtest_metadata(item, call):
-    logger.debug("pytest_json_runtest_metadata")
 
     if call.when != "setup":
         return {}
