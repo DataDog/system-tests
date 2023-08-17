@@ -1,7 +1,5 @@
 import psycopg2
 import requests
-import logging
-logging.basicConfig(level=logging.DEBUG)
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response
