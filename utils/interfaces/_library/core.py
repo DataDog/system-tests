@@ -6,8 +6,8 @@ import copy
 import json
 import threading
 
-from utils.tools import logger
-from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
+from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator
@@ -20,7 +20,7 @@ from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 
-class LibraryInterfaceValidator(InterfaceValidator):
+class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
     def __init__(self):
