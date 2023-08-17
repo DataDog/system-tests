@@ -9,15 +9,23 @@ from utils import weblog, interfaces, context, missing_feature, released, bug, i
 from utils.tools import logger
 
 
-USER_REJECT = -1
-AUTO_REJECT = 0
-AUTO_KEEP = 1
-USER_KEEP = 2
+def priority_should_be_kept(sampling_priority):
+    """ Returns if a given sampling priority means its trace has to be kept.
+
+    See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
+    """
+    AUTO_KEEP = 1
+    USER_KEEP = 2
+
+    return sampling_priority in (AUTO_KEEP, USER_KEEP)
 
 
-def sample_from_rate(sampling_rate, trace_id):
-    """Algorithm described in the priority sampling RFC
-    https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md"""
+def trace_should_be_kept(sampling_rate, trace_id):
+    """Given a trace_id and a sampling rate, returns if a trace should be kept.
+    
+    Reference algorithm described in the priority sampling RFC
+    https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md
+    """
     MAX_TRACE_ID = 2 ** 64
     KNUTH_FACTOR = 1111111111111111111
 
@@ -66,7 +74,7 @@ class Test_SamplingRates:
         for data, root_span in interfaces.library.get_root_spans():
             metrics = root_span["metrics"]
             assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
-            sampled_count[metrics["_sampling_priority_v1"] in (USER_KEEP, AUTO_KEEP)] += 1
+            sampled_count[priority_should_be_kept(metrics["_sampling_priority_v1"])] += 1
 
         trace_count = sum(sampled_count.values())
         # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
@@ -80,16 +88,16 @@ class Test_SamplingRates:
                 f"Sampling rate is set to {context.tracer_sampling_rate}, "
                 f"expected count of sampled traces {expectation}/{trace_count}."
                 f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True]/trace_count}, "
-                f"wich is outside of the confidence interval of +-{confidence_interval}\n"
+                f"which is outside of the confidence interval of +-{confidence_interval}\n"
                 "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
             )
 
-        # Test that all traces sent by the tracer is sent to the agent"""
+        # Test that all traces sent by the tracer are sent to the agent
         trace_ids = set()
 
         for data, span in interfaces.library.get_root_spans():
             metrics = span["metrics"]
-            if metrics["_sampling_priority_v1"] not in (USER_REJECT, AUTO_REJECT):
+            if priority_should_be_kept(metrics["_sampling_priority_v1"]):
                 trace_ids.add(span["trace_id"])
 
         for _, span in interfaces.agent.get_spans():
@@ -97,7 +105,7 @@ class Test_SamplingRates:
             if trace_id in trace_ids:
                 trace_ids.remove(trace_id)
 
-        assert len(trace_ids) == 0, f"Some traces has not been sent by the agent: {trace_ids}"
+        assert len(trace_ids) == 0, f"Some traces have not been sent by the agent: {trace_ids}"
 
 
 @released(php="0.71.0")
@@ -141,8 +149,8 @@ class Test_SamplingDecisions:
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
 
-            sampling_decision = sampling_priority > 0
-            expected_decision = sample_from_rate(context.tracer_sampling_rate, root_span["trace_id"])
+            sampling_decision = priority_should_be_kept(sampling_priority)
+            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, root_span["trace_id"])
             if sampling_decision != expected_decision:
                 raise ValueError(
                     f"Trace id {root_span['trace_id']}, sampling priority {sampling_priority}, "
