@@ -6,3 +6,9 @@ tests/:
         akka-http: missing_feature (No AppSec support)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (No AppSec support)
+    iast/:
+      sink/:
+        test_xss.py:
+          TestXSS:
+            "*": "?"
+            "spring-boot": "1.19.0"

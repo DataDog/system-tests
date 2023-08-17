@@ -7,9 +7,7 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
-@released(java={"*": "?", "spring-boot": "1.19.0"})
-class TestXSSInjection:
+class TestXSS:
     """Test xss detection."""
 
     sink_fixture = SinkFixture(
