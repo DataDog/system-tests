@@ -10,12 +10,11 @@ import time
 
 import requests
 
-from utils._context.core import context
-from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_rid_from_request
-from utils.tools import logger
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils.tools import logger, get_rid_from_span, get_rid_from_request
 
 
-class _BackendInterfaceValidator(InterfaceValidator):
+class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate backend data processors"""
 
     def __init__(self, library_interface):
@@ -27,11 +26,6 @@ class _BackendInterfaceValidator(InterfaceValidator):
         self.message_count = 0
 
         self.library_interface = library_interface
-
-    @property
-    def _log_folder(self):
-
-        return f"{context.scenario.host_log_folder}/interfaces/backend"
 
     @staticmethod
     def _get_dd_site_api_host():
@@ -63,8 +57,8 @@ class _BackendInterfaceValidator(InterfaceValidator):
         super().wait(timeout)
         self._init_rid_to_library_trace_ids()
 
-    def load_data_from_logs(self, folder_path):
-        super().load_data_from_logs(folder_path)
+    def load_data_from_logs(self):
+        super().load_data_from_logs()
         self._init_rid_to_library_trace_ids()
 
     def _init_rid_to_library_trace_ids(self):

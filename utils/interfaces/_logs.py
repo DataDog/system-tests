@@ -73,9 +73,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self, timeout):
-        super().wait(timeout)
-
+    def load_data(self):
         for log_line in self._read():
 
             parsed = {}
@@ -91,8 +89,10 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             self._data_list.append(parsed)
 
-    def validate(self, validator, path_filters=None, success_by_default=False):
-        assert path_filters is None, "There is no concpet of path in a log file"
+    def get_data(self):
+        yield from self._data_list
+
+    def validate(self, validator, success_by_default=False):
 
         for data in self.get_data():
             try:
@@ -284,7 +284,7 @@ class Test:
         """Test example"""
         i = _LibraryStdout()
         i.configure(False)
-        i.wait(0)
+        i.load_data()
         i.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 

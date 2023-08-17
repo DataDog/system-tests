@@ -8,11 +8,11 @@ This files will validate data flow between agent and backend
 
 import threading
 
-from utils.tools import logger
-from utils.interfaces._core import InterfaceValidator, get_rid_from_request
+from utils.tools import logger, get_rid_from_request
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
-class OpenTelemetryInterfaceValidator(InterfaceValidator):
+class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
     """ Validated communication between open telemetry and datadog backend"""
 
     def __init__(self):
