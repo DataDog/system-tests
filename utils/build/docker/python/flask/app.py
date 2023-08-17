@@ -326,15 +326,54 @@ def test_insecure_cookie():
 @app.route("/iast/insecure-cookie/test_secure")
 def test_secure_cookie():
     resp = Response("OK")
-    resp.headers.add('Set-Cookie','secure2=value; Secure; SameSite=Strict; HttpOnly')
-    # resp.set_cookie("secure2", "value", secure=True, httponly=True, samesite="Strict")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
     return resp
 
 
 @app.route("/iast/insecure-cookie/test_empty_cookie")
 def test_empty_cookie():
     resp = Response("OK")
-    # resp.headers.add('Set-Cookie','secure3=; Secure; SameSite=Strict; HttpOnly')
     resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
     return resp
 
+
+@app.route("/iast/no-httponly-cookie/test_insecure")
+def test_nohttponly_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=True, httponly=False, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-httponly-cookie/test_secure")
+def test_nohttponly_secure_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-httponly-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_insecure")
+def test_nosamesite_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=True, httponly=True, samesite="None")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_secure")
+def test_nosamesite_secure_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_empty_cookie")
+def test_nosamesite_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    return resp

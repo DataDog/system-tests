@@ -103,12 +103,7 @@ class SinkFixture:
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
         expected_tag = f"vulnerability_type:{self.vulnerability_type}"
-        logging.warning("JJJ expected tag: %s" % expected_tag)
-        logging.warning("JJJ series: %s" % series)
         series = [s for s in series if expected_tag in s["tags"]]
-        logging.warning("JJJ test_telemetry expected_metric: %s expected_tag: %s" % (expected_metric, expected_tag))
-        from pprint import pformat  # JJJ
-        logging.warning("JJJ series after filter: %s" % pformat(series))
         assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
