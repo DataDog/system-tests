@@ -45,6 +45,25 @@ def update_environ_with_local_env():
         pass
 
 
+DEBUG_LEVEL_STDOUT = 100
+
+logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
+
+
+def stdout(self, message, *args, **kws):
+
+    if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
+        # Yes, logger takes its '*args' as 'args'.
+        self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
+
+        if hasattr(self, "terminal"):
+            self.terminal.write_line(message)
+            self.terminal.flush()
+
+
+logging.Logger.stdout = stdout
+
+
 def get_logger(name="tests", use_stdout=False):
     result = logging.getLogger(name)
 

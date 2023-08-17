@@ -178,16 +178,6 @@ class TestedContainer:
 
         self.kwargs["volumes"] = result
 
-    def save_logs(self):
-        if not self._container:
-            return
-
-        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(self._container.logs(stdout=True, stderr=False))
-
-        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(self._container.logs(stdout=False, stderr=True))
-
     def stop(self):
         self._container.stop()
 
@@ -197,6 +187,13 @@ class TestedContainer:
             return
 
         try:
+            # collect logs before removing
+            with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
+                f.write(self._container.logs(stdout=True, stderr=False))
+
+            with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
+                f.write(self._container.logs(stdout=False, stderr=True))
+
             self._container.remove(force=True)
         except:
             # Sometimes, the container does not exists.
