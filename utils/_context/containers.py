@@ -188,25 +188,24 @@ class TestedContainer:
         self._container.stop()
 
     def remove(self):
+        logger.debug(f"Removing container {self.name}")
 
-        if not self._container:
-            return
+        if self._container:
+            try:
+                # collect logs before removing
+                with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
+                    f.write(self._container.logs(stdout=True, stderr=False))
 
-        try:
-            # collect logs before removing
-            with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-                f.write(self._container.logs(stdout=True, stderr=False))
+                with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
+                    f.write(self._container.logs(stdout=False, stderr=True))
 
-            with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-                f.write(self._container.logs(stdout=False, stderr=True))
+                self._container.remove(force=True)
+            except:
+                # Sometimes, the container does not exists.
+                # We can safely ignore this, because if it's another issue
+                # it will be killed at startup
 
-            self._container.remove(force=True)
-        except:
-            # Sometimes, the container does not exists.
-            # We can safely ignore this, because if it's another issue
-            # it will be killed at startup
-
-            pass
+                pass
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
@@ -436,6 +435,7 @@ class PostgresContainer(TestedContainer):
                     "mode": "ro",
                 }
             },
+            stdout_interface=interfaces.postgres,
         )
 
 
