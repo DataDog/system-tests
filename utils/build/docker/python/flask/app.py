@@ -1,5 +1,7 @@
 import psycopg2
 import requests
+import logging
+logging.basicConfig(level=logging.DEBUG)
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response
@@ -312,3 +314,27 @@ def view_sqli_insecure():
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     return Response("OK")
+
+
+@app.route("/iast/insecure-cookie/test_insecure")
+def test_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="None")
+    return resp
+
+
+@app.route("/iast/insecure-cookie/test_secure")
+def test_secure_cookie():
+    resp = Response("OK")
+    resp.headers.add('Set-Cookie','secure2=value; Secure; SameSite=Strict; HttpOnly')
+    # resp.set_cookie("secure2", "value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/insecure-cookie/test_empty_cookie")
+def test_empty_cookie():
+    resp = Response("OK")
+    # resp.headers.add('Set-Cookie','secure3=; Secure; SameSite=Strict; HttpOnly')
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    return resp
+

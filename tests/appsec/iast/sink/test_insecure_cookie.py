@@ -11,10 +11,9 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", python="1.17.0", ruby="?")
 @released(nodejs={"express4": "4.1.0", "*": "?"})
 @released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
-@bug(library="python")
 class TestInsecureCookie:
     """Test insecure cookie detection."""
 
