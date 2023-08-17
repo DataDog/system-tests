@@ -334,9 +334,7 @@ class EndToEndScenario(_DockerScenario):
         interfaces.agent.configure(self.replay)
         interfaces.library.configure(self.replay)
         interfaces.backend.configure(self.replay)
-        interfaces.library_stdout.configure(self.replay)
         interfaces.library_dotnet_managed.configure(self.replay)
-        interfaces.agent_stdout.configure(self.replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -443,13 +441,7 @@ class EndToEndScenario(_DockerScenario):
             interfaces.agent.load_data_from_logs()
             interfaces.backend.load_data_from_logs()
 
-            interfaces.library_stdout.load_data()
-            interfaces.library_dotnet_managed.load_data()
-            interfaces.agent_stdout.load_data()
-
-            return
-
-        if self.use_proxy:
+        elif self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
             self.weblog_container.stop()
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
@@ -458,9 +450,7 @@ class EndToEndScenario(_DockerScenario):
 
         self.close_targets()
 
-        interfaces.library_stdout.load_data()
         interfaces.library_dotnet_managed.load_data()
-        interfaces.agent_stdout.load_data()
 
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -628,7 +618,6 @@ class OpenTelemetryScenario(_DockerScenario):
 
         self.close_targets()
 
-        interfaces.library_stdout.load_data()
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_interface(self, interface, timeout):
