@@ -14,6 +14,7 @@ import requests
 
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
+from utils import interfaces
 
 
 @lru_cache
@@ -44,6 +45,7 @@ class TestedContainer:
         environment=None,
         allow_old_container=False,
         healthcheck=None,
+        stdout_interface=None,
         **kwargs,
     ) -> None:
         self.name = name
@@ -56,6 +58,7 @@ class TestedContainer:
         self.environment = environment
         self.kwargs = kwargs
         self._container = None
+        self.stdout_interface = stdout_interface
 
     def configure(self, replay):
 
@@ -69,6 +72,9 @@ class TestedContainer:
             self.image.save_image_info(self.log_folder_path)
         else:
             self.image.load_from_logs(self.log_folder_path)
+
+        if self.stdout_interface is not None:
+            self.stdout_interface.configure(replay)
 
     @property
     def container_name(self):
@@ -202,6 +208,9 @@ class TestedContainer:
 
             pass
 
+        if self.stdout_interface is not None:
+            self.stdout_interface.load_data()
+
 
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
@@ -285,6 +294,7 @@ class AgentContainer(TestedContainer):
                 "retries": 60,
             },
             ports={self.agent_port: f"{self.agent_port}/tcp"},
+            stdout_interface=interfaces.agent_stdout,
         )
 
         self.agent_version = None
@@ -336,6 +346,7 @@ class WeblogContainer(TestedContainer):
             security_opt=["seccomp=unconfined"],
             healthcheck={"test": f"curl --fail --silent --show-error localhost:{weblog.port}", "retries": 60},
             ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
+            stdout_interface=interfaces.library_stdout,
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
