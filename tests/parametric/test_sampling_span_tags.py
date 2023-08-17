@@ -133,6 +133,9 @@ class Test_Sampling_Span_Tags:
     @bug(library="python", reason="python does not set dm tag on first span")
     @bug(library="python_http", reason="python does not set dm tag on first span")
     @bug(library="cpp", reason="c++ does not set dm tag on first span")
+    @bug(library="java", reason="java does not set dm tag on first span")
+    @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
+    @bug(library="golang", reason="golang sets priority tag 2")
     def test_tags_defaults_rate_1_and_rule_0_sst006(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(parent_span, child_span, first_span, "-3", -1, 0)
