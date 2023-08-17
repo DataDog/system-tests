@@ -79,9 +79,7 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
-    @bug(library="php", reason="PHP sets dm tag -1 on parent span")
     @bug(library="golang", reason="golang sets dm tag -1 on parent span")
-    @bug(library="java", reason="java sets dm tag -1 on parent span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
     def test_tags_defaults_sst002(self, test_agent, test_library):
