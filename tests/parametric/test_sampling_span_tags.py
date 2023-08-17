@@ -22,7 +22,7 @@ def _get_spans(test_agent, test_library):
 
     parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
     child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
-    return parent_span, child_span, traces[0][0]
+    return parent_span, child_span, traces[0][0][0]
 
 
 def _assert_sampling_tags(parent_span, child_span, first_span, dm, parent_priority, parent_rate):
@@ -53,7 +53,7 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, "-3", 2, 1)
+        _assert_sampling_tags(parent_span, child_span, traces[0][0][0], "-3", 2, 1)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     @bug(library="python", reason="Python sets dm tag on child span")
@@ -72,7 +72,7 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, traces[0], "-3", 2, 1)
+        _assert_sampling_tags(parent_span, child_span, traces[0][0][0], "-3", 2, 1)
 
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
