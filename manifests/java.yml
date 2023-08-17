@@ -11,4 +11,4 @@ tests/:
         test_xss.py:
           TestXSS:
             "*": "?"
-            "spring-boot": "1.19.0"
+            spring-boot: "1.19.0"
