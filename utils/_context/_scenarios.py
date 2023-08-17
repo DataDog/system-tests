@@ -81,7 +81,6 @@ class _Scenario:
                 logger.info(f"Executing warmup {warmup}")
                 warmup()
         except:
-            self.collect_logs()
             self.close_targets()
             raise
 
@@ -98,9 +97,6 @@ class _Scenario:
 
     def post_setup(self):
         """ called after test setup """
-
-    def collect_logs(self):
-        """ Called after setup """
 
     def close_targets(self):
         """ called after setup"""
@@ -268,15 +264,6 @@ class _DockerScenario(_Scenario):
                 container.remove()
             except:
                 logger.exception(f"Failed to remove container {container}")
-
-    def collect_logs(self):
-        """ Get stdout/stderr for all docker containers """
-
-        for container in self._required_containers:
-            try:
-                container.save_logs()
-            except:
-                logger.exception(f"Fail to save logs for container {container}")
 
 
 class EndToEndScenario(_DockerScenario):
@@ -469,15 +456,11 @@ class EndToEndScenario(_DockerScenario):
             self.agent_container.stop()
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
-            self.collect_logs()
-
-            interfaces.library_stdout.load_data()
-            interfaces.library_dotnet_managed.load_data()
-            interfaces.agent_stdout.load_data()
-        else:
-            self.collect_logs()
-
         self.close_targets()
+
+        interfaces.library_stdout.load_data()
+        interfaces.library_dotnet_managed.load_data()
+        interfaces.agent_stdout.load_data()
 
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -643,12 +626,10 @@ class OpenTelemetryScenario(_DockerScenario):
         if self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
 
-            self.collect_logs()
+        self.close_targets()
 
-            interfaces.library_stdout.load_data()
-            interfaces.library_dotnet_managed.load_data()
-        else:
-            self.collect_logs()
+        interfaces.library_stdout.load_data()
+        interfaces.library_dotnet_managed.load_data()
 
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -801,7 +782,6 @@ class OnBoardingScenario(_Scenario):
             self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
         except:
-            self.collect_logs()
             self.close_targets()
             raise
 
