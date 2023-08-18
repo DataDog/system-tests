@@ -15,11 +15,12 @@ from utils.parametric.spec.trace import find_span_in_traces  # noqa
 UNSET = -420
 
 
-def _get_spans(test_agent, test_library):
+def _get_spans(test_agent, test_library, child_span_tag=None):
     with test_library:
         with test_library.start_span(name="parent", service="webserver") as ps:
-            with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id):
-                pass
+            with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
+                if child_span_tag:
+                    cs.set_meta(child_span_tag, None)
 
     traces = test_agent.wait_for_num_spans(2, clear=True)
 
@@ -75,22 +76,11 @@ class Test_Sampling_Span_Tags:
     @bug(library="java", reason="java sets dm tag -3")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_child_dropped_sst001(self, test_agent, test_library):
-        with test_library:
-            with test_library.start_span(name="parent", service="webserver") as parent_span:
-                with test_library.start_span(
-                    name="child", service="webserver", parent_id=parent_span.span_id
-                ) as child_span:
-                    child_span.set_meta(MANUAL_DROP_KEY, None)
-
-        traces = test_agent.wait_for_num_spans(2, clear=True)
-
-        parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
-        child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
-
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_DROP_KEY)
         _assert_sampling_tags(
             parent_span,
             child_span,
-            traces[0][0],
+            first_span,
             "-4",
             -1,
             description="When the magic manual.drop tag is set, decisionmaker "
@@ -108,22 +98,11 @@ class Test_Sampling_Span_Tags:
     @bug(library="cpp", reason="c++ sets dm tag -3 on first span")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_child_kept_sst007(self, test_agent, test_library):
-        with test_library:
-            with test_library.start_span(name="parent", service="webserver") as parent_span:
-                with test_library.start_span(
-                    name="child", service="webserver", parent_id=parent_span.span_id
-                ) as child_span:
-                    child_span.set_meta(MANUAL_KEEP_KEY, None)
-
-        traces = test_agent.wait_for_num_spans(2, clear=True)
-
-        parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
-        child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
-
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_KEEP_KEY)
         _assert_sampling_tags(
             parent_span,
             child_span,
-            traces[0][0],
+            first_span,
             "-4",
             2,
             description="When the magic manual.keep tag is set, decisionmaker "
