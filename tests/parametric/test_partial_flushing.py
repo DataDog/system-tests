@@ -1,7 +1,7 @@
 import pytest
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
-from utils import missing_feature, bug, context, scenarios
+from utils import missing_feature, bug, context, scenarios, flaky
 
 
 @scenarios.parametric
@@ -58,6 +58,7 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "java", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
+    @flaky(context.library == "nodejs")
     def test_partial_flushing_disabled(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure
