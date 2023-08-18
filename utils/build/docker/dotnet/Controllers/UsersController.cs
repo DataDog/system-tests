@@ -1,3 +1,4 @@
+#if DDTRACE_2_7_0_OR_GREATER
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -29,3 +30,4 @@ namespace weblog
         }
     }
 }
+#endif
