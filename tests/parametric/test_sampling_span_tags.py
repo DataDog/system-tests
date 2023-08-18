@@ -56,7 +56,7 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, traces[0][0], "-3", 2, 1)
+        _assert_sampling_tags(parent_span, child_span, traces[0][0], "-3", -1, 1)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     @bug(library="python", reason="Python sets dm tag on child span")
