@@ -43,6 +43,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="nodejs", reason="NodeJS does not set priority on parent span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
+    @bug(library="cpp", reason="c++ does not support magic tags")
     def test_tags_child_dropped_sst001(self, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="parent", service="webserver") as parent_span:
