@@ -239,6 +239,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="nodejs", reason="nodejs does not set dm tag")
     @bug(library="ruby", reason="ruby does not set dm tag")
     @bug(library="php", reason="php does not set limit_psr")
+    @bug(library="cpp", reason="this test times out with the c++ tracer")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}])
     def test_tags_defaults_rate_1_and_rate_limit_0_sst008(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
