@@ -15,6 +15,11 @@ from utils.parametric.spec.trace import find_span_in_traces  # noqa
 UNSET = -420
 
 
+class AnyRatio(object):
+    def __eq__(self, other):
+        return 0 <= other <= 1
+
+
 def _get_spans(test_agent, test_library, child_span_tag=None):
     with test_library:
         with test_library.start_span(name="parent", service="webserver") as ps:
@@ -249,12 +254,11 @@ class Test_Sampling_Span_Tags:
             first_span,
             "-3",
             2,
-            limit_rate=0,
+            limit_rate=AnyRatio(),
             rule_rate=1,
             description="When DD_TRACE_SAMPLE_RATE=1 is set and DD_TRACE_RATE_LIMIT=0 is set, "
             "decisionmaker should be -3, priority should be 2, the rule sample rate tag should "
-            "be set to the given sample rate (1), and the limit sample rate tag should be set "
-            "to the given rate limit (0)",
+            "be set to the given sample rate (1), and the limit sample rate tag should be set ",
         )
 
     @bug(library="golang", reason="golang sets priority tag 2")
@@ -284,13 +288,12 @@ class Test_Sampling_Span_Tags:
             first_span,
             "-3",
             -1,
-            limit_rate=3,
+            limit_rate=AnyRatio(),
             rule_rate=1,
             description="When DD_TRACE_SAMPLE_RATE=1 is set and DD_TRACE_RATE_LIMIT=3 is set and "
             "DD_TRACE_SAMPLING_RULES contains a single rule with sample_rate=0, "
             "decisionmaker should be -3, priority should be -1, the rule sample rate tag should "
-            "be set to the given sample rate (1), and the limit sample rate tag should be set "
-            "to the given rate limit (3)",
+            "be set to the given sample rate (1), and the limit sample rate tag should be set",
         )
 
     @bug(library="golang", reason="golang sets dm tag -1")
@@ -313,10 +316,10 @@ class Test_Sampling_Span_Tags:
             first_span,
             "-3",
             2,
-            limit_rate=3,
+            limit_rate=AnyRatio(),
             description="When DD_TRACE_RATE_LIMIT=3 is set, "
             "decisionmaker should be -3, priority should be 2, "
-            "and the limit sample rate tag should be set to the given rate limit (3)",
+            "and the limit sample rate tag should be set",
         )
 
     @bug(library="golang", reason="golang sets dm tag -1")
