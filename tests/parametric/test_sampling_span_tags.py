@@ -28,24 +28,37 @@ def _get_spans(test_agent, test_library):
     return parent_span, child_span, traces[0][0]
 
 
+def _assert_equal(elemA, elemB, description):
+    assert elemA == elemB, f"{description}\n{elemA} != {elemB}"
+
+
 def _assert_sampling_tags(
-    parent_span, child_span, first_span, dm, parent_priority, rule_rate=UNSET, agent_rate=UNSET, limit_rate=UNSET
+    parent_span,
+    child_span,
+    first_span,
+    dm,
+    parent_priority,
+    rule_rate=UNSET,
+    agent_rate=UNSET,
+    limit_rate=UNSET,
+    description="",
 ):
-    if dm is not None or "meta" in first_span:
-        assert first_span["meta"].get(SAMPLING_DECISION_MAKER_KEY) == dm
-    assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == parent_priority
+    _assert_equal(first_span["meta"].get(SAMPLING_DECISION_MAKER_KEY), dm, description)
+    _assert_equal(parent_span["metrics"].get(SAMPLING_PRIORITY_KEY), parent_priority, description)
     for rate_key, rate_expectation in (
         (SAMPLING_AGENT_PRIORITY_RATE, agent_rate),
         (SAMPLING_LIMIT_PRIORITY_RATE, limit_rate),
         (SAMPLING_RULE_PRIORITY_RATE, rule_rate),
     ):
         if rate_expectation != UNSET:
-            assert parent_span["metrics"].get(rate_key) == rate_expectation
+            _assert_equal(parent_span["metrics"].get(rate_key), rate_expectation, description)
         else:
-            assert rate_key not in parent_span["metrics"]
-        assert rate_key not in child_span.get("metrics", {})
+            _assert_equal(parent_span.get("metrics", {}).get(rate_key), None, description=description)
+        assert rate_key not in child_span.get("metrics", {}), "non-root spans should never include _dd.*_psr tags"
     if child_span != first_span:
-        assert child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None
+        assert (
+            child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None
+        ), "non-root spans that are not first in a chunk should never includ the _dd.p.dm tag"
 
 
 @scenarios.parametric
@@ -74,7 +87,16 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, traces[0][0], "-4", -1)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            traces[0][0],
+            "-4",
+            -1,
+            description="When the magic manual.drop tag is set, decisionmaker "
+            "should be -4, priority should be -1, and no sample rate tags should "
+            "be set",
+        )
 
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
@@ -98,7 +120,16 @@ class Test_Sampling_Span_Tags:
         parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
         child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-        _assert_sampling_tags(parent_span, child_span, traces[0][0], "-4", 2)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            traces[0][0],
+            "-4",
+            2,
+            description="When the magic manual.keep tag is set, decisionmaker "
+            "should be -4, priority should be -2, and no sample rate tags should "
+            "be set",
+        )
 
     @bug(library="python", reason="Python sets dm tag -0")
     @bug(library="python_http", reason="Python sets dm tag -0")
@@ -109,7 +140,18 @@ class Test_Sampling_Span_Tags:
     @bug(library="nodejs", reason="nodejs sets dm tag -0")
     def test_tags_defaults_sst002(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-1", 1, agent_rate=1)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-1",
+            1,
+            agent_rate=1,
+            description="When no envirionment variables related to sampling or "
+            "rate limiting are set, decisionmaker "
+            "should be -1, priority should be 1, and the agent sample rate tag should "
+            "be set to the default rate, which is 1",
+        )
 
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
@@ -122,7 +164,17 @@ class Test_Sampling_Span_Tags:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_defaults_rate_1_sst003(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-3", 2, rule_rate=1)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-3",
+            2,
+            rule_rate=1,
+            description="When DD_TRACE_SAMPLE_RATE=1 is set, decisionmaker "
+            "should be -3, priority should be 2, and the rule sample rate tag should "
+            "be set to the given rate, which is 1",
+        )
 
     @bug(library="java", reason="Java sets rate tag 9.9999 on parent span")
     @bug(library="dotnet", reason="Dotnet sets rate tag 9.9999 on parent span")
@@ -136,7 +188,17 @@ class Test_Sampling_Span_Tags:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1e-06}])
     def test_tags_defaults_rate_tiny_sst004(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-3", -1, rule_rate=1e-06)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-3",
+            -1,
+            rule_rate=1e-06,
+            description="When DD_TRACE_SAMPLE_RATE=1 is set to a very small nonzero number, decisionmaker "
+            "should be -3, priority should be -1, and the rule sample rate tag should "
+            "be set to the given rate",
+        )
 
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
@@ -151,7 +213,18 @@ class Test_Sampling_Span_Tags:
     )
     def test_tags_defaults_rate_1_and_rule_1_sst005(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-3", 2, rule_rate=1)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-3",
+            2,
+            rule_rate=1,
+            description="When DD_TRACE_SAMPLE_RATE=1 is set and DD_TRACE_SAMPLING_RULES contains a single "
+            "rule with sample_rate=1, decisionmaker "
+            "should be -3, priority should be 2, and the rule sample rate tag should "
+            "be set to the given rule rate, which is 1",
+        )
 
     @bug(library="nodejs", reason="NodeJS does not set dm tag on first span")
     @bug(library="php", reason="php does not set dm tag on first span")
@@ -167,7 +240,18 @@ class Test_Sampling_Span_Tags:
     )
     def test_tags_defaults_rate_1_and_rule_0_sst006(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-3", -1, rule_rate=0)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-3",
+            -1,
+            rule_rate=0,
+            description="When DD_TRACE_SAMPLE_RATE=1 is set and DD_TRACE_SAMPLING_RULES contains a single "
+            "rule with sample_rate=0, decisionmaker "
+            "should be -3, priority should be -1, and the rule sample rate tag should "
+            "be set to the given rule rate, which is 0",
+        )
 
     @bug(library="golang", reason="golang does not set dm tag")
     @bug(library="python", reason="python does not set dm tag")
@@ -179,7 +263,19 @@ class Test_Sampling_Span_Tags:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}])
     def test_tags_defaults_rate_1_and_rate_limit_0_sst008(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-3", 2, limit_rate=0, rule_rate=1)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-3",
+            2,
+            limit_rate=0,
+            rule_rate=1,
+            description="When DD_TRACE_SAMPLE_RATE=1 is set and DD_TRACE_RATE_LIMIT=0 is set, "
+            "decisionmaker should be -3, priority should be 2, the rule sample rate tag should "
+            "be set to the given sample rate (1), and the limit sample rate tag should be set "
+            "to the given rate limit (0)",
+        )
 
     @bug(library="golang", reason="golang sets priority tag 2")
     @bug(library="php", reason="php does not set dm tag")
@@ -202,7 +298,20 @@ class Test_Sampling_Span_Tags:
     )
     def test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-3", -1, limit_rate=3, rule_rate=1)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-3",
+            -1,
+            limit_rate=3,
+            rule_rate=1,
+            description="When DD_TRACE_SAMPLE_RATE=1 is set and DD_TRACE_RATE_LIMIT=3 is set and "
+            "DD_TRACE_SAMPLING_RULES contains a single rule with sample_rate=0, "
+            "decisionmaker should be -3, priority should be -1, the rule sample rate tag should "
+            "be set to the given sample rate (1), and the limit sample rate tag should be set "
+            "to the given rate limit (3)",
+        )
 
     @bug(library="golang", reason="golang sets dm tag -1")
     @bug(library="php", reason="php sets dm tag -1")
@@ -218,7 +327,17 @@ class Test_Sampling_Span_Tags:
     )
     def test_tags_defaults_rate_1_and_rate_limit_3_sst010(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-3", 2, limit_rate=3)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-3",
+            2,
+            limit_rate=3,
+            description="When DD_TRACE_RATE_LIMIT=3 is set, "
+            "decisionmaker should be -3, priority should be 2, "
+            "and the limit sample rate tag should be set to the given rate limit (3)",
+        )
 
     @bug(library="golang", reason="golang sets dm tag -1")
     @bug(library="php", reason="php sets dm tag -1")
@@ -234,4 +353,14 @@ class Test_Sampling_Span_Tags:
     )
     def test_tags_appsec_enabled_sst011(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
-        _assert_sampling_tags(parent_span, child_span, first_span, "-5", 2)
+        _assert_sampling_tags(
+            parent_span,
+            child_span,
+            first_span,
+            "-5",
+            2,
+            agent_rate=1,
+            description="When DD_APPSEC_ENABLED=1 is set, "
+            "decisionmaker should be -5, priority should be 2, "
+            "and the agent sample rate tag should be set to the default rate, which is 1",
+        )
