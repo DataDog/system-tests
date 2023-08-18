@@ -45,6 +45,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
     @bug(library="golang", reason="golang sets priority 2")
     @bug(library="php", reason="php sets priority 2")
+    @bug(library="java", reason="java sets priority 2")
     @bug(library="cpp", reason="c++ does not support magic tags")
     def test_tags_child_dropped_sst001(self, test_agent, test_library):
         with test_library:
