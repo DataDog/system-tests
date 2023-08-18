@@ -1134,6 +1134,8 @@ class scenarios:
         doc="",
     )
 
+    fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
+
 
 def _main():
     for name in dir(scenarios):
