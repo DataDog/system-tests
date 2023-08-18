@@ -19,55 +19,40 @@ from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchPb
 from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
 
-"""Key used in the meta map to indicate the span origin"""
+# Key used in the meta map to indicate the span origin
 ORIGIN = "_dd.origin"
 
-"""Key used in the metrics map to indicate tracer sampling priority"""
+# Key used in the metrics map to indicate tracer sampling priority
 SAMPLING_PRIORITY_KEY = "_sampling_priority_v1"
 
-"""Value used in the metrics map to indicate tracer sampling priority as user keep"""
+# Value used in the metrics map to indicate tracer sampling priority as user keep
 USER_KEEP = 2
 
-
-"""
-Key used in metrics to set manual drop decision.
-"""
+# Key used in metrics to set manual drop decision.
 MANUAL_DROP_KEY = "manual.drop"
 
-"""
-Key used in metrics to set manual keep decision.
-"""
+# Key used in metrics to set manual keep decision.
 MANUAL_KEEP_KEY = "manual.keep"
 
-"""
-Key used in metrics to set automatic tracer keep decision.
-"""
+#  Key used in metrics to set automatic tracer keep decision.
 AUTO_KEEP_KEY = "auto.keep"
 
-"""
-Key used in metrics to set automatic tracer drop decision.
-"""
+# Key used in metrics to set automatic tracer drop decision.
 AUTO_DROP_KEY = "auto.drop"
 
-"""
-Key used in the metrics map to toggle measuring a span.
-"""
+# Key used in the metrics map to toggle measuring a span.
 SPAN_MEASURED_KEY = "_dd.measured"
 
-"""
-Key used in the metrics to map to single span sampling.
-"""
+# Key used in the metrics to map to single span sampling.
 SINGLE_SPAN_SAMPLING_MECHANISM = "_dd.span_sampling.mechanism"
 
-"""
-Value used in the metrics to map to single span sampling decision.
-"""
+# Value used in the metrics to map to single span sampling decision.
 SINGLE_SPAN_SAMPLING_MECHANISM_VALUE = 8
 
-"""Key used in the metrics to map to single span sampling sample rate."""
+# Key used in the metrics to map to single span sampling sample rate.
 SINGLE_SPAN_SAMPLING_RATE = "_dd.span_sampling.rule_rate"
 
-"""Key used in the metrics to map to single span sampling max per second."""
+# Key used in the metrics to map to single span sampling max per second.
 SINGLE_SPAN_SAMPLING_MAX_PER_SEC = "_dd.span_sampling.max_per_second"
 
 # Note that class attributes are golang style to match the payload.
@@ -249,16 +234,16 @@ def _assert_span_match(span: Span, similar: Span) -> Span:
         if not var.startswith("__"):
             val = span.get(var)
             s_val = similar.get(var)
-            if val != None and val != s_val:
+            if val is not None and val != s_val:
                 # TODO remove this special handling once nodejs sets service in the same way.
                 # Right now, nodejs sets a tag named "service" in meta with the correct value.
                 if var == "service":
                     meta = similar.get("meta")
-                    if meta != None:
+                    if meta is not None:
                         s_val = meta.get(var)
-                assert val == s_val, "Span field '{}' mismatch '{}' != '{}'\nSpan   : {}\nSimilar: {}".format(
-                    var, val, s_val, span, similar,
-                )
+                assert (
+                    val == s_val
+                ), f"Span field '{var}' mismatch '{val}' != '{s_val}'\nSpan   : {span}\nSimilar: {similar}"
     return similar
 
 

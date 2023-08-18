@@ -1,11 +1,22 @@
 # Copyright (c) 2018 W3C and contributors
 
-# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+# the following conditions are met:
 
-# 1. Redistributions of works must retain the original copyright notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the original copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-# 3. Neither the name of the W3C nor the names of its contributors may be used to endorse or promote products derived from this work without specific prior written permission.
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# 1. Redistributions of works must retain the original copyright notice, this list of conditions and the
+#    following disclaimer.
+# 2. Redistributions in binary form must reproduce the original copyright notice, this list of conditions and the
+#    following disclaimer in the documentation and/or other materials provided with the distribution.
+# 3. Neither the name of the W3C nor the names of its contributors may be used to endorse or promote products derived
+#    from this work without specific prior written permission.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 
 from collections import OrderedDict
 import re
@@ -44,7 +55,7 @@ def get_tracecontext(headers):
     return get_traceparent(headers), get_tracestate(headers)
 
 
-class Traceparent(object):
+class Traceparent:
     def __init__(self, version=0, trace_id=None, parent_id=None, trace_flags=0):
         self.version = version
         self.trace_id = trace_id
@@ -52,12 +63,14 @@ class Traceparent(object):
         self.trace_flags = trace_flags
 
     def __str__(self) -> str:
-        return "{}-{}-{}-{}".format(self.version, self.trace_id, self.parent_id, self.trace_flags)
+        return f"{self.version}-{self.trace_id}-{self.parent_id}-{self.trace_flags}"
 
 
-# The tracestate class was obtained from https://github.com/w3c/trace-context/blob/84b583d86ecb7005a9eab8fed86ab7117b050b48/test/tracecontext/tracestate.py
-# All tests in this Repository are licensed by contributors to be distributed under the W3C 3-clause BSD License: https://www.w3.org/Consortium/Legal/2008/03-bsd-license.html
-class Tracestate(object):
+# The tracestate class was obtained from:
+# https://github.com/w3c/trace-context/blob/84b583d86ecb7005a9eab8fed86ab7117b050b48/test/tracecontext/tracestate.py
+# All tests in this Repository are licensed by contributors to be distributed under the W3C 3-clause BSD License:
+# https://www.w3.org/Consortium/Legal/2008/03-bsd-license.html
+class Tracestate:
     _KEY_WITHOUT_VENDOR_FORMAT = r"[a-z][_0-9a-z\-\*\/]{0,255}"
     _KEY_WITH_VENDOR_FORMAT = r"[0-9a-z][_0-9a-z\-\*\/]{0,240}@[a-z][_0-9a-z\-\*\/]{0,13}"
     _KEY_FORMAT = _KEY_WITHOUT_VENDOR_FORMAT + "|" + _KEY_WITH_VENDOR_FORMAT
@@ -65,7 +78,7 @@ class Tracestate(object):
     _DELIMITER_FORMAT_RE = re.compile("[ \t]*,[ \t]*")
     _KEY_VALIDATION_RE = re.compile("^(" + _KEY_FORMAT + ")$")
     _VALUE_VALIDATION_RE = re.compile("^(" + _VALUE_FORMAT + ")$")
-    _MEMBER_FORMAT_RE = re.compile("^(%s)(=)(%s)$" % (_KEY_FORMAT, _VALUE_FORMAT))
+    _MEMBER_FORMAT_RE = re.compile(f"^({_KEY_FORMAT})(=)({_VALUE_FORMAT})$")
 
     def __init__(self, *args, **kwds):
         if len(args) == 1 and not kwds:
@@ -85,7 +98,7 @@ class Tracestate(object):
         return len(self._traits)
 
     def __repr__(self):
-        return "{}({!r})".format(type(self).__name__, str(self))
+        return f"{type(self).__name__}({self})"
 
     def __getitem__(self, key):
         return self._traits[key]
@@ -110,8 +123,8 @@ class Tracestate(object):
             if member:
                 match = self._MEMBER_FORMAT_RE.match(member)
                 if not match:
-                    raise ValueError("illegal key-value format {!r}".format(member))
-                key, eq, value = match.groups()
+                    raise ValueError(f"illegal key-value format {member}")
+                key, _, value = match.groups()
                 if key not in self._traits:
                     self._traits[key] = value
                     # If key is already in self._traits, the incoming tracestate header contained a duplicated key.
