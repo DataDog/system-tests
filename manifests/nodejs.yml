@@ -1,4 +1,9 @@
 tests/:
   appsec/:
+    iast/:
+      sink/:
+        test_xss.py:
+          TestXSS:
+            "*": "?"
     test_alpha.py:
       Test_Basic: "v2.0.0"
