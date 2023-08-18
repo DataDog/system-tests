@@ -288,6 +288,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 @scenarios.remote_config_mocked_backend_asm_features
 class Test_RemoteConfigurationExtraServices:
     """Tests that extra services are sent in the RC message"""
+
     remote_config_is_sent = False
 
     def setup_tracer_extra_services(self):
@@ -298,12 +299,8 @@ class Test_RemoteConfigurationExtraServices:
 
         def remote_config_asm_extra_services_available(data):
             if data["path"] == "/v0.7/config":
-                if "extra_services" in data.get("request", {}).get("content", {}).get("client", {}).get("client_tracer", {}):
-                    client_tracer = data["request"]["content"]["client"]["client_tracer"]
-
-                    if not ("extra_services" in client_tracer):
-                        return False
-
+                client_tracer = data.get("request", {}).get("content", {}).get("client", {}).get("client_tracer", {})
+                if "extra_services" in client_tracer:
                     extra_services = client_tracer["extra_services"]
 
                     if extra_services is not None and len(extra_services) > 0:
