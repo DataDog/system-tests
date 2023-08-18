@@ -5,5 +5,3 @@ tests/:
         test_xss.py:
           TestXSS:
             "*": "?"
-    test_alpha.py:
-      Test_Basic: "v1.1.0rc2.dev"
