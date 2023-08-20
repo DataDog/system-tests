@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -eu
 
-if [ ${UDS_WEBLOG:-} = "1" ]; then
+if [[ "${UDS_WEBLOG:-0}" = "1" ]]; then
     ./set-uds-transport.sh
 fi
 
-node app.js
+exec node app.js
