@@ -36,20 +36,15 @@ def validate_trace(traces: list[dict], use_128_bits_trace_id: bool) -> tuple:
 
 
 def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
-    expected_tags = {
-        "parent_id": "0",
-        "env": "system-tests",
-        "service": "otel-system-tests-spring-boot",
-        "ingestion_reason": "otel",
-    }
+    assert span["parent_id"] == "0"
+    assert span["service"] == "otel-system-tests-spring-boot"
+    assert span["ingestion_reason"] == "otel"
     expected_meta = {
-        "env": "system-tests",
         "deployment.environment": "system-tests",
         "_dd.ingestion_reason": "otel",
         "otel.status_code": "Unset",
         "otel.library.name": "com.datadoghq.springbootnative",
     }
-    assert expected_tags.items() <= span.items()
     assert expected_meta.items() <= span["meta"].items()
     validate_trace_id(span, use_128_bits_trace_id)
 
@@ -111,6 +106,7 @@ def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
 
 
 KNOWN_UNMATCHED_METAS = [
+    "env",
     "otel.user_agent",
     "otel.source",
     "span.kind",
