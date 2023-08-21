@@ -5,7 +5,7 @@
 /utils/build/docker/nodejs*/ @DataDog/apm-js @DataDog/appsec-js @DataDog/system-tests-core
 /utils/build/docker/php*/ @DataDog/apm-php @DataDog/system-tests-core
 /utils/build/docker/python*/ @DataDog/apm-python @DataDog/asm-python @DataDog/system-tests-core
-/utils/build/docker/ruby*/ @DataDog/apm-ruby @DataDog/appsec-ruby @DataDog/system-tests-core
+/utils/build/docker/ruby*/ @DataDog/apm-ruby @DataDog/asm-ruby @DataDog/system-tests-core
 /parametric/ @Kyle-Verhoog @DataDog/system-tests-core
 /tests/remote_config/ @DataDog/system-tests-core @DataDog/remote-config @DataDog/system-tests-core
 /tests/appsec/ @DataDog/appsec-libraries @DataDog/system-tests-core
