@@ -80,6 +80,7 @@ class Test_OTelMetricE2E:
             # "example.histogram.min",
             # "example.histogram.max",
         ]
+        time.sleep(5)  # wait a bit for agent to submit metrics
 
     def test_main(self):
         end = int(time.time())

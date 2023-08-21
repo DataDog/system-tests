@@ -13,7 +13,6 @@ def validate_log(log: dict, rid: str) -> dict:
     ]
     assert expected_attributes_tags <= log["attributes"]["tags"]
     expected_attributes_attributes = {
-        "service": "otel-system-tests-spring-boot",
         "http": {"request": {"headers": {"user-agent": f"system_tests rid/{rid}"}}, "method": "GET"},
         "status": "info",
     }

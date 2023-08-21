@@ -124,6 +124,7 @@ KNOWN_UNMATCHED_METRICS = [
     "_dd.agent_priority_sampler.target_tps",
     "_sampling_priority_rate_v1",
     "_dd.otlp_sr",
+    "_top_level",
 ]
 
 
