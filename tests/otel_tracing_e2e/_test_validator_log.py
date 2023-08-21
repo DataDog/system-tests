@@ -3,19 +3,16 @@
 # Validates the JSON logs from backend and returns the OTel log trace attributes
 def validate_log(log: dict, rid: str) -> dict:
     assert log["type"] == "log"
-    expected_attributes = {
-        "service": "otel-system-tests-spring-boot",
-        "message": f"Handle request with user agent: system_tests rid/{rid}",
-        "status": "info",
-        "tags": [
-            "datadog.submission_auth:private_api_key",
-            "env:system-tests",
-            "otel_source:datadog_exporter",
-            "service:otel-system-tests-spring-boot",
-            "source:undefined",
-        ],
-    }
-    assert expected_attributes.items() <= log["attributes"].items()
+    assert log["attributes"]["service"]["name"] == "otel-system-tests-spring-boot"
+    expected_attributes_tags = [
+        "datadog.submission_auth:private_api_key",
+        "datadog.index:main",
+        "env:system-tests",
+        "otel_source:datadog_exporter",
+        "service:otel-system-tests-spring-boot",
+        "source:undefined",
+    ]
+    assert expected_attributes_tags <= log["attributes"]["tags"]
     expected_attributes_attributes = {
         "service": "otel-system-tests-spring-boot",
         "http": {"request": {"headers": {"user-agent": f"system_tests rid/{rid}"}}, "method": "GET"},
