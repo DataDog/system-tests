@@ -107,7 +107,7 @@ class Test_Otel_Span_Methods:
             assert root_span["meta"]["d_bool_val"] == "false"
             assert root_span["meta"]["array_val_int"] == "[10, 20]"
             assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
-        elif root_span["meta"]["language"] in "dotnet":
+        elif root_span["meta"]["language"] == "dotnet":
             assert root_span["meta"]["bool_val"] == "true"
             assert root_span["meta"]["array_val_bool"] == "[true,false]"
             assert root_span["meta"]["array_val_str"] == '["val1","val2"]'
