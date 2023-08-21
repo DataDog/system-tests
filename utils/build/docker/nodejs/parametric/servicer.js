@@ -64,10 +64,10 @@ class Servicer {
         if (extracted !== null) parent = extracted
 
         const span = tracer.startSpan(request.name, {
-            type: request.type,
             childOf: parent,
             tags: {
-                service: request.service,
+                "service.name": request.service,
+                "span.type": request.type,
                 "resource.name": request.resource
             }
         })
