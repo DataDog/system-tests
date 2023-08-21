@@ -65,10 +65,10 @@ class Servicer {
 
         const span = tracer.startSpan(request.name, {
             type: request.type,
-            resource: request.resource,
             childOf: parent,
             tags: {
-                service: request.service
+                service: request.service,
+                "resource.name": request.resource
             }
         })
 
