@@ -69,6 +69,7 @@ def _assert_sampling_tags(
 
 @scenarios.parametric
 class Test_Sampling_Span_Tags:
+    @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
     @bug(library="nodejs", reason="NodeJS does not set priority on parent span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
@@ -92,6 +93,7 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
+    @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
@@ -113,6 +115,7 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
+    @bug(library="python", reason="Python sets dm tag -0")
     @bug(library="python_http", reason="Python sets dm tag -0")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
@@ -134,6 +137,7 @@ class Test_Sampling_Span_Tags:
             "be set to the default rate, which is 1",
         )
 
+    @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
@@ -160,6 +164,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="dotnet", reason="Dotnet sets rate tag 9.9999 on parent span")
     @bug(library="nodejs", reason="NodeJS does not set dm tag on first span")
     @bug(library="golang", reason="golang does not set dm tag on first span")
+    @bug(library="python", reason="python does not set dm tag on first span")
     @bug(library="python_http", reason="python does not set dm tag on first span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="cpp", reason="c++ does not set dm tag on first span")
@@ -179,6 +184,7 @@ class Test_Sampling_Span_Tags:
             "be set to the given rate",
         )
 
+    @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="python_http", reason="Python sets dm tag on child span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
@@ -207,6 +213,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="nodejs", reason="NodeJS does not set dm tag on first span")
     @bug(library="php", reason="php does not set dm tag on first span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
+    @bug(library="python", reason="python does not set dm tag on first span")
     @bug(library="python_http", reason="python does not set dm tag on first span")
     @bug(library="cpp", reason="c++ does not set dm tag on first span")
     @bug(library="java", reason="java does not set dm tag on first span")
@@ -231,6 +238,7 @@ class Test_Sampling_Span_Tags:
         )
 
     @bug(library="golang", reason="golang does not set dm tag")
+    @bug(library="python", reason="python does not set dm tag")
     @bug(library="python_http", reason="python does not set dm tag")
     @bug(library="dotnet", reason="dotnet does not set dm tag")
     @bug(library="nodejs", reason="nodejs does not set dm tag")
@@ -255,6 +263,7 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="golang", reason="golang sets priority tag 2")
     @bug(library="php", reason="php does not set dm tag")
+    @bug(library="python", reason="python does not set dm tag")
     @bug(library="python_http", reason="python does not set dm tag")
     @bug(library="dotnet", reason="dotnet does not set dm tag")
     @bug(library="java", reason="java does not set dm tag")
@@ -289,6 +298,7 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="golang", reason="golang sets dm tag -1")
     @bug(library="php", reason="php sets dm tag -1")
+    @bug(library="python", reason="python does not set dm tag")
     @bug(library="python_http", reason="python does not set dm tag")
     @bug(library="dotnet", reason="dotnet does not set dm tag")
     @bug(library="java", reason="java sets dm tag -1")
@@ -314,6 +324,7 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="golang", reason="golang sets dm tag -1")
     @bug(library="php", reason="php sets dm tag -1")
+    @bug(library="python", reason="python does not set dm tag")
     @bug(library="python_http", reason="python does not set dm tag")
     @bug(library="dotnet", reason="dotnet does not set dm tag")
     @bug(library="java", reason="java sets dm tag -1")
