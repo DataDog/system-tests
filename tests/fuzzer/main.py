@@ -7,10 +7,13 @@ import argparse
 
 from utils._context.containers import WeblogContainer, AgentContainer, create_network
 from utils.tools import get_logger
+from utils import context, scenarios
 from tests.fuzzer.core import Fuzzer
 
 
 def main():
+
+    context.scenario = scenarios.fuzzer
 
     parser = argparse.ArgumentParser(description="Send a bunch of requests to an url.")
 

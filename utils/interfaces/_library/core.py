@@ -26,7 +26,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def __init__(self):
         super().__init__("library")
         self.ready = threading.Event()
-        self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
     def ingest_file(self, src_path):
         self.ready.set()
@@ -137,6 +136,23 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                         yield copied
                 else:
                     yield data
+
+    def get_telemetry_metric_series(self, namespace, metric):
+        relevantSeries = []
+        for data in self.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "generate-metrics":
+                continue
+            fallback_namespace = content["payload"].get("namespace")
+
+            for series in content["payload"]["series"]:
+                computed_namespace = series.get("namespace", fallback_namespace)
+
+                # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+                series["_computed_namespace"] = computed_namespace
+                if computed_namespace == namespace and series["metric"] == metric:
+                    relevantSeries.append(series)
+        return relevantSeries
 
     ############################################################
 
@@ -304,17 +320,3 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
-
-
-class _TraceIdUniquenessExceptions:
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self.traces_ids = set()
-
-    def add_trace_id(self, trace_id):
-        with self._lock:
-            self.traces_ids.add(trace_id)
-
-    def should_be_unique(self, trace_id):
-        with self._lock:
-            return trace_id not in self.traces_ids
