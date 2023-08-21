@@ -94,7 +94,7 @@ def validate_spans_from_all_paths(spans_agent: tuple, spans_intake: tuple, spans
     validate_span_fields(spans_agent[0], spans_intake[0], "Agent server span", "Intake server span")
     validate_span_fields(spans_agent[0], spans_collector[0], "Agent server span", "Collector server span")
     validate_span_fields(spans_agent[1], spans_intake[1], "Agent message span", "Intake message span")
-    validate_span_fields(spans_agent[1], spans_collector[1], "Agent message span", "Intake message span")
+    validate_span_fields(spans_agent[1], spans_collector[1], "Agent message span", "Collector message span")
 
 
 def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
