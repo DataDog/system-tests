@@ -55,6 +55,11 @@ SINGLE_SPAN_SAMPLING_RATE = "_dd.span_sampling.rule_rate"
 # Key used in the metrics to map to single span sampling max per second.
 SINGLE_SPAN_SAMPLING_MAX_PER_SEC = "_dd.span_sampling.max_per_second"
 
+SAMPLING_DECISION_MAKER_KEY = "_dd.p.dm"
+SAMPLING_AGENT_PRIORITY_RATE = "_dd.agent_psr"
+SAMPLING_RULE_PRIORITY_RATE = "_dd.rule_psr"
+SAMPLING_LIMIT_PRIORITY_RATE = "_dd.limit_psr"
+
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
     """Stats aggregation data structure used in the v0.6/stats protocol."""
