@@ -22,6 +22,7 @@ class Test_OTelTracingE2E:
     def setup_main(self):
         self.use_128_bits_trace_id = False
         self.r = weblog.get(path="/basic/trace")
+        time.sleep(5)  # wait a bit for trace agent to submit traces
 
     def test_main(self):
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
@@ -79,6 +80,7 @@ class Test_OTelMetricE2E:
             # "example.histogram.min",
             # "example.histogram.max",
         ]
+        time.sleep(5)  # wait a bit for agent to submit metrics
 
     def test_main(self):
         end = int(time.time())
