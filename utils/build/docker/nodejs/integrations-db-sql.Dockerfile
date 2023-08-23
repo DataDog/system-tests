@@ -22,6 +22,7 @@ ENV PGHOST=postgres
 ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
+ENV DD_TRACE_SPAN_ATTRIBUTE_SCHEMA="v1"
 
 # docker startup
 RUN echo '#!/bin/bash\nnode app.js' > app.sh

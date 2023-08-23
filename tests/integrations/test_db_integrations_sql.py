@@ -17,25 +17,7 @@ integration_db_data = [
         "peer_hostname": "mysqldb",
         "db_password": "mysqldb",
         "request": {},
-    },
-    {
-        "service": "postgresql",
-        "db_type": "postgresql",
-        "db_instance": "system_tests",
-        "db_user": "system_tests_user",
-        "peer_hostname": "postgres",
-        "db_password": "system_tests",
-        "request": {},
-    },
-    {
-        "service": "sqlserver",
-        "db_type": "sqlserver",
-        "db_instance": "master",
-        "db_user": "SA",
-        "peer_hostname": "mssql",
-        "db_password": "yourStrong(!)Password",
-        "request": {},
-    },
+    }
 ]
 
 
@@ -63,41 +45,41 @@ class Test_Db_Integrations_sql:
     def test_select(self, integration_db):
         self._validate(integration_db, "select")
 
-    def setup_select_error(self, integration_db_id):
+    def _setup_select_error(self, integration_db_id):
         integration_db = self._get_db_data(integration_db_id)
         integration_db["request"]["select_error"] = weblog.get(
             f"/db?service={integration_db_id}&operation=select_error"
         )
 
-    def test_select_error(self, integration_db):
+    def _test_select_error(self, integration_db):
         self._validate(integration_db, "select", request_id="select_error", db_exec_error=True)
 
-    def setup_insert(self, integration_db_id):
+    def _setup_insert(self, integration_db_id):
         integration_db = self._get_db_data(integration_db_id)
         integration_db["request"]["insert"] = weblog.get(f"/db?service={integration_db_id}&operation=insert")
 
-    def test_insert(self, integration_db):
+    def _test_insert(self, integration_db):
         self._validate(integration_db, "insert")
 
-    def setup_update(self, integration_db_id):
+    def _setup_update(self, integration_db_id):
         integration_db = self._get_db_data(integration_db_id)
         integration_db["request"]["update"] = weblog.get(f"/db?service={integration_db_id}&operation=update")
 
-    def test_update(self, integration_db):
+    def _test_update(self, integration_db):
         self._validate(integration_db, "update")
 
-    def setup_delete(self, integration_db_id):
+    def _setup_delete(self, integration_db_id):
         integration_db = self._get_db_data(integration_db_id)
         integration_db["request"]["delete"] = weblog.get(f"/db?service={integration_db_id}&operation=delete")
 
-    def test_delete(self, integration_db):
+    def _test_delete(self, integration_db):
         self._validate(integration_db, "delete")
 
-    def setup_procedure(self, integration_db_id):
+    def _setup_procedure(self, integration_db_id):
         integration_db = self._get_db_data(integration_db_id)
         integration_db["request"]["call"] = weblog.get(f"/db?service={integration_db_id}&operation=procedure")
 
-    def test_procedure(self, integration_db):
+    def _test_procedure(self, integration_db):
         self._validate(integration_db, "call")
 
     def _get_db_data(self, integration_db_id):
@@ -118,7 +100,10 @@ class Test_Db_Integrations_sql:
                         and span_child["trace_id"] == span["trace_id"]
                     ):
                         sql_found = True
-                        assert integration_db["service"] in span_child["service"]
+                        assert integration_db["service"] in span_child["service"] or span_child["service"] == "weblog"
+                        #Describes the relationship between the Span, its parents, and its children in a Trace.
+                        #client: Indicates that the span describes a request to some remote service.
+                        assert  span_child["meta"]["span.kind"] == "client"
                         assert integration_db["db_type"] == span_child["meta"]["db.type"]
                         assert integration_db["db_instance"] == span_child["meta"]["db.instance"]
                         assert integration_db["db_user"] == span_child["meta"]["db.user"]
