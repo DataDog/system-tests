@@ -29,7 +29,7 @@ clusterAgent:
   image:
    #comment name, tag and repository to test cluster-agent for local Mac M1
     name: ""
-    tag: 7-46-0-missing-tags-fix
+    tag: master
     repository: datadog/cluster-agent-dev
     pullPolicy: Always
     doNotCheckTag: true
