@@ -442,12 +442,12 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_METHOD_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && (needs.scenarios.outputs.run_all == 'true' || needs.scenarios.outputs.run_debugger == 'true')
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
       run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_LINE_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && (needs.scenarios.outputs.run_all == 'true' || needs.scenarios.outputs.run_debugger == 'true')
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
       run: ./run.sh DEBUGGER_LINE_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
