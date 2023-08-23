@@ -134,7 +134,8 @@ function deploy-operator() {
     helm repo update
 
     echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
-    helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
+    #Please REMOVE [--debug --version 3.33.10] when this issue would is solved: https://datadoghq.atlassian.net/browse/AIT-8173
+    helm install datadog --debug --version 3.33.10 --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
     kubectl get pods
 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
