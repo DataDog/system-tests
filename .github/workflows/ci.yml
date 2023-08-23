@@ -72,7 +72,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/experimental.yml@main
+    uses: datadog/system-tests/.github/workflows/experimental.yml@robertomonteromiguel/launch_lib_injection_fixed
     secrets: inherit
 
   main:
