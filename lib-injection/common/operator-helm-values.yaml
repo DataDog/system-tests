@@ -29,7 +29,7 @@ clusterAgent:
   image:
    #comment name, tag and repository to test cluster-agent for local Mac M1
     name: ""
-    tag: master
+    tag: jlineaweaver-cap2-70
     repository: datadog/cluster-agent-dev
     pullPolicy: Always
     doNotCheckTag: true
