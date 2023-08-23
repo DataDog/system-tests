@@ -2,16 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 from utils import context, coverage, released, bug, missing_feature
-from ..iast_fixtures import SourceFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="1.18.0", ruby="?")
 @released(
     java={
         "jersey-grizzly2": "1.15.0",
@@ -27,12 +23,16 @@ if context.library == "cpp":
 class TestHeaderName:
     """Verify that request headers name are tainted"""
 
+    source_name = "user"
+    if context.library.library == "python":
+        source_name = "User"
+
     source_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/headername/test",
         request_kwargs={"headers": {"user": "unused"}},
         source_type="http.request.header.name",
-        source_name="user",
+        source_name=source_name,
         source_value=None,
     )
 

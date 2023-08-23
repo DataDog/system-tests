@@ -7,10 +7,6 @@ import pytest
 from utils import context, weblog, interfaces, released, bug, coverage, missing_feature
 from .utils import rules
 
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 

@@ -2,12 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-import pytest
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
 from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 @released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
@@ -134,10 +130,6 @@ class Test_StandardTagsStatusCode:
 
 @released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
-@irrelevant(
-    (context.library, context.weblog_variant) == ("golang", "net-http"),
-    reason="net-http does not handle route parameters",
-)
 @irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
 @missing_feature(
     context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
@@ -156,10 +148,12 @@ class Test_StandardTagsRoute:
         # specify the route syntax if needed
         if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
-        if context.library == "golang" and context.weblog_variant not in [
-            "chi",
-        ]:
-            tags["http.route"] = "/sample_rate_route/:i"
+        if context.library == "golang":
+            if context.weblog_variant == "net-http":
+                # net/http doesn't support parametrized routes but a path catches anything down the tree.
+                tags["http.route"] = "/sample_rate_route/"
+            if context.weblog_variant in ("gin", "echo", "uds-echo"):
+                tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
         if context.library == "python":

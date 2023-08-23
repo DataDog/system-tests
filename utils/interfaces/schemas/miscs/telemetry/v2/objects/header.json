@@ -19,7 +19,8 @@
     },
     "seq_id": {
       "type": "integer",
-      "format": "uint64"
+      "format": "uint64",
+      "minimum": 1
     },
     "tracer_time": {
       "type": "integer",

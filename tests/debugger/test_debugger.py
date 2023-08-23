@@ -36,33 +36,34 @@ LINE_PROBES = ["logProbe-installed", "metricProbe-installed", "spanProbe-install
 def check_probe_statuses(expected_data):
     check_info_endpoint()
 
-    agent_logs = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
+    probe_status_map = get_probe_status_map()
     for expected_probe in expected_data:
-        check_probe_status(expected_probe, agent_logs)
+        check_probe_status(expected_probe, probe_status_map)
 
 
-def check_probe_status(expected_id, agent_logs):
+def get_probe_status_map():
+    agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
+    hash = {}
+
+    for request in agent_logs_endpoint_requests:
+        for content in request["request"]["content"]:
+            probe_id = content["debugger"]["diagnostics"]["probeId"]
+            hash[probe_id] = content["debugger"]["diagnostics"]
+
+    return hash
+
+
+def check_probe_status(expected_id, probe_status_map):
     expected_status = expected_id.split("-")[1].upper()
 
-    for agent_log in agent_logs:
-        actual_probe_id = agent_log["request"]["content"][0]["debugger"]["diagnostics"]["probeId"]
+    if expected_id not in probe_status_map:
+        raise ValueError("Probe " + expected_id + " was not received.")
 
-        if actual_probe_id == expected_id:
-            actual_status = agent_log["request"]["content"][0]["debugger"]["diagnostics"]["status"]
-
-            if actual_status == expected_status:
-                return
-            else:
-                raise ValueError(
-                    "Received probe "
-                    + expected_id
-                    + " with status "
-                    + actual_status
-                    + ", but expected for "
-                    + expected_status
-                )
-
-    raise ValueError("Probe " + expected_id + " was not received")
+    actual_status = probe_status_map[expected_id]["status"]
+    if actual_status != expected_status:
+        raise ValueError(
+            "Received probe " + expected_id + " with status " + actual_status + ", but expected for " + expected_status
+        )
 
 
 def check_info_endpoint():

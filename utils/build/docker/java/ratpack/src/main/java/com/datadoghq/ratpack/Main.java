@@ -5,6 +5,8 @@ import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import ratpack.exec.Blocking;
+import ratpack.exec.Promise;
 import ratpack.http.HttpMethod;
 import ratpack.http.Response;
 import ratpack.server.RatpackServer;
@@ -84,42 +86,47 @@ public class Main {
                                 response.send("text/plain", "012345678901234567890123456789012345678901");
                             })
                             .get("make_distant_call", ctx -> {
-                                String url = ctx.getRequest().getQueryParams().get("url");
+                                final Promise<String> res = Blocking.get(() -> {
+                                    String url = ctx.getRequest().getQueryParams().get("url");
 
-                                URL urlObject = new URL(url);
+                                    URL urlObject = new URL(url);
 
-                                HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-                                con.setRequestMethod("GET");
+                                    HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
+                                    con.setRequestMethod("GET");
 
-                                // Save request headers
-                                HashMap<String, String> request_headers = new HashMap<String, String>();
-                                for (Map.Entry<String, List<String>> header : con.getRequestProperties().entrySet()) {
-                                    if (header.getKey() == null) {
-                                        continue;
+                                    // Save request headers
+                                    HashMap<String, String> request_headers = new HashMap<String, String>();
+                                    for (Map.Entry<String, List<String>> header : con.getRequestProperties().entrySet()) {
+                                        if (header.getKey() == null) {
+                                            continue;
+                                        }
+
+                                        request_headers.put(header.getKey(), header.getValue().get(0));
                                     }
 
-                                    request_headers.put(header.getKey(), header.getValue().get(0));
-                                }
+                                    // Save response headers and status code
+                                    int status_code = con.getResponseCode();
+                                    HashMap<String, String> response_headers = new HashMap<String, String>();
+                                    for (Map.Entry<String, List<String>> header : con.getHeaderFields().entrySet()) {
+                                        if (header.getKey() == null) {
+                                            continue;
+                                        }
 
-                                // Save response headers and status code
-                                int status_code = con.getResponseCode();
-                                HashMap<String, String> response_headers = new HashMap<String, String>();
-                                for (Map.Entry<String, List<String>> header : con.getHeaderFields().entrySet()) {
-                                    if (header.getKey() == null) {
-                                        continue;
+                                        response_headers.put(header.getKey(), header.getValue().get(0));
                                     }
 
-                                    response_headers.put(header.getKey(), header.getValue().get(0));
-                                }
+                                    DistantCallResponse result = new DistantCallResponse();
+                                    result.url = url;
+                                    result.status_code = status_code;
+                                    result.request_headers = request_headers;
+                                    result.response_headers = response_headers;
 
-                                DistantCallResponse result = new DistantCallResponse();
-                                result.url = url;
-                                result.status_code = status_code;
-                                result.request_headers = request_headers;
-                                result.response_headers = response_headers;
-
-                                Response response = ctx.getResponse();
-                                response.send("application/json", (new ObjectMapper()).writeValueAsString(result));
+                                    return (new ObjectMapper()).writeValueAsString(result);
+                                });
+                                res.then((r) -> {
+                                    Response response = ctx.getResponse();
+                                    response.send("application/json", r);
+                                });
                             })
                             .path("tag_value/:value/:code", ctx -> {
                                 final String value = ctx.getPathTokens().get("value");

@@ -114,19 +114,19 @@ public class IastSinkRouteProvider implements Consumer<Router> {
                 ctx.response().putHeader("Set-Cookie", "").end()
         );
         router.get("/iast/insecure-cookie/test_insecure").handler(ctx ->
-                ctx.response().putHeader("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict").end()
+                ctx.response().putHeader("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict").end()
         );
         router.get("/iast/insecure-cookie/test_secure").handler(ctx ->
-                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").end()
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").end()
         );
         router.get("/iast/no-samesite-cookie/test_insecure").handler(ctx ->
-                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true").end()
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly").end()
         );
         router.get("/iast/no-samesite-cookie/test_empty_cookie").handler(ctx ->
                 ctx.response().putHeader("Set-Cookie", "").end()
         );
         router.get("/iast/no-samesite-cookie/test_secure").handler(ctx ->
-                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").end()
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").end()
         );
         router.get("/iast/no-httponly-cookie/test_empty_cookie").handler(ctx ->
                 ctx.response().putHeader("Set-Cookie", "").end()
@@ -135,7 +135,7 @@ public class IastSinkRouteProvider implements Consumer<Router> {
                 ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;SameSite=Strict").end()
         );
         router.get("/iast/no-httponly-cookie/test_secure").handler(ctx ->
-                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").end()
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").end()
         );
         router.post("/iast/xpathi/test_insecure").handler(ctx -> {
             final HttpServerRequest request = ctx.request();

@@ -87,7 +87,7 @@ class Test_DsmRabbitmq:
     def setup_dsm_rabbitmq_dotnet_legacy(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
 
-    @irrelevant(context.library != "dotnet", reason="legacy dotnet behavior")
+    @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
     def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 

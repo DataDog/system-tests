@@ -191,6 +191,73 @@ def view_weak_cipher_secure():
     return Response("OK")
 
 
+def _sink_point(table="user", id="1"):
+    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql)
+
+
+@app.route("/iast/source/body/test", methods=["POST"])
+def view_iast_source_body():
+    table = flask_request.json.get("name")
+    user = flask_request.json.get("value")
+    _sink_point(table=table, id=user)
+    return Response("OK")
+
+
+@app.route("/iast/source/cookiename/test")
+def view_iast_source_cookie_name():
+    param = [key for key in flask_request.cookies.keys() if key == "user"]
+    _sink_point(id=param[0])
+    return Response("OK")
+
+
+@app.route("/iast/source/cookievalue/test")
+def view_iast_source_cookie_value():
+    table = flask_request.cookies.get("table")
+    _sink_point(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/headername/test")
+def view_iast_source_header_name():
+    param = [key for key in flask_request.headers.keys() if key == "User"]
+    _sink_point(id=param[0])
+    return Response("OK")
+
+
+@app.route("/iast/source/header/test")
+def view_iast_source_header_value():
+    table = flask_request.headers.get("table")
+    _sink_point(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/parametername/test", methods=["GET"])
+def view_iast_source_parametername_get():
+    param = [key for key in flask_request.args.keys() if key == "user"]
+    _sink_point(id=param[0])
+    return Response("OK")
+
+
+@app.route("/iast/source/parametername/test", methods=["POST"])
+def view_iast_source_parametername_post():
+    param = [key for key in flask_request.json.keys() if key == "user"]
+    _sink_point(id=param[0])
+    return Response("OK")
+
+
+@app.route("/iast/source/parameter/test", methods=["GET", "POST"])
+def view_iast_source_parameter():
+    if flask_request.args:
+        table = flask_request.args.get("table")
+    else:
+        table = flask_request.json.get("table")
+    _sink_point(table=table)
+    return Response("OK")
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
@@ -245,3 +312,66 @@ def view_sqli_insecure():
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     return Response("OK")
+
+
+@app.route("/iast/insecure-cookie/test_insecure")
+def test_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="None")
+    return resp
+
+
+@app.route("/iast/insecure-cookie/test_secure")
+def test_secure_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/insecure-cookie/test_empty_cookie")
+def test_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-httponly-cookie/test_insecure")
+def test_nohttponly_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=True, httponly=False, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-httponly-cookie/test_secure")
+def test_nohttponly_secure_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-httponly-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_insecure")
+def test_nosamesite_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=True, httponly=True, samesite="None")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_secure")
+def test_nosamesite_secure_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_empty_cookie")
+def test_nosamesite_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    return resp

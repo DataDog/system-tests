@@ -34,5 +34,4 @@ TODO=(
   utils/interfaces/schemas/serve.sh
   build.sh
   format.sh
-  run.sh
 )

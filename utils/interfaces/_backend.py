@@ -10,14 +10,14 @@ import time
 
 import requests
 
-from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_rid_from_request
-from utils.tools import logger
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils.tools import logger, get_rid_from_span, get_rid_from_request
 
 
-class _BackendInterfaceValidator(InterfaceValidator):
+class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate backend data processors"""
 
-    def __init__(self):
+    def __init__(self, library_interface):
         super().__init__("backend")
 
         # Mapping from request ID to the root span trace IDs submitted from tracers to agent.
@@ -25,11 +25,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         self.dd_site_url = self._get_dd_site_api_host()
         self.message_count = 0
 
-    @property
-    def _log_folder(self):
-        from utils import context
-
-        return f"{context.scenario.host_log_folder}/interfaces/backend"
+        self.library_interface = library_interface
 
     @staticmethod
     def _get_dd_site_api_host():
@@ -61,16 +57,14 @@ class _BackendInterfaceValidator(InterfaceValidator):
         super().wait(timeout)
         self._init_rid_to_library_trace_ids()
 
-    def load_data_from_logs(self, folder_path):
-        super().load_data_from_logs(folder_path)
+    def load_data_from_logs(self):
+        super().load_data_from_logs()
         self._init_rid_to_library_trace_ids()
 
     def _init_rid_to_library_trace_ids(self):
 
-        from utils.interfaces import library
-
         # Map each request ID to the spans created and submitted during that request call.
-        for _, span in library.get_root_spans():
+        for _, span in self.library_interface.get_root_spans():
             rid = get_rid_from_span(span)
 
             if not self.rid_to_library_trace_ids.get(rid):
@@ -117,7 +111,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         data = self._wait_for_trace(
             rid=rid,
             trace_id=dd_trace_id,
-            retries=10,
+            retries=5,
             sleep_interval_multiplier=2.0,
             dd_api_key=dd_api_key,
             dd_app_key=dd_app_key,
@@ -140,10 +134,10 @@ class _BackendInterfaceValidator(InterfaceValidator):
         return self.assert_request_spans_exist(request, query_filter, min_spans_len, limit)
 
     def assert_request_spans_exist(self, request, query_filter, min_spans_len=1, limit=100):
-        """Attempts to fetch span events from the Event Platform using the given `query_filter` as part of the search query.
-        The query should be what you would use in the `/apm/traces` page in the UI.
-        When a valid request is provided we will restrict the span search to span events
-        that include the request ID in their tags.
+        """Attempts to fetch span events from the Event Platform using the given `query_filter`
+        as part of the search query. The query should be what you would use in the `/apm/traces`
+        page in the UI. When a valid request is provided we will restrict the span search to span
+        events that include the request ID in their tags.
 
         It will assert that at least `min_spans_len` were received from the backend before
         returning the list of span events.
@@ -156,8 +150,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
         return self.assert_spans_exist(query_filter, min_spans_len, limit)
 
     def assert_spans_exist(self, query_filter, min_spans_len=1, limit=100):
-        """Attempts to fetch span events from the Event Platform using the given `query_filter` as part of the search query.
-        The query should be what you would use in the `/apm/traces` page in the UI.
+        """Attempts to fetch span events from the Event Platform using the given `query_filter`
+        as part of the search query. The query should be what you would use in the `/apm/traces`
+        page in the UI.
 
         It will assert that at least `min_spans_len` were received from the backend before
         returning the list of span events.
@@ -182,6 +177,26 @@ class _BackendInterfaceValidator(InterfaceValidator):
         return self.rid_to_library_trace_ids[rid]
 
     def _request(self, method, path, host=None, json_payload=None, dd_api_key=None, dd_app_key=None):
+        while True:
+            data = self._request_one(
+                method=method,
+                path=path,
+                host=host,
+                json_payload=json_payload,
+                dd_api_key=dd_api_key,
+                dd_app_key=dd_app_key,
+            )
+            status_code = data["response"]["status_code"]
+            if status_code == 429:
+                # https://docs.datadoghq.com/api/latest/rate-limits/
+                logger.debug(f"Got rate limit error: {data['response']}")
+                sleep_time_s = int(data["response"]["headers"]["x-ratelimit-reset"])
+                logger.warning(f"Rate limit hit, sleeping {sleep_time_s}")
+                time.sleep(sleep_time_s)
+                continue
+            return data
+
+    def _request_one(self, method, path, host=None, json_payload=None, dd_api_key=None, dd_app_key=None):
         if dd_api_key is None:
             dd_api_key = os.environ["DD_API_KEY"]
         if dd_app_key is None:
@@ -194,6 +209,11 @@ class _BackendInterfaceValidator(InterfaceValidator):
         if host is None:
             host = self.dd_site_url
         r = requests.request(method, url=f"{host}{path}", headers=headers, json=json_payload, timeout=10)
+
+        if r.status_code == 403:
+            raise ValueError(
+                "Request to the backend returned error 403: check DD_API_KEY and DD_APP_KEY environment variables"
+            )
 
         if "?" in path:
             path, query = path.split("?", 1)
@@ -237,21 +257,20 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
-            if status_code != 404 and status_code != 200:
+            if status_code not in (404, 200):
                 raise ValueError(f"Backend did not provide trace: {data['path']}. Status is {status_code}.")
             if status_code != 404:
                 return data
 
+            logger.debug(f"Sleeping {sleep_interval_s} seconds")
             time.sleep(sleep_interval_s)
             sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
 
-        raise Exception(
+        raise ValueError(
             f"Backend did not provide trace after {retries} retries: {data['path']}. Status is {status_code}."
         )
 
     def _wait_for_request_traces(self, rid, retries=5, sleep_interval_multiplier=2.0):
-        if retries < 1:
-            retries = 1
 
         trace_ids = self._get_trace_ids(rid)
         logger.info(
@@ -271,11 +290,10 @@ class _BackendInterfaceValidator(InterfaceValidator):
         return trace
 
     def _wait_for_event_platform_spans(self, query_filter, limit, retries=5, sleep_interval_multiplier=2.0):
-        if retries < 1:
-            retries = 1
 
         logger.info(
-            f"Waiting until spans (non-empty response) become available with query '{query_filter}' with {retries} retries..."
+            f"Waiting until spans (non-empty response) become available with "
+            f"query '{query_filter}' with {retries} retries..."
         )
         sleep_interval_s = 1
         current_retry = 1
@@ -288,7 +306,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             # We should retry fetching from the backend as long as the response has empty data.
             status_code = data["response"]["status_code"]
             if status_code != 200:
-                raise Exception(f"Fetching spans from Event Platform failed: {data['path']}. Status is {status_code}.")
+                raise ValueError(f"Fetching spans from Event Platform failed: {data['path']}. Status is {status_code}.")
 
             parsed = data["response"]["content"]
             if parsed["result"]["count"] > 0:
@@ -349,7 +367,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             )
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
-            if status_code != 404 and status_code != 200:
+            if status_code not in (404, 200):
                 raise ValueError(f"Backend did not provide metric: {data['path']}. Status is {status_code}.")
             if status_code != 404:
                 resp_content = data["response"]["content"]
@@ -360,7 +378,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             time.sleep(sleep_interval_s)
             sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
 
-        raise Exception(
+        raise ValueError(
             f"Backend did not provide metric series after {retries} retries: {data['path']}. Status is {status_code}."
         )
 
@@ -372,14 +390,15 @@ class _BackendInterfaceValidator(InterfaceValidator):
         sleep_interval_s = 1
         current_retry = 1
         while current_retry <= retries:
-            logger.info(f"Retry {current_retry}")
+            logger.info(f"Getting logs from {path}, retry {current_retry}")
             current_retry += 1
             data = self._request(
                 "GET", host=self._get_logs_metrics_api_host(), path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key
             )
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
-            if status_code != 404 and status_code != 200:
+            if status_code not in (404, 200):
+                logger.error(f"Backend response: {data['response']}")
                 raise ValueError(f"Backend did not provide logs: {data['path']}. Status is {status_code}.")
             if status_code != 404:
                 logs = data["response"]["content"]["data"]
@@ -391,7 +410,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             time.sleep(sleep_interval_s)
             sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
 
-        raise Exception(
+        raise ValueError(
             f"Backend did not provide logs after {retries} retries: {data['path']}. Status is {status_code}."
         )
 

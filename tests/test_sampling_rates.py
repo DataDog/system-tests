@@ -9,28 +9,27 @@ from utils import weblog, interfaces, context, missing_feature, released, bug, i
 from utils.tools import logger
 
 
-USER_REJECT = -1
-AUTO_REJECT = 0
-AUTO_KEEP = 1
-USER_KEEP = 2
+def priority_should_be_kept(sampling_priority):
+    """ Returns if a given sampling priority means its trace has to be kept.
+
+    See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
+    """
+    AUTO_KEEP = 1
+    USER_KEEP = 2
+
+    return sampling_priority in (AUTO_KEEP, USER_KEEP)
 
 
-def get_sampling_decision(sampling_rate, trace_id, meta):
-    """Algorithm described in the priority sampling RFC
-    https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md"""
+def trace_should_be_kept(sampling_rate, trace_id):
+    """Given a trace_id and a sampling rate, returns if a trace should be kept.
+    
+    Reference algorithm described in the priority sampling RFC
+    https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md
+    """
     MAX_TRACE_ID = 2 ** 64
     KNUTH_FACTOR = 1111111111111111111
-    AUTO_REJECT = 0
-    AUTO_KEEP = 1
-    MANUAL_KEEP = 2
-    MANUAL_REJECT = -1
 
-    if meta.get("appsec.event", None) == "true" or meta.get("_dd.appsec.event_rules.errors", None) is not None:
-        return (MANUAL_KEEP,)
-
-    if ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID):
-        return (AUTO_KEEP, MANUAL_KEEP)
-    return (AUTO_REJECT, MANUAL_REJECT)
+    return ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID)
 
 
 def _spans_with_parent(traces, parent_ids):
@@ -75,7 +74,7 @@ class Test_SamplingRates:
         for data, root_span in interfaces.library.get_root_spans():
             metrics = root_span["metrics"]
             assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
-            sampled_count[metrics["_sampling_priority_v1"] in (USER_KEEP, AUTO_KEEP)] += 1
+            sampled_count[priority_should_be_kept(metrics["_sampling_priority_v1"])] += 1
 
         trace_count = sum(sampled_count.values())
         # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
@@ -89,16 +88,16 @@ class Test_SamplingRates:
                 f"Sampling rate is set to {context.tracer_sampling_rate}, "
                 f"expected count of sampled traces {expectation}/{trace_count}."
                 f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True]/trace_count}, "
-                f"wich is outside of the confidence interval of +-{confidence_interval}\n"
+                f"which is outside of the confidence interval of +-{confidence_interval}\n"
                 "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
             )
 
-        # Test that all traces sent by the tracer is sent to the agent"""
+        # Test that all traces sent by the tracer are sent to the agent
         trace_ids = set()
 
         for data, span in interfaces.library.get_root_spans():
             metrics = span["metrics"]
-            if metrics["_sampling_priority_v1"] not in (USER_REJECT, AUTO_REJECT):
+            if priority_should_be_kept(metrics["_sampling_priority_v1"]):
                 trace_ids.add(span["trace_id"])
 
         for _, span in interfaces.agent.get_spans():
@@ -106,7 +105,7 @@ class Test_SamplingRates:
             if trace_id in trace_ids:
                 trace_ids.remove(trace_id)
 
-        assert len(trace_ids) == 0, f"Some traces has not been sent by the agent: {trace_ids}"
+        assert len(trace_ids) == 0, f"Some traces have not been sent by the agent: {trace_ids}"
 
 
 @released(php="0.71.0")
@@ -138,6 +137,7 @@ class Test_SamplingDecisions:
     )
     @bug(context.library >= "python@1.11.0rc2.dev8", reason="Under investigation")
     @bug(library="golang", reason="Need investigation")
+    @missing_feature(library="ruby", reason="Route /sample_rate_route not implemented")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
@@ -148,21 +148,19 @@ class Test_SamplingDecisions:
                     f"Message: {data['log_filename']}:"
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
-            if sampling_priority not in (
-                expected := get_sampling_decision(
-                    context.tracer_sampling_rate, root_span["trace_id"], root_span["meta"]
-                )
-            ):
+
+            sampling_decision = priority_should_be_kept(sampling_priority)
+            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, root_span["trace_id"])
+            if sampling_decision != expected_decision:
                 raise ValueError(
-                    f"Trace id {root_span['trace_id']} "
-                    f"sampling priority is {sampling_priority}, should be {expected}"
+                    f"Trace id {root_span['trace_id']}, sampling priority {sampling_priority}, "
+                    f"sampling decision {sampling_decision} differs from the expected {expected_decision}"
                 )
 
         for data, span in interfaces.library.get_root_spans():
             validator(data, span)
 
     def setup_sampling_decision_added(self):
-
         self.traces = [{"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)]
 
         for trace in self.traces:
@@ -172,9 +170,8 @@ class Test_SamplingDecisions:
             )
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
-    @bug(library="ruby", reason="Unknown reason")
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
-    @missing_feature(library="ruby", reason="Endpoint not implemented on weblog")
+    @missing_feature(library="ruby", reason="Route /sample_rate_route not implemented")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
@@ -183,7 +180,6 @@ class Test_SamplingDecisions:
 
         def validator(data):
             for span in _spans_with_parent(data["request"]["content"], traces.keys()):
-
                 expected_trace_id = traces[span["parent_id"]]["trace_id"]
                 spans.append(span)
 
@@ -210,9 +206,6 @@ class Test_SamplingDecisions:
         self.traces_determinism = [
             {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)
         ]
-
-        for t in self.traces_determinism:
-            interfaces.library.uniqueness_exceptions.add_trace_id(t["trace_id"])
 
         # Send requests with the same trace and parent id twice
         for _ in range(2):
