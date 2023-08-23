@@ -1,7 +1,10 @@
 name: Experimental tests
 
 on:
-  workflow_call:
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+    - '**'
   
 env:
   REGISTRY: ghcr.io

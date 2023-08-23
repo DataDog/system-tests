@@ -1,21 +1,6 @@
 name: Testing the test
 on:
   workflow_dispatch: {}
-  schedule:
-  - cron: 00 02 * * 2-6
-
-  pull_request:
-    branches:
-    - '**'
-    types:
-    - opened
-    - synchronize
-    - labeled
-    - unlabeled
-
-  push:
-    branches:
-    - main
 
 env:
   REGISTRY: ghcr.io
