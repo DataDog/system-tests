@@ -55,7 +55,7 @@ jobs:
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
-    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
+    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@shurivich/run_debugger_label
 
   parametric:
     if: needs.scenarios.outputs.run_parametric == 'true'
