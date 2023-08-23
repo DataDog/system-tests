@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 
@@ -21,23 +21,20 @@ func main() {
 	tracer.Start()
 	defer tracer.Stop()
 
+	wafHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := parseBody(r)
+		if err == nil {
+			if err := appsec.MonitorParsedHTTPBody(r.Context(), body); err != nil {
+				return
+			}
+		}
+		w.Write([]byte("Hello, WAF!\n"))
+	})
+
 	mux := chi.NewRouter().With(chitrace.Middleware())
 
-	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
-		body, err := parseBody(r)
-		if err == nil {
-			appsec.MonitorParsedHTTPBody(r.Context(), body)
-		}
-		w.Write([]byte("Hello, WAF!\n"))
-	})
-
-	mux.HandleFunc("/waf/*", func(w http.ResponseWriter, r *http.Request) {
-		body, err := parseBody(r)
-		if err == nil {
-			appsec.MonitorParsedHTTPBody(r.Context(), body)
-		}
-		w.Write([]byte("Hello, WAF!\n"))
-	})
+	mux.HandleFunc("/waf", wafHandler)
+	mux.HandleFunc("/waf/*", wafHandler)
 
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		userId := r.URL.Query().Get("user")
@@ -56,6 +53,11 @@ func main() {
 	})
 
 	mux.HandleFunc("/tag_value/{tag}/{status}", func(w http.ResponseWriter, r *http.Request) {
+		if body, err := parseBody(r); err == nil {
+			if err := appsec.MonitorParsedHTTPBody(r.Context(), body); err != nil {
+				return
+			}
+		}
 		ctx := chi.RouteContext(r.Context())
 		tag := ctx.URLParam("tag")
 		status, _ := strconv.Atoi(ctx.URLParam("status"))
