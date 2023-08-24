@@ -24,6 +24,7 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
 - The test case creates a new span and sets a tag on it using the shared GRPC/HTTP interface.
+- The implementations of the GRPC/HTTP interface, by language, are in `utils/build/docker/<lang>/parametric`.
 - Data is flushed to the test agent after the with test_library block closes.
 - Data is retrieved using the `test_agent` fixture and asserted on.
 
@@ -132,11 +133,12 @@ PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@1.x ./run.sh .
 #### NodeJS
 
 There is two ways for running the NodeJS tests with a custom tracer:
-- Place the ddtrace NPM package in the folder ``apps/nodejs/npm`` and then set the environment variable ``NODEJS_DDTRACE_MODULE``
+- Place the ddtrace NPM package in the folder `utils/build/docker/nodejs/parametric/npm` and then set the environment variable `NODEJS_DDTRACE_MODULE`
 with the filename placed in the aforementioned folder. For example:
-``TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz" ./run.sh``
-- Set the environment variable ``NODEJS_DDTRACE_MODULE`` to hold a commit in a remote branch. The following example will run
-the tests with a specific commit: ``TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh``
+  - `TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz" ./run.sh PARAMETRIC`
+- Set the environment variable `NODEJS_DDTRACE_MODULE` to hold a commit in a remote branch. The following example will run
+the tests with a specific commit:
+  - `TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh PARAMETRIC`
 
 #### Ruby
 
