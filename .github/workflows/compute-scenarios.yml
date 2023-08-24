@@ -22,6 +22,9 @@ on:
       run_libinjection:
         description: "Shall we run lib-injection scenarios"
         value: ${{ jobs.main.outputs.run_libinjection }}
+      run_debugger:
+        description: "Shall we run debugger scenarios"
+        value: ${{ jobs.main.outputs.run_debugger }}
 
 jobs:
   main:
@@ -34,6 +37,7 @@ jobs:
       run_profiling: ${{ steps.compute_profiling.outputs.result }}
       run_parametric: ${{ steps.compute_parametric.outputs.result }}
       run_libinjection: ${{ steps.compute_libinjection.outputs.result }}
+      run_debugger: ${{ steps.compute_debugger.outputs.result }}
     steps:
       - name: Compute run_all
         id: compute_run_all
@@ -128,6 +132,21 @@ jobs:
 
           echo "Result: $GITHUB_OUTPUT"
 
+      - name: Compute run_debugger
+        id: compute_debugger
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-debugger-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
       - name: Print results
         run: |
           echo "Run all: -> ${{ steps.compute_run_all.outputs.result }}"
@@ -136,3 +155,4 @@ jobs:
           echo "Run profiling: -> ${{ steps.compute_profiling.outputs.result }}"
           echo "Run parametric: -> ${{ steps.compute_parametric.outputs.result }}"
           echo "Run lib-injection: -> ${{ steps.compute_libinjection.outputs.result }}"
+          echo "Run debugger: -> ${{ steps.compute_debugger.outputs.result }}"
