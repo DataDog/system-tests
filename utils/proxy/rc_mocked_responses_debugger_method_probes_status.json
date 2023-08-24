@@ -8,7 +8,7 @@
       "methodName": "SomeMethod",
       "sourceFile": null
     },
-    "evaluateAt": "ENTRY"
+    "evaluateAt": "EXIT"
   },
   {
     "language": "",
@@ -18,7 +18,7 @@
       "methodName": "LogProbe",
       "sourceFile": null
     },
-    "evaluateAt": "ENTRY"
+    "evaluateAt": "EXIT"
   },
   {
     "language": "",
@@ -35,7 +35,7 @@
       "methodName": "SomeMethod",
       "sourceFile": null
     },
-    "evaluateAt": "ENTRY"
+    "evaluateAt": "EXIT"
   },
   {
     "language": "",
@@ -52,7 +52,7 @@
       "methodName": "MetricProbe",
       "sourceFile": null
     },
-    "evaluateAt": "ENTRY"
+    "evaluateAt": "EXIT"
   },
   {
     "language": "",
@@ -62,7 +62,7 @@
       "methodName": "SomeMethod",
       "sourceFile": null
     },
-    "evaluateAt": "ENTRY"
+    "evaluateAt": "EXIT"
   },
   {
     "language": "",
@@ -72,7 +72,7 @@
       "methodName": "SpanProbe",
       "sourceFile": null
     },
-    "evaluateAt": "ENTRY"
+    "evaluateAt": "EXIT"
   },
   {
     "language": "",
@@ -99,7 +99,7 @@
       "methodName": "SomeMethod",
       "sourceFile": null
     },
-    "evaluateAt": "ENTRY"
+    "evaluateAt": "EXIT"
   },
   {
     "language": "",
@@ -126,6 +126,6 @@
       "methodName": "SpanDecorationProbe",
       "sourceFile": null
     },
-    "evaluateAt": "ENTRY"
+    "evaluateAt": "EXIT"
   }
 ]
