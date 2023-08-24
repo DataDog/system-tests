@@ -7,15 +7,16 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
-@released(golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="0.89.0", python="?", ruby="?")
+@released(golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="0.89.0", python="?", ruby="1.13.0")
 @missing_feature(
     weblog_variant="rails32",
     reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
 )
-@missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
-@missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
-@missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
-@missing_feature(weblog_variant="sinatra20", reason="We do not support authentication framework for sinatra")
+@missing_feature(
+    context.library == "ruby"
+    and context.weblog_variant in ("rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
+    reason="We do not support authentication framework for sinatra or rack",
+)
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
@@ -153,7 +154,7 @@ class Test_Login_Events:
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, "password": "12345"}
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
         )
 
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
@@ -264,15 +265,16 @@ class Test_Login_Events:
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @scenarios.appsec_auto_events_extended
-@released(golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="0.89.0", python="?", ruby="?")
+@released(golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="0.89.0", python="?", ruby="1.14.0")
 @missing_feature(
-    weblog_variant="rails32",
-    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
+    context.library == "ruby" and context.weblog_variant in ("rails32", "rails40", "rails41"),
+    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String",
 )
-@missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
-@missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
-@missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
-@missing_feature(weblog_variant="sinatra20", reason="We do not support authentication framework for sinatra")
+@missing_feature(
+    context.library == "ruby"
+    and context.weblog_variant in ("rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
+    reason="We do not support authentication framework for sinatra or rack",
+)
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 
@@ -367,11 +369,17 @@ class Test_Login_Events_Extended:
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"
-            if context.library != "dotnet":
-                assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
-            else:
+            if context.library == "ruby":
+                # In ruby we do not have access to the user object since it fails with invalid username
+                # For that reason we can not extract id, email or username
+                assert meta.get("appsec.events.users.login.failure.usr.id") == None
+                assert meta.get("appsec.events.users.login.failure.usr.email") == None
+                assert meta.get("appsec.events.users.login.failure.usr.username") == None
+            elif context.library == "dotnet":
                 # in dotnet if the user doesn't exist, there is no id (generated upon user creation)
                 assert meta["appsec.events.users.login.failure.username"] == "invalidUser"
+            else:
+                assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
             assert_priority(span, meta)
 
     def setup_login_wrong_user_failure_basic(self):
