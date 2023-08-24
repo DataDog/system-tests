@@ -12,10 +12,11 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
     weblog_variant="rails32",
     reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
 )
-@missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
-@missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
-@missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
-@missing_feature(weblog_variant="sinatra20", reason="We do not support authentication framework for sinatra")
+@missing_feature(
+    context.library == "ruby"
+    and context.weblog_variant in ("rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
+    reason="We do not support authentication framework for sinatra or rack",
+)
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
@@ -266,13 +267,14 @@ class Test_Login_Events:
 @scenarios.appsec_auto_events_extended
 @released(golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="0.89.0", python="?", ruby="1.14.0")
 @missing_feature(
-    weblog_variant="rails32",
-    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
+    context.library == "ruby" and context.weblog_variant in ("rails32", "rails40", "rails41"),
+    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String",
 )
-@missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
-@missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
-@missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
-@missing_feature(weblog_variant="sinatra20", reason="We do not support authentication framework for sinatra")
+@missing_feature(
+    context.library == "ruby"
+    and context.weblog_variant in ("rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
+    reason="We do not support authentication framework for sinatra or rack",
+)
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 
