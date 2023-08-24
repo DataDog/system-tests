@@ -3,12 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-import pytest
 from utils import bug, context, coverage, interfaces, released, rfc, weblog, missing_feature
 from utils.tools import logger
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 def validate_no_leak(needle, whitelist_pattern=None):
@@ -71,10 +67,14 @@ class Test_UrlQuery:
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
-    """ PII in url field are removed on distant calls """
+    """ PII in url field is removed on client HTTP calls """
 
     def setup_main(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://leak-name-url:leak-password-url@agent:8127"})
+        # This is done against agent:8127 which will return error 404.
+        # That is expected, since we will only check the HTTP client call made
+        # from weblog's /make_distant_call endpoint.
+        url = "http://leak-name-url:leak-password-url@agent:8127/"
+        self.r = weblog.get("/make_distant_call", params={"url": url})
 
     @missing_feature(
         context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"), reason="Need weblog endpoint",

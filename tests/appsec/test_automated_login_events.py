@@ -7,7 +7,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
-@released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="0.89.0", python="?", ruby="?")
+@released(golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="0.89.0", python="?", ruby="?")
 @missing_feature(
     weblog_variant="rails32",
     reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
@@ -59,7 +59,7 @@ class Test_Login_Events:
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
         )
 
-    @bug(context.library == "nodejs", reason="usr.id present in meta")
+    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -72,8 +72,8 @@ class Test_Login_Events:
     def setup_login_pii_success_basic(self):
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
-    @bug(context.library == "nodejs", reason="usr.id present in meta")
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -115,7 +115,7 @@ class Test_Login_Events:
             "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
         )
 
-    @bug(context.library == "nodejs", reason="usr.id present in meta")
+    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -135,8 +135,8 @@ class Test_Login_Events:
             "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}
         )
 
-    @bug(context.library == "nodejs", reason="usr.id present in meta")
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -156,7 +156,7 @@ class Test_Login_Events:
             "/login?auth=local", data={self.username_key: self.USER, "password": "12345"}
         )
 
-    @bug(context.library == "nodejs", reason="usr.id present in meta")
+    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -176,8 +176,8 @@ class Test_Login_Events:
             "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
-    @bug(context.library == "nodejs", reason="usr.id present in meta")
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -264,7 +264,7 @@ class Test_Login_Events:
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @scenarios.appsec_auto_events_extended
-@released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="0.89.0", python="?", ruby="?")
+@released(golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="0.89.0", python="?", ruby="?")
 @missing_feature(
     weblog_variant="rails32",
     reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",

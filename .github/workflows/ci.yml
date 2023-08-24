@@ -435,6 +435,11 @@ jobs:
       run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_METRIC_GENERATION_ENABLED scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh TELEMETRY_METRIC_GENERATION_ENABLED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
@@ -442,12 +447,12 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_METHOD_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
       run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_LINE_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
       run: ./run.sh DEBUGGER_LINE_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
