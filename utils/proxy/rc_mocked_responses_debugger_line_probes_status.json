@@ -32,19 +32,6 @@
     },
     {
         "language": "",
-        "id": "spanProbe-installed",
-        "where": {
-            "typeName": null,
-            "sourceFile": "ACTUAL_SOURCE_FILE",
-            "lines": [
-                "35"
-            ]
-        },
-        "evaluateAt": "EXIT"
-    },
-    null,
-    {
-        "language": "",
         "id": "spanDecorationProbe-installed",
         "targetSpan": "ACTIVE",
         "decorations": [
