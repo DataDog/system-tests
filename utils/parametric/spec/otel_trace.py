@@ -48,13 +48,13 @@ def get_val(v) -> pb.ListVal:
         return pb.ListVal(val=[pb.AttrVal(double_val=i) for i in v])
     if isinstance(v, list) and check_list_type(v, int):
         return pb.ListVal(val=[pb.AttrVal(integer_val=i) for i in v])
-    elif isinstance(v, str):
+    if isinstance(v, str):
         return pb.ListVal(val=[pb.AttrVal(string_val=v)])
-    elif isinstance(v, bool):
+    if isinstance(v, bool):
         return pb.ListVal(val=[pb.AttrVal(bool_val=v)])
-    elif isinstance(v, float):
+    if isinstance(v, float):
         return pb.ListVal(val=[pb.AttrVal(double_val=v)])
-    elif isinstance(v, int):
+    if isinstance(v, int):
         return pb.ListVal(val=[pb.AttrVal(integer_val=v)])
     return None
 

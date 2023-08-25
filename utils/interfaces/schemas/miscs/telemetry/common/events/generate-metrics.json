@@ -12,7 +12,8 @@
             "type": "array",
             "items": {
                 "$ref": "/miscs/telemetry/common/objects/metric.json"
-            }
+            },
+            "minItems": 1
         }
     },
     "required": ["namespace", "series"]

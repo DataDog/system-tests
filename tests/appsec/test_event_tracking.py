@@ -7,9 +7,6 @@ import pytest
 
 from utils import weblog, context, coverage, interfaces, released, irrelevant
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
 if context.weblog_variant == "spring-boot-payara":
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 

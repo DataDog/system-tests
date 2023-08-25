@@ -3,13 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
+
 from utils import weblog, context, coverage, interfaces, released, missing_feature, irrelevant, rfc, scenarios
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
-
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")

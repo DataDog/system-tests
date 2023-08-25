@@ -20,7 +20,7 @@ class _SeqIdLatencyValidation:
             self.received_max_time = now
         else:
             if self.received_max_time is not None and (now - self.received_max_time) > self.MAX_OUT_OF_ORDER_LAG:
-                raise Exception(
+                raise ValueError(
                     f"Received message with seq_id {seq_id} to far more than"
                     f"100ms after message with seq_id {self.max_seq_id}"
                 )
@@ -43,11 +43,11 @@ class _NoSkippedSeqId:
         for i in range(len(self.seq_ids) - 1):
             diff = self.seq_ids[i + 1][0] - self.seq_ids[i][0]
             if diff == 0:
-                raise Exception(
+                raise ValueError(
                     f"Detected 2 telemetry messages with same seq_id {self.seq_ids[i + 1][1]} and {self.seq_ids[i][1]}"
                 )
 
             if diff > 1:
-                raise Exception(
+                raise ValueError(
                     f"Detected non conscutive seq_ids between {self.seq_ids[i + 1][1]} and {self.seq_ids[i][1]}"
                 )

@@ -1,14 +1,22 @@
-FROM golang:1.18
+FROM golang:1.20
 
-# print versions
+# print important lib versions
 RUN go version && curl --version
 
-COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+# install jq
+RUN apt-get update && apt-get -y install jq
+
+# download go dependencies
+RUN mkdir -p /app
+COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app
+WORKDIR /app
+RUN go mod download && go mod verify
+
+# copy the app code
 COPY utils/build/docker/golang/app /app
 
-WORKDIR /app
-
-RUN apt-get update && apt-get -y install jq
+# download the proper tracer version
+COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 

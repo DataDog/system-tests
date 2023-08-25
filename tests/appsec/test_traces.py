@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 from tests.constants import PYTHON_RELEASE_PUBLIC_BETA, PYTHON_RELEASE_GA_1_1
 from utils import (
     weblog,
@@ -17,8 +16,6 @@ from utils import (
     scenarios,
 )
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
