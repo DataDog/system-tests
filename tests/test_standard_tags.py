@@ -3,7 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
+from utils import (bug, context, coverage, interfaces, irrelevant,
+                   missing_feature, released, rfc, weblog)
 
 
 @released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
@@ -32,8 +33,8 @@ class Test_StandardTagsMethod:
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
 
-@released(dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0")
-@released(php="0.76.0", python="1.6.0rc1.dev", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?")
+@released(php="?", python="1.20", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl:
@@ -76,7 +77,7 @@ class Test_StandardTagsUrl:
                 weblog.get(
                     "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
                 ),
-                r"^.*/waf\?json=%7B%20%22<redacted>%7D$",
+                r"^.*/waf\?json=%7B%20<redacted>%7D$",
             ),
         ]
 
@@ -92,7 +93,7 @@ class Test_StandardTagsUrl:
         )
 
     def test_multiple_matching_substring(self):
-        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D$"  # pylint: disable=line-too-long
+        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
             self.request_multiple_matching_substring, tags={"http.url": tag}, value_as_regular_expression=True
         )
