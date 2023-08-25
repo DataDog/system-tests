@@ -24,7 +24,8 @@ class Test_Tracecontext_Span:
                 "name": "inherited_child",
                 "tracestate": "dd=s:2;o:system-tests;t.usr.id:baz64~~,othervendor=t61rcWkgMzE",
                 "traceparent": "00-00000000000000001111111111111111-2222222222222222-01",
-            })
+            },
+        )
 
     def test_tracecontext_span(self):
         # Assert the weblog server span was sent by the agent.
@@ -35,9 +36,9 @@ class Test_Tracecontext_Span:
         # Assert received span has properties from the passed headers
         span = _get_span(spans, "inherited_child")
         # 00000000000000001111111111111111 in integer form
-        assert span.get("traceID") == '1229782938247303441'
+        assert span.get("traceID") == "1229782938247303441"
         # 2222222222222222 in integer form
-        assert span.get("parentID") == '2459565876494606882'
+        assert span.get("parentID") == "2459565876494606882"
 
         data = json.loads(self.req.text)
         # Assert only W3C headers were injected (no Datadog headers)
@@ -53,9 +54,9 @@ class Test_Tracecontext_Span:
         # - different parent id, that is equal to the spanId of the received span
         # - trace flags == 01,
         traceparent = get_traceparent(data)
-        assert traceparent.trace_id == '00000000000000001111111111111111'
-        assert int(traceparent.parent_id, 16) == int(span.get('spanID'))
-        assert traceparent.trace_flags == '01'
+        assert traceparent.trace_id == "00000000000000001111111111111111"
+        assert int(traceparent.parent_id, 16) == int(span.get("spanID"))
+        assert traceparent.trace_flags == "01"
 
         # Assert all spans in the distributed trace were received from the backend
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="")
