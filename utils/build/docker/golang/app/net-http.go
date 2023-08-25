@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"time"
-	"os"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -90,6 +91,47 @@ func main() {
 			}
 		}
 		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/make_tracecontext_call", func(w http.ResponseWriter, r *http.Request) {
+		tracestate := r.URL.Query().Get("tracestate")
+		traceparent := r.URL.Query().Get("traceparent")
+		spanName := r.URL.Query().Get("name")
+
+		tags := []ddtracer.StartSpanOption{}
+		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
+		// and the traces/spans that will be generated below, so that we can reference to them in our tests.
+		// See https://github.com/DataDog/system-tests/blob/2d6ae4d5bf87d55855afd36abf36ee710e7d8b3c/utils/interfaces/_core.py#L156
+		userAgent := r.UserAgent()
+		tags = append(tags, ddtracer.Tag("http.useragent", userAgent))
+
+		if r.URL.Query().Get("shouldIndex") == "1" {
+			tags = append(tags,
+				ddtracer.Tag("_dd.filter.kept", 1),
+				ddtracer.Tag("_dd.filter.id", "system_tests_e2e"),
+			)
+		}
+		ctx, err := ddtracer.Extract(ddtracer.TextMapCarrier{
+			"tracestate":  tracestate,
+			"traceparent": traceparent,
+		})
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+		}
+
+		span := ddtracer.StartSpan(spanName, append(tags, ddtracer.ChildOf(ctx))...)
+		headers := ddtracer.TextMapCarrier{}
+		err = ddtracer.Inject(span.Context(), headers)
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+		}
+		span.Finish()
+
+		ddtracer.Flush()
+		b, _ := json.Marshal(headers)
+		w.Write(b)
 	})
 
 	mux.HandleFunc("/headers", headers)
