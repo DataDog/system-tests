@@ -1,3 +1,4 @@
+#if DDTRACE_2_23_0_OR_GREATER
 using Microsoft.AspNetCore.Builder;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
@@ -47,3 +48,4 @@ namespace weblog
         }
     }
 }
+#endif

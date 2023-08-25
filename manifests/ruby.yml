@@ -1,0 +1,7 @@
+tests/:
+  appsec/:
+    iast/:
+      sink/:
+        test_xss.py:
+          TestXSS:
+            "*": "?"

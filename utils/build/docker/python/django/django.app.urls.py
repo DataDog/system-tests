@@ -125,6 +125,60 @@ def view_weak_cipher_secure(request):
     return HttpResponse("OK")
 
 
+def view_insecure_cookies_insecure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("insecure", "cookie", secure=False)
+    return res
+
+
+def view_insecure_cookies_secure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure2", "value", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_insecure_cookies_empty(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_nohttponly_cookies_insecure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("insecure", "cookie", secure=True, httponly=False, samesite="Strict")
+    return res
+
+
+def view_nohttponly_cookies_secure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure2", "value", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_nohttponly_cookies_empty(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_nosamesite_cookies_insecure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("insecure", "cookie", secure=True, httponly=True, samesite="None")
+    return res
+
+
+def view_nosamesite_cookies_secure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure2", "value", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_nosamesite_cookies_empty(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
 @csrf_exempt
 def view_sqli_insecure(request):
     username = request.POST.get("username", "")
@@ -306,6 +360,15 @@ urlpatterns = [
     path("iast/insecure_hashing/deduplicate", view_weak_hash_deduplicate),
     path("iast/insecure_cipher/test_insecure_algorithm", view_weak_cipher_insecure),
     path("iast/insecure_cipher/test_secure_algorithm", view_weak_cipher_secure),
+    path("iast/insecure-cookie/test_insecure", view_insecure_cookies_insecure),
+    path("iast/insecure-cookie/test_secure", view_insecure_cookies_secure),
+    path("iast/insecure-cookie/test_empty_cookie", view_insecure_cookies_empty),
+    path("iast/no-httponly-cookie/test_insecure", view_nohttponly_cookies_insecure),
+    path("iast/no-httponly-cookie/test_secure", view_nohttponly_cookies_secure),
+    path("iast/no-httponly-cookie/test_empty_cookie", view_nohttponly_cookies_empty),
+    path("iast/no-samesite-cookie/test_insecure", view_nosamesite_cookies_insecure),
+    path("iast/no-samesite-cookie/test_secure", view_nosamesite_cookies_secure),
+    path("iast/no-samesite-cookie/test_empty_cookie", view_nosamesite_cookies_empty),
     path("iast/sqli/test_secure", view_sqli_secure),
     path("iast/sqli/test_insecure", view_sqli_insecure),
     path("iast/source/body/test", view_iast_source_body),

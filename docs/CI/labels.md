@@ -10,6 +10,7 @@ In any other case, you'll need to add [labels](https://docs.github.com/en/issues
 - `run-profiling-scenario`
 - `run-open-telemetry-scenarios`
 - `run-libinjection-scenarios`
+- `run-debugger-scenarios`
 
 And if you modify something that could impact all scenarios, (or if you have any doubt), the label that run everything is `run-all-scenarios`. Be patient, the CI will take more than one hour. You can merge your PR once it has been approved, even if you have only run the tests on the default scenario.
 

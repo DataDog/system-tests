@@ -5,14 +5,19 @@ import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Request;
+import org.glassfish.grizzly.http.server.Session;
+
 
 import static com.datadoghq.jersey.Main.DATA_SOURCE;
 import static com.datadoghq.jersey.Main.LDAP_CONTEXT;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
 
 @Path("/iast")
 @Produces(MediaType.TEXT_PLAIN)
@@ -208,19 +213,19 @@ public class IastSinkResource {
     @GET
     @Path("/insecure-cookie/test_insecure")
     public Response  insecureCookie() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict").build();
     }
 
     @GET
     @Path("/insecure-cookie/test_secure")
     public Response  secureCookie() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").build();
     }
 
     @GET
     @Path("/no-samesite-cookie/test_insecure")
     public Response  noSameSiteCookieInsecure() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly=true;Secure").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly;Secure").build();
     }
 
     @GET
@@ -232,7 +237,7 @@ public class IastSinkResource {
     @GET
     @Path("/no-samesite-cookie/test_secure")
     public Response  noSameSiteCookieSecure() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").build();
     }
 
     @GET
@@ -250,7 +255,7 @@ public class IastSinkResource {
     @GET
     @Path("/no-httponly-cookie/test_secure")
     public Response  noHttpOnlyCookieSecure() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").build();
     }
 
 }

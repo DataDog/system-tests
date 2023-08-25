@@ -9,7 +9,6 @@ from utils import interfaces, released, scenarios, weblog
     php_appsec="0.8.1",
     python={"django-poc": "1.12", "flask-poc": "1.12", "*": "1.16.1"},
     ruby="1.12.0",
-    cpp="?",
 )
 @scenarios.appsec_custom_rules
 class Test_CustomRules:

@@ -21,7 +21,8 @@
           "app-heartbeat",
           "app-closing",
           "apm-onboarding-event",
-          "message-batch"
+          "message-batch",
+          "distributions"
         ]
       }
     },
@@ -166,6 +167,23 @@
         "properties": {
           "payload": {
             "$ref": "/miscs/telemetry/v2/events/message-batch.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "const": "distributions"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/distributions.json"
           }
         }
       }
