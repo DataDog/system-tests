@@ -80,7 +80,7 @@ class Test_StandardTagsUrl:
             ),
         ]
 
-    # when tracer is updated, add (for exemple)
+    # when tracer is updated, add (for example)
     # @irrelevant(context.library >= "python@1.20.0", reason="python released the new version at 1.20.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
