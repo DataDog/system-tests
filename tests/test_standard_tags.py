@@ -81,7 +81,8 @@ class Test_StandardTagsUrl:
             ),
         ]
 
-    # add @irrelevant(tracer_A<"4.0", reason="Tracer A released the new version at 4.0") when tracer is updated
+    # when tracer is updated, add (for exemple)
+    # @irrelevant(context.library >= "python@1.20.0", reason="python released the new version at 1.20.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -125,7 +126,8 @@ class Test_StandardTagsUrl:
             "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D"  # pylint: disable=line-too-long
         )
 
-    # add @irrelevant(tracer_A<"4.0", reason="Tracer A released the new version at 4.0") when tracer is updated
+    # when tracer is updated, add (for exemple)
+    # @irrelevant(context.library >= "python@1.20.0", reason="python released the new version at 1.20.0")
     def test_multiple_matching_substring_legacy(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
