@@ -82,7 +82,7 @@ class Test_StandardTagsUrl:
 
     # when tracer is updated, add (for example)
     # @irrelevant(context.library >= "python@1.20.0", reason="python released the new version at 1.20.0")
-    def test_url_with_sensitive_query_string(self):
+    def test_url_with_sensitive_query_string_legacy(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
                 request=r, tags={"http.url": tag}, value_as_regular_expression=True
