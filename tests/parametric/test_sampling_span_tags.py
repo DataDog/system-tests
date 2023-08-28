@@ -245,8 +245,9 @@ class Test_Sampling_Span_Tags:
             limit_rate=AnyRatio(),
             rule_rate=1,
             description="When DD_TRACE_SAMPLE_RATE=1 is set and DD_TRACE_RATE_LIMIT=0 is set, "
-            "decisionmaker should be -3, priority should be 2, the rule sample rate tag should "
-            "be set to the given sample rate (1), and the limit sample rate tag should be set ",
+            "decisionmaker should be -3, priority should be -1 (because rate limit 0 overrides all other sampling "
+            "rules), the rule sample rate tag should be set to the given sample rate (1), and the limit sample rate "
+            "tag should be set.",
         )
 
     @bug(library="golang", reason="golang sets priority tag 2")
