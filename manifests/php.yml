@@ -7,4 +7,4 @@ tests/:
             "*": "?"
     test_blocking_addresses.py:
       Test_Blocking_graphql_resolvers:
-        "*": "?"
+        "*": "missing_feature"

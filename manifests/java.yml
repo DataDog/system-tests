@@ -14,4 +14,4 @@ tests/:
         spring-boot-payara: missing_feature (No AppSec support)
     test_blocking_addresses.py:
       Test_Blocking_graphql_resolvers:
-        "*": "?"
+        "*": "missing_feature"

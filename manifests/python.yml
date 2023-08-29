@@ -9,4 +9,4 @@ tests/:
       Test_Basic: "v1.1.0rc2.dev"
     test_blocking_addresses.py:
       Test_Blocking_graphql_resolvers:
-        "*": "?"
+        "*": "missing_feature"
