@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
@@ -19,9 +18,6 @@ from utils import (
     rfc,
     scenarios,
 )
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")

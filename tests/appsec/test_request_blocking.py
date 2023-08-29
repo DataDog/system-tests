@@ -3,14 +3,14 @@
 # Copyright 2021 Datadog, Inc.
 import json
 
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios
+from utils import weblog, context, coverage, interfaces, released, bug, scenarios
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@released(cpp="?", dotnet="2.25.0", php_appsec="0.7.0", python="1.10.0", ruby="1.11.1", nodejs="3.19.0")
+@released(dotnet="2.25.0", php_appsec="0.7.0", python="1.10.0", ruby="1.11.1", nodejs="3.19.0")
 @released(
     java={
         "spring-boot": "1.9.0",
@@ -60,6 +60,7 @@ class Test_AppSecRequestBlocking:
         self.blocked_requests1 = weblog.get(headers={"user-agent": "Arachni/v1"})
         self.blocked_requests2 = weblog.get(params={"random-key": "/netsparker-"})
 
+    @bug(context.weblog_variant in ("rails50", "rails51", "rails52", "rails60"))
     def test_request_blocking(self):
         """test requests are blocked by rules in blocking mode"""
 

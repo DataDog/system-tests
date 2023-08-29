@@ -3,9 +3,12 @@
 All notable changes to this project will be documented in this file.
 
 
-### July 2023 (?? PR merged)
+### July 2023 (86 PR merged)
 
-* 2023-07-03 [Optimize python build time](https://github.com/DataDog/system-tests/pull/1331) by @cbeauchesne
+* 2023-07-31 [Add library version detection for parametric tests](https://github.com/DataDog/system-tests/pull/1442) Parametric tests can now use `@released`
+* 2023-07-19 [Merge parametric CI inside main CI](https://github.com/DataDog/system-tests/pull/1415) Lot of simplifications in system tests CI
+* 2023-07-21 [RFC: manifest file](https://github.com/DataDog/system-tests/pull/1338) Manifest file RFC is validated !
+* 2023-07-04 [Live Debugger test scenarios](https://github.com/DataDog/system-tests/pull/1296) New scenario for live debugger features
 
 
 ### June 2023 (77 PR merged)

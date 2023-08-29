@@ -45,6 +45,25 @@ def update_environ_with_local_env():
         pass
 
 
+DEBUG_LEVEL_STDOUT = 100
+
+logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
+
+
+def stdout(self, message, *args, **kws):
+
+    if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
+        # Yes, logger takes its '*args' as 'args'.
+        self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
+
+        if hasattr(self, "terminal"):
+            self.terminal.write_line(message)
+            self.terminal.flush()
+
+
+logging.Logger.stdout = stdout
+
+
 def get_logger(name="tests", use_stdout=False):
     result = logging.getLogger(name)
 
@@ -76,3 +95,55 @@ def e(message):
 
 
 logger = get_logger()
+
+
+def get_rid_from_request(request):
+    if request is None:
+        return None
+
+    user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
+    return user_agent[-36:]
+
+
+def get_rid_from_span(span):
+
+    if not isinstance(span, dict):
+        logger.error(f"Span should be an object, not {type(span)}")
+        return None
+
+    meta = span.get("meta", {})
+    metrics = span.get("metrics", {})
+
+    user_agent = None
+
+    if span.get("type") == "rpc":
+        user_agent = meta.get("grpc.metadata.user-agent")
+        # java does not fill this tag; it uses the normal http tags
+
+    if not user_agent and metrics.get("_dd.top_level") == 1.0:
+        # The top level span (aka root span) is mark via the _dd.top_level tag by the tracers
+        user_agent = meta.get("http.request.headers.user-agent")
+
+    if not user_agent:  # try something for .NET
+        user_agent = meta.get("http_request_headers_user-agent")
+
+    if not user_agent:
+        # cpp tracer
+        user_agent = meta.get("http_user_agent")
+
+    if not user_agent:  # last hope
+        user_agent = meta.get("http.useragent")
+
+    return get_rid_from_user_agent(user_agent)
+
+
+def get_rid_from_user_agent(user_agent):
+    if not user_agent:
+        return None
+
+    match = re.search("rid/([A-Z]{36})", user_agent)
+
+    if not match:
+        return None
+
+    return match.group(1)

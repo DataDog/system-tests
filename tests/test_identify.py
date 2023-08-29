@@ -2,13 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, coverage, interfaces, released, rfc
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 def assertTagInSpanMeta(span, tag, expected):
