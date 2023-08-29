@@ -727,9 +727,6 @@ class Test_Suspicious_Request_Blocking:
 
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
-)
 class Test_Blocking_graphql_resolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 

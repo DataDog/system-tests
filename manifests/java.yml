@@ -12,4 +12,6 @@ tests/:
         akka-http: missing_feature (No AppSec support)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (No AppSec support)
-
+    test_blocking_addresses.py:
+      Test_Blocking_graphql_resolvers:
+        "*": "?"

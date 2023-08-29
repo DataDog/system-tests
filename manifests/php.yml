@@ -5,3 +5,6 @@ tests/:
         test_xss.py:
           TestXSS:
             "*": "?"
+    test_blocking_addresses.py:
+      Test_Blocking_graphql_resolvers:
+        "*": "?"
