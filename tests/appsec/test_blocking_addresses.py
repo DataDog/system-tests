@@ -16,6 +16,25 @@ from utils import (
     flaky,
 )
 
+# Compatibility matrix for blocking across Java variants, to be reused for multiple test suites.
+# Body and path parameters not included, since they were added later.
+_released_java_blocking = {
+    "spring-boot": "0.110.0",
+    "uds-spring-boot": "0.110.0",
+    "spring-boot-jetty": "0.111.0",
+    "spring-boot-undertow": "0.111.0",
+    "spring-boot-wildfly": "0.111.0",
+    # Exact version for Payara unclear
+    "spring-boot-payara": "1.7.0",
+    # Supported since 0.111.0 but bugged in <0.115.0.
+    "spring-boot-openliberty": "0.115.0",
+    "ratpack": "1.6.0",
+    "jersey-grizzly2": "1.7.0",
+    "resteasy-netty3": "1.7.0",
+    "vertx3": "1.7.0",
+    "vertx4": "1.7.0",
+    "*": "?",
+}
 
 @coverage.basic
 @scenarios.appsec_blocking
@@ -135,7 +154,16 @@ class Test_BlockingAddresses:
         self.rss_req = weblog.get(path="/status", params={"code": "418"})
 
     @missing_feature(context.library < "dotnet@2.32.0")
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library < "java@1.18.0" and context.weblog_variant in ("spring-boot", "uds-spring-boot"))
+    @missing_feature(
+        context.library < "java@1.19.0"
+        and context.weblog_variant in ("spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
+    )
+    @missing_feature(
+        context.library == "java"
+        and context.weblog_variant
+        not in ("spring-boot", "uds-spring-boot", "spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
+    )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
     @missing_feature(library="nodejs", reason="Not supported yet")

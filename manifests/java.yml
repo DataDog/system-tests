@@ -113,7 +113,12 @@ tests/:
         test_xss.py:
           TestXSS:
             '*': missing_feature
-            spring-boot: v1.19.0
+            spring-boot: "v1.19.0"
+            spring-boot-jetty: "v1.19.0"
+            spring-boot-openliberty: "v1.19.0"
+            spring-boot-undertow: "v1.19.0"
+            spring-boot-wildfly: "v1.19.0"
+            uds-spring-boot: "v1.19.0"
       source/:
         test_body.py:
           TestRequestBody:
