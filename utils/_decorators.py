@@ -159,6 +159,7 @@ def released(
             compute_requirement("php", "php_appsec", php_appsec, context.php_appsec),
             compute_requirement("php", "php", php, context.library.version),
             compute_requirement("python", "python", python, context.library.version),
+            compute_requirement("python_http", "python", python, context.library.version),
             compute_requirement("ruby", "ruby", ruby, context.library.version),
         ]
 
