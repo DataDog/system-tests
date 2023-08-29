@@ -1,3 +1,4 @@
+# pylint: disable=E1101
 import contextlib
 import time
 import urllib.parse
