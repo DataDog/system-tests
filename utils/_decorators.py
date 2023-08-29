@@ -7,7 +7,7 @@ from utils._context.core import context
 def _get_skipped_item(item, skip_reason):
 
     if not inspect.isfunction(item) and not inspect.isclass(item):
-        raise Exception(f"Unexpected skipped object: {item}")
+        raise ValueError(f"Unexpected skipped object: {item}")
 
     if not hasattr(item, "pytestmark"):
         setattr(item, "pytestmark", [])
@@ -20,7 +20,7 @@ def _get_skipped_item(item, skip_reason):
 def _get_expected_failure_item(item, skip_reason):
 
     if not inspect.isfunction(item) and not inspect.isclass(item):
-        raise Exception(f"Unexpected skipped object: {item}")
+        raise ValueError(f"Unexpected skipped object: {item}")
 
     if not hasattr(item, "pytestmark"):
         setattr(item, "pytestmark", [])
@@ -140,7 +140,7 @@ def released(
                 return "missing feature: release not yet planned"
 
             if released_version.startswith("not relevant"):
-                raise Exception("TODO remove this test, it should never happen")
+                raise ValueError("TODO remove this test, it should never happen")
 
             if tested_version >= released_version:
                 return None

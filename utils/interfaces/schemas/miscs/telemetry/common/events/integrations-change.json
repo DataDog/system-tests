@@ -10,7 +10,8 @@
             "items": {
                 "$ref": "/miscs/telemetry/common/objects/integration.json"
             },
-            "maxItems": 2000
+            "maxItems": 2000,
+            "minItems": 1
         }
     },
     "required": ["integrations"]

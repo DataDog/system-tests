@@ -2,12 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-import pytest
-
 from utils import weblog, context, coverage, interfaces, released, scenarios
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 @released(dotnet="2.20.0", golang="1.44.1", java="0.114.0")

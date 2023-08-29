@@ -101,7 +101,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def _wait(self, timeout):
         delay = 0.01
-        for i in range(int(timeout / delay)):
+        for _ in range(int(timeout / delay)):
             try:
                 resp = self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts"))
                 if resp.status_code == 404:
@@ -110,7 +110,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 pass
             time.sleep(delay)
         else:
-            raise RuntimeError("Timeout of %s seconds exceeded waiting for HTTP server to start" % timeout)
+            raise RuntimeError(f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start")
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
@@ -142,7 +142,6 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def finish_span(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
-        return None
 
     def span_set_meta(self, span_id: int, key: str, value: str) -> None:
         self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,})
@@ -171,7 +170,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         span_kind: int,
         parent_id: int,
         http_headers: List[Tuple[str, str]],
-        attributes: dict,
+        attributes: dict = None,
     ) -> StartSpanResponse:
         resp = self._session.post(
             self._url("/trace/otel/start_span"),

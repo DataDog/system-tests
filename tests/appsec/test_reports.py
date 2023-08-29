@@ -4,7 +4,6 @@
 
 import socket
 
-import pytest
 
 from utils import (
     weblog,
@@ -19,9 +18,6 @@ from utils import (
 )
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 @released(dotnet="1.28.6", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")

@@ -38,6 +38,7 @@ COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
 ENV DD_DATA_STREAMS_ENABLED=true
+ENV DD_INTERNAL_TELEMETRY_V2_ENABLED=true
 ENV UDS_WEBLOG=1
 
 RUN apt-get update && apt-get install -y curl

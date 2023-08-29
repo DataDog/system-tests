@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/common/objects/distribution.json",
+  "description": "Distribution Object",
+  "title": "Instrumentation Telemetry Distribution",
+  "type": "object",
+  "properties": {
+    "common": {
+      "type": "boolean"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "points": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "namespace": {
+      "description": "Per series override for the namespace field on the payload object",
+      "type": "string"
+    }
+  },
+  "required": ["metric", "points"]
+}

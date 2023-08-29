@@ -4,10 +4,7 @@
 
 import pytest
 from utils import context, coverage, released, missing_feature, irrelevant
-from ..iast_fixtures import SinkFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from .._test_iast_fixtures import SinkFixture
 
 
 def _expected_location():

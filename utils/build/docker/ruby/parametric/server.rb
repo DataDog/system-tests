@@ -30,7 +30,12 @@ class ServerImpl < APMClient::Service
     end
 
     digest = if start_span_args.http_headers.http_headers.size != 0
-               Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(start_span_args.http_headers.http_headers.map { |t| [t.key, t.value] }.to_h)
+               # Emulate how Rack headers concatenates header with duplicate values with a `, `.
+               headers = start_span_args.http_headers.http_headers.group_by(&:key).map do |name, values|
+                 [name, values.map(&:value).join(', ')]
+               end
+
+               Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
              elsif !start_span_args.origin.empty? || start_span_args.parent_id != 0
                # DEV: Parametric tests do not differentiate between a distributed span request from a span parenting request.
                # DEV: We have to consider the parent_id being present present and origin being absent as a span parenting request.

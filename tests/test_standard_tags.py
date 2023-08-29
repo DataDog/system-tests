@@ -2,12 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-import pytest
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, weblog
 
 
 @released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
@@ -61,7 +57,7 @@ class Test_StandardTagsUrl:
             value_as_regular_expression=True,
         )
 
-    def setup_url_with_sensitive_query_string(self):
+    def setup_url_with_sensitive_query_string_legacy(self):
         # pylint: disable=line-too-long
         self.requests_sensitive_query_string = [
             (
@@ -84,19 +80,71 @@ class Test_StandardTagsUrl:
             ),
         ]
 
+    # when tracer is updated, add (for example)
+    # @irrelevant(context.library >= "python@1.20.0", reason="python released the new version at 1.20.0")
+    def test_url_with_sensitive_query_string_legacy(self):
+        for r, tag in self.requests_sensitive_query_string:
+            interfaces.library.add_span_tag_validation(
+                request=r, tags={"http.url": tag}, value_as_regular_expression=True
+            )
+
+    def setup_url_with_sensitive_query_string(self):
+        # pylint: disable=line-too-long
+        self.requests_sensitive_query_string = [
+            (
+                weblog.get("/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3"),
+                r"^.*/waf\?<redacted>&key2=val2&key3=val3$",
+            ),
+            (
+                weblog.get("/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3"),
+                r"^.*/waf\?key1=val1&<redacted>&key3=val3$",
+            ),
+            (
+                weblog.get("/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934"),
+                r"^.*/waf\?key1=val1&key2=val2&<redacted>$",
+            ),
+            (
+                weblog.get(
+                    "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
+                ),
+                r"^.*/waf\?json=%7B%20<redacted>%7D$",
+            ),
+        ]
+
+    @missing_feature(
+        context.library in ["dotnet", "golang", "java", "nodejs", "php", "python", "ruby"],
+        reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
+    )
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
                 request=r, tags={"http.url": tag}, value_as_regular_expression=True
             )
 
+    def setup_multiple_matching_substring_legacy(self):
+        self.request_multiple_matching_substring = weblog.get(
+            "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D"  # pylint: disable=line-too-long
+        )
+
+    # when tracer is updated, add (for exemple)
+    # @irrelevant(context.library >= "python@1.20.0", reason="python released the new version at 1.20.0")
+    def test_multiple_matching_substring_legacy(self):
+        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D$"  # pylint: disable=line-too-long
+        interfaces.library.add_span_tag_validation(
+            self.request_multiple_matching_substring, tags={"http.url": tag}, value_as_regular_expression=True
+        )
+
     def setup_multiple_matching_substring(self):
         self.request_multiple_matching_substring = weblog.get(
             "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D"  # pylint: disable=line-too-long
         )
 
+    @missing_feature(
+        context.library in ["dotnet", "golang", "java", "nodejs", "php", "python", "ruby"],
+        reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
+    )
     def test_multiple_matching_substring(self):
-        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D$"  # pylint: disable=line-too-long
+        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
             self.request_multiple_matching_substring, tags={"http.url": tag}, value_as_regular_expression=True
         )
@@ -134,10 +182,6 @@ class Test_StandardTagsStatusCode:
 
 @released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
-@irrelevant(
-    (context.library, context.weblog_variant) == ("golang", "net-http"),
-    reason="net-http does not handle route parameters",
-)
 @irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
 @missing_feature(
     context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
@@ -156,10 +200,12 @@ class Test_StandardTagsRoute:
         # specify the route syntax if needed
         if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
-        if context.library == "golang" and context.weblog_variant not in [
-            "chi",
-        ]:
-            tags["http.route"] = "/sample_rate_route/:i"
+        if context.library == "golang":
+            if context.weblog_variant == "net-http":
+                # net/http doesn't support parametrized routes but a path catches anything down the tree.
+                tags["http.route"] = "/sample_rate_route/"
+            if context.weblog_variant in ("gin", "echo", "uds-echo"):
+                tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
         if context.library == "python":
