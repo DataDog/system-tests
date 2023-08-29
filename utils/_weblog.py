@@ -118,7 +118,7 @@ class _Weblog:
         rid_in_user_agent=True,
         **kwargs,
     ):
-
+        print("inner [request] start")
         if self.current_nodeid is None:
             raise Exception("Weblog calls can only be done during setup")
 
@@ -152,7 +152,8 @@ class _Weblog:
             "text": None,
         }
 
-        timeout = kwargs.pop("timeout", 5)
+        print("inner [request] before try")
+        timeout = kwargs.pop("timeout", 20)
         try:
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
             r = req.prepare()
@@ -160,14 +161,20 @@ class _Weblog:
             logger.debug(f"Sending request {rid}: {method} {url}")
 
             r = requests.Session().send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
+            print("Inner response")
+            print(r)
             response_data["status_code"] = r.status_code
             response_data["headers"] = r.headers
             response_data["text"] = r.text
 
         except Exception as e:
+            print("error: ")
+            print(e)
             logger.error(f"Request {rid} raise an error: {e}")
         else:
+            print("no error")
             logger.debug(f"Request {rid}: {r.status_code}")
+        print("inner [request] after try")
 
         self.responses[self.current_nodeid].append(response_data)
 

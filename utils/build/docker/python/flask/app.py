@@ -165,6 +165,7 @@ def dbm():
 def dsm():
     topic = "dsm-system-tests-queue"
     consumer_group = "testgroup1"
+    print(os.environ)
 
     def delivery_report(err, msg):
         if err is not None:
@@ -212,6 +213,7 @@ def dsm():
     if integration == "kafka":
         print("DD_DATA_STREAMS_ENABLED")
         print(os.environ['DD_DATA_STREAMS_ENABLED'])
+        print(os.getenv('DD_DATA_STREAMS_ENABLED'))
         produce_thread = threading.Thread(target=produce, args=())
         consume_thread = threading.Thread(target=consume, args=())
         produce_thread.start()
