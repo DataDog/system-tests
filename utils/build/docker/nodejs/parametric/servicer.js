@@ -139,6 +139,25 @@ class Servicer {
         return callback(null, {})
     }
 
+    HTTPClientRequest = ({ request }, callback) => {
+        const http = require('http')
+
+        const options = {
+            method: request.method,
+            headers: request.headers.http_headers.reduce((prev, next) => {
+                prev[next.key] = next.value
+                return prev
+            }, {})
+        }
+        const req = http.request(request.url, options, res => {
+            res.on('data', () => {})
+            res.on('end', () => callback(null, { statusCode: res.statusCode }))
+        })
+        req.on('error', e => callback(e))
+        req.write(request.body)
+        req.end()
+    }
+
     StopTracer = (_, callback) => {
         return callback(null, {})
     }
