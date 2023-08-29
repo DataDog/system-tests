@@ -12,5 +12,7 @@ with open(Path(__file__).parent / "agent.descriptor", "rb") as f:
     _fds = FileDescriptorSet.FromString(f.read())
 _messages = GetMessages([file for file in _fds.file])
 
-TracePayload = _messages["pb.AgentPayload"]
+print(f"Message types present in protobuf descriptors: {_messages.keys()}")
+
+TracePayload = _messages["datadog.trace.AgentPayload"]
 MetricPayload = _messages["datadog.agentpayload.MetricPayload"]
