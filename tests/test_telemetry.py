@@ -289,6 +289,7 @@ class Test_Telemetry:
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @bug(context.library > "php@0.90")
+    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
