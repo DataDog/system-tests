@@ -13,6 +13,7 @@ apm_config:\n\
   apm_non_local_traffic: true\n\
 remote_configuration:\n\
   enabled: false\n\
+logs_enabled: true\n\
 otlp_config:\n\
   debug:\n\
     verbosity: detailed\n\
@@ -28,6 +29,8 @@ otlp_config:\n\
     histograms:\n\
       mode: distributions\n\
       send_count_sum_metrics: true\n\
+  logs:\n\
+    enabled: true\n\
 ' >> /etc/datadog-agent/datadog.yaml
 
 # Proxy conf

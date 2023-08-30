@@ -126,6 +126,23 @@ class Test_OTelLogE2E:
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 1
         dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], self.use_128_bits_trace_id)
+
+        # The 2nd account has logs and traces sent by Agent
+        log_agent = interfaces.backend.get_logs(
+            query=f"trace_id:{dd_trace_id}",
+            rid=rid,
+            dd_api_key=os.environ["DD_API_KEY_2"],
+            dd_app_key=os.environ["DD_APP_KEY_2"],
+        )
+        otel_log_trace_attrs = validate_log(log_agent, rid)
+        trace_agent = interfaces.backend.assert_otlp_trace_exist(
+            request=self.r,
+            dd_trace_id=dd_trace_id,
+            dd_api_key=os.environ["DD_API_KEY_2"],
+            dd_app_key=os.environ["DD_APP_KEY_2"],
+        )
+        validate_log_trace_correlation(otel_log_trace_attrs, trace_agent)
+
         # The 3rd account has logs and traces sent by OTel Collector
         log_collector = interfaces.backend.get_logs(
             query=f"trace_id:{dd_trace_id}",
@@ -134,10 +151,10 @@ class Test_OTelLogE2E:
             dd_app_key=os.environ["DD_APP_KEY_3"],
         )
         otel_log_trace_attrs = validate_log(log_collector, rid)
-        trace = interfaces.backend.assert_otlp_trace_exist(
+        trace_collector = interfaces.backend.assert_otlp_trace_exist(
             request=self.r,
             dd_trace_id=dd_trace_id,
             dd_api_key=os.environ["DD_API_KEY_3"],
             dd_app_key=os.environ["DD_APP_KEY_3"],
         )
-        validate_log_trace_correlation(otel_log_trace_attrs, trace)
+        validate_log_trace_correlation(otel_log_trace_attrs, trace_collector)
