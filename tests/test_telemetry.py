@@ -34,11 +34,6 @@ def is_v1_payload(data):
 
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0", php="0.90")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
-@bug(
-    context.weblog_variant.startswith("apache-mod"),
-    library="php",
-    reason="The libadatadog sidecar doesn't start with the apache weblog",
-)
 @missing_feature(library="cpp")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Telemetry:
@@ -293,6 +288,7 @@ class Test_Telemetry:
     @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @bug(context.library > "php@0.90")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
