@@ -625,12 +625,11 @@ class Test_MessageBatch:
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
-@scenarios.telemetry_log_generation_disabled
-class Test_Log_Generation:
+@scenarios.telemetry_logs_disabled
+class Test_Log_Disabled:
     """Assert that logs are not reported when logs generation is disabled in telemetry"""
 
-    def test_log_generation_disabled(self):
+    def test_logs_disabled(self):
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "logs":
                 raise Exception(" Logs event is sent when log generation is disabled")

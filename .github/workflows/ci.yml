@@ -420,9 +420,9 @@ jobs:
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
+    - name: Run TELEMETRY_LOGS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
+      run: ./run.sh TELEMETRY_LOGS_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
