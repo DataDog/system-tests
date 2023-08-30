@@ -17,7 +17,7 @@ jobs:
       - run: sudo apt-get -y install protobuf-compiler
       - run: protoc --version && go version  
       - name: Generate descriptor
-        run: utils/scripts/update_protobufs.sh
+        run: utils/scripts/update_protobuf.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with: 
