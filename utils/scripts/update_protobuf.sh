@@ -26,8 +26,8 @@ echo "go get github.com/gogo/protobuf/gogoproto"
 go get github.com/gogo/protobuf/gogoproto
 
 mkdir -p "$GOPATH/src/github.com/DataDog"
-git_clone_or_update git@github.com:DataDog/datadog-agent.git "$GOPATH/src/github.com/DataDog/datadog-agent"
-git_clone_or_update git@github.com:DataDog/agent-payload.git "$GOPATH/src/github.com/DataDog/agent-payload"
+git_clone_or_update https://github.com/DataDog/datadog-agent.git "$GOPATH/src/github.com/DataDog/datadog-agent"
+git_clone_or_update https://git@github.com/DataDog/agent-payload.git "$GOPATH/src/github.com/DataDog/agent-payload"
 
 # Remove gogo references to avoid getting RegisterExtension, which is not supported in Python.
 sed -e 's~ \[(gogo.*\]~~g' \
