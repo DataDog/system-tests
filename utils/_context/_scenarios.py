@@ -885,13 +885,13 @@ class scenarios:
         weblog_env={"DD_TELEMETRY_LOGS_ENABLED": "false",},
         doc="Test env var `DD_TELEMETRY_LOGS_ENABLED=false`",
     )
-    telemetry_metric_generation_disabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_DISABLED",
+    telemetry_metrics_disabled = EndToEndScenario(
+        "TELEMETRY_METRICS_DISABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
     )
-    telemetry_metric_generation_enabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_ENABLED",
+    telemetry_metrics_enabled = EndToEndScenario(
+        "TELEMETRY_METRICS_ENABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true",},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
     )

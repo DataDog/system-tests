@@ -425,14 +425,14 @@ jobs:
       run: ./run.sh TELEMETRY_LOGS_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
+    - name: Run TELEMETRY_METRICS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
+      run: ./run.sh TELEMETRY_METRICS_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run TELEMETRY_METRIC_GENERATION_ENABLED scenario
+    - name: Run TELEMETRY_METRICS_ENABLED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh TELEMETRY_METRIC_GENERATION_ENABLED
+      run: ./run.sh TELEMETRY_METRICS_ENABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

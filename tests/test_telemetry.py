@@ -636,22 +636,22 @@ class Test_Log_Disabled:
 
 
 @released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
-@scenarios.telemetry_metric_generation_disabled
-class Test_Metric_Generation_Disabled:
+@scenarios.telemetry_metrics_disabled
+class Test_Metrics_Disabled:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
 
-    def test_metric_generation_disabled(self):
+    def test_metrics_disabled(self):
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "generate-metrics":
                 raise Exception("Metric generate event is sent when metric generation is disabled")
 
 
 @released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@scenarios.telemetry_metric_generation_enabled
-class Test_Metric_Generation_Enabled:
+@scenarios.telemetry_metrics_enabled
+class Test_Metrics_Enabled:
     """Assert that metrics are reported when metric generation is enabled in telemetry"""
 
-    def setup_metric_generation_enabled(self):
+    def setup_metrics_enabled(self):
         weblog.get("/")
         # Wait for at least 2 metric flushes, i.e. 20s
         METRIC_FLUSH_INTERVAL = 10  # This is constant by design
@@ -659,7 +659,7 @@ class Test_Metric_Generation_Enabled:
         time.sleep(METRIC_FLUSH_INTERVAL * 2)
         logger.debug("Wait complete")
 
-    def test_metric_generation_enabled(self):
+    def test_metrics_enabled(self):
         self.assert_general_metrics()
         self.assert_tracer_metrics()
         self.assert_telemetry_metrics()
