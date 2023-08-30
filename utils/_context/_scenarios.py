@@ -46,11 +46,17 @@ class _Scenario:
         shutil.rmtree(path, ignore_errors=True)
         Path(path).mkdir(parents=True, exist_ok=True)
 
-    def __call__(self, test_method):
-        # handles @scenarios.scenario_name
-        pytest.mark.scenario(self.name)(test_method)
+    def __call__(self, test_object):
+        """ handles @scenarios.scenario_name """
 
-        return test_method
+        # Check that no scenario has been already declared
+        for marker in getattr(test_object, "pytestmark", []):
+            if marker.name == "scenario":
+                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
+
+        pytest.mark.scenario(self.name)(test_object)
+
+        return test_object
 
     def configure(self, option):
         self.replay = option.replay
