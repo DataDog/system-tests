@@ -29,7 +29,7 @@ app.get('/db', (req, res) => {
     pgsql.doOperation(req.query.operation)
   }else  if (req.query.service == "mysql") {
     mysql.doOperation(req.query.operation)
-  }else  if (req.query.service == "sqlserver") {
+  }else  if (req.query.service == "mssql") {
     mssql.doOperation(req.query.operation)
   }
 

@@ -10,7 +10,7 @@ public class DBFactory {
     enum SupportedDB {
         mysql(new MysqlCRUDOperation()),
         postgresql(new PostgresCRUDOperation()),
-        sqlserver(new MssqlCRUDOperation());
+        mssql(new MssqlCRUDOperation());
 
         ICRUDOperation currentCrud;
 

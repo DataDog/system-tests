@@ -15,8 +15,6 @@ var config = {
     }
 };
 
-
-
 function initData() {
     var mssql = require("mssql");
     console.log("loading mssql data")

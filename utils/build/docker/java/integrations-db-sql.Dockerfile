@@ -29,5 +29,5 @@ RUN chmod +x /app/app.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV APP_PORT="7777"
 ENV DD_DATA_STREAMS_ENABLED=true
-
+ENV DD_TRACE_SPAN_ATTRIBUTE_SCHEMA="v1"
 CMD [ "/app/app.sh" ]

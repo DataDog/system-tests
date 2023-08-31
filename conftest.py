@@ -72,7 +72,6 @@ def pytest_sessionstart(session):
 
 # called when each test item is collected
 def _collect_item_metadata(item):
-
     _docs = {}
     _skip_reasons = {}
     _release_versions = {}

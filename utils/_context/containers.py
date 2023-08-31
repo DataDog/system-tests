@@ -212,6 +212,42 @@ class TestedContainer:
             self.stdout_interface.load_data()
 
 
+class SqlDbTestedContainer(TestedContainer):
+    def __init__(
+        self,
+        name,
+        image_name,
+        host_log_folder,
+        environment=None,
+        allow_old_container=False,
+        healthcheck=None,
+        stdout_interface=None,
+        ports=None,
+        db_user=None,
+        db_password=None,
+        db_instance=None,
+        db_host=None,
+        dd_integration_service=None,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            image_name=image_name,
+            name=name,
+            host_log_folder=host_log_folder,
+            environment=environment,
+            stdout_interface=stdout_interface,
+            healthcheck=healthcheck,
+            allow_old_container=allow_old_container,
+            ports=ports,
+            **kwargs,
+        )
+        self.dd_integration_service = dd_integration_service
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_instance = db_instance
+
+
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
@@ -422,7 +458,7 @@ class WeblogContainer(TestedContainer):
         return 2
 
 
-class PostgresContainer(TestedContainer):
+class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="postgres:latest",
@@ -437,6 +473,11 @@ class PostgresContainer(TestedContainer):
                 }
             },
             stdout_interface=interfaces.postgres,
+            dd_integration_service="postgresql",
+            db_user="system_tests_user",
+            db_password="system_tests",
+            db_host="postgres",
+            db_instance="system_tests",
         )
 
 
@@ -505,7 +546,7 @@ class RabbitMqContainer(TestedContainer):
         )
 
 
-class MySqlContainer(TestedContainer):
+class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="mysql/mysql-server:latest",
@@ -519,10 +560,15 @@ class MySqlContainer(TestedContainer):
             allow_old_container=True,
             host_log_folder=host_log_folder,
             healthcheck={"test": "/healthcheck.sh", "retries": 60},
+            dd_integration_service="mysql",
+            db_user="mysqldb",
+            db_password="mysqldb",
+            db_host="mysqldb",
+            db_instance="world",
         )
 
 
-class SqlServerContainer(TestedContainer):
+class SqlServerContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.data_mssql = f"./{host_log_folder}/data-mssql"
         super().__init__(
@@ -533,6 +579,11 @@ class SqlServerContainer(TestedContainer):
             host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
             #  volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
+            dd_integration_service="mssql",
+            db_user="SA",
+            db_password="yourStrong(!)Password",
+            db_host="mssql",
+            db_instance="master",
         )
 
 

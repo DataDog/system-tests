@@ -2,95 +2,192 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, scenarios
+from utils import weblog, interfaces, context, bug, missing_feature, released, scenarios
 from utils.tools import logger
 import pytest
 import requests
 from utils import context
-
-integration_db_data = [
-    {
-        "service": "mysql",
-        "db_type": "mysql",
-        "db_instance": "world",
-        "db_user": "mysqldb",
-        "peer_hostname": "mysqldb",
-        "db_password": "mysqldb",
-        "request": {},
-    }
-]
+import json
+from utils._context.library_version import LibraryVersion
 
 
-@pytest.fixture(params=integration_db_data, ids=[integration_db["service"] for integration_db in integration_db_data])
-def integration_db(request):
+@pytest.fixture(
+    scope="session",
+    params=[container.dd_integration_service for container in context.scenario.get_containers_by_type("sql_db")],
+    ids=[container.dd_integration_service for container in context.scenario.get_containers_by_type("sql_db")],
+)
+def db_service(request):
+    pytest.db_service = request.param
     yield request.param
 
 
-@missing_feature(
-    condition=context.library != "java"
-    and context.library != "nodejs"
-    and context.weblog_variant != "integrations-db-sql",
-    reason="Endpoint is not implemented on weblog",
-)
+sql_integration_request = {}
+
+
+def add_request(db_service, db_operation, weblog_request):
+    global sql_integration_request
+    if not db_service in sql_integration_request:
+        sql_integration_request[db_service] = {}
+    sql_integration_request[db_service][db_operation] = weblog_request
+
+
 @scenarios.integrations_db_sql
 class Test_Db_Integrations_sql:
-    """ Verify basic DB operations over different databases """
+    """ Verify basic DB operations over different databases.
+        Check integration spans status: https://docs.google.com/spreadsheets/d/1qm3B0tJ-gG11j_MHoEd9iMXf4_DvWAGCLwmBhWCxbA8/edit#gid=623219645 """
 
-    # Weblog should support multiple datasources and the endpoint accepts parameters: service as DB identifier (mysql,postgre..) and 'operation' as db operation
+    def setup_sql_traces(self, db_service_id):
+        """ Make request to weblog for each operation: select, update... """
+        for db_operation in "select", "insert", "update", "delete", "procedure", "select_error":
+            add_request(
+                db_service_id, db_operation, weblog.get(f"/db?service={db_service_id}&operation={db_operation}")
+            )
 
-    def setup_select(self, integration_db_id):
-        integration_db = self._get_db_data(integration_db_id)
-        integration_db["request"]["select"] = weblog.get(f"/db?service={integration_db_id}&operation=select")
+    def test_sql_traces(self, db_service):
+        """ After make the requests we check that we are producing sql traces """
+        for db_operation in sql_integration_request[db_service]:
+            assert self._get_sql_span_for_request(sql_integration_request[db_service][db_operation]) is not None
 
-    def test_select(self, integration_db):
-        self._validate(integration_db, "select")
+    def test_db_type(self, db_service):
+        """ DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
+            Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.type"] == db_service
 
-    def _setup_select_error(self, integration_db_id):
-        integration_db = self._get_db_data(integration_db_id)
-        integration_db["request"]["select_error"] = weblog.get(
-            f"/db?service={integration_db_id}&operation=select_error"
-        )
+    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    def test_db_name(self, db_service):
+        """ DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name."""
+        db_container = context.scenario.get_container_by_dd_integration_name(db_service)
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.name"] == db_container.db_instance
 
-    def _test_select_error(self, integration_db):
-        self._validate(integration_db, "select", request_id="select_error", db_exec_error=True)
+    def test_span_kind(self, db_service):
+        """ Describes the relationship between the Span, its parents, and its children in a Trace."""
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["span.kind"] == "client"
 
-    def _setup_insert(self, integration_db_id):
-        integration_db = self._get_db_data(integration_db_id)
-        integration_db["request"]["insert"] = weblog.get(f"/db?service={integration_db_id}&operation=insert")
+    @missing_feature(library="java", reason="not implemented yet")
+    def test_runtime___id(self, db_service):
+        """ Unique identifier for the current process."""
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["runtime-id"].strip()
 
-    def _test_insert(self, integration_db):
-        self._validate(integration_db, "insert")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="java", reason="not implemented yet")
+    def test_db_system(self, db_service):
+        """ An identifier for the database management system (DBMS) product being used. Formerly db.type
+                Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.system"] == db_service
 
-    def _setup_update(self, integration_db_id):
-        integration_db = self._get_db_data(integration_db_id)
-        integration_db["request"]["update"] = weblog.get(f"/db?service={integration_db_id}&operation=update")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="java", reason="not implemented yet")
+    def test_db_connection__string(self, db_service):
+        """ The connection string used to connect to the database. """
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.connection_string"].strip()
 
-    def _test_update(self, integration_db):
-        self._validate(integration_db, "update")
+    def test_db_user(self, db_service):
+        """ Username for accessing the database. """
+        db_container = context.scenario.get_container_by_dd_integration_name(db_service)
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
 
-    def _setup_delete(self, integration_db_id):
-        integration_db = self._get_db_data(integration_db_id)
-        integration_db["request"]["delete"] = weblog.get(f"/db?service={integration_db_id}&operation=delete")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    def test_db_instance(self, db_service):
+        """ The name of the database being connected to. Database instance name. Formerly db.name"""
+        db_container = context.scenario.get_container_by_dd_integration_name(db_service)
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.instance"] == db_container.db_instance
 
-    def _test_delete(self, integration_db):
-        self._validate(integration_db, "delete")
+    # db.statement https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.statement
+    # The database statement being executed. This should only be set by the client when a non-obfuscated query is desired. Otherwise the tracer should only put the SQL query in the resource and the Agent will properly obfuscate and set the necessary field.
+    # def test_db_statement(self, db_service):
+    #         TODO
+    @missing_feature(library="java", reason="not implemented yet")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    def test_db_operation(self, db_service):
+        """ The name of the operation being executed """
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert db_operation in span["meta"]["db.operation"]
 
-    def _setup_procedure(self, integration_db_id):
-        integration_db = self._get_db_data(integration_db_id)
-        integration_db["request"]["call"] = weblog.get(f"/db?service={integration_db_id}&operation=procedure")
+    @missing_feature(library="java", reason="not implemented yet")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    def test_db_sql_table(self, db_service):
+        """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.sql.table"].strip()
 
-    def _test_procedure(self, integration_db):
-        self._validate(integration_db, "call")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="java", reason="not implemented yet")
+    def test_db_row__count(self, db_service):
+        """ The number of rows/results from the query or operation. For caches and other datastores. 
+        This tag should only set for operations that retrieve stored data, such as GET operations and queries, excluding SET and other commands not returning data.  """
+        span = self._get_sql_span_for_request(sql_integration_request[db_service]["select"])
+        assert span["meta"]["db.row_count"] > 0
 
-    def _get_db_data(self, integration_db_id):
-        return next(filter(lambda integration_db: integration_db["service"] == integration_db_id, integration_db_data))
+    def test_db_password(self, db_service):
+        """ The database password should not show in the traces """
+        db_container = context.scenario.get_container_by_dd_integration_name(db_service)
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            for key in span["meta"]:
+                if key not in [
+                    "peer.hostname",
+                    "db.user",
+                    "env",
+                    "db.instance",
+                    "out.host",
+                    "db.name",
+                    "peer.service",
+                ]:  # These fields hostname, user... are the same as password
+                    assert span["meta"][key] != db_container.db_password
 
-    def _validate(self, integration_db, db_operation, request_id=None, db_exec_error=False):
-        """ Search for the span for the current request, then search for sql child span and make the validations"""
-        if not request_id:
-            request_id = db_operation
-        sql_found = False
-        for data, trace, span in interfaces.library.get_spans(integration_db["request"][request_id]):
+    @missing_feature(condition=context.library != "java", reason="Apply only java")
+    @missing_feature(library="java", reason="Not implemented yet")
+    def test_db_jdbc_drive__classname(self, db_service):
+        """ The fully-qualified class name of the Java Database Connectivity (JDBC) driver used to connect. """
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.jdbc.driver_classname"].strip()
+
+    @pytest.mark.skipif("pytest.db_service != 'mssql'")
+    @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    def test_db_mssql_instance__name(self, db_service):
+        """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
+            This value should be set only if it’s specified on the mssql connection string. """
+        for db_operation in sql_integration_request[db_service]:
+            span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
+            assert span["meta"]["db.mssql.instance_name"].strip()
+
+    def test_error_message(self, db_service):
+        """ A string representing the error message. """
+        span = self._get_sql_span_for_request(sql_integration_request[db_service]["select_error"])
+        assert span["meta"]["error.message"].strip()
+
+    def test_error_type(self, db_service):
+        """ A string representing the type of the error. """
+        span = self._get_sql_span_for_request(sql_integration_request[db_service]["select_error"])
+        assert span["meta"]["error.type"].strip()
+
+    def test_error_stack(self, db_service):
+        """ A human readable version of the stack trace. """
+        span = self._get_sql_span_for_request(sql_integration_request[db_service]["select_error"])
+        assert span["meta"]["error.stack"].strip()
+
+    def _get_sql_span_for_request(self, weblog_request):
+        for data, trace, span in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
             for trace in data["request"]["content"]:
                 for span_child in trace:
@@ -98,31 +195,11 @@ class Test_Db_Integrations_sql:
                         "type" in span_child
                         and span_child["type"] == "sql"
                         and span_child["trace_id"] == span["trace_id"]
+                        and span_child["resource"]
+                        != "SELECT 1;"  # workaround to avoid conflicts on connection check on mssql
                     ):
-                        sql_found = True
-                        assert integration_db["service"] in span_child["service"] or span_child["service"] == "weblog"
-                        #Describes the relationship between the Span, its parents, and its children in a Trace.
-                        #client: Indicates that the span describes a request to some remote service.
-                        assert  span_child["meta"]["span.kind"] == "client"
-                        assert integration_db["db_type"] == span_child["meta"]["db.type"]
-                        assert integration_db["db_instance"] == span_child["meta"]["db.instance"]
-                        assert integration_db["db_user"] == span_child["meta"]["db.user"]
-                        assert integration_db["peer_hostname"] == span_child["meta"]["peer.hostname"]
-                        # Duration: Minimal validation, is a number and greater than 0
-                        duration = span_child["duration"]
-                        assert type(duration) == int and duration > 0
-                        # Password no showed
-                        for key in span_child["meta"]:
-                            if key not in [
-                                "peer.hostname",
-                                "db.user",
-                                "env",
-                                "db.instance",
-                            ]:  # These fields hostname, user and password are the same
-                                assert span_child["meta"][key] != integration_db["db_password"]
-                        # Check operation type
-                        assert span_child["meta"]["db.operation"] == db_operation
-                        assert span_child["resource"].replace("{", "").startswith(db_operation)
-                        # Check db operation error
-                        assert span_child["error"] == 0 if not db_exec_error else 1
-        assert sql_found == True
+                        logger.debug("Span type sql found!")
+                        logger.info(
+                            f"CHILD Span found with trace id: {span_child['trace_id']} and span id: {span_child['span_id']}"
+                        )
+                        return span_child
