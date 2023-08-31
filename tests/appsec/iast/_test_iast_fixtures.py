@@ -1,5 +1,3 @@
-import json
-
 from utils import weblog, interfaces, context
 from utils.tools import logging
 
@@ -29,7 +27,7 @@ def _get_span_meta(request):
 def get_iast_event(request):
     meta = _get_span_meta(request=request)
     assert "_dd.iast.json" in meta, "No _dd.iast.json tag in span"
-    return json.loads(meta["_dd.iast.json"])
+    return meta["_dd.iast.json"]
 
 
 def assert_iast_vulnerability(
