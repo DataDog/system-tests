@@ -11,3 +11,6 @@ tests/:
         chi: "v1.36.0"
         echo: "v1.36.0"
         gin: "v1.37.0"
+    test_blocking_addresses.py:
+      Test_BlockingGraphqlResolvers:
+        "*": "missing_feature"
