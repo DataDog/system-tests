@@ -12,5 +12,5 @@ tests/:
         echo: "v1.36.0"
         gin: "v1.37.0"
     test_blocking_addresses.py:
-      Test_Blocking_graphql_resolvers:
+      Test_BlockingGraphqlResolvers:
         "*": "missing_feature"

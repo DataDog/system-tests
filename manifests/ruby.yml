@@ -6,5 +6,5 @@ tests/:
           TestXSS:
             "*": "?"
     test_blocking_addresses.py:
-      Test_Blocking_graphql_resolvers:
+      Test_BlockingGraphqlResolvers:
         "*": "missing_feature"
