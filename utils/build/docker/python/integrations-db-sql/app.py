@@ -24,16 +24,18 @@ tracer.trace("init.service").finish()
 def hello_world():
     return "Hello, World!\\n"
 
+
 @app.route("/db", methods=["GET", "POST", "OPTIONS"])
 def db():
-    #if "file" not in flask_request.args:
+    # if "file" not in flask_request.args:
     #   return "Please provide a file parameter", 400
-    #filename = flask_request.args.get("file")
-    #with open(filename, "r") as f:
+    # filename = flask_request.args.get("file")
+    # with open(filename, "r") as f:
     #    return f.read()
     print("REQUEST RECEIUVED!!!!!")
     select()
     return "YEAH"
+
 
 def createDatabae():
     print("CREATING POSTGRES DATABASE")
@@ -55,5 +57,6 @@ def select():
     cursor.close()
     postgres_db.close()
     return Response("OK")
+
 
 createDatabae()
