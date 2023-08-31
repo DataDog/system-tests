@@ -15,6 +15,7 @@ from utils import (
     missing_feature,
     scenarios,
 )
+from utils.tools import nested_lookup
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
@@ -194,13 +195,13 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags, success_by_default=True)
 
     def setup_appsec_obfuscator_cookies(self):
         cookies = {"Bearer": self.SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY}
@@ -218,14 +219,15 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            if self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY not in span["meta"]["_dd.appsec.json"]:
-                raise Exception("Could not find the non-sensitive cookie data")
-            return True
+            assert not nested_lookup(
+                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
+            assert nested_lookup(
+                self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY, appsec_data, exact_match=True
+            ), "Could not find the non-sensitive cookie data"
 
         interfaces.library.assert_waf_attack(self.r_cookies, address="server.request.cookies")
-        interfaces.library.validate_appsec(self.r_cookies, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_cookies, validate_appsec_span_tags, success_by_default=True)
 
     def setup_appsec_obfuscator_value(self):
         sensitive_raw_payload = r"""{
@@ -268,13 +270,13 @@ class Test_AppSecObfuscator:
         # and matches an XSS attack. It contains an access token secret we shouldn't have in the event.
 
         def validate_appsec_span_tags(span, appsec_data):
-            if self.VALUE_WITH_SECRET in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.VALUE_WITH_SECRET, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_value, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_value, validate_appsec_span_tags, success_by_default=True)
 
     def setup_appsec_obfuscator_key_with_custom_rules(self):
         self.r_custom = weblog.get(
@@ -291,13 +293,13 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.cookies")
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_custom, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_custom, validate_appsec_span_tags, success_by_default=True)
 
     def setup_appsec_obfuscator_cookies_with_custom_rules(self):
         cookies = {
@@ -317,14 +319,15 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            if self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM not in span["meta"]["_dd.appsec.json"]:
-                raise Exception("Could not find the non-sensitive cookie data")
-            return True
+            assert not nested_lookup(
+                self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM, appsec_data, look_in_keys=True
+            ), "Sensitive cookie is not obfuscated"
+            assert nested_lookup(
+                self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM, appsec_data, exact_match=True
+            ), "Non-sensitive cookie is not reported"
 
         interfaces.library.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
-        interfaces.library.validate_appsec(self.r_cookies_custom, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_cookies_custom, validate_appsec_span_tags, success_by_default=True)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")

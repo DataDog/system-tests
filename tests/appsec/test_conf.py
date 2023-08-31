@@ -5,6 +5,7 @@
 import pytest
 
 from utils import weblog, context, coverage, interfaces, released, missing_feature, irrelevant, rfc, scenarios
+from utils.tools import nested_lookup
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
@@ -141,12 +142,12 @@ class Test_ConfigurationVariables:
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.SECRET, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_op_key, pattern="<Redacted>")
-        interfaces.library.validate_appsec(self.r_op_key, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_op_key, validate_appsec_span_tags, success_by_default=True)
 
     def setup_obfuscation_parameter_value(self):
         headers = {"attack": f"acunetix-user-agreement {self.SECRET_WITH_HIDDEN_VALUE}"}
@@ -159,9 +160,9 @@ class Test_ConfigurationVariables:
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET_WITH_HIDDEN_VALUE in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
-        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)

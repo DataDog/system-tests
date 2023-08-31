@@ -133,10 +133,12 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
         if interface == "library":
             if path == "/v0.4/traces":
                 _decode_unsigned_int_traces(result)
+                _deserialized_nested_json_from_trace_payloads(result, interface)
 
             elif path == "/v0.5/traces":
                 result = _decode_v_0_5_traces(result)
                 _decode_unsigned_int_traces(result)
+                _deserialized_nested_json_from_trace_payloads(result, interface)
 
         _convert_bytes_values(result)
 
@@ -160,7 +162,9 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
         if path == "/v1/logs":
             return MessageToDict(ExportLogsServiceResponse.FromString(content))
         if path == "/api/v0.2/traces":
-            return MessageToDict(TracePayload.FromString(content))
+            result = MessageToDict(TracePayload.FromString(content))
+            _deserialized_nested_json_from_trace_payloads(result, interface)
+            return result
         if path == "/api/v2/series":
             return MessageToDict(MetricPayload.FromString(content))
 
@@ -182,6 +186,29 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
         return decoded
 
     return content
+
+
+def _deserialized_nested_json_from_trace_payloads(content, interface):
+    """ trace payload from agent contains strings that are json """
+
+    keys = ("_dd.appsec.json", "_dd.iast.json")
+
+    if interface == "agent":
+        for tracer_payload in content.get("tracerPayloads", []):
+            for chunk in tracer_payload.get("chunks", []):
+                for span in chunk.get("spans", []):
+                    meta = span.get("meta", {})
+                    for key in keys:
+                        if key in meta:
+                            meta[key] = json.loads(meta[key])
+
+    elif interface == "library":
+        for traces in content:
+            for span in traces:
+                meta = span.get("meta", {})
+                for key in keys:
+                    if key in meta:
+                        meta[key] = json.loads(meta[key])
 
 
 def _convert_bytes_values(item):

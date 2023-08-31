@@ -16,8 +16,6 @@ app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
 app.use(require("cookie-parser")());
 
-require('./auth')(app, passport, tracer)
-
 app.get("/", (req, res) => {
   console.log("Received a request");
   res.send("Hello\n");
@@ -207,6 +205,8 @@ app.get('/read_file', (req, res) => {
 });
 
 require("./iast")(app, tracer);
+require('./auth')(app, passport, tracer)
+require('./graphql')(app)
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
