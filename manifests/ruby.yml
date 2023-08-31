@@ -3,8 +3,14 @@ tests/:
     iast/:
       sink/:
         test_xss.py:
-          TestXSS:
-            "*": "?"
+          TestXSS: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingGraphqlResolvers:
-        "*": "missing_feature"
+      Test_BlockingGraphqlResolvers: missing_feature
+  test_telemetry.py:
+    Test_DependencyEnable: missing_feature 
+    Test_Log_Generation: missing_feature
+    Test_MessageBatch: missing_feature
+    Test_Metric_Generation: missing_feature
+    Test_ProductsDisabled: missing_feature
+    Test_Telemetry: v1.4.0
+    Test_TelemetryV2: v1.11

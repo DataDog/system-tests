@@ -32,7 +32,7 @@ def is_v1_payload(data):
     return data["request"]["content"].get("api_version") == "v1"
 
 
-@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0", php="0.90")
+@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", golang="1.49.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -524,7 +524,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="1.49.1", java="?", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
+@released(cpp="?", dotnet="2.35.0", golang="1.49.1", java="?", python="1.17.3", nodejs="?")
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
@@ -559,7 +559,7 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
-@released(dotnet="2.12.0", golang="1.53", ruby="?", nodejs="?", php="?", python="?", java="?")
+@released(dotnet="2.12.0", golang="1.53", nodejs="?", python="?", java="?")
 @irrelevant(library="cpp")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ProductsDisabled:
@@ -587,23 +587,25 @@ class Test_ProductsDisabled:
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
-@released(dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", python="?")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
 
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
-        weblog.get("/load_dependency")
+        self.r = weblog.get("/load_dependency")
 
     def test_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         """app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"""
 
+        assert self.r.status_code == 200, "The endpoint is not implemented, or is failing"
+
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-dependencies-loaded":
-                raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
+                raise ValueError("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", python="?")
 class Test_MessageBatch:
     """ Tests on Message batching """
 
@@ -622,32 +624,36 @@ class Test_MessageBatch:
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
-@scenarios.telemetry_log_generation_disabled
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", python="?")
 class Test_Log_Generation:
-    """Assert that logs are not reported when logs generation is disabled in telemetry"""
+    """ Validates logs events on telemetry data """
 
-    def test_log_generation_disabled(self):
+    def test_log_generation_enabled(self):
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "logs":
-                raise Exception(" Logs event is sent when log generation is disabled")
+                return True
+
+        raise ValueError("Logs event has never been sent")
+
+    @scenarios.telemetry_log_generation_disabled
+    def test_log_generation_disabled(self):
+        """Assert that logs are not reported when logs generation is disabled in telemetry"""
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
+            if get_request_type(data) == "logs":
+                raise ValueError("Logs event is sent when log generation is disabled")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
-@scenarios.telemetry_metric_generation_disabled
-class Test_Metric_Generation_Disabled:
-    """Assert that metrics are not reported when metric generation is disabled in telemetry"""
+@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", python="?")
+class Test_Metric_Generation:
+    """ Validates metric events on telemetry data """
 
+    @scenarios.telemetry_metric_generation_disabled
     def test_metric_generation_disabled(self):
+        """Assert that metrics are not reported when metric generation is disabled in telemetry"""
+
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "generate-metrics":
-                raise Exception("Metric generate event is sent when metric generation is disabled")
-
-
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@scenarios.telemetry_metric_generation_enabled
-class Test_Metric_Generation_Enabled:
-    """Assert that metrics are reported when metric generation is enabled in telemetry"""
+                raise ValueError("Metric generate event is sent when metric generation is disabled")
 
     def setup_metric_generation_enabled(self):
         weblog.get("/")
@@ -657,39 +663,41 @@ class Test_Metric_Generation_Enabled:
         time.sleep(METRIC_FLUSH_INTERVAL * 2)
         logger.debug("Wait complete")
 
+    @scenarios.telemetry_metric_generation_enabled
     def test_metric_generation_enabled(self):
-        self.assert_general_metrics()
-        self.assert_tracer_metrics()
-        self.assert_telemetry_metrics()
+        """Assert that metrics are reported when metric generation is enabled in telemetry"""
+        self._assert_general_metrics()
+        self._assert_tracer_metrics()
+        self._assert_telemetry_metrics()
 
-    def assert_general_metrics(self):
+    def _assert_general_metrics(self):
 
         namespace = "general"
-        self.assert_count_metric(namespace, "logs_created", expect_at_least=1)
+        self._assert_count_metric(namespace, "logs_created", expect_at_least=1)
 
-    def assert_tracer_metrics(self):
+    def _assert_tracer_metrics(self):
 
         namespace = "tracers"
-        self.assert_count_metric(namespace, "spans_created", expect_at_least=1)
-        self.assert_count_metric(namespace, "spans_finished", expect_at_least=1)
-        self.assert_count_metric(namespace, "spans_enqueued_for_serialization", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_segments_created", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_chunks_enqueued_for_serialization", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_chunks_sent", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_segments_closed", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_api.requests", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_api.responses", expect_at_least=1)
+        self._assert_count_metric(namespace, "spans_created", expect_at_least=1)
+        self._assert_count_metric(namespace, "spans_finished", expect_at_least=1)
+        self._assert_count_metric(namespace, "spans_enqueued_for_serialization", expect_at_least=1)
+        self._assert_count_metric(namespace, "trace_segments_created", expect_at_least=1)
+        self._assert_count_metric(namespace, "trace_chunks_enqueued_for_serialization", expect_at_least=1)
+        self._assert_count_metric(namespace, "trace_chunks_sent", expect_at_least=1)
+        self._assert_count_metric(namespace, "trace_segments_closed", expect_at_least=1)
+        self._assert_count_metric(namespace, "trace_api.requests", expect_at_least=1)
+        self._assert_count_metric(namespace, "trace_api.responses", expect_at_least=1)
 
-    def assert_telemetry_metrics(self):
+    def _assert_telemetry_metrics(self):
 
         namespace = "telemetry"
-        self.assert_count_metric(namespace, "telemetry_api.requests", expect_at_least=1)
-        self.assert_count_metric(namespace, "telemetry_api.responses", expect_at_least=1)
+        self._assert_count_metric(namespace, "telemetry_api.requests", expect_at_least=1)
+        self._assert_count_metric(namespace, "telemetry_api.responses", expect_at_least=1)
 
-    def assert_count_metric(self, namespace, metric, expect_at_least):
+    def _assert_count_metric(self, namespace, metric, expect_at_least):
         series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
         if len(series) == 0 and expect_at_least > 0:
-            raise Exception(f"No telemetry data received for metric {namespace}.{metric}")
+            raise ValueError(f"No telemetry data received for metric {namespace}.{metric}")
 
         count = 0
         for s in series:
