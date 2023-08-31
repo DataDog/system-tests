@@ -5,6 +5,9 @@ if [[ $# -gt 0 ]]; then
   exit $?
 fi
 
+# This is required to allow the tracer to open itself
+chmod a+rx /root
+
 rm -f /tmp/ddappsec.lock
 LOGS_PHP=(/tmp/appsec.log /tmp/helper.log /tmp/php_error.log)
 touch "${LOGS_PHP[@]}"
