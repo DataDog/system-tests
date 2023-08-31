@@ -102,6 +102,9 @@ class _Scenario:
     def close_targets(self):
         """ called after setup"""
 
+    def get_containers_by_type(self, container_type):
+        return []
+
     @property
     def host_log_folder(self):
         return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}"
