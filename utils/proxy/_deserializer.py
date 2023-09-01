@@ -23,7 +23,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from _decoders.protobuf_schemas import TracePayload
+from _decoders.protobuf_schemas import MetricPayload, TracePayload
 
 
 logger = logging.getLogger(__name__)
@@ -165,6 +165,8 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
             result = MessageToDict(TracePayload.FromString(content))
             _deserialized_nested_json_from_trace_payloads(result, interface)
             return result
+        if path == "/api/v2/series":
+            return MessageToDict(MetricPayload.FromString(content))
 
     if content_type == "application/x-www-form-urlencoded" and content == b"[]" and path == "/v0.4/traces":
         return []
