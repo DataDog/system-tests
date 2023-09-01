@@ -1,7 +1,12 @@
 import inspect
+import os
 import pytest
 
 from utils._context.core import context
+
+
+# temp code, for manifest file migrations
+_released_declarations = {}
 
 
 def _get_skipped_item(item, skip_reason):
@@ -128,6 +133,10 @@ def released(
 
             if component_name in test_class.__released__:
                 raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
+
+            if component_name == context.library.library:
+                file = os.path.relpath(inspect.getfile(test_class))
+                _released_declarations[f"{file}::{test_class.__name__}"] = released_version
 
             released_version = _compute_released_version(released_version)
 

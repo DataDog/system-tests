@@ -238,10 +238,44 @@ def _item_is_skipped(item):
     return False
 
 
+def _export_manifest():
+    # temp code, for manifest migrations
+
+    import yaml
+    from utils._decorators import _released_declarations
+
+    result = {}
+
+    def convert_value(value):
+        if isinstance(value, dict):
+            return {k: convert_value(v) for k, v in value.items()}
+
+        return "missing_feature" if value == "?" else f"v{value}"
+
+    def feed(parent: dict, path: list, value):
+
+        key = path.pop(0)
+
+        if len(path) == 0:
+            parent[key] = convert_value(value)
+        else:
+            if key not in parent:
+                parent[key] = {}
+
+            feed(parent[key], path, value)
+
+    for path in sorted(_released_declarations):
+        feed(result, path.replace("/", "/#").replace("::", "#").split("#"), _released_declarations[path])
+
+    with open(f"{context.scenario.host_log_folder}/manifest.yaml", "w", encoding="utf-8") as f:
+        yaml.dump(result, f)
+
+
 def pytest_collection_finish(session):
     from utils import weblog
 
     if session.config.option.collectonly:
+        _export_manifest()
         return
 
     last_file = ""
