@@ -7,7 +7,7 @@ import json
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import weblog, context, interfaces, released, irrelevant, coverage, scenarios, missing_feature
+from utils import weblog, context, interfaces, released, irrelevant, coverage, scenarios, missing_feature, bug
 
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
@@ -173,6 +173,7 @@ class Test_Monitoring:
         self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})
 
     @scenarios.appsec_rules_monitoring_with_errors
+    @bug(context.library >= "ruby@1.14.0", reason="Reported error count is 4 instead of 2")
     def test_waf_monitoring_errors(self):
         """
         Some WAF monitoring span tags and metrics are expected to be sent at

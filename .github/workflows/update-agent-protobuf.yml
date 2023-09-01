@@ -8,25 +8,14 @@ on:
 jobs:
   main:
     runs-on: ubuntu-latest
-    env:
-      GO111MODULE: off
-      GOPATH: ${{ github.workspace }}/binaries/go
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: main
       - uses: actions/setup-go@v2
       - run: sudo apt-get update
       - run: sudo apt-get -y install protobuf-compiler
-      - run: go get github.com/gogo/protobuf/gogoproto
       - run: protoc --version && go version  
-      - name: checkout DataDog/datadog-agent
-        uses: actions/checkout@v3
-        with:
-          repository: 'DataDog/datadog-agent'
-          path: 'binaries/datadog-agent'
       - name: Generate descriptor
-        run: protoc --include_imports -Ibinaries/datadog-agent/pkg/trace/pb -I$GOPATH/src -I=$GOPATH/src/github.com/gogo/protobuf/protobuf -o utils/proxy/_decoders/trace_payload.descriptor agent_payload.proto
+        run: utils/scripts/update_protobuf.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with: 
