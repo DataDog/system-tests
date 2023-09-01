@@ -76,9 +76,8 @@ class Test_OTelMetricE2E:
             "example.histogram",
             "example.histogram.sum",
             "example.histogram.count",
-            # TODO: enable send_aggregation_metrics and verify max and min once newer version of Agent is released
-            # "example.histogram.min",
-            # "example.histogram.max",
+            "example.histogram.min",
+            "example.histogram.max",
         ]
         time.sleep(5)  # wait a bit for agent to submit metrics
 
@@ -120,6 +119,7 @@ class Test_OTelLogE2E:
     def setup_main(self):
         self.r = weblog.get(path="/basic/log")
         self.use_128_bits_trace_id = False
+        time.sleep(5)  # wait a bit for logs agent to submit logs
 
     def test_main(self):
         rid = get_rid_from_request(self.r)
@@ -127,19 +127,19 @@ class Test_OTelLogE2E:
         assert len(otel_trace_ids) == 1
         dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], self.use_128_bits_trace_id)
 
-        # The 2nd account has logs and traces sent by Agent
+        # The 1st account has logs and traces sent by Agent
         log_agent = interfaces.backend.get_logs(
             query=f"trace_id:{dd_trace_id}",
             rid=rid,
-            dd_api_key=os.environ["DD_API_KEY_2"],
-            dd_app_key=os.environ["DD_APP_KEY_2"],
+            dd_api_key=os.environ["DD_API_KEY"],
+            dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
         )
-        otel_log_trace_attrs = validate_log(log_agent, rid)
+        otel_log_trace_attrs = validate_log(log_agent, rid, "datadog_agent")
         trace_agent = interfaces.backend.assert_otlp_trace_exist(
             request=self.r,
             dd_trace_id=dd_trace_id,
-            dd_api_key=os.environ["DD_API_KEY_2"],
-            dd_app_key=os.environ["DD_APP_KEY_2"],
+            dd_api_key=os.environ["DD_API_KEY"],
+            dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
         )
         validate_log_trace_correlation(otel_log_trace_attrs, trace_agent)
 
@@ -150,7 +150,7 @@ class Test_OTelLogE2E:
             dd_api_key=os.environ["DD_API_KEY_3"],
             dd_app_key=os.environ["DD_APP_KEY_3"],
         )
-        otel_log_trace_attrs = validate_log(log_collector, rid)
+        otel_log_trace_attrs = validate_log(log_collector, rid, "datadog_exporter")
         trace_collector = interfaces.backend.assert_otlp_trace_exist(
             request=self.r,
             dd_trace_id=dd_trace_id,

@@ -1,13 +1,13 @@
 # Util functions to validate JSON logs from OTel system tests
 
 # Validates the JSON logs from backend and returns the OTel log trace attributes
-def validate_log(log: dict, rid: str) -> dict:
+def validate_log(log: dict, rid: str, otel_source: str) -> dict:
     assert log["type"] == "log"
     expected_attributes_tags = [
         "datadog.submission_auth:private_api_key",
         "datadog.index:main",
         "env:system-tests",
-        "otel_source:datadog_exporter",
+        f"otel_source:{otel_source}",
         "service:otel-system-tests-spring-boot",
         "source:undefined",
     ]

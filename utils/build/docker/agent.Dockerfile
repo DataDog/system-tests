@@ -1,4 +1,4 @@
-ARG AGENT_IMAGE=datadog/agent:latest
+ARG AGENT_IMAGE=datadog/agent:7.48.0-rc.3
 FROM $AGENT_IMAGE
 
 RUN set -eux;\
@@ -14,6 +14,8 @@ apm_config:\n\
 remote_configuration:\n\
   enabled: false\n\
 logs_enabled: true\n\
+logs_config:\n\
+  batch_wait: 1\n\
 otlp_config:\n\
   debug:\n\
     verbosity: detailed\n\
@@ -28,7 +30,7 @@ otlp_config:\n\
     enabled: true\n\
     histograms:\n\
       mode: distributions\n\
-      send_count_sum_metrics: true\n\
+      send_aggregation_metrics: true\n\
   logs:\n\
     enabled: true\n\
 ' >> /etc/datadog-agent/datadog.yaml

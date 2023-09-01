@@ -165,11 +165,12 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == agent ]]; then
-            if [ -f ./binaries/agent-image ]; then
-                AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
-            else
-                AGENT_BASE_IMAGE="datadog/agent"
-            fi
+            # if [ -f ./binaries/agent-image ]; then
+            #     AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
+            # else
+            #     AGENT_BASE_IMAGE="datadog/agent"
+            # fi
+            AGENT_BASE_IMAGE="datadog/agent:7.48.0-rc.3"
 
             echo "using $AGENT_BASE_IMAGE image for datadog agent"
 
@@ -184,7 +185,8 @@ build() {
                 $EXTRA_DOCKER_ARGS \
                 .
 
-            SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
+            # SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
+            SYSTEM_TESTS_AGENT_VERSION="7.48.0-rc.3"
 
             docker buildx build \
                 --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
