@@ -46,8 +46,11 @@ class Test_Db_Integrations_sql:
     def test_sql_traces(self, db_service):
         """ After make the requests we check that we are producing sql traces """
         for db_operation in sql_integration_request[db_service]:
-            assert self._get_sql_span_for_request(sql_integration_request[db_service][db_operation]) is not None
+            assert (
+                self._get_sql_span_for_request(sql_integration_request[db_service][db_operation]) is not None
+            ), f"No traces found for operation {db_operation}"
 
+    @missing_feature(library="python", reason="Python is using the correct span: db.system")
     def test_db_type(self, db_service):
         """ DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
             Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
@@ -69,6 +72,7 @@ class Test_Db_Integrations_sql:
             span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
             assert span["meta"]["span.kind"] == "client"
 
+    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     def test_runtime___id(self, db_service):
         """ Unique identifier for the current process."""
@@ -85,6 +89,7 @@ class Test_Db_Integrations_sql:
             span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
             assert span["meta"]["db.system"] == db_service
 
+    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     def test_db_connection__string(self, db_service):
@@ -100,6 +105,7 @@ class Test_Db_Integrations_sql:
             span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
             assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
 
+    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_instance(self, db_service):
         """ The name of the database being connected to. Database instance name. Formerly db.name"""
@@ -112,6 +118,7 @@ class Test_Db_Integrations_sql:
     # The database statement being executed. This should only be set by the client when a non-obfuscated query is desired. Otherwise the tracer should only put the SQL query in the resource and the Agent will properly obfuscate and set the necessary field.
     # def test_db_statement(self, db_service):
     #         TODO
+    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_operation(self, db_service):
@@ -120,6 +127,7 @@ class Test_Db_Integrations_sql:
             span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
             assert db_operation in span["meta"]["db.operation"]
 
+    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_sql_table(self, db_service):
@@ -128,6 +136,7 @@ class Test_Db_Integrations_sql:
             span = self._get_sql_span_for_request(sql_integration_request[db_service][db_operation])
             assert span["meta"]["db.sql.table"].strip()
 
+    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     def test_db_row__count(self, db_service):
