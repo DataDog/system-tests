@@ -426,6 +426,7 @@ class Test_Telemetry:
     @irrelevant(library="dotnet")
     @irrelevant(library="python")
     @irrelevant(library="php")
+    @irrelevant(library="java")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
@@ -524,7 +525,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
-@released(java="?", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
+@released(java="1.20.0", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
@@ -603,7 +604,8 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(java="1.20.0", nodejs="?", php="?", python="?", ruby="?")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_MessageBatch:
     """ Tests on Message batching """
 
