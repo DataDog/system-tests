@@ -483,7 +483,7 @@ class Test_Telemetry:
                         raise Exception(
                             "Client Configuration information is not accurately reported, "
                             + cnf
-                            + "is not present in configuration on app-started event"
+                            + " is not present in configuration on app-started event"
                         )
 
         self.validate_library_telemetry_data(validator)
@@ -538,7 +538,7 @@ class Test_TelemetryV2:
             if not is_v2_payload(data):
                 continue
             if get_request_type(data) == "app-started":
-                products = data["request"]["content"]["application"]["products"]
+                products = data["request"]["content"]["payload"]["products"]
                 assert (
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
