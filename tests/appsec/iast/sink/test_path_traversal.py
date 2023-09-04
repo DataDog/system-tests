@@ -18,7 +18,6 @@ from .._test_iast_fixtures import SinkFixture
         "*": "1.1.0",
     }
 )
-@released(nodejs={"express4": "3.19.0", "*": "?"})
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestPathTraversal:
     """Test path traversal detection."""
