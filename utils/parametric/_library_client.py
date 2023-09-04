@@ -1,3 +1,4 @@
+# pylint: disable=E1101
 import contextlib
 import time
 import urllib.parse
@@ -85,6 +86,9 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def otel_flush(self, timeout: int) -> bool:
+        raise NotImplementedError
+
+    def http_request(self, method: str, url: str, headers: List[Tuple[str, str]]) -> None:
         raise NotImplementedError
 
 
@@ -348,6 +352,13 @@ class APMLibraryClientGRPC:
     def finish_span(self, span_id: int):
         self._client.FinishSpan(pb.FinishSpanArgs(id=span_id))
 
+    def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
+        hs = pb.DistributedHTTPHeaders()
+        for key, value in headers:
+            hs.http_headers.append(pb.HeaderTuple(key=key, value=value))
+
+        self._client.HTTPClientRequest(pb.HTTPRequestArgs(method=method, url=url, headers=hs, body=body,))
+
     def otel_end_span(self, span_id: int, timestamp: int):
         self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=span_id, timestamp=timestamp))
 
@@ -450,3 +461,9 @@ class APMLibrary:
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
+
+    def http_client_request(
+        self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",
+    ):
+        """Do an HTTP request with the given method and headers."""
+        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)

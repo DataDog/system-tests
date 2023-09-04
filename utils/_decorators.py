@@ -1,7 +1,12 @@
 import inspect
+import os
 import pytest
 
 from utils._context.core import context
+
+
+# temp code, for manifest file migrations
+_released_declarations = {}
 
 
 def _get_skipped_item(item, skip_reason):
@@ -129,6 +134,10 @@ def released(
             if component_name in test_class.__released__:
                 raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
 
+            if component_name == context.library.library:
+                file = os.path.relpath(inspect.getfile(test_class))
+                _released_declarations[f"{file}::{test_class.__name__}"] = released_version
+
             released_version = _compute_released_version(released_version)
 
             test_class.__released__[component_name] = released_version
@@ -159,6 +168,7 @@ def released(
             compute_requirement("php", "php_appsec", php_appsec, context.php_appsec),
             compute_requirement("php", "php", php, context.library.version),
             compute_requirement("python", "python", python, context.library.version),
+            compute_requirement("python_http", "python_http", python, context.library.version),
             compute_requirement("ruby", "ruby", ruby, context.library.version),
         ]
 
