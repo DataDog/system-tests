@@ -81,8 +81,8 @@ class Test_StandardTagsUrl:
         ]
 
     # when tracer is updated, add (for example)
-    # @irrelevant(context.library >= "python@1.20.0", reason="python released the new version at 1.20.0")
     @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
+    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
     def test_url_with_sensitive_query_string_legacy(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -113,10 +113,11 @@ class Test_StandardTagsUrl:
         ]
 
     @missing_feature(
-        context.library in ["dotnet", "golang", "nodejs", "php", "python", "ruby"],
+        context.library in ["dotnet", "golang", "nodejs", "php", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @missing_feature(context.library < "java@1.21.0", "previous obfuscation regex")
+    @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -129,8 +130,8 @@ class Test_StandardTagsUrl:
         )
 
     # when tracer is updated, add (for exemple)
-    # @irrelevant(context.library >= "python@1.20.0", reason="python released the new version at 1.20.0")
     @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
+    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
     def test_multiple_matching_substring_legacy(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
@@ -143,10 +144,11 @@ class Test_StandardTagsUrl:
         )
 
     @missing_feature(
-        context.library in ["dotnet", "golang", "nodejs", "php", "python", "ruby"],
+        context.library in ["dotnet", "golang", "nodejs", "php", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @missing_feature(context.library < "java@1.21.0", "previous obfuscation regex")
+    @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     def test_multiple_matching_substring(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
@@ -198,7 +200,6 @@ class Test_StandardTagsRoute:
         self.r = weblog.get("/sample_rate_route/1")
 
     def test_route(self):
-
         tags = {"http.route": "/sample_rate_route/{i}"}
 
         # specify the route syntax if needed
