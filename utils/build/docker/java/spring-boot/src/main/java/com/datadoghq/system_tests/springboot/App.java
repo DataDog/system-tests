@@ -580,6 +580,48 @@ public class App {
         return new ResponseEntity<>(content, HttpStatus.OK);
     }
 
+    static boolean integration_sql_dbs_created=false;
+
+    @RequestMapping("/db")
+    String db_sql_integrations(@RequestParam(required = true, name="service") String service,
+                         @RequestParam(required = true, name="operation") String operation)
+  {
+        System.out.println("RMM...DB::::>>>service " + service + "operation: " + operation );
+        com.datadoghq.system_tests.springboot.integrations.db.DBFactory dbFactory = new com.datadoghq.system_tests.springboot.integrations.db.DBFactory();
+        if (!integration_sql_dbs_created){
+            System.out.println("RMM...CREATING DB::::>>>service " + service + "operation: " + operation );
+            integration_sql_dbs_created=true;
+            dbFactory.createAllSampleDatabases();
+        }
+
+        com.datadoghq.system_tests.springboot.integrations.db.ICRUDOperation crudOperation = dbFactory.getDBOperator(service);
+
+        switch (operation) {
+            case "select":
+                crudOperation.select();
+                break;
+            case "select_error":
+                crudOperation.selectError();
+                break;
+            case "insert":
+                crudOperation.insert();
+                break;
+            case "delete":
+                crudOperation.delete();
+                break;
+            case "update":
+                crudOperation.update();
+                break;
+            case "procedure":
+                crudOperation.callProcedure();
+                break;
+            default:
+                throw new UnsupportedOperationException("Operation " + operation + " not allowed");
+        }
+
+        return "OK";
+    }
+
     @Bean
     @ConditionalOnProperty(
         value="spring.native", 
