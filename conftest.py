@@ -13,7 +13,6 @@ from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
 from utils._decorators import released, _get_skipped_item, _get_expected_failure_item
-import re
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -72,6 +71,7 @@ def pytest_sessionstart(session):
 
 # called when each test item is collected
 def _collect_item_metadata(item):
+
     _docs = {}
     _skip_reasons = {}
     _release_versions = {}
@@ -258,14 +258,6 @@ def pytest_collection_finish(session):
 
         setup_method_name = f"setup_{item.name[5:]}"
 
-        # Is a parametrized test?
-        index_parameter = setup_method_name.find("[")
-        parameter_id = None
-        if index_parameter > 0:
-            search_result = re.search("\[(.*)\]", setup_method_name)
-            parameter_id = search_result.group(1)
-            setup_method_name = setup_method_name[:index_parameter]
-
         if not hasattr(item.instance, setup_method_name):
             continue
 
@@ -280,7 +272,7 @@ def pytest_collection_finish(session):
         logger.debug(f"Call {setup_method} for {item}")
         try:
             weblog.current_nodeid = item.nodeid
-            setup_method(parameter_id) if parameter_id else setup_method()
+            setup_method()
             weblog.current_nodeid = None
         except Exception:
             logger.exception("Unexpected failure during setup method call")

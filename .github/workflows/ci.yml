@@ -586,6 +586,8 @@ jobs:
           weblog: integrations-db-sql
         - library: nodejs
           weblog: integrations-db-sql
+        - library: python
+          weblog: integrations-db-sql
         version:
         - prod
         - dev

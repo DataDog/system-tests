@@ -56,59 +56,43 @@ def createDatabae():
 
 def select():
     sql = "SELECT * from demo"
-    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
-    cursor = postgres_db.cursor()
-    cursor.execute(sql)
-    cursor.close()
-    postgres_db.close()
+    _executeQuery(sql)
     return "OK"
 
 
 def select_error():
     sql = "SELECT * from demosssssssss"
-    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
-    cursor = postgres_db.cursor()
-    cursor.execute(sql)
-    cursor.close()
-    postgres_db.close()
+    _executeQuery(sql)
     return "OK"
 
 
 def update():
     sql = "update demo set age=22 where id=1"
-    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
-    cursor = postgres_db.cursor()
-    cursor.execute(sql)
-    cursor.close()
-    postgres_db.close()
+    _executeQuery(sql)
     return "OK"
 
 
 def insert():
     sql = "insert into demo (id,name,age) values(3,'test3',163)"
-    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
-    cursor = postgres_db.cursor()
-    cursor.execute(sql)
-    cursor.close()
-    postgres_db.close()
+    _executeQuery(sql)
     return "OK"
 
 
 def delete():
     sql = "delete from demo where id=2"
-    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
-    cursor = postgres_db.cursor()
-    cursor.execute(sql)
-    cursor.close()
-    postgres_db.close()
+    _executeQuery(sql)
     return "OK"
 
 
 def procedure():
     sql = "call helloworld()"
+    _executeQuery(sql)
+    return "OK"
+
+
+def _executeQuery(sql):
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     cursor.close()
     postgres_db.close()
-    return "OK"

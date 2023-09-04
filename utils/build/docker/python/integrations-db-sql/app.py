@@ -5,6 +5,7 @@ from flask import Flask, Response
 from flask import request as flask_request
 from postgres import executePostgresOperation
 from mysqldb import executeMysqlOperation
+from mssql import executeMssqlOperation
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -33,6 +34,8 @@ def db():
         executePostgresOperation(operation)
     elif service == "mysql":
         executeMysqlOperation(operation)
+    elif service == "mssql":
+        executeMssqlOperation(operation)
     else:
         print(f"SERVICE NOT SUPPORTED: {service}")
 

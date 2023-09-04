@@ -102,9 +102,6 @@ class _Scenario:
     def close_targets(self):
         """ called after setup"""
 
-    def get_containers_by_type(self, container_type):
-        return []
-
     @property
     def host_log_folder(self):
         return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}"
@@ -250,13 +247,6 @@ class _DockerScenario(_Scenario):
 
         for container in reversed(self._required_containers):
             container.configure(self.replay)
-
-    def get_containers_by_type(self, container_type):
-        containers = []
-        for container in self._required_containers:
-            if container_type == "sql_db" and isinstance(container, SqlDbTestedContainer):
-                containers.append(container)
-        return containers
 
     def get_container_by_dd_integration_name(self, name):
         for container in self._required_containers:

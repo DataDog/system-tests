@@ -1,9 +1,13 @@
-import pymysql
+import pyodbc
 
 database_loaded = 0
+SERVER = "mssql"
+DATABASE = "master"
+USERNAME = "sa"
+PASSWORD = "yourStrong(!)Password"
 
 
-def executeMysqlOperation(operation,):
+def executeMssqlOperation(operation,):
     global database_loaded
     if database_loaded == 0:
         createDatabae()
@@ -26,32 +30,31 @@ def executeMysqlOperation(operation,):
 
 
 def connect_db():
-    return pymysql.connect(
-        user="mysqldb",
-        password="mysqldb",
-        database="world",
-        autocommit=True,
-        charset="utf8mb4",
-        host="mysqldb",
-        cursorclass=pymysql.cursors.DictCursor,
+    connectionString = (
+        f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}"
     )
+    conn = pyodbc.connect(connectionString)
+    return conn
 
 
 def createDatabae():
-    print("CREATING MYSQL DATABASE")
-    sql_table = " CREATE TABLE demo(id INT NOT NULL, name VARCHAR (20) NOT NULL, age INT NOT NULL, PRIMARY KEY (ID));"
+    print("CREATING MSSQL DATABASE")
+
+    sql_table = " CREATE TABLE demo(id INT NOT NULL, name VARCHAR (20) NOT NULL,age INT NOT NULL,PRIMARY KEY (ID));"
     sql_insert_1 = "insert into demo (id,name,age) values(1,'test',16);"
     sql_insert_2 = "insert into demo (id,name,age) values(2,'test2',17);"
 
-    procedure = """CREATE PROCEDURE test_procedure(IN test_id INT) 
-           BEGIN 
-           SELECT demo.id, demo.name,demo.age 
-           FROM demo 
-           WHERE demo.id = test_id; 
-           END """
-
-    cursor = connect_db().cursor()
+    procedure = """ CREATE PROCEDURE helloworld 
+         AS 
+         BEGIN 
+         SET NOCOUNT ON 
+         SELECT id from demo where id=1
+    END  """
+    conn = connect_db()
+    cursor = conn.cursor()
     cursor.execute(sql_table)
+    conn.commit()
+
     cursor.execute(sql_insert_1)
     cursor.execute(sql_insert_2)
     cursor.execute(procedure)
@@ -90,11 +93,11 @@ def insert():
 
 
 def procedure():
-    _executeQuery("call test_procedure(1)")
+    _executeQuery("helloworld")
     return "OK"
 
 
-def _executeQuery(sql):
+def _executeQuery(query):
     cursor = connect_db().cursor()
-    cursor.execute(sql)
+    cursor.execute(query)
     cursor.close()
