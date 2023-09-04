@@ -134,7 +134,7 @@ def _get_skip_reason_from_marker(marker):
 
 def pytest_pycollect_makemodule(module_path, parent):
 
-    manifest = load_manifest(context.scenario.library.library, context.scenario.weblog_variant)
+    manifest = load_manifest(context.scenario.library.library)
 
     relative_path = str(module_path.relative_to(module_path.cwd()))
 
@@ -157,16 +157,22 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
     if collector.istestclass(obj, name):
 
-        manifest = load_manifest(context.scenario.library.library, context.scenario.weblog_variant)
+        manifest = load_manifest(context.scenario.library.library)
         nodeid = f"{collector.nodeid}::{name}"
 
         if nodeid in manifest:
             declaration = manifest[nodeid]
-            logger.info(f"Manifest declaration for {nodeid}: {declaration}")
+            logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            if declaration.startswith("v"):
+            if isinstance(declaration, dict):
+                if not hasattr(obj, "__released__"):  # let priority to inline declaration
+                    released(**{context.scenario.library.library: declaration})(obj)
+            elif declaration.startswith("v"):
                 if not hasattr(obj, "__released__"):  # let priority to inline declaration
                     released(**{context.scenario.library.library: declaration[1:]})(obj)
+            elif declaration == "?" or declaration.startswith("missing_feature"):
+                if not hasattr(obj, "__released__"):  # let priority to inline declaration
+                    released(**{context.scenario.library.library: declaration})(obj)
             elif declaration.startswith("not relevant") or declaration.startswith("flaky"):
                 _get_skipped_item(obj, declaration)
             else:
@@ -250,7 +256,7 @@ def _export_manifest():
         if isinstance(value, dict):
             return {k: convert_value(v) for k, v in value.items()}
 
-        return "missing_feature" if value == "?" else f"v{value}"
+        return "missing_feature" if value in ("?", "missing_feature") else f"v{value}"
 
     def feed(parent: dict, path: list, value):
 
@@ -264,11 +270,20 @@ def _export_manifest():
 
             feed(parent[key], path, value)
 
-    for path in sorted(_released_declarations):
-        feed(result, path.replace("/", "/#").replace("::", "#").split("#"), _released_declarations[path])
+    def sort_key(name):
+        return name if name.endswith("/") else f"zzz_{name}"
+
+    def recursive_sort(obj: dict):
+        if not isinstance(obj, dict):
+            return obj
+
+        return {k: recursive_sort(obj[k]) for k in sorted(obj, key=sort_key)}
+
+    for path, value in _released_declarations.items():
+        feed(result, path.replace("/", "/#").replace("::", "#").split("#"), value)
 
     with open(f"{context.scenario.host_log_folder}/manifest.yaml", "w", encoding="utf-8") as f:
-        yaml.dump(result, f)
+        yaml.dump(recursive_sort(result), f, sort_keys=False)
 
 
 def pytest_collection_finish(session):

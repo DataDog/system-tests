@@ -6,10 +6,10 @@ from jsonschema import validate
 import yaml
 
 
-def _flatten(base, object):
+def _flatten(base, obj):
     if base.endswith(".py"):
         base += "::"
-    for key, value in object.items():
+    for key, value in obj.items():
 
         if isinstance(value, str):
             yield f"{base}{key}", value
@@ -23,7 +23,7 @@ def _flatten(base, object):
 def _load_file(file):
 
     try:
-        with open(file) as f:
+        with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
     except FileNotFoundError:
         return {}
@@ -31,38 +31,22 @@ def _load_file(file):
     return {nodeid: value for nodeid, value in _flatten("", data)}
 
 
-def _filter_with_context(data, weblog_variant):
-    def resolve_value(value):
-        if isinstance(value, str):
-            return value
-        elif weblog_variant in value:
-            return value[weblog_variant]
-        elif "*" in value:
-            return value["*"]
-        else:
-            return None
+def _fix_irrelevant_legacy(value: [str, dict]):
+    # in JSON report, the marker for irrelevant is "not relevant", where the decorator is "irrelevant"
+    if isinstance(value, dict):
+        return {k: _fix_irrelevant_legacy(v) for k, v in value.items()}
 
-    def fix_irrelevant_legacy(value: str):
-        # in JSON report, the marker for irrelevant is "not relevant", where the decorator is "irrelevant"
-        if value.startswith("irrelevant"):
-            return "not relevant" + value[len("irrelevant") :]
+    if value.startswith("irrelevant"):
+        return "not relevant" + value[len("irrelevant") :]
 
-        return value
-
-    # resolve weblogs dicts
-    result = {nodeid: resolve_value(value) for nodeid, value in data.items()}
-
-    # filter nones, and fix irrelevant => not relevant
-    result = {nodeid: fix_irrelevant_legacy(value) for nodeid, value in result.items() if value is not None}
-
-    return result
+    return value
 
 
 @lru_cache
-def load(library, weblog_variant):
+def load(library):
 
     result = _load_file(f"manifests/{library}.yml")
-    result = _filter_with_context(result, weblog_variant)
+    result = {nodeid: _fix_irrelevant_legacy(value) for nodeid, value in result.items() if value is not None}
 
     return result
 
@@ -85,13 +69,13 @@ def assert_key_order(obj: dict, path=""):
 
 
 def validate_manifest_files():
-    with open("manifests/parser/schema.json") as f:
+    with open("manifests/parser/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
     for file in os.listdir("manifests/"):
         if file.endswith(".yml"):
             try:
-                with open(f"manifests/{file}") as f:
+                with open(f"manifests/{file}", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
 
                 validate(data, schema)
