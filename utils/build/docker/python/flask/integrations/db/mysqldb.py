@@ -1,4 +1,7 @@
-import pymysql
+try:
+    import pymysql
+except ModuleNotFoundError:
+    print("pmysql not loaded")
 
 database_mysql_loaded = 0
 
