@@ -126,7 +126,7 @@ def get_component_name(weblog_variant, language, span_name):
     return expected_component
 
 
-@released(ruby="1.7.0", golang="1.45.0", python="1.80.0")
+@released(ruby="1.7.0", python="1.80.0")
 class Test_Meta:
     """meta object in spans respect all conventions"""
 

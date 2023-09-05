@@ -36,12 +36,7 @@ def equal_value(t1, t2):
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    dotnet="?", java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -62,12 +57,7 @@ class Test_Schema_Request_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    dotnet="?", java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -90,12 +80,7 @@ class Test_Schema_Request_Query_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    dotnet="?", java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -120,12 +105,7 @@ class Test_Schema_Request_Path_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    dotnet="?", java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -145,12 +125,7 @@ class Test_Schema_Request_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    dotnet="?", java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -172,7 +147,7 @@ class Test_Schema_Reponse_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(dotnet="?", golang="?", java="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", java="?", php_appsec="?", python="?", ruby="?")
 @coverage.not_implemented
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Body:

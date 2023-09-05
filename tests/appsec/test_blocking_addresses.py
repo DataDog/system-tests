@@ -38,7 +38,6 @@ _released_java_blocking = {
     dotnet="2.27.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    golang="1.51.0",
     ruby="1.0.0",
     java=_released_java_blocking,
 )
@@ -231,7 +230,6 @@ def _assert_custom_event_tag_absence():
 @coverage.good
 @released(
     dotnet="2.29.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.12.0",
@@ -280,7 +278,6 @@ class Test_Blocking_request_method:
 @coverage.good
 @released(
     dotnet="2.32.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.15", "flask-poc": "1.15", "*": "1.16.1"},
     ruby="1.0.0",
@@ -339,7 +336,6 @@ class Test_Blocking_request_uri:
 @coverage.good
 @released(
     dotnet="2.29.0",
-    golang="1.51.0",
     java="1.15.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.13", "*": "1.16.1"},
@@ -392,7 +388,6 @@ class Test_Blocking_request_path_params:
 @coverage.good
 @released(
     dotnet="2.29.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
@@ -447,7 +442,6 @@ class Test_Blocking_request_query:
 @coverage.good
 @released(
     dotnet="2.29.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
@@ -502,7 +496,6 @@ class Test_Blocking_request_headers:
 @coverage.good
 @released(
     dotnet="2.29.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
@@ -557,7 +550,6 @@ class Test_Blocking_request_cookies:
 @coverage.good
 @released(
     dotnet="2.29.0",
-    golang="?",
     java="1.15.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
@@ -627,7 +619,6 @@ class Test_Blocking_request_body:
 @coverage.good
 @released(
     dotnet="2.32.0",
-    golang="?",
     java="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
@@ -663,7 +654,6 @@ class Test_Blocking_response_status:
 @coverage.good
 @released(
     dotnet="2.32.0",
-    golang="?",
     java="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
@@ -698,7 +688,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(dotnet="2.29.0", php_appsec="0.7.0", python="?", golang="?", ruby="1.0.0")
+@released(dotnet="2.29.0", php_appsec="0.7.0", python="?", ruby="1.0.0")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 

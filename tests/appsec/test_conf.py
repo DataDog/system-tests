@@ -50,7 +50,7 @@ class Test_RuleSet_1_2_5:
         assert context.appsec_rules_version >= "1.2.5"
 
 
-@released(dotnet="2.7.0", golang="1.38.0", java="0.99.0")
+@released(dotnet="2.7.0", java="0.99.0")
 @released(php_appsec="0.3.0", python="1.2.1", ruby="1.0.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")

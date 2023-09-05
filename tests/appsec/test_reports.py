@@ -21,7 +21,6 @@ from tests.constants import PYTHON_RELEASE_GA_1_1
 
 
 @released(dotnet="1.28.6", java="0.92.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
-@released(golang={"gin": "1.37.0", "echo": "1.36.0", "*": "1.34.0"})
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
@@ -57,13 +56,6 @@ class Test_StatusCode:
         interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@released(
-    golang="1.37.0"
-    if context.weblog_variant == "gin"
-    else "1.36.0"
-    if context.weblog_variant in ["echo", "chi"]
-    else "1.34.0"
-)
 @released(dotnet="1.30.0", java="0.98.1", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
@@ -103,13 +95,6 @@ class Test_HttpClientIP:
         interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(
-    golang="1.37.0"
-    if context.weblog_variant == "gin"
-    else "1.36.0"
-    if context.weblog_variant in ["echo", "chi"]
-    else "1.34.0"
-)
 @released(dotnet="2.0.0", java="0.87.0", php="0.68.2", python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
@@ -146,7 +131,6 @@ class Test_Info:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@released(golang={"gin": "1.37.0", "echo": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.30.0", php_appsec="0.2.0", python="1.1.0rc2.dev")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
