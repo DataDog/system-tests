@@ -11,9 +11,12 @@ import json
 from utils._context.library_version import LibraryVersion
 
 
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
 @released(
     java={"spring-boot-integrations": "1.12.0", "*": "?",}
+)
+@released(
+    nodejs={"express4-integrations": "1.0.0", "*": "?",}
 )
 @scenarios.integrations_db_sql
 class _BaseIntegrationsSqlTestClass:

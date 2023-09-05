@@ -222,6 +222,8 @@ jobs:
           weblog: rails70
         - library: java
           weblog: spring-boot-integrations
+        - library: nodejs
+          weblog: express4-integrations
         version:
         - prod
         - dev
