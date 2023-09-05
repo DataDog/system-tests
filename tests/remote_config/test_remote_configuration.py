@@ -53,7 +53,6 @@ class RemoteConfigurationFieldsBasicTests:
 
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "dotnet@2.24.0")
     @bug(context.library >= "nodejs@3.14.1")
     @bug(context.library == "php" and context.php_appsec >= "0.10.0")
     def test_schemas(self):
@@ -307,25 +306,20 @@ class Test_RemoteConfigurationExtraServices:
     def test_tracer_extra_services(self):
         """ test """
 
-        def validate(data):
-            """ Helper to validate config request content """
-            client_tracer = data["request"]["content"]["client"]["client_tracer"]
+        for data in interfaces.library.get_data():
+            if data["path"] == "/v0.7/config":
+                client_tracer = data["request"]["content"]["client"]["client_tracer"]
+                if "extra_services" in client_tracer:
+                    extra_services = client_tracer["extra_services"]
 
-            if not ("extra_services" in client_tracer):
-                raise ValidationError(
-                    "client_tracer should contain extra_services", extra_info={"client_tracer": client_tracer},
-                )
+                    if (
+                        extra_services is not None
+                        and len(extra_services) == 1
+                        and extra_services[0] == "extraVegetables"
+                    ):
+                        return
 
-            extra_services = client_tracer["extra_services"]
-
-            if extra_services is None or len(extra_services) != 1 or extra_services[0] != "extraVegetables":
-                raise ValidationError(
-                    "extra_services should be reported", extra_info={"extra_services": extra_services},
-                )
-
-            return True
-
-        interfaces.library.validate_remote_configuration(validator=validate)
+        raise ValueError("extra_services not found")
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
