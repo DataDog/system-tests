@@ -57,7 +57,7 @@ class Test_Schema_Request_Headers:
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert equal_without_meta(schema, [{"Accept-Encoding": [8], "Host": [8], "User-Agent": [8]}])
+        assert equal_without_meta(schema, [{"accept-encoding": [8], "host": [8], "user-agent": [8]}])
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -167,7 +167,7 @@ class Test_Schema_Reponse_Headers:
         assert isinstance(schema, list)
         assert len(schema) == 1
         assert isinstance(schema[0], dict)
-        for key in ("Content-Length", "Content-Type", "X-option"):
+        for key in ("content-length", "content-type", "x-option"):
             assert key in schema[0]
 
 
