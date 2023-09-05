@@ -1,4 +1,4 @@
-ARG AGENT_IMAGE=datadog/agent:7.48.0-rc.3
+ARG AGENT_IMAGE=datadog/agent:latest
 FROM $AGENT_IMAGE
 
 RUN set -eux;\

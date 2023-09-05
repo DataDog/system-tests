@@ -533,7 +533,7 @@ jobs:
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
       run: ./build.sh -i proxy
     - name: Build agent
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i agent
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 AGENT_BASE_IMAGE="datadog/agent:7.48.0-rc.3" ./build.sh java_otel -i agent
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i weblog

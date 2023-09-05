@@ -26,5 +26,5 @@ def validate_log_trace_correlation(otel_log_trace_attrs: dict, trace: dict):
     for item in trace["spans"].items():
         span = item[1]
     assert otel_log_trace_attrs["trace_id"] == span["meta"]["otel.trace_id"]
-    assert otel_log_trace_attrs["span_id"] == f'{int(span["span_id"]):x}'
+    assert int(otel_log_trace_attrs["span_id"], 16) == int(span["span_id"])
     assert otel_log_trace_attrs["severity_number"] == "9"
