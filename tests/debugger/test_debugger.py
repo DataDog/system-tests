@@ -76,7 +76,7 @@ def check_info_endpoint():
     raise ValueError("Agent did not provide /v0.7/config endpoint")
 
 
-@released(cpp="?", golang="?", dotnet="2.33.0", java="1.19.3", php_appsec="?", python="?", ruby="?")
+@released(golang="?", dotnet="2.33.0", java="1.19.3", php_appsec="?", python="?", ruby="?")
 @missing_feature(
     context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
     reason="not supported",
@@ -87,7 +87,7 @@ class Test_Debugger_Method_Probe_Statuses:
         check_probe_statuses(METHOD_PROBES)
 
 
-@released(cpp="?", golang="?", dotnet="2.33.0", java="1.19.3", php_appsec="?", python="?", ruby="?")
+@released(golang="?", dotnet="2.33.0", java="1.19.3", php_appsec="?", python="?", ruby="?")
 @missing_feature(
     context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
     reason="not supported",
