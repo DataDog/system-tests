@@ -12,6 +12,9 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+from integrations.db.postgres import executePostgresOperation
+from integrations.db.mysqldb import executeMysqlOperation
+from integrations.db.mssql import executeMssqlOperation
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -375,3 +378,22 @@ def test_nosamesite_empty_cookie():
     resp = Response("OK")
     resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
     return resp
+
+
+@app.route("/db", methods=["GET", "POST", "OPTIONS"])
+def db():
+    service = flask_request.args.get("service")
+    operation = flask_request.args.get("operation")
+
+    print("REQUEST RECEIVED!")
+
+    if service == "postgresql":
+        executePostgresOperation(operation)
+    elif service == "mysql":
+        executeMysqlOperation(operation)
+    elif service == "mssql":
+        executeMssqlOperation(operation)
+    else:
+        print(f"SERVICE NOT SUPPORTED: {service}")
+
+    return "YEAH"

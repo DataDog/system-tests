@@ -1,13 +1,13 @@
 import pymysql
 
-database_loaded = 0
+database_mysql_loaded = 0
 
 
 def executeMysqlOperation(operation,):
-    global database_loaded
-    if database_loaded == 0:
+    global database_mysql_loaded
+    if database_mysql_loaded == 0:
         createDatabae()
-    database_loaded = 1
+    database_mysql_loaded = 1
     print(f"Executing postgres {operation} operation")
     if operation == "select":
         select()

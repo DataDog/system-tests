@@ -18,6 +18,9 @@ from utils._context.library_version import LibraryVersion
 @released(
     nodejs={"express4-integrations": "1.0.0", "*": "?",}
 )
+@released(
+    nodejs={"flask-integrations": "*", "*": "?",}
+)
 @scenarios.integrations_db_sql
 class _BaseIntegrationsSqlTestClass:
 

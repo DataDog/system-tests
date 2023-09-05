@@ -1,6 +1,6 @@
 import pyodbc
 
-database_loaded = 0
+database_mssql_loaded = 0
 SERVER = "mssql"
 DATABASE = "master"
 USERNAME = "sa"
@@ -8,10 +8,10 @@ PASSWORD = "yourStrong(!)Password"
 
 
 def executeMssqlOperation(operation,):
-    global database_loaded
-    if database_loaded == 0:
+    global database_mssql_loaded
+    if database_mssql_loaded == 0:
         createDatabae()
-    database_loaded = 1
+    database_mssql_loaded = 1
     print(f"Executing postgres {operation} operation")
     if operation == "select":
         select()
