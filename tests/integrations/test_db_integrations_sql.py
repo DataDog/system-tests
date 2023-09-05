@@ -11,7 +11,7 @@ import json
 from utils._context.library_version import LibraryVersion
 
 
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?", cpp="?")
 @released(
     java={"spring-boot-integrations": "1.12.0", "*": "?",}
 )
