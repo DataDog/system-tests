@@ -23,7 +23,7 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@released(golang="1.38.1", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
+@released(golang="1.38.1", dotnet="2.7.0", java="0.100.0")
 @released(php_appsec="0.3.2", python="1.2.1", ruby="1.0.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
@@ -40,7 +40,7 @@ class Test_UrlQueryKey:
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
+@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_UrlQuery:
@@ -75,7 +75,7 @@ class Test_UrlQuery:
 
 @released(golang={"gin": "1.37.0", "chi": "1.36.0", "echo": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
+@released(php_appsec="0.1.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
@@ -92,7 +92,7 @@ class Test_UrlRaw:
 
 @released(golang={"gin": "1.37.0", "chi": "1.36.0", "echo": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0")
+@released(php_appsec="0.1.0")
 @released(python="1.6")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -165,7 +165,7 @@ class Test_Headers:
 
 
 @released(golang={"gin": "1.37.0", "chi": "1.36.0", "echo": "1.36.0", "*": "1.34.0"})
-@released(nodejs="2.0.0", php_appsec="0.1.0")
+@released(php_appsec="0.1.0")
 @released(
     python={
         "django-poc": "1.1.0rc2.dev",
@@ -274,7 +274,7 @@ class Test_Cookies:
         interfaces.library.assert_waf_attack(self.r_cwsc2cc, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", ruby="1.1.0")
+@released(golang="?", dotnet="?", java="?", php_appsec="0.1.0", ruby="1.1.0")
 @released(python={"django-poc": "1.5.2", "*": "?"})
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
@@ -290,7 +290,7 @@ class Test_BodyRaw:
         interfaces.library.assert_waf_attack(self.r, address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="1.4.0rc1.dev", ruby="1.8.0")
+@released(golang="1.37.0", dotnet="2.7.0", php_appsec="0.1.0", python="1.4.0rc1.dev", ruby="1.8.0")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "spring-boot-undertow": "0.98.0", "*": "0.95.1"})
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
@@ -320,7 +320,7 @@ class Test_BodyUrlEncoded:
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="1.4.0rc1.dev", ruby="1.8.0")
+@released(golang="1.37.0", dotnet="2.8.0", php="?", python="1.4.0rc1.dev", ruby="1.8.0")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "*": "0.95.1"})
 @bug(context.weblog_variant == "vertx4", reason="Capability to read body content is incomplete after vert.x 4.0.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -359,7 +359,7 @@ class Test_BodyJson:
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python=PYTHON_RELEASE_GA_1_1)
+@released(golang="1.37.0", dotnet="2.8.0", php="?", python=PYTHON_RELEASE_GA_1_1)
 @released(java={"vertx3": "?", "ratpack": "0.99.0", "*": "0.95.1"})
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 @bug(context.weblog_variant == "vertx4", reason="Capability to read body content is incomplete after vert.x 4.0.0")
@@ -397,20 +397,20 @@ class Test_BodyXml:
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", php="?", python="?", ruby="?")
 @coverage.not_implemented
 class Test_Method:
     """Appsec supports server.request.method"""
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@released(golang="?", dotnet="?", java="?", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.not_implemented
 class Test_ClientIP:
     """Appsec supports server.request.client_ip"""
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(dotnet="2.3.0", java="0.88.0", nodejs="2.0.0", python="0.58.5", ruby="1.10.0")
+@released(dotnet="2.3.0", java="0.88.0", python="0.58.5", ruby="1.10.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_ResponseStatus:
@@ -429,7 +429,7 @@ class Test_ResponseStatus:
         interfaces.library.assert_waf_attack(self.r, pattern="404", address="server.response.status")
 
 
-@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", ruby="1.8.0")
+@released(dotnet="2.5.1", php_appsec="0.2.1", ruby="1.8.0")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "resteasy-netty3": "?", "jersey-grizzly2": "?", "*": "0.95.1"})
 @released(golang={"gin": "1.37.0", "*": "1.36.0"})
 @released(
@@ -460,7 +460,7 @@ class Test_PathParams:
         )
 
 
-@released(golang="1.36.0", dotnet="?", java="0.96.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="1.36.0", dotnet="?", java="0.96.0", php_appsec="?", python="?", ruby="?")
 @irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
 @bug(context.library < "java@0.109.0", weblog_variant="spring-boot", reason="APPSEC-5426")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -483,18 +483,18 @@ class Test_gRPC:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
 @coverage.not_implemented
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", php_appsec="?", python="?", ruby="?")
 class Test_FullGrpc:
     """Full gRPC support"""
 
 
 @coverage.not_implemented
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", php_appsec="?", python="?", ruby="?")
 class Test_GraphQL:
     """GraphQL support"""
 
 
 @coverage.not_implemented
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", php_appsec="?", python="?", ruby="?")
 class Test_Lambda:
     """Lambda support"""

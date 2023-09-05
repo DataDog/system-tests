@@ -164,15 +164,10 @@ def pytest_pycollect_makeitem(collector, name, obj):
             declaration = manifest[nodeid]
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            if isinstance(declaration, dict):
-                if not hasattr(obj, "__released__"):  # let priority to inline declaration
-                    released(**{context.scenario.library.library: declaration})(obj)
-            elif declaration.startswith("v"):
-                if not hasattr(obj, "__released__"):  # let priority to inline declaration
-                    released(**{context.scenario.library.library: declaration[1:]})(obj)
+            if isinstance(declaration, dict) or declaration.startswith("v"):
+                released(**{context.scenario.library.library: declaration})(obj)
             elif declaration == "?" or declaration.startswith("missing_feature"):
-                if not hasattr(obj, "__released__"):  # let priority to inline declaration
-                    released(**{context.scenario.library.library: declaration})(obj)
+                released(**{context.scenario.library.library: declaration})(obj)
             elif declaration.startswith("not relevant") or declaration.startswith("flaky"):
                 _get_skipped_item(obj, declaration)
             else:
@@ -256,7 +251,13 @@ def _export_manifest():
         if isinstance(value, dict):
             return {k: convert_value(v) for k, v in value.items()}
 
-        return "missing_feature" if value in ("?", "missing_feature") else f"v{value}"
+        if value == "?":
+            return "missing_feature"
+
+        if value[0].isnumeric():
+            return f"v{value}"
+
+        return value
 
     def feed(parent: dict, path: list, value):
 
