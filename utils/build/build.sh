@@ -165,7 +165,7 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == agent ]]; then
-            if [[ -z "${AGENT_BASE_IMAGE}" ]]; then
+            if [[ -z "${AGENT_BASE_IMAGE:-}" ]]; then
                 if [ -f ./binaries/agent-image ]; then
                     AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
                 else
