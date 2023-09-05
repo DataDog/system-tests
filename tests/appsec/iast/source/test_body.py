@@ -8,7 +8,7 @@ from .._test_iast_fixtures import SourceFixture
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?")
-@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?"})
+@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?", "flask-integrations": "?"})
 @released(
     java={
         "jersey-grizzly2": "?",
