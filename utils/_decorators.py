@@ -145,7 +145,7 @@ def released(
             if released_version is None:
                 return None
 
-            if released_version == "?":
+            if released_version == "?" or released_version.startswith("missing_feature"):
                 return "missing feature: release not yet planned"
 
             if released_version.startswith("not relevant"):
