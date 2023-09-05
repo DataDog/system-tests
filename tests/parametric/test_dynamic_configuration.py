@@ -108,7 +108,6 @@ ENV_SAMPLING_RULE_RATE = 0.55
     python="?",
     golang="?",
     php="?",
-    cpp="?",
 )
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric

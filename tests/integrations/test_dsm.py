@@ -6,7 +6,7 @@ from utils import weblog, interfaces, scenarios, released, irrelevant, context, 
 from utils.tools import logger
 
 
-@released(cpp="?", golang="?", php="?", python="?", ruby="?")
+@released(golang="?", php="?", python="?", ruby="?")
 @released(dotnet="2.29.0")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @released(nodejs="4.4.0")
@@ -41,7 +41,7 @@ class Test_DsmKafka:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.12.1", "*": "?"})
 @scenarios.integrations
 class Test_DsmHttp:
@@ -58,7 +58,7 @@ class Test_DsmHttp:
         )
 
 
-@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @released(dotnet="2.29.0")
 @scenarios.integrations
@@ -110,7 +110,7 @@ class Test_DsmRabbitmq:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
@@ -147,7 +147,7 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
