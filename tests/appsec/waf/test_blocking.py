@@ -51,7 +51,6 @@ JSON_CONTENT_TYPES = {
 @released(
     dotnet="2.27.0",
     golang="1.50.0-rc.1",
-    nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.11.0",
@@ -230,7 +229,7 @@ class Test_Blocking:
 @rfc(
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
 )
-@released(java="1.11.0", dotnet="?", golang="1.53.0", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@released(java="1.11.0", dotnet="?", golang="1.53.0", php_appsec="0.7.0", python="?", ruby="?")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
