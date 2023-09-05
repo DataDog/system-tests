@@ -586,10 +586,10 @@ public class App {
     String db_sql_integrations(@RequestParam(required = true, name="service") String service,
                          @RequestParam(required = true, name="operation") String operation)
   {
-        System.out.println("RMM...DB::::>>>service " + service + "operation: " + operation );
+        System.out.println("DB service [" + service + "], operation: [" + operation + "]");
         com.datadoghq.system_tests.springboot.integrations.db.DBFactory dbFactory = new com.datadoghq.system_tests.springboot.integrations.db.DBFactory();
         if (!integration_sql_dbs_created){
-            System.out.println("RMM...CREATING DB::::>>>service " + service + "operation: " + operation );
+            System.out.println("Creating DB service [" + service + "], operation: [" + operation + "]" );
             integration_sql_dbs_created=true;
             dbFactory.createAllSampleDatabases();
         }

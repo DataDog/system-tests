@@ -8,8 +8,6 @@ public class MssqlConnection implements IDBConnector {
     public Connection getConnection()
             throws SQLException, ClassNotFoundException {
         String dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-        String dbURL = "jdbc:sqlserver://mssql\\";
-        //String dbName = "events_service:1433;encrypt=true;trustServerCertificate=true;";
         String dbName = "master";
         String serverName="mssql";
         String dbUsername = "SA";
@@ -17,7 +15,7 @@ public class MssqlConnection implements IDBConnector {
         String url = "jdbc:sqlserver://" +serverName + ":1433;DatabaseName=" + dbName + ";trustServerCertificate=true";
 
         Class.forName(dbDriver);
-        Connection con = DriverManager.getConnection(url, //dbURL + dbName,
+        Connection con = DriverManager.getConnection(url, 
                 dbUsername,
                 dbPassword);
         return con;
