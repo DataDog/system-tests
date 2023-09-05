@@ -78,8 +78,8 @@ def check_info_endpoint():
 
 @released(cpp="?", golang="?", dotnet="2.33.0", java="1.19.3", php_appsec="?", python="?", ruby="?", nodejs="?")
 @missing_feature(
-    context.library == "java" and ("spring-boot" not in context.weblog_variant or "native" in context.weblog_variant),
-    reason="missing endpoint",
+    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
+    reason="not supported",
 )
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
@@ -89,8 +89,8 @@ class Test_Debugger_Method_Probe_Statuses:
 
 @released(cpp="?", golang="?", dotnet="2.33.0", java="1.19.3", php_appsec="?", python="?", ruby="?", nodejs="?")
 @missing_feature(
-    context.library == "java" and ("spring-boot" not in context.weblog_variant or "native" in context.weblog_variant),
-    reason="missing endpoint",
+    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
+    reason="not supported",
 )
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:

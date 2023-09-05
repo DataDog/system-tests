@@ -1,19 +1,19 @@
 package com.datadoghq.system_tests.springboot;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import javax.annotation.PostConstruct;
 
 @RestController
 @RequestMapping("/debugger")
 public class DebuggerController {
-    @PostConstruct
-    public void init() {
-        System.out.println("DebuggerController has been initialized.");
-    }
-
+// Dummy line
+// Dummy line
+// Dummy line
+// Dummy line
+// Dummy line
     @GetMapping("/log")
     public @ResponseBody String logProbe() {
         return "Log probe";
