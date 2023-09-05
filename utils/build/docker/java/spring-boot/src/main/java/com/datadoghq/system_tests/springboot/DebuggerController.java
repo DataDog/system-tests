@@ -5,13 +5,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import javax.annotation.PostConstruct;
 
 @RestController
 @RequestMapping("/debugger")
 public class DebuggerController {
-@PostConstruct
+    @PostConstruct
     public void init() {
+        System.out.println("DebuggerController has been initialized.");
     }
 
     @GetMapping("/log")
