@@ -209,7 +209,7 @@ class Test_TagsFromRule:
                 assert "type" in trigger["rule"]["tags"]
                 assert "category" in trigger["rule"]["tags"]
 
-    @released(context.libddwaf_version=="1.10.0")
+    @missing_feature(condition=context.libddwaf_version <= "1.10.0")
     def test_extra_tags(self):
         """attack timestamp is given by start property of span"""
 
