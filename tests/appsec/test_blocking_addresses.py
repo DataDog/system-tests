@@ -240,6 +240,7 @@ def _assert_custom_event_tag_absence():
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
@@ -289,6 +290,7 @@ class Test_Blocking_request_method:
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
@@ -350,6 +352,7 @@ class Test_Blocking_request_uri:
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -402,6 +405,7 @@ class Test_Blocking_request_path_params:
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -457,6 +461,7 @@ class Test_Blocking_request_query:
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -512,6 +517,7 @@ class Test_Blocking_request_headers:
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
@@ -567,6 +573,7 @@ class Test_Blocking_request_cookies:
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="Php does not accept url encoded entries without key")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
 
