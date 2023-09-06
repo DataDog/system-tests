@@ -174,15 +174,26 @@ class Test_Schema_Reponse_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(dotnet="?", golang="?", java="?", php_appsec="?", python="?", ruby="?")
-@coverage.not_implemented
+@released(dotnet="?", golang="?", java="?", php_appsec="?", python="1.19.0dev", ruby="?")
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Body:
-    """Test API Security - Reponse Body Schema"""
+    """Test API Security - Reponse Body Schema with urlencoded body"""
 
     def setup_request_method(self):
-        pass
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+        )
 
     def test_request_method(self):
         """can provide response body schema"""
-        pass
+        schema = get_schema(self.request, "res.body")
+        assert self.request.status_code == 200
+        print(self.request.request, self.request.status_code, self.request.headers, self.request.text)
+        assert isinstance(schema, list)
+        assert len(schema) == 1
+        for key in ("payload",):
+            assert key in schema[0]
+        payload_schema = schema[0]["payload"][0]
+        for key in ("test_bool", "test_int", "test_str"):
+            assert key in payload_schema

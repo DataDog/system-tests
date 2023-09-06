@@ -139,13 +139,22 @@ The second path parameter must be used as a response status code.
 
 All query parameters (key, value) must be used as (key, value) in the response headers.
 
+### Reponse
+
 The following text should be written to the body of the response:
 
 ```
 Value tagged
 ```
 
-Example :
+Exception (introduced for API Security): if the first string parameter starts with `payload_in_response_body` and the method is `POST`. Then the response should contain a json (content_type='application/json') with the format
+```
+{"payload": payload}
+```
+where payload is the parsed body of the request
+
+### Example
+
 ```
 /tag_value/tainted_value/418?Content-Language=fr&custom_field=myvalue
 ```
