@@ -2,7 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, interfaces, released, rfc, scenarios, weblog
+from utils import (context, coverage, interfaces, missing_feature, released,
+                   rfc, scenarios, weblog)
 
 
 def get_schema(request, address):
@@ -51,6 +52,7 @@ class Test_Schema_Request_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS001/200")
 
+    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide request header schema"""
         schema = get_schema(self.request, "req.headers")
@@ -160,6 +162,7 @@ class Test_Schema_Reponse_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
 
+    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide response header schema"""
         schema = get_schema(self.request, "res.headers")
