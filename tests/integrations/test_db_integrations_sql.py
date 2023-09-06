@@ -229,9 +229,23 @@ class _BaseIntegrationsSqlTestClass:
 class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "postgresql"
 
+    @missing_feature(library="python", reason="Python is using the correct span: db.system")
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
+    def test_db_type(self):
+        super().test_db_type()
+
 
 class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mysql"
+
+    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    @bug(library="python", reason="the value of this span should be 'world' instead of  'b'world'' ")
+    def test_db_name(self):
+        super().test_db_name()
+
+    @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
+    def test_db_user(self):
+        super().test_db_user()
 
 
 class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
@@ -246,3 +260,18 @@ class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.mssql.instance_name"].strip(), f"Test is failing for {db_operation}"
+
+    @bug(library="python", reason="bug on pyodbc driver?")
+    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    def test_db_name(self):
+        super().test_db_name()
+
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="java", reason="not implemented yet")
+    @bug(library="python", reason="bug on pyodbc driver?")
+    def test_db_system(self):
+        super().test_db_system()
+
+    @bug(library="python", reason="bug on pyodbc driver?")
+    def test_db_user(self):
+        super().test_db_user()
