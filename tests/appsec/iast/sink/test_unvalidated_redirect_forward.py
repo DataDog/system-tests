@@ -18,7 +18,7 @@ def _expected_location():
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?")
+@released(dotnet="?", php_appsec="?", ruby="?", python="?")
 @released(
     java={"vertx4": "1.17.0", "*": "1.16.0",}
 )

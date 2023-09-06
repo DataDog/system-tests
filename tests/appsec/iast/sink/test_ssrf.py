@@ -8,7 +8,7 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", java="1.14.0", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", java="1.14.0", php_appsec="?", python="?", ruby="?")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="ratpack", reason="No endpoint implemented")
 @missing_feature(weblog_variant="akka-http", reason="No endpoint implemented")
