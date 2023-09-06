@@ -214,6 +214,7 @@ class Test_TagsFromRule:
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @released(dotnet="2.34.0", java="1.14.0", php="0.88.0", python="1.14.0", nodejs="4.1.0", golang="?", ruby="?")
+@bug(context.library >= "java@1.14.0", reason="APPSEC-11111")
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 
