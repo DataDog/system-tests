@@ -524,7 +524,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="1.49.1", java="?", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
+@released(dotnet="2.35.0", golang="1.49.1", java="?", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
@@ -603,7 +603,7 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MessageBatch:
     """ Tests on Message batching """
 
@@ -622,7 +622,7 @@ class Test_MessageBatch:
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_log_generation_disabled
 class Test_Log_Generation:
     """Assert that logs are not reported when logs generation is disabled in telemetry"""
@@ -633,7 +633,7 @@ class Test_Log_Generation:
                 raise Exception(" Logs event is sent when log generation is disabled")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_metric_generation_disabled
 class Test_Metric_Generation_Disabled:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
@@ -644,7 +644,7 @@ class Test_Metric_Generation_Disabled:
                 raise Exception("Metric generate event is sent when metric generation is disabled")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @scenarios.telemetry_metric_generation_enabled
 class Test_Metric_Generation_Enabled:
     """Assert that metrics are reported when metric generation is enabled in telemetry"""
