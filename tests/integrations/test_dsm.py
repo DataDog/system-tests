@@ -7,7 +7,6 @@ from utils.tools import logger
 
 
 @released(php="?", python="?", ruby="?")
-@released(dotnet="2.29.0")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @released(nodejs="4.4.0")
 @scenarios.integrations
@@ -41,7 +40,7 @@ class Test_DsmKafka:
         )
 
 
-@released(dotnet="?", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.12.1", "*": "?"})
 @scenarios.integrations
 class Test_DsmHttp:
@@ -60,7 +59,6 @@ class Test_DsmHttp:
 
 @released(nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
-@released(dotnet="2.29.0")
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -110,7 +108,7 @@ class Test_DsmRabbitmq:
         )
 
 
-@released(dotnet="?", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
@@ -147,7 +145,7 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
 
-@released(dotnet="?", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:

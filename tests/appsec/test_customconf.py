@@ -97,7 +97,7 @@ class Test_ConfRuleSet:
 
 
 @released(
-    dotnet="2.4.4", java="0.97.0", php_appsec="0.3.0", python="1.1.0rc2.dev", ruby="1.0.0.beta2",
+    java="0.97.0", php_appsec="0.3.0", python="1.1.0rc2.dev", ruby="1.0.0.beta2",
 )
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic

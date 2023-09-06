@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", php_appsec="?", python="?", ruby="?")
+@released(php_appsec="?", python="?", ruby="?")
 @released(java={"ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
 class TestXPathInjection:
     """Test xpath injection detection."""

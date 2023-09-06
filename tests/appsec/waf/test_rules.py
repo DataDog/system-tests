@@ -13,7 +13,7 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Scanners:
@@ -96,7 +96,7 @@ class Test_LFI:
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
 
 
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RFI:
@@ -112,7 +112,7 @@ class Test_RFI:
         interfaces.library.assert_waf_attack(self.r_2, rules.rfi.crs_931_120)
 
 
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
@@ -171,7 +171,7 @@ class Test_PhpCodeInjection:
         interfaces.library.assert_waf_attack(self.r_8, rules.php_code_injection.crs_933_170)
 
 
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_JsInjection:
@@ -273,7 +273,7 @@ class Test_SQLI:
         interfaces.library.assert_waf_attack(self.r_6, "crs-942-140")
 
 
-@released(dotnet="2.12.0", java="0.87.0", php_appsec="0.1.0", python="1.2.1", ruby="1.8.0")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1", ruby="1.8.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
@@ -304,7 +304,7 @@ class Test_NoSqli:
         interfaces.library.assert_waf_attack(self.r_4, rules.nosql_injection)
 
 
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_JavaCodeInjection:
@@ -322,7 +322,7 @@ class Test_JavaCodeInjection:
         interfaces.library.assert_waf_attack(self.r_3, rules.java_code_injection.crs_944_130)
 
 
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_SSRF:
@@ -337,7 +337,7 @@ class Test_SSRF:
 
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@released(dotnet="2.3.0", python="0.58.5")
+@released(python="0.58.5")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_DiscoveryScan:
