@@ -296,15 +296,11 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      # if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' 
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run DB INTEGRATIONS_DB_SQL scenario
-      if: always() && steps.build.outcome == 'success' 
-      run: ./run.sh INTEGRATIONS_DB_SQL
-      env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
       run: ./run.sh APM_TRACING_E2E_OTEL

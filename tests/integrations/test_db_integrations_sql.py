@@ -21,7 +21,7 @@ from utils._context.library_version import LibraryVersion
 @released(
     python={"flask-integrations": "0.0.1", "*": "?",}
 )
-@scenarios.integrations_db_sql
+@scenarios.integrations
 class _BaseIntegrationsSqlTestClass:
 
     """ Verify basic DB operations over different databases.
