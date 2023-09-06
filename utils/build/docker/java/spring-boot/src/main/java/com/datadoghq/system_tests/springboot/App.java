@@ -86,7 +86,11 @@ public class App {
     MongoClient mongoClient;
 
     @RequestMapping("/")
-    String home() {
+    String home(HttpServletResponse response) {
+        // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
+        // if a java engineer knows how to remove this?
+        // waiting for that, just set a random value 
+        response.setHeader("Content-Language", "not-set");
         return "Hello World!";
     }
 
