@@ -233,6 +233,7 @@ class Test_Blocking:
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenarios.appsec_blocking
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""
 
