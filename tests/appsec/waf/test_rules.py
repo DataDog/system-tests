@@ -13,7 +13,6 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -32,7 +31,6 @@ class Test_Scanners:
         interfaces.library.assert_waf_attack(self.r_3, rules.security_scanner.crs_913_120)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.36.1"})
 @released(php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -58,7 +56,6 @@ class Test_HttpProtocol:
         interfaces.library.assert_waf_attack(self.r_2, rules.http_protocol_violation.crs_921_160)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(python={"flask-poc": "1.5.2", "uds-flask": "1.5.2", "*": "?"})
 @released(php_appsec="0.1.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -99,7 +96,6 @@ class Test_LFI:
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -116,7 +112,6 @@ class Test_RFI:
         interfaces.library.assert_waf_attack(self.r_2, rules.rfi.crs_931_120)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
@@ -142,7 +137,6 @@ class Test_CommandInjection:
         interfaces.library.assert_waf_attack(self.r_6, rules.command_injection.sqr_000_010)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -177,7 +171,6 @@ class Test_PhpCodeInjection:
         interfaces.library.assert_waf_attack(self.r_8, rules.php_code_injection.crs_933_170)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -194,7 +187,6 @@ class Test_JsInjection:
         interfaces.library.assert_waf_attack(self.r_2, rules.js_code_injection.sqr_000_002)
 
 
-@released(golang={"gin": "1.37.0", "echo": "1.36.0", "*": "1.35.0"})
 @released(java="0.87.0", php_appsec="0.1.0", python="1.3.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -230,7 +222,6 @@ class Test_XSS:
         interfaces.library.assert_waf_attack(self.r_xss2, rules.xss)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(php_appsec="0.1.0", python="1.3.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
@@ -282,7 +273,6 @@ class Test_SQLI:
         interfaces.library.assert_waf_attack(self.r_6, "crs-942-140")
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="2.12.0", java="0.87.0", php_appsec="0.1.0", python="1.2.1", ruby="1.8.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
@@ -314,7 +304,6 @@ class Test_NoSqli:
         interfaces.library.assert_waf_attack(self.r_4, rules.nosql_injection)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -333,7 +322,6 @@ class Test_JavaCodeInjection:
         interfaces.library.assert_waf_attack(self.r_3, rules.java_code_injection.crs_944_130)
 
 
-@released(golang={"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -349,7 +337,6 @@ class Test_SSRF:
 
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@released(golang={"gin": "1.37.0", "*": "1.36.0"})
 @released(dotnet="2.3.0", python="0.58.5")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
