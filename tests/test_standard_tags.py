@@ -116,7 +116,7 @@ class Test_StandardTagsUrl:
         context.library in ["dotnet", "golang", "nodejs", "php", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
-    @missing_feature(context.library < "java@1.21.0", "previous obfuscation regex")
+    @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
     @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
@@ -147,7 +147,7 @@ class Test_StandardTagsUrl:
         context.library in ["dotnet", "golang", "nodejs", "php", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
-    @missing_feature(context.library < "java@1.21.0", "previous obfuscation regex")
+    @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
     @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     def test_multiple_matching_substring(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
