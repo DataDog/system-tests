@@ -11,6 +11,7 @@ RUN echo '\
 log_level: DEBUG\n\
 apm_config:\n\
   apm_non_local_traffic: true\n\
+  trace_buffer: 5\n\
 remote_configuration:\n\
   enabled: false\n\
 logs_enabled: true\n\
