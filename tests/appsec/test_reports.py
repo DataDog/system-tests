@@ -209,6 +209,16 @@ class Test_TagsFromRule:
                 assert "type" in trigger["rule"]["tags"]
                 assert "category" in trigger["rule"]["tags"]
 
+    @released(context.libddwaf_version=="1.10.0")
+    def test_extra_tags(self):
+        """attack timestamp is given by start property of span"""
+
+        for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=self.r):
+            for trigger in appsec_data["triggers"]:
+                assert "rule" in trigger
+                assert "tags" in trigger["rule"]
+                assert "tool_name" in trigger["rule"]["tags"]
+
 
 @coverage.basic
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
