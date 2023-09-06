@@ -24,7 +24,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="1.29.0", java="0.92.0", python="1.1.0rc2.dev")
 @released(php_appsec="0.1.0", ruby="0.54.2")
-@bug(library="python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
