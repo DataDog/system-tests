@@ -10,3 +10,6 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         "*": "missing_feature"
+  remote_config/:
+    test_remote_configuration.py:
+      Test_RemoteConfigurationExtraServices: "missing_feature"
