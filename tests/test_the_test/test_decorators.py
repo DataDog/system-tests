@@ -162,11 +162,11 @@ class Test_Metadata:
 
 class Test_Skips:
     def test_irrelevant(self):
-        assert is_skipped(Test_IrrelevantClass, "not relevant")
-        assert is_skipped(Test_Class.test_irrelevant_method, "not relevant")
+        assert is_skipped(Test_IrrelevantClass, "irrelevant")
+        assert is_skipped(Test_Class.test_irrelevant_method, "irrelevant")
 
-        assert f"{BASE_PATH}::Test_IrrelevantClass::test_method => not relevant => skipped\n" in logs
-        assert f"{BASE_PATH}::Test_Class::test_irrelevant_method => not relevant => skipped\n" in logs
+        assert f"{BASE_PATH}::Test_IrrelevantClass::test_method => irrelevant => skipped\n" in logs
+        assert f"{BASE_PATH}::Test_Class::test_irrelevant_method => irrelevant => skipped\n" in logs
 
     def test_flaky(self):
         assert is_skipped(Test_FlakyClass, "known bug (flaky)")
@@ -180,19 +180,19 @@ class Test_Skips:
         assert is_not_skipped(Test_Class.test_good_method)
 
     def test_double_skip(self):
-        assert is_skipped(Test_Class.test_skipping_prio, "not relevant: irrelevant")
-        assert is_skipped(Test_Class.test_skipping_prio, "missing feature: missing feature")
+        assert is_skipped(Test_Class.test_skipping_prio, "irrelevant: irrelevant")
+        assert is_skipped(Test_Class.test_skipping_prio, "missing_feature: missing feature")
 
-        assert is_skipped(Test_Class.test_skipping_prio2, "not relevant: irrelevant")
-        assert is_skipped(Test_Class.test_skipping_prio2, "missing feature: missing feature")
+        assert is_skipped(Test_Class.test_skipping_prio2, "irrelevant: irrelevant")
+        assert is_skipped(Test_Class.test_skipping_prio2, "missing_feature: missing feature")
 
     def test_bug(self):
         assert is_skipped(Test_BugClass, "known bug")
         assert Test_BugClass.executed, "Bug decorator execute the test"
 
     def test_not_released(self):
-        assert is_skipped(Test_NotReleased, "missing feature: release not yet planned")
-        assert Test_NotReleased.executed, "missing feature execute the test"
+        assert is_skipped(Test_NotReleased, "missing_feature (release not yet planned)")
+        assert Test_NotReleased.executed, "missing_feature execute the test"
 
 
 def test_released_only_on_class():

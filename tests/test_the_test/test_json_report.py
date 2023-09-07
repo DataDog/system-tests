@@ -24,7 +24,7 @@ class Test_Json_Report:
         for test in self.report_json["tests"]:
             if test["nodeid"] == "tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature":
                 assert test["outcome"] == "xfailed"
-                assert test["skip_reason"] == "missing feature: missing feature"
+                assert test["skip_reason"] == "missing_feature: missing feature"
                 return
         pytest.fail("Test method not found")
 
@@ -34,7 +34,7 @@ class Test_Json_Report:
         for test in self.report_json["tests"]:
             if test["nodeid"] == "tests/test_the_test/test_json_report.py::Test_Mock::test_irrelevant":
                 assert test["outcome"] == "skipped"
-                assert test["skip_reason"] == "not relevant: irrelevant"
+                assert test["skip_reason"] == "irrelevant: irrelevant"
                 return
         pytest.fail("Test method not found")
 

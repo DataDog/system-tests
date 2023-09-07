@@ -31,22 +31,11 @@ def _load_file(file):
     return {nodeid: value for nodeid, value in _flatten("", data)}
 
 
-def _fix_irrelevant_legacy(value: [str, dict]):
-    # in JSON report, the marker for irrelevant is "not relevant", where the decorator is "irrelevant"
-    if isinstance(value, dict):
-        return {k: _fix_irrelevant_legacy(v) for k, v in value.items()}
-
-    if value.startswith("irrelevant"):
-        return "not relevant" + value[len("irrelevant") :]
-
-    return value
-
-
 @lru_cache
 def load(library):
 
     result = _load_file(f"manifests/{library}.yml")
-    result = {nodeid: _fix_irrelevant_legacy(value) for nodeid, value in result.items() if value is not None}
+    result = {nodeid: value for nodeid, value in result.items() if value is not None}
 
     return result
 

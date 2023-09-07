@@ -62,7 +62,7 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
         if not skip:
             return function_or_class
 
-        full_reason = "missing feature" if reason is None else f"missing feature: {reason}"
+        full_reason = "missing_feature" if reason is None else f"missing_feature: {reason}"
         return _get_expected_failure_item(function_or_class, full_reason)
 
     return decorator
@@ -78,7 +78,7 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
         if not skip:
             return function_or_class
 
-        full_reason = "not relevant" if reason is None else f"not relevant: {reason}"
+        full_reason = "irrelevant" if reason is None else f"irrelevant: {reason}"
         return _get_skipped_item(function_or_class, full_reason)
 
     return decorator
@@ -128,8 +128,8 @@ def released(
         if not inspect.isclass(test_class):
             raise TypeError("@released must be used only on classes")
 
-        def compute_requirement(tested_library, component_name, released_version, tested_version):
-            if context.library != tested_library or released_version is None:
+        def compute_declaration(tested_library, component_name, declaration, tested_version):
+            if context.library != tested_library or declaration is None:
                 return None
 
             if not hasattr(test_class, "__released__"):
@@ -140,46 +140,58 @@ def released(
 
             if component_name == context.library.library:
                 file = os.path.relpath(inspect.getfile(test_class))
-                _released_declarations[f"{file}::{test_class.__name__}"] = released_version
+                _released_declarations[f"{file}::{test_class.__name__}"] = declaration
 
-            released_version = _compute_released_version(released_version)
+            declaration = _resolve_declaration(declaration)
 
-            test_class.__released__[component_name] = released_version
+            test_class.__released__[component_name] = declaration
 
-            if released_version is None:
+            if declaration is None:
                 return None
 
-            if released_version == "?" or released_version.startswith("missing_feature"):
-                return "missing feature: release not yet planned"
+            if declaration == "?":  # fix legacy "?" in @released
+                declaration = "missing_feature (release not yet planned)"
 
-            if released_version.startswith("not relevant"):
-                raise ValueError("TODO remove this test, it should never happen")
+            if (
+                declaration.startswith("missing_feature")
+                or declaration.startswith("flaky")
+                or declaration.startswith("bug")
+                or declaration.startswith("irrelevant")
+            ):
+                return declaration
 
-            if tested_version >= released_version:
+            # declaration must be now a version number
+            if tested_version >= declaration:
                 return None
 
             return (
-                f"missing feature for {component_name}: "
-                f"release version is {released_version}, tested version is {tested_version}"
+                f"missing_feature for {component_name}: "
+                f"declared released version is {declaration}, tested version is {tested_version}"
             )
 
         skip_reasons = [
-            compute_requirement("cpp", "cpp", cpp, context.library.version),
-            compute_requirement("dotnet", "dotnet", dotnet, context.library.version),
-            compute_requirement("golang", "golang", golang, context.library.version),
-            compute_requirement("java", "java", java, context.library.version),
-            compute_requirement("nodejs", "nodejs", nodejs, context.library.version),
-            compute_requirement("php", "php_appsec", php_appsec, context.php_appsec),
-            compute_requirement("php", "php", php, context.library.version),
-            compute_requirement("python", "python", python, context.library.version),
-            compute_requirement("python_http", "python_http", python, context.library.version),
-            compute_requirement("ruby", "ruby", ruby, context.library.version),
+            compute_declaration("cpp", "cpp", cpp, context.library.version),
+            compute_declaration("dotnet", "dotnet", dotnet, context.library.version),
+            compute_declaration("golang", "golang", golang, context.library.version),
+            compute_declaration("java", "java", java, context.library.version),
+            compute_declaration("nodejs", "nodejs", nodejs, context.library.version),
+            compute_declaration("php", "php_appsec", php_appsec, context.php_appsec),
+            compute_declaration("php", "php", php, context.library.version),
+            compute_declaration("python", "python", python, context.library.version),
+            compute_declaration("python_http", "python_http", python, context.library.version),
+            compute_declaration("ruby", "ruby", ruby, context.library.version),
         ]
 
         skip_reasons = [reason for reason in skip_reasons if reason is not None]  # remove None
 
         if len(skip_reasons) != 0:
-            return _get_expected_failure_item(test_class, skip_reasons[0])  # use the first skip reason found
+            # look for any flaky or irrelevant, meaning we don't execute the test at all
+            for reason in skip_reasons:
+                if reason.startswith("flaky") or reason.startswith("irrelevant"):
+                    return _get_skipped_item(test_class, reason)  # use the first skip reason found
+
+                # Otherwise, it's either bug, or missing_feature. Take the first one
+                return _get_expected_failure_item(test_class, reason)
 
         return test_class
 
@@ -194,17 +206,18 @@ def rfc(link):
     return wrapper
 
 
-def _compute_released_version(released_version):
-    if isinstance(released_version, str):
-        return released_version
+def _resolve_declaration(released_declaration):
+    """ if the declaration is a dict, resolve it regarding the tested weblog """
+    if isinstance(released_declaration, str):
+        return released_declaration
 
-    if isinstance(released_version, dict):
-        if context.weblog_variant in released_version:
-            return released_version[context.weblog_variant]
+    if isinstance(released_declaration, dict):
+        if context.weblog_variant in released_declaration:
+            return released_declaration[context.weblog_variant]
 
-        if "*" in released_version:
-            return released_version["*"]
+        if "*" in released_declaration:
+            return released_declaration["*"]
 
         return None
 
-    raise TypeError(f"Unsuported release info: {released_version}")
+    raise TypeError(f"Unsuported release info: {released_declaration}")
