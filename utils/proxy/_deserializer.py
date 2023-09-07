@@ -9,19 +9,22 @@ import logging
 import traceback
 
 import msgpack
-from _decoders.protobuf_schemas import MetricPayload, TracePayload
-from google.protobuf.json_format import MessageToDict
 from requests_toolbelt.multipart.decoder import MultipartDecoder
-
-from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import ExportLogsServiceRequest, ExportLogsServiceResponse
-from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import (
-    ExportMetricsServiceRequest,
-    ExportMetricsServiceResponse,
-)
+from google.protobuf.json_format import MessageToDict
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import (
     ExportTraceServiceRequest,
     ExportTraceServiceResponse,
 )
+from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import (
+    ExportMetricsServiceRequest,
+    ExportMetricsServiceResponse,
+)
+from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
+    ExportLogsServiceRequest,
+    ExportLogsServiceResponse,
+)
+from _decoders.protobuf_schemas import MetricPayload, TracePayload
+
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +98,6 @@ def deserialize_dd_appsec_s_meta(key, payload):
     except Exception as e:
         # b64/gzip is optional
         return json.loads(payload)
-
 
 def deserialize_http_message(path, message, content: bytes, interface, key):
     def json_load():
