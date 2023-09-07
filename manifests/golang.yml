@@ -42,7 +42,7 @@ tests/:
           TestXPathInjection: missing_feature
         test_xss.py:
           TestXSS:
-            '*': missing_feature
+            "*": missing_feature
       source/:
         test_body.py:
           TestRequestBody: missing_feature
@@ -66,31 +66,31 @@ tests/:
         Test_BodyXml: v1.37.0
         Test_ClientIP: missing_feature
         Test_Cookies:
-          '*': v1.34.0
+          "*": v1.34.0
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
         Test_Headers:
-          '*': v1.34.0
+          "*": v1.34.0
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
         Test_PathParams:
-          '*': v1.36.0
+          "*": v1.36.0
           gin: v1.37.0
         Test_ResponseStatus:
-          '*': v1.36.0
+          "*": v1.36.0
           gin: v1.37.0
         Test_UrlQuery:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_UrlQueryKey: v1.38.1
         Test_UrlRaw:
-          '*': v1.34.0
+          "*": v1.34.0
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
@@ -104,62 +104,62 @@ tests/:
         Test_Exclusions: v1.53.0
       test_miscs.py:
         Test_404:
-          '*': v1.34.0
+          "*": v1.34.0
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
         Test_CorrectOptionProcessing:
-          '*': v1.34.0
+          "*": v1.34.0
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
         Test_MultipleAttacks:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_MultipleHighlight:
-          '*': v1.36.0
+          "*": v1.36.0
           gin: v1.37.0
       test_reports.py:
         Test_Monitoring: v1.38.0
       test_rules.py:
         Test_CommandInjection:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_DiscoveryScan:
-          '*': v1.36.0
+          "*": v1.36.0
           gin: v1.37.0
         Test_HttpProtocol:
-          '*': v1.36.1
+          "*": v1.36.1
           gin: v1.37.0
         Test_JavaCodeInjection:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_JsInjection:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_LFI:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_NoSqli:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_PhpCodeInjection:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_RFI:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_SQLI:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_SSRF:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_Scanners:
-          '*': v1.35.0
+          "*": v1.35.0
           gin: v1.37.0
         Test_XSS:
-          '*': v1.35.0
+          "*": v1.35.0
           echo: v1.36.0
           gin: v1.37.0
       test_telemetry.py:
@@ -168,7 +168,7 @@ tests/:
       Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic:
-        '*': v1.34.0
+        "*": v1.34.0
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
@@ -178,7 +178,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
       Test_BlockingGraphqlResolvers:
-        '*': missing_feature
+        "*": missing_feature
       Test_Blocking_request_body: missing_feature
       Test_Blocking_request_cookies: v1.51.0
       Test_Blocking_request_headers: v1.51.0
@@ -208,21 +208,21 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
       Test_HttpClientIP:
-        '*': v1.34.0
+        "*": v1.34.0
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
       Test_Info:
-        '*': v1.34.0
+        "*": v1.34.0
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
       Test_RequestHeaders:
-        '*': v1.34.0
+        "*": v1.34.0
         echo: v1.36.0
         gin: v1.37.0
       Test_StatusCode:
-        '*': v1.34.0
+        "*": v1.34.0
         echo: v1.36.0
         gin: v1.37.0
     test_request_blocking.py:
@@ -231,20 +231,20 @@ tests/:
       Test_RuntimeActivation: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
-        '*': v1.36.0
+        "*": v1.36.0
         gin: v1.37.0
       Test_AppSecObfuscator: v1.38.0
       Test_CollectRespondHeaders:
-        '*': v1.36.2
+        "*": v1.36.2
         gin: v1.37.0
       Test_RetainTraces:
-        '*': v1.36.0
+        "*": v1.36.0
         gin: v1.37.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v1.48.0
     test_versions.py:
       Test_Events:
-        '*': v1.36.0
+        "*": v1.36.0
         gin: v1.37.0
   debugger/:
     test_debugger.py:
@@ -277,9 +277,13 @@ tests/:
     Test_Propagate: v1.48.0-rc.1
     Test_Propagate_Legacy: v1.41.0
   test_library_conf.py:
-    Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTags: v1.53.0
+    Test_HeaderTagsLongFormat: v1.53.0
+    Test_HeaderTagsShortFormat: v1.53.0
+    Test_HeaderTagsWhitespacing_Headers: v1.53.0
+    Test_HeaderTagsWhitespacing_Tags: v1.53.0
+    Test_HeaderTagsWhitespacing_Vals: v1.53.0
+    Test_HeaderTagsColon_Edge: v1.53.0
   test_scrubbing.py:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:
