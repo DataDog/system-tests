@@ -85,6 +85,8 @@ jobs:
           if: contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
           run: |
             docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
+        - name: Install runner
+          uses: ./.github/actions/install_runner
         - name: Build python's weblog images
           run: |
             ./build.sh python --weblog-variant flask-poc
