@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (context, coverage, interfaces, missing_feature, released,
-                   rfc, scenarios, weblog)
+from utils import context, coverage, interfaces, missing_feature, released, rfc, scenarios, weblog
 
 
 def get_schema(request, address):
@@ -136,7 +135,7 @@ class Test_Schema_Request_Body:
 @released(
     java="?",
     php_appsec="?",
-    python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev, "*": "?"},
+    python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
 )
 @coverage.basic
 @scenarios.appsec_api_security
