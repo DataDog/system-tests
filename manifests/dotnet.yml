@@ -173,6 +173,7 @@ tests/:
       TestDynamicConfigV1: v2.33.0
   remote_config/:
     test_remote_configuration.py:
+      Test_RemoteConfigurationExtraServices: "v2.36.0"
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.15.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: v2.15.0
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0
