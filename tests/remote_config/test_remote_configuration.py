@@ -16,6 +16,7 @@ from utils import (
     rfc,
     bug,
     irrelevant,
+    weblog,
 )
 from utils.tools import logger
 
@@ -52,7 +53,6 @@ class RemoteConfigurationFieldsBasicTests:
 
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "dotnet@2.24.0")
     @bug(context.library >= "nodejs@3.14.1")
     @bug(context.library == "php" and context.php_appsec >= "0.10.0")
     def test_schemas(self):
@@ -138,8 +138,8 @@ def dict_is_included(sub_dict: dict, main_dict: dict):
 
 
 def dict_is_in_array(needle: dict, haystack: list, allow_additional_fields=True):
-    """ 
-    returns true is needle is contained in haystack. 
+    """
+    returns true is needle is contained in haystack.
     If allow_additional_field is true, needle can contains less field than the one in haystack
     """
 
@@ -280,6 +280,46 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
             return False
 
         interfaces.library.validate_remote_configuration(validator=validate)
+
+
+@coverage.basic
+@scenarios.remote_config_mocked_backend_asm_features
+class Test_RemoteConfigurationExtraServices:
+    """Tests that extra services are sent in the RC message"""
+
+    def setup_tracer_extra_services(self):
+        self.r_outgoing = weblog.get("/createextraservice/?serviceName=extraVegetables")
+
+        def remote_config_asm_extra_services_available(data):
+            if data["path"] == "/v0.7/config":
+                client_tracer = data.get("request", {}).get("content", {}).get("client", {}).get("client_tracer", {})
+                if "extra_services" in client_tracer:
+                    extra_services = client_tracer["extra_services"]
+
+                    if extra_services is not None and len(extra_services) > 0:
+                        return True
+
+                return False
+
+        interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
+
+    def test_tracer_extra_services(self):
+        """ test """
+
+        for data in interfaces.library.get_data():
+            if data["path"] == "/v0.7/config":
+                client_tracer = data["request"]["content"]["client"]["client_tracer"]
+                if "extra_services" in client_tracer:
+                    extra_services = client_tracer["extra_services"]
+
+                    if (
+                        extra_services is not None
+                        and len(extra_services) == 1
+                        and extra_services[0] == "extraVegetables"
+                    ):
+                        return
+
+        raise ValueError("extra_services not found")
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
