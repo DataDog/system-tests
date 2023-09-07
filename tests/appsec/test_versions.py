@@ -6,8 +6,7 @@ from utils import context, interfaces, released, coverage, irrelevant, missing_f
 
 
 @irrelevant(library="cpp")
-@released(java="0.90.0", nodejs="2.0.0", python="0.58.5", ruby="0.54.2")
-@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(java="0.90.0", python="0.58.5")
 @coverage.basic
 class Test_Events:
     """AppSec events uses events in span"""

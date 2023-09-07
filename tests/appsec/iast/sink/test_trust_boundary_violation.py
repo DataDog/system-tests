@@ -2,16 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 from utils import context, coverage, released, missing_feature
 from .._test_iast_fixtures import SinkFixture
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@released(php_appsec="?", python="?")
 @released(java="?")
 class Test_TrustBoundaryViolation:
     """Test Trust Boundary Violation detection."""

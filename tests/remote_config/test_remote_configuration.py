@@ -236,8 +236,8 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
-@released(php_appsec="0.7.0", python="1.7.4", ruby="?", nodejs="3.9.0")
+@released(java="1.4.0")
+@released(php_appsec="0.7.0", python="1.7.4")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -283,7 +283,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
+@released(java="1.4.0", php="?", python="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -315,8 +315,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="3.19.0")
-@released(golang="?")
+@released(java="1.4.0", php_appsec="0.7.0", python="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -351,9 +350,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(
-    cpp="?", golang="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="1.6.0rc1", ruby="?", nodejs="3.9.0"
-)
+@released(java="1.4.0", php_appsec="0.7.0", python="1.6.0rc1")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="python", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
@@ -386,7 +383,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(java="?", php="?", python="?")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
@@ -416,7 +413,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
+@released(java="?", php_appsec="0.7.0", python="?")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="php", reason="cache is implemented")

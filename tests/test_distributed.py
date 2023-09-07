@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, missing_feature, released, scenarios
 
 
-@released(cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
+@released(java="?", php="?")
 @released(python="1.5.0rc2.dev")  # TODO : is it the good version number ?
 @missing_feature(context.library == "python" and context.weblog_variant != "flask-poc", reason="Missing on weblog")
 @scenarios.trace_propagation_style_w3c

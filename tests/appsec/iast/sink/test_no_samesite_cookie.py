@@ -6,14 +6,10 @@ import pytest
 from utils import context, coverage, released, missing_feature, bug
 from .._test_iast_fixtures import SinkFixture
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?", nodejs="?")
+@released(php_appsec="?", python="1.19.0")
 @released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
-@bug(library="python")
 class TestNoSamesiteCookie:
     """Test No SameSite cookie detection."""
 
@@ -59,6 +55,7 @@ class TestNoSamesiteCookie:
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
+    @missing_feature(library="python", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
@@ -67,5 +64,6 @@ class TestNoSamesiteCookie:
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
+    @missing_feature(library="python", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

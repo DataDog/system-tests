@@ -32,13 +32,8 @@ def is_v1_payload(data):
     return data["request"]["content"].get("api_version") == "v1"
 
 
-@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0", php="0.90")
+@released(python="1.7.0", java="0.108.1", nodejs="3.2.0", php="0.90")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
-@bug(
-    context.weblog_variant.startswith("apache-mod"),
-    library="php",
-    reason="The libadatadog sidecar doesn't start with the apache weblog",
-)
 @missing_feature(library="cpp")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Telemetry:
@@ -290,9 +285,11 @@ class Test_Telemetry:
 
     # @flaky(library="dotnet", reason="Heartbeats are sometimes sent too slowly")
     # @flaky(library="python", reason="Heartbeats are sometimes sent too slowly")
-    @flaky(library="nodejs", reason="AIT-7943")
+    @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @bug(context.library > "php@0.90")
+    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -527,7 +524,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="1.49.1", java="?", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
+@released(java="?", python="1.17.3", nodejs="?", php="0.90")
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
@@ -562,7 +559,7 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
-@released(dotnet="2.12.0", golang="1.53", ruby="?", nodejs="?", php="?", python="?", java="?")
+@released(nodejs="?", php="?", python="?", java="?")
 @irrelevant(library="cpp")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ProductsDisabled:
@@ -590,7 +587,7 @@ class Test_ProductsDisabled:
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
-@released(dotnet="2.35.0", golang="?", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(java="1.7.0", nodejs="?", php="?", python="?")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
@@ -606,7 +603,7 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(java="?", nodejs="?", php="?", python="?")
 class Test_MessageBatch:
     """ Tests on Message batching """
 
@@ -625,7 +622,7 @@ class Test_MessageBatch:
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(java="?", nodejs="?", php="?", python="?")
 @scenarios.telemetry_log_generation_disabled
 class Test_Log_Generation:
     """Assert that logs are not reported when logs generation is disabled in telemetry"""
@@ -636,12 +633,72 @@ class Test_Log_Generation:
                 raise Exception(" Logs event is sent when log generation is disabled")
 
 
-@released(cpp="?", dotnet="2.35.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(java="?", nodejs="?", php="?", python="?")
 @scenarios.telemetry_metric_generation_disabled
-class Test_Metric_Generation:
+class Test_Metric_Generation_Disabled:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
 
     def test_metric_generation_disabled(self):
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "generate-metrics":
                 raise Exception("Metric generate event is sent when metric generation is disabled")
+
+
+@released(java="?", nodejs="?", php="?", python="?")
+@scenarios.telemetry_metric_generation_enabled
+class Test_Metric_Generation_Enabled:
+    """Assert that metrics are reported when metric generation is enabled in telemetry"""
+
+    def setup_metric_generation_enabled(self):
+        weblog.get("/")
+        # Wait for at least 2 metric flushes, i.e. 20s
+        METRIC_FLUSH_INTERVAL = 10  # This is constant by design
+        logger.debug("Waiting 20s for metric flushes...")
+        time.sleep(METRIC_FLUSH_INTERVAL * 2)
+        logger.debug("Wait complete")
+
+    def test_metric_generation_enabled(self):
+        self.assert_general_metrics()
+        self.assert_tracer_metrics()
+        self.assert_telemetry_metrics()
+
+    def assert_general_metrics(self):
+
+        namespace = "general"
+        self.assert_count_metric(namespace, "logs_created", expect_at_least=1)
+
+    def assert_tracer_metrics(self):
+
+        namespace = "tracers"
+        self.assert_count_metric(namespace, "spans_created", expect_at_least=1)
+        self.assert_count_metric(namespace, "spans_finished", expect_at_least=1)
+        self.assert_count_metric(namespace, "spans_enqueued_for_serialization", expect_at_least=1)
+        self.assert_count_metric(namespace, "trace_segments_created", expect_at_least=1)
+        self.assert_count_metric(namespace, "trace_chunks_enqueued_for_serialization", expect_at_least=1)
+        self.assert_count_metric(namespace, "trace_chunks_sent", expect_at_least=1)
+        self.assert_count_metric(namespace, "trace_segments_closed", expect_at_least=1)
+        self.assert_count_metric(namespace, "trace_api.requests", expect_at_least=1)
+        self.assert_count_metric(namespace, "trace_api.responses", expect_at_least=1)
+
+    def assert_telemetry_metrics(self):
+
+        namespace = "telemetry"
+        self.assert_count_metric(namespace, "telemetry_api.requests", expect_at_least=1)
+        self.assert_count_metric(namespace, "telemetry_api.responses", expect_at_least=1)
+
+    def assert_count_metric(self, namespace, metric, expect_at_least):
+        series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
+        if len(series) == 0 and expect_at_least > 0:
+            raise Exception(f"No telemetry data received for metric {namespace}.{metric}")
+
+        count = 0
+        for s in series:
+            # assert correct type (count)
+            # assert points total
+            assert s["common"] is True
+            assert s["type"] == "count"
+            assert len(s["points"]) >= 1
+            for p in s["points"]:
+                count = count + p[1]
+
+        assert count >= expect_at_least

@@ -6,8 +6,8 @@ import copy
 import json
 import threading
 
-from utils.tools import logger
-from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
+from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator
@@ -20,13 +20,12 @@ from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 
-class LibraryInterfaceValidator(InterfaceValidator):
+class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
     def __init__(self):
         super().__init__("library")
         self.ready = threading.Event()
-        self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
     def ingest_file(self, src_path):
         self.ready.set()
@@ -82,7 +81,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
-                appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
+                appsec_data = span["meta"]["_dd.appsec.json"]
                 yield data, trace, span, appsec_data
 
     def get_legacy_appsec_events(self, request=None):
@@ -137,6 +136,23 @@ class LibraryInterfaceValidator(InterfaceValidator):
                         yield copied
                 else:
                     yield data
+
+    def get_telemetry_metric_series(self, namespace, metric):
+        relevantSeries = []
+        for data in self.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "generate-metrics":
+                continue
+            fallback_namespace = content["payload"].get("namespace")
+
+            for series in content["payload"]["series"]:
+                computed_namespace = series.get("namespace", fallback_namespace)
+
+                # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+                series["_computed_namespace"] = computed_namespace
+                if computed_namespace == namespace and series["metric"] == metric:
+                    relevantSeries.append(series)
+        return relevantSeries
 
     ############################################################
 
@@ -316,17 +332,3 @@ class LibraryInterfaceValidator(InterfaceValidator):
                     rid = get_rid_from_span(span)
                     if rid:
                         yield rid
-
-
-class _TraceIdUniquenessExceptions:
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self.traces_ids = set()
-
-    def add_trace_id(self, trace_id):
-        with self._lock:
-            self.traces_ids.add(trace_id)
-
-    def should_be_unique(self, trace_id):
-        with self._lock:
-            return trace_id not in self.traces_ids

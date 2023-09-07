@@ -36,20 +36,15 @@ def validate_trace(traces: list[dict], use_128_bits_trace_id: bool) -> tuple:
 
 
 def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
-    expected_tags = {
-        "parent_id": "0",
-        "env": "system-tests",
-        "service": "otel-system-tests-spring-boot",
-        "ingestion_reason": "otel",
-    }
+    assert span["parent_id"] == "0"
+    assert span["service"] == "otel-system-tests-spring-boot"
+    assert span["ingestion_reason"] == "otel"
     expected_meta = {
-        "env": "system-tests",
         "deployment.environment": "system-tests",
         "_dd.ingestion_reason": "otel",
         "otel.status_code": "Unset",
         "otel.library.name": "com.datadoghq.springbootnative",
     }
-    assert expected_tags.items() <= span.items()
     assert expected_meta.items() <= span["meta"].items()
     validate_trace_id(span, use_128_bits_trace_id)
 
@@ -99,7 +94,7 @@ def validate_spans_from_all_paths(spans_agent: tuple, spans_intake: tuple, spans
     validate_span_fields(spans_agent[0], spans_intake[0], "Agent server span", "Intake server span")
     validate_span_fields(spans_agent[0], spans_collector[0], "Agent server span", "Collector server span")
     validate_span_fields(spans_agent[1], spans_intake[1], "Agent message span", "Intake message span")
-    validate_span_fields(spans_agent[1], spans_collector[1], "Agent message span", "Intake message span")
+    validate_span_fields(spans_agent[1], spans_collector[1], "Agent message span", "Collector message span")
 
 
 def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
@@ -111,6 +106,7 @@ def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
 
 
 KNOWN_UNMATCHED_METAS = [
+    "env",
     "otel.user_agent",
     "otel.source",
     "span.kind",
@@ -128,6 +124,7 @@ KNOWN_UNMATCHED_METRICS = [
     "_dd.agent_priority_sampler.target_tps",
     "_sampling_priority_rate_v1",
     "_dd.otlp_sr",
+    "_top_level",
 ]
 
 

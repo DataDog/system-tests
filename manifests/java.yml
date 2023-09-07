@@ -1,0 +1,17 @@
+tests/:
+  appsec/:
+    iast/:
+      sink/:
+        test_xss.py:
+          TestXSS:
+            "*": "?"
+            spring-boot: "1.19.0"
+    test_alpha.py:
+      Test_Basic:
+        "*": "v0.87.0"
+        akka-http: missing_feature (No AppSec support)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature (No AppSec support)
+    test_blocking_addresses.py:
+      Test_BlockingGraphqlResolvers:
+        "*": "missing_feature"

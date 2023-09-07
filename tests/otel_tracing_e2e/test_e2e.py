@@ -1,11 +1,12 @@
 import base64
 import os
 import time
+
+from utils import context, weblog, interfaces, scenarios, irrelevant
+from utils.tools import get_rid_from_request
 from ._test_validator_trace import validate_all_traces
 from ._test_validator_log import validate_log, validate_log_trace_correlation
 from ._test_validator_metric import validate_metrics
-from utils import context, weblog, interfaces, scenarios, irrelevant
-from utils.interfaces._core import get_rid_from_request
 
 
 def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
@@ -21,6 +22,7 @@ class Test_OTelTracingE2E:
     def setup_main(self):
         self.use_128_bits_trace_id = False
         self.r = weblog.get(path="/basic/trace")
+        time.sleep(5)  # wait a bit for trace agent to submit traces
 
     def test_main(self):
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
@@ -78,6 +80,7 @@ class Test_OTelMetricE2E:
             # "example.histogram.min",
             # "example.histogram.max",
         ]
+        time.sleep(5)  # wait a bit for agent to submit metrics
 
     def test_main(self):
         end = int(time.time())

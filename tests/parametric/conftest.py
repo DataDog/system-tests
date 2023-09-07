@@ -17,6 +17,7 @@ import pytest
 from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
+from utils.parametric.spec import remoteconfig
 from utils.parametric._library_client import APMLibraryClientGRPC
 from utils.parametric._library_client import APMLibraryClientHTTP
 from utils.parametric._library_client import APMLibrary
@@ -97,7 +98,6 @@ def _get_base_directory():
 def python_library_factory() -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
@@ -108,7 +108,7 @@ def python_library_factory() -> APMLibraryTestServer:
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
 WORKDIR /client
 RUN pyenv global 3.9.11
-RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3
+RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3 requests
 RUN python3.9 -m pip install %s
 """
         % (python_package,),
@@ -135,7 +135,7 @@ def python_http_library_factory() -> APMLibraryTestServer:
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
 WORKDIR /client
 RUN pyenv global 3.9.11
-RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
+RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0 requests
 RUN python3.9 -m pip install %s
 """
         % (python_package,),
@@ -580,6 +580,18 @@ class _TestAgentAPI:
         self._write_log("traces", json)
         return json
 
+    def set_remote_config(self, path, payload):
+        resp = self._session.post(
+            self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,}
+        )
+        assert resp.status_code == 202
+
+    def telemetry(self, clear=False, **kwargs):
+        resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
+        if clear:
+            self.clear()
+        return resp.json()
+
     def tracestats(self, **kwargs):
         self._version_check()
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
@@ -683,6 +695,53 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
 
+    def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
+        """Wait for and return the given telemetry event from the test agent."""
+        for i in range(wait_loops):
+            try:
+                events = self.telemetry(clear=False)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                for event in events:
+                    if event["request_type"] == "message-batch":
+                        for message in event["payload"]:
+                            if message["request_type"] == event_name:
+                                if clear:
+                                    self.clear()
+                                return event["payload"]
+                    elif event["request_type"] == event_name:
+                        if clear:
+                            self.clear()
+                        return event
+            time.sleep(0.01)
+        raise AssertionError("Telemetry event %r not found" % event_name)
+
+    def wait_for_rc_apply_state(
+        self, product: str, state: remoteconfig.APPLY_STATUS, clear: bool = False, wait_loops: int = 100
+    ):
+        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        rc_reqs = []
+        for i in range(wait_loops):
+            try:
+                reqs = self.requests()
+                # Get all remoteconfig requests.
+                rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+                for r in rc_reqs:
+                    r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for the given apply state in the requests.
+                for req in rc_reqs:
+                    for cfg_state in req["body"]["client"]["state"]["config_states"]:
+                        if cfg_state["product"] == product and cfg_state["apply_state"] == state:
+                            if clear:
+                                self.clear()
+                            return cfg_state
+            time.sleep(0.01)
+        raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+
 
 @contextlib.contextmanager
 def docker_run(
@@ -694,7 +753,7 @@ def docker_run(
     ports: List[Tuple[str, str]],
     log_file: TextIO,
     network_name: str,
-):
+) -> Generator[None, None, None]:
     _cmd: List[str] = [
         shutil.which("docker"),
         "run",
@@ -832,12 +891,29 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
     with open(log_path, "w+") as f:
         yield f
         f.seek(0)
-        request.node._report_sections.append(("teardown", f"Test Agent Output", "".join(f.readlines())))
+        agent_output = ""
+        for line in f.readlines():
+            # Remove log lines that are not relevant to the test
+            if "GET /test/session/traces" in line:
+                continue
+            if "GET /test/session/requests" in line:
+                continue
+            if "GET /test/session/clear" in line:
+                continue
+            if "GET /test/session/apmtelemetry" in line:
+                continue
+            agent_output += line
+        request.node._report_sections.append(("teardown", f"Test Agent Output", agent_output))
 
 
 @pytest.fixture
 def test_agent_container_name(test_id) -> str:
     return "ddapm-test-agent-%s" % test_id
+
+
+@pytest.fixture
+def test_agent_hostname(test_agent_container_name: str) -> str:
+    return test_agent_container_name
 
 
 @pytest.fixture
@@ -854,7 +930,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.11.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,
@@ -864,7 +940,7 @@ def test_agent(
         network_name=docker_network,
     ):
         client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
-        # Wait for the agent to start (we also depend of the network speed to pull images fro registry)
+        # Wait for the agent to start (potentially have to pull the image from the registry)
         for i in range(30):
             try:
                 resp = client.info()
@@ -915,7 +991,12 @@ def test_server(
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
     }
-    env.update(apm_test_server.env)
+    test_server_env = {}
+    for k, v in apm_test_server.env.items():
+        # Don't set `None` env vars.
+        if v is not None:
+            test_server_env[k] = v
+    env.update(test_server_env)
 
     with docker_run(
         image=apm_test_server.container_tag,

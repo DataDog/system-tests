@@ -1,3 +1,4 @@
+# pylint: disable=E1101
 import contextlib
 import time
 import urllib.parse
@@ -87,6 +88,9 @@ class APMLibraryClient:
     def otel_flush(self, timeout: int) -> bool:
         raise NotImplementedError
 
+    def http_request(self, method: str, url: str, headers: List[Tuple[str, str]]) -> None:
+        raise NotImplementedError
+
 
 class APMLibraryClientHTTP(APMLibraryClient):
     def __init__(self, url: str, timeout: int):
@@ -98,7 +102,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def _wait(self, timeout):
         delay = 0.01
-        for i in range(int(timeout / delay)):
+        for _ in range(int(timeout / delay)):
             try:
                 resp = self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts"))
                 if resp.status_code == 404:
@@ -107,7 +111,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 pass
             time.sleep(delay)
         else:
-            raise RuntimeError("Timeout of %s seconds exceeded waiting for HTTP server to start" % timeout)
+            raise RuntimeError(f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start")
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
@@ -139,7 +143,6 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def finish_span(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
-        return None
 
     def span_set_meta(self, span_id: int, key: str, value: str) -> None:
         self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,})
@@ -168,7 +171,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         span_kind: int,
         parent_id: int,
         http_headers: List[Tuple[str, str]],
-        attributes: dict,
+        attributes: dict = None,
     ) -> StartSpanResponse:
         resp = self._session.post(
             self._url("/trace/otel/start_span"),
@@ -349,6 +352,13 @@ class APMLibraryClientGRPC:
     def finish_span(self, span_id: int):
         self._client.FinishSpan(pb.FinishSpanArgs(id=span_id))
 
+    def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
+        hs = pb.DistributedHTTPHeaders()
+        for key, value in headers:
+            hs.http_headers.append(pb.HeaderTuple(key=key, value=value))
+
+        self._client.HTTPClientRequest(pb.HTTPRequestArgs(method=method, url=url, headers=hs, body=body,))
+
     def otel_end_span(self, span_id: int, timestamp: int):
         self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=span_id, timestamp=timestamp))
 
@@ -451,3 +461,9 @@ class APMLibrary:
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
+
+    def http_client_request(
+        self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",
+    ):
+        """Do an HTTP request with the given method and headers."""
+        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)

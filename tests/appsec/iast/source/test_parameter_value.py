@@ -2,16 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 from utils import context, coverage, missing_feature, released, bug
 from .._test_iast_fixtures import SourceFixture
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?")
+@released(php_appsec="?", python="1.18.0")
 @bug(library="python")
 @released(
     java={
@@ -24,7 +20,6 @@ if context.library == "cpp":
         "*": "1.5.0",
     }
 )
-@released(nodejs={"express4": "3.19.0", "*": "?"})
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestParameterValue:
     """Verify that request parameters are tainted"""

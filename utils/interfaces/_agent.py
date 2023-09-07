@@ -6,17 +6,16 @@
 This files will validate data flow between agent and backend
 """
 
-import json
 import threading
 import copy
 
-from utils.tools import logger
-from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span
+from utils.tools import logger, get_rid_from_span, get_rid_from_request
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
-class AgentInterfaceValidator(InterfaceValidator):
+class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate agent/backend interface"""
 
     def __init__(self):
@@ -44,7 +43,7 @@ class AgentInterfaceValidator(InterfaceValidator):
                         if "meta" not in span or "_dd.appsec.json" not in span["meta"]:
                             continue
 
-                        appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
+                        appsec_data = span["meta"]["_dd.appsec.json"]
 
                         if rid is None:
                             yield data, payload, chunk, span, appsec_data
