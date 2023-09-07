@@ -13,7 +13,7 @@ if context.weblog_variant == "akka-http":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(java="0.93.0", php_appsec="0.3.0", ruby="1.0.0.beta2")
+@released(java="0.93.0", php_appsec="0.3.0")
 @coverage.basic
 @scenarios.appsec_corrupted_rules
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -40,7 +40,7 @@ class Test_CorruptedRules:
         interfaces.library.assert_no_appsec_event(self.r_2)
 
 
-@released(java="0.93.0", php_appsec="0.3.0", ruby="1.0.0.beta2")
+@released(java="0.93.0", php_appsec="0.3.0")
 @coverage.basic
 @scenarios.appsec_missing_rules
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -73,7 +73,7 @@ class Test_MissingRules:
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@released(java="0.93.0", php_appsec="0.3.0", python="1.1.0rc2.dev", ruby="1.0.0.beta2")
+@released(java="0.93.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 @scenarios.appsec_custom_rules
@@ -97,7 +97,7 @@ class Test_ConfRuleSet:
 
 
 @released(
-    dotnet="2.4.4", golang="1.37.0", java="0.97.0", php_appsec="0.3.0", python="1.1.0rc2.dev", ruby="1.0.0.beta2",
+    java="0.97.0", php_appsec="0.3.0", python="1.1.0rc2.dev",
 )
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic

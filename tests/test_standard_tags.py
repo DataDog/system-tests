@@ -6,7 +6,7 @@ from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
 from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, weblog
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
+@released(java="0.102.0", php="0.75.0", python="1.2.1")
 @coverage.good
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -32,8 +32,8 @@ class Test_StandardTagsMethod:
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
 
-@released(dotnet="2.13.0", golang="1.40.0", java="0.107.1")
-@released(php="0.76.0", python="1.6.0rc1.dev", ruby="?")
+@released(java="0.107.1")
+@released(php="0.76.0", python="1.6.0rc1.dev")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl:
@@ -156,8 +156,8 @@ class Test_StandardTagsUrl:
         )
 
 
-@released(dotnet="2.13.0", golang="1.39.0", java="0.107.1")
-@released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.8.0")
+@released(java="0.107.1")
+@released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1)
 @coverage.basic
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -171,8 +171,8 @@ class Test_StandardTagsUserAgent:
         interfaces.library.add_span_tag_validation(self.r, tags=tags, value_as_regular_expression=True)
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0")
-@released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.8.0")
+@released(java="0.102.0")
+@released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA)
 @coverage.good
 class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -186,7 +186,7 @@ class Test_StandardTagsStatusCode:
             interfaces.library.add_span_tag_validation(request=r, tags={"http.status_code": code})
 
 
-@released(dotnet="2.13.0", golang="1.39.0", php="?", python="1.6.0", ruby="?")
+@released(php="?", python="1.6.0")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
 @irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
 @missing_feature(
@@ -223,8 +223,8 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@released(dotnet="2.26.0", golang="1.46.0", java="0.114.0")
-@released(php_appsec="0.4.4", python="1.5.0", ruby="1.10.1")
+@released(java="0.114.0")
+@released(php_appsec="0.4.4", python="1.5.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")

@@ -5,8 +5,8 @@
 from utils import weblog, context, coverage, interfaces, released, scenarios
 
 
-@released(dotnet="2.20.0", golang="1.44.1", java="0.114.0")
-@released(php="0.81.0", python="1.5.0", ruby="1.8.0")
+@released(java="0.114.0")
+@released(php="0.81.0", python="1.5.0")
 @coverage.basic
 @scenarios.appsec_disabled
 class Test_StandardTagsClientIp:

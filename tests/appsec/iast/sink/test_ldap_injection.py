@@ -8,7 +8,7 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(php_appsec="?", python="?")
 @released(
     java={
         "resteasy-netty3": "1.11.0",
