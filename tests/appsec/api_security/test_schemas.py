@@ -18,7 +18,6 @@ def get_schema(request, address):
 def equal_without_meta(t1, t2):
     """compare two schema types, ignoring any metadata"""
     if t1 is None or t2 is None:
-        print("NONE")
         return False
     return equal_value(t1[0], t2[0])
 
@@ -164,7 +163,6 @@ class Test_Schema_Reponse_Body:
         """can provide response body schema"""
         schema = get_schema(self.request, "res.body")
         assert self.request.status_code == 200
-        print(self.request.request, self.request.status_code, self.request.headers, self.request.text)
         assert isinstance(schema, list)
         assert len(schema) == 1
         for key in ("payload",):
