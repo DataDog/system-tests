@@ -10,7 +10,6 @@ from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
-<<<<<<< HEAD
 from utils.interfaces._library.appsec_iast import _AppSecIastValidator
 from utils.interfaces._library.appsec_iast import _AppSecIastSourceValidator
 from utils.interfaces._library.miscs import _SpanTagValidator, _NotSpanTagValidator
@@ -19,9 +18,7 @@ from utils.interfaces._library.sampling import (
     _AddSamplingDecisionValidator,
     _DistributedTracesDeterministicSamplingDecisisonValidator,
 )
-=======
 from utils.interfaces._library.miscs import _SpanTagValidator
->>>>>>> main
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
@@ -307,9 +304,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             success = success or validator(span)
 
         if not success:
-<<<<<<< HEAD
-            raise Exception("Can't find anything to validate this test")
-
+            raise ValueError("Can't find anything to validate this test")
+        
     def add_not_span_tag_validation(self, request=None, nottags=None):
         validator = _NotSpanTagValidator(nottags=nottags)
         success = False
@@ -317,47 +313,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             success = success or validator(span)
 
         if not success:
-            raise Exception("Can't find anything to validate this test")
-
-    def expect_iast_sources(self, request, name=None, origin=None, value=None, source_count=None):
-        validator = _AppSecIastSourceValidator(name=name, origin=origin, value=value, source_count=source_count)
-
-        for _, _, iast_data in self.get_iast_events(request=request):
-            if validator(sources=iast_data.sources):
-                return
-
-        raise Exception("No data validates this tests")
-
-    def expect_iast_vulnerabilities(
-        self,
-        request,
-        vulnerability_type=None,
-        location_path=None,
-        location_line=None,
-        evidence=None,
-        vulnerability_count=None,
-    ):
-        validator = _AppSecIastValidator(
-            vulnerability_type=vulnerability_type,
-            location_path=location_path,
-            location_line=location_line,
-            evidence=evidence,
-            vulnerability_count=vulnerability_count,
-        )
-
-        for _, _, iast_data in self.get_iast_events(request=request):
-            if validator(vulnerabilities=iast_data.vulnerabilities):
-                return
-
-        raise Exception("No data validates this tests")
-
-    def expect_no_vulnerabilities(self, request):
-        for data, _, iast_data in self.get_iast_events(request=request):
-            logger.error(json.dumps(iast_data, indent=2))
-            raise Exception(f"Found IAST event in {data['log_filename']}")
-=======
             raise ValueError("Can't find anything to validate this test")
->>>>>>> main
 
     def assert_seq_ids_are_roughly_sequential(self):
         validator = _SeqIdLatencyValidation()
