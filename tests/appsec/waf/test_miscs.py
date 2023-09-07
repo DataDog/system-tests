@@ -36,7 +36,7 @@ class Test_404:
 
 
 @released(java="0.95.0")
-@released(php_appsec="0.2.0", python="1.2.1", ruby="1.0.0.beta1")
+@released(php_appsec="0.2.0", python="1.2.1")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
@@ -53,7 +53,7 @@ class Test_MultipleHighlight:
         )
 
 
-@released(java="0.92.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
+@released(java="0.92.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good

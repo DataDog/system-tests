@@ -14,7 +14,7 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
 
 
 @released(java="0.100.0")
-@released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.8.0")
+@released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Monitoring:

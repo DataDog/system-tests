@@ -7,7 +7,7 @@ from utils import weblog, context, coverage, interfaces, released
 
 
 @released(java="?")
-@released(php="0.85.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0")
+@released(php="0.85.0", python=PYTHON_RELEASE_GA_1_1)
 @coverage.basic
 class Test_Basic:
     """Basic tests for Identify SDK for AppSec"""

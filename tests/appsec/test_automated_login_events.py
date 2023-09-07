@@ -7,7 +7,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
-@released(java="?", php="0.89.0", python="?", ruby="1.13.0")
+@released(java="?", php="0.89.0", python="?")
 @missing_feature(
     weblog_variant="rails32",
     reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
@@ -265,7 +265,7 @@ class Test_Login_Events:
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @scenarios.appsec_auto_events_extended
-@released(java="?", php="0.89.0", python="?", ruby="1.14.0")
+@released(java="?", php="0.89.0", python="?")
 @missing_feature(
     context.library == "ruby" and context.weblog_variant in ("rails32", "rails40", "rails41"),
     reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String",
