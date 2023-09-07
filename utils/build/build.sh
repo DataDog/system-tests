@@ -213,7 +213,10 @@ build() {
             fi
 
             DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-
+            IMAGE_PULL_SOURCE="--pull"
+            if [ "$BUILD_FROM_LOCAL" = true ] ; then
+                 IMAGE_PULL_SOURCE="--pull=false"
+            fi
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
@@ -221,18 +224,11 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
-                --pull=false \
+                $IMAGE_PULL_SOURCE \
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \
                 .
-
-                		#--pull \
-                #$CACHE_TO \
-                #$CACHE_FROM \
-                #$EXTRA_DOCKER_ARGS \
-                #--load \
-                #--pull=false \
 
             if test -f "binaries/waf_rule_set.json"; then
                 SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')

@@ -89,8 +89,9 @@ jobs:
           uses: ./.github/actions/install_runner
         - name: Build python's weblog images
           run: |
-            echo "PROBANDOOOO::::: ${{contains(github.event.pull_request.labels.*.name, 'build-python-base-images')}}"
             ./build.sh python --weblog-variant flask-poc
+          env:
+            BUILD_FROM_LOCAL: true
 
   main:
     if: ${{ false }} 
@@ -293,7 +294,7 @@ jobs:
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
       env:
-        PYTHON_BASE_IMAGES_REBUILD: ${{contains(github.event.pull_request.labels.*.name, 'build-python-base-images')}}
+        BUILD_FROM_LOCAL: ${{contains(github.event.pull_request.labels.*.name, 'build-python-base-images') && matrix.variant.library == 'python'}}
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh DEFAULT
