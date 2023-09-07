@@ -75,26 +75,7 @@ jobs:
     uses: datadog/system-tests/.github/workflows/experimental.yml@main
     secrets: inherit
 
-
-  test_weblog_builds:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v3
-        - name: Build python's weblog base images
-          if: contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
-          run: |
-            docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
-        - name: Install runner
-          uses: ./.github/actions/install_runner
-        - name: Build python's weblog images
-          run: |
-            ./build.sh python --weblog-variant flask-poc
-          env:
-            BUILD_FROM_LOCAL: true
-
   main:
-    if: ${{ false }} 
     runs-on: ubuntu-latest
     needs:
     - lint
@@ -258,9 +239,9 @@ jobs:
     - name: Build python's weblog base images
       if: matrix.variant.library == 'python' && contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
       run: |
-        docker build --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
-        docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
-        docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
     - name: Build proxy image
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
       run: ./build.sh -i proxy
@@ -294,6 +275,7 @@ jobs:
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
       env:
+        #we want to use previously generated base images. Avoid loading base images from the docker registry.
         BUILD_FROM_LOCAL: ${{contains(github.event.pull_request.labels.*.name, 'build-python-base-images') && matrix.variant.library == 'python'}}
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success'
