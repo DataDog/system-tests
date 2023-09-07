@@ -2,7 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, missing_feature, released, rfc, scenarios, weblog
+from utils import (context, coverage, interfaces, missing_feature, released,
+                   rfc, scenarios, weblog)
 
 
 def get_schema(request, address):
@@ -37,7 +38,7 @@ def equal_value(t1, t2):
 @released(
     java="?",
     php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
+    python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -135,7 +136,7 @@ class Test_Schema_Request_Body:
 @released(
     java="?",
     php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
+    python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev, "*": "?"},
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -145,7 +146,6 @@ class Test_Schema_Reponse_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
 
-    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide response header schema"""
         schema = get_schema(self.request, "res.headers")
@@ -158,7 +158,11 @@ class Test_Schema_Reponse_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?", python="1.19.0dev", ruby="?")
+@released(
+    java="?",
+    php_appsec="?",
+    python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
+)
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Body:
     """Test API Security - Reponse Body Schema with urlencoded body"""
