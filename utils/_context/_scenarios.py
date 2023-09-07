@@ -612,7 +612,7 @@ class OpenTelemetryScenario(_DockerScenario):
         from utils import wait_conditions
 
         logger.terminal.write_sep("-", "Wait for setup to be ready")
-        wait_conditions.wait_for_all_otel(terminal=self.terminal, post_setup_timeout=self.post_setup_timeout)
+        wait_conditions.wait_for_all_otel(post_setup_timeout=self.post_setup_timeout)
         logger.terminal.write_sep("-", "Setup ready")
 
     def _check_env_vars(self):

@@ -23,7 +23,7 @@ class WaitCondition:
         self.condition = condition
 
 
-def wait_for_all(terminal, library_name, post_setup_timeout, tracer_sampling_rate, proxy_state):
+def wait_for_all(library_name, post_setup_timeout, tracer_sampling_rate, proxy_state):
     """Wait for all wait conditions."""
     start_time = time.time()
     deadline = start_time + post_setup_timeout
@@ -31,26 +31,27 @@ def wait_for_all(terminal, library_name, post_setup_timeout, tracer_sampling_rat
     if library_name == "php":
         # php-fpm and apache has multiple workers with separate trace flushes
         # so waiting for a single request is not enough, we'll wait for all known rids
-        _wait_for_test_requests(terminal=terminal, deadline=deadline)
+        _wait_for_test_requests(deadline=deadline)
 
-    watermark_n = _wait_for_request(terminal=terminal, deadline=deadline, tracer_sampling_rate=tracer_sampling_rate)
-    _wait_for_request_in_agent(terminal=terminal, deadline=deadline)
-    _wait_for_telemetry(terminal=terminal, skip_n=watermark_n, deadline=deadline)
-    _wait_for_remote_config(terminal=terminal, deadline=deadline, proxy_state=proxy_state)
-    _wait_for_custom_conditions(terminal=terminal, start_time=start_time, post_setup_timeout=post_setup_timeout)
+    watermark_n = _wait_for_request(deadline=deadline, tracer_sampling_rate=tracer_sampling_rate)
+    _wait_for_request_in_agent(deadline=deadline)
+    _wait_for_telemetry(skip_n=watermark_n, deadline=deadline)
+    _wait_for_remote_config(deadline=deadline, proxy_state=proxy_state)
+    _wait_for_custom_conditions(start_time=start_time, post_setup_timeout=post_setup_timeout)
 
 
-def wait_for_all_otel(terminal, post_setup_timeout):
+def wait_for_all_otel(post_setup_timeout):
     deadline = time.time() + post_setup_timeout
-    _wait_for_otel_request(terminal=terminal, deadline=deadline)
+    _wait_for_otel_request(deadline=deadline)
 
 
-def _print_log(msg, file):
+def _print_log(msg):
     logger.debug(msg)
-    print(msg, file=file)
+    print(msg, file=logger.terminal)
+    logger.terminal.flush()
 
 
-def _wait_for_test_requests(terminal, deadline):
+def _wait_for_test_requests(deadline):
     """
     Wait to see all requests in weblog. This usually not needed, except
     when the weblog is multi-process and/or has multiple flush queues.
@@ -58,7 +59,7 @@ def _wait_for_test_requests(terminal, deadline):
     from utils import interfaces, weblog
 
     remaining_time = round(max(0, deadline - time.time()))
-    _print_log(f"Waiting for all traces, remaining time: {remaining_time}s", file=terminal)
+    _print_log(f"Waiting for all traces, remaining time: {remaining_time}s")
 
     all_rids = set(weblog.get_all_seen_rids())
     logger.debug(f"Waiting for traces with rids: {all_rids}")
@@ -71,10 +72,10 @@ def _wait_for_test_requests(terminal, deadline):
         if time.time() >= deadline:
             break
 
-    _print_log(f"Wating for all traces exceeded the deadline, unseen rids: {unseen_rids}", file=terminal)
+    _print_log(f"Waiting for all traces exceeded the deadline, unseen rids: {unseen_rids}")
 
 
-def _wait_for_request(terminal, deadline, tracer_sampling_rate):
+def _wait_for_request(deadline, tracer_sampling_rate):
     """
     Do one request and wait until we receive its trace. We assume that by
     that time, other traces will also have been received. We return the
@@ -83,10 +84,10 @@ def _wait_for_request(terminal, deadline, tracer_sampling_rate):
     """
     from utils import interfaces
     from utils import weblog
-    from utils.interfaces._core import get_rid_from_span, get_rid_from_request
+    from utils.tools import get_rid_from_span, get_rid_from_request
 
     remaining_time = round(max(0, deadline - time.time()))
-    _print_log(f"Waiting for watermark trace, remaining time: {remaining_time}s", file=terminal)
+    _print_log(f"Waiting for watermark trace, remaining time: {remaining_time}s")
 
     watermark_rids = set()
 
@@ -111,18 +112,18 @@ def _wait_for_request(terminal, deadline, tracer_sampling_rate):
             break
         time.sleep(_ITER_SLEEP_TIME)
 
-    _print_log("Waiting for watermark trace exceeded the deadline", file=terminal)
+    _print_log("Waiting for watermark trace exceeded the deadline")
 
 
-def _wait_for_request_in_agent(terminal, deadline):
+def _wait_for_request_in_agent(deadline):
     """
     Wait until the last request seen in the library is also seen in the agent.
     """
     from utils import interfaces
-    from utils.interfaces._core import get_rid_from_span
+    from utils.tools import get_rid_from_span
 
     remaining_time = round(max(0, deadline - time.time()))
-    _print_log(f"Waiting for watermark trace in agent, remaining time: {remaining_time}s", file=terminal)
+    _print_log(f"Waiting for watermark trace in agent, remaining time: {remaining_time}s")
 
     messages = list(interfaces.library.get_data(path_filters=["/v0.4/traces", "/v0.5/traces"]))
     if not messages:
@@ -145,10 +146,10 @@ def _wait_for_request_in_agent(terminal, deadline):
             break
         time.sleep(_ITER_SLEEP_TIME)
 
-    _print_log("Waiting for trace in agent exceeded the deadline", file=terminal)
+    _print_log("Waiting for trace in agent exceeded the deadline")
 
 
-def _wait_for_telemetry(terminal, skip_n, deadline):
+def _wait_for_telemetry(skip_n, deadline):
     """
     Wait until we receive two heartbeats after N messages. N should be the
     number of messages received before the watermark request. This should be
@@ -169,7 +170,7 @@ def _wait_for_telemetry(terminal, skip_n, deadline):
         logger.debug("Did not receive any telemetry message")
         return
 
-    _print_log(f"Waiting for telemetry heartbeats, remaining time: {remaining_time}s", file=terminal)
+    _print_log(f"Waiting for telemetry heartbeats, remaining time: {remaining_time}s")
 
     while True:
         messages = list(interfaces.library.get_data())
@@ -186,10 +187,10 @@ def _wait_for_telemetry(terminal, skip_n, deadline):
             break
         time.sleep(_ITER_SLEEP_TIME)
 
-    _print_log("Waiting for telemetry exceeded the deadline", file=terminal)
+    _print_log("Waiting for telemetry exceeded the deadline")
 
 
-def _wait_for_remote_config(terminal, deadline, proxy_state):
+def _wait_for_remote_config(deadline, proxy_state):
     """
     If we are using mocked remote config, wait until we received all the required responses plus 2.
     """
@@ -208,7 +209,7 @@ def _wait_for_remote_config(terminal, deadline, proxy_state):
     from utils import interfaces
 
     remaining_time = round(max(0, deadline - time.time()))
-    _print_log(f"Waiting for remote config, remaining time: {remaining_time}s", file=terminal)
+    _print_log(f"Waiting for remote config, remaining time: {remaining_time}s")
 
     n_requests = len(mocked_responses) + 2
     while True:
@@ -219,14 +220,14 @@ def _wait_for_remote_config(terminal, deadline, proxy_state):
             break
         time.sleep(_ITER_SLEEP_TIME)
 
-    _print_log("Waiting for remote config exceeded the deadline", file=terminal)
+    _print_log("Waiting for remote config exceeded the deadline")
 
 
-def _wait_for_otel_request(terminal, deadline):
+def _wait_for_otel_request(deadline):
     from utils import interfaces, weblog
 
     remaining_time = round(max(0, deadline - time.time()))
-    _print_log(f"Waiting for watermark otel trace, remaining time: {remaining_time}s", file=terminal)
+    _print_log(f"Waiting for watermark otel trace, remaining time: {remaining_time}s")
 
     request = weblog.get("/basic/trace", post_setup=True)
     while True:
@@ -237,10 +238,10 @@ def _wait_for_otel_request(terminal, deadline):
             break
         time.sleep(_ITER_SLEEP_TIME)
 
-    _print_log("Waiting for watermark otel trace exceeded the deadline", file=terminal)
+    _print_log("Waiting for watermark otel trace exceeded the deadline")
 
 
-def _wait_for_custom_conditions(terminal, start_time, post_setup_timeout):
+def _wait_for_custom_conditions(start_time, post_setup_timeout):
     global _WAIT_CONDITIONS
 
     if not _WAIT_CONDITIONS:
@@ -257,7 +258,7 @@ def _wait_for_custom_conditions(terminal, start_time, post_setup_timeout):
 
     deadline = time.time() + timeout
 
-    _print_log(f"Waiting for {len(_WAIT_CONDITIONS)} conditions, remaining time: {round(timeout)}s", file=terminal)
+    _print_log(f"Waiting for {len(_WAIT_CONDITIONS)} conditions, remaining time: {round(timeout)}s")
     while True:
         _WAIT_CONDITIONS = [c for c in _WAIT_CONDITIONS if not c.condition()]
         if not _WAIT_CONDITIONS:
@@ -265,4 +266,4 @@ def _wait_for_custom_conditions(terminal, start_time, post_setup_timeout):
         if time.time() >= deadline:
             break
         time.sleep(_ITER_SLEEP_TIME)
-    _print_log(f"Waiting for custom conditions exceeded deadline ({len(_WAIT_CONDITIONS)} not met)", file=terminal)
+    _print_log(f"Waiting for custom conditions exceeded deadline ({len(_WAIT_CONDITIONS)} not met)")
