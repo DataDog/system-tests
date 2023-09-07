@@ -33,7 +33,7 @@ Without providing a scenario argument, only the tests without any `@scenario` de
 ## Spawn componenents, but do nothing
 
 ```bash
-./run.sh scenarios/sleep.py
+./run.sh SLEEP
 
 # play with the weblog, and look inside logs/interfaces/ what's happening
 ```

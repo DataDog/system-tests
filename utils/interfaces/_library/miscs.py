@@ -19,17 +19,17 @@ class _SpanTagValidator:
     def __call__(self, span):
         for tagKey in self.tags:
             if tagKey not in span["meta"]:
-                raise Exception(f"{tagKey} tag not found in span's meta")
+                raise ValueError(f"{tagKey} tag not found in span's meta")
 
             expectValue = self.tags[tagKey]
             actualValue = span["meta"][tagKey]
 
             if self.value_as_regular_expression:
                 if not re.compile(expectValue).fullmatch(actualValue):
-                    raise Exception(f'{tagKey} tag value is "{actualValue}", and should match regex "{expectValue}"')
+                    raise ValueError(f'{tagKey} tag value is "{actualValue}", and should match regex "{expectValue}"')
             else:
                 if expectValue != actualValue:
-                    raise Exception(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
+                    raise ValueError(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
 
         return True
 

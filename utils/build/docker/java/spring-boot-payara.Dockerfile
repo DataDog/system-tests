@@ -1,0 +1,39 @@
+FROM maven:3.9-eclipse-temurin-11 as build
+
+COPY ./utils/build/docker/java/iast-common/src /iast-common/src
+
+WORKDIR /app
+
+COPY ./utils/build/docker/java/spring-boot/pom.xml .
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Ppayara -B dependency:go-offline
+
+COPY ./utils/build/docker/java/spring-boot/src ./src
+RUN mvn -Dmaven.repo.local=/maven -Ppayara package
+
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
+ARG PAYARA_VERSION=5.2022.1
+RUN curl https://nexus.payara.fish/repository/payara-community/fish/payara/extras/payara-micro/${PAYARA_VERSION}/payara-micro-${PAYARA_VERSION}.jar -o /binaries/payara-micro.jar
+
+FROM eclipse-temurin:11-jre
+
+WORKDIR /app
+COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.war /app/app.war
+COPY --from=build /dd-tracer/dd-java-agent.jar .
+COPY --from=build /binaries/payara-micro.jar /app/payara-micro.jar
+
+COPY ./utils/build/docker/java/app-payara.sh /app/app.sh
+RUN chmod +x /app/app.sh
+
+ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV APP_EXTRA_ARGS="--port 7777"
+# https://docs.hazelcast.com/hazelcast/5.3/phone-homes
+ENV HZ_PHONE_HOME_ENABLED=false
+# https://blog.payara.fish/faster-payara-micro-startup-times-with-openj9
+ENV payaramicro_noCluster=true
+
+CMD [ "/app/app.sh" ]

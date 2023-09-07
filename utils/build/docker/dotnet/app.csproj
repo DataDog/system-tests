@@ -6,13 +6,19 @@
 		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(DDTRACE_VERSION)' >= '2.7.0'">
+	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.7.0'">
 		<DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.23.0'">
+		<DefineConstants>$(DefineConstants);DDTRACE_2_23_0_OR_GREATER</DefineConstants>
+	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="MySql.Data" Version="8.0.30" />
+		<PackageReference Include="Npgsql" Version="4.0.10" />
 		<PackageReference Include="System.Data.SqlClient" />
 		<PackageReference Include="NodaTime" Version="3.1.6"/>
-       		<PackageReference Include="Confluent.Kafka" Version="1.9.3" />
+                <PackageReference Include="Confluent.Kafka" Version="1.9.3" />
+                <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
 		<Reference Include="Datadog.Trace">
 			<HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
 		</Reference>

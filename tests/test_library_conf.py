@@ -7,7 +7,7 @@ from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
-@released(dotnet="2.27.0", golang="1.53.0", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
+@released(java="?", php="0.68.2", python="0.53", golang="1.53.0")
 @coverage.basic
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
@@ -21,7 +21,7 @@ class Test_HeaderTags:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="1.53.0", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
+@released(java="0.102.0", php="0.74.0", python="?", golang="1.53.0")
 @coverage.basic
 @scenarios.library_conf_custom_headers_short
 class Test_HeaderTagsShortFormat:
@@ -44,11 +44,11 @@ class Test_HeaderTagsShortFormat:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="1.53.0", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
+@released(java="0.102.0", php="?", python="1.2.1", golang="1.53.0")
 @coverage.basic
 @scenarios.library_conf_custom_headers_long
 class Test_HeaderTagsLongFormat:
-    """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""
+    """Validates that the `<header>:<tag_name>` format correctly tags spans"""
 
     def setup_trace_header_tags(self):
         self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}

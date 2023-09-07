@@ -2,14 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, scenarios
+from utils import weblog, interfaces, scenarios, released, irrelevant, context, bug
+from utils.tools import logger
 
 
-@missing_feature(condition=context.library != "java", reason="Full Kafka instrumentation only on Java")
-@missing_feature(
-    context.weblog_variant not in ("spring-boot"),
-    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
-)
+@released(php="?", python="?")
+@released(java={"spring-boot": "1.13.0", "*": "?"})
+@released(nodejs="4.4.0")
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -18,52 +17,31 @@ class Test_DsmKafka:
         self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_kafka(self):
-        assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
+        assert self.r.text == "ok"
 
-        expected_kafka_out = DsmStatsPoint(
-            4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
+        # Hashes are created by applying the FNV-1 algorithm on
+        # checkpoint strings (e.g. service:foo)
+        # There is currently no FNV-1 library availble for node.js
+        # So we are using a different algorithm for node.js for now
+        if context.library == "nodejs":
+            consumer_hash = 2931833227331067675
+            producer_hash = 271115008390912609
+        else:
+            consumer_hash = 4463699290244539355
+            producer_hash = 3735318893869752335
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
-        expected_kafka_in = DsmStatsPoint(
-            3735318893869752335,
-            4463699290244539355,
-            ["direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"],
-        )
-
-        assert expected_kafka_out in checkpoints
-        assert expected_kafka_in in checkpoints
-
-
-@missing_feature(condition=context.library != "dotnet", reason="Missing partition tag only on dotnet")
-@scenarios.integrations
-class Test_DsmKafkaNoPartitionTag:
-    """ Verify DSM stats points for Kafka """
-
-    def setup_dsm_kafka(self):
-        self.r = weblog.get("/dsm?integration=kafka")
-
-    def test_dsm_kafka(self):
-        assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
-
-        expected_kafka_out = DsmStatsPoint(
-            4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
-        )
-        expected_kafka_in = DsmStatsPoint(
-            3735318893869752335,
-            4463699290244539355,
-            ["direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"],
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash,
+            parent_hash=consumer_hash,
+            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
-        assert expected_kafka_out in checkpoints
-        assert expected_kafka_in in checkpoints
 
-
-@missing_feature(condition=context.library != "java", reason="HTTP instrumentation only on Java")
-@missing_feature(
-    context.weblog_variant not in ("spring-boot"),
-    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
-)
+@released(nodejs="?", php="?", python="?")
+@released(java={"spring-boot": "1.12.1", "*": "?"})
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -72,19 +50,15 @@ class Test_DsmHttp:
         self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_http(self):
-        assert str(self.r.content, "UTF-8") == "ok"
+        assert self.r.text == "ok"
 
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
-        expected_http = DsmStatsPoint(3883033147046472598, 0, ["direction:in", "type:http"])
+        DsmHelper.assert_checkpoint_presence(
+            hash_=3883033147046472598, parent_hash=0, tags=("direction:in", "type:http")
+        )
 
-        assert expected_http in checkpoints
 
-
-@missing_feature(condition=context.library != "java", reason="RabbitMQ instrumentation only on Java")
-@missing_feature(
-    context.weblog_variant not in ("spring-boot"),
-    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
-)
+@released(nodejs="?", php="?", python="?")
+@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -92,85 +66,141 @@ class Test_DsmRabbitmq:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
 
+    @bug(library="dotnet", reason="bug in dotnet behavior")
     def test_dsm_rabbitmq(self):
-        assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
+        assert self.r.text == "ok"
 
-        expected_rabbit_out = DsmStatsPoint(
-            6176024609184775446,
-            0,
-            ["direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"],
-        )
-        expected_rabbit_in = DsmStatsPoint(
-            3735318893869752335,
-            4463699290244539355,
-            ["direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"],
+        DsmHelper.assert_checkpoint_presence(
+            hash_=6176024609184775446,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
-        assert expected_rabbit_out in checkpoints
-        assert expected_rabbit_in in checkpoints
+        DsmHelper.assert_checkpoint_presence(
+            hash_=1648106384315938543,
+            parent_hash=6176024609184775446,
+            tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
+        )
+
+    def setup_dsm_rabbitmq_dotnet_legacy(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq")
+
+    @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
+    def test_dsm_rabbitmq_dotnet_legacy(self):
+        assert self.r.text == "ok"
+
+        # Dotnet sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
+        # the other tracer libraries, which causes the resulting hash to be different.
+        DsmHelper.assert_checkpoint_presence(
+            hash_=12547013883960139159,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:True", "type:rabbitmq"),
+        )
+
+        # There seems to be a bug in dotnet currently where the queue is not passed, causing DSM to default to setting
+        # the routing key as the topic.
+        # See https://github.com/DataDog/dd-trace-dotnet/blob/6aab5e1b02bec9c9b68a33cd06cc9e7a774f14de/tracer/src/Datadog.Trace/ClrProfiler/AutoInstrumentation/RabbitMQ/RabbitMQIntegration.cs#L144
+        # where `queue` is not passed
+        DsmHelper.assert_checkpoint_presence(
+            hash_=12449081340987959886,
+            parent_hash=12547013883960139159,
+            tags=("direction:in", "topic:testRoutingKey", "type:rabbitmq"),
+        )
+
+
+@released(nodejs="?", php="?", python="?")
+@released(java={"spring-boot": "1.13.0", "*": "?"})
+@scenarios.integrations
+class Test_DsmRabbitmq_TopicExchange:
+    """ Verify DSM stats points for RabbitMQ Topic Exchange"""
+
+    def setup_dsm_rabbitmq(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
+
+    def test_dsm_rabbitmq(self):
+        assert self.r.text == "ok"
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=18436203392999142109,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=11364757106893616177,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=15562446431583779,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=13344154764958581569,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
+        )
+
+
+@released(nodejs="?", php="?", python="?")
+@released(java={"spring-boot": "1.13.0", "*": "?"})
+@scenarios.integrations
+class Test_DsmRabbitmq_FanoutExchange:
+    """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
+
+    def setup_dsm_rabbitmq(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+
+    def test_dsm_rabbitmq(self):
+        assert self.r.text == "ok"
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=877077567891168935,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=6900956252542091373,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=497609944035068818,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=15446107644012012909,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
+        )
 
 
 class DsmHelper:
     @staticmethod
-    def parse_dsm_checkpoints(dsm_data):
-        checkpoints = set()
-        for data in dsm_data:
+    def assert_checkpoint_presence(hash_, parent_hash, tags):
+
+        assert isinstance(tags, tuple)
+
+        logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
+
+        for data in interfaces.agent.get_dsm_data():
             for stats_bucket in data["request"]["content"]["Stats"]:
                 for stats_point in stats_bucket["Stats"]:
-                    point = DsmStatsPoint(stats_point["Hash"], stats_point["ParentHash"], stats_point["EdgeTags"])
-                    checkpoints.add(point)
-        return checkpoints
+                    observed_hash = stats_point["Hash"]
+                    observed_parent_hash = stats_point["ParentHash"]
+                    observed_tags = tuple(stats_point["EdgeTags"])
 
+                    logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
+                    if observed_hash == hash_ and observed_parent_hash == parent_hash and observed_tags == tags:
+                        logger.info("checkpoint found ✅")
+                        return
 
-class DsmStatsPoint:
-    def __init__(self, self_hash, parent_hash, sorted_tags):
-        self.self_hash = self_hash
-        self.parent_hash = parent_hash
-        # Turn input sorted tags into tuples so that it's hashable and order is preserved
-        self.sorted_tags = tuple(sorted_tags)
-
-    def __hash__(self):
-        return hash((self.self_hash, self.parent_hash, self.sorted_tags))
-
-    def __eq__(self, other):
-        return (self.self_hash, self.parent_hash, self.sorted_tags) == (
-            other.self_hash,
-            other.parent_hash,
-            other.sorted_tags,
-        )
-
-    def __ne__(self, other):
-        # Not strictly necessary, but to avoid having both x==y and x!=y
-        # True at the same time
-        return not (self == other)
-
-    def __str__(self):
-        return (
-            "hash: "
-            + str(self.self_hash)
-            + ", parentHash: "
-            + str(self.parent_hash)
-            + ", tags: "
-            + str(self.sorted_tags)
-        )
-
-    def __unicode__(self):
-        return (
-            "hash: "
-            + str(self.self_hash)
-            + ", parentHash: "
-            + str(self.parent_hash)
-            + ", tags: "
-            + str(self.sorted_tags)
-        )
-
-    def __repr__(self):
-        return (
-            "hash: "
-            + str(self.self_hash)
-            + ", parentHash: "
-            + str(self.parent_hash)
-            + ", tags: "
-            + str(self.sorted_tags)
-        )
+        logger.error("Checkpoint not found 🚨")
+        raise ValueError("Checkpoint has not been found, please have a look in logs")

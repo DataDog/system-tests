@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:16
 
 RUN apt-get update && apt-get install -y jq
 
@@ -20,6 +20,8 @@ ENV PGPASSWORD=system_tests
 ENV PGDATABASE=system_tests
 ENV PGHOST=postgres
 ENV PGPORT=5433
+
+ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
 RUN echo '#!/bin/bash\nnode app.js' > app.sh

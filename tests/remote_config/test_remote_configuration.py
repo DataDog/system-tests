@@ -32,7 +32,7 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 class Test_Agent:
     """ misc test on agent/remote config features"""
 
-    @missing_feature(library="nodejs", reason="nodejs tracer does not call /info")
+    @irrelevant(library="nodejs", reason="nodejs tracer does not call /info")
     @missing_feature(library="ruby", reason="ruby tracer does not call /info")
     @irrelevant(library="cpp")
     @scenarios.remote_config_mocked_backend_asm_dd
@@ -54,6 +54,7 @@ class RemoteConfigurationFieldsBasicTests:
     @bug(context.library < "java@0.93.0")
     @bug(context.library >= "dotnet@2.24.0")
     @bug(context.library >= "nodejs@3.14.1")
+    @bug(context.library == "php" and context.php_appsec >= "0.10.0")
     def test_schemas(self):
         """ Test all library schemas """
         interfaces.library.assert_schemas()
@@ -87,6 +88,11 @@ class RemoteConfigurationFieldsBasicTests:
                 # value is missing in configuration object in telemetry payloads
                 r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
             )
+        elif context.library == "php":
+            allowed_errors = (
+                r"'interval' is a required property on instance \['payload'\]\['series'\]\[\d+\]",
+                r"'namespace' is a required property on instance \['payload'\]",
+            )
 
         interfaces.library.assert_schemas(allowed_errors=allowed_errors)
 
@@ -110,7 +116,9 @@ class RemoteConfigurationFieldsBasicTests:
             client = data["request"]["content"]["client"]
             client_tracer = client["client_tracer"]
 
-            assert "is_agent" not in client, "'client.is_agent' MUST either NOT be set or set to false"
+            assert (
+                "is_agent" not in client or client["is_agent"] is False
+            ), "'client.is_agent' MUST either NOT be set or set to false"
             assert "client_agent" not in client, "'client.client_agent' must NOT be set"
             assert (
                 client["id"] != client_tracer["runtime_id"]
@@ -119,36 +127,72 @@ class RemoteConfigurationFieldsBasicTests:
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
 
+def dict_is_included(sub_dict: dict, main_dict: dict):
+    """ returns true if every field/values in sub_dict are in main_dict"""
+
+    for key, value in sub_dict.items():
+        if key not in main_dict or value != main_dict[key]:
+            return False
+
+    return True
+
+
+def dict_is_in_array(needle: dict, haystack: list, allow_additional_fields=True):
+    """ 
+    returns true is needle is contained in haystack. 
+    If allow_additional_field is true, needle can contains less field than the one in haystack
+    """
+
+    for item in haystack:
+        if dict_is_included(needle, item):
+            if allow_additional_fields or len(needle) == len(item):
+                return True
+
+    return False
+
+
 def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
+    expected_client_state = expected["client"]["state"]
 
     try:
         # verify that the tracer properly updated the TUF targets version,
         # if it's not included we assume it to be 0 in the agent.
         # Our test suite will always emit SOMETHING for this
-        expected_targets_version = expected["client"]["state"]["targets_version"]
+        expected_targets_version = expected_client_state.get("targets_version")
         targets_version = client_state.get("targets_version", 0)
         assert (
             targets_version == expected_targets_version
         ), f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
 
         # verify that the tracer is properly storing and reporting on its config state
-        expected_config_states = client_state.get("config_states")
+        expected_config_states = expected_client_state.get("config_states")
         config_states = client_state.get("config_states")
-        if expected_config_states is None and config_states is not None:
-            raise Exception("client is not expected to have stored config but is reporting stored configs")
+
+        if expected_config_states is None and (config_states is not None and len(config_states) > 0):
+            raise ValidationError(
+                "client is not expected to have stored config but is reporting stored configs",
+                extra_info={"observed_config_states": config_states},
+            )
 
         if expected_config_states is not None and config_states is None:
-            raise Exception("client is expected to have stored confis but isn't reporting any")
+            raise ValidationError(
+                "client is expected to have stored confis but isn't reporting any",
+                extra_info={"expected_config_states": expected_config_states, "observed_client_state": client_state},
+            )
 
-        if config_states is not None:
+        if config_states is not None and expected_config_states is not None:
             assert len(config_states) == len(
                 expected_config_states
             ), "client reporting more or less configs than expected"
+
             for state in expected_config_states:
-                if state not in config_states:
-                    raise ValidationError(f"Config {state} should be in config_states property", extra_info=content)
+                if not dict_is_in_array(state, config_states, allow_additional_fields=True):
+                    raise ValidationError(
+                        "A config state is missing in config_states property",
+                        extra_info={"expected_config_state": state, "observed_config_states": config_states},
+                    )
 
         if not caching:
             # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
@@ -192,11 +236,10 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
-@released(php_appsec="0.7.0", python="1.7.4", ruby="?", nodejs="3.9.0")
+@released(java="1.4.0")
+@released(php_appsec="0.7.0", python="1.7.4")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
@@ -210,6 +253,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
         reason="ASM_FEATURES was not subscribed when a custom rules file was present",
     )
+    @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
+    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -221,11 +266,12 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
             rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
 
-            # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two payloads
-            #  for each request number. We're working to update this behavior in this propossal
-            #  https://docs.google.com/document/d/1zeh7g_c_4Oj9EUuf8kQEW_qbZl9PCH4hJHiVYnoLy6I/edit
             self.python_request_number += 1
-            if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+            if (
+                context.library == "python"
+                and str(context.library) < "python@1.14.0rc2"
+                and context.weblog_variant != "uwsgi-poc"
+            ):
                 if self.python_request_number % 2 == 0:
                     self.request_number += 1
             else:
@@ -237,10 +283,9 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
+@released(java="1.4.0", php="?", python="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
@@ -249,6 +294,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
     # that spawns multiple worker processes, each running its own RCM client.
     request_number = defaultdict(int)
 
+    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -269,10 +315,9 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
+@released(java="1.4.0", php_appsec="0.7.0", python="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
@@ -285,6 +330,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
     )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
+    @bug(context.library <= "java@1.12.1", reason="config state id value was wrong")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -304,9 +350,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(
-    cpp="?", golang="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="1.6.0rc1", ruby="?", nodejs="3.9.0"
-)
+@released(java="1.4.0", php_appsec="0.7.0", python="1.6.0rc1")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="python", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
@@ -339,7 +383,8 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(java="?", php="?", python="?")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging_nocache
@@ -368,9 +413,11 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
+@released(java="?", php_appsec="0.7.0", python="?")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="php", reason="cache is implemented")
+@irrelevant(library="golang", reason="cache is implemented")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd_nocache
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):

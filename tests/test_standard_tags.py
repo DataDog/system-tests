@@ -2,15 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-import pytest
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, weblog
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
+@released(java="0.102.0", php="0.75.0", python="1.2.1")
 @coverage.good
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -31,14 +27,14 @@ class Test_StandardTagsMethod:
         self.trace_request = weblog.trace("/waf", data=None)
 
     @irrelevant(library="php", reason="Trace method does not reach php-land")
+    @bug(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
     def test_method_trace(self):
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
 
-@released(dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0")
-@released(php="0.76.0", python="1.6.0rc1.dev", ruby="?")
+@released(java="0.107.1")
+@released(php="0.76.0", python="1.6.0rc1.dev")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@bug(weblog_variant="spring-boot-undertow", reason="APMJAVA-877")
 @coverage.basic
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -47,54 +43,121 @@ class Test_StandardTagsUrl:
         self.basic_request = weblog.get("/waf")
 
     def test_url_basic(self):
-        interfaces.library.add_span_tag_validation(self.basic_request, tags={"http.url": "http://weblog:7777/waf"})
+        interfaces.library.add_span_tag_validation(
+            self.basic_request, tags={"http.url": r"^.*/waf$"}, value_as_regular_expression=True
+        )
 
     def setup_url_with_query_string(self):
         self.r_with_query_string = weblog.get("/waf?key1=val1&key2=val2&key3=val3")
 
     def test_url_with_query_string(self):
-        tags = {"http.url": "http://weblog:7777/waf?key1=val1&key2=val2&key3=val3"}
-        interfaces.library.add_span_tag_validation(self.r_with_query_string, tags=tags)
+        interfaces.library.add_span_tag_validation(
+            self.r_with_query_string,
+            tags={"http.url": r"^.*/waf\?key1=val1&key2=val2&key3=val3$"},
+            value_as_regular_expression=True,
+        )
+
+    def setup_url_with_sensitive_query_string_legacy(self):
+        # pylint: disable=line-too-long
+        self.requests_sensitive_query_string = [
+            (
+                weblog.get("/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3"),
+                r"^.*/waf\?<redacted>&key2=val2&key3=val3$",
+            ),
+            (
+                weblog.get("/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3"),
+                r"^.*/waf\?key1=val1&<redacted>&key3=val3$",
+            ),
+            (
+                weblog.get("/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934"),
+                r"^.*/waf\?key1=val1&key2=val2&<redacted>$",
+            ),
+            (
+                weblog.get(
+                    "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
+                ),
+                r"^.*/waf\?json=%7B%20%22<redacted>%7D$",
+            ),
+        ]
+
+    # when tracer is updated, add (for example)
+    @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
+    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
+    def test_url_with_sensitive_query_string_legacy(self):
+        for r, tag in self.requests_sensitive_query_string:
+            interfaces.library.add_span_tag_validation(
+                request=r, tags={"http.url": tag}, value_as_regular_expression=True
+            )
 
     def setup_url_with_sensitive_query_string(self):
         # pylint: disable=line-too-long
         self.requests_sensitive_query_string = [
             (
                 weblog.get("/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3"),
-                "http://weblog:7777/waf?<redacted>&key2=val2&key3=val3",
+                r"^.*/waf\?<redacted>&key2=val2&key3=val3$",
             ),
             (
                 weblog.get("/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3"),
-                "http://weblog:7777/waf?key1=val1&<redacted>&key3=val3",
+                r"^.*/waf\?key1=val1&<redacted>&key3=val3$",
             ),
             (
                 weblog.get("/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934"),
-                "http://weblog:7777/waf?key1=val1&key2=val2&<redacted>",
+                r"^.*/waf\?key1=val1&key2=val2&<redacted>$",
             ),
             (
                 weblog.get(
                     "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
                 ),
-                "http://weblog:7777/waf?json=%7B%20%22<redacted>%7D",
+                r"^.*/waf\?json=%7B%20<redacted>%7D$",
             ),
         ]
 
+    @missing_feature(
+        context.library in ["dotnet", "golang", "nodejs", "php", "ruby"],
+        reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
+    )
+    @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
+    @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
-            interfaces.library.add_span_tag_validation(request=r, tags={"http.url": tag})
+            interfaces.library.add_span_tag_validation(
+                request=r, tags={"http.url": tag}, value_as_regular_expression=True
+            )
+
+    def setup_multiple_matching_substring_legacy(self):
+        self.request_multiple_matching_substring = weblog.get(
+            "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D"  # pylint: disable=line-too-long
+        )
+
+    # when tracer is updated, add (for exemple)
+    @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
+    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
+    def test_multiple_matching_substring_legacy(self):
+        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D$"  # pylint: disable=line-too-long
+        interfaces.library.add_span_tag_validation(
+            self.request_multiple_matching_substring, tags={"http.url": tag}, value_as_regular_expression=True
+        )
 
     def setup_multiple_matching_substring(self):
         self.request_multiple_matching_substring = weblog.get(
             "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D"  # pylint: disable=line-too-long
         )
 
+    @missing_feature(
+        context.library in ["dotnet", "golang", "nodejs", "php", "ruby"],
+        reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
+    )
+    @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
+    @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     def test_multiple_matching_substring(self):
-        tag = "http://weblog:7777/waf?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D"  # pylint: disable=line-too-long
-        interfaces.library.add_span_tag_validation(self.request_multiple_matching_substring, tags={"http.url": tag})
+        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
+        interfaces.library.add_span_tag_validation(
+            self.request_multiple_matching_substring, tags={"http.url": tag}, value_as_regular_expression=True
+        )
 
 
-@released(dotnet="2.13.0", golang="1.39.0", java="0.107.1", nodejs="2.9.0")
-@released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.8.0")
+@released(java="0.107.1")
+@released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1)
 @coverage.basic
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -108,8 +171,8 @@ class Test_StandardTagsUserAgent:
         interfaces.library.add_span_tag_validation(self.r, tags=tags, value_as_regular_expression=True)
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0")
-@released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.8.0")
+@released(java="0.102.0")
+@released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA)
 @coverage.good
 class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -123,12 +186,8 @@ class Test_StandardTagsStatusCode:
             interfaces.library.add_span_tag_validation(request=r, tags={"http.status_code": code})
 
 
-@released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0", ruby="?")
+@released(php="?", python="1.6.0")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
-@irrelevant(
-    (context.library, context.weblog_variant) == ("golang", "net-http"),
-    reason="net-http does not handle route parameters",
-)
 @irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
 @missing_feature(
     context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
@@ -141,14 +200,17 @@ class Test_StandardTagsRoute:
         self.r = weblog.get("/sample_rate_route/1")
 
     def test_route(self):
-
         tags = {"http.route": "/sample_rate_route/{i}"}
 
         # specify the route syntax if needed
         if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
-        if context.library == "golang" and context.weblog_variant not in ["gorilla", "chi"]:
-            tags["http.route"] = "/sample_rate_route/:i"
+        if context.library == "golang":
+            if context.weblog_variant == "net-http":
+                # net/http doesn't support parametrized routes but a path catches anything down the tree.
+                tags["http.route"] = "/sample_rate_route/"
+            if context.weblog_variant in ("gin", "echo", "uds-echo"):
+                tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
         if context.library == "python":
@@ -161,10 +223,11 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@released(dotnet="2.26.0", golang="1.46.0", java="0.114.0")
-@released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="1.10.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@released(java="0.114.0")
+@released(php_appsec="0.4.4", python="1.5.0")
+@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
+@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

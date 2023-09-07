@@ -1,5 +1,7 @@
 FROM maven:3.9-eclipse-temurin-11 as build
 
+COPY ./utils/build/docker/java/iast-common/src /iast-common/src
+
 WORKDIR /app
 
 COPY ./utils/build/docker/java/vertx3/pom.xml .

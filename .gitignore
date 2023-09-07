@@ -6,7 +6,10 @@ binaries/*
 !binaries/README.md
 
 venv
+venv.
 /vendor/python
+
+.python-version
 
 # tools for http tunneling
 ngrok
@@ -23,18 +26,26 @@ logs*/
 x64/
 x86/
 bld/
-[Bb]in/
+/[Bb]in/
 [Oo]bj/
 [Ll]og/
 dist/
+reportJunit.xml
+.report.json
 
 !lib-injection/build/docker/ruby/lib_injection_rails_app/bin
 !utils/build/docker/ruby/rails52/bin
 /utils/build/docker/dotnet/.vs/app/*
 /utils/build/docker/dotnet/app.csproj.user
 
-# VSCode
 .ionide/
 
 # Visual Studio
 .vs/
+.config/dotnet-tools.json
+
+# Node.js
+node_modules/
+
+# vim
+/*.vim

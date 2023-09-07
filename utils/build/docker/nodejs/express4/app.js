@@ -1,19 +1,16 @@
 "use strict";
 
-const tracer = require("dd-trace").init({
-  debug: true,
-  experimental: {
-    iast: {
-      enabled: true,
-      requestSampling: 100,
-      maxConcurrentRequests: 4,
-      maxContextOperations: 30,
-    },
-  },
+const tracer = require('dd-trace').init({
+  debug: true
 });
 
 const app = require("express")();
-var axios = require('axios');
+const { Kafka } = require("kafkajs")
+const axios = require('axios');
+const fs = require('fs');
+const passport = require('passport')
+
+
 app.use(require("body-parser").json());
 app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
@@ -66,24 +63,25 @@ app.get("/status", (req, res) => {
 app.get("/make_distant_call", (req, res) => {
   const url = req.query.url;
   console.log(url);
+
   axios.get(url)
-  .then(response => {
-    res.json({
-      url: url,
-      status_code: response.statusCode,
-      request_headers: null,
-      response_headers: null,
+    .then(response => {
+      res.json({
+        url: url,
+        status_code: response.statusCode,
+        request_headers: null,
+        response_headers: null,
+      });
+    })
+    .catch(error => {
+      console.log(error);
+      res.json({
+        url: url,
+        status_code: 500,
+        request_headers: null,
+        response_headers: null,
+      });
     });
-  })
-  .catch(error => {
-    console.log(error);
-    res.json({
-      url: url,
-      status_code: 500,
-      request_headers: null,
-      response_headers: null,
-    });
-  });
 });
 
 app.get("/user_login_success_event", (req, res) => {
@@ -134,13 +132,81 @@ app.get("/users", (req, res) => {
   }
 });
 
-require("./iast")(app, tracer);
+app.get("/dsm", (req, res) => {
+  const kafka = new Kafka({
+    clientId: 'my-app',
+    brokers: ['kafka:9092'],
+    retry: {
+      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+      retries: 20, // Number of retries before giving up
+    },
+  })
+  const producer = kafka.producer()
+  const doKafkaOperations = async () => {
+    await producer.connect()
+    await producer.send({
+      topic: 'dsm-system-tests-queue',
+      messages: [
+        { value: 'hello world!' },
+      ],
+    })
+    await producer.disconnect()
+
+    const consumer = kafka.consumer({ groupId: 'testgroup1' })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
+
+    await consumer.run({
+      eachMessage: async ({topic, partition, message}) => {
+        console.log({
+          value: message.value.toString(),
+        });
+        await consumer.stop();
+        await consumer.disconnect();
+      },
+    })
+  }
+  doKafkaOperations()
+      .then(() => {
+        res.send('ok');
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      });
+});
 
 app.get('/load_dependency', (req, res) => {
   console.log('Load dependency endpoint');
-  var glob = require("glob")
+  const glob = require("glob")
   res.send("Loaded a dependency")
- }); 
+});
+
+app.all('/tag_value/:tag/:status', (req, res) => {
+  require('dd-trace/packages/dd-trace/src/plugins/util/web').root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag);
+
+  for (const [k, v] of Object.entries(req.query)) {
+    res.set(k, v);
+  }
+
+  res.status(req.params.status || 200).send('Value tagged');
+});
+
+app.get('/read_file', (req, res) => {
+  const path = req.query['file'];
+  fs.readFile(path, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send("ko");
+    }
+    res.send(data);
+  });
+});
+
+require("./iast")(app, tracer);
+require('./auth')(app, passport, tracer)
+require('./graphql')(app)
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});

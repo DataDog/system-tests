@@ -14,15 +14,16 @@ from utils.interfaces._core import InterfaceValidator
 
 
 class _LogsInterfaceValidator(InterfaceValidator):
-    def __init__(self, name):
+    def __init__(self, name, new_log_line_pattern=None):
         super().__init__(name)
 
         self._skipped_patterns = [
             re.compile(r"^\s*$"),
         ]
-        self._new_log_line_pattern = re.compile(r".")
+        self._new_log_line_pattern = re.compile(new_log_line_pattern or ".")
         self._parsers = []
         self.timeout = 0
+        self._data_list = []
 
     def _get_files(self):
         raise NotImplementedError()
@@ -70,10 +71,10 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
                 logger.info(f"Reading {filename} is finished, {log_count} has been treated")
             except FileNotFoundError:
-                logger.error(f"File not found: {filename}")
+                logger.debug(f"File not found, skipping it: {filename}")
 
-    def wait(self, timeout):
-        super().wait(timeout)
+    def load_data(self):
+        logger.debug(f"Load data for log interface {self.name}")
 
         for log_line in self._read():
 
@@ -90,7 +91,11 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             self._data_list.append(parsed)
 
+    def get_data(self):
+        yield from self._data_list
+
     def validate(self, validator, success_by_default=False):
+
         for data in self.get_data():
             try:
                 if validator(data) is True:
@@ -100,7 +105,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
                 raise
 
         if not success_by_default:
-            raise Exception("Test has not been validated by any data")
+            raise ValueError("Test has not been validated by any data")
 
     def assert_presence(self, pattern, **extra_conditions):
         validator = _LogPresence(pattern, **extra_conditions)
@@ -111,10 +116,24 @@ class _LogsInterfaceValidator(InterfaceValidator):
         self.validate(validator.check, success_by_default=True)
 
 
-class _LibraryStdout(_LogsInterfaceValidator):
-    def __init__(self):
-        super().__init__("Weblog stdout")
+class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
+    def __init__(self, container_name, new_log_line_pattern=None):
+        super().__init__(f"{container_name} stdout", new_log_line_pattern=new_log_line_pattern)
+        self.container_name = container_name
 
+    def _get_files(self):
+        return [
+            f"{context.scenario.host_log_folder}/docker/{self.container_name}/stdout.log",
+            f"{context.scenario.host_log_folder}/docker/{self.container_name}/stderr.log",
+        ]
+
+
+class _LibraryStdout(_StdoutLogsInterfaceValidator):
+    def __init__(self):
+        super().__init__("weblog")
+
+    def configure(self, replay):
+        super().configure(replay)
         p = "(?P<{}>{})".format
 
         self._skipped_patterns += [
@@ -157,9 +176,6 @@ class _LibraryStdout(_LogsInterfaceValidator):
             self._new_log_line_pattern = re.compile(r".")
             self._parsers.append(re.compile(p("message", r".*")))
 
-    def _get_files(self):
-        return ["logs/docker/weblog/stdout.log", "logs/docker/weblog/stderr.log"]
-
     def _clean_line(self, line):
         if line.startswith("weblog_1         | "):
             line = line[19:]
@@ -196,12 +212,12 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         result = []
 
         try:
-            files = os.listdir("logs/docker/weblog/logs/")
+            files = os.listdir(f"{context.scenario.host_log_folder}/docker/weblog/logs/")
         except FileNotFoundError:
             files = []
 
         for f in files:
-            filename = os.path.join("logs/docker/weblog/logs/", f)
+            filename = os.path.join(f"{context.scenario.host_log_folder}/docker/weblog/logs/", f)
 
             if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
                 result.append(filename)
@@ -212,9 +228,9 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         return {"DBG": "DEBUG", "INF": "INFO", "ERR": "ERROR"}.get(level, level)
 
 
-class _AgentStdout(_LogsInterfaceValidator):
+class _AgentStdout(_StdoutLogsInterfaceValidator):
     def __init__(self):
-        super().__init__("Agent stdout")
+        super().__init__("agent")
 
         p = "(?P<{}>{})".format
         timestamp = p("timestamp", r"[^|]*")
@@ -223,8 +239,18 @@ class _AgentStdout(_LogsInterfaceValidator):
         self._parsers.append(re.compile(rf"^{timestamp} *\| *[A-Z]* *\| *{level} *\| *{message}"))
         self._parsers.append(re.compile(message))  # fall back
 
-    def _get_files(self):
-        return ["logs/docker/agent/stdout.log"]
+
+class _PostgresStdout(_StdoutLogsInterfaceValidator):
+    def __init__(self):
+        super().__init__("postgres", new_log_line_pattern=r"^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d UTC \[\d+\]")
+
+        p = "(?P<{}>{})".format
+
+        timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d UTC")
+        level = p("level", r"[A-Z]+")
+        message = p("message", r".*")
+        self._parsers.append(re.compile(rf"^{timestamp} \[\d+\] {level}: *{message}"))
+        self._parsers.append(re.compile(message))  # fall back
 
 
 ########################################################
@@ -268,19 +294,23 @@ class _LogAbsence:
                     return
 
             logger.error(json.dumps(data["raw"], indent=2))
-            raise Exception("Found unexpcted log")
+            raise ValueError("Found unexpected log")
 
 
 class Test:
     def test_main(self):
         """Test example"""
-        # i = _LibraryStdout()
-        # i.wait()
-        # i.assert_presence(r".*")
 
-        i = _AgentStdout()
-        i.wait(0)
-        i.assert_presence(r"FIPS mode is disabled")
+        from utils._context._scenarios import scenarios
+
+        context.scenario = scenarios.default
+
+        i = _PostgresStdout()
+        i.configure(True)
+        i.load_data()
+
+        for item in i.get_data():
+            print(item)
 
 
 if __name__ == "__main__":

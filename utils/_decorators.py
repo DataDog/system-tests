@@ -1,13 +1,18 @@
 import inspect
+import os
 import pytest
 
 from utils._context.core import context
 
 
+# temp code, for manifest file migrations
+_released_declarations = {}
+
+
 def _get_skipped_item(item, skip_reason):
 
     if not inspect.isfunction(item) and not inspect.isclass(item):
-        raise Exception(f"Unexpected skipped object: {item}")
+        raise ValueError(f"Unexpected skipped object: {item}")
 
     if not hasattr(item, "pytestmark"):
         setattr(item, "pytestmark", [])
@@ -20,7 +25,7 @@ def _get_skipped_item(item, skip_reason):
 def _get_expected_failure_item(item, skip_reason):
 
     if not inspect.isfunction(item) and not inspect.isclass(item):
-        raise Exception(f"Unexpected skipped object: {item}")
+        raise ValueError(f"Unexpected skipped object: {item}")
 
     if not hasattr(item, "pytestmark"):
         setattr(item, "pytestmark", [])
@@ -37,8 +42,12 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     if weblog_variant is not None and weblog_variant != context.weblog_variant:
         return False
 
-    if library is not None and context.library != library:
-        return False
+    if library is not None:
+        if library not in ("cpp", "dotnet", "golang", "java", "nodejs", "python", "php", "ruby", "python_http"):
+            raise ValueError(f"Unknown library: {library}")
+
+        if context.library != library:
+            return False
 
     return True
 
@@ -116,6 +125,9 @@ def released(
     """Class decorator, allow to mark a test class with a version number of a component"""
 
     def wrapper(test_class):
+        if not inspect.isclass(test_class):
+            raise TypeError("@released must be used only on classes")
+
         def compute_requirement(tested_library, component_name, released_version, tested_version):
             if context.library != tested_library or released_version is None:
                 return None
@@ -126,6 +138,10 @@ def released(
             if component_name in test_class.__released__:
                 raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
 
+            if component_name == context.library.library:
+                file = os.path.relpath(inspect.getfile(test_class))
+                _released_declarations[f"{file}::{test_class.__name__}"] = released_version
+
             released_version = _compute_released_version(released_version)
 
             test_class.__released__[component_name] = released_version
@@ -133,11 +149,11 @@ def released(
             if released_version is None:
                 return None
 
-            if released_version == "?":
+            if released_version == "?" or released_version.startswith("missing_feature"):
                 return "missing feature: release not yet planned"
 
             if released_version.startswith("not relevant"):
-                raise Exception("TODO remove this test, it should never happen")
+                raise ValueError("TODO remove this test, it should never happen")
 
             if tested_version >= released_version:
                 return None
@@ -156,6 +172,7 @@ def released(
             compute_requirement("php", "php_appsec", php_appsec, context.php_appsec),
             compute_requirement("php", "php", php, context.library.version),
             compute_requirement("python", "python", python, context.library.version),
+            compute_requirement("python_http", "python_http", python, context.library.version),
             compute_requirement("ruby", "ruby", ruby, context.library.version),
         ]
 
