@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(php_appsec="?", ruby="?")
 @released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?"})
 @released(
     java={

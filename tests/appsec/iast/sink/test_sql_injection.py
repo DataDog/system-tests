@@ -8,7 +8,7 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(php_appsec="?", ruby="?")
 @released(
     python={"django-poc": "1.12.0", "flask-poc": "1.12.0", "uds-flask": "?", "uwsgi-poc": "?", "pylons": "?",}
 )

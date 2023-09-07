@@ -35,10 +35,8 @@ _released_java_blocking = {
 
 
 @released(
-    dotnet="2.27.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    golang="1.51.0",
     ruby="1.0.0",
     java=_released_java_blocking,
 )
@@ -230,8 +228,6 @@ def _assert_custom_event_tag_absence():
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.29.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.12.0",
@@ -280,8 +276,6 @@ class Test_Blocking_request_method:
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.32.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.15", "flask-poc": "1.15", "*": "1.16.1"},
     ruby="1.0.0",
@@ -340,12 +334,7 @@ class Test_Blocking_request_uri:
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.29.0",
-    golang="1.51.0",
-    java="1.15.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.13", "*": "1.16.1"},
-    ruby="1.0.0",
+    java="1.15.0", php_appsec="0.7.0", python={"django-poc": "1.10", "flask-poc": "1.13", "*": "1.16.1"}, ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
@@ -394,8 +383,6 @@ class Test_Blocking_request_path_params:
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.29.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
@@ -450,8 +437,6 @@ class Test_Blocking_request_query:
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.29.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
@@ -506,8 +491,6 @@ class Test_Blocking_request_headers:
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.29.0",
-    golang="1.51.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     ruby="1.0.0",
@@ -562,12 +545,7 @@ class Test_Blocking_request_cookies:
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.29.0",
-    golang="?",
-    java="1.15.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.0.0",
+    java="1.15.0", php_appsec="0.7.0", python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"}, ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
@@ -633,12 +611,7 @@ class Test_Blocking_request_body:
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.32.0",
-    golang="?",
-    java="?",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.10.0",
+    java="?", php_appsec="0.7.0", python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"}, ruby="1.10.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
@@ -669,12 +642,7 @@ class Test_Blocking_response_status:
 @scenarios.appsec_blocking
 @coverage.good
 @released(
-    dotnet="2.32.0",
-    golang="?",
-    java="?",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.0.0",
+    java="?", php_appsec="0.7.0", python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"}, ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
@@ -705,7 +673,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(dotnet="2.29.0", php_appsec="0.7.0", python="?", golang="?", ruby="1.0.0")
+@released(php_appsec="0.7.0", python="?", ruby="1.0.0")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 

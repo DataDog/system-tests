@@ -152,6 +152,13 @@ class Test_Metadata:
 
         assert Test_DictBasic.__released__["java"] == "2.1"
 
+    def test_library_does_not_exists(self):
+        with pytest.raises(ValueError):
+
+            @missing_feature(library="not a lib")
+            def test_method():
+                ...
+
 
 class Test_Skips:
     def test_irrelevant(self):

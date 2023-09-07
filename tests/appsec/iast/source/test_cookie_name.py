@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?")
+@released(php_appsec="?", python="1.18.0", ruby="?")
 @released(
     java={
         "resteasy-netty3": "?",

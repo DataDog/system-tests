@@ -7,7 +7,7 @@ from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
-@released(dotnet="2.27.0", golang="?", java="?", php="0.68.2", python="0.53", ruby="?")
+@released(java="?", php="0.68.2", python="0.53", ruby="?")
 @coverage.basic
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
@@ -21,7 +21,7 @@ class Test_HeaderTags:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", php="0.74.0", python="?", ruby="?")
+@released(java="0.102.0", php="0.74.0", python="?", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_short
 class Test_HeaderTagsShortFormat:
@@ -44,7 +44,7 @@ class Test_HeaderTagsShortFormat:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", php="?", python="1.2.1", ruby="?")
+@released(java="0.102.0", php="?", python="1.2.1", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_long
 class Test_HeaderTagsLongFormat:
