@@ -29,7 +29,7 @@ def validate_no_leak(needle, whitelist_pattern=None):
 
 
 @released(java="0.107.1")
-@released(php="0.76.0", python="1.6.0rc1.dev", ruby="1.0.0")
+@released(php="0.76.0", python="1.6.0rc1.dev")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.good
 class Test_UrlQuery:
