@@ -297,9 +297,7 @@ class Test_SamplingDecisions:
 
     @bug(library="python", reason="APMRP-259")
     @bug(library="nodejs", reason="APMRP-258")
-    @bug(library="dotnet", reason="APMRP-258")
     @bug(library="php", reason="APMRP-258")
-    @bug(library="cpp", reason="APMRP-258")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
 
