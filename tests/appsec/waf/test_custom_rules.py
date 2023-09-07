@@ -2,7 +2,7 @@ from utils import interfaces, released, scenarios, weblog
 
 
 @released(
-    java="?", php_appsec="0.8.1", python={"django-poc": "1.12", "flask-poc": "1.12", "*": "1.16.1"},
+    java="?", php_appsec="0.8.1",
 )
 @scenarios.appsec_custom_rules
 class Test_CustomRules:

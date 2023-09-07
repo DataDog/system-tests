@@ -6,7 +6,7 @@
 from utils import context, released, coverage
 
 
-@released(java="?", php="?", python="?")
+@released(java="?", php="?")
 @coverage.not_implemented
 class Test_Scrubbing:
     """Appsec scrubs all sensitive data"""

@@ -198,7 +198,7 @@ class Test_Skips:
 def test_released_only_on_class():
     with pytest.raises(TypeError):
 
-        @released()
+        @released(python="1.0")
         def test_xx():
             pass
 
