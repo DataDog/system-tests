@@ -75,7 +75,20 @@ jobs:
     uses: datadog/system-tests/.github/workflows/experimental.yml@main
     secrets: inherit
 
+
+  test_weblog_builds:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Build python's weblog base images
+          if: contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
+          run: |
+            docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
+        - name: Build python's weblog images
+          run: |
+            ./build.sh python --weblog-variant flask-poc
+
   main:
+    if: ${{ false }} 
     runs-on: ubuntu-latest
     needs:
     - lint
@@ -220,9 +233,6 @@ jobs:
           weblog: rails61
         - library: ruby
           weblog: rails70
-
-
-
         version:
         - prod
         - dev
