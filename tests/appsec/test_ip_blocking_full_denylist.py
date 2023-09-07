@@ -12,7 +12,7 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="1.11.0")
+@released(php_appsec="0.7.0", python="1.10.0", ruby="1.11.0")
 @released(
     java={
         "spring-boot": "0.110.0",

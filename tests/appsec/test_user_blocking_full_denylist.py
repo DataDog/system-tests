@@ -2,7 +2,6 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
 
 
 @released(
-    dotnet="2.30.0",
     java={
         "spring-boot": "0.110.0",
         "sprint-boot-jetty": "0.111.0",

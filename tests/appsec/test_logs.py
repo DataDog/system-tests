@@ -89,7 +89,7 @@ class Test_Standardization:
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110$", level="INFO")
 
 
-@released(dotnet="?", java="?", php="?", python="?", ruby="?")
+@released(java="?", php="?", python="?", ruby="?")
 class Test_StandardizationBlockMode:
     """AppSec blocking logs should be standardized"""
 

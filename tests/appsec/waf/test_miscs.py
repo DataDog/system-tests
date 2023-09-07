@@ -11,7 +11,7 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
@@ -35,7 +35,7 @@ class Test_404:
         )
 
 
-@released(dotnet="2.3.0", java="0.95.0")
+@released(java="0.95.0")
 @released(php_appsec="0.2.0", python="1.2.1", ruby="1.0.0.beta1")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -53,7 +53,7 @@ class Test_MultipleHighlight:
         )
 
 
-@released(dotnet="2.1.0", java="0.92.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
+@released(java="0.92.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -87,7 +87,7 @@ class Test_MultipleAttacks:
         interfaces.library.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
 
 
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.1.0")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.1.0")
 @bug(context.library < "nodejs@3.19.0", reason="fixed in a waf update")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good

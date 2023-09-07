@@ -320,7 +320,7 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
-@released(ruby="1.7.0", java="1.6.0", php="0.83.1", dotnet="2.6.0")
+@released(ruby="1.7.0", java="1.6.0", php="0.83.1")
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

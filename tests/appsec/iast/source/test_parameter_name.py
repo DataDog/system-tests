@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", php_appsec="?", ruby="?")
+@released(php_appsec="?", ruby="?")
 @released(
     java={
         "jersey-grizzly2": "1.15.0",
