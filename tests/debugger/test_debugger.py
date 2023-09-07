@@ -86,7 +86,7 @@ def check_info_endpoint():
 @irrelevant(library="golang")
 @irrelevant(library="python")
 @irrelevant(library="ruby")
-@irrelevant(library="php_appsec")
+@irrelevant(library="php")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
@@ -111,7 +111,7 @@ class Test_Debugger_Method_Probe_Statuses:
 @irrelevant(library="golang")
 @irrelevant(library="python")
 @irrelevant(library="ruby")
-@irrelevant(library="php_appsec")
+@irrelevant(library="php")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
@@ -127,7 +127,7 @@ class Test_Debugger_Line_Probe_Statuses:
 @irrelevant(library="golang")
 @irrelevant(library="python")
 @irrelevant(library="ruby")
-@irrelevant(library="php_appsec")
+@irrelevant(library="php")
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots:
     def setup_debugger_method_probe_snaphots(self):
