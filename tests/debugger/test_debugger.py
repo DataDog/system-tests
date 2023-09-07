@@ -87,6 +87,7 @@ def check_info_endpoint():
 @irrelevant(library="ruby")
 @irrelevant(library="php")
 @irrelevant(library="nodejs")
+@irrelevant(library="cpp")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
@@ -112,6 +113,7 @@ class Test_Debugger_Method_Probe_Statuses:
 @irrelevant(library="ruby")
 @irrelevant(library="php")
 @irrelevant(library="nodejs")
+@irrelevant(library="cpp")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
@@ -128,12 +130,14 @@ class Test_Debugger_Line_Probe_Statuses:
 @irrelevant(library="ruby")
 @irrelevant(library="php")
 @irrelevant(library="nodejs")
+@irrelevant(library="cpp")
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots:
-    def setup_debugger_method_probe_snaphots(self):
-        self.remote_config_is_sent = False
-        self.probe_installed = False
+    remote_config_is_sent = False
+    probe_installed = False
+    logProbeResponse = None
 
+    def setup_method_probe_snaphots(self):
         def wait_for_remote_config(data):
             if data["path"] == "/v0.7/config":
                 if "client_configs" in data.get("response", {}).get("content", {}):
@@ -151,6 +155,9 @@ class Test_Debugger_Method_Probe_Snaphots:
                             self.probe_installed = True
                             return True
             return False
+
+        print(self.remote_config_is_sent)
+        print(self.probe_installed)
 
         interfaces.library.wait_for(wait_for_remote_config, timeout=30)
         interfaces.agent.wait_for(wait_for_probe, timeout=30)
