@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(php_appsec="?", ruby="?")
 @released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?"})
 @released(
     java={
@@ -20,7 +20,6 @@ from .._test_iast_fixtures import SourceFixture
         "*": "1.7.0",
     }
 )
-@released(nodejs={"express4": "3.19.0", "*": "?"})
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestRequestBody:
     """Verify that request json body is tainted"""

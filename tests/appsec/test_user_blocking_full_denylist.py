@@ -2,8 +2,6 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
 
 
 @released(
-    dotnet="2.30.0",
-    golang="1.48.0",
     java={
         "spring-boot": "0.110.0",
         "sprint-boot-jetty": "0.111.0",
@@ -15,7 +13,6 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
         "vertx3": "1.7.0",
         "*": "?",
     },
-    nodejs="3.15.0",
     php="0.86.3",
     php_appsec="0.7.2",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},

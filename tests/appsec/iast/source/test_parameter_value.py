@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="1.18.0", ruby="?")
+@released(php_appsec="?", python="1.18.0", ruby="?")
 @bug(library="python")
 @released(
     java={
@@ -20,7 +20,6 @@ from .._test_iast_fixtures import SourceFixture
         "*": "1.5.0",
     }
 )
-@released(nodejs={"express4": "3.19.0", "*": "?"})
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestParameterValue:
     """Verify that request parameters are tainted"""

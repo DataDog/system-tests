@@ -6,13 +6,7 @@ if context.weblog_variant == "akka-http":
 
 
 @released(
-    java="1.6.0",
-    dotnet="2.26.0",
-    golang="1.53.0",
-    nodejs="3.19.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.12", "flask-poc": "1.12", "*": "1.16.1"},
-    ruby="1.11.0",
+    java="1.6.0", php_appsec="0.7.0", python={"django-poc": "1.12", "flask-poc": "1.12", "*": "1.16.1"}, ruby="1.11.0",
 )
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_custom_rules

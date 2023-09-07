@@ -42,8 +42,12 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     if weblog_variant is not None and weblog_variant != context.weblog_variant:
         return False
 
-    if library is not None and context.library != library:
-        return False
+    if library is not None:
+        if library not in ("cpp", "dotnet", "golang", "java", "nodejs", "python", "php", "ruby", "python_http"):
+            raise ValueError(f"Unknown library: {library}")
+
+        if context.library != library:
+            return False
 
     return True
 
@@ -145,7 +149,7 @@ def released(
             if released_version is None:
                 return None
 
-            if released_version == "?":
+            if released_version == "?" or released_version.startswith("missing_feature"):
                 return "missing feature: release not yet planned"
 
             if released_version.startswith("not relevant"):

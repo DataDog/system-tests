@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(php_appsec="?", python="?", ruby="?")
 @released(
     java={
         "resteasy-netty3": "1.11.0",
@@ -19,7 +19,6 @@ from .._test_iast_fixtures import SinkFixture
         "*": "1.1.0",
     }
 )
-@released(nodejs={"express4": "3.11.0", "*": "?"})
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestCommandInjection:
     """Test command injection detection."""

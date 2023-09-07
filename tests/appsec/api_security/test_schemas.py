@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, interfaces, released, rfc, scenarios, weblog
+from utils import context, coverage, interfaces, missing_feature, released, rfc, scenarios, weblog
 
 
 def get_schema(request, address):
@@ -36,13 +36,7 @@ def equal_value(t1, t2):
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    nodejs="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -52,24 +46,19 @@ class Test_Schema_Request_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS001/200")
 
+    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide request header schema"""
         schema = get_schema(self.request, "req.headers")
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert equal_without_meta(schema, [{"Accept-Encoding": [8], "Host": [8], "User-Agent": [8]}])
+        assert equal_without_meta(schema, [{"accept-encoding": [8], "host": [8], "user-agent": [8]}])
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    nodejs="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -92,13 +81,7 @@ class Test_Schema_Request_Query_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    nodejs="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -123,13 +106,7 @@ class Test_Schema_Request_Path_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    nodejs="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -149,13 +126,7 @@ class Test_Schema_Request_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    dotnet="?",
-    golang="?",
-    java="?",
-    nodejs="?",
-    php_appsec="?",
-    python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-    ruby="?",
+    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"}, ruby="?",
 )
 @coverage.basic
 @scenarios.appsec_api_security
@@ -165,6 +136,7 @@ class Test_Schema_Reponse_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
 
+    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide response header schema"""
         schema = get_schema(self.request, "res.headers")
@@ -172,14 +144,12 @@ class Test_Schema_Reponse_Headers:
         assert isinstance(schema, list)
         assert len(schema) == 1
         assert isinstance(schema[0], dict)
-        for key in ("Content-Length", "Content-Type", "X-option"):
+        for key in ("content-length", "content-type", "x-option"):
             assert key in schema[0]
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
-)
+@released(java="?", php_appsec="?", python="?", ruby="?")
 @coverage.not_implemented
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Body:

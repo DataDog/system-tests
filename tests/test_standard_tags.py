@@ -6,7 +6,7 @@ from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
 from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, weblog
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
+@released(java="0.102.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
 @coverage.good
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -32,7 +32,7 @@ class Test_StandardTagsMethod:
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
 
-@released(dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0")
+@released(java="0.107.1")
 @released(php="0.76.0", python="1.6.0rc1.dev", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
@@ -81,6 +81,7 @@ class Test_StandardTagsUrl:
         ]
 
     # when tracer is updated, add (for example)
+    @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
     @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
     @irrelevant(context.library >= "dotnet@2.38.0", reason="dotnet released the new version at 2.38.0")
     def test_url_with_sensitive_query_string_legacy(self):
@@ -113,9 +114,10 @@ class Test_StandardTagsUrl:
         ]
 
     @missing_feature(
-        context.library in ["golang", "java", "nodejs", "php", "ruby"],
+        context.library in ["golang", "nodejs", "php", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
+    @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
     @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
@@ -129,6 +131,7 @@ class Test_StandardTagsUrl:
         )
 
     # when tracer is updated, add (for exemple)
+    @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
     @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
     @irrelevant(context.library >= "dotnet@2.38.0", reason="dotnet released the new version at 2.38.0")
     def test_multiple_matching_substring_legacy(self):
@@ -143,9 +146,10 @@ class Test_StandardTagsUrl:
         )
 
     @missing_feature(
-        context.library in ["golang", "java", "nodejs", "php", "ruby"],
+        context.library in ["golang", "nodejs", "php", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
+    @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
     @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     @irrelevant(context.library < "dotnet@2.38.0", reason="dotnet released the new version at 2.38.0")
     def test_multiple_matching_substring(self):
@@ -155,7 +159,7 @@ class Test_StandardTagsUrl:
         )
 
 
-@released(dotnet="2.13.0", golang="1.39.0", java="0.107.1", nodejs="2.9.0")
+@released(java="0.107.1")
 @released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.8.0")
 @coverage.basic
 class Test_StandardTagsUserAgent:
@@ -170,7 +174,7 @@ class Test_StandardTagsUserAgent:
         interfaces.library.add_span_tag_validation(self.r, tags=tags, value_as_regular_expression=True)
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0")
+@released(java="0.102.0")
 @released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.8.0")
 @coverage.good
 class Test_StandardTagsStatusCode:
@@ -185,7 +189,7 @@ class Test_StandardTagsStatusCode:
             interfaces.library.add_span_tag_validation(request=r, tags={"http.status_code": code})
 
 
-@released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0", ruby="?")
+@released(php="?", python="1.6.0", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
 @irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
 @missing_feature(
@@ -222,8 +226,8 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@released(dotnet="2.26.0", golang="1.46.0", java="0.114.0")
-@released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="1.10.1")
+@released(java="0.114.0")
+@released(php_appsec="0.4.4", python="1.5.0", ruby="1.10.1")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")

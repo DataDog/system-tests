@@ -8,7 +8,7 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(php_appsec="?", ruby="?")
 @released(
     python={"django-poc": "1.12.0", "flask-poc": "1.12.0", "uds-flask": "?", "uwsgi-poc": "?", "pylons": "?",}
 )
@@ -22,7 +22,6 @@ from .._test_iast_fixtures import SinkFixture
         "*": "1.1.0",
     }
 )
-@released(nodejs={"express4": "3.11.0", "*": "?"})
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestSqlInjection:
     """Verify SQL injection detection."""
