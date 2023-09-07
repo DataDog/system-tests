@@ -78,7 +78,6 @@ def check_info_endpoint():
     raise ValueError("Agent did not provide /v0.7/config endpoint")
 
 
-@released(dotnet="2.33.0", java="1.19.3")
 @missing_feature(
     context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
     reason="not supported",
@@ -87,6 +86,7 @@ def check_info_endpoint():
 @irrelevant(library="python")
 @irrelevant(library="ruby")
 @irrelevant(library="php")
+@irrelevant(library="nodejs")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
@@ -103,7 +103,6 @@ class Test_Debugger_Method_Probe_Statuses:
         validate_data(expected_data, [])
 
 
-@released(dotnet="2.33.0", java="1.19.3")
 @missing_feature(
     context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
     reason="not supported",
@@ -112,6 +111,7 @@ class Test_Debugger_Method_Probe_Statuses:
 @irrelevant(library="python")
 @irrelevant(library="ruby")
 @irrelevant(library="php")
+@irrelevant(library="nodejs")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
@@ -119,7 +119,6 @@ class Test_Debugger_Line_Probe_Statuses:
         validate_data(expected_data, [])
 
 
-@released(dotnet="2.33.0", java="1.19.3")
 @missing_feature(
     context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
     reason="not supported",
@@ -128,9 +127,13 @@ class Test_Debugger_Line_Probe_Statuses:
 @irrelevant(library="python")
 @irrelevant(library="ruby")
 @irrelevant(library="php")
+@irrelevant(library="nodejs")
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots:
     def setup_debugger_method_probe_snaphots(self):
+        self.remote_config_is_sent = False
+        self.probe_installed = False
+
         def wait_for_remote_config(data):
             if data["path"] == "/v0.7/config":
                 if "client_configs" in data.get("response", {}).get("content", {}):
