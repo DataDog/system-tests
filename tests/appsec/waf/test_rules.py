@@ -273,7 +273,7 @@ class Test_SQLI:
         interfaces.library.assert_waf_attack(self.r_6, "crs-942-140")
 
 
-@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1", ruby="1.8.0")
+@released(java="0.87.0", php_appsec="0.1.0", python="1.2.1")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
