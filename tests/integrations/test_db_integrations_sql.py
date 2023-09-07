@@ -13,13 +13,13 @@ from utils._context.library_version import LibraryVersion
 
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?", cpp="?")
 @released(
-    java={"spring-boot-integrations": "1.12.0", "*": "?",}
+    java={"spring-boot": "1.12.0", "*": "?",}
 )
 @released(
-    nodejs={"express4-integrations": "1.0.0", "*": "?",}
+    nodejs={"express4": "1.0.0", "*": "?",}
 )
 @released(
-    python={"flask-integrations": "0.0.1", "*": "?",}
+    python={"flask-poc": "0.0.1", "*": "?",}
 )
 @scenarios.integrations
 class _BaseIntegrationsSqlTestClass:

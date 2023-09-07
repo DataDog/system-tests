@@ -838,7 +838,7 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,

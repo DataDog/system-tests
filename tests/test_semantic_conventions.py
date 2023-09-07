@@ -250,12 +250,6 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
-    @missing_feature(
-        weblog_variant="spring-boot-integrations", reason="component tag not implemented for spring-boot-integrations"
-    )
-    @missing_feature(
-        weblog_variant="express4-integrations", reason="component tag not implemented for express4-integrations"
-    )
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 

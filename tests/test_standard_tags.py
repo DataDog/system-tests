@@ -192,7 +192,6 @@ class Test_StandardTagsStatusCode:
 @missing_feature(
     context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
 )
-@missing_feature(weblog_variant="flask-integrations", reason="No implemented for this weblog")
 @coverage.basic
 class Test_StandardTagsRoute:
     """Tests to verify that libraries annotate spans with correct http.route tags"""

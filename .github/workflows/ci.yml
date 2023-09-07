@@ -128,16 +128,12 @@ jobs:
           weblog: spring-boot-payara
         - library: java
           weblog: akka-http
-        - library: java
-          weblog: spring-boot-integrations
         - library: nodejs
           weblog: express4
         - library: nodejs
           weblog: uds-express4
         - library: nodejs
           weblog: express4-typescript
-        - library: nodejs
-          weblog: express4-integrations
         - library: php
           weblog: apache-mod-7.0
         - library: php
@@ -194,8 +190,6 @@ jobs:
           weblog: uwsgi-poc
         - library: python
           weblog: uds-flask
-        - library: python
-          weblog: flask-integrations
         - library: ruby
           weblog: rack
         - library: ruby
@@ -249,7 +243,7 @@ jobs:
       if: matrix.variant.library == 'python' && contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
       run: |
         docker build --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
-        docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v0 .
+        docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
         docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
     - name: Build proxy image
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
