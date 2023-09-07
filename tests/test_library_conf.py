@@ -7,7 +7,7 @@ from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
-@released(dotnet="2.27.0", golang="?", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
+@released(dotnet="2.27.0", golang="1.53.0", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
 @coverage.basic
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
@@ -21,7 +21,7 @@ class Test_HeaderTags:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
+@released(dotnet="2.1.0", golang="1.53.0", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_short
 class Test_HeaderTagsShortFormat:
@@ -44,7 +44,7 @@ class Test_HeaderTagsShortFormat:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
+@released(dotnet="2.1.0", golang="1.53.0", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_long
 class Test_HeaderTagsLongFormat:
@@ -66,7 +66,7 @@ class Test_HeaderTagsLongFormat:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="1.2.1", ruby="?")
+@released(dotnet="2.1.0", golang="1.53.0", java="0.102.0", nodejs="?", php="0.74.0", python="1.2.1", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_whitespacing_headers
 class Test_HeaderTagsWhitespacing_Headers:
@@ -96,7 +96,7 @@ class Test_HeaderTagsWhitespacing_Headers:
 
 # Note: dotnet fails this test. It normalizes those spaces to underscores instead.
 @irrelevant(library="cpp")
-@released(dotnet="?", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
+@released(dotnet="?", golang="1.53.0", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_whitespacing_tags
 class Test_HeaderTagsWhitespacing_Tags:
@@ -127,7 +127,7 @@ class Test_HeaderTagsWhitespacing_Tags:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
+@released(dotnet="2.1.0", golang="1.53.0", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_whitespacing_vals
 class Test_HeaderTagsWhitespacing_Vals:
@@ -155,7 +155,7 @@ class Test_HeaderTagsWhitespacing_Vals:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="2.1.0", golang="1.53.0", java="0.102.0", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_colon_edge
 class Test_HeaderTagsColon_Edge:
