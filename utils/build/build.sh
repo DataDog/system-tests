@@ -221,7 +221,10 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
-                --pull=false \
+                --pull \
+                $CACHE_TO \
+                $CACHE_FROM \
+                $EXTRA_DOCKER_ARGS \
                 .
 
                 		#--pull \
@@ -229,6 +232,7 @@ build() {
                 #$CACHE_FROM \
                 #$EXTRA_DOCKER_ARGS \
                 #--load \
+                #--pull=false \
 
             if test -f "binaries/waf_rule_set.json"; then
                 SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
