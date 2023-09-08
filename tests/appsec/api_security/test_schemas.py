@@ -34,9 +34,7 @@ def equal_value(t1, t2):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Headers:
@@ -45,7 +43,6 @@ class Test_Schema_Request_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS001/200")
 
-    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide request header schema"""
         schema = get_schema(self.request, "req.headers")
@@ -118,9 +115,7 @@ class Test_Schema_Request_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Headers:
@@ -141,9 +136,7 @@ class Test_Schema_Reponse_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Body:
     """Test API Security - Reponse Body Schema with urlencoded body"""

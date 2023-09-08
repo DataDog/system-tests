@@ -5,16 +5,16 @@ tests/:
         Test_Schema_Reponse_Body: missing_feature
         Test_Schema_Reponse_Headers:
           '*': missing_feature
-          django-poc: v1.18
-          flask-poc: v1.18
+          django-poc: v1.19.0.dev
+          flask-poc: v1.19.0.dev
         Test_Schema_Request_Body:
           '*': missing_feature
-          django-poc: v1.18
-          flask-poc: v1.18
+          django-poc: v1.19.0.dev
+          flask-poc: v1.19.0.dev
         Test_Schema_Request_Headers:
           '*': missing_feature
-          django-poc: v1.18
-          flask-poc: v1.18
+          django-poc: v1.19.0.dev
+          flask-poc: v1.19.0.dev
         Test_Schema_Request_Path_Parameters:
           '*': missing_feature
           django-poc: v1.18
