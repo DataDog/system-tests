@@ -168,7 +168,10 @@ tests/:
       Test_DsmRabbitmq: v2.29.0
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
-    test_db_integrations_sql.py: missing_feature
+    test_db_integrations_sql.py: 
+      Test_Postgres_db_integration: missing_feature
+      Test_Mysql_db_integration: missing_feature
+      Test_Mssql_db_integration: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v2.33.0

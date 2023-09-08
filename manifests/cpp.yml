@@ -65,7 +65,10 @@ tests/:
   integrations/:
     test_dbm.py:
       Test_Dbm: missing_feature
-    test_db_integrations_sql.py: missing_feature
+    test_db_integrations_sql.py: 
+      Test_Postgres_db_integration: missing_feature
+      Test_Mysql_db_integration: missing_feature
+      Test_Mssql_db_integration: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
