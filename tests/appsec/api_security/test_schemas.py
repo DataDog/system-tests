@@ -2,14 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, missing_feature, released, rfc, scenarios, weblog
+from utils import (context, coverage, interfaces, missing_feature, released,
+                   rfc, scenarios, weblog)
 
 
 def get_schema(request, address):
     """get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
-        print(span, meta)
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
             return payload
