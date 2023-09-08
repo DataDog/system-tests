@@ -18,7 +18,6 @@ def get_schema(request, address):
 def equal_without_meta(t1, t2):
     """compare two schema types, ignoring any metadata"""
     if t1 is None or t2 is None:
-        print("NONE")
         return False
     return equal_value(t1[0], t2[0])
 
@@ -44,7 +43,6 @@ class Test_Schema_Request_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS001/200")
 
-    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide request header schema"""
         schema = get_schema(self.request, "req.headers")
@@ -126,7 +124,6 @@ class Test_Schema_Reponse_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
 
-    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide response header schema"""
         schema = get_schema(self.request, "res.headers")
@@ -140,14 +137,24 @@ class Test_Schema_Reponse_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(java="?", php_appsec="?")
-@coverage.not_implemented
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Body:
-    """Test API Security - Reponse Body Schema"""
+    """Test API Security - Reponse Body Schema with urlencoded body"""
 
     def setup_request_method(self):
-        pass
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+        )
 
     def test_request_method(self):
         """can provide response body schema"""
-        pass
+        schema = get_schema(self.request, "res.body")
+        assert self.request.status_code == 200
+        assert isinstance(schema, list)
+        assert len(schema) == 1
+        for key in ("payload",):
+            assert key in schema[0]
+        payload_schema = schema[0]["payload"][0]
+        for key in ("test_bool", "test_int", "test_str"):
+            assert key in payload_schema
