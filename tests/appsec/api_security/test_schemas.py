@@ -2,14 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (context, coverage, interfaces, missing_feature, released,
-                   rfc, scenarios, weblog)
+from utils import context, coverage, interfaces, missing_feature, released, rfc, scenarios, weblog
 
 
 def get_schema(request, address):
     """get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
+        print(span, meta)
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
             return payload
@@ -35,13 +35,11 @@ def equal_value(t1, t2):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Headers:
-    """Test API Security - Request Header Schema"""
+    """Test API Security - Request Headers Schema"""
 
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS001/200")
@@ -57,9 +55,7 @@ class Test_Schema_Request_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Cookies:
@@ -143,13 +139,11 @@ class Test_Schema_Request_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
-class Test_Schema_Reponse_Headers:
-    """Test API Security - Reponse Header Schema"""
+class Test_Schema_Response_Headers:
+    """Test API Security - Response Header Schema"""
 
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
@@ -166,12 +160,11 @@ class Test_Schema_Reponse_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.19.0.dev", "flask-poc": "1.19.0.dev", "*": "?"},
-)
+@released(java="?", php_appsec="?")
+@coverage.basic
 @scenarios.appsec_api_security
-class Test_Schema_Reponse_Body:
-    """Test API Security - Reponse Body Schema with urlencoded body"""
+class Test_Schema_Response_Body:
+    """Test API Security - Response Body Schema with urlencoded body"""
 
     def setup_request_method(self):
         self.request = weblog.post(
