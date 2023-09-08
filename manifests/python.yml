@@ -8,12 +8,12 @@ tests/:
           flask-poc: v1.18
         Test_Schema_Request_Cookies:
           '*': missing_feature
-          django-poc: 1.19.0dev0
-          flask-poc: 1.19.0dev0
+          django-poc: 1.19.0.dev1
+          flask-poc: 1.19.0.dev1
         Test_Schema_Request_Headers:
           '*': missing_feature
-          django-poc: 1.19.0dev0
-          flask-poc: 1.19.0dev0
+          django-poc: 1.19.0.dev1
+          flask-poc: 1.19.0.dev1
         Test_Schema_Request_Path_Parameters:
           '*': missing_feature
           django-poc: v1.18
@@ -24,12 +24,12 @@ tests/:
           flask-poc: v1.18
         Test_Schema_Response_Body:
           '*': missing_feature
-          django-poc: 1.19.0dev0
-          flask-poc: 1.19.0dev0
+          django-poc: 1.19.0.dev1
+          flask-poc: 1.19.0.dev1
         Test_Schema_Response_Headers:
           '*': missing_feature
-          django-poc: 1.19.0dev0
-          flask-poc: 1.19.0dev0
+          django-poc: 1.19.0.dev1
+          flask-poc: 1.19.0.dev1
 
     iast/:
       sink/:
