@@ -15,7 +15,6 @@ import requests
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 from utils import interfaces
-import shutil
 
 
 @lru_cache
