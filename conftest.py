@@ -170,7 +170,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
             declaration = manifest[nodeid]
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            released(**{context.scenario.library.library: declaration})(obj)
+            released(**{library: declaration})(obj)
 
 
 def pytest_collection_modifyitems(session, config, items):
