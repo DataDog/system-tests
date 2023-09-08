@@ -2,18 +2,10 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Response_Body:
-          '*': missing_feature
-          django-poc: 1.19.0.dev
-          flask-poc: 1.19.0.dev
         Test_Schema_Request_Body:
           '*': missing_feature
           django-poc: v1.18
           flask-poc: v1.18
-        Test_Schema_Response_Headers:
-          '*': missing_feature
-          django-poc: 1.19.0.dev
-          flask-poc: 1.19.0.dev
         Test_Schema_Request_Cookies:
           '*': missing_feature
           django-poc: 1.19.0.dev
@@ -30,6 +22,15 @@ tests/:
           '*': missing_feature
           django-poc: v1.18
           flask-poc: v1.18
+        Test_Schema_Response_Body:
+          '*': missing_feature
+          django-poc: 1.19.0.dev
+          flask-poc: 1.19.0.dev
+        Test_Schema_Response_Headers:
+          '*': missing_feature
+          django-poc: 1.19.0.dev
+          flask-poc: 1.19.0.dev
+
     iast/:
       sink/:
         test_command_injection.py:
