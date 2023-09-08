@@ -43,7 +43,6 @@ class Test_Tracer:
 
 
 @scenarios.parametric
-@released(python="0.36.0")
 class Test_TracerUniversalServiceTagging:
     @missing_feature(reason="FIXME: library test client sets empty string as the service name")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])

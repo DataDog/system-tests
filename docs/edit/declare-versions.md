@@ -1,3 +1,5 @@
+!!! OBSOLETE, TO BE UPDATED WITH MANIFEST FILES
+
 Once you have written the test, as you have not yet implemented the feature, you must declare that the test is expected to fail until a given version number. You must use the `released` decorator for this, using the good component name and version number:
 
 ```python

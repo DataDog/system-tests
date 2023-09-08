@@ -18,7 +18,7 @@ class Test_OneVariableInstallation:
     """Installation with 1 env variable"""
 
 
-@released(java="0.87.0", php_appsec="0.1.0", python="?")
+@released(java="0.87.0", php_appsec="0.1.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StaticRuleSet:
@@ -51,7 +51,7 @@ class Test_RuleSet_1_2_5:
 
 
 @released(java="0.99.0")
-@released(php_appsec="0.3.0", python="1.2.1")
+@released(php_appsec="0.3.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -81,7 +81,7 @@ class Test_RuleSet_1_3_1:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
-@released(java="0.100.0", python="1.1.2")
+@released(java="0.100.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ConfigurationVariables:
