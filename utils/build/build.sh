@@ -219,6 +219,7 @@ build() {
                 echo "Building weblog using previously generated local base images"
                  IMAGE_PULL_SOURCE="--pull=false"
             fi
+            #    $IMAGE_PULL_SOURCE \
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
@@ -227,7 +228,6 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
-                $IMAGE_PULL_SOURCE \
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \
