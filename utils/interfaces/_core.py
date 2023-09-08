@@ -9,7 +9,6 @@ import json
 from os import listdir
 from os.path import isfile, join
 import re
-import time
 
 import pytest
 
@@ -27,8 +26,10 @@ class InterfaceValidator:
         self.name = name
 
         self.replay = False
+        self.configured = False
 
     def configure(self, replay):
+        self.configured = True
         self.replay = replay
 
     def __repr__(self):
@@ -78,9 +79,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
-
-    def wait(self, timeout):
-        time.sleep(timeout)
 
     def load_data_from_logs(self):
 

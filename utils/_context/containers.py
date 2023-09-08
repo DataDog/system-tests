@@ -112,8 +112,8 @@ class TestedContainer:
 
         self._fix_host_pwd_in_volumes()
 
-        logger.info(f"Start container {self.container_name}")
-
+        logger.info(f"Starting container {self.container_name}")
+        t0 = time.time()
         self._container = _get_client().containers.run(
             image=self.image.name,
             name=self.container_name,
@@ -122,10 +122,13 @@ class TestedContainer:
             # auto_remove=True,
             detach=True,
             network=_NETWORK_NAME,
+            cpuset_cpus="0",
             **self.kwargs,
         )
 
         self.wait_for_health()
+        t = time.time() - t0
+        logger.info(f"Container {self.container_name} got healthy after {t} seconds")
 
     def wait_for_health(self):
         if not self.healthcheck:
@@ -184,8 +187,8 @@ class TestedContainer:
 
         self.kwargs["volumes"] = result
 
-    def stop(self):
-        self._container.stop()
+    def stop(self, timeout=10):
+        self._container.stop(timeout=timeout)
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")

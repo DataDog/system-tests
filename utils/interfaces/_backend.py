@@ -52,11 +52,6 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         logger.debug(f"Using Datadog API URL[{dd_app_url}] as resolved from DD_SITE[{dd_site}].")
         return dd_app_url
 
-    # Called by the test setup to make sure the interface is ready.
-    def wait(self, timeout):
-        super().wait(timeout)
-        self._init_rid_to_library_trace_ids()
-
     def load_data_from_logs(self):
         super().load_data_from_logs()
         self._init_rid_to_library_trace_ids()

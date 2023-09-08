@@ -100,6 +100,8 @@ logger = get_logger()
 def get_rid_from_request(request):
     if request is None:
         return None
+    if isinstance(request, str):
+        return request
 
     user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
     return user_agent[-36:]

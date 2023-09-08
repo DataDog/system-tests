@@ -33,10 +33,11 @@ update_environ_with_local_env()
 
 
 class _Scenario:
-    def __init__(self, name, doc) -> None:
+    def __init__(self, name, doc, tracer_sampling_rate=None) -> None:
         self.name = name
         self.replay = False
         self.doc = doc
+        self.tracer_sampling_rate = tracer_sampling_rate
 
     def create_log_subfolder(self, subfolder):
         if self.replay:
@@ -134,10 +135,6 @@ class _Scenario:
         return ""
 
     @property
-    def tracer_sampling_rate(self):
-        return 0
-
-    @property
     def appsec_rules_file(self):
         return ""
 
@@ -205,6 +202,7 @@ class _DockerScenario(_Scenario):
         self,
         name,
         doc,
+        tracer_sampling_rate=None,
         use_proxy=True,
         proxy_state=None,
         include_postgres_db=False,
@@ -215,15 +213,17 @@ class _DockerScenario(_Scenario):
         include_mysql_db=False,
         include_sqlserver=False,
     ) -> None:
-        super().__init__(name, doc=doc)
+        super().__init__(name, doc=doc, tracer_sampling_rate=tracer_sampling_rate)
 
         self.use_proxy = use_proxy
+        self.proxy_state = proxy_state
         self._required_containers = []
 
+        self.proxy_container = None
         if self.use_proxy:
-            self._required_containers.append(
-                ProxyContainer(host_log_folder=self.host_log_folder, proxy_state=proxy_state)
-            )  # we want the proxy being the first container to start
+            self.proxy_container = ProxyContainer(host_log_folder=self.host_log_folder, proxy_state=proxy_state)
+            # we want the proxy being the first container to start
+            self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
             self._required_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
@@ -291,11 +291,9 @@ class EndToEndScenario(_DockerScenario):
         appsec_rules=None,
         appsec_enabled=True,
         additional_trace_header_tags=(),
-        library_interface_timeout=None,
-        agent_interface_timeout=5,
+        post_setup_timeout=40,
         use_proxy=True,
         proxy_state=None,
-        backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -307,6 +305,7 @@ class EndToEndScenario(_DockerScenario):
         super().__init__(
             name,
             doc=doc,
+            tracer_sampling_rate=tracer_sampling_rate,
             use_proxy=use_proxy,
             proxy_state=proxy_state,
             include_postgres_db=include_postgres_db,
@@ -318,6 +317,7 @@ class EndToEndScenario(_DockerScenario):
             include_sqlserver=include_sqlserver,
         )
 
+        self.post_setup_timeout = post_setup_timeout
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
 
         self.weblog_container = WeblogContainer(
@@ -334,10 +334,7 @@ class EndToEndScenario(_DockerScenario):
 
         self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
-
-        self.agent_interface_timeout = agent_interface_timeout
-        self.backend_interface_timeout = backend_interface_timeout
-        self.library_interface_timeout = library_interface_timeout
+        self._observer = None
 
     def configure(self, option):
         from utils import interfaces
@@ -348,21 +345,6 @@ class EndToEndScenario(_DockerScenario):
         interfaces.library.configure(self.replay)
         interfaces.backend.configure(self.replay)
         interfaces.library_dotnet_managed.configure(self.replay)
-
-        if self.library_interface_timeout is None:
-            if self.weblog_container.library == "java":
-                self.library_interface_timeout = 25
-            elif self.weblog_container.library.library in ("golang",):
-                self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs",):
-                self.library_interface_timeout = 5
-            elif self.weblog_container.library.library in ("php",):
-                # possibly something weird on obfuscator, let increase the delay for now
-                self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("python",):
-                self.library_interface_timeout = 25
-            else:
-                self.library_interface_timeout = 40
 
     def print_test_context(self):
         from utils import weblog
@@ -446,7 +428,6 @@ class EndToEndScenario(_DockerScenario):
         from utils import interfaces
 
         if self.replay:
-
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
 
@@ -455,21 +436,25 @@ class EndToEndScenario(_DockerScenario):
             interfaces.backend.load_data_from_logs()
 
         elif self.use_proxy:
-            self._wait_interface(interfaces.library, self.library_interface_timeout)
+            self._wait()
             self.weblog_container.stop()
-            self._wait_interface(interfaces.agent, self.agent_interface_timeout)
             self.agent_container.stop()
-            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()
 
         interfaces.library_dotnet_managed.load_data()
 
-    def _wait_interface(self, interface, timeout):
-        logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-        logger.terminal.flush()
+    def _wait(self):
+        from utils import wait_conditions
 
-        interface.wait(timeout)
+        logger.terminal.write_sep("-", "Wait for setup to be ready")
+        wait_conditions.wait_for_all(
+            library_name=self.library.library,
+            post_setup_timeout=self.post_setup_timeout,
+            tracer_sampling_rate=self.tracer_sampling_rate,
+            proxy_state=self.proxy_state,
+        )
+        logger.terminal.write_sep("-", "Setup ready")
 
     def close_targets(self):
         from utils import weblog
@@ -497,10 +482,6 @@ class EndToEndScenario(_DockerScenario):
     @property
     def php_appsec(self):
         return self.weblog_container.php_appsec
-
-    @property
-    def tracer_sampling_rate(self):
-        return self.weblog_container.tracer_sampling_rate
 
     @property
     def appsec_rules_file(self):
@@ -545,6 +526,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     def __init__(self, name, doc, include_agent=True, include_collector=True, include_intake=True) -> None:
         super().__init__(name, doc=doc, use_proxy=True)
+        self.post_setup_timeout = 10
         if include_agent:
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
             self._required_containers.append(self.agent_container)
@@ -627,17 +609,18 @@ class OpenTelemetryScenario(_DockerScenario):
         from utils import interfaces
 
         if self.use_proxy:
-            self._wait_interface(interfaces.open_telemetry, 5)
+            self._wait()
 
         self.close_targets()
 
         interfaces.library_dotnet_managed.load_data()
 
-    def _wait_interface(self, interface, timeout):
-        logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-        logger.terminal.flush()
+    def _wait(self):
+        from utils import wait_conditions
 
-        interface.wait(timeout)
+        logger.terminal.write_sep("-", "Wait for setup to be ready")
+        wait_conditions.wait_for_all_otel(post_setup_timeout=self.post_setup_timeout)
+        logger.terminal.write_sep("-", "Setup ready")
 
     def _check_env_vars(self):
         for env in ["DD_API_KEY", "DD_APP_KEY", "DD_API_KEY_2", "DD_APP_KEY_2", "DD_API_KEY_3", "DD_APP_KEY_3"]:
@@ -851,8 +834,7 @@ class scenarios:
 
     profiling = EndToEndScenario(
         "PROFILING",
-        library_interface_timeout=160,
-        agent_interface_timeout=160,
+        post_setup_timeout=160,
         weblog_env={
             "DD_PROFILING_ENABLED": "true",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
@@ -866,6 +848,10 @@ class scenarios:
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
+        weblog_env={
+            # Reduce noise
+            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
+        },
         doc="Test sampling mechanism. Not included in default scenario because is very slow, and flaky",
     )
 
@@ -959,8 +945,12 @@ class scenarios:
 
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST"},
-        weblog_env={"DD_APPSEC_RULES": None},
+        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST",},
+        weblog_env={
+            "DD_APPSEC_RULES": None,
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file 
@@ -974,7 +964,11 @@ class scenarios:
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",
         proxy_state={"mock_remote_config_backend": "ASM"},
-        weblog_env={"DD_APPSEC_RULES": None},
+        weblog_env={
+            "DD_APPSEC_RULES": None,
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
         doc="",
     )
 
@@ -986,6 +980,8 @@ class scenarios:
             "DD_RC_TARGETS_KEY_ID": "TEST_KEY_ID",
             "DD_RC_TARGETS_KEY": "1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c",
             "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
         },
         doc="",
     )
@@ -1020,8 +1016,12 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES"},
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="",
     )
 
@@ -1033,16 +1033,22 @@ class scenarios:
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
         },
-        library_interface_timeout=100,
+        post_setup_timeout=100,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         proxy_state={"mock_remote_config_backend": "ASM_DD"},
-        weblog_env={"DD_APPSEC_RULES": None},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_APPSEC_RULES": None,
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
@@ -1056,16 +1062,26 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="",
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="",
     )
 
@@ -1076,23 +1092,29 @@ class scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
         },
-        library_interface_timeout=100,
+        post_setup_timeout=100,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_DD_NOCACHE"},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="",
     )
 
     # APM tracing end-to-end scenarios
 
-    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
+    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", post_setup_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario(
-        "APM_TRACING_E2E_OTEL", weblog_env={"DD_TRACE_OTEL_ENABLED": "true",}, backend_interface_timeout=5, doc="",
+        "APM_TRACING_E2E_OTEL", weblog_env={"DD_TRACE_OTEL_ENABLED": "true",}, post_setup_timeout=5, doc="",
     )
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
@@ -1100,7 +1122,6 @@ class scenarios:
             "DD_SPAN_SAMPLING_RULES": '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]',
             "DD_TRACE_SAMPLE_RATE": "0",
         },
-        backend_interface_timeout=5,
         doc="",
     )
 
@@ -1135,7 +1156,7 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=100,
+        post_setup_timeout=100,
         doc="",
     )
 
@@ -1148,7 +1169,7 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=100,
+        post_setup_timeout=100,
         doc="",
     )
 
