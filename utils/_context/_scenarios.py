@@ -24,6 +24,7 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
+    SqlDbTestedContainer,
 )
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
@@ -252,6 +253,12 @@ class _DockerScenario(_Scenario):
 
         for container in reversed(self._required_containers):
             container.configure(self.replay)
+
+    def get_container_by_dd_integration_name(self, name):
+        for container in self._required_containers:
+            if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
+                return container
+        return None
 
     def _get_warmups(self):
 
@@ -835,7 +842,7 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
