@@ -35,9 +35,7 @@ def equal_value(t1, t2):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Headers:
@@ -57,9 +55,7 @@ class Test_Schema_Request_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Query_Parameters:
@@ -80,9 +76,7 @@ class Test_Schema_Request_Query_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Path_Parameters:
@@ -105,9 +99,7 @@ class Test_Schema_Request_Path_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Body:
@@ -125,9 +117,7 @@ class Test_Schema_Request_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    java="?", php_appsec="?", python={"django-poc": "1.18", "flask-poc": "1.18", "*": "?"},
-)
+@released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Headers:
@@ -149,7 +139,7 @@ class Test_Schema_Reponse_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?", python="?")
+@released(java="?", php_appsec="?")
 @coverage.not_implemented
 @scenarios.appsec_api_security
 class Test_Schema_Reponse_Body:
