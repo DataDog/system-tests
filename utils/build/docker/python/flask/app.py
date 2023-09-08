@@ -1,8 +1,7 @@
 import psycopg2
 import requests
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
-from flask import Flask, Response
+from flask import Flask, Response, jsonify
+from flask import request
 from flask import request as flask_request
 from iast import (
     weak_cipher,
@@ -15,6 +14,9 @@ from iast import (
 from integrations.db.postgres import executePostgresOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.mssql import executeMssqlOperation
+
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -53,6 +55,9 @@ def waf(*args, **kwargs):
         appsec_trace_utils.track_custom_event(
             tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
         )
+        if kwargs["value"].startswith("payload_in_response_body") and request.method == "POST":
+            return jsonify({"payload": request.form})
+
         return "Value tagged", kwargs["code"], flask_request.args
     return "Hello, World!\\n"
 
