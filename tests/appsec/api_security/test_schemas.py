@@ -43,7 +43,6 @@ class Test_Schema_Request_Headers:
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS001/200")
 
-    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """can provide request header schema"""
         schema = get_schema(self.request, "req.headers")
