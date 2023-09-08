@@ -19,7 +19,7 @@ from utils._context.library_version import LibraryVersion
     nodejs={"express4": "1.0.0", "*": "?",}
 )
 @released(
-    python={"flask-poc": "0.0.1", "*": "?",}
+    python={"flask-poc": "1.18.3", "*": "?",}
 )
 @scenarios.integrations
 class _BaseIntegrationsSqlTestClass:
