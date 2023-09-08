@@ -157,7 +157,13 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
     if collector.istestclass(obj, name):
 
-        manifest = load_manifest(context.scenario.library.library)
+        if context.scenario.library.library == "python_http":
+            library = "python"
+        else:
+            library = context.scenario.library.library
+
+        manifest = load_manifest(library)
+
         nodeid = f"{collector.nodeid}::{name}"
 
         if nodeid in manifest:

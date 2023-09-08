@@ -18,7 +18,7 @@ def _expected_location():
 
 
 @coverage.basic
-@released(php_appsec="?", python="?")
+@released(php_appsec="?")
 @released(
     java={"vertx4": "1.17.0", "*": "1.16.0",}
 )
