@@ -74,26 +74,8 @@ jobs:
     - scenarios
     uses: datadog/system-tests/.github/workflows/experimental.yml@main
     secrets: inherit
-  test_weblog_builds:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v3
-        - name: Build python's weblog base images
-          if: contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
-          run: |
-            docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
-        - name: Install runner
-          uses: ./.github/actions/install_runner
-        - name: Build python's weblog images
-          run: |
-            ./build.sh python --weblog-variant flask-poc
-        - name: Build nodejs's weblog images
-          run: |
-              ./build.sh nodejs --weblog-variant express4
 
   main:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint
@@ -286,9 +268,6 @@ jobs:
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
-      env:
-        #we want to use previously generated base images. Avoid loading base images from the docker registry.
-        BUILD_FROM_LOCAL: ${{contains(github.event.pull_request.labels.*.name, 'build-python-base-images') && matrix.variant.library == 'python'}}
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh DEFAULT

@@ -212,14 +212,7 @@ build() {
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-            
-            IMAGE_PULL_SOURCE="--pull"
-            if [ "${BUILD_FROM_LOCAL:-false}" = true ] ; then
-                echo "Building weblog using previously generated local base images"
-                 IMAGE_PULL_SOURCE="--pull=false"
-            fi
-            #    $IMAGE_PULL_SOURCE \
+            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile          
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
