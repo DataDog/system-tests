@@ -206,7 +206,7 @@ class Test_Skips:
             pass
 
         assert is_skipped(
-            Test_Skipped, "missing feature for agent: release version is 0.78.0, tested version is 0.77.0"
+            Test_Skipped, "missing_feature for agent: declared released version is 0.78.0, tested version is 0.77.0"
         )
         assert is_not_skipped(Test_Included)
 
