@@ -197,6 +197,25 @@ class Test_TagsFromRule:
 @coverage.basic
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
+@released(dotnet="2.34.0", java="1.14.0", php="0.88.0", python="1.14.0", nodejs="4.1.0", golang="?", ruby="?")
+@bug(context.library >= "java@1.14.0", reason="APPSEC-11111")
+class Test_ExtraTagsFromRule:
+    """Extra tags may be added to the rule match since libddwaf 1.10.0"""
+
+    def setup_basic(self):
+        self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+    def test_basic(self):
+        for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=self.r):
+            for trigger in appsec_data["triggers"]:
+                assert "rule" in trigger
+                assert "tags" in trigger["rule"]
+                assert "tool_name" in trigger["rule"]["tags"]
+
+
+@coverage.basic
+@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
+@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 class Test_AttackTimestamp:
     """Attack timestamp"""
 

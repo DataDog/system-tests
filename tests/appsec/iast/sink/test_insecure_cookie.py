@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(php_appsec="?", python="1.19.0", ruby="?")
+@released(php_appsec="?", python="1.19.0")
 @released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
 class TestInsecureCookie:
     """Test insecure cookie detection."""

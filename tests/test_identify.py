@@ -29,7 +29,7 @@ def validate_identify_tags(tags):
 
 
 @released(java="?", php="0.85.0")
-@released(python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0")
+@released(python=PYTHON_RELEASE_GA_1_1)
 @coverage.basic
 class Test_Basic:
     """Basic tests for Identify SDK"""
@@ -63,7 +63,7 @@ class Test_Basic:
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@released(java="?", php="0.85.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@released(java="?", php="0.85.0", python=PYTHON_RELEASE_GA_1_1)
 @coverage.basic
 class Test_Propagate_Legacy:
     """Propagation tests for Identify SDK"""
@@ -88,7 +88,7 @@ class Test_Propagate_Legacy:
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@released(java="?", php="0.85.0", python="1.9.0", ruby="?")
+@released(java="?", php="0.85.0", python="1.9.0")
 @coverage.basic
 class Test_Propagate:
     """Propagation tests for Identify SDK"""
