@@ -2,7 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, missing_feature, released, rfc, scenarios, weblog
+from utils import (context, coverage, interfaces, missing_feature, released,
+                   rfc, scenarios, weblog)
 
 
 def get_schema(request, address):

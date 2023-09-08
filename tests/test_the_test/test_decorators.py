@@ -119,10 +119,12 @@ class Test_Metadata:
     def test_released(self):
         @released(java="0.1")
         @released(php="99.99")
+        @released(agent="1.2")
         class Test:
             pass
 
         assert Test.__released__["java"] == "0.1"
+        assert Test.__released__["agent"] == "1.2"
         assert "php" not in Test.__released__
 
     def test_double_declaration(self):
@@ -151,6 +153,13 @@ class Test_Metadata:
             pass
 
         assert Test_DictBasic.__released__["java"] == "2.1"
+
+    def test_library_does_not_exists(self):
+        with pytest.raises(ValueError):
+
+            @missing_feature(library="not a lib")
+            def test_method():
+                ...
 
 
 class Test_Skips:
@@ -187,11 +196,25 @@ class Test_Skips:
         assert is_skipped(Test_NotReleased, "missing feature: release not yet planned")
         assert Test_NotReleased.executed, "missing feature execute the test"
 
+    def test_agent_released(self):
+        @released(agent="0.78.0")
+        class Test_Skipped:
+            pass
+
+        @released(agent="0.76.0")
+        class Test_Included:
+            pass
+
+        assert is_skipped(
+            Test_Skipped, "missing feature for agent: release version is 0.78.0, tested version is 0.77.0"
+        )
+        assert is_not_skipped(Test_Included)
+
 
 def test_released_only_on_class():
     with pytest.raises(TypeError):
 
-        @released()
+        @released(python="1.0")
         def test_xx():
             pass
 

@@ -254,12 +254,6 @@ jobs:
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
 
-    # temporary fix: the released php appsec extension only work with dev tracer
-    # it should be fixed soon. Waiting for that, always load dev tracer
-    - name: Load PHP dev tracer
-      if: ${{ matrix.variant.library == 'php' && matrix.version == 'prod'}}
-      run: ./utils/scripts/load-binary.sh php
-
     - name: Load library PHP appsec binary
       if: ${{ matrix.variant.library == 'php' }}
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}

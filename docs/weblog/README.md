@@ -129,7 +129,7 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
 
 ## \[GET, POST, OPTIONS\] /tag_value/%s/%d
 
-This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path. 
+This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path.
 
 This endpoint must accept all query parameters and all content types.
 
@@ -139,13 +139,22 @@ The second path parameter must be used as a response status code.
 
 All query parameters (key, value) must be used as (key, value) in the response headers.
 
+### Reponse
+
 The following text should be written to the body of the response:
 
 ```
 Value tagged
 ```
 
-Example :
+Exception (introduced for API Security): if the first string parameter starts with `payload_in_response_body` and the method is `POST`. Then the response should contain a json (content_type='application/json') with the format
+```
+{"payload": payload}
+```
+where payload is the parsed body of the request
+
+### Example
+
 ```
 /tag_value/tainted_value/418?Content-Language=fr&custom_field=myvalue
 ```
@@ -254,13 +263,13 @@ Expected query parameters:
 
 ## GET /load_dependency
 
-This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that 
+This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that
 the `dependencies-loaded` event is appropriately triggered.
 
 ## GET /e2e_single_span
 
 This endpoint will create two spans, a parent span (which is a root-span), and a child span.
-The spans created are not sub-spans of the main root span automatically created by system-tests, but 
+The spans created are not sub-spans of the main root span automatically created by system-tests, but
 they will have the same `user-agent` containing the request ID in order to allow assertions on them.
 
 The following query parameters are required:
@@ -275,7 +284,7 @@ This endpoint is used for the Single Spans tests (`test_single_span.py`).
 ## GET /e2e_otel_span
 
 This endpoint will create two spans, a parent span (which is a root-span), and a child span.
-The spans created are not sub-spans of the main root span automatically created by system-tests, but 
+The spans created are not sub-spans of the main root span automatically created by system-tests, but
 they will have the same `user-agent` containing the request ID in order to allow assertions on them.
 
 The following query parameters are required:
@@ -304,7 +313,7 @@ Additionally both methods support the following query parameters to use the sdk 
 These endpoints are used for the Live Debugger tests in `test_debugger.py`. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
 
 ### GET /debugger/log
-This endpoint will be used to validate the log probe. 
+This endpoint will be used to validate the log probe.
 
 ### GET /debugger/metric
 This endpoint will be used to validate the metric probe.
@@ -318,3 +327,8 @@ This endpoint will be used to validate the span decoration probe.
 The following query parameters are required for each endpoint:
 - `arg`: This is a parameter that can take any string as an argument.
 - `intArg`: This is a parameter that can take any integer as an argument.
+
+### GET /createextraservice
+should rename the trace service, creating a "fake" service
+
+The parameter `serviceName` is required and should be a string with the name for the fake service

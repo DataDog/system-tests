@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(php_appsec="?")
 @released(
     java={
         "jersey-grizzly2": "1.15.0",
@@ -18,7 +18,6 @@ from .._test_iast_fixtures import SourceFixture
         "*": "1.5.0",
     }
 )
-@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "1.18.0", "uds-flask": "?"})
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestParameterName:
     """Verify that request parameters are tainted"""

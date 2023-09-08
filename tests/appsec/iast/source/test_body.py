@@ -2,13 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released, missing_feature, bug
+from utils import coverage, released, missing_feature, bug
 from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
-@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?"})
+@released(php_appsec="?")
 @released(
     java={
         "jersey-grizzly2": "?",

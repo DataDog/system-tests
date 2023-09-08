@@ -42,8 +42,12 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     if weblog_variant is not None and weblog_variant != context.weblog_variant:
         return False
 
-    if library is not None and context.library != library:
-        return False
+    if library is not None:
+        if library not in ("cpp", "dotnet", "golang", "java", "nodejs", "python", "php", "ruby", "python_http"):
+            raise ValueError(f"Unknown library: {library}")
+
+        if context.library != library:
+            return False
 
     return True
 
@@ -116,7 +120,16 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
 
 
 def released(
-    cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=None, python=None, ruby=None, php_appsec=None
+    cpp=None,
+    dotnet=None,
+    golang=None,
+    java=None,
+    nodejs=None,
+    php=None,
+    python=None,
+    ruby=None,
+    php_appsec=None,
+    agent=None,
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
 
@@ -124,9 +137,16 @@ def released(
         if not inspect.isclass(test_class):
             raise TypeError("@released must be used only on classes")
 
-        def compute_requirement(tested_library, component_name, released_version, tested_version):
-            if context.library != tested_library or released_version is None:
+        def compute_requirement(only_for_library, component_name, released_version, tested_version):
+            if released_version is None:
+                # nothing declared
                 return None
+
+            if only_for_library != "*":
+                # this declaration is applied only if the tested library is <only_for_library>
+                if context.library != only_for_library:
+                    # the tested library is not concerned by this declaration
+                    return None
 
             if not hasattr(test_class, "__released__"):
                 setattr(test_class, "__released__", {})
@@ -170,6 +190,7 @@ def released(
             compute_requirement("python", "python", python, context.library.version),
             compute_requirement("python_http", "python_http", python, context.library.version),
             compute_requirement("ruby", "ruby", ruby, context.library.version),
+            compute_requirement("*", "agent", agent, context.agent_version),
         ]
 
         skip_reasons = [reason for reason in skip_reasons if reason is not None]  # remove None
