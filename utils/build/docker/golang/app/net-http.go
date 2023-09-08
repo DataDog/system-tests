@@ -63,7 +63,8 @@ func main() {
 		w.Write([]byte("Hello, user!"))
 	})
 
-	mux.HandleFunc("/sample_rate_route/:i", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/sample_rate_route/", func(w http.ResponseWriter, r *http.Request) {
+		// net/http mux doesn't support advanced patterns, but the given prefix will match any /sample_rate_route/{i}
 		w.Write([]byte("OK"))
 	})
 

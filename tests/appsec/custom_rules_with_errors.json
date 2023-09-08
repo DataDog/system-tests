@@ -7,7 +7,38 @@
     {
       "id": "missing-tags",
       "name": "Unicode Full/Half Width Abuse Attack Attempt",
-      "conditions": [],
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              },
+              {
+                "address": "server.request.headers.no_cookies"
+              },
+              {
+                "address": "server.request.query"
+              },
+              {
+                "address": "server.request.body"
+              },
+              {
+                "address": "server.request.path_params"
+              },
+              {
+                "address": "grpc.server.request.message"
+              }
+            ],
+            "regex": "[oOcC]:\\d+:\\\".+?\\\":\\d+:{[\\W\\w]*}",
+            "options": {
+              "case_sensitive": true,
+              "min_length": 12
+            }
+          },
+          "operator": "match_regex"
+        }
+      ],
       "transformers": []
     },
     {
@@ -16,6 +47,36 @@
         "type": "http_protocol_violation"
       },
       "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              },
+              {
+                "address": "server.request.headers.no_cookies"
+              },
+              {
+                "address": "server.request.query"
+              },
+              {
+                "address": "server.request.body"
+              },
+              {
+                "address": "server.request.path_params"
+              },
+              {
+                "address": "grpc.server.request.message"
+              }
+            ],
+            "regex": "[oOcC]:\\d+:\\\".+?\\\":\\d+:{[\\W\\w]*}",
+            "options": {
+              "case_sensitive": true,
+              "min_length": 12
+            }
+          },
+          "operator": "match_regex"
+        }
       ],
       "transformers": []
     },

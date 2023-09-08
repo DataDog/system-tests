@@ -6,11 +6,13 @@ import json
 import pytest
 from pytest_jsonreport.plugin import JSONReport
 
+from manifests.parser.core import load as load_manifest
 from utils import context
 from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
+from utils._decorators import released, _get_skipped_item, _get_expected_failure_item
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -58,10 +60,13 @@ def pytest_configure(config):
 # Called at the very begening
 def pytest_sessionstart(session):
 
+    # get the terminal to allow logging directly in stdout
+    setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
+
     if session.config.option.collectonly:
         return
 
-    context.scenario.session_start(session)
+    context.scenario.session_start()
 
 
 # called when each test item is collected
@@ -127,8 +132,52 @@ def _get_skip_reason_from_marker(marker):
     return None
 
 
+def pytest_pycollect_makemodule(module_path, parent):
+
+    manifest = load_manifest(context.scenario.library.library)
+
+    relative_path = str(module_path.relative_to(module_path.cwd()))
+
+    if relative_path in manifest:
+        reason = manifest[relative_path]
+        mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+
+        if reason.startswith("not relevant") or reason.startswith("flaky"):
+            mod.add_marker(pytest.mark.skip(reason=reason))
+            logger.debug(f"Module {relative_path} is skipped by manifest file because {reason}")
+        else:
+            mod.add_marker(pytest.mark.xfail(reason=reason))
+            logger.debug(f"Module {relative_path} is xfailed by manifest file because {reason}")
+
+        return mod
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_pycollect_makeitem(collector, name, obj):
+
+    if collector.istestclass(obj, name):
+
+        manifest = load_manifest(context.scenario.library.library)
+        nodeid = f"{collector.nodeid}::{name}"
+
+        if nodeid in manifest:
+            declaration = manifest[nodeid]
+            logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+
+            if isinstance(declaration, dict) or declaration.startswith("v"):
+                released(**{context.scenario.library.library: declaration})(obj)
+            elif declaration == "?" or declaration.startswith("missing_feature"):
+                released(**{context.scenario.library.library: declaration})(obj)
+            elif declaration.startswith("not relevant") or declaration.startswith("flaky"):
+                _get_skipped_item(obj, declaration)
+            else:
+                _get_expected_failure_item(obj, declaration)
+
+
 def pytest_collection_modifyitems(session, config, items):
     """unselect items that are not included in the current scenario"""
+
+    logger.debug("pytest_collection_modifyitems")
 
     def get_declared_scenario(item):
         for marker in item.own_markers:
@@ -181,16 +230,69 @@ def _item_is_skipped(item):
         if marker.name in ("skip",):
             return True
 
+    # for test methods in classes, item.parent.parent is the module
+    if item.parent.parent:
+        for marker in item.parent.parent.own_markers:
+            if marker.name in ("skip",):
+                return True
+
     return False
+
+
+def _export_manifest():
+    # temp code, for manifest migrations
+
+    import yaml
+    from utils._decorators import _released_declarations
+
+    result = {}
+
+    def convert_value(value):
+        if isinstance(value, dict):
+            return {k: convert_value(v) for k, v in value.items()}
+
+        if value == "?":
+            return "missing_feature"
+
+        if value[0].isnumeric():
+            return f"v{value}"
+
+        return value
+
+    def feed(parent: dict, path: list, value):
+
+        key = path.pop(0)
+
+        if len(path) == 0:
+            parent[key] = convert_value(value)
+        else:
+            if key not in parent:
+                parent[key] = {}
+
+            feed(parent[key], path, value)
+
+    def sort_key(name):
+        return name if name.endswith("/") else f"zzz_{name}"
+
+    def recursive_sort(obj: dict):
+        if not isinstance(obj, dict):
+            return obj
+
+        return {k: recursive_sort(obj[k]) for k in sorted(obj, key=sort_key)}
+
+    for path, value in _released_declarations.items():
+        feed(result, path.replace("/", "/#").replace("::", "#").split("#"), value)
+
+    with open(f"{context.scenario.host_log_folder}/manifest.yaml", "w", encoding="utf-8") as f:
+        yaml.dump(recursive_sort(result), f, sort_keys=False)
 
 
 def pytest_collection_finish(session):
     from utils import weblog
 
     if session.config.option.collectonly:
+        _export_manifest()
         return
-
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     last_file = ""
     for item in session.items:
@@ -211,9 +313,9 @@ def pytest_collection_finish(session):
 
         if last_file != item.location[0]:
             if len(last_file) == 0:
-                terminal.write_sep("-", "tests setup", bold=True)
+                logger.terminal.write_sep("-", "tests setup", bold=True)
 
-            terminal.write(f"\n{item.location[0]} ")
+            logger.terminal.write(f"\n{item.location[0]} ")
             last_file = item.location[0]
 
         setup_method = getattr(item.instance, setup_method_name)
@@ -224,15 +326,15 @@ def pytest_collection_finish(session):
             weblog.current_nodeid = None
         except Exception:
             logger.exception("Unexpected failure during setup method call")
-            terminal.write("x", bold=True, red=True)
+            logger.terminal.write("x", bold=True, red=True)
             context.scenario.close_targets()
             raise
         else:
-            terminal.write(".", bold=True, green=True)
+            logger.terminal.write(".", bold=True, green=True)
         finally:
             weblog.current_nodeid = None
 
-    terminal.write("\n\n")
+    logger.terminal.write("\n\n")
 
     context.scenario.post_setup()
 
@@ -251,6 +353,7 @@ def pytest_runtest_call(item):
 
 @pytest.hookimpl(optionalhook=True)
 def pytest_json_runtest_metadata(item, call):
+
     if call.when != "setup":
         return {}
 

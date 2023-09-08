@@ -11,6 +11,8 @@ RUN echo '\
 log_level: DEBUG\n\
 apm_config:\n\
   apm_non_local_traffic: true\n\
+remote_configuration:\n\
+  enabled: false\n\
 otlp_config:\n\
   debug:\n\
     verbosity: detailed\n\

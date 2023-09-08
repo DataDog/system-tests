@@ -1,4 +1,4 @@
-from utils import interfaces, released, rfc, weblog, scenarios, context, bug, missing_feature
+from utils import interfaces, released, rfc, weblog, scenarios, context, bug, missing_feature, flaky
 from utils.tools import logger
 import pytest
 
@@ -28,32 +28,37 @@ def _setup(self):
     Test_TelemetryMetrics.__common_setup_done = True
 
 
+class Test_TelemetryResponses:
+    """ Test response from backend/agent """
+
+    setup_all_telemetry_requests_are_successful = _setup
+
+    @flaky(True, reason="Backend is far away from being stable enough")
+    def test_all_telemetry_requests_are_successful(self):
+        """Tests that all telemetry requests succeed."""
+        for data in interfaces.library.get_telemetry_data():
+            assert data["response"]["status_code"] == 202
+
+
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
-@released(python="1.14.0", cpp="?", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
+@released(python="1.14.0", java="1.12.0", php="?")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
-
-    ## Comment this test for now : backend is very flaky, and this feature is actually not a direct part of ASM
-    # setup_all_telemetry_requests_are_successful = _setup
-
-    # def test_all_telemetry_requests_are_successful(self):
-    #     """Tests that all telemetry requests succeed."""
-    #     for data in interfaces.library.get_telemetry_data():
-    #         assert data["response"]["status_code"] == 202
 
     setup_headers_are_correct = _setup
 
     @bug(context.library < "java@1.13.0", reason="Missing two headers")
     def test_headers_are_correct(self):
         """Tests that all telemetry requests have correct headers."""
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             request_type = data["request"]["content"].get("request_type")
             _validate_headers(data["request"]["headers"], request_type)
 
     setup_metric_waf_init = _setup
 
+    @flaky(context.weblog_variant == "django-poc", reason="APPSEC-10509")
     def test_metric_waf_init(self):
         """Test waf.init metric."""
         expected_metric_name = "waf.init"
@@ -61,7 +66,12 @@ class Test_TelemetryMetrics:
             "waf_version",
             "event_rules_version",
         }
-        valid_tag_prefixes = mandatory_tag_prefixes
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "version",
+            "lib_language",
+        }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
         if context.library == "python" and context.weblog_variant != "uwsgi-poc":
@@ -94,7 +104,12 @@ class Test_TelemetryMetrics:
             "waf_version",
             "event_rules_version",
         }
-        valid_tag_prefixes = mandatory_tag_prefixes
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "version",
+            "lib_language",
+        }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         assert len(series) == 1
         s = series[0]
@@ -125,6 +140,8 @@ class Test_TelemetryMetrics:
             "request_blocked",
             "request_excluded",
             "waf_timeout",
+            "version",
+            "lib_language",
         }
         mandatory_tag_prefixes = {
             "waf_version",

@@ -1,6 +1,6 @@
 module weblog
 
-go 1.17
+go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.8.1

@@ -4,14 +4,11 @@
 
 import pytest
 from utils import context, coverage, released, missing_feature
-from ..iast_fixtures import SinkFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(php_appsec="?", python="?")
 @released(
     java={
         "resteasy-netty3": "1.11.0",

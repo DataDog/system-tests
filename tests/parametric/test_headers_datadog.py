@@ -4,7 +4,7 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, bug, context, scenarios
+from utils import bug, context, scenarios
 
 
 @scenarios.parametric
@@ -34,7 +34,6 @@ class Test_Headers_Datadog:
         assert span["meta"].get("_dd.p.dm") == "-4"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
-    @bug(context.library == "cpp", reason="trace-id 0 not treated as error")
     def test_distributed_headers_extract_datadog_invalid_D002(self, test_agent, test_library):
         """Ensure that invalid Datadog distributed tracing headers are not extracted.
         """
@@ -91,7 +90,6 @@ class Test_Headers_Datadog:
         assert headers["x-datadog-origin"] == "synthetics"
         assert "_dd.p.dm=-4" in headers["x-datadog-tags"]
 
-    @bug(context.library == "cpp", reason="trace-id 0 not treated as error")
     def test_distributed_headers_extractandinject_datadog_invalid_D005(self, test_agent, test_library):
         """Ensure that invalid Datadog distributed tracing headers are not extracted
         and the new span context is injected properly.

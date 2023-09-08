@@ -138,24 +138,32 @@ To run lib-injection tests in your CI you need:
 
 You can also run the tests locally, but in this case we will create the docker init image using the corresponding tracer library.
 
-The first step is do loging in docker hub:
-``` docker login --username MY_USERNAME ```
+The first step is to login in docker hub, either with Docker Desktop app or with CLI (you may need to generate an access token [here](https://hub.docker.com/settings/security)):
+``` docker login --username MY_DOCKERHUB_USERNAME ```
 
 The second step is define the environment variables:
 
 ```sh
 export TEST_LIBRARY=java
 export WEBLOG_VARIANT=dd-lib-java-init-test-app
-export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_USERNAME
+export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_DOCKERHUB_USERNAME
 export LIBRARY_INJECTION_CONNECTION=‘network’
 export LIBRARY_INJECTION_ADMISSION_CONTROLLER='use-admission-controller'
 export BUILDX_PLATFORMS=linux/arm64
 ```
 
-The next is to dwnload or compile the tracer libray that you want to test. You have to locate binary libary in the system-tests/binaries folder.
+The next is to download or compile the tracer libray that you want to test. You have to locate binary libary in the system-tests/binaries folder.
 When we have the environment ready, we have to execute this logic:
 
 * Build and push the init image
+
+  To use an existing image, you need to push it to your dockerhub account, for example:
+```sh
+docker pull ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot
+docker tag ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
+docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
+```
+
 * Build and push the app image
 * Create the Kubernetes cluster
 
@@ -166,6 +174,9 @@ When we have the environment ready, we have to execute this logic:
 ```
 
 * Execute the manual tests
+
+  * Make sure that init and app images are public on your dockerhub account.
+  * Comment name, tag and repository in `clusterAgent.image` section of `operator-helm-values*.yaml`
 
 ```sh
 ./lib-injection/run-manual-lib-injection.sh
@@ -183,7 +194,7 @@ TEST_CASE=<TestCaseN>  # define the test case
 After running the tests you can always run the following command to export all the information from the kubernetes cluster to the logs folder:
 
 ```sh
-./lib-injection/execFunction.sh print-debug-info
+./lib-injection/execFunction.sh $LIBRARY_INJECTION_ADMISSION_CONTROLLER print-debug-info
 ```
 
 ## How to create init images in your tracer repository

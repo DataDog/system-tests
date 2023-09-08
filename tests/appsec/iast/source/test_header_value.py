@@ -2,17 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-
-import pytest
 from utils import context, coverage, released, bug, missing_feature
-from ..iast_fixtures import SourceFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(php_appsec="?", python="1.18.0")
 @released(
     java={
         "resteasy-netty3": "1.11.0",
@@ -28,12 +23,16 @@ if context.library == "cpp":
 class TestHeaderValue:
     """Verify that request headers are tainted"""
 
+    source_name = "table"
+    if context.library.library == "python" and context.weblog_variant == "django-poc":
+        source_name = "HTTP_TABLE"
+
     source_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/header/test",
         request_kwargs={"headers": {"table": "user"}},
         source_type="http.request.header",
-        source_name="table",
+        source_name=source_name,
         source_value="user",
     )
 
@@ -47,8 +46,10 @@ class TestHeaderValue:
     def setup_telemetry_metric_instrumented_source(self):
         self.source_fixture.setup_telemetry_metric_instrumented_source()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
-    @missing_feature(not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    @missing_feature(
+        context.library < "java@1.13.0" or not context.weblog_variant.startswith("spring-boot"),
+        reason="Not implemented",
+    )
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
 

@@ -1,17 +1,12 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import pytest
-from utils import context, missing_feature, coverage, released
-from ..iast_fixtures import SinkFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import context, missing_feature, coverage, released, flaky
+from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", java="0.108.0", php_appsec="?", python="1.7.0", ruby="?")
-@released(nodejs={"express4": "3.6.0", "*": "?"})
+@released(java="0.108.0", php_appsec="?", python="1.7.0")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakCipher:
     """Verify weak cipher detection."""
@@ -35,6 +30,7 @@ class TestWeakCipher:
     def setup_secure(self):
         self.sink_fixture.setup_secure()
 
+    @flaky(library="python", reason="PATH_TRAVERSAL on Crypto.Cipher.AES is reported, approx 10%")
     def test_secure(self):
         self.sink_fixture.test_secure()
 

@@ -1,10 +1,11 @@
 [
     null,
     {
-        "language": "dotnet",
+        "language": "",
         "id": "logProbe-installed",
         "where": {
-            "sourceFile": "DebuggerController.cs",
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
             "lines": [
                 "19"
             ]
@@ -13,38 +14,26 @@
     {
         "language": "",
         "id": "metricProbe-installed",
-        "kind": 0,
+        "kind": "COUNT",
         "metricName": "MetricCountInt",
         "value": {
-            "str": "",
             "json": {
                 "ref": "id"
             }
         },
         "where": {
-            "sourceFile": "DebuggerController.cs",
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
             "lines": [
-                "26"
+                "27"
             ]
         },
-        "evaluateAt": 1
+        "evaluateAt": "EXIT"
     },
-    {
-        "language": "",
-        "id": "spanProbe-installed",
-        "where": {
-            "sourceFile": "DebuggerController.cs",
-            "lines": [
-                "34"
-            ]
-        },
-        "evaluateAt": 1
-    },
-    null,
     {
         "language": "",
         "id": "spanDecorationProbe-installed",
-        "targetSpan": 0,
+        "targetSpan": "ACTIVE",
         "decorations": [
             {
                 "when": {
@@ -62,11 +51,12 @@
             }
         ],
         "where": {
-            "sourceFile": "DebuggerController.cs",
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
             "lines": [
-                "42"
+                "43"
             ]
         },
-        "evaluateAt": 1
+        "evaluateAt": "EXIT"
     }
 ]

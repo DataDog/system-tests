@@ -2,11 +2,8 @@ import os.path
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature
+from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky
 from utils._context.core import context
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
@@ -52,12 +49,8 @@ JSON_CONTENT_TYPES = {
 
 
 @released(
-    dotnet="2.27.0",
-    golang="1.50.0-rc.1",
-    nodejs="3.19.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="1.11.0",
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
     java={
         "spring-boot": "0.112.0",
         "uds-spring-boot": "0.112.0",
@@ -84,7 +77,7 @@ class Test_Blocking:
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
-    @bug(context.library == "python", reason="Bug, minify and remove new line characters")
+    @bug(context.library < "python@1.16.1", reason="Bug, minify and remove new line characters")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_no_accept(self):
         """Blocking without an accept header"""
@@ -95,6 +88,7 @@ class Test_Blocking:
     def setup_blocking_appsec_blocked_tag(self):
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
+    @flaky(context.library >= "java@1.19.0", reason="APPSEC-10798")
     def test_blocking_appsec_blocked_tag(self):
         """Tag appsec.blocked is set when blocking"""
         assert self.r_abt.status_code == 403
@@ -232,11 +226,12 @@ class Test_Blocking:
 @rfc(
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
 )
-@released(java="1.11.0", dotnet="?", golang="1.53.0", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@released(java="1.11.0", php_appsec="0.7.0", python="?")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenarios.appsec_blocking
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""
 

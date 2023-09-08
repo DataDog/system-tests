@@ -1,33 +1,12 @@
 name: Parametric
 on:
-  workflow_dispatch: {}
-  schedule:
-  - cron: 00 02 * * 2-6
-  pull_request:
-    branches:
-    - '**'
-  push:
-    branches:
-    - main
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-jobs:
-  lints:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Run lints
-      uses: ./.github/actions/lint_code
-      
+jobs: 
   parametric:
         runs-on: ubuntu-latest
-        needs:
-        - lints
         strategy:
           matrix:
             client:
@@ -46,11 +25,8 @@ jobs:
         steps:
         - name: Checkout
           uses: actions/checkout@v3
-        - uses: actions/setup-python@v4
-          with:
-            python-version: '3.9'
-        - name: Build
-          run: ./build.sh -i runner
+        - name: Install runner
+          uses: ./.github/actions/install_runner
         - name: Run
           run: ./run.sh PARAMETRIC
         - name: Compress logs

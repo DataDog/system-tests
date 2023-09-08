@@ -439,6 +439,29 @@
       "on_match": [
         "block"
       ]
+    },
+    {
+      "id": "monitor-resolvers",
+      "name": "Monitor Resolvers",
+      "tags": {
+        "type": "monitor_resolver",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "graphql.server.all_resolvers"
+              }
+            ],
+            "data": "blocked_resolvers"
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": []
     }
   ],
   "actions": [
@@ -476,6 +499,16 @@
       "data": [
         {
           "value": "blockedUser",
+          "expiration": 0
+        }
+      ]
+    },
+    {
+      "id": "blocked_resolvers",
+      "type": "data_with_expiration",
+      "data": [
+        {
+          "value": "testattack",
           "expiration": 0
         }
       ]

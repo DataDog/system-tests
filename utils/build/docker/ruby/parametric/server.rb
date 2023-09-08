@@ -10,10 +10,18 @@ require 'apm_test_client_services_pb'
 Datadog.configure do |c|
   c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
+  c.tracing.instrument :http # Used for `http_client_request`
+end
+
+if Datadog::Core::Remote.active_remote
+  # TODO: Remove this whole `if` condition if remote configuration is started by default.
+  raise "Remote Configuration worker already started! Remove this check and `Datadog::Core::Remote.active_remote.start` below." if Datadog::Core::Remote.active_remote.started?
+  Datadog::Core::Remote.active_remote.start
 end
 
 # Ensure output is always flushed, to prevent a forced shutdown from losing all logs.
 STDOUT.sync = true
+puts 'Loading server classes...'
 
 class ServerImpl < APMClient::Service
   def start_span(start_span_args, _call)
@@ -22,7 +30,12 @@ class ServerImpl < APMClient::Service
     end
 
     digest = if start_span_args.http_headers.http_headers.size != 0
-               Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(start_span_args.http_headers.http_headers.map { |t| [t.key, t.value] }.to_h)
+               # Emulate how Rack headers concatenates header with duplicate values with a `, `.
+               headers = start_span_args.http_headers.http_headers.group_by(&:key).map do |name, values|
+                 [name, values.map(&:value).join(', ')]
+               end
+
+               Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
              elsif !start_span_args.origin.empty? || start_span_args.parent_id != 0
                # DEV: Parametric tests do not differentiate between a distributed span request from a span parenting request.
                # DEV: We have to consider the parent_id being present present and origin being absent as a span parenting request.
@@ -89,6 +102,26 @@ class ServerImpl < APMClient::Service
     SpanSetErrorReturn.new
   end
 
+  def http_client_request(httprequest_args, _call)
+    url = URI(httprequest_args.url)
+    headers = httprequest_args.headers.http_headers.map{|x|[x.key, x.value] }.to_h
+    method = httprequest_args.to_h[:method]
+
+    request_class = Net::HTTP.const_get(method.capitalize)
+    request = request_class.new(url, headers).tap { |r| r.body = httprequest_args.body }
+
+    response = Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
+      http.request(request)
+    end
+
+    HTTPRequestReturn.new(status_code: response.code)
+  end
+
+  # DEV: Defined in proto but not yet used in any test.
+  def http_server_request(_httprequest_args, _call)
+    raise NotImplementedError
+  end
+
   def inject_headers(inject_headers_args, _call)
     find_span(inject_headers_args.span_id)
 
@@ -110,6 +143,17 @@ class ServerImpl < APMClient::Service
   def flush_trace_stats(flush_trace_stats_args, _call)
     FlushTraceStatsReturn.new
   end
+
+  # TODO: Implement the following OTel methods
+  # :otel_start_span, ::OtelStartSpanArgs, ::OtelStartSpanReturn
+  # :otel_end_span, ::OtelEndSpanArgs, ::OtelEndSpanReturn
+  # :otel_is_recording, ::OtelIsRecordingArgs, ::OtelIsRecordingReturn
+  # :otel_span_context, ::OtelSpanContextArgs, ::OtelSpanContextReturn
+  # :otel_set_status, ::OtelSetStatusArgs, ::OtelSetStatusReturn
+  # :otel_set_name, ::OtelSetNameArgs, ::OtelSetNameReturn
+  # :otel_set_attributes, ::OtelSetAttributesArgs, ::OtelSetAttributesReturn
+  # :otel_flush_spans, ::OtelFlushSpansArgs, ::OtelFlushSpansReturn
+  # :otel_flush_trace_stats, ::OtelFlushTraceStatsArgs, ::OtelFlushTraceStatsReturn
 
   def stop_tracer(stop_tracer_args, _call)
     Datadog.shutdown!
@@ -147,7 +191,12 @@ class ServerImpl < APMClient::Service
     define_method(m) do |*args|
       @request_queue.push ["wrapped_#{m}", args]
       res = @return_queue.pop
-      raise res if res.is_a?(Exception)
+
+      if res.is_a?(Exception)
+        # Include the backtrace in the error returned to the test suite.
+        res.message << ": #{res.backtrace}"
+        raise res
+      end
 
       res
     end
