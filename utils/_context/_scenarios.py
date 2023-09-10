@@ -1129,7 +1129,7 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         library_interface_timeout=100,
-        doc="",
+        doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
     )
 
     debugger_line_probes_status = EndToEndScenario(
@@ -1142,7 +1142,7 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         library_interface_timeout=100,
-        doc="",
+        doc="Test scenario for checking if line probe statuses can be successfully 'RECIEVED' and 'INSTALLED'",
     )
 
     debugger_method_probes_snapshot = EndToEndScenario(
@@ -1150,7 +1150,7 @@ class scenarios:
         proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=10,
-        doc="",
+        doc="Test scenario for checking if debugger successfully generates snapshots for specific probes",
     )
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
