@@ -156,9 +156,6 @@ class Test_Debugger_Method_Probe_Snaphots:
                             return True
             return False
 
-        print(self.remote_config_is_sent)
-        print(self.probe_installed)
-
         interfaces.library.wait_for(wait_for_remote_config, timeout=30)
         interfaces.agent.wait_for(wait_for_probe, timeout=30)
         self.logProbeResponse = weblog.get("/debugger/log")
