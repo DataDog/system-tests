@@ -2,16 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 from utils import context, coverage, released, missing_feature
 from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
 @released(php_appsec="?")
-@released(
-    python={"django-poc": "1.12.0", "flask-poc": "1.12.0", "uds-flask": "?", "uwsgi-poc": "?", "pylons": "?",}
-)
 @released(
     java={
         "resteasy-netty3": "1.11.0",

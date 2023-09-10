@@ -73,7 +73,7 @@ class Test_MissingRules:
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@released(java="0.93.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
+@released(java="0.93.0", php_appsec="0.3.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 @scenarios.appsec_custom_rules
@@ -97,7 +97,7 @@ class Test_ConfRuleSet:
 
 
 @released(
-    java="0.97.0", php_appsec="0.3.0", python="1.1.0rc2.dev",
+    java="0.97.0", php_appsec="0.3.0",
 )
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic

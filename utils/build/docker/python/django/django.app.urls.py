@@ -1,9 +1,9 @@
 # pages/urls.py
+import json
+
 import requests
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from iast import (
@@ -14,6 +14,9 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -40,6 +43,8 @@ def waf(request, *args, **kwargs):
         appsec_trace_utils.track_custom_event(
             tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
         )
+        if kwargs["value"].startswith("payload_in_response_body") and request.method == "POST":
+            return HttpResponse(json.dumps({"payload": dict(request.POST)}), content_type="application/json")
         return HttpResponse("Value tagged", status=int(kwargs["code"]), headers=request.GET.dict())
     return HttpResponse("Hello, World!")
 

@@ -162,6 +162,10 @@ tests/:
       Test_Debugger_Line_Probe_Statuses: v2.33.0
       Test_Debugger_Method_Probe_Statuses: v2.33.0
   integrations/:
+    test_db_integrations_sql.py: 
+      Test_Mssql_db_integration: missing_feature
+      Test_Mysql_db_integration: missing_feature
+      Test_Postgres_db_integration: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
@@ -173,6 +177,7 @@ tests/:
       TestDynamicConfigV1: v2.33.0
   remote_config/:
     test_remote_configuration.py:
+      Test_RemoteConfigurationExtraServices: "v2.36.0"
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.15.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: v2.15.0
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0

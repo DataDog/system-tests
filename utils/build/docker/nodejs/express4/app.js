@@ -204,6 +204,34 @@ app.get('/read_file', (req, res) => {
   });
 });
 
+var integration_db_initialized=false
+
+app.get('/db', (req, res) => {
+  console.log("Service: " + req.query.service)
+  console.log("Operation: " + req.query.operation)
+
+  const pgsql = require('./integrations/db/postgres');
+  const mysql = require('./integrations/db/mysql');
+  const mssql = require('./integrations/db/mssql');
+
+  if (!integration_db_initialized){
+    console.log('Initializing DBs');
+    integration_db_initialized=true
+    pgsql.init();
+    mysql.init();
+    mssql.init();
+  }
+
+  if (req.query.service == "postgresql") {
+    pgsql.doOperation(req.query.operation)
+  }else  if (req.query.service == "mysql") {
+    mysql.doOperation(req.query.operation)
+  }else  if (req.query.service == "mssql") {
+    mssql.doOperation(req.query.operation)
+  }
+
+});
+
 require("./iast")(app, tracer);
 require('./auth')(app, passport, tracer)
 require('./graphql')(app)

@@ -157,7 +157,13 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
     if collector.istestclass(obj, name):
 
-        manifest = load_manifest(context.scenario.library.library)
+        if context.scenario.library.library == "python_http":
+            library = "python"
+        else:
+            library = context.scenario.library.library
+
+        manifest = load_manifest(library)
+
         nodeid = f"{collector.nodeid}::{name}"
 
         if nodeid in manifest:
@@ -165,9 +171,9 @@ def pytest_pycollect_makeitem(collector, name, obj):
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
             if isinstance(declaration, dict) or declaration.startswith("v"):
-                released(**{context.scenario.library.library: declaration})(obj)
+                released(**{library: declaration})(obj)
             elif declaration == "?" or declaration.startswith("missing_feature"):
-                released(**{context.scenario.library.library: declaration})(obj)
+                released(**{library: declaration})(obj)
             elif declaration.startswith("not relevant") or declaration.startswith("flaky"):
                 _get_skipped_item(obj, declaration)
             else:

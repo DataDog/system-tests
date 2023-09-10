@@ -239,9 +239,9 @@ jobs:
     - name: Build python's weblog base images
       if: matrix.variant.library == 'python' && contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
       run: |
-        docker build --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
-        docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v0 .
-        docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
     - name: Build proxy image
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
       run: ./build.sh -i proxy
@@ -253,12 +253,6 @@ jobs:
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-
-    # temporary fix: the released php appsec extension only work with dev tracer
-    # it should be fixed soon. Waiting for that, always load dev tracer
-    - name: Load PHP dev tracer
-      if: ${{ matrix.variant.library == 'php' && matrix.version == 'prod'}}
-      run: ./utils/scripts/load-binary.sh php
 
     - name: Load library PHP appsec binary
       if: ${{ matrix.variant.library == 'php' }}

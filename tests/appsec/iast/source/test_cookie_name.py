@@ -7,7 +7,7 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(php_appsec="?", python="1.18.0")
+@released(php_appsec="?")
 @released(
     java={
         "resteasy-netty3": "?",
