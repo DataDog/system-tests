@@ -135,7 +135,7 @@ class Test_Debugger_Line_Probe_Statuses:
 class Test_Debugger_Method_Probe_Snaphots:
     remote_config_is_sent = False
     probe_installed = False
-    logProbeResponse = None
+    log_probe_response = None
 
     def setup_method_probe_snaphots(self):
         def wait_for_remote_config(data):
@@ -158,12 +158,12 @@ class Test_Debugger_Method_Probe_Snaphots:
 
         interfaces.library.wait_for(wait_for_remote_config, timeout=30)
         interfaces.agent.wait_for(wait_for_probe, timeout=30)
-        self.logProbeResponse = weblog.get("/debugger/log")
+        self.log_probe_response = weblog.get("/debugger/log")
 
     def test_method_probe_snaphots(self):
         assert self.remote_config_is_sent == True
         assert self.probe_installed == True
-        assert self.logProbeResponse.status_code == 200
+        assert self.log_probe_response.status_code == 200
 
         expected_data = ["logProbe-installed"]
         validate_data(expected_data, expected_data)
