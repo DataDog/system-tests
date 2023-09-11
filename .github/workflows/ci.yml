@@ -447,6 +447,11 @@ jobs:
       run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_METHOD_PROBES_SNAPSHOT scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
+      run: ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_LINE_PROBES_STATUS scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
       run: ./run.sh DEBUGGER_LINE_PROBES_STATUS
@@ -485,6 +490,7 @@ jobs:
         # ./run.sh SAMPLING --replay  # currently not working on replay mode
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
         ./run.sh DEBUGGER_METHOD_PROBES_STATUS --replay
+        ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay
         ./run.sh DEBUGGER_LINE_PROBES_STATUS --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
