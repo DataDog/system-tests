@@ -33,9 +33,9 @@ def _load_file(file):
 
 
 @lru_cache
-def load(components):
+def load():
     """
-    given a components list, returns a dict of nodeid, value are another dict where the key is the component
+    Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
     
     Data example:
@@ -51,7 +51,7 @@ def load(components):
 
     result = defaultdict(dict)
 
-    for component in components:
+    for component in ("agent", "cpp", "dotnet", "golang", "java", "nodejs", "php_appsec", "php", "python", "ruby"):
         data = _load_file(f"manifests/{component}.yml")
 
         for nodeid, value in data.items():
