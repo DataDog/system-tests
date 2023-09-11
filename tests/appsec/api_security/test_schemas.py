@@ -38,7 +38,7 @@ def equal_value(t1, t2):
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Headers:
-    """Test API Security - Request Header Schema"""
+    """Test API Security - Request Headers Schema"""
 
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS001/200")
@@ -50,6 +50,28 @@ class Test_Schema_Request_Headers:
         assert schema
         assert isinstance(schema, list)
         assert equal_without_meta(schema, [{"accept-encoding": [8], "host": [8], "user-agent": [8]}])
+
+
+@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@released(java="?", php_appsec="?")
+@coverage.basic
+@scenarios.appsec_api_security
+class Test_Schema_Request_Cookies:
+    """Test API Security - Request Cookies Schema"""
+
+    def setup_request_method(self):
+        self.request = weblog.get(
+            "/tag_value/api_match_AS001/200", cookies={"secret": "any value", "cache": "any other value"}
+        )
+
+    @missing_feature(context.library < "python@1.19.0.dev")
+    def test_request_method(self):
+        """can provide request header schema"""
+        schema = get_schema(self.request, "req.cookies")
+        assert self.request.status_code == 200
+        assert schema
+        assert isinstance(schema, list)
+        assert equal_without_meta(schema, [{"secret": [8], "cache": [8]}])
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -118,8 +140,8 @@ class Test_Schema_Request_Body:
 @released(java="?", php_appsec="?")
 @coverage.basic
 @scenarios.appsec_api_security
-class Test_Schema_Reponse_Headers:
-    """Test API Security - Reponse Header Schema"""
+class Test_Schema_Response_Headers:
+    """Test API Security - Response Header Schema"""
 
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
@@ -137,9 +159,10 @@ class Test_Schema_Reponse_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(java="?", php_appsec="?")
+@coverage.basic
 @scenarios.appsec_api_security
-class Test_Schema_Reponse_Body:
-    """Test API Security - Reponse Body Schema with urlencoded body"""
+class Test_Schema_Response_Body:
+    """Test API Security - Response Body Schema with urlencoded body"""
 
     def setup_request_method(self):
         self.request = weblog.post(
