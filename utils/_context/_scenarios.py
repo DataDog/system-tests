@@ -543,7 +543,9 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name, doc, include_agent=True, include_collector=True, include_intake=True) -> None:
+    def __init__(
+        self, name, doc, include_agent=True, include_collector=True, include_intake=True, backend_interface_timeout=20
+    ) -> None:
         super().__init__(name, doc=doc, use_proxy=True)
         if include_agent:
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
@@ -556,6 +558,7 @@ class OpenTelemetryScenario(_DockerScenario):
         self.include_agent = include_agent
         self.include_collector = include_collector
         self.include_intake = include_intake
+        self.backend_interface_timeout = backend_interface_timeout
 
     def configure(self, option):
         super().configure(option)
@@ -628,6 +631,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
         if self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
+            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()
 
@@ -1106,7 +1110,7 @@ class scenarios:
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, include_agent=False, doc="")
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
 
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2"), doc=""
