@@ -1,9 +1,7 @@
 from utils import interfaces, released, scenarios, weblog
 
 
-@released(
-    java="?", php_appsec="0.8.1",
-)
+@released(java="?",)
 @scenarios.appsec_custom_rules
 class Test_CustomRules:
     """Includes a version of the WAF supporting custom rules"""

@@ -23,7 +23,6 @@ def _expected_location():
 
 
 @coverage.basic
-@released(php_appsec="?")
 @released(
     java={"akka-http": "?", "ratpack": "?", "spring-boot-jetty": "1.17.0", "vertx4": "1.17.0", "*": "1.16.0",}
 )

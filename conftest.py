@@ -135,7 +135,7 @@ def _get_skip_reason_from_marker(marker):
 def pytest_pycollect_makemodule(module_path, parent):
 
     # As now, declaration only works for tracers
-    manifest = load_manifests((context.scenario.library.library, ))[context.scenario.library.library]
+    manifest = load_manifests((context.scenario.library.library,))[context.scenario.library.library]
 
     relative_path = str(module_path.relative_to(module_path.cwd()))
 
@@ -166,7 +166,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
         components = ("agent", library)
 
         if library == "php":
-            components += ("php_appsec", )
+            components += ("php_appsec",)
 
         manifest = load_manifests(components)
 

@@ -142,9 +142,6 @@ tests/:
       Test_RetainTraces: v0.1.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.7.2
-  integrations/:
-    test_db_integrations_sql.py:
-      _BaseIntegrationsSqlTestClass: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationUpdateSequenceASMDD: v0.7.0

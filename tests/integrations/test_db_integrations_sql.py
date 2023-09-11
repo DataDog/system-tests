@@ -4,14 +4,8 @@
 
 from utils import weblog, interfaces, context, bug, missing_feature, released, scenarios
 from utils.tools import logger
-import pytest
-import requests
-from utils import context
-import json
-from utils._context.library_version import LibraryVersion
 
 
-@released(php_appsec="?")
 @released(
     java={"spring-boot": "1.12.0", "*": "?",}
 )
@@ -226,6 +220,7 @@ class _BaseIntegrationsSqlTestClass:
                         return span_child
 
 
+@released(php="?")
 class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "postgresql"
 
@@ -235,6 +230,7 @@ class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_type()
 
 
+@released(php="?")
 class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mysql"
 
@@ -248,6 +244,7 @@ class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_user()
 
 
+@released(php="?")
 class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mssql"
 

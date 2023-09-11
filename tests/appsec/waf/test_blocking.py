@@ -49,7 +49,6 @@ JSON_CONTENT_TYPES = {
 
 
 @released(
-    php_appsec="0.7.0",
     java={
         "spring-boot": "0.112.0",
         "uds-spring-boot": "0.112.0",
@@ -225,7 +224,7 @@ class Test_Blocking:
 @rfc(
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
 )
-@released(java="1.11.0", php_appsec="0.7.0")
+@released(java="1.11.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic

@@ -14,7 +14,6 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
         "*": "?",
     },
     php="0.86.3",
-    php_appsec="0.7.2",
 )
 @bug(library="java", reason="RC payload limit")
 @missing_feature(

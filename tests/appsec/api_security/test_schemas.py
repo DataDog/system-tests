@@ -34,7 +34,7 @@ def equal_value(t1, t2):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?")
+@released(java="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Headers:
@@ -53,7 +53,7 @@ class Test_Schema_Request_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?")
+@released(java="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Cookies:
@@ -75,7 +75,7 @@ class Test_Schema_Request_Cookies:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?")
+@released(java="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Query_Parameters:
@@ -96,7 +96,7 @@ class Test_Schema_Request_Query_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?")
+@released(java="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Path_Parameters:
@@ -119,7 +119,7 @@ class Test_Schema_Request_Path_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?")
+@released(java="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Body:
@@ -137,7 +137,7 @@ class Test_Schema_Request_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?")
+@released(java="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Response_Headers:
@@ -158,7 +158,7 @@ class Test_Schema_Response_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(java="?", php_appsec="?")
+@released(java="?")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Response_Body:
