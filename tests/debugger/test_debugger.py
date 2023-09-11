@@ -148,6 +148,10 @@ class Test_Debugger_Method_Probe_Snaphots:
         def wait_for_probe(data):
             if data["path"] == "/api/v2/logs":
                 contents = data.get("request", {}).get("content", {})
+
+                if contents is None:
+                    return False
+
                 for content in contents:
                     debuggerData = content["debugger"]
                     if "diagnostics" in debuggerData:
@@ -161,8 +165,8 @@ class Test_Debugger_Method_Probe_Snaphots:
         self.log_probe_response = weblog.get("/debugger/log")
 
     def test_method_probe_snaphots(self):
-        assert self.remote_config_is_sent == True
-        assert self.probe_installed == True
+        assert self.remote_config_is_sent is True
+        assert self.probe_installed is True
         assert self.log_probe_response.status_code == 200
 
         expected_data = ["logProbe-installed"]
