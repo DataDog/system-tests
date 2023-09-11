@@ -141,20 +141,23 @@ def pytest_pycollect_makemodule(module_path, parent):
     else:
         library = context.scenario.library.library
 
-    manifest = load_manifests()[library]
+    manifests = load_manifests()
 
-    relative_path = str(module_path.relative_to(module_path.cwd()))
+    nodeid = str(module_path.relative_to(module_path.cwd()))
 
-    if relative_path in manifest:
-        reason = manifest[relative_path]
+    if nodeid in manifests and library in manifests[nodeid]:
+        declaration = manifests[nodeid][library]
+
+        logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+
         mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-        if reason.startswith("irrelevant") or reason.startswith("flaky"):
-            mod.add_marker(pytest.mark.skip(reason=reason))
-            logger.debug(f"Module {relative_path} is skipped by manifest file because {reason}")
+        if declaration.startswith("irrelevant") or declaration.startswith("flaky"):
+            mod.add_marker(pytest.mark.skip(reason=declaration))
+            logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
         else:
-            mod.add_marker(pytest.mark.xfail(reason=reason))
-            logger.debug(f"Module {relative_path} is xfailed by manifest file because {reason}")
+            mod.add_marker(pytest.mark.xfail(reason=declaration))
+            logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
 
         return mod
 
