@@ -12,7 +12,7 @@ from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-from utils._decorators import released, _get_skipped_item, _get_expected_failure_item
+from utils._decorators import released
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -142,7 +142,7 @@ def pytest_pycollect_makemodule(module_path, parent):
         reason = manifest[relative_path]
         mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-        if reason.startswith("not relevant") or reason.startswith("flaky"):
+        if reason.startswith("irrelevant") or reason.startswith("flaky"):
             mod.add_marker(pytest.mark.skip(reason=reason))
             logger.debug(f"Module {relative_path} is skipped by manifest file because {reason}")
         else:
@@ -170,14 +170,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
             declaration = manifest[nodeid]
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            if isinstance(declaration, dict) or declaration.startswith("v"):
-                released(**{library: declaration})(obj)
-            elif declaration == "?" or declaration.startswith("missing_feature"):
-                released(**{library: declaration})(obj)
-            elif declaration.startswith("not relevant") or declaration.startswith("flaky"):
-                _get_skipped_item(obj, declaration)
-            else:
-                _get_expected_failure_item(obj, declaration)
+            released(**{library: declaration})(obj)
 
 
 def pytest_collection_modifyitems(session, config, items):
