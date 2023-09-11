@@ -36,16 +36,18 @@ def get_debugger_map():
     hash = {"probes": {}, "snapshots": {}}
 
     for request in agent_logs_endpoint_requests:
-        for content in request["request"]["content"]:
-            debugger = content["debugger"]
+        content = request["request"]["content"]
+        if content is not None:
+            for content in content:
+                debugger = content["debugger"]
 
-            if "diagnostics" in debugger:
-                probe_id = debugger["diagnostics"]["probeId"]
-                hash["probes"][probe_id] = debugger["diagnostics"]
+                if "diagnostics" in debugger:
+                    probe_id = debugger["diagnostics"]["probeId"]
+                    hash["probes"][probe_id] = debugger["diagnostics"]
 
-            if "snapshot" in debugger:
-                probe_id = debugger["snapshot"]["probe"]["id"]
-                hash["snapshots"][probe_id] = debugger["snapshot"]
+                if "snapshot" in debugger:
+                    probe_id = debugger["snapshot"]["probe"]["id"]
+                    hash["snapshots"][probe_id] = debugger["snapshot"]
 
     return hash
 
