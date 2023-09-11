@@ -2,12 +2,13 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Reponse_Body: missing_feature
-        Test_Schema_Reponse_Headers: missing_feature
         Test_Schema_Request_Body: missing_feature
+        Test_Schema_Request_Cookies: missing_feature
         Test_Schema_Request_Headers: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
         test_command_injection.py:
@@ -162,6 +163,10 @@ tests/:
       Test_Debugger_Line_Probe_Statuses: v2.33.0
       Test_Debugger_Method_Probe_Statuses: v2.33.0
   integrations/:
+    test_db_integrations_sql.py: 
+      Test_Mssql_db_integration: missing_feature
+      Test_Mysql_db_integration: missing_feature
+      Test_Postgres_db_integration: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0

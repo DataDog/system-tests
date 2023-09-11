@@ -24,6 +24,7 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
+    SqlDbTestedContainer,
 )
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
@@ -252,6 +253,12 @@ class _DockerScenario(_Scenario):
 
         for container in reversed(self._required_containers):
             container.configure(self.replay)
+
+    def get_container_by_dd_integration_name(self, name):
+        for container in self._required_containers:
+            if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
+                return container
+        return None
 
     def _get_warmups(self):
 
@@ -831,7 +838,7 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
@@ -1129,7 +1136,7 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         library_interface_timeout=100,
-        doc="",
+        doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
     )
 
     debugger_line_probes_status = EndToEndScenario(
@@ -1142,7 +1149,15 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         library_interface_timeout=100,
-        doc="",
+        doc="Test scenario for checking if line probe statuses can be successfully 'RECIEVED' and 'INSTALLED'",
+    )
+
+    debugger_method_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_METHOD_PROBES_SNAPSHOT",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=10,
+        doc="Test scenario for checking if debugger successfully generates snapshots for specific probes",
     )
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
