@@ -490,7 +490,7 @@ jobs:
         # ./run.sh SAMPLING --replay  # currently not working on replay mode
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
         ./run.sh DEBUGGER_METHOD_PROBES_STATUS --replay
-        ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay
+        # ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay  # currently not working on replay mode
         ./run.sh DEBUGGER_LINE_PROBES_STATUS --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
