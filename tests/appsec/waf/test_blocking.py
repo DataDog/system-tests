@@ -250,7 +250,7 @@ class Test_CustomBlockingResponse:
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v3"}, allow_redirects=False)
 
     def test_custom_redirect_wrong_status_code(self):
-        """Block with an HTTP redirection but default to 303 status code"""
+        """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
         assert self.r_cr.status_code == 303
         assert self.r_cr.headers.get("location", "") == "/you-have-been-blocked"
 
@@ -258,6 +258,6 @@ class Test_CustomBlockingResponse:
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False)
 
     def test_custom_redirect_missing_location(self):
-        """Block with an default page because location parameter is missing"""
+        """Block with an default page because location parameter is missing from redirect request configuration"""
         assert self.r_cr.status_code == 403
         assert self.r_cr.text in BLOCK_TEMPLATE_JSON_ANY
