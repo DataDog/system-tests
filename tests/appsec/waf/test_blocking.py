@@ -220,11 +220,9 @@ class Test_Blocking:
         assert self.r_html_v2.headers.get("content-type", "") in HTML_CONTENT_TYPES
         assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
 
-
-@rfc(
-    "https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit"
-)
+@rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
 @released(java="1.11.0")
+
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
