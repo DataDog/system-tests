@@ -6,7 +6,7 @@ import json
 import pytest
 from pytest_jsonreport.plugin import JSONReport
 
-from manifests.parser.core import load as load_manifest
+from manifests.parser.core import load as load_manifests
 from utils import context
 from utils._context._scenarios import scenarios
 from utils.tools import logger
@@ -134,7 +134,8 @@ def _get_skip_reason_from_marker(marker):
 
 def pytest_pycollect_makemodule(module_path, parent):
 
-    manifest = load_manifest(context.scenario.library.library)
+    # As now, declaration only works for tracers
+    manifest = load_manifests((context.scenario.library.library, ))[context.scenario.library.library]
 
     relative_path = str(module_path.relative_to(module_path.cwd()))
 
@@ -162,7 +163,12 @@ def pytest_pycollect_makeitem(collector, name, obj):
         else:
             library = context.scenario.library.library
 
-        manifest = load_manifest(library)
+        components = ("agent", library)
+
+        if library == "php":
+            components += ("php_appsec", )
+
+        manifest = load_manifests(components)
 
         nodeid = f"{collector.nodeid}::{name}"
 
@@ -170,7 +176,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
             declaration = manifest[nodeid]
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            released(**{library: declaration})(obj)
+            released(**declaration)(obj)
 
 
 def pytest_collection_modifyitems(session, config, items):
