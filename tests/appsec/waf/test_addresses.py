@@ -299,7 +299,6 @@ class Test_BodyUrlEncoded:
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(php="?")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "*": "0.95.1"})
 @bug(context.weblog_variant == "vertx4", reason="Capability to read body content is incomplete after vert.x 4.0.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -338,7 +337,6 @@ class Test_BodyJson:
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(php="?")
 @released(java={"vertx3": "?", "ratpack": "0.99.0", "*": "0.95.1"})
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 @bug(context.weblog_variant == "vertx4", reason="Capability to read body content is incomplete after vert.x 4.0.0")
@@ -376,13 +374,13 @@ class Test_BodyXml:
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
 
 
-@released(java="?", php="?")
+@released(java="?")
 @coverage.not_implemented
 class Test_Method:
     """Appsec supports server.request.method"""
 
 
-@released(java="?", php="?")
+@released(java="?")
 @coverage.not_implemented
 class Test_ClientIP:
     """Appsec supports server.request.client_ip"""

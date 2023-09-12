@@ -5,7 +5,7 @@
 from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, weblog
 
 
-@released(java="0.102.0", php="0.75.0")
+@released(java="0.102.0")
 @coverage.good
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -32,7 +32,6 @@ class Test_StandardTagsMethod:
 
 
 @released(java="0.107.1")
-@released(php="0.76.0")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl:
@@ -156,7 +155,6 @@ class Test_StandardTagsUrl:
 
 
 @released(java="0.107.1")
-@released(php="0.75.0")
 @coverage.basic
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -171,7 +169,6 @@ class Test_StandardTagsUserAgent:
 
 
 @released(java="0.102.0")
-@released(php="0.75.0")
 @coverage.good
 class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -185,7 +182,6 @@ class Test_StandardTagsStatusCode:
             interfaces.library.add_span_tag_validation(request=r, tags={"http.status_code": code})
 
 
-@released(php="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
 @irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
 @missing_feature(

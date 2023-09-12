@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, missing_feature, released, scenarios
 
 
-@released(java="?", nodejs="?", php="?")
+@released(java="?", nodejs="?")
 @missing_feature(
     context.library in ["python"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
 )

@@ -101,7 +101,7 @@ ENV_SAMPLING_RULE_RATE = 0.55
 
 
 @released(
-    java="1.17.0", nodejs="4.11.0", php="?",  # also in 3.32.0 and 2.45.0
+    java="1.17.0", nodejs="4.11.0",  # also in 3.32.0 and 2.45.0
 )
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric

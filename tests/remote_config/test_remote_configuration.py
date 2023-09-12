@@ -322,7 +322,7 @@ class Test_RemoteConfigurationExtraServices:
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(java="1.4.0", php="?")
+@released(java="1.4.0")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -422,7 +422,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(java="?", php="?")
+@released(java="?")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
