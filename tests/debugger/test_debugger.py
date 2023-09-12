@@ -12,20 +12,24 @@ from utils import (
 )
 
 
-def validate_data(expected_probes, expected_snapshots):
+def validate_data(expected_probes, expected_snapshots, expected_traces):
     check_info_endpoint()
 
-    debugger_map = get_debugger_map()
+    log_map = get_debugger_log_map()
     for expected_probe in expected_probes:
-        check_probe_status(expected_probe, debugger_map["probes"])
+        check_probe_status(expected_probe, log_map["probes"])
 
     for expected_snapshot in expected_snapshots:
-        check_snapshot(expected_snapshot, debugger_map["snapshots"])
+        check_snapshot(expected_snapshot, log_map["snapshots"])
+
+    trace_map = get_debugger_tracer_map()
+    for expected_trace in expected_traces:
+        check_trace(expected_trace, trace_map)
 
 
-def get_debugger_map():
+def get_debugger_log_map():
     agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
-    hash = {"probes": {}, "snapshots": {}}
+    log_hash = {"probes": {}, "snapshots": {}}
 
     for request in agent_logs_endpoint_requests:
         content = request["request"]["content"]
@@ -35,13 +39,32 @@ def get_debugger_map():
 
                 if "diagnostics" in debugger:
                     probe_id = debugger["diagnostics"]["probeId"]
-                    hash["probes"][probe_id] = debugger["diagnostics"]
-
-                if "snapshot" in debugger:
+                    log_hash["probes"][probe_id] = debugger["diagnostics"]
+                elif "snapshot" in debugger:
                     probe_id = debugger["snapshot"]["probe"]["id"]
-                    hash["snapshots"][probe_id] = debugger["snapshot"]
+                    log_hash["snapshots"][probe_id] = debugger["snapshot"]
 
-    return hash
+    return log_hash
+
+
+def get_debugger_tracer_map():
+    agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v0.2/traces"))
+    span_hash = {}
+    for request in agent_logs_endpoint_requests:
+        content = request["request"]["content"]
+        if content is not None:
+            for payload in content["tracerPayloads"]:
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+                        if span["name"] == "dd.dynamic.span":
+                            span_hash[span["meta"]["debugger.probeid"]] = span
+                        else:
+                            for key, value in span["meta"].items():
+                                if key.startswith("_dd.di"):
+                                    span_hash[value] = span["meta"][key.split(".")[2]]
+
+    print(span_hash)
+    return span_hash
 
 
 def check_probe_status(expected_id, probe_status_map):
@@ -60,6 +83,11 @@ def check_probe_status(expected_id, probe_status_map):
 def check_snapshot(expected_id, snapshot_status_map):
     if expected_id not in snapshot_status_map:
         raise ValueError("Snapshot " + expected_id + " was not received.")
+
+
+def check_trace(expected_id, trace_map):
+    if expected_id not in trace_map:
+        raise ValueError("Trace " + expected_id + " was not received.")
 
 
 def check_info_endpoint():
@@ -95,7 +123,7 @@ class Test_Debugger_Method_Probe_Statuses:
             "spanDecorationProbe-received",
             "spanDecorationProbe-installed",
         ]
-        validate_data(expected_data, [])
+        validate_data(expected_data, [], [])
 
 
 @missing_feature(
@@ -112,7 +140,7 @@ class Test_Debugger_Method_Probe_Statuses:
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
         expected_data = ["logProbe-installed", "metricProbe-installed", "spanDecorationProbe-installed"]
-        validate_data(expected_data, [])
+        validate_data(expected_data, [], [])
 
 
 class _Base_Debugger_Snapshot_Test:
@@ -155,19 +183,37 @@ class _Base_Debugger_Snapshot_Test:
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
+    metric_probe_response = None
+    span_probe_response = None
+    span_decoration_probe_response = None
 
     def setup_method_probe_snaphots(self):
         interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
         interfaces.agent.wait_for(self.wait_for_probe, timeout=30)
         self.log_probe_response = weblog.get("/debugger/log")
+        self.metric_probe_response = weblog.get("/debugger/metric/1")
+        self.span_probe_response = weblog.get("/debugger/span")
+        self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
     def test_method_probe_snaphots(self):
         assert self.remote_config_is_sent is True
         assert self.probe_installed is True
-        assert self.log_probe_response.status_code == 200
 
-        expected_data = ["logProbe-installed"]
-        validate_data(expected_data, expected_data)
+        assert self.log_probe_response.status_code is 200
+        assert self.metric_probe_response.status_code is 200
+        assert self.span_probe_response.status_code is 200
+        assert self.span_decoration_probe_response.status_code is 200
+
+        expected_probes = [
+            "logProbe-installed",
+            "metricProbe-installed",
+            "spanProbe-installed",
+            "spanDecorationProbe-installed",
+        ]
+        expected_snapshots = ["logProbe-installed"]
+        expected_traces = ["spanProbe-installed", "spanDecorationProbe-installed"]
+
+        validate_data(expected_probes, expected_snapshots, expected_traces)
 
 
 @missing_feature(
@@ -195,4 +241,4 @@ class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         assert self.log_probe_response.status_code == 200
 
         expected_data = ["logProbe-installed"]
-        validate_data(expected_data, expected_data)
+        validate_data(expected_data, expected_data, [])
