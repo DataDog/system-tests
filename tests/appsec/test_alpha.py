@@ -5,7 +5,6 @@
 from utils import context, weblog, interfaces, released, missing_feature, bug, coverage
 
 
-@released(php_appsec="0.2.1")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @coverage.basic
 class Test_Basic:

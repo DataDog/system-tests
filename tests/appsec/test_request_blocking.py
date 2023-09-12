@@ -10,7 +10,6 @@ with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@released(php_appsec="0.7.0")
 @released(
     java={
         "spring-boot": "1.9.0",

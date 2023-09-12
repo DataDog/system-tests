@@ -22,7 +22,6 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
 @released(java="0.92.0")
-@released(php_appsec="0.1.0")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
@@ -68,7 +67,6 @@ class Test_RetainTraces:
 
 
 @released(java="0.104.0")
-@released(php_appsec="0.1.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -164,7 +162,6 @@ class Test_AppSecEventSpanTags:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @released(java="0.113.0")
-@released(php_appsec="0.3.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -329,7 +326,6 @@ class Test_AppSecObfuscator:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@released(php_appsec="0.2.2")
 @released(java="0.102.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")

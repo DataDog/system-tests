@@ -18,7 +18,7 @@ from utils import (
 )
 
 
-@released(java="0.92.0", php_appsec="0.1.0")
+@released(java="0.92.0")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
@@ -54,7 +54,7 @@ class Test_StatusCode:
         interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@released(java="0.98.1", php_appsec="0.3.0")
+@released(java="0.98.1")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -129,7 +129,6 @@ class Test_Info:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@released(php_appsec="0.2.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")

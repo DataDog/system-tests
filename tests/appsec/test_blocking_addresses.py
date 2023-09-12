@@ -34,9 +34,7 @@ _released_java_blocking = {
 }
 
 
-@released(
-    php_appsec="0.7.0", java=_released_java_blocking,
-)
+@released(java=_released_java_blocking,)
 @coverage.basic
 @scenarios.appsec_blocking
 @bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
@@ -224,9 +222,7 @@ def _assert_custom_event_tag_absence():
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    php_appsec="0.7.0", java=_released_java_blocking,
-)
+@released(java=_released_java_blocking,)
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -269,9 +265,7 @@ class Test_Blocking_request_method:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    php_appsec="0.7.0", java=_released_java_blocking,
-)
+@released(java=_released_java_blocking,)
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -324,9 +318,7 @@ class Test_Blocking_request_uri:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    java="1.15.0", php_appsec="0.7.0",
-)
+@released(java="1.15.0",)
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
@@ -373,9 +365,7 @@ class Test_Blocking_request_path_params:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    php_appsec="0.7.0", java=_released_java_blocking,
-)
+@released(java=_released_java_blocking,)
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
@@ -424,9 +414,7 @@ class Test_Blocking_request_query:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    php_appsec="0.7.0", java=_released_java_blocking,
-)
+@released(java=_released_java_blocking,)
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
@@ -475,9 +463,7 @@ class Test_Blocking_request_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    php_appsec="0.7.0", java=_released_java_blocking,
-)
+@released(java=_released_java_blocking,)
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
@@ -526,9 +512,7 @@ class Test_Blocking_request_cookies:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    java="1.15.0", php_appsec="0.7.0",
-)
+@released(java="1.15.0",)
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
@@ -592,7 +576,7 @@ class Test_Blocking_request_body:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(java="?", php_appsec="0.7.0")
+@released(java="?")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
@@ -621,7 +605,7 @@ class Test_Blocking_response_status:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(java="?", php_appsec="0.7.0")
+@released(java="?")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
@@ -651,7 +635,6 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(php_appsec="0.7.0")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 

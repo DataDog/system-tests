@@ -7,7 +7,6 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(php_appsec="?")
 @released(
     java={
         "jersey-grizzly2": "?",
