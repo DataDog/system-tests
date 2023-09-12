@@ -20,7 +20,7 @@ if context.weblog_variant == "akka-http":
 )
 @coverage.basic
 @scenarios.appsec_rate_limiter
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Main:
     """Basic tests for rate limiter"""
 

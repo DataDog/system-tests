@@ -176,7 +176,7 @@ class Test_TagsFromRule:
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_basic(self):
         """attack timestamp is given by start property of span"""
 
@@ -216,7 +216,7 @@ class Test_AttackTimestamp:
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_basic(self):
         """attack timestamp is given by start property of span"""
 

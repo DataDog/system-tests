@@ -12,7 +12,7 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Monitoring:
     """Support In-App WAF monitoring tags and metrics"""

@@ -93,7 +93,7 @@ class Test_AppSecIPBlockingFullDenylist:
             weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[-1]}),
         ]
 
-    @missing_feature(context.weblog_variant == "spring-boot" and context.library < "java@0.111.0")
+    @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

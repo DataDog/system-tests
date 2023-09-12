@@ -208,7 +208,7 @@ class Test_Blocking:
 @rfc(
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
 )
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenarios.appsec_blocking

@@ -15,7 +15,7 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 
 @coverage.basic
 @scenarios.appsec_corrupted_rules
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
 
@@ -41,7 +41,7 @@ class Test_CorruptedRules:
 
 @coverage.basic
 @scenarios.appsec_missing_rules
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_MissingRules:
     """AppSec do not report anything if rule file is missing"""
 
@@ -71,7 +71,7 @@ class Test_MissingRules:
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 @scenarios.appsec_custom_rules
 class Test_ConfRuleSet:
@@ -93,7 +93,7 @@ class Test_ConfRuleSet:
         stdout.assert_absence("WAF initialization failed")
 
 
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_custom_rules
 class Test_NoLimitOnWafRules:

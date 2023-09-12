@@ -18,7 +18,7 @@ class Test_OneVariableInstallation:
     """Installation with 1 env variable"""
 
 
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
@@ -50,7 +50,7 @@ class Test_RuleSet_1_2_5:
 
 
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RuleSet_1_3_1:
     """ AppSec uses rule set 1.3.1 or higher """
@@ -79,7 +79,7 @@ class Test_RuleSet_1_3_1:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ConfigurationVariables:
     """ Configuration environment variables """
 

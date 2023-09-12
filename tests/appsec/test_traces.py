@@ -24,7 +24,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""

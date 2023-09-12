@@ -12,7 +12,7 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_404:
     """Appsec WAF misc tests"""
@@ -35,7 +35,7 @@ class Test_404:
 
 
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_MultipleHighlight:
     """Appsec reports multiple attacks on same request"""
@@ -51,7 +51,7 @@ class Test_MultipleHighlight:
 
 
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_MultipleAttacks:
     """If several attacks are sent threw one requests, all of them are reported"""
@@ -84,7 +84,7 @@ class Test_MultipleAttacks:
 
 
 @bug(context.library < "nodejs@3.19.0", reason="fixed in a waf update")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_CorrectOptionProcessing:
     """Check that the case sensitive option is properly processed"""
@@ -103,6 +103,6 @@ class Test_CorrectOptionProcessing:
 class Test_NoWafTimeout:
     """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
 
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")
