@@ -228,16 +228,30 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
 @scenarios.debugger_line_probes_snapshot
 class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
+    metric_probe_response = None
+    span_decoration_probe_response = None
 
     def setup_line_probe_snaphots(self):
         interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
         interfaces.agent.wait_for(self.wait_for_probe, timeout=30)
         self.log_probe_response = weblog.get("/debugger/log")
+        self.metric_probe_response = weblog.get("/debugger/metric/1")
+        self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
     def test_line_probe_snaphots(self):
         assert self.remote_config_is_sent is True
         assert self.probe_installed is True
-        assert self.log_probe_response.status_code == 200
 
-        expected_data = ["logProbe-installed"]
-        validate_data(expected_data, expected_data, [])
+        assert self.log_probe_response.status_code == 200
+        assert self.metric_probe_response.status_code == 200
+        assert self.span_decoration_probe_response.status_code == 200
+
+        expected_probes = [
+            "logProbe-installed",
+            "metricProbe-installed",
+            "spanDecorationProbe-installed",
+        ]
+        expected_snapshots = ["logProbe-installed"]
+        expected_traces = ["spanDecorationProbe-installed"]
+
+        validate_data(expected_probes, expected_snapshots, expected_traces)

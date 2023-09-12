@@ -1168,7 +1168,7 @@ class scenarios:
         "DEBUGGER_LINE_PROBES_SNAPSHOT",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=10,
+        library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
     )
 
