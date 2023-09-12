@@ -41,7 +41,7 @@ class Test_TelemetryResponses:
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
-@released(java="1.12.0", php="?")
+@released(java="1.12.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_waf_telemetry
 class Test_TelemetryMetrics:

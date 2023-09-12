@@ -118,7 +118,6 @@ class Test_Metadata:
 
     def test_released(self):
         @released(java="0.1")
-        @released(php="99.99")
         @released(agent="1.2")
         class Test:
             pass

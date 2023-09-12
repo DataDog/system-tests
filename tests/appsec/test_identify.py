@@ -6,7 +6,6 @@ from utils import weblog, coverage, interfaces, released
 
 
 @released(java="?")
-@released(php="0.85.0")
 @coverage.basic
 class Test_Basic:
     """Basic tests for Identify SDK for AppSec"""

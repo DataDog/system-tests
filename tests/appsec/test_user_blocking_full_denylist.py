@@ -12,8 +12,7 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
         "resteasy-netty3": "1.7.0",
         "vertx3": "1.7.0",
         "*": "?",
-    },
-    php="0.86.3",
+    }
 )
 @bug(library="java", reason="RC payload limit")
 @missing_feature(

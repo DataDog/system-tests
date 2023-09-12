@@ -220,7 +220,6 @@ class _BaseIntegrationsSqlTestClass:
                         return span_child
 
 
-@released(php="?")
 class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "postgresql"
 
@@ -230,7 +229,6 @@ class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_type()
 
 
-@released(php="?")
 class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mysql"
 
@@ -244,7 +242,6 @@ class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_user()
 
 
-@released(php="?")
 class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mssql"
 

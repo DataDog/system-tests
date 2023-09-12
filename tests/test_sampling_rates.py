@@ -109,7 +109,6 @@ class Test_SamplingRates:
         assert len(trace_ids) == 0, f"Some traces have not been sent by the agent: {trace_ids}"
 
 
-@released(php="0.71.0")
 @missing_feature(library="ruby", reason="Endpoint /sample_rate_route not implemented")
 @missing_feature(weblog_variant="vertx3", reason="Endpoint /sample_rate_route not implemented")
 @missing_feature(weblog_variant="vertx4", reason="Endpoint /sample_rate_route not implemented")

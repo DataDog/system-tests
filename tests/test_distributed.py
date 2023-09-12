@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, released, scenarios
 
 
-@released(java="?", php="?")
+@released(java="?")
 @scenarios.trace_propagation_style_w3c
 class Test_DistributedHttp:
     """ Verify behavior of http clients and distributed traces """
