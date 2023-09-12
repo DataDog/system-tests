@@ -2,7 +2,7 @@ import base64
 import os
 import time
 
-from utils import context, weblog, interfaces, scenarios, irrelevant, released
+from utils import context, weblog, interfaces, scenarios, irrelevant, released, flaky
 from utils.tools import get_rid_from_request
 from ._test_validator_trace import validate_all_traces
 from ._test_validator_log import validate_log, validate_log_trace_correlation
@@ -66,6 +66,7 @@ class Test_OTelTracingE2E:
 
 @scenarios.otel_metric_e2e
 @irrelevant(context.library != "open_telemetry")
+@flaky(reason="Backend responses often don't include series")
 class Test_OTelMetricE2E:
     def setup_main(self):
         self.start = int(time.time())
