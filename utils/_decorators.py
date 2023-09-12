@@ -1,3 +1,4 @@
+from collections import defaultdict
 import inspect
 import os
 import pytest
@@ -6,7 +7,23 @@ from utils._context.core import context
 
 
 # temp code, for manifest file migrations
-_released_declarations = {}
+_released_declarations = defaultdict(dict)
+
+
+def _fill_released_declaration(klass, weblog_variant, reason):
+    """temp code for manifest migrations"""
+
+    if not inspect.isclass(klass) or weblog_variant is None:
+        return
+
+    file = os.path.relpath(inspect.getfile(klass))
+    nodeid = f"{file}::{klass.__name__}"
+    if weblog_variant not in []:
+        if weblog_variant in _released_declarations[nodeid]:
+            assert (
+                _released_declarations[nodeid][weblog_variant] == reason
+            ), f"{_released_declarations[nodeid][weblog_variant]} VS {reason} for {klass}"
+        _released_declarations[nodeid][weblog_variant] = reason
 
 
 def _get_skipped_item(item, skip_reason):
@@ -59,10 +76,15 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
 
     def decorator(function_or_class):
 
+        _fill_released_declaration(
+            function_or_class, weblog_variant, "missing_feature" if reason is None else f"missing_feature ({reason})"
+        )
+
         if not skip:
             return function_or_class
 
         full_reason = "missing_feature" if reason is None else f"missing_feature: {reason}"
+
         return _get_expected_failure_item(function_or_class, full_reason)
 
     return decorator
@@ -154,9 +176,13 @@ def released(
             if component_name in test_class.__released__:
                 raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
 
+            # temporary code for manifest migration
             if component_name == context.library.library:
-                file = os.path.relpath(inspect.getfile(test_class))
-                _released_declarations[f"{file}::{test_class.__name__}"] = declaration
+                if isinstance(declaration, str):
+                    _fill_released_declaration(test_class, "*", declaration)
+                else:
+                    for weblog_variant, value in declaration.items():
+                        _fill_released_declaration(test_class, weblog_variant, value)
 
             declaration = _resolve_declaration(declaration)
 
