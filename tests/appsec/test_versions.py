@@ -6,7 +6,6 @@ from utils import context, interfaces, released, coverage, irrelevant, missing_f
 
 
 @irrelevant(library="cpp")
-@released(java="0.90.0")
 @coverage.basic
 class Test_Events:
     """AppSec events uses events in span"""

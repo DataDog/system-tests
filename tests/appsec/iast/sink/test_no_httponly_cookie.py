@@ -8,7 +8,6 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
 class TestNoHttponlyCookie:
     """Test no HttpOnly cookie detection."""
 

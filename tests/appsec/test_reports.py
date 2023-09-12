@@ -18,7 +18,6 @@ from utils import (
 )
 
 
-@released(java="0.92.0")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
@@ -54,7 +53,6 @@ class Test_StatusCode:
         interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@released(java="0.98.1")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -93,7 +91,6 @@ class Test_HttpClientIP:
         interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(java="0.87.0")
 @flaky(context.library <= "php@0.68.2")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
@@ -194,8 +191,8 @@ class Test_TagsFromRule:
 @coverage.basic
 @missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@released(dotnet="2.34.0", java="1.14.0", nodejs="4.1.0", golang="?", ruby="?")
-@bug(context.library >= "java@1.14.0", reason="APPSEC-11111")
+@released(dotnet="2.34.0", nodejs="4.1.0", golang="?", ruby="?")
+@bug(context.library >= "java@1.14.0", reason="APPSEC-11111")  # released at 1.14.0, but bugged
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 

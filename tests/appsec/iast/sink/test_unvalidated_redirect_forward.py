@@ -18,9 +18,6 @@ def _expected_location():
 
 
 @coverage.basic
-@released(
-    java={"vertx4": "1.17.0", "*": "1.16.0",}
-)
 @irrelevant(weblog_variant="ratpack", reason="No forward")
 @irrelevant(weblog_variant="akka-http", reason="No forward")
 @irrelevant(weblog_variant="jersey-grizzly2", reason="No forward")

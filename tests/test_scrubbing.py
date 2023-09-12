@@ -28,7 +28,6 @@ def validate_no_leak(needle, whitelist_pattern=None):
     return crawler
 
 
-@released(java="0.107.1")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.good
 class Test_UrlQuery:

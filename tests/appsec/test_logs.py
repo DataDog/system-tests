@@ -88,7 +88,6 @@ class Test_Standardization:
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110$", level="INFO")
 
 
-@released(java="?")
 class Test_StandardizationBlockMode:
     """AppSec blocking logs should be standardized"""
 

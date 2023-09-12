@@ -7,17 +7,6 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(
-    java={
-        "jersey-grizzly2": "?",
-        "resteasy-netty3": "?",
-        "vertx3": "1.12.0",
-        "vertx4": "1.12.0",
-        "akka-http": "1.12.0",
-        "ratpack": "?",
-        "*": "1.7.0",
-    }
-)
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestRequestBody:
     """Verify that request json body is tainted"""

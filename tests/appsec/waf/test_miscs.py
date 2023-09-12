@@ -11,7 +11,6 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@released(java="0.87.0")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
@@ -35,7 +34,6 @@ class Test_404:
         )
 
 
-@released(java="0.95.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
@@ -52,7 +50,6 @@ class Test_MultipleHighlight:
         )
 
 
-@released(java="0.92.0")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
@@ -86,7 +83,6 @@ class Test_MultipleAttacks:
         interfaces.library.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
 
 
-@released(java="0.87.0")
 @bug(context.library < "nodejs@3.19.0", reason="fixed in a waf update")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good

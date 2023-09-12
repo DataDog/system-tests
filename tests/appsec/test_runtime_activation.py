@@ -16,7 +16,6 @@ if context.weblog_variant == "akka-http":
 
 
 @scenarios.appsec_runtime_activation
-@released(java="0.115.0")
 @bug(
     context.library < "java@1.8.0" and context.appsec_rules_file is not None,
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",

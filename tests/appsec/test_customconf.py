@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, context, coverage, interfaces, released, bug, missing_feature, scenarios
+from utils import weblog, context, coverage, interfaces, bug, missing_feature, scenarios
 
 
 if context.weblog_variant == "akka-http":
@@ -13,7 +13,6 @@ if context.weblog_variant == "akka-http":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(java="0.93.0")
 @coverage.basic
 @scenarios.appsec_corrupted_rules
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -40,7 +39,6 @@ class Test_CorruptedRules:
         interfaces.library.assert_no_appsec_event(self.r_2)
 
 
-@released(java="0.93.0")
 @coverage.basic
 @scenarios.appsec_missing_rules
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -73,7 +71,6 @@ class Test_MissingRules:
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@released(java="0.93.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 @scenarios.appsec_custom_rules
@@ -96,7 +93,6 @@ class Test_ConfRuleSet:
         stdout.assert_absence("WAF initialization failed")
 
 
-@released(java="0.97.0",)
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_custom_rules
