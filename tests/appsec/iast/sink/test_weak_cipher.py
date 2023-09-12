@@ -6,7 +6,6 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakCipher:
     """Verify weak cipher detection."""
 

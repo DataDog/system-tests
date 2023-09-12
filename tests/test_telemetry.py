@@ -35,7 +35,6 @@ def is_v1_payload(data):
 @released(nodejs="3.2.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
@@ -561,7 +560,6 @@ class Test_TelemetryV2:
 
 @released(nodejs="?")
 @irrelevant(library="cpp")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 

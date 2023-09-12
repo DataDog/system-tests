@@ -110,12 +110,6 @@ class Test_SamplingRates:
 
 
 @missing_feature(library="ruby", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="vertx3", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="vertx4", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="jersey-grizzly2", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="ratpack", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="resteasy-netty3", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="akka-http", reason="Endpoint /sample_rate_route not implemented")
 @scenarios.sampling
 class Test_SamplingDecisions:
     """Sampling configuration"""

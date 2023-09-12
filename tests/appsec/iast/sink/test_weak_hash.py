@@ -25,7 +25,6 @@ def _expected_location():
 
 
 @coverage.basic
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakHash:
     """Verify weak hash detection."""
 

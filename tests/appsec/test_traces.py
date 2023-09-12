@@ -22,9 +22,6 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -65,9 +62,6 @@ class Test_RetainTraces:
         interfaces.library.validate_spans(self.r, validate_appsec_event_span_tags)
 
 
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
@@ -159,9 +153,6 @@ class Test_AppSecEventSpanTags:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
@@ -323,9 +314,6 @@ class Test_AppSecObfuscator:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""

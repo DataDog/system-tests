@@ -13,7 +13,6 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Standardization:
     """AppSec logs should be standardized"""

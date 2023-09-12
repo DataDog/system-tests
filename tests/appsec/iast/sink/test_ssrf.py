@@ -7,10 +7,6 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="ratpack", reason="No endpoint implemented")
-@missing_feature(weblog_variant="akka-http", reason="No endpoint implemented")
-@missing_feature(weblog_variant="vertx4", reason="No endpoint implemented")
 class TestSSRF:
     """Test ssrf detection."""
 

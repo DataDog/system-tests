@@ -22,7 +22,6 @@ def _expected_location():
 @irrelevant(weblog_variant="akka-http", reason="No forward")
 @irrelevant(weblog_variant="jersey-grizzly2", reason="No forward")
 @irrelevant(weblog_variant="resteasy-netty3", reason="No forward")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestUnvalidatedForward:
     """Verify Unvalidated redirect forward detection."""
 

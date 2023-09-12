@@ -8,7 +8,6 @@ from .._test_iast_fixtures import SourceFixture
 
 @coverage.basic
 @bug(library="python")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestParameterValue:
     """Verify that request parameters are tainted"""
 

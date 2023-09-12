@@ -22,7 +22,6 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UrlQueryKey:
     """Appsec supports keys on server.request.query"""
@@ -36,7 +35,6 @@ class Test_UrlQueryKey:
         interfaces.library.assert_waf_attack(self.r, pattern="$eq", address="server.request.query")
 
 
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_UrlQuery:
     """Appsec supports values on server.request.query"""
@@ -69,7 +67,6 @@ class Test_UrlQuery:
 
 
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UrlRaw:
     """Appsec supports server.request.uri.raw"""
@@ -83,7 +80,6 @@ class Test_UrlRaw:
 
 
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Headers:
     """Appsec supports server.request.headers.no_cookies"""
@@ -152,7 +148,6 @@ class Test_Headers:
         interfaces.library.assert_no_appsec_event(self.r_wk_2)
 
 
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Cookies:
     """Appsec supports server.request.cookies"""
@@ -251,7 +246,6 @@ class Test_Cookies:
         interfaces.library.assert_waf_attack(self.r_cwsc2cc, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_BodyRaw:
     """Appsec supports <body>"""
@@ -267,7 +261,6 @@ class Test_BodyRaw:
 
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
 
@@ -294,7 +287,6 @@ class Test_BodyUrlEncoded:
 
 
 @bug(context.weblog_variant == "vertx4", reason="Capability to read body content is incomplete after vert.x 4.0.0")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyJson:
@@ -332,7 +324,6 @@ class Test_BodyJson:
 
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 @bug(context.weblog_variant == "vertx4", reason="Capability to read body content is incomplete after vert.x 4.0.0")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(reason="unsupported by framework", library="ruby")
 @coverage.basic
 class Test_BodyXml:
@@ -376,7 +367,6 @@ class Test_ClientIP:
     """Appsec supports server.request.client_ip"""
 
 
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_ResponseStatus:
     """Appsec supports values on server.response.status"""
@@ -398,7 +388,6 @@ class Test_ResponseStatus:
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
 @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""
@@ -415,7 +404,6 @@ class Test_PathParams:
 
 @irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
 @bug(context.library < "java@0.109.0", weblog_variant="spring-boot", reason="APPSEC-5426")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""

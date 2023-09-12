@@ -19,9 +19,6 @@ from utils import (
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StatusCode:
     """Appsec reports good status code"""
@@ -53,9 +50,6 @@ class Test_StatusCode:
         interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 @missing_feature(
     True, reason="Bug on system test: with the runner on the host, we do not have the real IP from weblog POV"
@@ -93,9 +87,6 @@ class Test_HttpClientIP:
 
 @flaky(context.library <= "php@0.68.2")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Info:
     """Environment (production, staging) from DD_ENV variable"""
@@ -128,9 +119,6 @@ class Test_Info:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
@@ -168,8 +156,6 @@ class Test_RequestHeaders:
 
 
 @coverage.basic
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 class Test_TagsFromRule:
     """Tags (Category & event type) from the rule"""
 
@@ -189,8 +175,6 @@ class Test_TagsFromRule:
 
 
 @coverage.basic
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @released(dotnet="2.34.0", nodejs="4.1.0", golang="?", ruby="?")
 @bug(context.library >= "java@1.14.0", reason="APPSEC-11111")  # released at 1.14.0, but bugged
 class Test_ExtraTagsFromRule:
@@ -208,8 +192,6 @@ class Test_ExtraTagsFromRule:
 
 
 @coverage.basic
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 class Test_AttackTimestamp:
     """Attack timestamp"""
 
