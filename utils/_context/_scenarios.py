@@ -825,17 +825,20 @@ class ParametricScenario(_Scenario):
                     "-t",
                     "ddtracer_version",
                     "-f",
-                    "ddtracer_version.Dockerfile",
+                    f"{tracer_version_dockerfile}",
                     "--build-arg",
                     f"PYTHON_DDTRACE_PACKAGE={os.getenv('PYTHON_DDTRACE_PACKAGE','ddtrace')}",
                 ],
-                cwd=parametric_appdir,
                 stdout=subprocess.DEVNULL,
+                check=False,
             )
             result = subprocess.run(
-                ["docker", "run", "-t", "ddtracer_version"], cwd=parametric_appdir, stdout=subprocess.PIPE
+                ["docker", "run", "--rm", "-t", "ddtracer_version"],
+                cwd=parametric_appdir,
+                stdout=subprocess.PIPE,
+                check=False,
             )
-            self._library = LibraryVersion("python", result.stdout.decode("utf-8"))
+            self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
         else:
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
 
