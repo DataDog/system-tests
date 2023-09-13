@@ -7,17 +7,6 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(
-    java={
-        "resteasy-netty3": "1.11.0",
-        "jersey-grizzly2": "1.11.0",
-        "vertx3": "1.12.0",
-        "akka-http": "1.12.0",
-        "ratpack": "?",
-        "*": "1.1.0",
-    }
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestPathTraversal:
     """Test path traversal detection."""
 

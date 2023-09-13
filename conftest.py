@@ -253,7 +253,13 @@ def _export_manifest():
 
     def convert_value(value):
         if isinstance(value, dict):
-            return {k: convert_value(v) for k, v in value.items()}
+            result = {k: convert_value(v) for k, v in value.items()}
+
+            # flatten dict like {"*": "some declaration"}
+            if len(result) == 1 and "*" in result:
+                return result["*"]
+
+            return result
 
         if value == "?":
             return "missing_feature"

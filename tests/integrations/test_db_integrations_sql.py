@@ -7,9 +7,6 @@ from utils.tools import logger
 
 
 @released(
-    java={"spring-boot": "1.12.0", "*": "?",}
-)
-@released(
     nodejs={"express4": "1.0.0", "*": "?",}
 )
 @released(

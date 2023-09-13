@@ -131,11 +131,11 @@ class Test_Metadata:
 
             @released(java="99.99")
             @released(java="99.99")
-            class Test:
+            class Test_Double:
                 pass
 
         except ValueError as e:
-            assert str(e) == "A java' version for Test has been declared twice"
+            assert str(e) == "A java' version for Test_Double has been declared twice"
         else:
             raise Exception("Component has been declared twice, should fail")
 

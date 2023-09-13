@@ -5,7 +5,6 @@
 from utils import weblog, coverage, interfaces, released
 
 
-@released(java="?")
 @coverage.basic
 class Test_Basic:
     """Basic tests for Identify SDK for AppSec"""

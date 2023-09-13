@@ -5,8 +5,6 @@ if context.weblog_variant == "akka-http":
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@released(java="1.6.0",)
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_custom_rules
 class Test_Exclusions:
     """Includes a version of the WAF supporting rule exclusion"""
