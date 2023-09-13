@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import shutil
 import time
+import subprocess
 
 import pytest
 from watchdog.observers.polling import PollingObserver
@@ -812,12 +813,35 @@ class ParametricScenario(_Scenario):
         super().configure(option)
         assert "TEST_LIBRARY" in os.environ
 
+        # get tracer version info
+        parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
+        tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
+        if os.path.isfile(tracer_version_dockerfile):
+            subprocess.run(
+                [
+                    "docker",
+                    "build",
+                    ".",
+                    "-t",
+                    "ddtracer_version",
+                    "-f",
+                    "ddtracer_version.Dockerfile",
+                    "--build-arg",
+                    f"PYTHON_DDTRACE_PACKAGE={os.getenv('PYTHON_DDTRACE_PACKAGE','ddtrace')}",
+                ],
+                cwd=parametric_appdir,
+                stdout=subprocess.DEVNULL,
+            )
+            result = subprocess.run(
+                ["docker", "run", "-t", "ddtracer_version"], cwd=parametric_appdir, stdout=subprocess.PIPE
+            )
+            self._library = LibraryVersion("python", result.stdout.decode("utf-8"))
+        else:
+            self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
+
     @property
     def library(self):
-        # Use large version here as it is checked by the standard system-tests version checking.
-        # Parametric version checking is done via the check_library_version pytest fixture
-        # which uses the reported library version.
-        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
+        return self._library
 
 
 class scenarios:
