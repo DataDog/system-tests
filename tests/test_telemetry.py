@@ -191,7 +191,7 @@ class Test_Telemetry:
 
     @bug(library="ruby", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
-    @flaky(library="nodejs", reason="APPSEC-10465")
+    @flaky(context.library < "nodejs@4.14.0", reason="APPSEC-10465")
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
