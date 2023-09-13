@@ -134,7 +134,6 @@ class _Base_Debugger_Snapshot_Test:
                 return True
         return False
 
-
     def wait_for_probe(self, data):
         if data["path"] == "/api/v2/logs":
             contents = data.get("request", {}).get("content", {})
@@ -149,6 +148,7 @@ class _Base_Debugger_Snapshot_Test:
                         self.probe_installed = True
                         return True
         return False
+
 
 @missing_feature(
     context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
