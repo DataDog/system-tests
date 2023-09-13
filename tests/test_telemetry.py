@@ -32,7 +32,6 @@ def is_v1_payload(data):
     return data["request"]["content"].get("api_version") == "v1"
 
 
-@released(nodejs="3.2.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 class Test_Telemetry:
@@ -523,7 +522,6 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
-@released(nodejs="?")
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
@@ -558,7 +556,6 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
-@released(nodejs="?")
 @irrelevant(library="cpp")
 class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
@@ -585,7 +582,6 @@ class Test_ProductsDisabled:
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
-@released(nodejs="?")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
@@ -601,7 +597,6 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(nodejs="?")
 class Test_MessageBatch:
     """ Tests on Message batching """
 
@@ -620,7 +615,6 @@ class Test_MessageBatch:
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
-@released(nodejs="?")
 @scenarios.telemetry_log_generation_disabled
 class Test_Log_Generation:
     """Assert that logs are not reported when logs generation is disabled in telemetry"""
@@ -631,7 +625,6 @@ class Test_Log_Generation:
                 raise Exception(" Logs event is sent when log generation is disabled")
 
 
-@released(nodejs="?")
 @scenarios.telemetry_metric_generation_disabled
 class Test_Metric_Generation_Disabled:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
@@ -642,7 +635,6 @@ class Test_Metric_Generation_Disabled:
                 raise Exception("Metric generate event is sent when metric generation is disabled")
 
 
-@released(nodejs="?")
 @scenarios.telemetry_metric_generation_enabled
 class Test_Metric_Generation_Enabled:
     """Assert that metrics are reported when metric generation is enabled in telemetry"""

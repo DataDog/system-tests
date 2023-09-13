@@ -6,12 +6,6 @@ from utils import weblog, interfaces, context, bug, missing_feature, released, s
 from utils.tools import logger
 
 
-@released(
-    nodejs={"express4": "1.0.0", "*": "?",}
-)
-@released(
-    python={"flask-poc": "1.18.3", "*": "?",}
-)
 @scenarios.integrations
 class _BaseIntegrationsSqlTestClass:
 
@@ -217,6 +211,7 @@ class _BaseIntegrationsSqlTestClass:
                         return span_child
 
 
+@released(python={"flask-poc": "1.18.3", "*": "?"})
 class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "postgresql"
 
@@ -226,6 +221,7 @@ class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_type()
 
 
+@released(python={"flask-poc": "1.18.3", "*": "?"})
 class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mysql"
 
@@ -239,6 +235,7 @@ class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_user()
 
 
+@released(python={"flask-poc": "1.18.3", "*": "?"})
 class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mssql"
 

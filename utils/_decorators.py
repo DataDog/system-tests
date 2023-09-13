@@ -162,8 +162,13 @@ def released(
     ruby=None,
     php_appsec=None,
     agent=None,
+    _is_from_manifest=False
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
+
+    if not _is_from_manifest:
+        if nodejs is not None:
+            raise ValueError("Please use manifest file for nodejs version declaration")
 
     def wrapper(test_class):
         if not inspect.isclass(test_class):
