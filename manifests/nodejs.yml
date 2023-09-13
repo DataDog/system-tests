@@ -135,7 +135,7 @@ tests/:
       Test_BlockingGraphqlResolvers:
         '*': missing_feature
       Test_Blocking_request_body: v3.19.0
-      Test_Blocking_request_cookies: missing_feature
+      Test_Blocking_request_cookies: v14.16.0
       Test_Blocking_request_headers: v3.19.0
       Test_Blocking_request_method: v3.19.0
       Test_Blocking_request_path_params: missing_feature
