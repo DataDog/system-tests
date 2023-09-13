@@ -221,9 +221,7 @@ class Test_Blocking:
         assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
 
 
-@rfc(
-    "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
-)
+@rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
 @released(java="1.11.0")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @bug(context.weblog_variant == "uds-echo")
@@ -247,3 +245,23 @@ class Test_CustomBlockingResponse:
         """Block with an HTTP redirection"""
         assert self.r_cr.status_code == 301
         assert self.r_cr.headers.get("location", "") == "/you-have-been-blocked"
+
+    def setup_custom_redirect_wrong_status_code(self):
+        self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v3"}, allow_redirects=False)
+
+    @bug(context.library == "java", reason="Do not check the configured redirect status code")
+    @bug(context.library == "golang", reason="Do not check the configured redirect status code")
+    def test_custom_redirect_wrong_status_code(self):
+        """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
+        assert self.r_cr.status_code == 303
+        assert self.r_cr.headers.get("location", "") == "/you-have-been-blocked"
+
+    def setup_custom_redirect_missing_location(self):
+        self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False)
+
+    @bug(context.library == "java", reason="Do not check the configured redirect location value")
+    @bug(context.library == "golang", reason="Do not check the configured redirect location value")
+    def test_custom_redirect_missing_location(self):
+        """Block with an default page because location parameter is missing from redirect request configuration"""
+        assert self.r_cr.status_code == 403
+        assert self.r_cr.text in BLOCK_TEMPLATE_JSON_ANY
