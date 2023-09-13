@@ -113,12 +113,12 @@ tests/:
         test_xss.py:
           TestXSS:
             '*': missing_feature
-            spring-boot: "v1.19.0"
-            spring-boot-jetty: "v1.19.0"
-            spring-boot-openliberty: "v1.19.0"
-            spring-boot-undertow: "v1.19.0"
-            spring-boot-wildfly: "v1.19.0"
-            uds-spring-boot: "v1.19.0"
+            spring-boot: v1.19.0
+            spring-boot-jetty: v1.19.0
+            spring-boot-openliberty: v1.19.0
+            spring-boot-undertow: v1.19.0
+            spring-boot-wildfly: v1.19.0
+            uds-spring-boot: v1.19.0
       source/:
         test_body.py:
           TestRequestBody:
@@ -423,6 +423,8 @@ tests/:
         spring-boot-openliberty: v0.115.0
         spring-boot-payara: missing_feature (Missing support)
         spring-boot-undertow: v0.111.0
+        spring-boot-wildfly: v0.111.0
+        uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
       Test_BlockingGraphqlResolvers: missing_feature
