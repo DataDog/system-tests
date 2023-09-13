@@ -175,7 +175,7 @@ class Test_TagsFromRule:
 
 
 @coverage.basic
-@released(dotnet="2.34.0", golang="?", ruby="?")
+@released(golang="?", ruby="?")
 @bug(context.library >= "java@1.14.0", reason="APPSEC-11111")  # released at 1.14.0, but bugged
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""

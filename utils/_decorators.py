@@ -167,7 +167,7 @@ def released(
     """Class decorator, allow to mark a test class with a version number of a component"""
 
     if not _is_from_manifest:
-        if nodejs is not None or python is not None:
+        if nodejs is not None or python is not None or dotnet is not None:
             raise ValueError("Please use manifest file for version declaration")
 
     def wrapper(test_class):
