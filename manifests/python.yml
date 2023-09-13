@@ -130,7 +130,7 @@ tests/:
           '*': v1.16.1
           django-poc: v1.10
           flask-poc: v1.10
-        Test_CustomBlockingResponse: missing_feature
+        Test_CustomBlockingResponse: v1.20.0.dev
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.16.1
