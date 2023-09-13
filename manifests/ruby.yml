@@ -42,8 +42,7 @@ tests/:
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
-          TestXSS:
-            '*': missing_feature
+          TestXSS: missing_feature
       source/:
         test_body.py:
           TestRequestBody: missing_feature
@@ -93,7 +92,14 @@ tests/:
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_automated_login_events.py:
-      Test_Login_Events: v1.13.0
+      Test_Login_Events:
+        '*': v1.13.0
+        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes)
+        rack: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
+        uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
       Test_Login_Events_Extended: v1.14.0
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.0.0
@@ -129,6 +135,8 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_reports.py:
+      Test_ExtraTagsFromRule: missing_feature
     test_request_blocking.py:
       Test_AppSecRequestBlocking: v1.11.1
     test_runtime_activation.py:
@@ -147,7 +155,7 @@ tests/:
       Test_Debugger_Line_Probe_Statuses: missing_feature
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
-    test_db_integrations_sql.py: 
+    test_db_integrations_sql.py:
       Test_Mssql_db_integration: missing_feature
       Test_Mysql_db_integration: missing_feature
       Test_Postgres_db_integration: missing_feature
@@ -164,7 +172,7 @@ tests/:
       TestDynamicConfigV1: v1.13.0
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: "missing_feature"
+      Test_RemoteConfigurationExtraServices: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: missing_feature
@@ -189,7 +197,9 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
     Test_StandardTagsMethod: v1.8.0
-    Test_StandardTagsRoute: missing_feature
+    Test_StandardTagsRoute:
+      '*': missing_feature
+      rack: irrelevant (rack can not access route pattern)
     Test_StandardTagsStatusCode: v1.8.0
     Test_StandardTagsUrl: missing_feature
     Test_StandardTagsUserAgent: v1.8.0

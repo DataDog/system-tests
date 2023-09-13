@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, weblog
+from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, rfc, weblog
 
 
 @coverage.good
@@ -178,10 +178,6 @@ class Test_StandardTagsStatusCode:
             interfaces.library.add_span_tag_validation(request=r, tags={"http.status_code": code})
 
 
-@irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
-@missing_feature(
-    context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
-)
 @coverage.basic
 class Test_StandardTagsRoute:
     """Tests to verify that libraries annotate spans with correct http.route tags"""
