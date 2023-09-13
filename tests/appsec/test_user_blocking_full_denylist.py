@@ -1,7 +1,6 @@
 from utils import context, coverage, interfaces, scenarios, weblog, bug, missing_feature
 
 
-@bug(library="java", reason="RC payload limit")
 @missing_feature(
     library="python", reason="Python supported denylists of 2500 entries but it fails to block this those 15000"
 )

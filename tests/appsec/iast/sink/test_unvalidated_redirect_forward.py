@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import context, coverage, released, missing_feature, irrelevant
+from utils import context, coverage, missing_feature
 from .._test_iast_fixtures import SinkFixture
 
 
@@ -18,10 +17,6 @@ def _expected_location():
 
 
 @coverage.basic
-@irrelevant(weblog_variant="ratpack", reason="No forward")
-@irrelevant(weblog_variant="akka-http", reason="No forward")
-@irrelevant(weblog_variant="jersey-grizzly2", reason="No forward")
-@irrelevant(weblog_variant="resteasy-netty3", reason="No forward")
 class TestUnvalidatedForward:
     """Verify Unvalidated redirect forward detection."""
 

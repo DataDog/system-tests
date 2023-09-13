@@ -87,6 +87,10 @@ tests/:
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward:
             '*': v1.16.0
+            akka-http: irrelevant (No forward)
+            jersey-grizzly2: irrelevant (No forward)
+            ratpack: irrelevant (No forward)
+            resteasy-netty3: irrelevant (No forward)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx4: v1.17.0
         test_weak_cipher.py:
@@ -186,6 +190,8 @@ tests/:
           ratpack: v0.99.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v0.99.0
+          vertx4: bug (Capability to read body content is incomplete after vert.x
+            4.0.0)
         Test_BodyRaw:
           '*': missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -200,6 +206,8 @@ tests/:
           ratpack: v0.99.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: missing_feature
+          vertx4: bug (Capability to read body content is incomplete after vert.x
+            4.0.0)
         Test_ClientIP: missing_feature
         Test_Cookies:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -230,7 +238,10 @@ tests/:
           '*': v0.87.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_gRPC:
+          # a @bug declaration was skipping this test for all weblogs, but spring-boot.
+          # I guess it's a typo -> don't report it
           '*': v0.96.0
+          spring-boot: v0.109.0  # APPSEC-5426
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_blocking.py:
         Test_Blocking:
@@ -484,22 +495,31 @@ tests/:
         vertx3: missing_feature (Need to build endpoint on weblog)
         vertx4: missing_feature (Need to build endpoint on weblog)
     test_event_tracking.py:
-      Test_CustomEvent: v1.8.0
-      Test_UserLoginFailureEvent: v1.8.0
-      Test_UserLoginSuccessEvent: v1.8.0
+      Test_CustomEvent:
+        '*': v1.8.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature (No AppSec support)
+      Test_UserLoginFailureEvent:
+        '*': v1.8.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature (No AppSec support)
+      Test_UserLoginSuccessEvent:
+        '*': v1.8.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature (No AppSec support)
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist:
-        '*': missing_feature
-        jersey-grizzly2: v1.7.0
-        ratpack: v1.7.0
-        resteasy-netty3: v1.7.0
-        spring-boot: v0.110.0
-        spring-boot-openliberty: v0.115.0
-        spring-boot-undertow: v0.111.0
-        sprint-boot-jetty: v0.111.0
-        vertx3: v1.7.0
+      Test_AppSecIPBlockingFullDenylist: bug (RC payload limit)
+        # '*': missing_feature
+        # jersey-grizzly2: v1.7.0
+        # ratpack: v1.7.0
+        # resteasy-netty3: v1.7.0
+        # spring-boot: v0.110.0
+        # spring-boot-openliberty: v0.115.0
+        # spring-boot-undertow: v0.111.0
+        # sprint-boot-jetty: v0.111.0
+        # vertx3: v1.7.0
     test_logs.py:
       Test_Standardization:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -574,16 +594,16 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (No AppSec support)
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist:
-        '*': missing_feature
-        jersey-grizzly2: v1.7.0
-        ratpack: v1.7.0
-        resteasy-netty3: v1.7.0
-        spring-boot: v0.110.0
-        spring-boot-openliberty: v0.115.0
-        spring-boot-undertow: v0.111.0
-        sprint-boot-jetty: v0.111.0
-        vertx3: v1.7.0
+      Test_UserBlocking_FullDenylist: bug (RC payload limit)
+        # '*': missing_feature
+        # jersey-grizzly2: v1.7.0
+        # ratpack: v1.7.0
+        # resteasy-netty3: v1.7.0
+        # spring-boot: v0.110.0
+        # spring-boot-openliberty: v0.115.0
+        # spring-boot-undertow: v0.111.0
+        # sprint-boot-jetty: v0.111.0
+        # vertx3: v1.7.0
     test_versions.py:
       Test_Events: v0.90.0
   integrations/:

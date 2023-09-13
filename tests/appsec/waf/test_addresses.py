@@ -286,7 +286,6 @@ class Test_BodyUrlEncoded:
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@bug(context.weblog_variant == "vertx4", reason="Capability to read body content is incomplete after vert.x 4.0.0")
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyJson:
@@ -323,7 +322,6 @@ class Test_BodyJson:
 
 
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
-@bug(context.weblog_variant == "vertx4", reason="Capability to read body content is incomplete after vert.x 4.0.0")
 @irrelevant(reason="unsupported by framework", library="ruby")
 @coverage.basic
 class Test_BodyXml:
@@ -402,8 +400,6 @@ class Test_PathParams:
         )
 
 
-@irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
-@bug(context.library < "java@0.109.0", weblog_variant="spring-boot", reason="APPSEC-5426")
 @coverage.basic
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""

@@ -97,6 +97,10 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
 
     def decorator(function_or_class):
 
+        _fill_released_declaration(
+            function_or_class, weblog_variant, "irrelevant" if reason is None else f"irrelevant ({reason})"
+        )
+
         if not skip:
             return function_or_class
 
@@ -116,6 +120,8 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
 
     def decorator(function_or_class):
 
+        _fill_released_declaration(function_or_class, weblog_variant, "bug" if reason is None else f"bug ({reason})")
+
         if not expected_to_fail:
             return function_or_class
 
@@ -131,6 +137,10 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
+
+        _fill_released_declaration(
+            function_or_class, weblog_variant, "flaky" if reason is None else f"flaky ({reason})"
+        )
 
         if not skip:
             return function_or_class
