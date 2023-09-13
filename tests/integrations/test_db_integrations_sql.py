@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, released, scenarios
+from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 from utils.tools import logger
 
 
@@ -211,7 +211,6 @@ class _BaseIntegrationsSqlTestClass:
                         return span_child
 
 
-@released(python={"flask-poc": "1.18.3", "*": "?"})
 class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "postgresql"
 
@@ -221,7 +220,6 @@ class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_type()
 
 
-@released(python={"flask-poc": "1.18.3", "*": "?"})
 class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mysql"
 
@@ -235,7 +233,6 @@ class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_user()
 
 
-@released(python={"flask-poc": "1.18.3", "*": "?"})
 class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "mssql"
 
