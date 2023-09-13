@@ -94,8 +94,8 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events:
         '*': v1.13.0
-        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes)
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
+        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
