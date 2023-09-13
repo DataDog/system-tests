@@ -5,17 +5,7 @@
 import socket
 
 
-from utils import (
-    weblog,
-    context,
-    coverage,
-    interfaces,
-    released,
-    bug,
-    missing_feature,
-    flaky,
-    rfc,
-)
+from utils import weblog, context, coverage, interfaces, bug, missing_feature, flaky, rfc
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
@@ -175,7 +165,6 @@ class Test_TagsFromRule:
 
 
 @coverage.basic
-@released(dotnet="2.34.0", nodejs="4.1.0", golang="?", ruby="?")
 @bug(context.library >= "java@1.14.0", reason="APPSEC-11111")  # released at 1.14.0, but bugged
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""

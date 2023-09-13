@@ -2,16 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, released, scenarios
+from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 from utils.tools import logger
 
 
-@released(
-    nodejs={"express4": "1.0.0", "*": "?",}
-)
-@released(
-    python={"flask-poc": "1.18.3", "*": "?",}
-)
 @scenarios.integrations
 class _BaseIntegrationsSqlTestClass:
 

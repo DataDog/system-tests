@@ -75,7 +75,6 @@ class Test_BugClass:
         assert True
 
 
-@released(java="?")
 class Test_NotReleased:
     executed = False
 
@@ -116,43 +115,6 @@ class Test_Metadata:
 
         assert Test.__rfc__ == "A link"
 
-    def test_released(self):
-        @released(java="0.1")
-        @released(agent="1.2")
-        class Test:
-            pass
-
-        assert Test.__released__["java"] == "0.1"
-        assert Test.__released__["agent"] == "1.2"
-        assert "php" not in Test.__released__
-
-    def test_double_declaration(self):
-        try:
-
-            @released(java="99.99")
-            @released(java="99.99")
-            class Test_Double:
-                pass
-
-        except ValueError as e:
-            assert str(e) == "A java' version for Test_Double has been declared twice"
-        else:
-            raise Exception("Component has been declared twice, should fail")
-
-    def test_version_sugar_syntax(self):
-        @released(java={"spring": "2.1", "vertx": "0.2"})
-        class Test_DictBasic:
-            pass
-
-        assert Test_DictBasic.__released__["java"] == "2.1"
-
-    def test_version_sugar_syntax_wildcard(self):
-        @released(java={"*": "2.1", "vertx": "0.2"})
-        class Test_DictBasic:
-            pass
-
-        assert Test_DictBasic.__released__["java"] == "2.1"
-
     def test_library_does_not_exists(self):
         with pytest.raises(ValueError):
 
@@ -192,30 +154,8 @@ class Test_Skips:
         assert Test_BugClass.executed, "Bug decorator execute the test"
 
     def test_not_released(self):
-        assert is_skipped(Test_NotReleased, "missing_feature (release not yet planned)")
+        assert is_skipped(Test_NotReleased, "missing_feature")
         assert Test_NotReleased.executed, "missing_feature execute the test"
-
-    def test_agent_released(self):
-        @released(agent="0.78.0")
-        class Test_Skipped:
-            pass
-
-        @released(agent="0.76.0")
-        class Test_Included:
-            pass
-
-        assert is_skipped(
-            Test_Skipped, "missing_feature for agent: declared released version is 0.78.0, tested version is 0.77.0"
-        )
-        assert is_not_skipped(Test_Included)
-
-
-def test_released_only_on_class():
-    with pytest.raises(TypeError):
-
-        @released(python="1.0")
-        def test_xx():
-            pass
 
 
 if __name__ == "__main__":

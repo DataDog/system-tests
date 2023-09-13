@@ -208,6 +208,7 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
+      Test_ExtraTagsFromRule: missing_feature
       Test_HttpClientIP:
         '*': v1.34.0
         chi: v1.36.0
@@ -252,7 +253,7 @@ tests/:
       Test_Debugger_Line_Probe_Statuses: missing_feature
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
-    test_db_integrations_sql.py: 
+    test_db_integrations_sql.py:
       Test_Mssql_db_integration: missing_feature
       Test_Mysql_db_integration: missing_feature
       Test_Postgres_db_integration: missing_feature
@@ -269,7 +270,7 @@ tests/:
       TestDynamicConfigV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: "missing_feature"
+      Test_RemoteConfigurationExtraServices: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.44.1
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature

@@ -656,6 +656,11 @@ tests/:
         '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  test_the_test/:
+    test_decorators.py:
+      Test_NotReleased: missing_feature
+    test_json_report.py:
+      Test_Mock: v0.0.99
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

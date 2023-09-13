@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, released, irrelevant, context, bug
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug
 from utils.tools import logger
 
 
-@released(nodejs="4.4.0")
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -38,7 +37,6 @@ class Test_DsmKafka:
         )
 
 
-@released(nodejs="?")
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -54,7 +52,6 @@ class Test_DsmHttp:
         )
 
 
-@released(nodejs="?")
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -104,7 +101,6 @@ class Test_DsmRabbitmq:
         )
 
 
-@released(nodejs="?")
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
@@ -140,7 +136,6 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
 
-@released(nodejs="?")
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""

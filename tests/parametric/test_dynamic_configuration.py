@@ -11,7 +11,7 @@ from typing import Dict
 from typing import List
 
 from utils.parametric.spec.trace import Span
-from utils import context, missing_feature, released, rfc, scenarios
+from utils import context, missing_feature, rfc, scenarios
 
 import pytest
 
@@ -100,7 +100,6 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
 ENV_SAMPLING_RULE_RATE = 0.55
 
 
-@released(nodejs="4.11.0")  # also in 3.32.0 and 2.45.0
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
 class TestDynamicConfigV1:
