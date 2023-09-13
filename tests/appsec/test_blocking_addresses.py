@@ -107,7 +107,7 @@ class Test_BlockingAddresses:
     def setup_cookies(self):
         self.c_req = weblog.get("/", headers={"Cookie": "mycookie=jdfoSDGFkivRG_234"})
 
-    @missing_feature(library="nodejs", reason="Not supported yet")
+    # @missing_feature(library="nodejs", reason="Not supported yet")
     def test_cookies(self):
         """can block on server.request.cookies"""
 
