@@ -6,7 +6,7 @@ from collections import defaultdict
 import csv
 from random import randint, seed
 
-from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenarios
+from utils import weblog, interfaces, context, missing_feature, bug, irrelevant, flaky, scenarios
 from utils.tools import logger
 
 

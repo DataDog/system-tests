@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import context, weblog, interfaces, released, bug, coverage, missing_feature
+from utils import context, weblog, interfaces, bug, coverage, missing_feature
 from .utils import rules
 
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):

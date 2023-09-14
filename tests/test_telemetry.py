@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, released, irrelevant, weblog, scenarios
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 

@@ -6,7 +6,7 @@ import datetime
 import time
 
 import pytest
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenarios, missing_feature, flaky
+from utils import weblog, context, coverage, interfaces, rfc, bug, scenarios, flaky
 from utils.tools import logger
 
 

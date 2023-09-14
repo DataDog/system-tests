@@ -12,7 +12,6 @@ from utils import (
     coverage,
     interfaces,
     missing_feature,
-    released,
     rfc,
     bug,
     irrelevant,

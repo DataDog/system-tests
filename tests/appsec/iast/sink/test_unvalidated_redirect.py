@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released, irrelevant, missing_feature
+from utils import context, coverage, irrelevant
 from .._test_iast_fixtures import SinkFixture
 
 

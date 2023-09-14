@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, coverage, released
-from .._test_iast_fixtures import SinkFixture, get_iast_event, assert_iast_vulnerability
+from utils import weblog, context, bug, missing_feature, coverage
+from .._test_iast_fixtures import SinkFixture, assert_iast_vulnerability
 
 
 def _expected_location():
