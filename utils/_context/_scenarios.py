@@ -821,30 +821,36 @@ class ParametricScenario(_Scenario):
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
         if os.path.isfile(tracer_version_dockerfile):
-            subprocess.run(
-                [
-                    "docker",
-                    "build",
-                    ".",
-                    "-t",
-                    "ddtracer_version",
-                    "-f",
-                    f"{tracer_version_dockerfile}",
-                    "--build-arg",
-                    f"BUILD_MODULE={build_param}",
-                ],
-                stdout=subprocess.DEVNULL,
-                check=False,
-            )
-            result = subprocess.run(
-                ["docker", "run", "--rm", "-t", "ddtracer_version"],
-                cwd=parametric_appdir,
-                stdout=subprocess.PIPE,
-                check=False,
-            )
-            self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
+            try:
+                subprocess.run(
+                    [
+                        "docker",
+                        "build",
+                        ".",
+                        "-t",
+                        "ddtracer_version",
+                        "-f",
+                        f"{tracer_version_dockerfile}",
+                        "--build-arg",
+                        f"BUILD_MODULE={build_param}",
+                    ],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    check=True,
+                )
+                result = subprocess.run(
+                    ["docker", "run", "--rm", "-t", "ddtracer_version"],
+                    cwd=parametric_appdir,
+                    stdout=subprocess.PIPE,
+                    check=False,
+                )
+                self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
+            except subprocess.CalledProcessError as e:
+                logger.error(f"{e}")
+                raise ValueError(e)
         else:
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
+        logger.stdout(f"Library: {self.library}")
 
     @property
     def library(self):
