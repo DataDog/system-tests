@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
+from utils import coverage, weblog, interfaces, irrelevant, scenarios
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag

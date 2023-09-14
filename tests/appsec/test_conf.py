@@ -4,11 +4,12 @@
 
 import pytest
 
-from utils import weblog, context, coverage, interfaces, released, missing_feature, irrelevant, rfc, scenarios
+from utils import weblog, context, coverage, interfaces, missing_feature, irrelevant, rfc, scenarios
 from utils.tools import nested_lookup
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
+# TODO: move this in manifest file
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 

@@ -1,4 +1,4 @@
-from utils import interfaces, released, scenarios, weblog
+from utils import interfaces, scenarios, weblog
 
 
 @scenarios.appsec_custom_rules

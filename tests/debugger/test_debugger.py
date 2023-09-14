@@ -1,23 +1,15 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import json
-from collections import defaultdict
 
 from utils import (
-    ValidationError,
     scenarios,
     context,
-    coverage,
     interfaces,
     missing_feature,
-    released,
-    rfc,
-    bug,
     irrelevant,
     weblog,
 )
-from utils.tools import logger
 
 
 def validate_data(expected_probes, expected_snapshots):

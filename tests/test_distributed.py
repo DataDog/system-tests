@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, released, scenarios
+from utils import weblog, interfaces, scenarios
 
 
 @scenarios.trace_propagation_style_w3c

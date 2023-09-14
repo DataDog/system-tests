@@ -3,7 +3,7 @@ import logging
 
 import pytest
 
-from utils import bug, irrelevant, missing_feature, flaky, rfc, released
+from utils import bug, irrelevant, missing_feature, flaky, rfc
 from utils.tools import logger
 
 
