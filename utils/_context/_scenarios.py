@@ -1202,7 +1202,15 @@ class scenarios:
         proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=10,
-        doc="Test scenario for checking if debugger successfully generates snapshots for specific probes",
+        doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
+    )
+
+    debugger_line_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_LINE_PROBES_SNAPSHOT",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=10,
+        doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
     )
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")

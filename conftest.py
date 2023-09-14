@@ -175,7 +175,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
             declaration = manifest[nodeid]
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            released(**declaration)(obj)
+            released(_is_from_manifest=True, **declaration)(obj)
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -243,59 +243,10 @@ def _item_is_skipped(item):
     return False
 
 
-def _export_manifest():
-    # temp code, for manifest migrations
-
-    import yaml
-    from utils._decorators import _released_declarations
-
-    result = {}
-
-    def convert_value(value):
-        if isinstance(value, dict):
-            return {k: convert_value(v) for k, v in value.items()}
-
-        if value == "?":
-            return "missing_feature"
-
-        if value[0].isnumeric():
-            return f"v{value}"
-
-        return value
-
-    def feed(parent: dict, path: list, value):
-
-        key = path.pop(0)
-
-        if len(path) == 0:
-            parent[key] = convert_value(value)
-        else:
-            if key not in parent:
-                parent[key] = {}
-
-            feed(parent[key], path, value)
-
-    def sort_key(name):
-        return name if name.endswith("/") else f"zzz_{name}"
-
-    def recursive_sort(obj: dict):
-        if not isinstance(obj, dict):
-            return obj
-
-        return {k: recursive_sort(obj[k]) for k in sorted(obj, key=sort_key)}
-
-    for path, value in _released_declarations.items():
-        feed(result, path.replace("/", "/#").replace("::", "#").split("#"), value)
-
-    with open(f"{context.scenario.host_log_folder}/manifest.yaml", "w", encoding="utf-8") as f:
-        yaml.dump(recursive_sort(result), f, sort_keys=False)
-
-
 def pytest_collection_finish(session):
     from utils import weblog
 
     if session.config.option.collectonly:
-        _export_manifest()
         return
 
     last_file = ""

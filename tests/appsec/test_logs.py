@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import weblog, context, interfaces, released, irrelevant, missing_feature, bug, coverage
+from utils import weblog, context, interfaces, irrelevant, missing_feature, bug, coverage
 
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
@@ -13,7 +13,6 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Standardization:
     """AppSec logs should be standardized"""
@@ -88,7 +87,6 @@ class Test_Standardization:
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110$", level="INFO")
 
 
-@released(java="?")
 class Test_StandardizationBlockMode:
     """AppSec blocking logs should be standardized"""
 

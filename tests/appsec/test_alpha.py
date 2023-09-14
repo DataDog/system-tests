@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, released, missing_feature, bug, coverage
+from utils import context, weblog, interfaces, missing_feature, bug, coverage
 
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)

@@ -4,11 +4,12 @@
 
 import pytest
 
-from utils import weblog, context, coverage, interfaces, released, missing_feature, irrelevant, rfc, scenarios
+from utils import weblog, context, coverage, interfaces, missing_feature, irrelevant, rfc, scenarios
 from utils.tools import nested_lookup
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
+# TODO: move this in manifest file
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
@@ -18,8 +19,6 @@ class Test_OneVariableInstallation:
     """Installation with 1 env variable"""
 
 
-@released(java="0.87.0")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
@@ -50,9 +49,6 @@ class Test_RuleSet_1_2_5:
         assert context.appsec_rules_version >= "1.2.5"
 
 
-@released(java="0.99.0")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RuleSet_1_3_1:
     """ AppSec uses rule set 1.3.1 or higher """
@@ -80,9 +76,6 @@ class Test_RuleSet_1_3_1:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
-@released(java="0.100.0")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ConfigurationVariables:
     """ Configuration environment variables """
 

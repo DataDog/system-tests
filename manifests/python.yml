@@ -30,7 +30,6 @@ tests/:
           '*': missing_feature
           django-poc: v1.19.0.dev1
           flask-poc: v1.19.0.dev1
-
     iast/:
       sink/:
         test_command_injection.py:
@@ -69,8 +68,7 @@ tests/:
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
-          TestXSS:
-            '*': missing_feature
+          TestXSS: missing_feature
       source/:
         test_body.py:
           TestRequestBody:
@@ -130,7 +128,7 @@ tests/:
           '*': v1.16.1
           django-poc: v1.10
           flask-poc: v1.10
-        Test_CustomBlockingResponse: missing_feature
+        Test_CustomBlockingResponse: v1.20.0.dev
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.16.1
@@ -179,8 +177,7 @@ tests/:
         '*': v1.16.1
         django-poc: v1.10
         flask-poc: v1.10
-      Test_BlockingGraphqlResolvers:
-        '*': missing_feature
+      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
         '*': v1.16.1
         django-poc: v1.10
@@ -269,6 +266,16 @@ tests/:
       Test_Debugger_Line_Probe_Statuses: missing_feature
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
+    test_db_integrations_sql.py:
+      Test_Mssql_db_integration:
+        '*': missing_feature
+        flask-poc: v1.18.3
+      Test_Mysql_db_integration:
+        '*': missing_feature
+        flask-poc: v1.18.3
+      Test_Postgres_db_integration:
+        '*': missing_feature
+        flask-poc: v1.18.3
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature

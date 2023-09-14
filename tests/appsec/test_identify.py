@@ -2,10 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, coverage, interfaces, released
+from utils import weblog, coverage, interfaces
 
 
-@released(java="?")
 @coverage.basic
 class Test_Basic:
     """Basic tests for Identify SDK for AppSec"""

@@ -2,22 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, context, released, missing_feature
+from utils import coverage
 
 
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.not_testable
 class Test_InstallationInstructions:
     """Detailed installation instructions"""
 
 
 @coverage.not_testable
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_InstallationDebugProcedure:
     """Procedure to debug install"""
 
 
 @coverage.not_testable
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_PublicDocumentation:
     """Public documentation is published"""

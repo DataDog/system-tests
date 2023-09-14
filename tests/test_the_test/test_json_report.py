@@ -3,7 +3,7 @@ from utils.tools import logger
 import os
 import json
 
-from utils import missing_feature, irrelevant, released, coverage, scenarios, rfc
+from utils import missing_feature, irrelevant, coverage, scenarios, rfc
 
 
 @scenarios.test_the_test
@@ -81,7 +81,7 @@ class Test_Json_Report:
         assert "java" in self.report_json["release_versions"]["tests/test_the_test/test_json_report.py::Test_Mock"]
         assert (
             self.report_json["release_versions"]["tests/test_the_test/test_json_report.py::Test_Mock"]["java"]
-            == "0.0.99"
+            == "v0.0.99"
         )
 
     def test_context_serialization(self):
@@ -118,7 +118,6 @@ class Test_Json_Report:
 
 
 @scenarios.mock_the_test
-@released(java="0.0.99")
 @rfc("https://mock")
 @coverage.good
 class Test_Mock:

@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released, missing_feature
+from utils import context, coverage, missing_feature
 from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(java="?")
 class Test_TrustBoundaryViolation:
     """Test Trust Boundary Violation detection."""
 

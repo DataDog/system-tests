@@ -1,12 +1,7 @@
 import inspect
-import os
 import pytest
 
 from utils._context.core import context
-
-
-# temp code, for manifest file migrations
-_released_declarations = {}
 
 
 def _get_skipped_item(item, skip_reason):
@@ -63,6 +58,7 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
             return function_or_class
 
         full_reason = "missing_feature" if reason is None else f"missing_feature: {reason}"
+
         return _get_expected_failure_item(function_or_class, full_reason)
 
     return decorator
@@ -130,8 +126,12 @@ def released(
     ruby=None,
     php_appsec=None,
     agent=None,
+    _is_from_manifest=False,
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
+
+    if not _is_from_manifest:
+        raise ValueError("Please use manifest file for version declaration")
 
     def wrapper(test_class):
         if not inspect.isclass(test_class):
@@ -154,10 +154,6 @@ def released(
             if component_name in test_class.__released__:
                 raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
 
-            if component_name == context.library.library:
-                file = os.path.relpath(inspect.getfile(test_class))
-                _released_declarations[f"{file}::{test_class.__name__}"] = declaration
-
             declaration = _resolve_declaration(declaration)
 
             test_class.__released__[component_name] = declaration
@@ -165,8 +161,7 @@ def released(
             if declaration is None:
                 return None
 
-            if declaration == "?":  # fix legacy "?" in @released
-                declaration = "missing_feature (release not yet planned)"
+            assert declaration != "?"  # ensure there is no more ? in version declaration
 
             if (
                 declaration.startswith("missing_feature")
