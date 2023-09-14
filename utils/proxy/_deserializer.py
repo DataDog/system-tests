@@ -84,7 +84,7 @@ def _decode_v_0_5_traces(content):
     return result
 
 
-def deserialize_dd_appsec_s_meta(key, payload):
+def deserialize_dd_appsec_s_meta(payload):
     """ meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings """
 
     try:
@@ -204,7 +204,7 @@ def _deserialized_nested_json_from_trace_payloads(content, interface):
 def _deserialize_meta(meta):
      for key in list(meta):
                     if key.startswith("_dd.appsec.s."):
-                        meta[key] = deserialize_dd_appsec_s_meta(key, meta[key])
+                        meta[key] = deserialize_dd_appsec_s_meta(meta[key])
                     elif key in keys:
                         meta[key] = json.loads(meta[key])
 
