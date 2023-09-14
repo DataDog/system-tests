@@ -1,5 +1,6 @@
 package com.datadoghq.resteasy;
 
+import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
@@ -21,8 +22,6 @@ import java.util.List;
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
-    String superSecretAccessKey = "insecure";
-
 
     @GET
     public String hello() {
@@ -46,9 +45,43 @@ public class MyResource {
     }
 
     @GET
+    @Path("/tag_value/{value}/{code}")
+    public Response tagValue(@PathParam("value") String value, @PathParam("code") int code) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        return Response.status(code)
+                .header("content-type", "text/plain")
+                .entity("Value tagged").build();
+    }
+
+    @OPTIONS
+    @Path("/tag_value/{value}/{code}")
+    public Response tagValueOptions(@PathParam("value") String value, @PathParam("code") int code) {
+        return tagValue(value, code);
+    }
+
+    @POST
+    @Path("/tag_value/{value}/{code}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response tagValuePost(@PathParam("value") String value, @PathParam("code") int code, MultivaluedMap<String, String> form) {
+        return tagValue(value, code);
+    }
+
+    @GET
     @Path("/params/{params: .*}")
-    public String waf(@PathParam("params") List<PathSegment> params) {
+    public String params(@PathParam("params") List<PathSegment> params) {
         return params.toString();
+    }
+
+    @GET
+    @Path("/waf/{params: .*}")
+    public String wafParams(@PathParam("params") List<PathSegment> params) {
+        return params.toString();
+    }
+
+    @GET
+    @Path("/waf")
+    public String waf() {
+        return "Hello world!";
     }
 
     @POST
@@ -70,6 +103,20 @@ public class MyResource {
     @Consumes(MediaType.APPLICATION_XML)
     public String postWafXml(XmlObject object) {
         return object.toString();
+    }
+
+    @POST
+    @Path("/waf")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public String postWafBin(byte[] data) {
+        return "Hello world!";
+    }
+
+    @POST
+    @Path("/waf")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public String postWafString(String data) {
+        return data;
     }
 
     @GET
@@ -177,4 +224,13 @@ public class MyResource {
         public HashMap<String, String> response_headers;
     }
 
+    private void setRootSpanTag(final String key, final String value) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) span).getLocalRootSpan();
+            if (rootSpan != null) {
+                rootSpan.setTag(key, value);
+            }
+        }
+    }
 }

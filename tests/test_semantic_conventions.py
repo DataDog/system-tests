@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, released, missing_feature
+from utils import context, interfaces, bug, missing_feature
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -27,7 +27,6 @@ VARIANT_COMPONENT_MAP = {
     "uwsgi-poc": "flask",
     "django-poc": "django",
     "gin": "gin-gonic/gin",
-    "gorilla": "gorilla/mux",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
     "sinatra": {"rack.request": "rack"},
@@ -53,14 +52,6 @@ VARIANT_COMPONENT_MAP = {
         "hsqldb.query": "java-jdbc-statement",
         "servlet.response": "java-web-servlet-response",
     },
-    "spring-boot-native": {
-        "servlet.request": "tomcat-server",
-        "hsqldb.query": "java-jdbc-statement",
-        "spring.handler": "spring-web-controller",
-        "servlet.forward": "java-web-servlet-dispatcher",
-        "servlet.include": "java-web-servlet-dispatcher",
-        "servlet.response": "java-web-servlet-response",
-    },
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
         "hsqldb.query": "java-jdbc-statement",
@@ -74,6 +65,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "undertow-http.request": "undertow-http-server",
         "servlet.response": "java-web-servlet-response",
+        "servlet.forward": "java-web-servlet-dispatcher",
     },
     "spring-boot-wildfly": {
         "servlet.request": "undertow-http-server",
@@ -83,7 +75,15 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
     },
+    "spring-boot-payara": {
+        "servlet.request": "java-web-servlet",
+        "hsqldb.query": "java-jdbc-statement",
+        "servlet.forward": "java-web-servlet-dispatcher",
+        "spring.handler": "spring-web-controller",
+        "servlet.response": "java-web-servlet-response",
+    },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
+    "akka-http": "akka-http-server",
     "rails": {
         "rails.action_controller": "action_pack",
         "rails.render_template": "action_view",
@@ -126,7 +126,6 @@ def get_component_name(weblog_variant, language, span_name):
     return expected_component
 
 
-@released(ruby="1.7.0", golang="1.45.0", python="1.80.0", nodejs="3.13.1")
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -314,7 +313,6 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
-@released(ruby="1.7.0", nodejs="3.13.1", java="1.6.0", php="0.83.1", dotnet="2.6.0")
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

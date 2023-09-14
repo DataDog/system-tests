@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 
@@ -52,6 +53,17 @@ func main() {
 
 	mux.HandleFunc("/params/{myParam}", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/tag_value/{tag}/{status}", func(w http.ResponseWriter, r *http.Request) {
+		ctx := chi.RouteContext(r.Context())
+		tag := ctx.URLParam("tag")
+		status, _ := strconv.Atoi(ctx.URLParam("status"))
+
+		span, _ := tracer.SpanFromContext(r.Context())
+		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		w.WriteHeader(status)
+		w.Write([]byte("Value tagged"))
 	})
 
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
@@ -157,6 +169,18 @@ func main() {
 		parentSpan.Finish(tracer.FinishTime(time.Now().Add(duration * 2)))
 
 		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/read_file", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Query().Get("file")
+		content, err := os.ReadFile(path)
+
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+			return
+		}
+		w.Write([]byte(content))
 	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {

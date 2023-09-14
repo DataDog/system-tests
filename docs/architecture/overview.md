@@ -51,7 +51,7 @@ The tests then wait on the results, which are available as the logs are collecte
 
 ## What are system-tests bad for?
 
- - Combinatorial-style tests (Permutations of frameowrk runtimes, 3rd libraries versions, operating systems)
+ - Combinatorial-style tests (Permutations of framework runtimes, 3rd libraries versions, operating systems)
  - Cloud deployments, kubernetes, distributed deployments
  - Immediately knowing the reason a feature fails
  - Problems or features which are not shared across tracers

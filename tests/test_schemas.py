@@ -18,6 +18,12 @@ class Test_Library:
     @bug(context.library < "java@0.93.0")
     @bug(context.library >= "dotnet@2.24.0")
     @bug(context.library >= "nodejs@2.27.1")
+    @bug(
+        context.library >= "python@1.16.0rc2.dev37"
+        and context.agent_version >= "7.47.0rc2"
+        and context.appsec_rules_file is not None,
+        reason="on /v0.7/config, client.products is an empty array",
+    )
     def test_full(self):
         interfaces.library.assert_schemas()
 
@@ -50,6 +56,8 @@ class Test_Library:
                 # value is missing in configuration object in telemetry payloads
                 r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
             )
+        elif context.library == "python":
+            allowed_errors = (r"\[\] is too short on instance \['client'\]\['products'\]",)
 
         interfaces.library.assert_schemas(allowed_errors=allowed_errors)
 

@@ -1,7 +1,6 @@
-from utils import scenarios, released, interfaces, weblog
+from utils import interfaces, scenarios, weblog
 
 
-@released(java="?", dotnet="2.30.0", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?", cpp="?")
 @scenarios.appsec_custom_rules
 class Test_CustomRules:
     """Includes a version of the WAF supporting custom rules"""

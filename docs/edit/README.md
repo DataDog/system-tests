@@ -43,13 +43,12 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-And it's also a good idea to declare [a version](./declare-versions.md) and a [coverage](./coverage.md) for your feature, and sometimes [skip a test](./features.md)
+And it's also a good idea to declare a [coverage](./coverage.md) for your feature, and sometimes [skip a test](./features.md)
 
 ```python
-from utils import weblog, interfaces, context, released, bug
+from utils import weblog, interfaces, context, bug
 
 
-@released(ruby="1.2.3")
 class Test_Feature():
 
     def setup_feature_detail(self):
@@ -61,4 +60,4 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-You now have the basics. It proably won't be as easy, and you may needs to dive into internals, so please do not hesitate to ask for help on slack at [#apm-integrations-reliability-and-performance-team](https://dd.slack.com/archives/C01CGB22DC2)
+You now have the basics. It proably won't be as easy, and you may needs to dive into internals, so please do not hesitate to ask for help on slack at [#apm-shared-testing](https://dd.slack.com/archives/C025TJ4RZ8X)

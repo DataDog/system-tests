@@ -17,7 +17,8 @@
             "generate-metrics",
             "app-heartbeat",
             "app-closing",
-            "apm-onboarding-event"
+            "apm-onboarding-event",
+            "distributions"
           ]
         }
       }
@@ -121,6 +122,23 @@
         "properties": {
           "payload": {
             "$ref": "/miscs/telemetry/common/events/apm-onboarding.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "const": "distributions"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/distributions.json"
           }
         }
       }

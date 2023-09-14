@@ -6,11 +6,15 @@
 
 import threading
 import json
+from os import listdir
+from os.path import isfile, join
 import re
 import time
 
+import pytest
+
+from utils._context.core import context
 from utils.tools import logger
-from ._deserializer import deserialize
 
 
 class InterfaceValidator:
@@ -22,17 +26,10 @@ class InterfaceValidator:
     def __init__(self, name):
         self.name = name
 
-        self._wait_for_event = threading.Event()
-        self._wait_for_function = None
+        self.replay = False
 
-        self._lock = threading.RLock()
-        self._data_list = []
-        self._ingested_files = set()
-
-        self.accept_data = True
-
-    def configure(self):
-        pass
+    def configure(self, replay):
+        self.replay = replay
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -40,13 +37,25 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self, timeout, stop_accepting_data=True):
-        time.sleep(timeout)
-        self.accept_data = not stop_accepting_data
+
+class ProxyBasedInterfaceValidator(InterfaceValidator):
+    """ Interfaces based on proxy container """
+
+    def __init__(self, name):
+        super().__init__(name)
+
+        self._wait_for_event = threading.Event()
+        self._wait_for_function = None
+
+        self._lock = threading.RLock()
+        self._data_list = []
+        self._ingested_files = set()
+
+    @property
+    def _log_folder(self):
+        return f"{context.scenario.host_log_folder}/interfaces/{self.name}"
 
     def ingest_file(self, src_path):
-        if not self.accept_data:
-            return
 
         with self._lock:
             if src_path in self._ingested_files:
@@ -61,16 +70,41 @@ class InterfaceValidator:
                     # the file may not be finished
                     return
 
-            deserialize(data, self.name)
-
-            with open(src_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
-
-            self._data_list.append(data)
+            self._append_data(data)
             self._ingested_files.add(src_path)
+
+            # make 100% sure that the list is sorted
+            self._data_list.sort(key=lambda data: data["log_filename"])
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
+
+    def wait(self, timeout):
+        time.sleep(timeout)
+
+    def load_data_from_logs(self):
+
+        for filename in sorted(listdir(self._log_folder)):
+            file_path = join(self._log_folder, filename)
+            if isfile(file_path):
+
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                self._append_data(data)
+                logger.info(f"{self.name} interface gets {file_path}")
+
+    def _append_data(self, data):
+        filename = data["log_filename"]
+        if "content" not in data["request"]:
+            traceback = data["request"].get("traceback", "no traceback")
+            pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
+
+        if data["response"] and "content" not in data["response"]:
+            traceback = data["response"].get("traceback", "no traceback")
+            pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
+
+        self._data_list.append(data)
 
     def get_data(self, path_filters=None):
 
@@ -103,9 +137,12 @@ class InterfaceValidator:
                 raise
 
         if not success_by_default:
-            raise Exception("Test has not been validated by any data")
+            raise ValueError("Test has not been validated by any data")
 
     def wait_for(self, wait_for_function, timeout):
+
+        if self.replay:
+            return
 
         # first, try existing data
         with self._lock:
@@ -126,61 +163,7 @@ class InterfaceValidator:
         self._wait_for_function = None
 
 
-class ObjectDumpEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, bytes):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
-
-
 class ValidationError(Exception):
     def __init__(self, *args: object, extra_info=None) -> None:
         super().__init__(*args)
         self.extra_info = extra_info
-
-
-def get_rid_from_request(request):
-    if request is None:
-        return None
-
-    user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
-    return user_agent[-36:]
-
-
-def get_rid_from_span(span):
-
-    if not isinstance(span, dict):
-        logger.error(f"Span should be an object, not {type(span)}")
-        return None
-
-    meta = span.get("meta", {})
-
-    user_agent = None
-
-    if span.get("type") == "rpc":
-        user_agent = meta.get("grpc.metadata.user-agent")
-        # java does not fill this tag; it uses the normal http tags
-
-    if not user_agent:
-        # code version
-        user_agent = meta.get("http.request.headers.user-agent")
-
-    if not user_agent:  # try something for .NET
-        user_agent = meta.get("http_request_headers_user-agent")
-
-    if not user_agent:  # last hope
-        user_agent = meta.get("http.useragent")
-
-    return get_rid_from_user_agent(user_agent)
-
-
-def get_rid_from_user_agent(user_agent):
-    if not user_agent:
-        return None
-
-    match = re.search("rid/([A-Z]{36})", user_agent)
-
-    if not match:
-        return None
-
-    return match.group(1)

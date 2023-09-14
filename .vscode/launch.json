@@ -5,12 +5,58 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Run DEFAULT scenario",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "module": "pytest",
+            "args": ["-p", "no:warnings"],
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": true
+        },
+        {
+            "name": "Run INTEGRATIONS scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "INTEGRATIONS", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "LIBRARY_CONF_CUSTOM_HEADERS_LONG", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Run PROFILING scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "PROFILING", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Replay REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

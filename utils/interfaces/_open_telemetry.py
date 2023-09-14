@@ -8,17 +8,15 @@ This files will validate data flow between agent and backend
 
 import threading
 
-from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
-
-from utils.tools import logger
-from utils.interfaces._core import InterfaceValidator, get_rid_from_request
+from utils.tools import logger, get_rid_from_request
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
-class OpenTelemetryInterfaceValidator(InterfaceValidator):
+class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
     """ Validated communication between open telemetry and datadog backend"""
 
     def __init__(self):
-        super().__init__("agent")
+        super().__init__("open_telemetry")
         self.ready = threading.Event()
 
     def ingest_file(self, src_path):
@@ -26,22 +24,18 @@ class OpenTelemetryInterfaceValidator(InterfaceValidator):
         return super().ingest_file(src_path)
 
     def get_otel_trace_id(self, request):
-        paths = ["/api/v0.2/traces"]
+        paths = ["/api/v0.2/traces", "/v1/traces"]
         rid = get_rid_from_request(request)
 
         if rid:
             logger.debug(f"Try to find traces related to request {rid}")
 
         for data in self.get_data(path_filters=paths):
-            export_request = ExportTraceServiceRequest()
-            content = eval(data["request"]["content"])  # Raw content is a str like "b'\n\x\...'"
-            assert export_request.ParseFromString(content) > 0, content
-            for resource_span in export_request.resource_spans:
-                for scope_span in resource_span.scope_spans:
-                    for span in scope_span.spans:
-                        for attribute in span.attributes:
-                            if (
-                                attribute.key == "http.request.headers.user-agent"
-                                and rid in attribute.value.string_value
-                            ):
-                                yield span.trace_id
+            for resource_span in data.get("request").get("content").get("resourceSpans"):
+                for scope_span in resource_span.get("scopeSpans"):
+                    for span in scope_span.get("spans"):
+                        for attribute in span.get("attributes", []):
+                            attr_key = attribute.get("key")
+                            attr_val = attribute.get("value").get("stringValue")
+                            if attr_key == "http.request.headers.user-agent" and rid in attr_val:
+                                yield span.get("traceId")

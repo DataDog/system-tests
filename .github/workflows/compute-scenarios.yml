@@ -1,0 +1,158 @@
+name: "Compute scenarios to run"
+
+on:
+  workflow_call:
+    # Map the workflow outputs to job outputs
+    outputs:
+      run_all:
+        description: "Shall we run all scenarios"
+        value: ${{ jobs.main.outputs.run_all }}
+      run_open_telemetry:
+        description: "Shall we run open-telemetry scenarios"
+        value: ${{ jobs.main.outputs.run_open_telemetry }}
+      run_sampling:
+        description: "Shall we run sampling scenarios"
+        value: ${{ jobs.main.outputs.run_sampling }}
+      run_profiling:
+        description: "Shall we run profiling scenario"
+        value: ${{ jobs.main.outputs.run_profiling }}
+      run_parametric:
+        description: "Shall we run parametric scenario"
+        value: ${{ jobs.main.outputs.run_parametric }}
+      run_libinjection:
+        description: "Shall we run lib-injection scenarios"
+        value: ${{ jobs.main.outputs.run_libinjection }}
+      run_debugger:
+        description: "Shall we run debugger scenarios"
+        value: ${{ jobs.main.outputs.run_debugger }}
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    # Map the job outputs to step outputs
+    outputs:
+      run_all: ${{ steps.compute_run_all.outputs.result }}
+      run_open_telemetry: ${{ steps.compute_open_telemetry.outputs.result }}
+      run_sampling: ${{ steps.compute_sampling.outputs.result }}
+      run_profiling: ${{ steps.compute_profiling.outputs.result }}
+      run_parametric: ${{ steps.compute_parametric.outputs.result }}
+      run_libinjection: ${{ steps.compute_libinjection.outputs.result }}
+      run_debugger: ${{ steps.compute_debugger.outputs.result }}
+    steps:
+      - name: Compute run_all
+        id: compute_run_all
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-all-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_open_telemetry
+        id: compute_open_telemetry
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-open-telemetry-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_sampling
+        id: compute_sampling
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-sampling-scenario') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_profiling
+        id: compute_profiling
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-profiling-scenario') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_parametric
+        id: compute_parametric
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-parametric-scenario') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_libinjection
+        id: compute_libinjection
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-libinjection-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_debugger
+        id: compute_debugger
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-debugger-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Print results
+        run: |
+          echo "Run all: -> ${{ steps.compute_run_all.outputs.result }}"
+          echo "Run open telemetry: -> ${{ steps.compute_open_telemetry.outputs.result }}"
+          echo "Run sampling: -> ${{ steps.compute_sampling.outputs.result }}"
+          echo "Run profiling: -> ${{ steps.compute_profiling.outputs.result }}"
+          echo "Run parametric: -> ${{ steps.compute_parametric.outputs.result }}"
+          echo "Run lib-injection: -> ${{ steps.compute_libinjection.outputs.result }}"
+          echo "Run debugger: -> ${{ steps.compute_debugger.outputs.result }}"

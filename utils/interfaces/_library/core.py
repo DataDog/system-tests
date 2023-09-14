@@ -2,40 +2,30 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from collections import namedtuple
+import copy
 import json
 import threading
-from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
-from utils.tools import logger
-from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
+from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
-from utils.interfaces._library.appsec_iast import _AppSecIastValidator
-from utils.interfaces._library.appsec_iast import _AppSecIastSourceValidator
 from utils.interfaces._library.miscs import _SpanTagValidator
-from utils.interfaces._library.sampling import (
-    _TracesSamplingDecisionValidator,
-    _AddSamplingDecisionValidator,
-    _DistributedTracesDeterministicSamplingDecisionValidator,
-)
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
 )
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 
-class LibraryInterfaceValidator(InterfaceValidator):
+class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
     def __init__(self):
         super().__init__("library")
         self.ready = threading.Event()
-        self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
     def ingest_file(self, src_path):
         self.ready.set()
@@ -71,7 +61,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         if rid:
             logger.debug(f"Try to found spans related to request {rid}")
 
-        for data, trace in self.get_traces():
+        for data, trace in self.get_traces(request=request):
             for span in trace:
                 if rid is None:
                     yield data, trace, span
@@ -79,8 +69,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
                     logger.debug(f"A span is found in {data['log_filename']}")
                     yield data, trace, span
 
-    def get_root_spans(self):
-        for data, _, span in self.get_spans():
+    def get_root_spans(self, request=None):
+        for data, _, span in self.get_spans(request=request):
             if span.get("parent_id") in (0, None):
                 yield data, span
 
@@ -91,7 +81,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
-                appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
+                appsec_data = span["meta"]["_dd.appsec.json"]
                 yield data, trace, span, appsec_data
 
     def get_legacy_appsec_events(self, request=None):
@@ -130,20 +120,39 @@ class LibraryInterfaceValidator(InterfaceValidator):
                                 yield data, event
                                 break
 
-    def get_iast_events(self, request=None):
-        def vulnerability_dict(vulDict):
-            return namedtuple("X", vulDict.keys())(*vulDict.values())
+    def get_telemetry_data(self, flatten_message_batches=True):
+        all_data = self.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry")
+        if not flatten_message_batches:
+            yield from all_data
+        else:
+            for data in all_data:
+                if data["request"]["content"].get("request_type") == "message-batch":
+                    for batch_payload in data["request"]["content"]["payload"]:
+                        # create a fresh copy of the request for each payload in the
+                        # message batch, as though they were all sent independently
+                        copied = copy.deepcopy(data)
+                        copied["request"]["content"]["request_type"] = batch_payload.get("request_type")
+                        copied["request"]["content"]["payload"] = batch_payload.get("payload")
+                        yield copied
+                else:
+                    yield data
 
-        for data, _, span in self.get_spans(request):
-            if "_dd.iast.json" in span.get("meta", {}):
-                if request:  # do not spam log if all data are sent to the validator
-                    logger.debug(f"Try to find relevant iast data in {data['log_filename']}; span #{span['span_id']}")
+    def get_telemetry_metric_series(self, namespace, metric):
+        relevantSeries = []
+        for data in self.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "generate-metrics":
+                continue
+            fallback_namespace = content["payload"].get("namespace")
 
-                appsec_iast_data = json.loads(span["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
-                yield data, span, appsec_iast_data
+            for series in content["payload"]["series"]:
+                computed_namespace = series.get("namespace", fallback_namespace)
 
-    def get_telemetry_data(self):
-        yield from self.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry")
+                # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+                series["_computed_namespace"] = computed_namespace
+                if computed_namespace == namespace and series["metric"] == metric:
+                    relevantSeries.append(series)
+        return relevantSeries
 
     ############################################################
 
@@ -172,7 +181,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                     return
 
         if not success_by_default:
-            raise Exception("No appsec event has been found")
+            raise ValueError("No appsec event has been found")
 
     ######################################################
 
@@ -187,19 +196,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
             if span.get("type") == "web":
                 return
 
-        raise Exception("Nothing has been reported. No request root span with has been found")
+        raise ValueError("Nothing has been reported. No request root span with has been found")
 
     def assert_schemas(self, allowed_errors=None):
         validator = SchemaValidator("library", allowed_errors)
         self.validate(validator, success_by_default=True)
-
-    def assert_sampling_decision_respected(self, sampling_rate):
-        # TODO : move this in test class
-
-        validator = _TracesSamplingDecisionValidator(sampling_rate)
-
-        for data, span in self.get_root_spans():
-            validator(data, span)
 
     def assert_all_traces_requests_forwarded(self, paths):
         # TODO : move this in test class
@@ -217,7 +218,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
             for path in paths:
                 logger.error(f"A path has not been transmitted: {path}")
 
-            raise Exception("Some path has not been transmitted")
+            raise ValueError("Some path has not been transmitted")
 
     def assert_trace_id_uniqueness(self):
         trace_ids = {}
@@ -232,30 +233,20 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 trace_id = span["trace_id"]
 
                 if trace_id in trace_ids:
-                    raise Exception(f"Found duplicated trace id {trace_id} in {log_filename} and {trace_ids[trace_id]}")
+                    raise ValueError(
+                        f"Found duplicated trace id {trace_id} in {log_filename} and {trace_ids[trace_id]}"
+                    )
 
                 trace_ids[trace_id] = log_filename
-
-    def assert_sampling_decisions_added(self, traces):
-        # TODO: move this into test class
-        validator = _AddSamplingDecisionValidator(traces)
-        self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
-        validator.final_check()
-
-    def assert_deterministic_sampling_decisions(self, traces):
-        # TODO: move this into test class
-        validator = _DistributedTracesDeterministicSamplingDecisionValidator(traces)
-        self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
-        validator.final_check()
 
     def assert_no_appsec_event(self, request):
         for data, _, _, appsec_data in self.get_appsec_events(request=request):
             logger.error(json.dumps(appsec_data, indent=2))
-            raise Exception(f"An appsec event has been reported in {data['log_filename']}")
+            raise ValueError(f"An appsec event has been reported in {data['log_filename']}")
 
         for data, event in self.get_legacy_appsec_events(request=request):
             logger.error(json.dumps(event, indent=2))
-            raise Exception(f"An appsec event has been reported in {data['log_filename']}")
+            raise ValueError(f"An appsec event has been reported in {data['log_filename']}")
 
     def assert_waf_attack(
         self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
@@ -284,7 +275,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 return
 
         if not success_by_default:
-            raise Exception("No span validates this test")
+            raise ValueError("No span validates this test")
 
     def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
@@ -296,7 +287,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 raise
 
         if not success_by_default:
-            raise Exception("No span validates this test")
+            raise ValueError("No span validates this test")
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
         validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
@@ -305,44 +296,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
             success = success or validator(span)
 
         if not success:
-            raise Exception("Can't find anything to validate this test")
-
-    def expect_iast_sources(self, request, name=None, origin=None, value=None, source_count=None):
-        validator = _AppSecIastSourceValidator(name=name, origin=origin, value=value, source_count=source_count)
-
-        for _, _, iast_data in self.get_iast_events(request=request):
-            if validator(sources=iast_data.sources):
-                return
-
-        raise Exception("No data validates this tests")
-
-    def expect_iast_vulnerabilities(
-        self,
-        request,
-        vulnerability_type=None,
-        location_path=None,
-        location_line=None,
-        evidence=None,
-        vulnerability_count=None,
-    ):
-        validator = _AppSecIastValidator(
-            vulnerability_type=vulnerability_type,
-            location_path=location_path,
-            location_line=location_line,
-            evidence=evidence,
-            vulnerability_count=vulnerability_count,
-        )
-
-        for _, _, iast_data in self.get_iast_events(request=request):
-            if validator(vulnerabilities=iast_data.vulnerabilities):
-                return
-
-        raise Exception("No data validates this tests")
-
-    def expect_no_vulnerabilities(self, request):
-        for data, _, iast_data in self.get_iast_events(request=request):
-            logger.error(json.dumps(iast_data, indent=2))
-            raise Exception(f"Found IAST event in {data['log_filename']}")
+            raise ValueError("Can't find anything to validate this test")
 
     def assert_seq_ids_are_roughly_sequential(self):
         validator = _SeqIdLatencyValidation()
@@ -354,32 +308,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         validator.final_check()
 
-    def add_profiling_validation(self, validator, success_by_default=True):
-        self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
-
-    def profiling_assert_field(self, field_name, content_pattern=None):
-        self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
+    def get_profiling_data(self):
+        yield from self.get_data(path_filters="/profiling/v1/input")
 
     def assert_trace_exists(self, request, span_type=None):
         for _, _, span in self.get_spans(request=request):
             if span_type is None or span.get("type") == span_type:
                 return
 
-        raise Exception(f"No trace has been found for request {get_rid_from_request(request)}")
+        raise ValueError(f"No trace has been found for request {get_rid_from_request(request)}")
 
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
-
-
-class _TraceIdUniquenessExceptions:
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self.traces_ids = set()
-
-    def add_trace_id(self, trace_id):
-        with self._lock:
-            self.traces_ids.add(trace_id)
-
-    def should_be_unique(self, trace_id):
-        with self._lock:
-            return trace_id not in self.traces_ids
