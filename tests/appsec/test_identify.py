@@ -2,12 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import weblog, context, coverage, interfaces, released
+from utils import weblog, coverage, interfaces, released
 
 
-@released(java="?")
-@released(php="0.85.0", python=PYTHON_RELEASE_GA_1_1)
 @coverage.basic
 class Test_Basic:
     """Basic tests for Identify SDK for AppSec"""

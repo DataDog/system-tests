@@ -16,7 +16,6 @@ It means that the feature is not testable in system test (it would make no sense
 
 ``` python
 @rfc("https://project-lambda")
-@released(python="?")
 @coverage.not_testable
 class Test_ProjectLambdaRevamp:
     """ Tracers internals has been revamped folowwing the Lamda Project """

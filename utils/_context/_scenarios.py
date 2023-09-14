@@ -24,6 +24,7 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
+    SqlDbTestedContainer,
 )
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
@@ -252,6 +253,12 @@ class _DockerScenario(_Scenario):
 
         for container in reversed(self._required_containers):
             container.configure(self.replay)
+
+    def get_container_by_dd_integration_name(self, name):
+        for container in self._required_containers:
+            if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
+                return container
+        return None
 
     def _get_warmups(self):
 
@@ -536,7 +543,9 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name, doc, include_agent=True, include_collector=True, include_intake=True) -> None:
+    def __init__(
+        self, name, doc, include_agent=True, include_collector=True, include_intake=True, backend_interface_timeout=20
+    ) -> None:
         super().__init__(name, doc=doc, use_proxy=True)
         if include_agent:
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
@@ -549,6 +558,7 @@ class OpenTelemetryScenario(_DockerScenario):
         self.include_agent = include_agent
         self.include_collector = include_collector
         self.include_intake = include_intake
+        self.backend_interface_timeout = backend_interface_timeout
 
     def configure(self, option):
         super().configure(option)
@@ -621,6 +631,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
         if self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
+            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()
 
@@ -831,7 +842,7 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
@@ -1099,7 +1110,7 @@ class scenarios:
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, include_agent=False, doc="")
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
     # dummy value because the tests skip the first input.
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("dummy", "header-tag1", "header-tag2"), doc="Scenario with <header_name> input given to DD_TRACE_HEADER_TAGS"
@@ -1147,7 +1158,7 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         library_interface_timeout=100,
-        doc="",
+        doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
     )
 
     debugger_line_probes_status = EndToEndScenario(
@@ -1160,7 +1171,23 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         library_interface_timeout=100,
-        doc="",
+        doc="Test scenario for checking if line probe statuses can be successfully 'RECIEVED' and 'INSTALLED'",
+    )
+
+    debugger_method_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_METHOD_PROBES_SNAPSHOT",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=10,
+        doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
+    )
+
+    debugger_line_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_LINE_PROBES_SNAPSHOT",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=10,
+        doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
     )
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")

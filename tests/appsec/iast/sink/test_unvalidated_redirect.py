@@ -23,11 +23,6 @@ def _expected_location():
 
 
 @coverage.basic
-@released(php_appsec="?", python="?")
-@released(
-    java={"akka-http": "?", "ratpack": "?", "spring-boot-jetty": "1.17.0", "vertx4": "1.17.0", "*": "1.16.0",}
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestUnvalidatedRedirect:
     """Verify Unvalidated redirect detection."""
 

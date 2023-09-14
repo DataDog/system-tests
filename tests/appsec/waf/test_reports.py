@@ -6,16 +6,12 @@ import json
 
 import pytest
 
-from tests.constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, context, interfaces, released, irrelevant, coverage, scenarios, missing_feature
 
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
     pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@released(java="0.100.0")
-@released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Monitoring:
     """Support In-App WAF monitoring tags and metrics"""

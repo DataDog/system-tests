@@ -7,8 +7,6 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(java="1.15.0", php_appsec="?", python="?")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakRandomness:
     """Test weak randomness detection."""
 

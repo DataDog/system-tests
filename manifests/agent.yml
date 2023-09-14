@@ -1,0 +1,4 @@
+tests/:
+  otel_tracing_e2e/:
+    test_e2e.py:
+      Test_OTelLogE2E: v7.48.0

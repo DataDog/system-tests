@@ -96,7 +96,8 @@ def deserialize_dd_appsec_s_meta(key, payload):
     try:
         return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
     except Exception as e:
-        raise ValueError(f"meta {key} should be b64/gziped JSON.\nPayload: {payload}") from e
+        # b64/gzip is optional
+        return json.loads(payload)
 
 
 def deserialize_http_message(path, message, content: bytes, interface, key):

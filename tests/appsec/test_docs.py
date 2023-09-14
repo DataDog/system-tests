@@ -5,22 +5,16 @@
 from utils import coverage, context, released, missing_feature
 
 
-@released(python="1.4.2")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.not_testable
 class Test_InstallationInstructions:
     """Detailed installation instructions"""
 
 
-@released(python="1.4.2")
 @coverage.not_testable
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_InstallationDebugProcedure:
     """Procedure to debug install"""
 
 
-@released(python="1.4.2")
 @coverage.not_testable
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_PublicDocumentation:
     """Public documentation is published"""

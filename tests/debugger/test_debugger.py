@@ -19,36 +19,35 @@ from utils import (
 )
 from utils.tools import logger
 
-METHOD_PROBES = [
-    "logProbe-received",
-    "logProbe-installed",
-    "metricProbe-received",
-    "metricProbe-installed",
-    "spanProbe-received",
-    "spanProbe-installed",
-    "spanDecorationProbe-received",
-    "spanDecorationProbe-installed",
-]
 
-LINE_PROBES = ["logProbe-installed", "metricProbe-installed", "spanDecorationProbe-installed"]
-
-
-def check_probe_statuses(expected_data):
+def validate_data(expected_probes, expected_snapshots):
     check_info_endpoint()
 
-    probe_status_map = get_probe_status_map()
-    for expected_probe in expected_data:
-        check_probe_status(expected_probe, probe_status_map)
+    debugger_map = get_debugger_map()
+    for expected_probe in expected_probes:
+        check_probe_status(expected_probe, debugger_map["probes"])
+
+    for expected_snapshot in expected_snapshots:
+        check_snapshot(expected_snapshot, debugger_map["snapshots"])
 
 
-def get_probe_status_map():
+def get_debugger_map():
     agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
-    hash = {}
+    hash = {"probes": {}, "snapshots": {}}
 
     for request in agent_logs_endpoint_requests:
-        for content in request["request"]["content"]:
-            probe_id = content["debugger"]["diagnostics"]["probeId"]
-            hash[probe_id] = content["debugger"]["diagnostics"]
+        content = request["request"]["content"]
+        if content is not None:
+            for content in content:
+                debugger = content["debugger"]
+
+                if "diagnostics" in debugger:
+                    probe_id = debugger["diagnostics"]["probeId"]
+                    hash["probes"][probe_id] = debugger["diagnostics"]
+
+                if "snapshot" in debugger:
+                    probe_id = debugger["snapshot"]["probe"]["id"]
+                    hash["snapshots"][probe_id] = debugger["snapshot"]
 
     return hash
 
@@ -66,6 +65,11 @@ def check_probe_status(expected_id, probe_status_map):
         )
 
 
+def check_snapshot(expected_id, snapshot_status_map):
+    if expected_id not in snapshot_status_map:
+        raise ValueError("Snapshot " + expected_id + " was not received.")
+
+
 def check_info_endpoint():
     """ Check that agent exposes /v0.7/config endpoint """
     for data in interfaces.library.get_data("/info"):
@@ -76,23 +80,127 @@ def check_info_endpoint():
     raise ValueError("Agent did not provide /v0.7/config endpoint")
 
 
-@released(java="1.19.3", php_appsec="?", python="?")
 @missing_feature(
     context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
     reason="not supported",
 )
+@missing_feature(context.library == "python", reason="not implemented yet")
+@irrelevant(library="golang")
+@irrelevant(library="ruby")
+@irrelevant(library="php")
+@irrelevant(library="nodejs")
+@irrelevant(library="cpp")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
-        check_probe_statuses(METHOD_PROBES)
+        expected_data = [
+            "logProbe-received",
+            "logProbe-installed",
+            "metricProbe-received",
+            "metricProbe-installed",
+            "spanProbe-received",
+            "spanProbe-installed",
+            "spanDecorationProbe-received",
+            "spanDecorationProbe-installed",
+        ]
+        validate_data(expected_data, [])
 
 
-@released(java="1.19.3", php_appsec="?", python="?")
 @missing_feature(
     context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
     reason="not supported",
 )
+@missing_feature(context.library == "python", reason="not implemented yet")
+@irrelevant(library="golang")
+@irrelevant(library="ruby")
+@irrelevant(library="php")
+@irrelevant(library="nodejs")
+@irrelevant(library="cpp")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
-        check_probe_statuses(LINE_PROBES)
+        expected_data = ["logProbe-installed", "metricProbe-installed", "spanDecorationProbe-installed"]
+        validate_data(expected_data, [])
+
+
+class _Base_Debugger_Snapshot_Test:
+    remote_config_is_sent = False
+    probe_installed = False
+
+    def wait_for_remote_config(self, data):
+        if data["path"] == "/v0.7/config":
+            if "client_configs" in data.get("response", {}).get("content", {}):
+                self.remote_config_is_sent = True
+                return True
+        return False
+
+    def wait_for_probe(self, data):
+        if data["path"] == "/api/v2/logs":
+            contents = data.get("request", {}).get("content", {})
+
+            if contents is None:
+                return False
+
+            for content in contents:
+                debuggerData = content["debugger"]
+                if "diagnostics" in debuggerData:
+                    if debuggerData["diagnostics"]["status"] == "INSTALLED":
+                        self.probe_installed = True
+                        return True
+        return False
+
+
+@missing_feature(
+    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
+    reason="not supported",
+)
+@missing_feature(context.library == "python", reason="not implemented yet")
+@irrelevant(library="golang")
+@irrelevant(library="ruby")
+@irrelevant(library="php")
+@irrelevant(library="nodejs")
+@irrelevant(library="cpp")
+@scenarios.debugger_method_probes_snapshot
+class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
+    log_probe_response = None
+
+    def setup_method_probe_snaphots(self):
+        interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
+        interfaces.agent.wait_for(self.wait_for_probe, timeout=30)
+        self.log_probe_response = weblog.get("/debugger/log")
+
+    def test_method_probe_snaphots(self):
+        assert self.remote_config_is_sent is True
+        assert self.probe_installed is True
+        assert self.log_probe_response.status_code == 200
+
+        expected_data = ["logProbe-installed"]
+        validate_data(expected_data, expected_data)
+
+
+@missing_feature(
+    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
+    reason="not supported",
+)
+@missing_feature(context.library == "python", reason="not implemented yet")
+@irrelevant(library="golang")
+@irrelevant(library="ruby")
+@irrelevant(library="php")
+@irrelevant(library="nodejs")
+@irrelevant(library="cpp")
+@scenarios.debugger_line_probes_snapshot
+class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
+    log_probe_response = None
+
+    def setup_line_probe_snaphots(self):
+        interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
+        interfaces.agent.wait_for(self.wait_for_probe, timeout=30)
+        self.log_probe_response = weblog.get("/debugger/log")
+
+    def test_line_probe_snaphots(self):
+        assert self.remote_config_is_sent is True
+        assert self.probe_installed is True
+        assert self.log_probe_response.status_code == 200
+
+        expected_data = ["logProbe-installed"]
+        validate_data(expected_data, expected_data)

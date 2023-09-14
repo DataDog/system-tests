@@ -16,13 +16,11 @@ if context.weblog_variant == "akka-http":
 
 
 @scenarios.appsec_runtime_activation
-@released(java="0.115.0", php_appsec="0.7.0", python="?")
 @bug(
     context.library < "java@1.8.0" and context.appsec_rules_file is not None,
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",
 )
 @bug(context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""

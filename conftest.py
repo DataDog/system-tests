@@ -6,13 +6,13 @@ import json
 import pytest
 from pytest_jsonreport.plugin import JSONReport
 
-from manifests.parser.core import load as load_manifest
+from manifests.parser.core import load as load_manifests
 from utils import context
 from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-from utils._decorators import released, _get_skipped_item, _get_expected_failure_item
+from utils._decorators import released
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -134,20 +134,30 @@ def _get_skip_reason_from_marker(marker):
 
 def pytest_pycollect_makemodule(module_path, parent):
 
-    manifest = load_manifest(context.scenario.library.library)
+    # As now, declaration only works for tracers at module level
 
-    relative_path = str(module_path.relative_to(module_path.cwd()))
+    if context.scenario.library.library == "python_http":
+        library = "python"
+    else:
+        library = context.scenario.library.library
 
-    if relative_path in manifest:
-        reason = manifest[relative_path]
+    manifests = load_manifests()
+
+    nodeid = str(module_path.relative_to(module_path.cwd()))
+
+    if nodeid in manifests and library in manifests[nodeid]:
+        declaration = manifests[nodeid][library]
+
+        logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+
         mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-        if reason.startswith("not relevant") or reason.startswith("flaky"):
-            mod.add_marker(pytest.mark.skip(reason=reason))
-            logger.debug(f"Module {relative_path} is skipped by manifest file because {reason}")
+        if declaration.startswith("irrelevant") or declaration.startswith("flaky"):
+            mod.add_marker(pytest.mark.skip(reason=declaration))
+            logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
         else:
-            mod.add_marker(pytest.mark.xfail(reason=reason))
-            logger.debug(f"Module {relative_path} is xfailed by manifest file because {reason}")
+            mod.add_marker(pytest.mark.xfail(reason=declaration))
+            logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
 
         return mod
 
@@ -157,21 +167,15 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
     if collector.istestclass(obj, name):
 
-        manifest = load_manifest(context.scenario.library.library)
+        manifest = load_manifests()
+
         nodeid = f"{collector.nodeid}::{name}"
 
         if nodeid in manifest:
             declaration = manifest[nodeid]
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            if isinstance(declaration, dict) or declaration.startswith("v"):
-                released(**{context.scenario.library.library: declaration})(obj)
-            elif declaration == "?" or declaration.startswith("missing_feature"):
-                released(**{context.scenario.library.library: declaration})(obj)
-            elif declaration.startswith("not relevant") or declaration.startswith("flaky"):
-                _get_skipped_item(obj, declaration)
-            else:
-                _get_expected_failure_item(obj, declaration)
+            released(_is_from_manifest=True, **declaration)(obj)
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -249,7 +253,13 @@ def _export_manifest():
 
     def convert_value(value):
         if isinstance(value, dict):
-            return {k: convert_value(v) for k, v in value.items()}
+            result = {k: convert_value(v) for k, v in value.items()}
+
+            # flatten dict like {"*": "some declaration"}
+            if len(result) == 1 and "*" in result:
+                return result["*"]
+
+            return result
 
         if value == "?":
             return "missing_feature"

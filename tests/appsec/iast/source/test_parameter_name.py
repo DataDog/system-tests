@@ -2,24 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, released, bug
+from utils import context, coverage, missing_feature, bug
 from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(php_appsec="?")
-@released(
-    java={
-        "jersey-grizzly2": "1.15.0",
-        "vertx3": "1.12.0",
-        "vertx4": "1.12.0",
-        "akka-http": "1.12.0",
-        "ratpack": "?",
-        "*": "1.5.0",
-    }
-)
-@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "1.18.0", "uds-flask": "?"})
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestParameterName:
     """Verify that request parameters are tainted"""
 

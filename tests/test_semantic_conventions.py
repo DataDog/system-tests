@@ -126,7 +126,6 @@ def get_component_name(weblog_variant, language, span_name):
     return expected_component
 
 
-@released(python="1.80.0")
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -314,7 +313,6 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
-@released(java="1.6.0", php="0.83.1")
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

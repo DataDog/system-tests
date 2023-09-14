@@ -125,6 +125,14 @@ public class App {
     private static SdkLoggerProvider setupLoggerProvider(Resource resource) {
         List<LogRecordExporter> logRecordExporters = new ArrayList<>();
         logRecordExporters.add(OtlpJsonLoggingLogRecordExporter.create());
+        if (isAgentEnabled()) {
+            logRecordExporters.add(
+                    OtlpHttpLogRecordExporter.builder()
+                            .setEndpoint("http://proxy:8126/v1/logs")
+                            .addHeader("dd-protocol", "otlp")
+                            .addHeader("dd-otlp-path", "agent")
+                            .build());
+        }
         if (isCollectorEnabled()) {
             logRecordExporters.add(
                     OtlpHttpLogRecordExporter.builder()

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### August 2023 (71 PR merged)
+
+* 2023-08-31 [Deserilize appsec tags in deserializer](https://github.com/DataDog/system-tests/pull/1543) ASM data are visible as plain JSON in logs
+* 2023-08-18 [Add stdout interface for postgres DB container](https://github.com/DataDog/system-tests/pull/1496) Ability to make assertion on DB containers (like Postgres) logs
+* 2023-08-14 [Add pylint](https://github.com/DataDog/system-tests/pull/1486) Code quality for system-tests internales
+* 2023-08-16 [Implementation of manifest files](https://github.com/DataDog/system-tests/pull/1481) :tada:
+
 
 ### July 2023 (86 PR merged)
 

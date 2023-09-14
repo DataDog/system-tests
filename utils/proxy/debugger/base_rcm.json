@@ -1,10 +1,5 @@
 {
     "targets": "",
-    "target_files": [
-        {
-            "path": "",
-            "raw": ""
-        }
-    ],
+    "target_files": [],
     "client_configs": []
 }

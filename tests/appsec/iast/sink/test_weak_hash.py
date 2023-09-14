@@ -25,8 +25,6 @@ def _expected_location():
 
 
 @coverage.basic
-@released(java="0.108.0", php_appsec="?", python="1.6.0")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakHash:
     """Verify weak hash detection."""
 

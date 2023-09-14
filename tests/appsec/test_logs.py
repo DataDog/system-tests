@@ -13,8 +13,6 @@ if context.weblog_variant in ("akka-http", "spring-boot-payara"):
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(php_appsec="0.1.0", python="?")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Standardization:
     """AppSec logs should be standardized"""
@@ -89,7 +87,6 @@ class Test_Standardization:
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110$", level="INFO")
 
 
-@released(java="?", php="?", python="?")
 class Test_StandardizationBlockMode:
     """AppSec blocking logs should be standardized"""
 
