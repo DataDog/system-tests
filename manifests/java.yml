@@ -287,6 +287,7 @@ tests/:
           vertx3: v1.7.0
         Test_CustomBlockingResponse:
           '*': v1.11.0
+          akka-http: missing_feature (No AppSec support)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (No AppSec support)
       test_custom_rules.py:
