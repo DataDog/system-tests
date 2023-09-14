@@ -1,4 +1,6 @@
 import os
+import re
+import stat
 import json
 from pathlib import Path
 import time
@@ -12,6 +14,7 @@ import requests
 
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
+from utils import interfaces
 
 
 @lru_cache
@@ -42,9 +45,11 @@ class TestedContainer:
         environment=None,
         allow_old_container=False,
         healthcheck=None,
+        stdout_interface=None,
         **kwargs,
     ) -> None:
         self.name = name
+        self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
@@ -53,6 +58,7 @@ class TestedContainer:
         self.environment = environment
         self.kwargs = kwargs
         self._container = None
+        self.stdout_interface = stdout_interface
 
     def configure(self, replay):
 
@@ -67,13 +73,16 @@ class TestedContainer:
         else:
             self.image.load_from_logs(self.log_folder_path)
 
+        if self.stdout_interface is not None:
+            self.stdout_interface.configure(replay)
+
     @property
     def container_name(self):
         return f"system-tests-{self.name}"
 
     @property
     def log_folder_path(self):
-        return f"./{self.host_log_folder}/docker/{self.name}"
+        return f"{self.host_project_dir}/{self.host_log_folder}/docker/{self.name}"
 
     def get_existing_container(self) -> Container:
         for container in _get_client().containers.list(all=True, filters={"name": self.container_name}):
@@ -165,7 +174,7 @@ class TestedContainer:
         if "volumes" not in self.kwargs:
             return
 
-        host_pwd = os.getcwd()
+        host_pwd = self.host_project_dir
 
         result = {}
         for k, v in self.kwargs["volumes"].items():
@@ -175,29 +184,67 @@ class TestedContainer:
 
         self.kwargs["volumes"] = result
 
-    def save_logs(self):
-        if not self._container:
-            return
-
-        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(self._container.logs(stdout=True, stderr=False))
-
-        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(self._container.logs(stdout=False, stderr=True))
+    def stop(self):
+        self._container.stop()
 
     def remove(self):
+        logger.debug(f"Removing container {self.name}")
 
-        if not self._container:
-            return
+        if self._container:
+            try:
+                # collect logs before removing
+                with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
+                    f.write(self._container.logs(stdout=True, stderr=False))
 
-        try:
-            self._container.remove(force=True)
-        except:
-            # Sometimes, the container does not exists.
-            # We can safely ignore this, because if it's another issue
-            # it will be killed at startup
+                with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
+                    f.write(self._container.logs(stdout=False, stderr=True))
 
-            pass
+                self._container.remove(force=True)
+            except:
+                # Sometimes, the container does not exists.
+                # We can safely ignore this, because if it's another issue
+                # it will be killed at startup
+
+                pass
+
+        if self.stdout_interface is not None:
+            self.stdout_interface.load_data()
+
+
+class SqlDbTestedContainer(TestedContainer):
+    def __init__(
+        self,
+        name,
+        image_name,
+        host_log_folder,
+        environment=None,
+        allow_old_container=False,
+        healthcheck=None,
+        stdout_interface=None,
+        ports=None,
+        db_user=None,
+        db_password=None,
+        db_instance=None,
+        db_host=None,
+        dd_integration_service=None,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            image_name=image_name,
+            name=name,
+            host_log_folder=host_log_folder,
+            environment=environment,
+            stdout_interface=stdout_interface,
+            healthcheck=healthcheck,
+            allow_old_container=allow_old_container,
+            ports=ports,
+            **kwargs,
+        )
+        self.dd_integration_service = dd_integration_service
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_instance = db_instance
 
 
 class ImageInfo:
@@ -237,13 +284,14 @@ class ImageInfo:
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, proxy_state) -> None:
         super().__init__(
-            image_name="mitmproxy/mitmproxy",
+            image_name="datadog/system-tests:proxy-v1",
             name="proxy",
             host_log_folder=host_log_folder,
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
                 "DD_API_KEY": os.environ.get("DD_API_KEY"),
-                "HOST_LOG_FOLDER": host_log_folder,
+                "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
+                "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "PROXY_STATE": json.dumps(proxy_state or {}),
             },
             working_dir="/app",
@@ -276,8 +324,12 @@ class AgentContainer(TestedContainer):
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
-            healthcheck={"test": f"curl --fail http://localhost:{self.agent_port}/info", "retries": 60},
-            ports={f"{self.agent_port}/tcp": ("127.0.0.1", self.agent_port)},
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{self.agent_port}/info",
+                "retries": 60,
+            },
+            ports={self.agent_port: f"{self.agent_port}/tcp"},
+            stdout_interface=interfaces.agent_stdout,
         )
 
         self.agent_version = None
@@ -316,17 +368,20 @@ class WeblogContainer(TestedContainer):
         use_proxy=True,
     ) -> None:
 
+        from utils import weblog
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
             environment=environment or {},
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
+            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},},
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": "curl --fail http://localhost:7777", "retries": 60},
-            ports={"7777/tcp": ("127.0.0.1", 7777), "7778/tcp": ("127.0.0.1", 7778)},
+            healthcheck={"test": f"curl --fail --silent --show-error localhost:{weblog.port}", "retries": 60},
+            ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
+            stdout_interface=interfaces.library_stdout,
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
@@ -402,7 +457,7 @@ class WeblogContainer(TestedContainer):
         return 2
 
 
-class PostgresContainer(TestedContainer):
+class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="postgres:latest",
@@ -416,6 +471,12 @@ class PostgresContainer(TestedContainer):
                     "mode": "ro",
                 }
             },
+            stdout_interface=interfaces.postgres,
+            dd_integration_service="postgresql",
+            db_user="system_tests_user",
+            db_password="system_tests",
+            db_host="postgres",
+            db_instance="system_tests",
         )
 
 
@@ -484,7 +545,7 @@ class RabbitMqContainer(TestedContainer):
         )
 
 
-class MySqlContainer(TestedContainer):
+class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="mysql/mysql-server:latest",
@@ -498,17 +559,53 @@ class MySqlContainer(TestedContainer):
             allow_old_container=True,
             host_log_folder=host_log_folder,
             healthcheck={"test": "/healthcheck.sh", "retries": 60},
+            dd_integration_service="mysql",
+            db_user="mysqldb",
+            db_password="mysqldb",
+            db_host="mysqldb",
+            db_instance="world",
+        )
+
+
+class SqlServerContainer(SqlDbTestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        self.data_mssql = f"./{host_log_folder}/data-mssql"
+        super().__init__(
+            image_name="mcr.microsoft.com/azure-sql-edge:latest",
+            name="mssql",
+            environment={"ACCEPT_EULA": "1", "MSSQL_SA_PASSWORD": "yourStrong(!)Password"},
+            allow_old_container=True,
+            host_log_folder=host_log_folder,
+            ports={"1433/tcp": ("127.0.0.1", 1433)},
+            #  volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
+            dd_integration_service="mssql",
+            db_user="SA",
+            db_password="yourStrong(!)Password",
+            db_host="mssql",
+            db_instance="master",
         )
 
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
+        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
+        self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
+
+        if "DOCKER_HOST" in os.environ:
+            m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+            if m is not None:
+                self._otel_host = m.group(1)
+        else:
+            self._otel_host = "localhost"
+
+        self._otel_port = 13133
+
         super().__init__(
-            image_name="otel/opentelemetry-collector-contrib:latest",
+            image_name=image,
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
@@ -519,11 +616,21 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         for i in range(61):
             try:
-                r = requests.get("http://localhost:13133", timeout=1)
-                logger.debug(f"Healthcheck #{i} on localhost:13133: {r}")
+                r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
+                logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
                 if r.status_code == 200:
                     return
             except Exception as e:
-                logger.debug(f"Healthcheck #{i} on localhost:13133: {e}")
+                logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")
             time.sleep(1)
-        pytest.exit("localhost:13133 never answered to healthcheck request", 1)
+        pytest.exit(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request", 1)
+
+    def start(self) -> Container:
+        # _otel_config_host_path is mounted in the container, and depending on umask,
+        # it might have no read permissions for other users, which is required within
+        # the container. So set them here.
+        prev_mode = os.stat(self._otel_config_host_path).st_mode
+        new_mode = prev_mode | stat.S_IROTH
+        if prev_mode != new_mode:
+            os.chmod(self._otel_config_host_path, new_mode)
+        return super().start()

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.google.common.reflect.TypeToken;
+import ratpack.exec.Promise;
 import ratpack.form.Form;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -18,6 +19,7 @@ import ratpack.registry.Registry;
 import static ratpack.jackson.Jackson.fromJson;
 
 public class WafPostHandler implements Handler {
+
     @Override
     public void handle(Context ctx) throws Exception {
         MediaType contentType = ctx.getRequest().getContentType();
@@ -28,8 +30,25 @@ public class WafPostHandler implements Handler {
         } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
             ctx.insert(Registry.single(XmlParser.INSTANCE), XmlHandler.INSTANCE);
         } else {
-            ctx.next();
+            // We can get arbitrary content-types from tests and still a expect 200 response, not 404.
+            ctx.getResponse().send("ok");
         }
+    }
+
+
+    public static Promise<Void> consumeParsedBody(final Context ctx) {
+        final MediaType contentType = ctx.getRequest().getContentType();
+        if (contentType.isEmpty()) {
+            return Promise.ofNull();
+        }
+        if (contentType.isForm()) {
+            return ctx.parse(Form.class).map(b -> null);
+        } else if (contentType.isJson()) {
+            return ctx.parse(fromJson(Object.class)).map(b -> null);
+        } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
+            return Promise.ofNull();
+        }
+        return Promise.ofNull();
     }
 
      enum FormHandler implements Handler {

@@ -6,21 +6,16 @@ import json
 import pytest
 from pytest_jsonreport.plugin import JSONReport
 
+from manifests.parser.core import load as load_manifests
 from utils import context
 from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-
+from utils._decorators import released
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
-
-_docs = {}
-_skip_reasons = {}
-_release_versions = {}
-_coverages = {}
-_rfcs = {}
 
 
 def _JSON_REPORT_FILE():
@@ -36,12 +31,17 @@ def pytest_addoption(parser):
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
     parser.addoption("--replay", "-R", action="store_true", help="Replay tests based on logs")
+    parser.addoption(
+        "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
+    )
+    # Onboarding scenarios mandatory parameters
+    parser.addoption("--obd-weblog", type=str, action="store", help="Set onboarding weblog")
+    parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
+    parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
 
 
 def pytest_configure(config):
-
     # First of all, we must get the current scenario
-
     for name in dir(scenarios):
         if name.upper() == config.option.scenario:
             context.scenario = getattr(scenarios, name)
@@ -50,10 +50,7 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    # collect only : we collect tests. As now, it only works with replay mode
-    # on collectonly mode, the configuration step is exactly the step on replay mode
-    # so let's tell the scenario we are in replay mode
-    context.scenario.configure(config.option.replay or config.option.collectonly)
+    context.scenario.configure(config.option)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = _JSON_REPORT_FILE()
@@ -63,14 +60,23 @@ def pytest_configure(config):
 # Called at the very begening
 def pytest_sessionstart(session):
 
+    # get the terminal to allow logging directly in stdout
+    setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
+
     if session.config.option.collectonly:
         return
 
-    context.scenario.session_start(session)
+    context.scenario.session_start()
 
 
 # called when each test item is collected
 def _collect_item_metadata(item):
+
+    _docs = {}
+    _skip_reasons = {}
+    _release_versions = {}
+    _coverages = {}
+    _rfcs = {}
 
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
@@ -103,6 +109,13 @@ def _collect_item_metadata(item):
             logger.debug(f"{item.nodeid} => {skip_reason} => skipped")
             _skip_reasons[item.nodeid] = skip_reason
             break
+    return {
+        "docs": _docs,
+        "skip_reasons": _skip_reasons,
+        "release_versions": _release_versions,
+        "coverages": _coverages,
+        "rfcs": _rfcs,
+    }
 
 
 def _get_skip_reason_from_marker(marker):
@@ -119,8 +132,56 @@ def _get_skip_reason_from_marker(marker):
     return None
 
 
+def pytest_pycollect_makemodule(module_path, parent):
+
+    # As now, declaration only works for tracers at module level
+
+    if context.scenario.library.library == "python_http":
+        library = "python"
+    else:
+        library = context.scenario.library.library
+
+    manifests = load_manifests()
+
+    nodeid = str(module_path.relative_to(module_path.cwd()))
+
+    if nodeid in manifests and library in manifests[nodeid]:
+        declaration = manifests[nodeid][library]
+
+        logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+
+        mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+
+        if declaration.startswith("irrelevant") or declaration.startswith("flaky"):
+            mod.add_marker(pytest.mark.skip(reason=declaration))
+            logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
+        else:
+            mod.add_marker(pytest.mark.xfail(reason=declaration))
+            logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+
+        return mod
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_pycollect_makeitem(collector, name, obj):
+
+    if collector.istestclass(obj, name):
+
+        manifest = load_manifests()
+
+        nodeid = f"{collector.nodeid}::{name}"
+
+        if nodeid in manifest:
+            declaration = manifest[nodeid]
+            logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+
+            released(_is_from_manifest=True, **declaration)(obj)
+
+
 def pytest_collection_modifyitems(session, config, items):
     """unselect items that are not included in the current scenario"""
+
+    logger.debug("pytest_collection_modifyitems")
 
     def get_declared_scenario(item):
         for marker in item.own_markers:
@@ -150,7 +211,12 @@ def pytest_collection_modifyitems(session, config, items):
         ):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
-            _collect_item_metadata(item)
+
+            for forced in config.option.force_execute:
+                if item.nodeid.startswith(forced):
+                    logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
+                    item.own_markers = [m for m in item.own_markers if m.name not in ("skip", "skipif")]
+
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
@@ -168,16 +234,75 @@ def _item_is_skipped(item):
         if marker.name in ("skip",):
             return True
 
+    # for test methods in classes, item.parent.parent is the module
+    if item.parent.parent:
+        for marker in item.parent.parent.own_markers:
+            if marker.name in ("skip",):
+                return True
+
     return False
+
+
+def _export_manifest():
+    # temp code, for manifest migrations
+
+    import yaml
+    from utils._decorators import _released_declarations
+
+    result = {}
+
+    def convert_value(value):
+        if isinstance(value, dict):
+            result = {k: convert_value(v) for k, v in value.items()}
+
+            # flatten dict like {"*": "some declaration"}
+            if len(result) == 1 and "*" in result:
+                return result["*"]
+
+            return result
+
+        if value == "?":
+            return "missing_feature"
+
+        if value[0].isnumeric():
+            return f"v{value}"
+
+        return value
+
+    def feed(parent: dict, path: list, value):
+
+        key = path.pop(0)
+
+        if len(path) == 0:
+            parent[key] = convert_value(value)
+        else:
+            if key not in parent:
+                parent[key] = {}
+
+            feed(parent[key], path, value)
+
+    def sort_key(name):
+        return name if name.endswith("/") else f"zzz_{name}"
+
+    def recursive_sort(obj: dict):
+        if not isinstance(obj, dict):
+            return obj
+
+        return {k: recursive_sort(obj[k]) for k in sorted(obj, key=sort_key)}
+
+    for path, value in _released_declarations.items():
+        feed(result, path.replace("/", "/#").replace("::", "#").split("#"), value)
+
+    with open(f"{context.scenario.host_log_folder}/manifest.yaml", "w", encoding="utf-8") as f:
+        yaml.dump(recursive_sort(result), f, sort_keys=False)
 
 
 def pytest_collection_finish(session):
     from utils import weblog
 
     if session.config.option.collectonly:
+        _export_manifest()
         return
-
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     last_file = ""
     for item in session.items:
@@ -198,9 +323,9 @@ def pytest_collection_finish(session):
 
         if last_file != item.location[0]:
             if len(last_file) == 0:
-                terminal.write_sep("-", "tests setup", bold=True)
+                logger.terminal.write_sep("-", "tests setup", bold=True)
 
-            terminal.write(f"\n{item.location[0]} ")
+            logger.terminal.write(f"\n{item.location[0]} ")
             last_file = item.location[0]
 
         setup_method = getattr(item.instance, setup_method_name)
@@ -211,15 +336,15 @@ def pytest_collection_finish(session):
             weblog.current_nodeid = None
         except Exception:
             logger.exception("Unexpected failure during setup method call")
-            terminal.write("x", bold=True, red=True)
+            logger.terminal.write("x", bold=True, red=True)
             context.scenario.close_targets()
             raise
         else:
-            terminal.write(".", bold=True, green=True)
+            logger.terminal.write(".", bold=True, green=True)
         finally:
             weblog.current_nodeid = None
 
-    terminal.write("\n\n")
+    logger.terminal.write("\n\n")
 
     context.scenario.post_setup()
 
@@ -236,6 +361,15 @@ def pytest_runtest_call(item):
                 logger.info("weblog GRPC request")
 
 
+@pytest.hookimpl(optionalhook=True)
+def pytest_json_runtest_metadata(item, call):
+
+    if call.when != "setup":
+        return {}
+
+    return _collect_item_metadata(item)
+
+
 def pytest_json_modifyreport(json_report):
 
     try:
@@ -243,24 +377,36 @@ def pytest_json_modifyreport(json_report):
 
         # populate and adjust some data
         for test in json_report["tests"]:
-            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
+            if "metadata" in test:
+                test["skip_reason"] = (
+                    test["metadata"]["skip_reasons"][test["nodeid"]]
+                    if test["nodeid"] in test["metadata"]["skip_reasons"]
+                    else None
+                )
 
         # add usefull data for reporting
-        json_report["docs"] = _docs
+        json_report["docs"] = {}
         json_report["context"] = context.serialize()
-        json_report["release_versions"] = _release_versions
-        json_report["rfcs"] = _rfcs
-        json_report["coverages"] = _coverages
+        json_report["release_versions"] = {}
+        json_report["rfcs"] = {}
+        json_report["coverages"] = {}
 
         # clean useless and volumetric data
-        del json_report["collectors"]
+        json_report.pop("collectors", None)
 
         for test in json_report["tests"]:
-            for k in ("setup", "call", "teardown", "keywords", "lineno"):
+            if "metadata" in test:
+                json_report["docs"] = json_report["docs"] | test["metadata"]["docs"]
+                json_report["release_versions"] = json_report["release_versions"] | test["metadata"]["release_versions"]
+                json_report["rfcs"] = json_report["rfcs"] | test["metadata"]["rfcs"]
+                json_report["coverages"] = json_report["coverages"] | test["metadata"]["coverages"]
+
+            for k in ("setup", "call", "teardown", "keywords", "lineno", "metadata"):
                 if k in test:
                     del test[k]
 
         logger.debug("Modifying JSON report finished")
+
     except:
         logger.error("Fail to modify json report", exc_info=True)
 
@@ -271,26 +417,14 @@ def pytest_sessionfinish(session, exitstatus):
     if session.config.option.collectonly or session.config.option.replay:
         return
 
-    json.dump(
-        {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
-        open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
-        indent=2,
-    )
+    # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute, it will run in the master thread after all other processes have finished testing
+    if not hasattr(session.config, "workerinput"):
+        json.dump(
+            {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
+            open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
+            indent=2,
+        )
 
-    _pytest_junit_modifyreport()
-
-
-def _pytest_junit_modifyreport():
-
-    with open(_JSON_REPORT_FILE(), encoding="utf-8") as f:
-        json_report = json.load(f)
         junit_modifyreport(
-            json_report,
-            _XML_REPORT_FILE(),
-            _skip_reasons,
-            _docs,
-            _rfcs,
-            _coverages,
-            _release_versions,
-            junit_properties=context.scenario.get_junit_properties(),
+            _JSON_REPORT_FILE(), _XML_REPORT_FILE(), junit_properties=context.scenario.get_junit_properties(),
         )

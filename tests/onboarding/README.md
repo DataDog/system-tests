@@ -39,6 +39,7 @@ Please install and configure as described in the [following documentation](https
 ### Pytest
 
 In order to build the final tests assertions we are using the framework [pytest](https://docs.pytest.org/en/7.2.x/)
+You will not need to do anything specific, pytests is fully integrated into the system-tests project build and run processes.
 
 ## Test matrix
 
@@ -48,17 +49,16 @@ We want to test Datadog software in the three main scenarios described above, bu
     - Datadog Agent product
     - Library injection software
 - We want to check Datadog software installed in different machine types or distint SO distributions (Ubuntu, Centos...)
-- We want to check Datadog library injection software for different languages (Currently  supports for Java, Nodejs and dotNet)
+- We want to check Datadog library injection software for different languages (Currently  supports for Java, Python, Nodejs and dotNet)
     - We want to test the different versions of the supported languages (Java 8, Java 11). 
 
 ## Define your infraestructure
 
 YML files define the AMI machines and software to be installed (folder tests/onboarding/infra_provision/): 
 
-- **provision_host.yml:** All the software and the test applications installed on host.
-- **provision_host_container.yml:** Datadog Agent installed on host and your application deployed on container.
-- **provision_container.yml:** Datadog Agent installed on containers.
-- **provision_ansible_host.yml:** Datadog Agent installed on host using Ansible.
+- **provision_onboarding_host.yml:** All the software and the test applications installed on host.
+- **provision_onboarding_host_container.yml:** Datadog Agent installed on host and your application deployed on container.
+- **provision_onboarding_container.yml:** Datadog Agent installed on containers.
 
 ### Understanding YML files
 
@@ -94,7 +94,7 @@ There are some main sections that they will be combined in order to create a tes
           - os_type: linux
             command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
     ```
-- **Autoinjection:** Grouped by language (Java, Nodejs, dotNet) and environment (prod/dev):
+- **Autoinjection:** Grouped by language (Java, Python, Nodejs, dotNet) and environment (prod/dev):
     ```
     autoinjection:
     - java: 
@@ -183,6 +183,7 @@ There are some main sections that they will be combined in order to create a tes
 
                     command: sh wildfly_run.sh
     ```
+The node "supported-language-versions" is not mandatory, in case it is specified the tests of this weblog will be associated to the installation of the language variant. 
 
 ## Tests assertions
 
@@ -191,9 +192,7 @@ The testing process is very simple. For each machine started we will check:
 - The weblog application is listenning on the common port.
 - The weblog application is sending traces to Datadog backend.
 
-Check the tests assertions from *tests/test_traces.py*
-
-Check the pytest configuration from *conftest.py*
+Check the tests assertions from *tests/test_onboarding_install.py*
 
 ## Run the tests
 
@@ -204,19 +203,21 @@ Before run the onboarding test you should configure:
 - Python environment as described: [configure python for system-tests](https://github.com/DataDog/system-tests/blob/main/docs/execute/requirements.md).
 - Ensure that requirements.txt is loaded (you can run "./build.sh -i runner")
 - AWS Cli is configured
-- Execute "pulumi login" step: [Pulumi login](https://www.pulumi.com/docs/reference/cli/pulumi_login/).
+- Execute "pulumi login" local step: [Pulumi login](https://www.pulumi.com/docs/reference/cli/pulumi_login/).
 
 ### Configure environment
 
 Before execute the "onboarding" tests you must configure some environment variables:
 
-- **TEST_LIBRARY:** Configure language to test (currently supported languages are: java, python, nodejs, dotnet)
-- **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** Set key pair name to ssh connect to the remote machines.
 - **ONBOARDING_AWS_INFRA_SUBNET_ID:** AWS subnet id.
 - **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security groups id. 
-- **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file). 
 - **DD_API_KEY_ONBOARDING:** Datadog API key.
 - **DD_APP_KEY_ONBOARDING:** Datadog APP key.
+
+To debug purposes you can create and use your own EC2 key-pair. To use it you should configure the following environment variables:
+
+- **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** Set key pair name to ssh connect to the remote machines.
+- **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file). 
 
 Opcionally you can set extra parameters to filter the type of tests that you will execute:
 
@@ -226,8 +227,22 @@ Opcionally you can set extra parameters to filter the type of tests that you wil
 
 ### Run script
 
-The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios. The currently supported scenarios are the following:
+The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios. 
+The currently supported scenarios are the following:
 
-- './run.sh ONBOARDING_HOST'
-- './run.sh ONBOARDING_HOST_CONTAINER'
+- ONBOARDING_HOST
+- ONBOARDING_HOST_CONTAINER
+- ONBOARDING_CONTAINER
+- ONBOARDING_HOST_AUTO_INSTALL
+- ONBOARDING_HOST_CONTAINER_AUTO_INSTALL
+- ONBOARDING_CONTAINER_AUTO_INSTALL
 
+The 'onboarding' tests scenarios requiered three mandatory parameters:
+
+- **--obd-library**: Configure language to test (currently supported languages are: java, python, nodejs, dotnet)
+- **--obd-env**: Configure origin of the software: dev (beta software) or prod (releases)
+- **--obd-weblog**: Configure weblog to tests 
+
+The following line shows an example of command line to run the tests:
+
+- './run.sh ONBOARDING_HOST --obd-weblog test-app-nodejs --obd-env dev --obd-library nodejs'

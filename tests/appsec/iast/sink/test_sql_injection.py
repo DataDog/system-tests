@@ -2,33 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import context, coverage, released, missing_feature, bug
-from ..iast_fixtures import SinkFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import context, coverage, released, missing_feature
+from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
-@released(
-    python={"django-poc": "1.12.0", "flask-poc": "1.12.0", "uds-flask": "?", "uwsgi-poc": "?", "pylons": "?",}
-)
-@released(
-    java={
-        "spring-boot": "1.1.0",
-        "spring-boot-jetty": "1.1.0",
-        "spring-boot-openliberty": "1.1.0",
-        "spring-boot-wildfly": "1.1.0",
-        "spring-boot-undertow": "1.1.0",
-        "resteasy-netty3": "1.11.0",
-        "jersey-grizzly2": "1.11.0",
-        "vertx3": "1.12.0",
-        "*": "?",
-    }
-)
-@released(nodejs={"express4": "3.11.0", "*": "?"})
 class TestSqlInjection:
     """Verify SQL injection detection."""
 
@@ -56,3 +34,21 @@ class TestSqlInjection:
 
     def test_secure(self):
         self.sink_fixture.test_secure()
+
+    def setup_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.setup_telemetry_metric_instrumented_sink()
+
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
+    def test_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.test_telemetry_metric_instrumented_sink()
+
+    def setup_telemetry_metric_executed_sink(self):
+        self.sink_fixture.setup_telemetry_metric_executed_sink()
+
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
+    def test_telemetry_metric_executed_sink(self):
+        self.sink_fixture.test_telemetry_metric_executed_sink()

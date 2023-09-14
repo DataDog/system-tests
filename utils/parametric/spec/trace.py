@@ -19,56 +19,46 @@ from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchPb
 from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
 
-"""Key used in the meta map to indicate the span origin"""
+# Key used in the meta map to indicate the span origin
 ORIGIN = "_dd.origin"
 
-"""Key used in the metrics map to indicate tracer sampling priority"""
+# Key used in the metrics map to indicate tracer sampling priority
 SAMPLING_PRIORITY_KEY = "_sampling_priority_v1"
 
-"""Value used in the metrics map to indicate tracer sampling priority as user keep"""
+# Value used in the metrics map to indicate tracer sampling priority as user keep
 USER_KEEP = 2
 
-
-"""
-Key used in metrics to set manual drop decision.
-"""
+# Key used in metrics to set manual drop decision.
 MANUAL_DROP_KEY = "manual.drop"
 
-"""
-Key used in metrics to set manual keep decision.
-"""
+# Key used in metrics to set manual keep decision.
 MANUAL_KEEP_KEY = "manual.keep"
 
-"""
-Key used in metrics to set automatic tracer keep decision.
-"""
+#  Key used in metrics to set automatic tracer keep decision.
 AUTO_KEEP_KEY = "auto.keep"
 
-"""
-Key used in metrics to set automatic tracer drop decision.
-"""
+# Key used in metrics to set automatic tracer drop decision.
 AUTO_DROP_KEY = "auto.drop"
 
-"""
-Key used in the metrics map to toggle measuring a span.
-"""
+# Key used in the metrics map to toggle measuring a span.
 SPAN_MEASURED_KEY = "_dd.measured"
 
-"""
-Key used in the metrics to map to single span sampling.
-"""
+# Key used in the metrics to map to single span sampling.
 SINGLE_SPAN_SAMPLING_MECHANISM = "_dd.span_sampling.mechanism"
 
-"""
-Value used in the metrics to map to single span sampling decision.
-"""
+# Value used in the metrics to map to single span sampling decision.
 SINGLE_SPAN_SAMPLING_MECHANISM_VALUE = 8
 
-"""Key used in the metrics to map to single span sampling sample rate."""
+# Key used in the metrics to map to single span sampling sample rate.
 SINGLE_SPAN_SAMPLING_RATE = "_dd.span_sampling.rule_rate"
 
-"""Key used in the metrics to map to single span sampling max per second."""
+# Key used in the metrics to map to single span sampling max per second.
 SINGLE_SPAN_SAMPLING_MAX_PER_SEC = "_dd.span_sampling.max_per_second"
+
+SAMPLING_DECISION_MAKER_KEY = "_dd.p.dm"
+SAMPLING_AGENT_PRIORITY_RATE = "_dd.agent_psr"
+SAMPLING_RULE_PRIORITY_RATE = "_dd.rule_psr"
+SAMPLING_LIMIT_PRIORITY_RATE = "_dd.limit_psr"
 
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
@@ -181,7 +171,7 @@ def _span_similarity(s1: Span, s2: Span) -> int:
     return score
 
 
-def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
+def find_similar_trace_by_root(traces: List[Trace], span: Span) -> Trace:
     """Return the trace from `traces` with root span most similar to `span`."""
     assert len(traces) > 0
 
@@ -196,7 +186,14 @@ def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
     return max_score_trace
 
 
-def find_span(trace: Trace, span: Span) -> Span:
+def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
+    """Return the trace from `traces` with root span matching all fields of `span`."""
+    trace = find_similar_trace_by_root(traces, span)
+    _assert_span_match(span, root_span(trace))
+    return trace
+
+
+def find_similar_span(trace: Trace, span: Span) -> Span:
     """Return a span from the trace which most closely matches `span`."""
     assert len(trace) > 0
 
@@ -210,14 +207,19 @@ def find_span(trace: Trace, span: Span) -> Span:
     return max_similarity_span
 
 
-def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
+def find_span(trace: Trace, span: Span) -> Span:
+    """Return a span from the trace matches all fields in `span`."""
+    return _assert_span_match(span, find_similar_span(trace, span))
+
+
+def find_similar_span_in_traces(traces: List[Trace], span: Span) -> Span:
     """Return a span from the traces which most closely matches `span`."""
     assert len(traces) > 0
 
     max_similarity = -math.inf
     max_similarity_span = None
     for trace in traces:
-        similar_span = find_span(trace, span)
+        similar_span = find_similar_span(trace, span)
         if max_similarity_span is None:
             max_similarity_span = similar_span
         similarity = _span_similarity(span, max_similarity_span)
@@ -225,6 +227,29 @@ def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
             max_similarity_span = similar_span
             max_similarity = similarity
     return max_similarity_span
+
+
+def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
+    """Return a span from the traces that matches all fields in `span`."""
+    return _assert_span_match(span, find_similar_span_in_traces(traces, span))
+
+
+def _assert_span_match(span: Span, similar: Span) -> Span:
+    for var in Span.__annotations__:
+        if not var.startswith("__"):
+            val = span.get(var)
+            s_val = similar.get(var)
+            if val is not None and val != s_val:
+                # TODO remove this special handling once nodejs sets service in the same way.
+                # Right now, nodejs sets a tag named "service" in meta with the correct value.
+                if var == "service":
+                    meta = similar.get("meta")
+                    if meta is not None:
+                        s_val = meta.get(var)
+                assert (
+                    val == s_val
+                ), f"Span field '{var}' mismatch '{val}' != '{s_val}'\nSpan   : {span}\nSimilar: {similar}"
+    return similar
 
 
 def span_has_no_parent(span: Span) -> bool:

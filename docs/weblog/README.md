@@ -127,9 +127,9 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
 </string>
 ```
 
-## \[GET, POST, OPTIONS\] /set_tag/%s/%d
+## \[GET, POST, OPTIONS\] /tag_value/%s/%d
 
-This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path. 
+This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path.
 
 This endpoint must accept all query parameters and all content types.
 
@@ -139,15 +139,24 @@ The second path parameter must be used as a response status code.
 
 All query parameters (key, value) must be used as (key, value) in the response headers.
 
+### Reponse
+
 The following text should be written to the body of the response:
 
 ```
 Value tagged
 ```
 
-Example :
+Exception (introduced for API Security): if the first string parameter starts with `payload_in_response_body` and the method is `POST`. Then the response should contain a json (content_type='application/json') with the format
 ```
-/set_tag/tainted_value/418?Content-Language=fr&custom_field=myvalue
+{"payload": payload}
+```
+where payload is the parsed body of the request
+
+### Example
+
+```
+/tag_value/tainted_value/418?Content-Language=fr&custom_field=myvalue
 ```
 must set the appropriate tag in the span to `tainted_value` and return a response with the teapot code with reponse headers populated with `Content-Language=fr` and `custom_field=myvalue`.
 
@@ -198,8 +207,9 @@ Expected query params:
 
 Supported Libraries:
   - pyscopg (Python PostgreSQL adapter)
-  - mysql (ADO.NET driver for MySQL)
   - npgsql (ADO.NET Data Provider for PostgreSQL)
+  - mysql (ADO.NET driver for MySQL)
+  - sqlclient (Microsoft Data Provider for SQLServer & Azure SQL Database)
 
 ## GET /dsm
 
@@ -253,13 +263,13 @@ Expected query parameters:
 
 ## GET /load_dependency
 
-This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that 
+This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that
 the `dependencies-loaded` event is appropriately triggered.
 
 ## GET /e2e_single_span
 
 This endpoint will create two spans, a parent span (which is a root-span), and a child span.
-The spans created are not sub-spans of the main root span automatically created by system-tests, but 
+The spans created are not sub-spans of the main root span automatically created by system-tests, but
 they will have the same `user-agent` containing the request ID in order to allow assertions on them.
 
 The following query parameters are required:
@@ -270,3 +280,55 @@ The following query parameters are optional:
 - `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
 
 This endpoint is used for the Single Spans tests (`test_single_span.py`).
+
+## GET /e2e_otel_span
+
+This endpoint will create two spans, a parent span (which is a root-span), and a child span.
+The spans created are not sub-spans of the main root span automatically created by system-tests, but
+they will have the same `user-agent` containing the request ID in order to allow assertions on them.
+
+The following query parameters are required:
+- `parentName`: The name of the parent span (root-span).
+- `childName`: The name of the child span (the parent of this span is the root-span identified by `parentName`).
+
+The following query parameters are optional:
+- `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
+
+This endpoint is used for the OTel API tests (`test_otel.py`). In the body of the endpoint, multiple properties are set on the span to verify that the API works correctly.
+To read more about the specific values being used, check `test_otel.py` for up-to-date information.
+
+## \[GET,POST\] /login
+This endpoint is used to authenticate a user.
+Body fields accepted in POST method:
+- `username`: the login name for the user.
+- `password`: password for the user.
+It also supports HTTP authentication by using GET method and the authorization header.
+Additionally both methods support the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_event`: login event type: `success` or `failure`.
+- `sdk_user`: user id to be used in the sdk call.
+- `sdk_mail`: user's mail to be used in the sdk call.
+- `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
+
+## GET /debugger
+These endpoints are used for the Live Debugger tests in `test_debugger.py`. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
+
+### GET /debugger/log
+This endpoint will be used to validate the log probe.
+
+### GET /debugger/metric
+This endpoint will be used to validate the metric probe.
+
+### GET /debugger/span
+This endpoint will be used to validate the span probe.
+
+### GET /debugger/span-decoration
+This endpoint will be used to validate the span decoration probe.
+
+The following query parameters are required for each endpoint:
+- `arg`: This is a parameter that can take any string as an argument.
+- `intArg`: This is a parameter that can take any integer as an argument.
+
+### GET /createextraservice
+should rename the trace service, creating a "fake" service
+
+The parameter `serviceName` is required and should be a string with the name for the fake service

@@ -20,12 +20,12 @@ class HeadersPresenceValidator:
         request_headers = {h[0].lower() for h in data["request"]["headers"]}
         missing_request_headers = self.request_headers - request_headers
         if missing_request_headers:
-            raise Exception(f"Headers {missing_request_headers} are missing in request {data['log_filename']}")
+            raise ValueError(f"Headers {missing_request_headers} are missing in request {data['log_filename']}")
 
         response_headers = {h[0].lower() for h in data["response"]["headers"]}
         missing_response_headers = self.response_headers - response_headers
         if missing_response_headers:
-            raise Exception(f"Headers {missing_response_headers} are missing in request {data['log_filename']}")
+            raise ValueError(f"Headers {missing_response_headers} are missing in request {data['log_filename']}")
 
 
 class HeadersMatchValidator:
@@ -45,15 +45,15 @@ class HeadersMatchValidator:
             header = request_headers[hdr_name.lower()]
             if header:
                 if re.match(regexp, header) is None:
-                    raise Exception(f"Header {hdr_name} did not match {regexp} in request {data['log_filename']}")
+                    raise ValueError(f"Header {hdr_name} did not match {regexp} in request {data['log_filename']}")
             else:
-                raise Exception(f"Request header {hdr_name} is missing in request {data['log_filename']}")
+                raise ValueError(f"Request header {hdr_name} is missing in request {data['log_filename']}")
 
         response_headers = {h[0].lower(): h[1] for h in data["response"]["headers"]}
         for hdr_name, regexp in self.response_headers.items():
             header = response_headers[hdr_name.lower()]
             if header:
                 if re.match(regexp, header) is None:
-                    raise Exception(f"header {hdr_name} did not match {regexp} in response {data['log_filename']}")
+                    raise ValueError(f"header {hdr_name} did not match {regexp} in response {data['log_filename']}")
             else:
-                raise Exception(f"Response header {hdr_name} is missing in response {data['log_filename']}")
+                raise ValueError(f"Response header {hdr_name} is missing in response {data['log_filename']}")

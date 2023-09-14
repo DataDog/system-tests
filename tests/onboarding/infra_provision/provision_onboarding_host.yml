@@ -25,6 +25,9 @@ ami:
   os_distro: rpm
   os_branch: amazon-netcore6
 
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml
+
 prepare-repos:
   install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
 
@@ -36,32 +39,88 @@ agent:
         command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
         #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
+agent_auto_install:
+  - nodejs: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: bash execute_install_script_dev.sh js --inject-mode host 
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=js DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+  - java: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: bash execute_install_script_dev.sh java --inject-mode host 
+
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=java DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
+  - python: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: bash execute_install_script_dev.sh python --inject-mode host 
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=python DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
+
+  - dotnet: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: bash execute_install_script_dev.sh dotnet --inject-mode host 
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=dotnet DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
 autoinjection:
+#Copy tests/onboarding/autoinjection/host_config.yaml to /etc/datadog-agent/inject/host_config.yaml to enable debug (Disabled for timing reasons)
   - java: 
     - env: dev
       install: 
         - os_type: linux
-          os_distro: deb
+          os_distro: deb  
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
           command: |          
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-java
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
             dd-host-install
-            #Verify package signature. Fails if it isn't V4
+            echo "Verify package signature. Fails if it isn't V4"
             yumdownloader datadog-apm-inject
             rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
-
+            echo "Package signature verified!"
+ 
     - env: prod
       install: 
         - os_type: linux
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
@@ -79,12 +138,12 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
           command: |
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-js
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-js
             dd-host-install
 
     - env: prod
@@ -93,7 +152,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
-            dd-host-install || true
+            dd-host-install 
 
         - os_type: linux
           os_distro: rpm
@@ -106,7 +165,7 @@ autoinjection:
         - os_type: linux
           os_distro: rpm
           command: |
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64  datadog-apm-library-dotnet
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject  datadog-apm-library-dotnet
             dd-host-install
     - env: prod
       install: 
@@ -122,7 +181,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-python
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
@@ -135,12 +194,12 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-python
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
-          command: |
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-python
+          command: |         
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-python
             dd-host-install
 language-variants:
   - java: 
@@ -149,18 +208,12 @@ language-variants:
       install: 
         - os_type: linux
           os_distro: deb
-          command: sudo apt-get -y install openjdk-11-jdk-headless
+          command: sudo apt-get -y install openjdk-11-jdk-headless 
 
         - os_type: linux
           os_distro: rpm
           command: sudo amazon-linux-extras install java-openjdk11
-    - name: OpenJDK8
-      version: 8
-      install: 
-        - os_type: linux
-          os_distro: deb
-          command: sudo apt-get -y install openjdk-11-jdk-headless
-
+ 
   - nodejs:
     - name: node16
       version: 16
@@ -182,16 +235,24 @@ language-variants:
           command: dotnet --info  
 
   - python: 
-    - name: Python3
-      version: 3
+    - name: Python_3.8.15
+      version: 3.8.15
       install: 
         - os_type: linux
           os_distro: deb
-          command: sudo apt-get -y install python3 python3-pip
+          copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/lang/python_install.sh 
+          command: sh python_install.sh deb 3.8.15
 
         - os_type: linux
           os_distro: rpm
-          command: sudo yum -y install python3
+          copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/lang/python_install.sh
+          command: sh python_install.sh rpm 3.8.15
+
+
 weblogs:
   - java: 
     - name: test-app-java
@@ -266,10 +327,10 @@ weblogs:
   - python: 
     - name: test-app-python
       supported-language-versions:
-        - 3
+        - 3.8.15
       install: 
         - os_type: linux
-          local-script: tar cvf test-app-python.tar -C lib-injection/build/docker/python/dd-lib-python-init-test-django .
+          local-command: tar cvf test-app-python.tar -C lib-injection/build/docker/python/dd-lib-python-init-test-django .
           copy_files:
             - name: copy-service
               local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python.service
@@ -280,6 +341,6 @@ weblogs:
             - name: copy-python-app
               local_path: test-app-python.tar
 
-          command: sh test-app-python_run.sh
+          command: export PATH="~/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sh test-app-python_run.sh
 
 installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml

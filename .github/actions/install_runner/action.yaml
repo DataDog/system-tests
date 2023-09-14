@@ -1,0 +1,23 @@
+name: Install_system_tests_runner
+description: "Install python virtual env, and system dependencies, using github action cache if possible"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+    - uses: actions/cache@v3
+      id: runner_cache
+      with:
+        path: venv
+        key: runner_venv-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('requirements.txt') }}
+    - name: Build runner
+      shell: bash
+      if: steps.runner_cache.outputs.cache-hit != 'true'
+      run: ./build.sh -i runner
+    - name: Print versions
+      shell: bash
+      run: |
+        source venv/bin/activate
+        python --version
+        pip freeze

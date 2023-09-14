@@ -1,8 +1,6 @@
-import yaml
-from yaml.loader import SafeLoader
-from yamlinclude import YamlIncludeConstructor
 import os
-from utils.tools import logger
+import yaml
+from yamlinclude import YamlIncludeConstructor
 from utils._context.virtual_machines import TestedVirtualMachine
 
 
@@ -12,7 +10,7 @@ class ProvisionMatrix:
         self.provision_parser = ProvisionParser(provision_filter)
 
     def get_infrastructure_provision(self):
-        if not os.getenv("TEST_LIBRARY"):
+        if not self.provision_filter.language or not self.provision_filter.env or not self.provision_filter.weblog:
             return None
         for ec2_data in self.provision_parser.ec2_instances_data():
             # for every different agent instalation
@@ -22,10 +20,12 @@ class ProvisionMatrix:
                     # for every different language variants. If the aren't language_variants for this language
                     # the function "ec2_language_variants_install_data" will return an array with an empty dict
                     for language_variants_instalations in self.provision_parser.ec2_language_variants_install_data():
-                        # for every weblog supported for every language variant or weblog variant without "supported-language-versions"
+                        # for every weblog supported for every language variant or weblog variant
+                        # without "supported-language-versions"
                         for weblog_instalations in self.provision_parser.ec2_weblogs_install_data(
                             language_variants_instalations["version"]
                         ):
+                            prepare_init_config = self.provision_parser.ec2_prepare_init_config_install_data()
                             prepare_repos_install = self.provision_parser.ec2_prepare_repos_install_data()
                             prepare_docker_install = self.provision_parser.ec2_prepare_docker_install_data()
                             installation_check_data = self.provision_parser.ec2_installation_checks_data()
@@ -36,15 +36,20 @@ class ProvisionMatrix:
                                 autoinjection_instalations,
                                 language_variants_instalations,
                                 weblog_instalations,
+                                prepare_init_config,
                                 prepare_repos_install,
                                 prepare_docker_install,
                                 installation_check_data,
+                                self.provision_filter.provision_scenario.lower(),
                             )
 
 
 class ProvisionParser:
     def __init__(self, provision_filter):
         self.provision_filter = provision_filter
+        # If the scenario name has suffix "AUTO_INSTALL" the parser behaviour will change
+        self.auto_install_suffix = "_AUTO_INSTALL"
+        self.is_auto_install = provision_filter.provision_scenario.endswith(self.auto_install_suffix)
         self.config_data = self._load_provision()
 
     def ec2_instances_data(self):
@@ -62,11 +67,19 @@ class ProvisionParser:
         self.provision_filter.os_branch = ami_data.get("os_branch", None)
 
     def ec2_agent_install_data(self):
-        for agent_data in self._filter_provision_data(self.config_data, "agent"):
-            yield agent_data
+        if self.is_auto_install:
+            yield {}
+        else:
+            for agent_data in self._filter_provision_data(self.config_data, "agent"):
+                yield agent_data
 
     def ec2_autoinjection_install_data(self):
-        autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
+        autoinjection_language_data = {}
+        if self.is_auto_install:
+            # Read agent_auto_install node
+            autoinjection_language_data = self._get_autoinstall_data_for_current_lang()
+        else:
+            autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
         if not autoinjection_language_data:
             return None
         for autoinjection_env_data in autoinjection_language_data:
@@ -78,6 +91,11 @@ class ProvisionParser:
                 continue
 
             yield {"env": autoinjection_env_data["env"], "install": filteredInstalations[0]}
+
+    def _get_autoinstall_data_for_current_lang(self):
+        for autoinjection_language_data in self.config_data["agent_auto_install"]:
+            if self.provision_filter.language in autoinjection_language_data:
+                return autoinjection_language_data[self.provision_filter.language]
 
     def _get_autoinjection_data_for_current_lang(self):
         for autoinjection_language_data in self.config_data["autoinjection"]:
@@ -98,19 +116,26 @@ class ProvisionParser:
         # If the aren't language variants for this language, we allways return one row.
         # This let us to search weblog variants without "language_specification" versionn (ie container based apps)
         if not language_variants_data_result:
-            language_variants_data_result.append(dict(version=None, name="None"))
+            language_variants_data_result.append({"version": None, "name": "None"})
 
         return language_variants_data_result
 
+    def ec2_prepare_init_config_install_data(self):
+        filteredInstalations = self._filter_install_data(self.config_data["init-config"], exact_match=False)
+        return {"install": filteredInstalations[0]}
+
     def ec2_prepare_repos_install_data(self):
+        # If we are using AUTO_INSTALL, the agent script will configure the repos automatically
+        if self.is_auto_install:
+            return {}
         filteredInstalations = self._filter_install_data(self.config_data["prepare-repos"], exact_match=False)
-        return dict(install=filteredInstalations[0])
+        return {"install": filteredInstalations[0]}
 
     def ec2_prepare_docker_install_data(self):
         if "prepare-docker" not in self.config_data:
-            return dict(install=None)
+            return {"install": None}
         filteredInstalations = self._filter_install_data(self.config_data["prepare-docker"], exact_match=False)
-        return dict(install=filteredInstalations[0])
+        return {"install": filteredInstalations[0]}
 
     def ec2_weblogs_install_data(self, support_version):
         for language_weblog_data in self.config_data["weblogs"]:
@@ -152,7 +177,8 @@ class ProvisionParser:
         if exact_match is True:
             if os_branch is not None:
                 return filteredInstalations
-            elif os_branch is None:
+
+            if os_branch is None:
                 filteredInstalations = [
                     agent_data_install for agent_data_install in data["install"] if "os_branch" in agent_data_install
                 ]
@@ -178,7 +204,7 @@ class ProvisionParser:
 
         # Only one instalation
         if len(filteredInstalations) > 1:
-            raise Exception("Only one type of installation is allowed!", os_type, os_distro)
+            raise ValueError("Only one type of installation is allowed!", os_type, os_distro)
 
         return filteredInstalations
 
@@ -205,12 +231,15 @@ class ProvisionParser:
 
     def _load_provision(self):
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
-        self.provision_filter.provision_scenario
-        # Open the file and load the file
+
+        # Open the file associated with the scenario name.
+        # Remember that we remove the suffix "AUTO_INSTALLL", we use the same provision
         provision_file = (
-            "tests/onboarding/infra_provision/provision_" + self.provision_filter.provision_scenario.lower() + ".yml"
+            "tests/onboarding/infra_provision/provision_"
+            + self.provision_filter.provision_scenario.removesuffix(self.auto_install_suffix).lower()
+            + ".yml"
         )
-        with open(provision_file) as f:
+        with open(provision_file, encoding="utf-8") as f:
             config_data = yaml.load(f, Loader=yaml.FullLoader)
         return config_data
 
@@ -218,7 +247,7 @@ class ProvisionParser:
 class ProvisionFilter:
     def __init__(self, provision_scenario, language=None, env=None, os_distro=None, weblog=None):
         self.provision_scenario = provision_scenario
-        self.language = os.getenv("TEST_LIBRARY")
-        self.env = os.getenv("ONBOARDING_FILTER_ENV")
+        self.language = language
+        self.env = env
         self.os_distro = os.getenv("ONBOARDING_FILTER_OS_DISTRO")
-        self.weblog = os.getenv("ONBOARDING_FILTER_WEBLOG")
+        self.weblog = weblog

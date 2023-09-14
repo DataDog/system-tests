@@ -8,6 +8,7 @@ import os
 import random
 import string
 import urllib
+import re
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -46,6 +47,9 @@ class HttpRequest:
         self.method = data["method"]
         self.url = data["url"]
 
+    def __repr__(self) -> str:
+        return f"HttpRequest(method:{self.method}, url:{self.url}, headers:{self.headers})"
+
 
 class HttpResponse:
     def __init__(self, data):
@@ -56,12 +60,23 @@ class HttpResponse:
 
 
 class _Weblog:
-    _grpc_port = 7778
-
     def __init__(self):
-        if "DOCKER_HOST" in os.environ:
-            self.domain = os.environ["DOCKER_HOST"]
-            self.domain = self.domain.replace("ssh://docker@", "")
+        if "SYSTEM_TESTS_WEBLOG_PORT" in os.environ:
+            self.port = int(os.environ["SYSTEM_TESTS_WEBLOG_PORT"])
+        else:
+            self.port = 7777
+
+        if "SYSTEM_TESTS_WEBLOG_GRPC_PORT" in os.environ:
+            self._grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
+        else:
+            self._grpc_port = 7778
+
+        if "SYSTEM_TESTS_WEBLOG_HOST" in os.environ:
+            self.domain = os.environ["SYSTEM_TESTS_WEBLOG_HOST"]
+        elif "DOCKER_HOST" in os.environ:
+            m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+            if m is not None:
+                self.domain = m.group(1)
         else:
             self.domain = "localhost"
 
@@ -103,14 +118,14 @@ class _Weblog:
         headers=None,
         stream=None,
         domain=None,
-        port=7777,
+        port=None,
         allow_redirects=True,
         rid_in_user_agent=True,
         **kwargs,
     ):
 
         if self.current_nodeid is None:
-            raise Exception("Weblog calls can only be done during setup")
+            raise ValueError("Weblog calls can only be done during setup")
 
         if self.replay:
             return self.get_request_from_logs()
@@ -142,13 +157,14 @@ class _Weblog:
             "text": None,
         }
 
+        timeout = kwargs.pop("timeout", 5)
         try:
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
             r = req.prepare()
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")
 
-            r = requests.Session().send(r, timeout=5, stream=stream, allow_redirects=allow_redirects)
+            r = requests.Session().send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
             response_data["status_code"] = r.status_code
             response_data["headers"] = r.headers
             response_data["text"] = r.text
@@ -181,13 +197,19 @@ class _Weblog:
 
         return self.responses[self.current_nodeid].pop(0)
 
-    def _get_url(self, path, domain, port, query=None):
+    def warmup_request(self, domain=None, port=None, timeout=10):
+        requests.get(self._get_url("/", domain, port), timeout=timeout)
+
+    def _get_url(self, path, domain=None, port=None, query=None):
         """Return a query with the passed host"""
         # Make all absolute paths to be relative
         if path.startswith("/"):
             path = path[1:]
 
-        domain = domain if domain is not None else self.domain
+        if domain is None:
+            domain = self.domain
+        if port is None:
+            port = self.port
 
         res = f"http://{domain}:{port}/{path}"
 
@@ -202,7 +224,7 @@ class _Weblog:
             return self.get_grpc_request_from_logs()
 
         if self.current_nodeid is None:
-            raise Exception("Weblog calls can only be done during setup")
+            raise ValueError("Weblog calls can only be done during setup")
 
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 

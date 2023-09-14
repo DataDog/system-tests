@@ -3,6 +3,9 @@ using System.Net;
 using ApmTestClient.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
+// Force the initialization of the tracer
+_ = Datadog.Trace.Tracer.Instance;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Additional configuration is required to successfully run gRPC on macOS.
@@ -10,19 +13,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddGrpc();
-builder.WebHost.ConfigureKestrel(options =>
-{
-    // If we're using http, then _must_ listen on Http2 only, as the TLS
-    // negotiation is where we would typically negotiate between Http1.1/Http2
-    // Without this, you'll get a PROTOCOL_ERROR
-    // NOTE: For now, we'll set this in code via the options.Listen call since this
-    // seems to work with the Python tests (perhaps because this covers IPv4 and IPv6)
 
-    options.Listen(IPAddress.Any, Int32.Parse(Environment.GetEnvironmentVariable("APM_TEST_CLIENT_SERVER_PORT")!), listenOptions =>
-    {
-        listenOptions.Protocols = HttpProtocols.Http2;
-    });
-});
+// If we're using http, then _must_ listen on Http2 only, as the TLS
+// negotiation is where we would typically negotiate between Http1.1/Http2
+// Without this, you'll get a PROTOCOL_ERROR
+// NOTE: For now, we'll set this in code via the options.Listen call since this
+// seems to work with the Python tests (perhaps because this covers IPv4 and IPv6)
+if (int.TryParse(Environment.GetEnvironmentVariable("APM_TEST_CLIENT_SERVER_PORT"), out var port))
+{
+    builder.WebHost.ConfigureKestrel(
+        options =>
+            options.Listen(IPAddress.Any, port, listenOptions => { listenOptions.Protocols = HttpProtocols.Http2; }));
+}
 
 var app = builder.Build();
 

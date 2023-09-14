@@ -2,12 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, released, scenarios
+from utils import weblog, interfaces, released, scenarios
 
 
-@released(cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
-@released(python="1.5.0rc2.dev")  # TODO : is it the good version number ?
-@missing_feature(context.library == "python" and context.weblog_variant != "flask-poc", reason="Missing on weblog")
 @scenarios.trace_propagation_style_w3c
 class Test_DistributedHttp:
     """ Verify behavior of http clients and distributed traces """

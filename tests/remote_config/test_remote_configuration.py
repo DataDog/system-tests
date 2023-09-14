@@ -16,6 +16,7 @@ from utils import (
     rfc,
     bug,
     irrelevant,
+    weblog,
 )
 from utils.tools import logger
 
@@ -32,7 +33,7 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 class Test_Agent:
     """ misc test on agent/remote config features"""
 
-    @missing_feature(library="nodejs", reason="nodejs tracer does not call /info")
+    @irrelevant(library="nodejs", reason="nodejs tracer does not call /info")
     @missing_feature(library="ruby", reason="ruby tracer does not call /info")
     @irrelevant(library="cpp")
     @scenarios.remote_config_mocked_backend_asm_dd
@@ -52,8 +53,8 @@ class RemoteConfigurationFieldsBasicTests:
 
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "dotnet@2.24.0")
     @bug(context.library >= "nodejs@3.14.1")
+    @bug(context.library == "php" and context.php_appsec >= "0.10.0")
     def test_schemas(self):
         """ Test all library schemas """
         interfaces.library.assert_schemas()
@@ -86,6 +87,11 @@ class RemoteConfigurationFieldsBasicTests:
             allowed_errors = (
                 # value is missing in configuration object in telemetry payloads
                 r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
+            )
+        elif context.library == "php":
+            allowed_errors = (
+                r"'interval' is a required property on instance \['payload'\]\['series'\]\[\d+\]",
+                r"'namespace' is a required property on instance \['payload'\]",
             )
 
         interfaces.library.assert_schemas(allowed_errors=allowed_errors)
@@ -132,8 +138,8 @@ def dict_is_included(sub_dict: dict, main_dict: dict):
 
 
 def dict_is_in_array(needle: dict, haystack: list, allow_additional_fields=True):
-    """ 
-    returns true is needle is contained in haystack. 
+    """
+    returns true is needle is contained in haystack.
     If allow_additional_field is true, needle can contains less field than the one in haystack
     """
 
@@ -230,12 +236,8 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
-@released(php_appsec="0.7.0", python="1.7.4", ruby="?", nodejs="3.9.0")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -261,12 +263,12 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
             rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
 
-            # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers).
-            #  It generates two payloads for each request number.
-            #  We're working to update this behavior in this propossal:
-            #  https://docs.google.com/document/d/1zeh7g_c_4Oj9EUuf8kQEW_qbZl9PCH4hJHiVYnoLy6I/edit
             self.python_request_number += 1
-            if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+            if (
+                context.library == "python"
+                and str(context.library) < "python@1.14.0rc2"
+                and context.weblog_variant != "uwsgi-poc"
+            ):
                 if self.python_request_number % 2 == 0:
                     self.request_number += 1
             else:
@@ -277,12 +279,49 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         interfaces.library.validate_remote_configuration(validator=validate)
 
 
+@coverage.basic
+@scenarios.remote_config_mocked_backend_asm_features
+class Test_RemoteConfigurationExtraServices:
+    """Tests that extra services are sent in the RC message"""
+
+    def setup_tracer_extra_services(self):
+        self.r_outgoing = weblog.get("/createextraservice/?serviceName=extraVegetables")
+
+        def remote_config_asm_extra_services_available(data):
+            if data["path"] == "/v0.7/config":
+                client_tracer = data.get("request", {}).get("content", {}).get("client", {}).get("client_tracer", {})
+                if "extra_services" in client_tracer:
+                    extra_services = client_tracer["extra_services"]
+
+                    if extra_services is not None and len(extra_services) > 0:
+                        return True
+
+                return False
+
+        interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
+
+    def test_tracer_extra_services(self):
+        """ test """
+
+        for data in interfaces.library.get_data():
+            if data["path"] == "/v0.7/config":
+                client_tracer = data["request"]["content"]["client"]["client_tracer"]
+                if "extra_services" in client_tracer:
+                    extra_services = client_tracer["extra_services"]
+
+                    if (
+                        extra_services is not None
+                        and len(extra_services) == 1
+                        and extra_services[0] == "extraVegetables"
+                    ):
+                        return
+
+        raise ValueError("extra_services not found")
+
+
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -311,12 +350,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
-@released(golang="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -348,9 +383,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(
-    cpp="?", golang="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="1.6.0rc1", ruby="?", nodejs="3.9.0"
-)
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="python", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
@@ -383,7 +415,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging_nocache
@@ -412,7 +444,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="php", reason="cache is implemented")
 @irrelevant(library="golang", reason="cache is implemented")

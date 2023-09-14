@@ -6,6 +6,7 @@ binaries/*
 !binaries/README.md
 
 venv
+venv.
 /vendor/python
 
 .python-version
@@ -25,7 +26,7 @@ logs*/
 x64/
 x86/
 bld/
-[Bb]in/
+/[Bb]in/
 [Oo]bj/
 [Ll]og/
 dist/
@@ -37,9 +38,14 @@ reportJunit.xml
 /utils/build/docker/dotnet/.vs/app/*
 /utils/build/docker/dotnet/app.csproj.user
 
-# VSCode
 .ionide/
 
 # Visual Studio
 .vs/
 .config/dotnet-tools.json
+
+# Node.js
+node_modules/
+
+# vim
+/*.vim

@@ -1,20 +1,27 @@
 name: "Pull docker images"
 description: "Pull docker images"
+inputs:
+  pull-all:
+    description: "True to pull all images required for all scenarios"
+    required: true
+    default: "false"
 runs:
   using: composite
   steps:
     - name: Pull images needed for default scenario
       shell: bash
       run: |
-        docker pull mitmproxy/mitmproxy
+        docker pull datadog/system-tests:proxy-v1 || true
         docker pull postgres:latest
     - name: Pull images needed for all scenarios
       shell: bash
-      if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
       run: |
-        docker pull mongo:latest
-        docker pull bitnami/kafka:3.1
-        docker pull bitnami/zookeeper:latest
-        docker pull cassandra:latest
-        docker pull rabbitmq:3-management-alpine
-        docker pull mysql/mysql-server:latest
+        if [[ "${{ inputs.pull-all }}" == "true" ]]; then
+          docker pull mongo:latest
+          docker pull bitnami/kafka:3.1
+          docker pull bitnami/zookeeper:latest
+          docker pull cassandra:latest
+          docker pull rabbitmq:3-management-alpine
+          docker pull mysql/mysql-server:latest
+          docker pull mcr.microsoft.com/mssql/server:latest
+        fi

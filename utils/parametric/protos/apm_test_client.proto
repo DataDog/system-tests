@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 option java_package = "com.datadoghq.client";
+option csharp_namespace = "ApmTestClient";
 
 // Interface of APM clients to be used for shared testing.
 service APMClient {
@@ -9,6 +10,8 @@ service APMClient {
   rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
   rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
   rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
+  rpc HTTPClientRequest(HTTPRequestArgs) returns (HTTPRequestReturn) {}
+  rpc HTTPServerRequest(HTTPRequestArgs) returns (HTTPRequestReturn) {}
   rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
@@ -87,6 +90,17 @@ message SpanSetErrorArgs {
   optional string stack = 4;
 }
 message SpanSetErrorReturn {}
+
+
+message HTTPRequestArgs {
+  string url = 1;
+  string method = 2;
+  DistributedHTTPHeaders headers = 3;
+  bytes body = 4;
+}
+message HTTPRequestReturn {
+  string status_code = 1;
+}
 
 message FlushSpansArgs {}
 message FlushSpansReturn {}

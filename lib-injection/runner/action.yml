@@ -54,6 +54,13 @@ runs:
           cd system-tests
           ${{ inputs.test-script }}
 
+      - name: Debug kubernetes cluster info
+        shell: bash
+        if: ${{ always() }}
+        run: |
+          cd system-tests
+          ./lib-injection/execFunction.sh $LIBRARY_INJECTION_ADMISSION_CONTROLLER print-debug-info
+
       - name: Compress lib injection logs
         shell: bash
         if: ${{ always() }}

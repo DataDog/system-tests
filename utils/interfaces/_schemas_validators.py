@@ -106,7 +106,8 @@ def _main():
         path = f"logs/interfaces/{interface}"
         files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
         for file in files:
-            data = json.load(open(os.path.join(path, file), encoding="utf-8"))
+            with open(os.path.join(path, file), encoding="utf-8") as f:
+                data = json.load(f)
 
             if "request" in data and data["request"]["length"] != 0:
                 validator(data)

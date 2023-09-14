@@ -21,9 +21,10 @@ ENV PGDATABASE=system_tests
 ENV PGHOST=postgres
 ENV PGPORT=5433
 
-
 ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
 ENV UDS_WEBLOG=1
+
+ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh

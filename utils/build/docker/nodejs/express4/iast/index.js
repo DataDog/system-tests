@@ -5,7 +5,7 @@ const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto');
 const { execSync } = require('child_process');
-const https = require('http');
+const https = require('https');
 
 function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
@@ -55,7 +55,6 @@ function init (app, tracer) {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
   
-    console.error('/iast/insecure_hashing/test_md5_algorithm')
     res.send(crypto.createHash('md5').update('insecure').digest('hex'));
   });
   
@@ -69,7 +68,12 @@ function init (app, tracer) {
   app.get('/iast/insecure_cipher/test_secure_algorithm', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
-    const cipher = crypto.createCipheriv('sha256', '1111111111111111', 'abcdefgh')
+ 
+    const key = crypto.randomBytes(32);
+ 
+    const iv = crypto.randomBytes(16);
+ 
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
     res.send(Buffer.concat([cipher.update('12345'), cipher.final()]))
   });
   
@@ -118,6 +122,81 @@ function init (app, tracer) {
     https.get(req.body.url, () => {
       res.send('OK')
     })
+  });
+
+
+  app.get('/iast/insecure-cookie/test_insecure', (req, res) => {
+    res.cookie('insecure', 'cookie')
+    res.send('OK')
+  });
+
+  app.get('/iast/insecure-cookie/test_secure', (req, res) => {
+    res.setHeader('set-cookie', 'secure=cookie; Secure; HttpOnly; SameSite=Strict')
+    res.cookie('secure2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  });
+
+  app.get('/iast/insecure-cookie/test_empty_cookie', (req, res) => {
+    res.clearCookie('insecure')
+    res.setHeader('set-cookie', 'empty=')
+    res.cookie('secure3', '')
+    res.send('OK')
+  });
+
+
+  app.get('/iast/no-httponly-cookie/test_insecure', (req, res) => {
+    res.cookie('no-httponly', 'cookie')
+    res.send('OK')
+  });
+
+  app.get('/iast/no-httponly-cookie/test_secure', (req, res) => {
+    res.setHeader('set-cookie', 'httponly=cookie; Secure;HttpOnly;SameSite=Strict;')
+    res.cookie('httponly2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  });
+
+  app.get('/iast/no-httponly-cookie/test_empty_cookie', (req, res) => {
+    res.clearCookie('insecure')
+    res.setHeader('set-cookie', 'httponlyempty=')
+    res.cookie('httponlyempty2', '')
+    res.send('OK')
+  });
+
+
+  app.get('/iast/no-samesite-cookie/test_insecure', (req, res) => {
+    res.cookie('nosamesite', 'cookie')
+    res.send('OK')
+  });
+
+  app.get('/iast/no-samesite-cookie/test_secure', (req, res) => {
+    res.setHeader('set-cookie', 'samesite=cookie; Secure; HttpOnly; SameSite=Strict')
+    res.cookie('samesite2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  });
+
+  app.get('/iast/no-samesite-cookie/test_empty_cookie', (req, res) => {
+    res.clearCookie('insecure')
+    res.setHeader('set-cookie', 'samesiteempty=')
+    res.cookie('samesiteempty2', '')
+    res.send('OK')
+  });
+
+  app.post('/iast/unvalidated_redirect/test_secure_header', (req, res) => {
+    res.setHeader('location', 'http://dummy.location.com')
+    res.send('OK')
+  });
+
+  app.post('/iast/unvalidated_redirect/test_insecure_header', (req, res) => {
+    res.setHeader('location', req.body.location)
+    res.send('OK')
+  });
+
+  app.post('/iast/unvalidated_redirect/test_secure_redirect', (req, res) => {
+    res.redirect('http://dummy.location.com')
+  });
+
+  app.post('/iast/unvalidated_redirect/test_insecure_redirect', (req, res) => {
+    res.redirect(req.body.location)
   });
 
   require('./sources')(app, tracer);

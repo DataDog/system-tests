@@ -1,12 +1,19 @@
 import os
-from utils.tools import logger
-import pulumi
-import pulumi_aws as aws
-import pulumi_command as command
-from pulumi import Output
-
 import logging
 import logging.config
+
+import pulumi
+from pulumi import Output
+import pulumi_command as command
+
+
+def remote_docker_login(command_id, user, password, connection, depends_on):
+    # Workaround: Sometimes I get "docker" command not found. Wait some seconds?
+    command_exec = f"sleep 5 && sudo docker login --username={user} --password={password} || true"
+    cmd_exec_install = command.remote.Command(
+        command_id, connection=connection, create=command_exec, opts=pulumi.ResourceOptions(depends_on=[depends_on]),
+    )
+    return cmd_exec_install
 
 
 def remote_install(
@@ -18,6 +25,8 @@ def remote_install(
     logger_name=None,
     dd_api_key=None,
     dd_site=None,
+    scenario_name=None,
+    output_callback=None,
 ):
     # Do we need to add env variables?
     if install_info is None:
@@ -42,7 +51,7 @@ def remote_install(
             create=local_command,
             opts=pulumi.ResourceOptions(depends_on=[depends_on]),
         )
-        webapp_build.stdout.apply(lambda outputlog: pulumi_logger("build_local_weblogs").info(outputlog))
+        webapp_build.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, "build_local_weblogs").info(outputlog))
         depends_on = webapp_build
 
     # Copy files from local to remote if we need
@@ -63,7 +72,7 @@ def remote_install(
                 remote_path=remote_path,
                 opts=pulumi.ResourceOptions(depends_on=[depends_on]),
             )
-        depends_on = cmd_cp_webapp
+            depends_on = cmd_cp_webapp
 
     # Execute a basic command on our server.
     cmd_exec_install = command.remote.Command(
@@ -73,18 +82,22 @@ def remote_install(
         opts=pulumi.ResourceOptions(depends_on=[depends_on]),
     )
     if logger_name:
-        cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(logger_name).info(outputlog))
+        cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, logger_name).info(outputlog))
     else:
         # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
         # same remote machine in the same log file
-        Output.all(connection.host, cmd_exec_install.stdout).apply(lambda args: pulumi_logger(args[0]).info(args[1]))
+        Output.all(connection.host, cmd_exec_install.stdout).apply(
+            lambda args: pulumi_logger(scenario_name, args[0]).info(args[1])
+        )
+    if output_callback:
+        cmd_exec_install.stdout.apply(output_callback)
 
     return cmd_exec_install
 
 
-def pulumi_logger(log_name, level=logging.INFO):
+def pulumi_logger(scenario_name, log_name, level=logging.INFO):
     formatter = logging.Formatter("%(message)s")
-    handler = logging.FileHandler(f"logs_onboarding/{log_name}.log")
+    handler = logging.FileHandler(f"logs_{scenario_name}/{log_name}.log")
     handler.setFormatter(formatter)
     specified_logger = logging.getLogger(log_name)
     specified_logger.setLevel(level)

@@ -6,6 +6,8 @@ ami:
   os_type: linux
   os_distro: rpm
 
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml
 
 prepare-repos:
   install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml

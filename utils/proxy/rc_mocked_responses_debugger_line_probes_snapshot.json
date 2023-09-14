@@ -1,0 +1,16 @@
+[
+    null,
+    [
+        {
+            "language": "",
+            "id": "logProbe-installed",
+            "where": {
+                "typeName": null,
+                "sourceFile": "ACTUAL_SOURCE_FILE",
+                "lines": [
+                    "19"
+                ]
+            }
+        }
+    ]
+]
