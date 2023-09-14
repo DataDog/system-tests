@@ -2,28 +2,22 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import base64
-import gzip
-import json
-
-import pytest
-from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
+from utils import context, coverage, interfaces, missing_feature, rfc, scenarios, weblog
 
 
 def get_schema(request, address):
     """get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
-        payload = meta.get("_dd.appsec.s." + address, None)
+        payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
-            return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
+            return payload
     return
 
 
 def equal_without_meta(t1, t2):
     """compare two schema types, ignoring any metadata"""
     if t1 is None or t2 is None:
-        print("NONE")
         return False
     return equal_value(t1[0], t2[0])
 
@@ -40,13 +34,10 @@ def equal_value(t1, t2):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
-)
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Headers:
-    """Test API Security - Request Header Schema"""
+    """Test API Security - Request Headers Schema"""
 
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS001/200")
@@ -57,13 +48,31 @@ class Test_Schema_Request_Headers:
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert equal_without_meta(schema, [{"Accept-Encoding": [8], "Host": [8], "User-Agent": [8]}])
+        assert equal_without_meta(schema, [{"accept-encoding": [8], "host": [8], "user-agent": [8]}])
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
-)
+@coverage.basic
+@scenarios.appsec_api_security
+class Test_Schema_Request_Cookies:
+    """Test API Security - Request Cookies Schema"""
+
+    def setup_request_method(self):
+        self.request = weblog.get(
+            "/tag_value/api_match_AS001/200", cookies={"secret": "any value", "cache": "any other value"}
+        )
+
+    @missing_feature(context.library < "python@1.19.0.dev")
+    def test_request_method(self):
+        """can provide request header schema"""
+        schema = get_schema(self.request, "req.cookies")
+        assert self.request.status_code == 200
+        assert schema
+        assert isinstance(schema, list)
+        assert equal_without_meta(schema, [{"secret": [8], "cache": [8]}])
+
+
+@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Query_Parameters:
@@ -84,9 +93,6 @@ class Test_Schema_Request_Query_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
-)
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Path_Parameters:
@@ -109,9 +115,6 @@ class Test_Schema_Request_Path_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
-)
 @coverage.basic
 @scenarios.appsec_api_security
 class Test_Schema_Request_Body:
@@ -129,13 +132,10 @@ class Test_Schema_Request_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
-)
 @coverage.basic
 @scenarios.appsec_api_security
-class Test_Schema_Reponse_Headers:
-    """Test API Security - Reponse Header Schema"""
+class Test_Schema_Response_Headers:
+    """Test API Security - Response Header Schema"""
 
     def setup_request_method(self):
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
@@ -147,23 +147,30 @@ class Test_Schema_Reponse_Headers:
         assert isinstance(schema, list)
         assert len(schema) == 1
         assert isinstance(schema[0], dict)
-        for key in ("Content-Length", "Content-Type", "X-option"):
+        for key in ("content-length", "content-type", "x-option"):
             assert key in schema[0]
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@released(
-    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
-)
-@coverage.not_implemented
+@coverage.basic
 @scenarios.appsec_api_security
-class Test_Schema_Reponse_Body:
-    """Test API Security - Reponse Body Schema"""
+class Test_Schema_Response_Body:
+    """Test API Security - Response Body Schema with urlencoded body"""
 
     def setup_request_method(self):
-        pass
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+        )
 
-    @pytest.mark.skip
     def test_request_method(self):
         """can provide response body schema"""
-        pass
+        schema = get_schema(self.request, "res.body")
+        assert self.request.status_code == 200
+        assert isinstance(schema, list)
+        assert len(schema) == 1
+        for key in ("payload",):
+            assert key in schema[0]
+        payload_schema = schema[0]["payload"][0]
+        for key in ("test_bool", "test_int", "test_str"):
+            assert key in payload_schema

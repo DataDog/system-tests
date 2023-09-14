@@ -2,20 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import context, coverage, released, missing_feature
-from ..iast_fixtures import SinkFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import coverage, missing_feature
+from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", java="1.14.0", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "ratpack", reason="No endpoint implemented")
-@missing_feature(context.weblog_variant == "akka-http", reason="No endpoint implemented")
-@missing_feature(context.weblog_variant == "vertx4", reason="No endpoint implemented")
 class TestSSRF:
     """Test ssrf detection."""
 

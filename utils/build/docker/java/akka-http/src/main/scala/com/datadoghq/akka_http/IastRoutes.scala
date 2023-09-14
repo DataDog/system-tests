@@ -21,6 +21,8 @@ object IastRoutes {
   private val ldap = new LDAPExamples(ldapContext)
   private val path_ = new PathExamples()
   private val sql = new SqlExamples(dataSource)
+  private val xpath = new XPathExamples()
+  private val random = new WeakRandomnessExamples()
 
   val route: Route = pathPrefix("iast") {
     pathPrefix("insecure_hashing") {
@@ -82,6 +84,30 @@ object IastRoutes {
           }
         }
       } ~
+      pathPrefix("xpathi") {
+              post {
+                path("test_insecure") {
+                  paramOrFormField("expression") { expression =>
+                    xpath.insecureXPath(expression)
+                    complete(StatusCodes.OK, "Insecure")
+                  }
+                } ~
+                  path("test_secure") {
+                    xpath.secureXPath()
+                    complete(StatusCodes.OK, "Secure")
+                  }
+              }
+            } ~
+      pathPrefix("weak_randomness") {
+        get {
+          path("test_insecure") {
+            complete(StatusCodes.OK, random.weakRandom())
+          } ~
+            path("test_secure") {
+              complete(StatusCodes.OK, random.secureRandom())
+            }
+        }
+      } ~
       path("path_traversal" / "test_insecure") {
         post {
           paramOrFormField("path") { pathParam =>
@@ -91,19 +117,38 @@ object IastRoutes {
       } ~
       pathPrefix("source") {
         path("parameter" / "test") {
-          formField("table") { table =>
-            sql.insecureSql(table,
-              (statement: Statement, query) => statement.executeQuery(query))
-            complete(StatusCodes.OK, s"Request Parameters => source: $table");
-          }
-        } ~
-          path("parametername" / "test") {
-            formFieldMap { fm =>
-              val table = fm.head._1
+          post {
+            formField("table") { table =>
               sql.insecureSql(table,
                 (statement: Statement, query) => statement.executeQuery(query))
-              complete(StatusCodes.OK, s"Request Parameter Names => ${fm.keys}")
+              complete(StatusCodes.OK, s"Request Parameters => source: $table");
             }
+          } ~
+            get {
+              paramOrFormField("table") { table =>
+                sql.insecureSql(table,
+                  (statement: Statement, query) => statement.executeQuery(query))
+                complete(StatusCodes.OK, s"Request Parameters => source: $table");
+              }
+            }
+        } ~
+          path("parametername" / "test") {
+            post {
+              formFieldMap { fm =>
+                val table = fm.head._1
+                sql.insecureSql(table,
+                  (statement: Statement, query) => statement.executeQuery(query))
+                complete(StatusCodes.OK, s"Request Parameter Names => ${fm.keys}")
+              }
+            } ~
+              get {
+                parameterMap { pm =>
+                  val table = pm.head._1
+                  sql.insecureSql(table,
+                    (statement: Statement, query) => statement.executeQuery(query))
+                  complete(StatusCodes.OK, s"Request Parameter Names => ${pm.keys}")
+                }
+              }
           } ~
           path("headername" / "test") {
             extractRequest { req =>

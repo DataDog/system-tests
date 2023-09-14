@@ -8,7 +8,7 @@ from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -20,10 +20,7 @@ pytestmark = pytest.mark.parametrize(
 
 @scenarios.parametric
 class Test_Otel_Span_Methods:
-    @missing_feature(
-        context.library == "dotnet",
-        reason="Span names don't match expectations: 'ApmTestClient.internal' == 'operation'",
-    )
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_start_span(self, test_agent, test_library):
@@ -48,10 +45,7 @@ class Test_Otel_Span_Methods:
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason="Span names don't match expectations: 'ApmTestClient.internal' == 'parent_span'",
-    )
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
@@ -67,12 +61,8 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "parent_span"
         assert root_span["service"] == "new_service"
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason="Span names don't match expectations: 'ApmTestClient.internal' == 'operation'",
-    )
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
-    @missing_feature(context.library == "java", reason="Empty string attribute value are not supported")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_set_attributes_different_types(self, test_agent, test_library):
@@ -113,6 +103,20 @@ class Test_Otel_Span_Methods:
             assert root_span["meta"]["array_val_str"] == "[val1 val2]"
             assert root_span["meta"]["array_val_int"] == "[10 20]"
             assert root_span["meta"]["array_val_double"] == "[10.1 20.2]"
+        elif root_span["meta"]["language"] == "jvm":
+            assert root_span["meta"]["bool_val"] == "true"
+            assert root_span["meta"]["array_val_bool"] == "[true, false]"
+            assert root_span["meta"]["array_val_str"] == "[val1, val2]"
+            assert root_span["meta"]["d_bool_val"] == "false"
+            assert root_span["meta"]["array_val_int"] == "[10, 20]"
+            assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
+        elif root_span["meta"]["language"] == "dotnet":
+            assert root_span["meta"]["bool_val"] == "true"
+            assert root_span["meta"]["array_val_bool"] == "[true,false]"
+            assert root_span["meta"]["array_val_str"] == '["val1","val2"]'
+            assert root_span["meta"]["d_bool_val"] == "false"
+            assert root_span["meta"]["array_val_int"] == "[10,20]"
+            assert root_span["meta"]["array_val_double"] == "[10.1,20.2]"
         else:
             assert root_span["meta"]["bool_val"] == "True"
             assert root_span["meta"]["array_val_bool"] == "[True, False]"
@@ -127,9 +131,10 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["d_int_val"] == 2
         assert root_span["metrics"]["d_double_val"] == 3.14
 
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
-        reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span.",
+        reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
@@ -146,9 +151,10 @@ class Test_Otel_Span_Methods:
                 parent.end_span()
                 assert not parent.is_recording()
 
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
-        reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span.",
+        reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
@@ -171,9 +177,7 @@ class Test_Otel_Span_Methods:
         assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
         assert s.get("duration") == duration * 1_000
 
-    @missing_feature(
-        context.library == "dotnet", reason="Span names don't match expectations: 'ApmTestClient.internal' == 'parent'"
-    )
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_span_end(self, test_agent, test_library):
@@ -203,7 +207,11 @@ class Test_Otel_Span_Methods:
         assert child["name"] == "child"
         assert child["parent_id"] == parent_span["span_id"]
 
-    @missing_feature(context.library == "dotnet", reason=".NET's native implementation is unsetting the error message.")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(
+        context.library == "dotnet",
+        reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
+    )
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_set_span_status_error(self, test_agent, test_library):
@@ -225,8 +233,10 @@ class Test_Otel_Span_Methods:
         assert s.get("meta").get("error.message") == "error_desc"
         assert s.get("name") == "error_span"
 
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
-        context.library == "dotnet", reason="Span names don't match expectations: 'ApmTestClient.internal' == 'ok_span'"
+        context.library == "dotnet",
+        reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
     )
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
@@ -258,6 +268,7 @@ class Test_Otel_Span_Methods:
         assert span.get("meta").get("error.message") is None
         assert span.get("name") == "ok_span"
 
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_get_span_context(self, test_agent, test_library):

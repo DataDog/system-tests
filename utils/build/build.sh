@@ -19,6 +19,7 @@ readonly ALIAS_CACHE_TO="W" #write cache
 
 readonly DEFAULT_TEST_LIBRARY=nodejs
 readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
+readonly DEFAULT_DOCKER_MODE=0
 
 # Define default weblog variants.
 # XXX: Avoid associative arrays for Bash 3 compatibility.
@@ -51,6 +52,7 @@ print_usage() {
     echo -e "  ${CYAN}--library <lib>${NC}            Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
     echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
     echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
+    echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
     echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
     echo -e "  ${CYAN}--cache-mode <mode>${NC}        Cache mode (env: DOCKER_CACHE_MODE)."
     echo -e "  ${CYAN}--platform <platform>${NC}      Target Docker platform."
@@ -77,7 +79,7 @@ print_usage() {
     echo -e "  Print default weblog for Python:"
     echo -e "    ${SCRIPT_NAME} --default-weblogs --library python"
     echo
-    echo -e "More info at https://github.com/DataDog/system-tests/blob/master/docs/execute/build.md"
+    echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
 }
 
@@ -129,7 +131,7 @@ build() {
 
         echo "-----------------------"
         echo Build $IMAGE_NAME
-        if [[ $IMAGE_NAME == runner ]]; then
+        if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
               if [ ! -d "venv/" ]
               then
@@ -141,6 +143,26 @@ build() {
               python -m pip install --upgrade pip
             fi
             pip install -r requirements.txt
+
+        elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/runner.Dockerfile \
+                -t system_tests/runner \
+                $EXTRA_DOCKER_ARGS \
+                .
+
+        elif [[ $IMAGE_NAME == proxy ]]; then
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/proxy.Dockerfile \
+                -t datadog/system-tests:proxy-v1 \
+                $EXTRA_DOCKER_ARGS \
+                .
 
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then
@@ -157,6 +179,7 @@ build() {
                 --progress=plain \
                 -f utils/build/docker/agent.Dockerfile \
                 -t system_tests/agent \
+		--pull \
                 --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
                 $EXTRA_DOCKER_ARGS \
                 .
@@ -189,7 +212,7 @@ build() {
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile          
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
@@ -201,7 +224,6 @@ build() {
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \
-                --load \
                 .
 
             if test -f "binaries/waf_rule_set.json"; then
@@ -261,6 +283,7 @@ while [[ "$#" -gt 0 ]]; do
         cpp|dotnet|golang|java|java_otel|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
+        -d|--docker) DOCKER_MODE=1;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
@@ -280,12 +303,13 @@ done
 DOCKER_CACHE_MODE="${DOCKER_CACHE_MODE:-}"
 EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS:-}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-}"
+DOCKER_MODE="${DOCKER_MODE:-${DEFAULT_DOCKER_MODE}}"
 BUILD_IMAGES="${BUILD_IMAGES:-${DEFAULT_BUILD_IMAGES}}"
 TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 
-if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     echo "Library ${TEST_LIBRARY} not found"
     echo "Available libraries: $(echo $(list-libraries))"
     exit 1
@@ -293,7 +317,7 @@ fi
 
 WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
 
-if [[ (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
+if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
     echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
     echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
     exit 1

@@ -40,6 +40,16 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
                 )
+        self.HTTPClientRequest = channel.unary_unary(
+                '/APMClient/HTTPClientRequest',
+                request_serializer=protos_dot_apm__test__client__pb2.HTTPRequestArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.HTTPRequestReturn.FromString,
+                )
+        self.HTTPServerRequest = channel.unary_unary(
+                '/APMClient/HTTPServerRequest',
+                request_serializer=protos_dot_apm__test__client__pb2.HTTPRequestArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.HTTPRequestReturn.FromString,
+                )
         self.InjectHeaders = channel.unary_unary(
                 '/APMClient/InjectHeaders',
                 request_serializer=protos_dot_apm__test__client__pb2.InjectHeadersArgs.SerializeToString,
@@ -136,6 +146,18 @@ class APMClientServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def SpanSetError(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HTTPClientRequest(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HTTPServerRequest(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -246,6 +268,16 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.SpanSetError,
                     request_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.SerializeToString,
+            ),
+            'HTTPClientRequest': grpc.unary_unary_rpc_method_handler(
+                    servicer.HTTPClientRequest,
+                    request_deserializer=protos_dot_apm__test__client__pb2.HTTPRequestArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.HTTPRequestReturn.SerializeToString,
+            ),
+            'HTTPServerRequest': grpc.unary_unary_rpc_method_handler(
+                    servicer.HTTPServerRequest,
+                    request_deserializer=protos_dot_apm__test__client__pb2.HTTPRequestArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.HTTPRequestReturn.SerializeToString,
             ),
             'InjectHeaders': grpc.unary_unary_rpc_method_handler(
                     servicer.InjectHeaders,
@@ -405,6 +437,40 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetError',
             protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def HTTPClientRequest(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/HTTPClientRequest',
+            protos_dot_apm__test__client__pb2.HTTPRequestArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.HTTPRequestReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def HTTPServerRequest(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/HTTPServerRequest',
+            protos_dot_apm__test__client__pb2.HTTPRequestArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.HTTPRequestReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

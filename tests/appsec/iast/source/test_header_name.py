@@ -2,39 +2,24 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import context, coverage, released, bug
-from ..iast_fixtures import SourceFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import context, coverage, bug, missing_feature
+from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
-@released(
-    java={
-        "spring-boot": "1.5.0",
-        "spring-boot-jetty": "1.5.0",
-        "spring-boot-openliberty": "1.5.0",
-        "spring-boot-payara": "1.5.0",
-        "spring-boot-wildfly": "1.5.0",
-        "spring-boot-undertow": "1.5.0",
-        "vertx3": "1.12.0",
-        "akka-http": "1.12.0",
-        "*": "?",
-    }
-)
-@released(nodejs="?")
 class TestHeaderName:
     """Verify that request headers name are tainted"""
+
+    source_name = "user"
+    if context.library.library == "python":
+        source_name = "User"
 
     source_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/headername/test",
         request_kwargs={"headers": {"user": "unused"}},
         source_type="http.request.header.name",
-        source_name="user",
+        source_name=source_name,
         source_value=None,
     )
 

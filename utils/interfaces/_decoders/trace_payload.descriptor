@@ -1,74 +1,0 @@
-
-Ž
-
-span.protopb"Â
-Span
-service (	Rservice
-name (	Rname
-resource (	Rresource
-traceID (RtraceID
-spanID (RspanID
-parentID (RparentID
-start (Rstart
-duration (Rduration
-error	 (Rerror&
-meta
- (2.pb.Span.MetaEntryRmeta/
-metrics (2.pb.Span.MetricsEntryRmetrics
-type (	Rtype9
-meta_struct (2.pb.Span.MetaStructEntryR
-metaStruct7
-	MetaEntry
-key (	Rkey
-value (	Rvalue:8:
-MetricsEntry
-key (	Rkey
-value (Rvalue:8=
-MetaStructEntry
-key (	Rkey
-value (Rvalue:8B/Z-github.com/DataDog/datadog-agent/pkg/trace/pbbproto3
-ó
-tracer_payload.protopb
-span.proto"ë
-
-TraceChunk
-priority (Rpriority
-origin (	Rorigin
-spans (2.pb.SpanRspans,
-tags (2.pb.TraceChunk.TagsEntryRtags"
-droppedTrace (RdroppedTrace7
-	TagsEntry
-key (	Rkey
-value (	Rvalue:8"£
-TracerPayload 
-containerID (	RcontainerID"
-languageName (	RlanguageName(
-languageVersion (	RlanguageVersion$
-tracerVersion (	RtracerVersion
-	runtimeID (	R	runtimeID&
-chunks (2.pb.TraceChunkRchunks/
-tags (2.pb.TracerPayload.TagsEntryRtags
-env (	Renv
-hostname	 (	Rhostname
-
-appVersion
- (	R
-appVersion7
-	TagsEntry
-key (	Rkey
-value (	Rvalue:8B/Z-github.com/DataDog/datadog-agent/pkg/trace/pbbproto3
-Ù
-agent_payload.protopbtracer_payload.proto"î
-AgentPayload
-hostName (	RhostName
-env (	Renv9
-tracerPayloads (2.pb.TracerPayloadRtracerPayloads.
-tags (2.pb.AgentPayload.TagsEntryRtags"
-agentVersion (	RagentVersion
-	targetTPS (R	targetTPS
-errorTPS	 (RerrorTPS.
-rareSamplerEnabled
- (RrareSamplerEnabled7
-	TagsEntry
-key (	Rkey
-value (	Rvalue:8B/Z-github.com/DataDog/datadog-agent/pkg/trace/pbbproto3

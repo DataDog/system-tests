@@ -7,8 +7,7 @@ INSTALL_AGENT="true"
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         dotnet|java|js|python) LIBRARY_LANG="$1";;
-        -l|--host-inject) HOST_INSTALL="$2"; shift ;;
-        -i|--container-inject) CONTAINER_INSTALL="$2"; shift ;;
+        -l|--inject-mode) DD_APM_INSTRUMENTATION_ENABLED="$2"; shift ;;
         -w|--install-agent) INSTALL_AGENT="$2"; shift ;;
         *) echo "Invalid argument: ${1:-}"; exit 1 ;;
     esac
@@ -30,5 +29,5 @@ else
     ./install_script_agent7.sh
     echo "Skipping agent installation (Installing only datadog-signing-keys)"
 fi
-DD_REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta DD_AGENT_MAJOR_VERSION=apm DD_APM_LIBRARIES="$LIBRARY_LANG" DD_APM_HOST_INJECTION_ENABLED="$HOST_INSTALL" DD_APM_DOCKER_INJECTION_ENABLED="$CONTAINER_INSTALL" ./install_script_agent7_autoinject.sh
+DD_REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta DD_AGENT_MAJOR_VERSION=apm DD_APM_INSTRUMENTATION_LANGUAGES="$LIBRARY_LANG" DD_APM_INSTRUMENTATION_ENABLED="$DD_APM_INSTRUMENTATION_ENABLED" ./install_script_agent7_autoinject.sh
 echo "lib-injection install done"

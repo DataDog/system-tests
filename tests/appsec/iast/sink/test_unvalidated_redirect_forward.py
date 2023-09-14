@@ -2,12 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import context, coverage, released, missing_feature
-from ..iast_fixtures import SinkFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import context, coverage, missing_feature
+from .._test_iast_fixtures import SinkFixture
 
 
 def _expected_location():
@@ -21,21 +17,6 @@ def _expected_location():
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", nodejs="?")
-@released(
-    java={
-        "spring-boot": "1.16.0",
-        "spring-boot-jetty": "1.16.0",
-        "spring-boot-openliberty": "1.16.0",
-        "spring-boot-wildfly": "1.16.0",
-        "spring-boot-undertow": "1.16.0",
-        "resteasy-netty3": "1.16.0",
-        "jersey-grizzly2": "1.16.0",
-        "vertx3": "1.16.0",
-        "vertx4": "1.17.0",
-        "*": "?",
-    }
-)
 class TestUnvalidatedForward:
     """Verify Unvalidated redirect forward detection."""
 

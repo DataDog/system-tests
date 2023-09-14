@@ -26,10 +26,11 @@ def _human_stats(stats: V06StatsAggr) -> str:
 
 def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     env = {
-        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python
-        "DD_TRACE_FEATURES": "discovery",  # golang
+        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
         "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
     }
+    if context.library == "golang" and context.library.version < "v1.55.0":
+        env["DD_TRACE_FEATURES"] = "discovery"
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
         env.update(
@@ -41,6 +42,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
 @scenarios.parametric
 class Test_Library_Tracestats:
     @enable_tracestats()
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "golang", reason="go sends an empty stats aggregation")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
@@ -96,6 +98,7 @@ class Test_Library_Tracestats:
             assert key in decoded_request_body, "%r should be in stats request" % key
 
     @enable_tracestats()
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
@@ -175,6 +178,7 @@ class Test_Library_Tracestats:
             assert s["TopLevelHits"] == 1
             assert s["Duration"] > 0
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
@@ -216,6 +220,7 @@ class Test_Library_Tracestats:
         assert op2_stats["Hits"] == 1
         assert op2_stats["TopLevelHits"] == 0
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
@@ -265,6 +270,7 @@ class Test_Library_Tracestats:
         assert web_stats["TopLevelHits"] == 1
         assert web_stats["Duration"] > 0
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
@@ -319,6 +325,7 @@ class Test_Library_Tracestats:
         assert stat["OkSummary"] is not None
         assert stat["ErrorSummary"] is not None
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "java", reason="FIXME: Undefined behavior according the java tracer core team")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
@@ -385,11 +392,12 @@ class Test_Library_Tracestats:
                 numpy.quantile(np_duration, quantile), rel=0.01,
             ), ("Quantile mismatch for quantile %r" % quantile)
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
-    def test_metrics_computed_after_span_finsh_TS008(self, library_env, test_agent, test_library, test_server):
+    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent, test_library, test_server):
         """
         When trace stats are computed for traces
             Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after

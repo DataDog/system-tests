@@ -23,7 +23,7 @@
         <!-- Latest logback version compatible with Java 1.8 -->
         <logback-classic.version>1.3.6</logback-classic.version>
         <!-- Path for repository layout and development. Change by property at built time -->
-        <client.protobuf.path>../../protos</client.protobuf.path>
+        <client.protobuf.path>../../../../parametric/protos/</client.protobuf.path>
     </properties>
 
     <dependencies>

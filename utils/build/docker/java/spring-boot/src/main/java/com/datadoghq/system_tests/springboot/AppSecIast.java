@@ -13,6 +13,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -31,6 +32,8 @@ public class AppSecIast {
     private volatile LDAPExamples ldapExamples;
     private final SsrfExamples ssrfExamples;
     private final WeakRandomnessExamples weakRandomnessExamples;
+    private final XPathExamples xPathExamples;
+    private final XSSExamples xssExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -40,6 +43,8 @@ public class AppSecIast {
         this.cryptoExamples = new CryptoExamples();
         this.ssrfExamples = new SsrfExamples();
         this.weakRandomnessExamples = new WeakRandomnessExamples();
+        this.xPathExamples = new XPathExamples();
+        this.xssExamples = new XSSExamples();
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -204,6 +209,94 @@ public class AppSecIast {
     @GetMapping("/weak_randomness/test_secure")
     String secureRandom() {
         return weakRandomnessExamples.secureRandom();
+    }
+
+    @GetMapping("/insecure-cookie/test_empty_cookie")
+    String insecureCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+    @GetMapping("/insecure-cookie/test_insecure")
+    String insecureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/insecure-cookie/test_secure")
+    String secureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_insecure")
+    String noSameSiteCookieInsecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly;Secure");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_empty_cookie")
+    String noSameSiteCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_secure")
+    String noSameSiteCookieSecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-httponly-cookie-cookie/test_empty_cookie")
+    String noHttpOnlyCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+    @GetMapping("/no-httponly-cookie/test_insecure")
+    String noHttpOnlyCookieInsecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-httponly-cookie/test_secure")
+    String noHttpOnlyCookieSecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
+        return "ok";
+    }
+
+    @PostMapping("/xpathi/test_insecure")
+    String insecureXPath(final ServletRequest request) {
+        final String expression = request.getParameter("expression");
+        xPathExamples.insecureXPath(expression);
+        return "XPath insecure";
+    }
+
+    @PostMapping("/xpathi/test_secure")
+    String secureXPath(final ServletRequest request) {
+        xPathExamples.secureXPath();
+        return "XPath secure";
+    }
+
+    @GetMapping("/trust-boundary-violation/test_insecure")
+    public String trustBoundaryViolationInSecureSpringBoot(final HttpServletRequest request) {
+      String paramValue = request.getParameter("username");
+      request.getSession().putValue("name", paramValue);
+      return "Trust Boundary violation page";
+    }
+
+    @GetMapping("/trust-boundary-violation/test_secure")
+    public String trustBoundaryViolationSecureSpringBoot(final HttpServletRequest request) {
+      request.getSession().putValue("name", "value");
+      return "Trust Boundary violation page";
+    }
+
+    @PostMapping("/xss/test_insecure")
+    void insecureXSS(final ServletRequest request, final ServletResponse response) throws IOException {
+        xssExamples.insecureXSS(response.getWriter(), request.getParameter("param"));
+    }
+
+    @PostMapping("/xss/test_secure")
+    void secureXSS(final ServletResponse response) throws IOException {
+        xssExamples.secureXSS(response.getWriter());
     }
 
     /**
