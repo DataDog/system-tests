@@ -201,12 +201,13 @@ def _deserialized_nested_json_from_trace_payloads(content, interface):
                 meta = span.get("meta", {})
                 _deserialize_meta(meta)
 
+
 def _deserialize_meta(meta):
-     for key in list(meta):
-                    if key.startswith("_dd.appsec.s."):
-                        meta[key] = deserialize_dd_appsec_s_meta(meta[key])
-                    elif key in keys:
-                        meta[key] = json.loads(meta[key])
+    for key in list(meta):
+        if key.startswith("_dd.appsec.s."):
+            meta[key] = deserialize_dd_appsec_s_meta(meta[key])
+        elif key in keys:
+            meta[key] = json.loads(meta[key])
 
 
 def _convert_bytes_values(item):
