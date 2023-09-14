@@ -193,19 +193,16 @@ def _deserialized_nested_json_from_trace_payloads(content, interface):
             for chunk in tracer_payload.get("chunks", []):
                 for span in chunk.get("spans", []):
                     meta = span.get("meta", {})
-
-                    for key in list(meta):
-                        if key.startswith("_dd.appsec.s."):
-                            meta[key] = deserialize_dd_appsec_s_meta(key, meta[key])
-                        elif key in keys:
-                            meta[key] = json.loads(meta[key])
+                    _deserialize_meta(meta)
 
     elif interface == "library":
         for traces in content:
             for span in traces:
                 meta = span.get("meta", {})
+                _deserialize_meta(meta)
 
-                for key in list(meta):
+def _deserialize_meta(meta):
+     for key in list(meta):
                     if key.startswith("_dd.appsec.s."):
                         meta[key] = deserialize_dd_appsec_s_meta(key, meta[key])
                     elif key in keys:
