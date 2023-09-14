@@ -1,6 +1,7 @@
 
 FROM golang:1.18
 WORKDIR /client
+
 COPY ./utils/build/docker/golang/parametric/go.mod /client
 COPY ./utils/build/docker/golang/parametric/go.sum /client
 COPY ./utils/build/docker/golang/parametric/ /client

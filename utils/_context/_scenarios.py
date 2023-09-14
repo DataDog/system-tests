@@ -851,7 +851,7 @@ class ParametricScenario(_Scenario):
                 self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
             except subprocess.CalledProcessError as e:
                 logger.error(f"{e}")
-                raise ValueError(e)
+                raise RuntimeError(e)
         else:
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
         logger.stdout(f"Library: {self.library}")
