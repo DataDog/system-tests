@@ -813,8 +813,12 @@ class ParametricScenario(_Scenario):
         super().configure(option)
         assert "TEST_LIBRARY" in os.environ
 
-        # For some tracer we need a env variable present to use custom build of the tracer
-        lang_custom_build_param = {"python": "PYTHON_DDTRACE_PACKAGE", "nodejs": "NODEJS_DDTRACE_MODULE"}
+        # For some tracers we need a env variable present to use custom build of the tracer
+        lang_custom_build_param = {
+            "python": "PYTHON_DDTRACE_PACKAGE",
+            "nodejs": "NODEJS_DDTRACE_MODULE",
+            "ruby": "RUBY_DDTRACE_SHA",
+        }
         build_param = os.getenv(lang_custom_build_param.get(os.getenv("TEST_LIBRARY"), ""), "")
 
         # get tracer version info building and executing the ddtracer-version.docker file
@@ -835,7 +839,7 @@ class ParametricScenario(_Scenario):
                         f"BUILD_MODULE={build_param}",
                     ],
                     stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
+                    # stderr=subprocess.DEVNULL,
                     check=True,
                 )
                 result = subprocess.run(
