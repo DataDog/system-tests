@@ -1,13 +1,8 @@
-import pytest
 from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
-
-# TODO: move this in manifest file
-if context.weblog_variant == "akka-http":
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 def _setup(self):
