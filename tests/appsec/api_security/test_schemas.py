@@ -108,7 +108,7 @@ class Test_Schema_Request_Path_Parameters:
         assert schema
         assert isinstance(schema, list)
         if context.library == "ruby" and context.weblog_variant == "sinatra14":
-             # There should have two parameters here, but sinatra 14 adds two of is own: spalt and captures
+            # There should have two parameters here, but sinatra 14 adds two of is own: spalt and captures
             assert len(schema[0]) == 4
             for route_parameter in ("tag_value", "status_code"):
                 parameter = schema[0][route_parameter]
