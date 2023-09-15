@@ -1000,11 +1000,11 @@ class scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLING": "0.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_API_SECURITY_REQUEST_SAMPLING is set to true.
+        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
         """,
     )
 
