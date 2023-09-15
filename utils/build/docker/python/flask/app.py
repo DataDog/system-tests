@@ -1,5 +1,7 @@
 import psycopg2
 import requests
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response, jsonify
 from flask import request
 from flask import request as flask_request
@@ -11,12 +13,9 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
-from integrations.db.postgres import executePostgresOperation
-from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.mssql import executeMssqlOperation
-
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
+from integrations.db.mysqldb import executeMysqlOperation
+from integrations.db.postgres import executePostgresOperation
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -24,7 +23,11 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+    host="postgres",
+    port="5433",
+    user="system_tests_user",
+    password="system_tests",
+    dbname="system_tests",
 )
 
 app = Flask(__name__)
@@ -284,7 +287,10 @@ def track_user_login_success_event():
 @app.route("/user_login_failure_event")
 def track_user_login_failure_event():
     appsec_trace_utils.track_user_login_failure_event(
-        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+        tracer,
+        user_id=_TRACK_USER,
+        exists=True,
+        metadata=_TRACK_METADATA,
     )
     return Response("OK")
 
@@ -402,3 +408,14 @@ def db():
         print(f"SERVICE NOT SUPPORTED: {service}")
 
     return "YEAH"
+
+
+@app.route("/createextraservice", methods=["GET"])
+def create_extra_service():
+    import ddtrace
+    import flask
+
+    new_service_name = request.args.get("serviceName", default="", type=str)
+    if new_service_name:
+        ddtrace.Pin.override(flask.Flask, service=new_service_name, tracer=ddtrace.tracer)
+    return Response("OK")
