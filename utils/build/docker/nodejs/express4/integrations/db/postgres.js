@@ -15,7 +15,7 @@ function initData() {
 }
 
 function select() {
-    const sql = 'SELECT * FROM demo '
+    const sql = "SELECT * FROM demo where id=1 or id IN (3, 4)"
     const client = new Client()
     client.connect().then(() => {
         return client.query(sql).then((queryResult) => {
@@ -27,7 +27,7 @@ function select() {
 }
 
 function update() {
-    const sql = 'update demo set age=22 where id=1 '
+    const sql = "update demo set age=22 where name like '%tes%' "
     const client = new Client()
     client.connect().then(() => {
         return client.query(sql);
@@ -47,7 +47,7 @@ function insert() {
 }
 
 function deleteSQL() {
-    const sql = 'delete from demo where id=2 '
+    const sql = 'delete from demo where id=2 or id=11111111'
     const client = new Client()
     client.connect().then(() => {
         return client.query(sql);
@@ -57,7 +57,7 @@ function deleteSQL() {
 }
 
 function callProcedure() {
-    const sql = 'call helloworld() '
+    const sql = "call helloworld(1,'test') "
     const client = new Client()
     client.connect().then(() => {
         return client.query(sql);
@@ -67,7 +67,7 @@ function callProcedure() {
 }
 
 function selectError() {
-    const sql = 'SELECT * FROM demossssss'
+    const sql = 'SELECT * FROM demossssss where id=1 or id=233333'
     const client = new Client()
     client.connect().then(() => {
         return client.query(sql).then((queryResult) => {
@@ -80,6 +80,9 @@ function selectError() {
 function doOperation(operation) {
     console.log("Selecting operation");
     switch (operation) {
+        case "init":
+            init();
+            break;
         case "select":
             select();
             break;
@@ -103,7 +106,7 @@ function doOperation(operation) {
 
     }
 }
-function init(app) {
+function init() {
     console.log("Initializing nodejs module");
     initData();
 };

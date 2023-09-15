@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from enum import Enum
+
 from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 from utils.tools import logger
 
-
-@scenarios.integrations
+# @scenarios.integrations
 class _BaseIntegrationsSqlTestClass:
 
     """ Verify basic DB operations over different databases.
@@ -14,6 +15,9 @@ class _BaseIntegrationsSqlTestClass:
 
     db_service = None
     requests = {}
+
+    # Set to false
+    tracer_interface_validation = True
 
     @classmethod
     def _setup(cls):
@@ -23,7 +27,9 @@ class _BaseIntegrationsSqlTestClass:
             return  #  requests has been made ...
 
         cls.requests[cls.db_service] = {}
-
+        # Initiaze DB
+        weblog.get("/db", params={"service": cls.db_service, "operation": "init"})
+        # Request for db operations
         for db_operation in "select", "insert", "update", "delete", "procedure", "select_error":
             cls.requests[cls.db_service][db_operation] = weblog.get(
                 "/db", params={"service": cls.db_service, "operation": db_operation}
@@ -31,6 +37,7 @@ class _BaseIntegrationsSqlTestClass:
 
     # Setup methods
     setup_sql_traces = _setup
+    setup_resource = _setup
     setup_db_type = _setup
     setup_db_name = _setup
     setup_error_stack = _setup
@@ -54,6 +61,13 @@ class _BaseIntegrationsSqlTestClass:
         """ After make the requests we check that we are producing sql traces """
         for db_operation, request in self.requests[self.db_service].items():
             assert self._get_sql_span_for_request(request) is not None, f"Test is failing for {db_operation}"
+
+    def test_resource(self):
+        """ Usually the query """
+        for db_operation, request in self.requests[self.db_service].items():
+            if db_operation not in ["procedure", "select_error"]:
+                span = self._get_sql_span_for_request(request)
+                assert db_operation in span["resource"].lower()
 
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     def test_db_type(self):
@@ -150,7 +164,7 @@ class _BaseIntegrationsSqlTestClass:
         """ The number of rows/results from the query or operation. For caches and other datastores. 
         This tag should only set for operations that retrieve stored data, such as GET operations and queries, excluding SET and other commands not returning data.  """
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select"])
-        assert span["meta"]["db.row_count"] > 0, f"Test is failing for {db_operation}"
+        assert span["meta"]["db.row_count"] > 0, f"Test is failing for select"
 
     def test_db_password(self):
         """ The database password should not show in the traces """
@@ -193,8 +207,23 @@ class _BaseIntegrationsSqlTestClass:
         assert span["meta"]["error.stack"].strip()
 
     def _get_sql_span_for_request(self, weblog_request):
+        """To be implemented by subclasses"""
+        return {}
+
+
+@scenarios.integrations
+class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
+    setup_NOT_obfuscate_query = _BaseIntegrationsSqlTestClass._setup
+
+    def test_NOT_obfuscate_query(self):
+        """ All queries come out without obfuscation from tracer library """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            assert span["resource"].count("?") == 0
+
+    def _get_sql_span_for_request(self, weblog_request):
         for data, trace, span in interfaces.library.get_spans(weblog_request):
-            logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
+            logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']} ")
             for trace in data["request"]["content"]:
                 for span_child in trace:
                     if (
@@ -206,12 +235,60 @@ class _BaseIntegrationsSqlTestClass:
                     ):
                         logger.debug("Span type sql found!")
                         logger.info(
-                            f"CHILD Span found with trace id: {span_child['trace_id']} and span id: {span_child['span_id']}"
+                            f"CHILD Span found with trace id: {span_child['trace_id']} and span id: {span_child['span_id']} "
                         )
                         return span_child
 
 
-class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
+@scenarios.integrations
+class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
+    # Setup methods
+    setup_sql_traces = _BaseIntegrationsSqlTestClass._setup
+    setup_obfuscate_query = _BaseIntegrationsSqlTestClass._setup
+
+    def test_sql_query(self):
+        """ Usually the query """
+        for db_operation, request in self.requests[self.db_service].items():
+            if db_operation not in ["procedure", "select_error"]:
+                span = self._get_sql_span_for_request(request)
+                assert db_operation in span["meta"]["sql.query"].lower()
+
+    def test_obfuscate_query(self):
+        """ All queries come out obfuscated from agent """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            # We launch all queries with two parameters (from weblog)
+            # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
+            if db_operation in ["insert", "procedure"]:
+                assert span["meta"]["sql.query"].count("?") == 1
+            else:
+                assert span["meta"]["sql.query"].count("?") == 2
+
+    def _get_sql_span_for_request(self, weblog_request):
+        for data, span in interfaces.agent.get_spans(weblog_request):
+            logger.info(
+                f"Agent: Span found with trace id: {span['traceID']} and span id: {span['spanID']} in file {data['log_filename']}"
+            )
+            content = data["request"]["content"]["tracerPayloads"]
+            for payload in content:
+                for chunk in payload["chunks"]:
+                    for span_child in chunk["spans"]:
+                        if (
+                            "type" in span_child
+                            and span_child["type"] == "sql"
+                            and span_child["traceID"] == span["traceID"]
+                            and span_child["resource"]
+                            != "SELECT 1;"  # workaround to avoid conflicts on connection check on mssql
+                        ):
+                            logger.debug("Agent: Span type sql found!")
+                            logger.info(
+                                f"Agent: Span SQL found with trace id: {span_child['traceID']} and span id: {span_child['spanID']}"
+                            )
+                            logger.debug(f"Agent: Span: {span_child}")
+                            return span_child
+
+
+class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "postgresql"
 
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
@@ -220,7 +297,16 @@ class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_type()
 
 
-class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
+class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
+    db_service = "postgresql"
+
+    @missing_feature(library="python", reason="Python is using the correct span: db.system")
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
+    def test_db_type(self):
+        super().test_db_type()
+
+
+class _Test_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "mysql"
 
     @missing_feature(library="java", reason="Java is using the correct span: db.instance")
@@ -233,7 +319,7 @@ class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_user()
 
 
-class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
+class _Test_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "mssql"
 
     @missing_feature(library="python", reason="Not implemented yet")

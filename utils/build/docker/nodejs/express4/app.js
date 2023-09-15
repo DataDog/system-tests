@@ -204,7 +204,6 @@ app.get('/read_file', (req, res) => {
   });
 });
 
-var integration_db_initialized=false
 
 app.get('/db', (req, res) => {
   console.log("Service: " + req.query.service)
@@ -213,14 +212,6 @@ app.get('/db', (req, res) => {
   const pgsql = require('./integrations/db/postgres');
   const mysql = require('./integrations/db/mysql');
   const mssql = require('./integrations/db/mssql');
-
-  if (!integration_db_initialized){
-    console.log('Initializing DBs');
-    integration_db_initialized=true
-    pgsql.init();
-    mysql.init();
-    mssql.init();
-  }
 
   if (req.query.service == "postgresql") {
     pgsql.doOperation(req.query.operation)
