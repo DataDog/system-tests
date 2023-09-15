@@ -2,10 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, weblog
+from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, rfc, weblog
 
 
-@released(java="0.102.0")
 @coverage.good
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -31,7 +30,6 @@ class Test_StandardTagsMethod:
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
 
-@released(java="0.107.1")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl:
@@ -154,7 +152,6 @@ class Test_StandardTagsUrl:
         )
 
 
-@released(java="0.107.1")
 @coverage.basic
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -168,7 +165,6 @@ class Test_StandardTagsUserAgent:
         interfaces.library.add_span_tag_validation(self.r, tags=tags, value_as_regular_expression=True)
 
 
-@released(java="0.102.0")
 @coverage.good
 class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -182,11 +178,6 @@ class Test_StandardTagsStatusCode:
             interfaces.library.add_span_tag_validation(request=r, tags={"http.status_code": code})
 
 
-@released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
-@irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
-@missing_feature(
-    context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
-)
 @coverage.basic
 class Test_StandardTagsRoute:
     """Tests to verify that libraries annotate spans with correct http.route tags"""
@@ -218,9 +209,6 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@released(java="0.114.0")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

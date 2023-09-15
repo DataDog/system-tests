@@ -2,7 +2,7 @@ import base64
 import os
 import time
 
-from utils import context, weblog, interfaces, scenarios, irrelevant, released, flaky
+from utils import context, weblog, interfaces, scenarios, irrelevant, flaky
 from utils.tools import get_rid_from_request
 from ._test_validator_trace import validate_all_traces
 from ._test_validator_log import validate_log, validate_log_trace_correlation
@@ -114,7 +114,6 @@ class Test_OTelMetricE2E:
 
 @scenarios.otel_log_e2e
 @irrelevant(context.library != "open_telemetry")
-@released(agent="7.48.0")
 class Test_OTelLogE2E:
     def setup_main(self):
         self.r = weblog.get(path="/basic/log")

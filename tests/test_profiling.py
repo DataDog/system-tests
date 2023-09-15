@@ -17,10 +17,6 @@ TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9}
 @bug(library="nodejs", reason="Not receiving profiles")
 @bug(library="php", reason="Not receiving profiles")
 @bug(library="ruby", reason="Not receiving profiles")
-@missing_feature(weblog_variant="vertx3", reason="Endpoint not implemented")
-@missing_feature(weblog_variant="vertx4", reason="Endpoint not implemented")
-@missing_feature(weblog_variant="akka-http", reason="Endpoint not implemented")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="Tracing-only")
 @scenarios.profiling
 class Test_Profile:
     """ Basic testing of profiling """

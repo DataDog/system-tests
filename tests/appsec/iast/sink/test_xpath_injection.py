@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released
+from utils import coverage
 from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(java={"ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
 class TestXPathInjection:
     """Test xpath injection detection."""
 

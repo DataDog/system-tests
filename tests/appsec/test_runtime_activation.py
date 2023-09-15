@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, bug
+from utils import weblog, context, coverage, interfaces, scenarios, bug
 
 import pytest
 
@@ -16,13 +16,11 @@ if context.weblog_variant == "akka-http":
 
 
 @scenarios.appsec_runtime_activation
-@released(java="0.115.0")
 @bug(
     context.library < "java@1.8.0" and context.appsec_rules_file is not None,
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",
 )
 @bug(context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""

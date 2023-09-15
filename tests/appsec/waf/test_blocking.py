@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky
+from utils import coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky
 from utils._context.core import context
 
 if context.weblog_variant in ("akka-http", "spring-boot-payara"):
@@ -48,22 +48,6 @@ JSON_CONTENT_TYPES = {
 }
 
 
-@released(
-    java={
-        "spring-boot": "0.112.0",
-        "uds-spring-boot": "0.112.0",
-        "sprint-boot-jetty": "0.112.0",
-        "spring-boot-undertow": "0.112.0",
-        "spring-boot-wildfly": "0.112.0",
-        "spring-boot-openliberty": "1.3.0",
-        "ratpack": "1.7.0",
-        "jersey-grizzly2": "1.7.0",
-        "resteasy-netty3": "1.7.0",
-        "vertx3": "1.7.0",
-        "spring-boot-3-native": "?",  # GraalVM. Tracing support only
-        "*": "?",
-    },
-)
 @coverage.basic
 @scenarios.appsec_blocking
 class Test_Blocking:
@@ -222,8 +206,6 @@ class Test_Blocking:
 
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
-@released(java="1.11.0")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenarios.appsec_blocking
