@@ -195,8 +195,8 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
     def test_method_probe_snaphots(self):
-        assert self.remote_config_is_sent == True
-        assert self.probe_installed == True
+        assert self.remote_config_is_sent is True
+        assert self.probe_installed is True
 
         assert self.log_probe_response.status_code == 200
         assert self.metric_probe_response.status_code == 200
@@ -235,8 +235,8 @@ class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         self.log_probe_response = weblog.get("/debugger/log")
 
     def test_line_probe_snaphots(self):
-        assert self.remote_config_is_sent == True
-        assert self.probe_installed == True
+        assert self.remote_config_is_sent is True
+        assert self.probe_installed is True
         assert self.log_probe_response.status_code == 200
 
         expected_data = ["logProbe-installed"]
