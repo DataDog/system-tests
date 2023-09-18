@@ -1,28 +1,12 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import pytest
-from utils import context, coverage, released, missing_feature
-from ..iast_fixtures import SinkFixture
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import context, coverage, missing_feature
+from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
-@released(
-    java={
-        "resteasy-netty3": "1.11.0",
-        "jersey-grizzly2": "1.11.0",
-        "vertx3": "1.12.0",
-        "akka-http": "1.12.0",
-        "ratpack": "?",
-        "*": "1.1.0",
-    }
-)
-@released(nodejs={"express4": "3.19.0", "*": "?"})
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestPathTraversal:
     """Test path traversal detection."""
 

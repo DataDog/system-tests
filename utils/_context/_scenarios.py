@@ -24,6 +24,7 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
+    SqlDbTestedContainer,
 )
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
@@ -34,7 +35,6 @@ update_environ_with_local_env()
 class _Scenario:
     def __init__(self, name, doc) -> None:
         self.name = name
-        self.terminal = None
         self.replay = False
         self.doc = doc
 
@@ -47,11 +47,17 @@ class _Scenario:
         shutil.rmtree(path, ignore_errors=True)
         Path(path).mkdir(parents=True, exist_ok=True)
 
-    def __call__(self, test_method):
-        # handles @scenarios.scenario_name
-        pytest.mark.scenario(self.name)(test_method)
+    def __call__(self, test_object):
+        """ handles @scenarios.scenario_name """
 
-        return test_method
+        # Check that no scenario has been already declared
+        for marker in getattr(test_object, "pytestmark", []):
+            if marker.name == "scenario":
+                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
+
+        pytest.mark.scenario(self.name)(test_object)
+
+        return test_object
 
     def configure(self, option):
         self.replay = option.replay
@@ -67,23 +73,21 @@ class _Scenario:
 
             weblog.init_replay_mode(self.host_log_folder)
 
-    def session_start(self, session):
+    def session_start(self):
         """ called at the very begning of the process """
 
-        self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
         self.print_test_context()
 
         if self.replay:
             return
 
-        self.print_info("Executing warmups...")
+        logger.stdout("Executing warmups...")
 
         try:
             for warmup in self._get_warmups():
                 logger.info(f"Executing warmup {warmup}")
                 warmup()
         except:
-            self.collect_logs()
             self.close_targets()
             raise
 
@@ -91,24 +95,15 @@ class _Scenario:
         """ called at the end of the process  """
 
     def print_test_context(self):
-        self.terminal.write_sep("=", "test context", bold=True)
-        self.print_info(f"Scenario: {self.name}")
-        self.print_info(f"Logs folder: ./{self.host_log_folder}")
-
-    def print_info(self, info):
-        """ print info in stdout """
-        logger.info(info)
-        if self.terminal is not None:
-            self.terminal.write_line(info)
+        logger.terminal.write_sep("=", "test context", bold=True)
+        logger.stdout(f"Scenario: {self.name}")
+        logger.stdout(f"Logs folder: ./{self.host_log_folder}")
 
     def _get_warmups(self):
         return []
 
     def post_setup(self):
         """ called after test setup """
-
-    def collect_logs(self):
-        """ Called after setup """
 
     def close_targets(self):
         """ called after setup"""
@@ -259,6 +254,12 @@ class _DockerScenario(_Scenario):
         for container in reversed(self._required_containers):
             container.configure(self.replay)
 
+    def get_container_by_dd_integration_name(self, name):
+        for container in self._required_containers:
+            if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
+                return container
+        return None
+
     def _get_warmups(self):
 
         warmups = super()._get_warmups()
@@ -276,15 +277,6 @@ class _DockerScenario(_Scenario):
                 container.remove()
             except:
                 logger.exception(f"Failed to remove container {container}")
-
-    def collect_logs(self):
-        """ Get stdout/stderr for all docker containers """
-
-        for container in self._required_containers:
-            try:
-                container.save_logs()
-            except:
-                logger.exception(f"Fail to save logs for container {container}")
 
 
 class EndToEndScenario(_DockerScenario):
@@ -355,9 +347,7 @@ class EndToEndScenario(_DockerScenario):
         interfaces.agent.configure(self.replay)
         interfaces.library.configure(self.replay)
         interfaces.backend.configure(self.replay)
-        interfaces.library_stdout.configure(self.replay)
         interfaces.library_dotnet_managed.configure(self.replay)
-        interfaces.agent_stdout.configure(self.replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -381,23 +371,23 @@ class EndToEndScenario(_DockerScenario):
 
         logger.debug(f"Docker host is {weblog.domain}")
 
-        self.print_info(f"Library: {self.library}")
-        self.print_info(f"Agent: {self.agent_version}")
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Agent: {self.agent_version}")
 
         if self.library == "php":
-            self.print_info(f"AppSec: {self.weblog_container.php_appsec}")
+            logger.stdout(f"AppSec: {self.weblog_container.php_appsec}")
 
         if self.weblog_container.libddwaf_version:
-            self.print_info(f"libddwaf: {self.weblog_container.libddwaf_version}")
+            logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
 
         if self.weblog_container.appsec_rules_file:
-            self.print_info(f"AppSec rules version: {self.weblog_container.appsec_rules_version}")
+            logger.stdout(f"AppSec rules version: {self.weblog_container.appsec_rules_version}")
 
         if self.weblog_container.uds_mode:
-            self.print_info(f"UDS socket: {self.weblog_container.uds_socket}")
+            logger.stdout(f"UDS socket: {self.weblog_container.uds_socket}")
 
-        self.print_info(f"Weblog variant: {self.weblog_container.weblog_variant}")
-        self.print_info(f"Backend: {self.agent_container.dd_site}")
+        logger.stdout(f"Weblog variant: {self.weblog_container.weblog_variant}")
+        logger.stdout(f"Backend: {self.agent_container.dd_site}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -456,36 +446,28 @@ class EndToEndScenario(_DockerScenario):
         from utils import interfaces
 
         if self.replay:
-            interfaces.library.load_data_from_logs(f"{self.host_log_folder}/interfaces/library")
-            interfaces.agent.load_data_from_logs(f"{self.host_log_folder}/interfaces/agent")
-            interfaces.backend.load_data_from_logs(f"{self.host_log_folder}/interfaces/backend")
 
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
-            self._wait_interface(interfaces.agent_stdout, 0)
+            logger.terminal.write_sep("-", "Load all data from logs")
+            logger.terminal.flush()
 
-            return
+            interfaces.library.load_data_from_logs()
+            interfaces.agent.load_data_from_logs()
+            interfaces.backend.load_data_from_logs()
 
-        if self.use_proxy:
+        elif self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
             self.weblog_container.stop()
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
             self.agent_container.stop()
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
-            self.collect_logs()
-
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
-            self._wait_interface(interfaces.agent_stdout, 0)
-        else:
-            self.collect_logs()
-
         self.close_targets()
 
+        interfaces.library_dotnet_managed.load_data()
+
     def _wait_interface(self, interface, timeout):
-        self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-        self.terminal.flush()
+        logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        logger.terminal.flush()
 
         interface.wait(timeout)
 
@@ -561,7 +543,9 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name, doc, include_agent=True, include_collector=True, include_intake=True) -> None:
+    def __init__(
+        self, name, doc, include_agent=True, include_collector=True, include_intake=True, backend_interface_timeout=20
+    ) -> None:
         super().__init__(name, doc=doc, use_proxy=True)
         if include_agent:
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
@@ -574,6 +558,7 @@ class OpenTelemetryScenario(_DockerScenario):
         self.include_agent = include_agent
         self.include_collector = include_collector
         self.include_intake = include_intake
+        self.backend_interface_timeout = backend_interface_timeout
 
     def configure(self, option):
         super().configure(option)
@@ -646,17 +631,15 @@ class OpenTelemetryScenario(_DockerScenario):
 
         if self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
+            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
-            self.collect_logs()
+        self.close_targets()
 
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
-        else:
-            self.collect_logs()
+        interfaces.library_dotnet_managed.load_data()
 
     def _wait_interface(self, interface, timeout):
-        self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-        self.terminal.flush()
+        logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        logger.terminal.flush()
 
         interface.wait(timeout)
 
@@ -805,7 +788,6 @@ class OnBoardingScenario(_Scenario):
             self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
         except:
-            self.collect_logs()
             self.close_targets()
             raise
 
@@ -860,7 +842,7 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
@@ -911,14 +893,10 @@ class scenarios:
             "DD_PROFILING_ENABLED": "false",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
         },
+        appsec_enabled=False,
         doc="Disable all tracers products",
     )
 
-    telemetry_message_batch_event_order = EndToEndScenario(
-        "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER",
-        weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"},
-        doc="Test env var `DD_FORCE_BATCHING_ENABLE=false`",
-    )
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
@@ -926,8 +904,13 @@ class scenarios:
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",},
-        doc="Test env var `DD_TELEMETRY_METRICS_COLLECTION_ENABLED=false`",
+        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
+        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
+    )
+    telemetry_metric_generation_enabled = EndToEndScenario(
+        "TELEMETRY_METRIC_GENERATION_ENABLED",
+        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true",},
+        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
     )
 
     # ASM scenarios
@@ -984,8 +967,8 @@ class scenarios:
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, whem remote config is available, rules file 
-            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the 
+            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
             data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
@@ -1015,13 +998,13 @@ class scenarios:
         "APPSEC_API_SECURITY",
         appsec_enabled=True,
         weblog_env={
-            "_DD_API_SECURITY_ENABLED": "true",
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "true",
-            "_DD_API_SECURITY_INTERVAL_PER_ROUTE": "0.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        _DD_API_SECURITY_ENABLED is set to true.
+        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
         """,
     )
 
@@ -1112,7 +1095,9 @@ class scenarios:
     # APM tracing end-to-end scenarios
 
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
-    apm_tracing_e2e_otel = EndToEndScenario("APM_TRACING_E2E_OTEL", backend_interface_timeout=5, doc="")
+    apm_tracing_e2e_otel = EndToEndScenario(
+        "APM_TRACING_E2E_OTEL", weblog_env={"DD_TRACE_OTEL_ENABLED": "true",}, backend_interface_timeout=5, doc="",
+    )
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
@@ -1125,7 +1110,7 @@ class scenarios:
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, include_agent=False, doc="")
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
 
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2"), doc=""
@@ -1154,8 +1139,8 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=50,
-        doc="",
+        library_interface_timeout=100,
+        doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
     )
 
     debugger_line_probes_status = EndToEndScenario(
@@ -1167,9 +1152,27 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=50,
-        doc="",
+        library_interface_timeout=100,
+        doc="Test scenario for checking if line probe statuses can be successfully 'RECIEVED' and 'INSTALLED'",
     )
+
+    debugger_method_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_METHOD_PROBES_SNAPSHOT",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=30,
+        doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
+    )
+
+    debugger_line_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_LINE_PROBES_SNAPSHOT",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=10,
+        doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
+    )
+
+    fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
 
 
 def _main():

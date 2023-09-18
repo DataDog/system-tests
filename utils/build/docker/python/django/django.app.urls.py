@@ -1,9 +1,9 @@
 # pages/urls.py
+import json
+
 import requests
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from iast import (
@@ -14,6 +14,9 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -40,6 +43,8 @@ def waf(request, *args, **kwargs):
         appsec_trace_utils.track_custom_event(
             tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
         )
+        if kwargs["value"].startswith("payload_in_response_body") and request.method == "POST":
+            return HttpResponse(json.dumps({"payload": dict(request.POST)}), content_type="application/json")
         return HttpResponse("Value tagged", status=int(kwargs["code"]), headers=request.GET.dict())
     return HttpResponse("Hello, World!")
 
@@ -123,6 +128,60 @@ def view_weak_cipher_insecure(request):
 def view_weak_cipher_secure(request):
     weak_cipher_secure_algorithm()
     return HttpResponse("OK")
+
+
+def view_insecure_cookies_insecure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("insecure", "cookie", secure=False)
+    return res
+
+
+def view_insecure_cookies_secure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure2", "value", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_insecure_cookies_empty(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_nohttponly_cookies_insecure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("insecure", "cookie", secure=True, httponly=False, samesite="Strict")
+    return res
+
+
+def view_nohttponly_cookies_secure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure2", "value", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_nohttponly_cookies_empty(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_nosamesite_cookies_insecure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("insecure", "cookie", secure=True, httponly=True, samesite="None")
+    return res
+
+
+def view_nosamesite_cookies_secure(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure2", "value", secure=True, httponly=True, samesite="Strict")
+    return res
+
+
+def view_nosamesite_cookies_empty(request):
+    res = HttpResponse("OK")
+    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    return res
 
 
 @csrf_exempt
@@ -306,6 +365,15 @@ urlpatterns = [
     path("iast/insecure_hashing/deduplicate", view_weak_hash_deduplicate),
     path("iast/insecure_cipher/test_insecure_algorithm", view_weak_cipher_insecure),
     path("iast/insecure_cipher/test_secure_algorithm", view_weak_cipher_secure),
+    path("iast/insecure-cookie/test_insecure", view_insecure_cookies_insecure),
+    path("iast/insecure-cookie/test_secure", view_insecure_cookies_secure),
+    path("iast/insecure-cookie/test_empty_cookie", view_insecure_cookies_empty),
+    path("iast/no-httponly-cookie/test_insecure", view_nohttponly_cookies_insecure),
+    path("iast/no-httponly-cookie/test_secure", view_nohttponly_cookies_secure),
+    path("iast/no-httponly-cookie/test_empty_cookie", view_nohttponly_cookies_empty),
+    path("iast/no-samesite-cookie/test_insecure", view_nosamesite_cookies_insecure),
+    path("iast/no-samesite-cookie/test_secure", view_nosamesite_cookies_secure),
+    path("iast/no-samesite-cookie/test_empty_cookie", view_nosamesite_cookies_empty),
     path("iast/sqli/test_secure", view_sqli_secure),
     path("iast/sqli/test_insecure", view_sqli_insecure),
     path("iast/source/body/test", view_iast_source_body),

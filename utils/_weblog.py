@@ -47,6 +47,9 @@ class HttpRequest:
         self.method = data["method"]
         self.url = data["url"]
 
+    def __repr__(self) -> str:
+        return f"HttpRequest(method:{self.method}, url:{self.url}, headers:{self.headers})"
+
 
 class HttpResponse:
     def __init__(self, data):
@@ -71,7 +74,9 @@ class _Weblog:
         if "SYSTEM_TESTS_WEBLOG_HOST" in os.environ:
             self.domain = os.environ["SYSTEM_TESTS_WEBLOG_HOST"]
         elif "DOCKER_HOST" in os.environ:
-            self.domain = re.sub(r"^ssh://([^@]+@|)", "", os.environ["DOCKER_HOST"])
+            m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+            if m is not None:
+                self.domain = m.group(1)
         else:
             self.domain = "localhost"
 
@@ -120,7 +125,7 @@ class _Weblog:
     ):
 
         if self.current_nodeid is None:
-            raise Exception("Weblog calls can only be done during setup")
+            raise ValueError("Weblog calls can only be done during setup")
 
         if self.replay:
             return self.get_request_from_logs()
@@ -193,7 +198,7 @@ class _Weblog:
         return self.responses[self.current_nodeid].pop(0)
 
     def warmup_request(self, domain=None, port=None, timeout=10):
-        requests.get(weblog._get_url("/", domain, port), timeout=timeout)
+        requests.get(self._get_url("/", domain, port), timeout=timeout)
 
     def _get_url(self, path, domain=None, port=None, query=None):
         """Return a query with the passed host"""
@@ -219,7 +224,7 @@ class _Weblog:
             return self.get_grpc_request_from_logs()
 
         if self.current_nodeid is None:
-            raise Exception("Weblog calls can only be done during setup")
+            raise ValueError("Weblog calls can only be done during setup")
 
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 

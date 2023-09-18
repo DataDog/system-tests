@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import json
 from utils import (
     bug,
     context,
@@ -9,46 +10,16 @@ from utils import (
     interfaces,
     irrelevant,
     missing_feature,
-    released,
     rfc,
     scenarios,
     weblog,
     flaky,
 )
 
-# Compatibility matrix for blocking across Java variants, to be reused for multiple test suites.
-# Body and path parameters not included, since they were added later.
-_released_java_blocking = {
-    "spring-boot": "0.110.0",
-    "spring-boot-jetty": "0.111.0",
-    "spring-boot-undertow": "0.111.0",
-    # Supported since 0.111.0 but bugged in <0.115.0.
-    "spring-boot-openliberty": "0.115.0",
-    "ratpack": "1.6.0",
-    "jersey-grizzly2": "1.7.0",
-    "resteasy-netty3": "1.7.0",
-    "vertx3": "1.7.0",
-    "vertx4": "1.7.0",
-    "*": "?",
-}
 
-
-@released(
-    cpp="?",
-    dotnet="2.27.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    nodejs="3.19.0",
-    golang="1.51.0",
-    ruby="1.0.0",
-    java=_released_java_blocking,
-)
 @coverage.basic
 @scenarios.appsec_blocking
 @bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -115,7 +86,7 @@ class Test_BlockingAddresses:
     def setup_cookies(self):
         self.c_req = weblog.get("/", headers={"Cookie": "mycookie=jdfoSDGFkivRG_234"})
 
-    @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(context.library < "nodejs@14.16.0", reason="Not supported yet")
     def test_cookies(self):
         """can block on server.request.cookies"""
 
@@ -230,19 +201,8 @@ def _assert_custom_event_tag_absence():
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.29.0",
-    golang="1.51.0",
-    nodejs="3.19.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.12.0",
-    java=_released_java_blocking,
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
@@ -281,19 +241,8 @@ class Test_Blocking_request_method:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.32.0",
-    golang="1.51.0",
-    nodejs="3.19.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.15", "flask-poc": "1.15", "*": "1.16.1"},
-    ruby="1.0.0",
-    java=_released_java_blocking,
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
@@ -342,21 +291,9 @@ class Test_Blocking_request_uri:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.29.0",
-    golang="1.51.0",
-    java="1.15.0",
-    nodejs="?",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.13", "*": "1.16.1"},
-    ruby="1.0.0",
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -397,20 +334,8 @@ class Test_Blocking_request_path_params:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.29.0",
-    golang="1.51.0",
-    nodejs="3.19.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.0.0",
-    java=_released_java_blocking,
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -454,20 +379,8 @@ class Test_Blocking_request_query:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.29.0",
-    golang="1.51.0",
-    nodejs="3.19.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.0.0",
-    java=_released_java_blocking,
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -511,20 +424,8 @@ class Test_Blocking_request_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.29.0",
-    golang="1.51.0",
-    nodejs="?",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.0.0",
-    java=_released_java_blocking,
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
@@ -568,20 +469,8 @@ class Test_Blocking_request_cookies:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.29.0",
-    golang="?",
-    java="1.15.0",
-    nodejs="3.19.0",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.0.0",
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="Php does not accept url encoded entries without key")
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
 
@@ -640,19 +529,6 @@ class Test_Blocking_request_body:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.32.0",
-    golang="?",
-    java="?",
-    nodejs="?",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.10.0",
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
@@ -678,19 +554,6 @@ class Test_Blocking_response_status:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@released(
-    cpp="?",
-    dotnet="2.32.0",
-    golang="?",
-    java="?",
-    nodejs="?",
-    php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "1.16.1"},
-    ruby="1.0.0",
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
-@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
@@ -717,7 +580,6 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(cpp="?", dotnet="2.29.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="1.0.0")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
@@ -732,3 +594,57 @@ class Test_Suspicious_Request_Blocking:
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # TODO
+
+
+@scenarios.appsec_blocking
+@coverage.good
+class Test_BlockingGraphqlResolvers:
+    """Test if blocking is supported on graphql.server.all_resolvers address"""
+
+    def setup_request_non_blocking(self):
+        self.r_no_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "foo"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_non_blocking(self):
+        assert self.r_no_attack.status_code == 200
+        for _, span in interfaces.library.get_root_spans(request=self.r_no_attack):
+            meta = span.get("meta", {})
+            assert "_dd.appsec.event" not in meta
+            assert "_dd.appsec.json" not in meta
+
+    def setup_request_monitor_attack(self):
+        """ Currently only monitoring is implemented"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "testattack"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_monitor_attack(self):
+        assert self.r_attack.status_code == 200
+        for _, span in interfaces.library.get_root_spans(request=self.r_attack):
+            meta = span.get("meta", {})
+            assert meta["appsec.event"] == "true"
+            assert "_dd.appsec.json" in meta
+            rule_triggered = json.loads(meta["_dd.appsec.json"])["triggers"][0]
+            assert rule_triggered["rule"]["id"] == "monitor-resolvers"
+            parameters = rule_triggered["rule_matches"][0]["parameters"][0]
+            assert parameters["address"] == "graphql.server.all_resolvers"
+            assert parameters["key_path"] == ["userByName", "0", "name"]
+            assert parameters["value"] == "testattack"

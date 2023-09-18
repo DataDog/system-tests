@@ -1,28 +1,6 @@
-from utils import context, released, coverage, interfaces, scenarios, weblog, bug, irrelevant, missing_feature
+from utils import context, coverage, interfaces, scenarios, weblog, bug, missing_feature
 
 
-@released(
-    cpp="?",
-    dotnet="2.30.0",
-    golang="1.48.0",
-    java={
-        "spring-boot": "0.110.0",
-        "sprint-boot-jetty": "0.111.0",
-        "spring-boot-undertow": "0.111.0",
-        "spring-boot-openliberty": "0.115.0",
-        "ratpack": "1.7.0",
-        "jersey-grizzly2": "1.7.0",
-        "resteasy-netty3": "1.7.0",
-        "vertx3": "1.7.0",
-        "*": "?",
-    },
-    nodejs="3.15.0",
-    php="0.86.3",
-    php_appsec="0.7.2",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="1.11.0",
-)
-@bug(library="java", reason="RC payload limit")
 @missing_feature(
     library="python", reason="Python supported denylists of 2500 entries but it fails to block this those 15000"
 )

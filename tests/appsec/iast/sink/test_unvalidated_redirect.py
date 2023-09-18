@@ -2,12 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import context, coverage, released, irrelevant, missing_feature
-from ..iast_fixtures import SinkFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import context, coverage, irrelevant
+from .._test_iast_fixtures import SinkFixture
 
 
 def _expected_location():
@@ -27,11 +23,6 @@ def _expected_location():
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", nodejs="?")
-@released(
-    java={"akka-http": "?", "ratpack": "?", "spring-boot-jetty": "1.17.0", "vertx4": "1.17.0", "*": "1.16.0",}
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestUnvalidatedRedirect:
     """Verify Unvalidated redirect detection."""
 

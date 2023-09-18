@@ -2,30 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import context, coverage, released, missing_feature, bug
-from ..iast_fixtures import SourceFixture
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import coverage, missing_feature, bug
+from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
-@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?"})
-@released(
-    java={
-        "jersey-grizzly2": "?",
-        "resteasy-netty3": "?",
-        "vertx3": "1.12.0",
-        "vertx4": "1.12.0",
-        "akka-http": "1.12.0",
-        "ratpack": "?",
-        "*": "1.7.0",
-    }
-)
-@released(nodejs={"express4": "3.19.0", "*": "?"})
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestRequestBody:
     """Verify that request json body is tainted"""
 

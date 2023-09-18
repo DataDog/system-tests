@@ -212,7 +212,7 @@ build() {
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile          
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
@@ -221,11 +221,9 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
-		--pull \
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \
-                --load \
                 .
 
             if test -f "binaries/waf_rule_set.json"; then

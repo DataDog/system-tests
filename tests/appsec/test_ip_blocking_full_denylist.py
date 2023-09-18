@@ -4,7 +4,7 @@
 import json
 
 from tests.remote_config.test_remote_configuration import rc_check_request
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios, missing_feature
+from utils import weblog, context, coverage, interfaces, rfc, bug, irrelevant, scenarios, missing_feature
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json", encoding="utf-8") as f:
@@ -12,22 +12,6 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(
-    cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="1.11.0", nodejs="3.11.0", golang="1.47.0"
-)
-@released(
-    java={
-        "spring-boot": "0.110.0",
-        "sprint-boot-jetty": "0.111.0",
-        "spring-boot-undertow": "0.111.0",
-        "spring-boot-openliberty": "0.115.0",
-        "ratpack": "1.7.0",
-        "jersey-grizzly2": "1.7.0",
-        "resteasy-netty3": "1.7.0",
-        "vertx3": "1.7.0",
-        "*": "?",
-    }
-)
 @irrelevant(
     context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
@@ -37,7 +21,6 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 @missing_feature(
     library="ruby", reason="Ruby supported denylists of 2500 entries but it fails to block this those 15000"
 )
-@bug(library="java", reason="RC payload limit")
 @bug(context.weblog_variant == "uds-echo")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
@@ -109,7 +92,7 @@ class Test_AppSecIPBlockingFullDenylist:
             weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[-1]}),
         ]
 
-    @missing_feature(context.weblog_variant == "spring-boot" and context.library < "java@0.111.0")
+    @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

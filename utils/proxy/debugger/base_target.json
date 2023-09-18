@@ -1,11 +1,9 @@
 {
-  "datadog/2/LIVE_DEBUGGING/[PROBE_TYPE]_[PROBE_ID]/config": {
-    "custom": {
-      "v": 1
-    },
-    "hashes": {
-      "sha256": "dc3ea5cbd6e8ee431ae7c1f52c3ea08dd91e36e1e1c0b173296ba769f284b649"
-    },
-    "length": 1
-  }
+  "custom": {
+    "v": 1
+  },
+  "hashes": {
+    "sha256": ""
+  },
+  "length": 0
 }

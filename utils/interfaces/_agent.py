@@ -6,17 +6,16 @@
 This files will validate data flow between agent and backend
 """
 
-import json
 import threading
 import copy
 
-from utils.tools import logger
-from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span
+from utils.tools import logger, get_rid_from_span, get_rid_from_request
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
-class AgentInterfaceValidator(InterfaceValidator):
+class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate agent/backend interface"""
 
     def __init__(self):
@@ -44,7 +43,7 @@ class AgentInterfaceValidator(InterfaceValidator):
                         if "meta" not in span or "_dd.appsec.json" not in span["meta"]:
                             continue
 
-                        appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
+                        appsec_data = span["meta"]["_dd.appsec.json"]
 
                         if rid is None:
                             yield data, payload, chunk, span, appsec_data
@@ -59,7 +58,7 @@ class AgentInterfaceValidator(InterfaceValidator):
             domain = data["host"][-len(expected_domain) :]
 
             if domain != expected_domain:
-                raise Exception(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
+                raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
 
     def assert_schemas(self, allowed_errors=None):
         validator = SchemaValidator("agent", allowed_errors)
@@ -73,7 +72,7 @@ class AgentInterfaceValidator(InterfaceValidator):
             if validator(data, payload, chunk, span, appsec_data):
                 return
 
-        raise Exception("No data validate this test")
+        raise ValueError("No data validate this test")
 
     def get_telemetry_data(self, flatten_message_batches=True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
@@ -130,7 +129,7 @@ class AgentInterfaceValidator(InterfaceValidator):
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
             if "tracerPayloads" not in data["request"]["content"]:
-                raise Exception("Trace property is missing in agent payload")
+                raise ValueError("Trace property is missing in agent payload")
 
             content = data["request"]["content"]["tracerPayloads"]
 
