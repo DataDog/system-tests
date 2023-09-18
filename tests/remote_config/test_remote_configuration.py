@@ -5,18 +5,8 @@
 import json
 from collections import defaultdict
 
-from utils import (
-    ValidationError,
-    scenarios,
-    context,
-    coverage,
-    interfaces,
-    missing_feature,
-    rfc,
-    bug,
-    irrelevant,
-    weblog,
-)
+from utils import (ValidationError, bug, context, coverage, interfaces,
+                   irrelevant, missing_feature, rfc, scenarios, weblog)
 from utils.tools import logger
 
 with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:

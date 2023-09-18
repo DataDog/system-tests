@@ -1,6 +1,6 @@
 import psycopg2
 import requests
-from ddtrace import tracer
+from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response, jsonify
 from flask import request
@@ -405,10 +405,7 @@ def db():
 
 @app.route("/createextraservice", methods=["GET"])
 def create_extra_service():
-    import ddtrace
-    import flask
-
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        ddtrace.Pin.override(flask.Flask, service=new_service_name, tracer=ddtrace.tracer)
+        Pin.override(Flask, service=new_service_name, tracer=tracer)
     return Response("OK")
