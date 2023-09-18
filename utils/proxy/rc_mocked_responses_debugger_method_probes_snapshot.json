@@ -10,6 +10,75 @@
         "sourceFile": null
       },
       "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "metricProbe-installed",
+      "metricName": "MetricCountInt",
+      "kind": "COUNT",
+      "value": {
+        "json": {
+          "ref": "id"
+        }
+      },
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "MetricProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "spanProbe-installed",
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "SpanProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "spanDecorationProbe-installed",
+      "targetSpan": "ACTIVE",
+      "decorations": [
+        {
+          "when": {
+            "json": {
+              "gt": [
+                {
+                  "ref": "intLocal"
+                },
+                {
+                  "ref": "intArg"
+                }
+              ]
+            }
+          },
+          "tags": [
+            {
+              "name": "SpanDecorationArgsAndLocals",
+              "value": {
+                "template": null,
+                "segments": [
+                  {
+                    "json": {
+                      "ref": "intLocal"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "SpanDecorationProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
     }
   ]
 ]
