@@ -44,7 +44,6 @@ def _spans_with_parent(traces, parent_ids):
                     yield span
 
 
-@missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
 @bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2")
 @bug(context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces")
 @scenarios.sampling

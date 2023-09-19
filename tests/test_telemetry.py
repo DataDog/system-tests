@@ -33,7 +33,6 @@ def is_v1_payload(data):
 
 
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
-@missing_feature(library="cpp")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
@@ -556,7 +555,6 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
-@irrelevant(library="cpp")
 class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 

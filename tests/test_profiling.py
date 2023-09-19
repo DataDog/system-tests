@@ -11,7 +11,6 @@ from utils import weblog, interfaces, bug, scenarios
 TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z")
 
 
-@bug(library="cpp", reason="No Content-Disposition: tests do not parse the content correcly")
 @bug(library="dotnet", reason="Not receiving profiles")
 @bug(library="golang", reason="Not receiving profiles")
 @bug(library="nodejs", reason="Not receiving profiles")
