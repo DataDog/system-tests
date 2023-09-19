@@ -64,7 +64,7 @@ tests/:
         test_weak_hash.py:
           TestWeakHash: v1.6.0
         test_weak_randomness.py:
-          TestWeakRandomness: v1.19.0
+          TestWeakRandomness: v2.0.0
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
