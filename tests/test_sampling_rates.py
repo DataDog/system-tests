@@ -109,7 +109,6 @@ class Test_SamplingRates:
         assert len(trace_ids) == 0, f"Some traces have not been sent by the agent: {trace_ids}"
 
 
-@missing_feature(library="ruby", reason="Endpoint /sample_rate_route not implemented")
 @scenarios.sampling
 class Test_SamplingDecisions:
     """Sampling configuration"""
