@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 import json
 import re
-from utils import weblog, interfaces, bug, scenarios, missing_feature
+from utils import weblog, interfaces, bug, scenarios
 
 
 TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z")
@@ -15,7 +15,6 @@ TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9}
 @bug(library="golang", reason="Not receiving profiles")
 @bug(library="nodejs", reason="Not receiving profiles")
 @bug(library="php", reason="Not receiving profiles")
-@bug(library="ruby", reason="Not receiving profiles")
 @scenarios.profiling
 class Test_Profile:
     """ Basic testing of profiling """

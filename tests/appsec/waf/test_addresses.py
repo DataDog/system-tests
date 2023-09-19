@@ -315,7 +315,6 @@ class Test_BodyJson:
 
 
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
-@irrelevant(reason="unsupported by framework", library="ruby")
 @coverage.basic
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""
@@ -378,7 +377,6 @@ class Test_ResponseStatus:
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
-@irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
 @coverage.basic
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""
