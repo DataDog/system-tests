@@ -425,6 +425,12 @@ class WeblogContainer(TestedContainer):
 
         if self.library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
+
+            if self.library == "python":
+                # activating debug log on python causes a huge amount of logs, making the network
+                # stack fails a lot randomly
+                self.environment["DD_TRACE_DEBUG"] = "false"
+
         elif self.library in ("golang", "nodejs", "php", "ruby"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
         else:

@@ -2,10 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, coverage, irrelevant, missing_feature
+from utils import context, interfaces, coverage, missing_feature
 
 
-@irrelevant(library="cpp")
 @coverage.basic
 class Test_Events:
     """AppSec events uses events in span"""

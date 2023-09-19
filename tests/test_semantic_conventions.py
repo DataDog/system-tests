@@ -293,7 +293,7 @@ class Test_Meta:
 
 
 @bug(
-    context.library in ("cpp", "python", "ruby"),
+    context.library in ("cpp", "python"),
     reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
 )
 class Test_MetaDatadogTags:
