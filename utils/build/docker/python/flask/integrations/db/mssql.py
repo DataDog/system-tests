@@ -11,12 +11,10 @@ PASSWORD = "yourStrong(!)Password"
 
 
 def executeMssqlOperation(operation,):
-    global database_mssql_loaded
-    if database_mssql_loaded == 0:
-        createDatabae()
-    database_mssql_loaded = 1
     print(f"Executing postgres {operation} operation")
-    if operation == "select":
+    if operation == "init":
+        createDatabase()
+    elif operation == "select":
         select()
     elif operation == "select_error":
         select_error()
@@ -38,7 +36,7 @@ def connect_db():
     return conn
 
 
-def createDatabae():
+def createDatabase():
     print("CREATING MSSQL DATABASE")
 
     sql_table = " CREATE TABLE demo(id INT NOT NULL, name VARCHAR (20) NOT NULL,age INT NOT NULL,PRIMARY KEY (ID));"
@@ -46,6 +44,7 @@ def createDatabae():
     sql_insert_2 = "insert into demo (id,name,age) values(2,'test2',17);"
 
     procedure = """ CREATE PROCEDURE helloworld 
+         @Name VARCHAR(100) 
          AS 
          BEGIN 
          SET NOCOUNT ON 
@@ -64,13 +63,13 @@ def createDatabae():
 
 
 def select():
-    sql = "SELECT * from demo;"
+    sql = "SELECT * from demo where id=1 or id IN (3, 4);"
     _executeQuery(sql)
     return "OK"
 
 
 def select_error():
-    sql = "SELECT * from demosssss;"
+    sql = "SELECT * from demosssss where id=1 or id=233333;"
     _executeQuery(sql)
     return "OK"
 
@@ -82,7 +81,7 @@ def update():
 
 
 def delete():
-    sql = "delete from demo where id=2;"
+    sql = "delete from demo where id=2 or id=11111111;"
     _executeQuery(sql)
     return "OK"
 
@@ -94,7 +93,7 @@ def insert():
 
 
 def procedure():
-    _executeQuery("helloworld")
+    _executeQuery("helloworld('hey')")
     return "OK"
 
 
