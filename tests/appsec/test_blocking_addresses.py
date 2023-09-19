@@ -36,6 +36,7 @@ _released_java_blocking = {
     "*": "?",
 }
 
+
 @coverage.basic
 @scenarios.appsec_blocking
 @bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
