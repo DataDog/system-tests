@@ -217,6 +217,10 @@ class _BaseIntegrationsSqlTestClass:
 
 @scenarios.integrations
 class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
+    @missing_feature(
+        library="java",
+        reason="The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality",
+    )
     def test_NOT_obfuscate_query(self):
         """ All queries come out without obfuscation from tracer library """
         for db_operation, request in self.requests[self.db_service].items():
@@ -402,7 +406,7 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass):
             span = self._get_sql_span_for_request(request)
             # We launch all queries with two parameters (from weblog)
             # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-            if db_operation in ["insert"]:
+            if db_operation in ["insert"] or (db_operation in ["procedure"] and context.library.library != "nodejs"):
                 assert span["meta"]["sql.query"].count("?") == 1
             elif db_operation in ["procedure"]:
                 # The proccedure has a input parameter, but we are calling through method execute and we can't see the parameters in the traces
