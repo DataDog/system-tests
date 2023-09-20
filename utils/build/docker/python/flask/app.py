@@ -1,3 +1,6 @@
+import random
+import subprocess
+
 import psycopg2
 import requests
 from ddtrace import Pin, tracer
@@ -377,11 +380,39 @@ def test_nosamesite_secure_cookie():
     return resp
 
 
-@app.route("/iast/no-samesite-cookie/test_empty_cookie")
-def test_nosamesite_empty_cookie():
-    resp = Response("OK")
-    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
-    return resp
+@app.route("/iast/weak_randomness/test_insecure")
+def test_weak_randomness_insecure():
+    _ = random.randint(1, 100)
+    return Response("OK")
+
+
+@app.route("/iast/weak_randomness/test_secure")
+def test_weak_randomness_secure():
+    random_secure = random.SystemRandom()
+    _ = random_secure.randint(1, 100)
+    return Response("OK")
+
+
+@app.route("/iast/cmdi/test_insecure", methods=["POST"])
+def view_cmdi_insecure():
+    filename = "/"
+    command = flask_request.form["cmd"]
+    subp = subprocess.Popen(args=[command, "-la", filename])
+    subp.communicate()
+    subp.wait()
+
+    return Response("OK")
+
+
+@app.route("/iast/cmdi/test_secure", methods=["POST"])
+def view_cmdi_secure():
+    filename = "/"
+    command = " ".join([flask_request.form["cmd"], "-la", filename])
+    # TODO: add secure command
+    # subp = subprocess.check_output(command, shell=False)
+    # subp.communicate()
+    # subp.wait()
+    return Response("OK")
 
 
 @app.route("/db", methods=["GET", "POST", "OPTIONS"])
