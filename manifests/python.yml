@@ -1,4 +1,9 @@
 tests/:
+  apm_tracing_e2e/:
+    test_otel.py:
+      Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_single_span:
+      Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
       test_schemas.py:
@@ -235,7 +240,7 @@ tests/:
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: v1.10.0
+      Test_AppSecIPBlockingFullDenylist: missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
@@ -256,9 +261,9 @@ tests/:
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
-        '*': missing_feature
-        django-poc: v1.10
-        flask-poc: v1.10
+        '*': missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+        # django-poc: v1.10
+        # flask-poc: v1.10
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
@@ -278,6 +283,10 @@ tests/:
       Test_Postgres_db_integration:
         '*': missing_feature
         flask-poc: v1.18.3
+    test_dbm.py:
+      Test_Dbm:
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v0.1  # real version not known
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
@@ -315,6 +324,7 @@ tests/:
     Test_UrlQuery: v1.6.0rc1.dev
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
+    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.5.0
     Test_StandardTagsMethod: v1.2.1
