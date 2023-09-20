@@ -60,7 +60,9 @@ tests/:
     test_versions.py: irrelevant (ASM is not implemented in C++)
   debugger/:
     test_debugger.py:
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
       Test_Debugger_Line_Probe_Statuses: missing_feature
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py: 
@@ -90,6 +92,12 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant
+  test_library_conf.py: irrelevant
+  test_miscs.py: irrelevant
+  test_profiling.py:
+    Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
+  test_sampling_rates.py:
+    Test_SamplingRates: missing_feature (https://github.com/DataDog/dd-opentracing-cpp/issues/173)
   test_scrubbing.py: irrelevant
   test_standard_tags.py: irrelevant
   test_telemetry.py:
@@ -97,4 +105,6 @@ tests/:
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
+    Test_ProductsDisabled: irrelevant
+    Test_Telemetry: missing_feature
     Test_TelemetryV2: missing_feature

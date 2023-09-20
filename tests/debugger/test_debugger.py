@@ -105,10 +105,8 @@ def check_info_endpoint():
 )
 @missing_feature(context.library == "python", reason="not implemented yet")
 @irrelevant(library="golang")
-@irrelevant(library="ruby")
 @irrelevant(library="php")
 @irrelevant(library="nodejs")
-@irrelevant(library="cpp")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
@@ -131,10 +129,8 @@ class Test_Debugger_Method_Probe_Statuses:
 )
 @missing_feature(context.library == "python", reason="not implemented yet")
 @irrelevant(library="golang")
-@irrelevant(library="ruby")
 @irrelevant(library="php")
 @irrelevant(library="nodejs")
-@irrelevant(library="cpp")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
@@ -175,10 +171,8 @@ class _Base_Debugger_Snapshot_Test:
 )
 @missing_feature(context.library == "python", reason="not implemented yet")
 @irrelevant(library="golang")
-@irrelevant(library="ruby")
 @irrelevant(library="php")
 @irrelevant(library="nodejs")
-@irrelevant(library="cpp")
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
@@ -221,10 +215,8 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
 )
 @missing_feature(context.library == "python", reason="not implemented yet")
 @irrelevant(library="golang")
-@irrelevant(library="ruby")
 @irrelevant(library="php")
 @irrelevant(library="nodejs")
-@irrelevant(library="cpp")
 @scenarios.debugger_line_probes_snapshot
 class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
