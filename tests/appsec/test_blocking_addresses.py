@@ -19,7 +19,6 @@ from utils import (
 
 @coverage.basic
 @scenarios.appsec_blocking
-@bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 

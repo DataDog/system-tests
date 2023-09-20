@@ -99,10 +99,6 @@ def check_info_endpoint():
     raise ValueError("Agent did not provide /v0.7/config endpoint")
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
-    reason="not supported",
-)
 @irrelevant(library="nodejs")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
@@ -120,10 +116,6 @@ class Test_Debugger_Method_Probe_Statuses:
         validate_data(expected_data, [], [])
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
-    reason="not supported",
-)
 @irrelevant(library="nodejs")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
@@ -159,10 +151,6 @@ class _Base_Debugger_Snapshot_Test:
         return False
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
-    reason="not supported",
-)
 @irrelevant(library="nodejs")
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
@@ -200,10 +188,6 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         validate_data(expected_probes, expected_snapshots, expected_traces)
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
-    reason="not supported",
-)
 @irrelevant(library="nodejs")
 @scenarios.debugger_line_probes_snapshot
 class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):

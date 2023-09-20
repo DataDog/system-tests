@@ -2,10 +2,6 @@ from tests.apm_tracing_e2e.test_single_span import _get_spans_submitted, _assert
 from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant != "spring-boot",
-    reason="The /e2e_otel_span endpoint is only implemented in Java Spring Boot at the moment.",
-)
 @missing_feature(context.library in ("cpp", "ruby", "php", "nodejs"), reason="Missing weblog endpoint")
 @scenarios.apm_tracing_e2e_otel
 class Test_Otel_Span:
