@@ -107,6 +107,7 @@ tests/:
         Test_Exclusions: v3.19.0
       test_miscs.py:
         Test_404: v2.0.0
+        Test_CorrectOptionProcessing: v3.19.0  # probably sooner, but bugged
         Test_MultipleAttacks: v2.0.0
         Test_MultipleHighlight: v2.0.0
       test_reports.py:
@@ -191,7 +192,9 @@ tests/:
       Test_Events: v2.0.0
   debugger/:
     test_debugger.py:
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
       Test_Debugger_Line_Probe_Statuses: missing_feature
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py:
@@ -219,11 +222,11 @@ tests/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
-      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: v3.9.0
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -234,6 +237,8 @@ tests/:
     Test_HeaderTags: missing_feature
     Test_HeaderTagsLongFormat: missing_feature
     Test_HeaderTagsShortFormat: missing_feature
+  test_profiling.py:
+    Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:
     Test_UrlField: v3.13.1
     Test_UrlQuery: v3.0.0
@@ -254,5 +259,7 @@ tests/:
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
-    Test_Telemetry: v3.2.0
+    Test_Telemetry:
+      '*': v3.2.0
+      uds-express4: v3.7.0
     Test_TelemetryV2: missing_feature

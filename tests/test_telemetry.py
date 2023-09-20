@@ -32,7 +32,6 @@ def is_v1_payload(data):
     return data["request"]["content"].get("api_version") == "v1"
 
 
-@bug(context.uds_mode and context.library < "nodejs@3.7.0")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
