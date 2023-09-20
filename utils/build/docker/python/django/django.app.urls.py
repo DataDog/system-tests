@@ -1,5 +1,7 @@
 # pages/urls.py
 import json
+import random
+import subprocess
 
 import requests
 from django.db import connection
@@ -182,6 +184,41 @@ def view_nosamesite_cookies_empty(request):
     res = HttpResponse("OK")
     res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
     return res
+
+
+def view_iast_weak_randomness_insecure(request):
+    _ = random.randint(1, 100)
+    res = HttpResponse("OK")
+    return res
+
+
+def view_iast_weak_randomness_secure(request):
+    random_secure = random.SystemRandom()
+    _ = random_secure.randint(1, 100)
+    res = HttpResponse("OK")
+    return res
+
+
+@csrf_exempt
+def view_cmdi_insecure(request):
+    cmd = request.POST.get("cmd", "")
+    filename = "/"
+    subp = subprocess.Popen(args=[cmd, "-la", filename], shell=True)
+    subp.communicate()
+    subp.wait()
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_cmdi_secure(request):
+    cmd = request.POST.get("cmd", "")
+    filename = "/"
+    cmd = " ".join([cmd, "-la", filename])
+    # TODO: add secure command
+    # subp = subprocess.check_output(cmd, shell=True)
+    # subp.communicate()
+    # subp.wait()
+    return HttpResponse("OK")
 
 
 @csrf_exempt
@@ -376,6 +413,10 @@ urlpatterns = [
     path("iast/no-samesite-cookie/test_empty_cookie", view_nosamesite_cookies_empty),
     path("iast/sqli/test_secure", view_sqli_secure),
     path("iast/sqli/test_insecure", view_sqli_insecure),
+    path("iast/cmdi/test_insecure", view_cmdi_insecure),
+    path("iast/cmdi/test_secure", view_cmdi_secure),
+    path("iast/weak_randomness/test_insecure", view_iast_weak_randomness_insecure),
+    path("iast/weak_randomness/test_secure", view_iast_weak_randomness_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),
