@@ -5,7 +5,7 @@
 import socket
 
 
-from utils import weblog, context, coverage, interfaces, bug, missing_feature, flaky, rfc
+from utils import weblog, context, coverage, interfaces, bug, missing_feature, rfc
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
@@ -75,7 +75,6 @@ class Test_HttpClientIP:
         interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
 
 
-@flaky(context.library <= "php@0.68.2")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @coverage.good
 class Test_Info:
