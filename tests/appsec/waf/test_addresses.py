@@ -6,7 +6,6 @@ from utils import (
     bug,
     context,
     coverage,
-    flaky,
     interfaces,
     irrelevant,
     missing_feature,
@@ -59,7 +58,6 @@ class Test_UrlQuery:
         )
 
 
-@flaky(context.library <= "php@0.68.2")
 @coverage.basic
 class Test_UrlRaw:
     """Appsec supports server.request.uri.raw"""
@@ -72,7 +70,6 @@ class Test_UrlRaw:
         interfaces.library.assert_waf_attack(self.r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_Headers:
     """Appsec supports server.request.headers.no_cookies"""
@@ -374,9 +371,6 @@ class Test_ResponseStatus:
         interfaces.library.assert_waf_attack(self.r, pattern="404", address="server.response.status")
 
 
-@irrelevant(
-    context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
-)
 @coverage.basic
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""

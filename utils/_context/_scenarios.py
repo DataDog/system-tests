@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import shutil
 import time
+import subprocess
 
 import pytest
 from watchdog.observers.polling import PollingObserver
@@ -812,12 +813,52 @@ class ParametricScenario(_Scenario):
         super().configure(option)
         assert "TEST_LIBRARY" in os.environ
 
+        # For some tracers we need a env variable present to use custom build of the tracer
+        lang_custom_build_param = {
+            "python": "PYTHON_DDTRACE_PACKAGE",
+            "nodejs": "NODEJS_DDTRACE_MODULE",
+            "ruby": "RUBY_DDTRACE_SHA",
+        }
+        build_param = os.getenv(lang_custom_build_param.get(os.getenv("TEST_LIBRARY"), ""), "")
+
+        # get tracer version info building and executing the ddtracer-version.docker file
+        parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
+        tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
+        if os.path.isfile(tracer_version_dockerfile):
+            try:
+                subprocess.run(
+                    [
+                        "docker",
+                        "build",
+                        ".",
+                        "-t",
+                        "ddtracer_version",
+                        "-f",
+                        f"{tracer_version_dockerfile}",
+                        "--build-arg",
+                        f"BUILD_MODULE={build_param}",
+                    ],
+                    stdout=subprocess.DEVNULL,
+                    # stderr=subprocess.DEVNULL,
+                    check=True,
+                )
+                result = subprocess.run(
+                    ["docker", "run", "--rm", "-t", "ddtracer_version"],
+                    cwd=parametric_appdir,
+                    stdout=subprocess.PIPE,
+                    check=False,
+                )
+                self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
+            except subprocess.CalledProcessError as e:
+                logger.error(f"{e}")
+                raise RuntimeError(e)
+        else:
+            self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
+        logger.stdout(f"Library: {self.library}")
+
     @property
     def library(self):
-        # Use large version here as it is checked by the standard system-tests version checking.
-        # Parametric version checking is done via the check_library_version pytest fixture
-        # which uses the reported library version.
-        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
+        return self._library
 
 
 class scenarios:
