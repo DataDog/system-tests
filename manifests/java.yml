@@ -687,13 +687,22 @@ tests/:
       Test_Events: v0.90.0
   integrations/:
     test_db_integrations_sql.py:
-      Test_Mssql_db_integration:
+      Test_Agent_Mssql_db_integration:
         '*': missing_feature
         spring-boot: v1.12.0
-      Test_Mysql_db_integration:
+      Test_Agent_Mysql_db_integration:
         '*': missing_feature
         spring-boot: v1.12.0
-      Test_Postgres_db_integration:
+      Test_Agent_Postgres_db_integration:
+        '*': missing_feature
+        spring-boot: v1.12.0
+      Test_Tracer_Mssql_db_integration:
+        '*': missing_feature
+        spring-boot: v1.12.0
+      Test_Tracer_Mysql_db_integration:
+        '*': missing_feature
+        spring-boot: v1.12.0
+      Test_Tracer_Postgres_db_integration:
         '*': missing_feature
         spring-boot: v1.12.0
     test_dbm.py:

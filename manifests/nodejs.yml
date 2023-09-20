@@ -190,13 +190,22 @@ tests/:
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py:
-      Test_Mssql_db_integration:
+      Test_Agent_Mssql_db_integration:
         '*': missing_feature
         express4: v1.0.0
-      Test_Mysql_db_integration:
+      Test_Agent_Mysql_db_integration:
         '*': missing_feature
         express4: v1.0.0
-      Test_Postgres_db_integration:
+      Test_Agent_Postgres_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+      Test_Tracer_Mssql_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+      Test_Tracer_Mysql_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+      Test_Tracer_Postgres_db_integration:
         '*': missing_feature
         express4: v1.0.0
     test_dbm.py:
