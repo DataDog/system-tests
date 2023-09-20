@@ -2,6 +2,8 @@
 import json
 
 import requests
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
@@ -14,9 +16,6 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
-
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -41,11 +40,11 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 def waf(request, *args, **kwargs):
     if "value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
         )
-        if kwargs["value"].startswith("payload_in_response_body") and request.method == "POST":
+        if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
             return HttpResponse(json.dumps({"payload": dict(request.POST)}), content_type="application/json")
-        return HttpResponse("Value tagged", status=int(kwargs["code"]), headers=request.GET.dict())
+        return HttpResponse("Value tagged", status=int(kwargs["status_code"]), headers=request.GET.dict())
     return HttpResponse("Hello, World!")
 
 
@@ -316,7 +315,6 @@ def track_custom_event(request):
 
 
 def read_file(request):
-
     if "file" not in request.GET:
         return HttpResponseBadRequest("Please provide a file parameter")
 
@@ -353,7 +351,7 @@ urlpatterns = [
     path("waf/", waf),
     path("waf/<url>", waf),
     path("params/<appscan_fingerprint>", waf),
-    path("tag_value/<str:value>/<int:code>", waf),
+    path("tag_value/<str:tag_value>/<int:status_code>", waf),
     path("headers", headers),
     path("status", status_code),
     path("identify", identify),
