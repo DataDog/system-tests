@@ -384,7 +384,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="java", reason="cache is implemented")
-@irrelevant(library="golang", reason="cache is implemented")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features_nocache
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
@@ -440,7 +439,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @irrelevant(library="nodejs", reason="cache is implemented")
-@irrelevant(library="golang", reason="cache is implemented")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd_nocache
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):

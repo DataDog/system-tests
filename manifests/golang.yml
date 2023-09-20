@@ -181,12 +181,24 @@ tests/:
       Test_BlockingGraphqlResolvers:
         '*': missing_feature
       Test_Blocking_request_body: missing_feature
-      Test_Blocking_request_cookies: v1.51.0
-      Test_Blocking_request_headers: v1.51.0
-      Test_Blocking_request_method: v1.51.0
-      Test_Blocking_request_path_params: v1.51.0
-      Test_Blocking_request_query: v1.51.0
-      Test_Blocking_request_uri: v1.51.0
+      Test_Blocking_request_cookies:
+        '*': v1.51.0
+        net-http: irrelevant
+      Test_Blocking_request_headers:
+        '*': v1.51.0
+        net-http: irrelevant
+      Test_Blocking_request_method:
+        '*': v1.51.0
+        net-http: irrelevant
+      Test_Blocking_request_path_params:
+        '*': v1.51.0
+        net-http: irrelevant
+      Test_Blocking_request_query:
+        '*': v1.51.0
+        net-http: irrelevant
+      Test_Blocking_request_uri:
+        '*': v1.51.0
+        net-http: irrelevant
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
       Test_Suspicious_Request_Blocking: missing_feature
@@ -250,7 +262,9 @@ tests/:
         gin: v1.37.0
   debugger/:
     test_debugger.py:
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
       Test_Debugger_Line_Probe_Statuses: missing_feature
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py:
@@ -272,10 +286,11 @@ tests/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.44.1
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -286,6 +301,8 @@ tests/:
     Test_HeaderTags: missing_feature
     Test_HeaderTagsLongFormat: missing_feature
     Test_HeaderTagsShortFormat: missing_feature
+  test_profiling.py:
+    Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:
