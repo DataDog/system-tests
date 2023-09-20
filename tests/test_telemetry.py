@@ -33,7 +33,6 @@ def is_v1_payload(data):
 
 
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
-@missing_feature(library="cpp")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
@@ -171,6 +170,7 @@ class Test_Telemetry:
                     raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
     @bug(library="ruby", reason="app-started not sent")
+    @flaky(library="python", reason="app-started is sent twice")
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
 
@@ -556,7 +556,6 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
-@irrelevant(library="cpp")
 class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
