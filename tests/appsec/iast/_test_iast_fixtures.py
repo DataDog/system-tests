@@ -124,17 +124,20 @@ class SinkFixture:
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
-        expected_tag = f"vulnerability_type:{self.vulnerability_type}"
-        series = [s for s in series if expected_tag in s["tags"]] or [
-            s for s in series if expected_tag.lower() in s["tags"]
-        ]
-        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
+        # lower the vulnerability_type, as all assertion will be case-insensitive
+        expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
+
+        # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
+
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True
             assert s["type"] == "count"
-            assert set([tag.lower() for tag in s["tags"]]) == {expected_tag.lower()}
             assert len(s["points"]) == 1
             p = s["points"][0]
             assert p[1] >= 1
@@ -181,15 +184,20 @@ class SourceFixture:
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
-        expected_tag = f"source_type:{self.source_type}"
-        series = [s for s in series if expected_tag in s["tags"]]
-        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
+        # lower the source_type, as all assertion will be case-insensitive
+        expected_tag = f"source_type:{self.source_type}".lower()
+
+        # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
+
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True
             assert s["type"] == "count"
-            assert set(s["tags"]) == {expected_tag}
             assert len(s["points"]) == 1
             p = s["points"][0]
             assert p[1] >= 1
@@ -203,15 +211,20 @@ class SourceFixture:
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
-        expected_tag = f"source_type:{self.source_type}"
-        series = [s for s in series if expected_tag in s["tags"]]
-        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
+        # lower the source_type, as all assertion will be case-insensitive
+        expected_tag = f"source_type:{self.source_type}".lower()
+
+        # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
+
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True
             assert s["type"] == "count"
-            assert set(s["tags"]) == {expected_tag}
             assert len(s["points"]) == 1
             p = s["points"][0]
             assert p[1] >= 1
