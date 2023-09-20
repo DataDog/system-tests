@@ -63,12 +63,15 @@ tests/:
         Test_BodyJson: v1.8.0
         Test_BodyRaw: v1.1.0
         Test_BodyUrlEncoded: v1.8.0
+        Test_BodyXml: irrelevant (unsupported by framework)
         Test_ClientIP: missing_feature
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
         Test_Lambda: missing_feature
         Test_Method: missing_feature
-        Test_PathParams: v1.8.0
+        Test_PathParams:
+          '*': v1.8.0
+          rack: irrelevant
         Test_ResponseStatus: v1.10.0
         Test_UrlQuery: v0.54.2
         Test_UrlQueryKey: v1.0.0
@@ -100,7 +103,16 @@ tests/:
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
-      Test_Login_Events_Extended: v1.14.0
+      Test_Login_Events_Extended:
+        '*': v1.14.0
+        rack: missing_feature (We do not support authentication framework for sinatra or rack)
+        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
+        rails40: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
+        rails41: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
+        sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
+        uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.0.0
       Test_BlockingGraphqlResolvers: missing_feature
@@ -108,7 +120,9 @@ tests/:
       Test_Blocking_request_cookies: v1.0.0
       Test_Blocking_request_headers: v1.0.0
       Test_Blocking_request_method: v1.12.0
-      Test_Blocking_request_path_params: v1.0.0
+      Test_Blocking_request_path_params:
+          '*': v1.0.0
+          rack: irrelevant
       Test_Blocking_request_query: v1.0.0
       Test_Blocking_request_uri: v1.0.0
       Test_Blocking_response_headers: v1.0.0
@@ -131,7 +145,7 @@ tests/:
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: v1.11.0
+      Test_AppSecIPBlockingFullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
@@ -147,12 +161,14 @@ tests/:
       Test_CollectRespondHeaders: v1.0.0.beta1
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v1.11.0
+      Test_UserBlocking_FullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
     test_versions.py:
       Test_Events: v0.54.2
   debugger/:
     test_debugger.py:
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
       Test_Debugger_Line_Probe_Statuses: missing_feature
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py:
@@ -189,10 +205,16 @@ tests/:
     Test_HeaderTags: missing_feature
     Test_HeaderTagsLongFormat: missing_feature
     Test_HeaderTagsShortFormat: missing_feature
+  test_profiling.py:
+    Test_Profile: bug (Not receiving profiles)
+  test_sampling_rates.py:
+    Test_SamplingDecisions: missing_feature (Endpoint /sample_rate_route not implemented)
   test_scrubbing.py:
+    Test_UrlField: missing_feature (Needs weblog endpoint)
     Test_UrlQuery: v1.0.0
   test_semantic_conventions.py:
     Test_Meta: v1.7.0
+    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
     Test_MetricsStandardTags: v1.7.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1

@@ -127,9 +127,11 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
 </string>
 ```
 
-## \[GET, POST, OPTIONS\] /tag_value/%s/%d
+## \[GET, POST, OPTIONS\] /tag_value/:tag_value/:status_code
 
 This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path.
+
+Make sure the parameters are name :tag_value and :status_code. Those values are use for the test in tests/appsec/api_security/test_schemas.py
 
 This endpoint must accept all query parameters and all content types.
 
@@ -139,19 +141,28 @@ The second path parameter must be used as a response status code.
 
 All query parameters (key, value) must be used as (key, value) in the response headers.
 
-### Reponse
-
-The following text should be written to the body of the response:
+The response for this endpoint must be:
 
 ```
 Value tagged
 ```
 
-Exception (introduced for API Security): if the first string parameter starts with `payload_in_response_body` and the method is `POST`. Then the response should contain a json (content_type='application/json') with the format
+**There is one exception**
+
+The exception was introduced for testing API Security response body
+
+If the first string parameter (:tag_value) starts with `payload_in_response_body` and the method is `POST`.
+
+Then the response should contain json with the format:
+
 ```
 {"payload": payload}
 ```
+
 where payload is the parsed body of the request
+
+
+Make sure to especify the Content-Type header as `application/json`
 
 ### Example
 
