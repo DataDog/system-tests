@@ -86,7 +86,7 @@ class Test_BlockingAddresses:
     def setup_cookies(self):
         self.c_req = weblog.get("/", headers={"Cookie": "mycookie=jdfoSDGFkivRG_234"})
 
-    @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(context.library < "nodejs@14.16.0", reason="Not supported yet")
     def test_cookies(self):
         """can block on server.request.cookies"""
 
@@ -292,7 +292,6 @@ class Test_Blocking_request_uri:
 @scenarios.appsec_blocking
 @coverage.good
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
-@irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""

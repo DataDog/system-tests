@@ -1008,8 +1008,8 @@ class scenarios:
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, whem remote config is available, rules file 
-            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the 
+            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
             data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
@@ -1041,11 +1041,11 @@ class scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "true",
-            "_DD_API_SECURITY_INTERVAL_PER_ROUTE": "0.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        _DD_API_SECURITY_ENABLED is set to true.
+        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
         """,
     )
 
@@ -1201,7 +1201,7 @@ class scenarios:
         "DEBUGGER_METHOD_PROBES_SNAPSHOT",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=10,
+        library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
     )
 
@@ -1209,7 +1209,7 @@ class scenarios:
         "DEBUGGER_LINE_PROBES_SNAPSHOT",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=10,
+        library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
     )
 

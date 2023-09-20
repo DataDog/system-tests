@@ -153,22 +153,21 @@ get '/custom_event' do
 end
 
 %i(get post options).each do |request_method|
-  send(request_method, '/tag_value/*') do
-    tag_value, status_code = request.path.split('/').select { |p| !p.empty? && p != 'tag_value' }
+  send(request_method, '/tag_value/:tag_value/:status_code') do
     trace = Datadog::Tracing.active_trace
-    trace.set_tag("appsec.events.system_tests_appsec_event.value", tag_value)
+    trace.set_tag("appsec.events.system_tests_appsec_event.value", params["tag_value"])
 
-    status status_code
+    status params["status_code"]
     headers request.params || {}
 
     'Value tagged'
   end
+end
 
-  get '/users' do
-    user_id = request.params["user"]
+get '/users' do
+  user_id = request.params["user"]
 
-    Datadog::Kit::Identity.set_user(id: user_id)
+  Datadog::Kit::Identity.set_user(id: user_id)
 
-    'Hello, user!'
-  end
+  'Hello, user!'
 end
