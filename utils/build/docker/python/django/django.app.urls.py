@@ -38,7 +38,7 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 @csrf_exempt
 def waf(request, *args, **kwargs):
-    if "value" in kwargs:
+    if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
             tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
         )
