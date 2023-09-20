@@ -9,6 +9,5 @@ WORKDIR /client
 # install bin dependancies
 RUN apt-get update && apt-get install -y git gcc g++ make cmake
 
-COPY ./utils/build/docker/python/parametric/ddtracer_version.sh .
-RUN sh ddtracer_version.sh
-CMD cat SYSTEM_TESTS_LIBRARY_VERSION
+RUN if [ -z "${PYTHON_DDTRACE_PACKAGE}" ]; then pip install ddtrace; else pip install "$PYTHON_DDTRACE_PACKAGE"; fi
+CMD python -c "import ddtrace; print(ddtrace.__version__)"

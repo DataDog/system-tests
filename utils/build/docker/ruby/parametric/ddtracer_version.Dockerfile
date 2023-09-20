@@ -8,5 +8,4 @@ RUN gem install ddtrace # Install a baseline ddtrace version, to cache all depen
 COPY ./utils/build/docker/ruby/parametric/Gemfile /client/
 COPY ./utils/build/docker/ruby/parametric/install_dependencies.sh /client/
 RUN bash install_dependencies.sh
-RUN bundle exec ruby -e 'puts Gem.loaded_specs["ddtrace"].version' > SYSTEM_TESTS_LIBRARY_VERSION
-CMD cat SYSTEM_TESTS_LIBRARY_VERSION
+CMD bundle exec ruby -e 'puts Gem.loaded_specs["ddtrace"].version'
