@@ -1,4 +1,9 @@
 tests/:
+  apm_tracing_e2e/:
+    test_otel.py:
+      Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_single_span:
+      Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
       test_schemas.py: irrelevant (ASM is not implemented in C++)
@@ -98,6 +103,8 @@ tests/:
     Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
   test_sampling_rates.py:
     Test_SamplingRates: missing_feature (https://github.com/DataDog/dd-opentracing-cpp/issues/173)
+  test_semantic_conventions.py:
+    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
   test_scrubbing.py: irrelevant
   test_standard_tags.py: irrelevant
   test_telemetry.py:

@@ -10,7 +10,7 @@ from tests.apm_tracing_e2e.constants import (
 
 @rfc("ATI-2419")
 @missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
-@missing_feature(context.library in ("cpp", "ruby", "php", "nodejs"), reason="Missing weblog endpoint")
+@missing_feature(context.library in ("ruby", "php", "nodejs"), reason="Missing weblog endpoint")
 @scenarios.apm_tracing_e2e_single_span
 class Test_SingleSpan:
     """This is a test that exercises the Single Span Ingestion Control feature.
