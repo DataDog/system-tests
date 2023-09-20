@@ -371,9 +371,6 @@ class Test_ResponseStatus:
         interfaces.library.assert_waf_attack(self.r, pattern="404", address="server.response.status")
 
 
-@irrelevant(
-    context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
-)
 @coverage.basic
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""

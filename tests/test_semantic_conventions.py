@@ -292,10 +292,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
-@bug(
-    context.library in ("cpp", "python"),
-    reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
-)
+@bug(library="cpp", reason="Inconsistent implementation across tracers; will need a dedicated testing scenario")
 class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
