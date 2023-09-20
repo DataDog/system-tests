@@ -5,8 +5,18 @@
 import json
 from collections import defaultdict
 
-from utils import (ValidationError, bug, context, coverage, interfaces,
-                   irrelevant, missing_feature, rfc, scenarios, weblog)
+from utils import (
+    ValidationError,
+    bug,
+    context,
+    coverage,
+    interfaces,
+    irrelevant,
+    missing_feature,
+    rfc,
+    scenarios,
+    weblog,
+)
 from utils.tools import logger
 
 with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
@@ -292,20 +302,16 @@ class Test_RemoteConfigurationExtraServices:
     def test_tracer_extra_services(self):
         """ test """
 
+        # filter extra services
+        extra_services = []
         for data in interfaces.library.get_data():
             if data["path"] == "/v0.7/config":
                 client_tracer = data["request"]["content"]["client"]["client_tracer"]
                 if "extra_services" in client_tracer:
-                    extra_services = client_tracer["extra_services"]
+                    extra_services.append(client_tracer["extra_services"])
 
-                    if (
-                        extra_services is not None
-                        and len(extra_services) == 1
-                        and extra_services[0] == "extraVegetables"
-                    ):
-                        return
-
-        raise ValueError("extra_services not found")
+        assert extra_services, "extra_services not found"
+        assert any(es == ["extraVegetables"] for es in extra_services), "extraVegetables extra service not found"
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
