@@ -1,4 +1,9 @@
 tests/:
+  apm_tracing_e2e/:
+    test_otel.py:
+      Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_single_span:
+      Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
       test_schemas.py:
@@ -179,11 +184,11 @@ tests/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.36.0
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: v2.15.0
+      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: v2.15.0
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: v2.15.0
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -194,6 +199,8 @@ tests/:
     Test_HeaderTags: v2.27.0
     Test_HeaderTagsLongFormat: v2.1.0
     Test_HeaderTagsShortFormat: v2.1.0
+  test_profiling.py:
+    Test_Profile: missing_feature (Not receiving profiles)
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0
