@@ -299,7 +299,7 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
-      flask-poc: v1.5.0rc2.dev  # TODO : is it the good version number ?
+      flask-poc: v1.5.0rc2.dev # TODO : is it the good version number ?
   test_identify.py:
     Test_Basic: v1.5.0rc1.dev
     Test_Propagate: v1.9.0
@@ -308,6 +308,10 @@ tests/:
     Test_HeaderTags: v0.53
     Test_HeaderTagsLongFormat: v1.2.1
     Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTagsWhitespacing_Headers: v1.2.1
+    Test_HeaderTagsWhitespacing_Tags: v1.2.1
+    Test_HeaderTagsWhitespacing_Vals: v1.2.1 # was marked as ?
+    Test_HeaderTagsColon_Edge: v1.2.1 # was marked as ?
   test_scrubbing.py:
     Test_UrlField: v1.7.1
     Test_UrlQuery: v1.6.0rc1.dev

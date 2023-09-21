@@ -194,6 +194,10 @@ tests/:
     Test_HeaderTags: v2.27.0
     Test_HeaderTagsLongFormat: v2.1.0
     Test_HeaderTagsShortFormat: v2.1.0
+    Test_HeaderTagsWhitespacing_Headers: v2.1.0
+    Test_HeaderTagsWhitespacing_Tags: missing_feature # Should I mark missing_feature if it's a bug?
+    Test_HeaderTagsWhitespacing_Vals: v2.1.0
+    Test_HeaderTagsColon_Edge: v2.1.0
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0

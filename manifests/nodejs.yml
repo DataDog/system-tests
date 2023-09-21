@@ -229,6 +229,10 @@ tests/:
     Test_HeaderTags: missing_feature
     Test_HeaderTagsLongFormat: missing_feature
     Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTagsWhitespacing_Headers: missing_feature
+    Test_HeaderTagsWhitespacing_Tags: missing_feature
+    Test_HeaderTagsWhitespacing_Vals: missing_feature
+    Test_HeaderTagsColon_Edge: missing_feature
   test_scrubbing.py:
     Test_UrlField: v3.13.1
     Test_UrlQuery: v3.0.0

@@ -189,6 +189,10 @@ tests/:
     Test_HeaderTags: missing_feature
     Test_HeaderTagsLongFormat: missing_feature
     Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTagsWhitespacing_Headers: missing_feature
+    Test_HeaderTagsWhitespacing_Tags: missing_feature
+    Test_HeaderTagsWhitespacing_Vals: missing_feature
+    Test_HeaderTagsColon_Edge: missing_feature
   test_scrubbing.py:
     Test_UrlQuery: v1.0.0
   test_semantic_conventions.py:

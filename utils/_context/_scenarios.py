@@ -8,6 +8,7 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
+from utils._context.header_tag_vars import headers
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
@@ -1111,6 +1112,9 @@ class scenarios:
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
+    library_conf_custom_header_tags = EndToEndScenario(
+            "LIBRARY_CONF_HEADER_TAGS", additional_trace_header_tags=(list(headers.values())), doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS"
+    )
     # dummy value because the tests skip the first input.
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("dummy", "header-tag1", "header-tag2"), doc="Scenario with <header_name> input given to DD_TRACE_HEADER_TAGS"

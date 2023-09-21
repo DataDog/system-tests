@@ -63,6 +63,10 @@ tests/:
     Test_HeaderTags: v0.68.2
     Test_HeaderTagsLongFormat: missing_feature
     Test_HeaderTagsShortFormat: v0.74.0
+    Test_HeaderTagsWhitespacing_Headers: v0.74.0
+    Test_HeaderTagsWhitespacing_Tags: missing_feature
+    Test_HeaderTagsWhitespacing_Vals: v0.74.0
+    Test_HeaderTagsColon_Edge: missing_feature
   test_sampling_rates.py:
     Test_SamplingDecisions: v0.71.0
   test_scrubbing.py:
