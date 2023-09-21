@@ -2,14 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (
-    scenarios,
-    context,
-    interfaces,
-    missing_feature,
-    irrelevant,
-    weblog,
-)
+from utils import scenarios, interfaces, weblog
 
 
 def validate_data(expected_probes, expected_snapshots, expected_traces):
@@ -99,11 +92,6 @@ def check_info_endpoint():
     raise ValueError("Agent did not provide /v0.7/config endpoint")
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
-    reason="not supported",
-)
-@irrelevant(library="nodejs")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
@@ -120,11 +108,6 @@ class Test_Debugger_Method_Probe_Statuses:
         validate_data(expected_data, [], [])
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
-    reason="not supported",
-)
-@irrelevant(library="nodejs")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
@@ -159,11 +142,6 @@ class _Base_Debugger_Snapshot_Test:
         return False
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
-    reason="not supported",
-)
-@irrelevant(library="nodejs")
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
@@ -200,11 +178,6 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         validate_data(expected_probes, expected_snapshots, expected_traces)
 
 
-@missing_feature(
-    context.library == "java" and context.weblog_variant not in ["spring-boot", "uds-spring-boot"],
-    reason="not supported",
-)
-@irrelevant(library="nodejs")
 @scenarios.debugger_line_probes_snapshot
 class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
