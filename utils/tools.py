@@ -134,6 +134,9 @@ def get_rid_from_span(span):
     if not user_agent:  # last hope
         user_agent = meta.get("http.useragent")
 
+    if not user_agent:  # last last hope (opentelemetry autoinstrumentation)
+        user_agent = meta.get("user_agent.original")
+
     return get_rid_from_user_agent(user_agent)
 
 

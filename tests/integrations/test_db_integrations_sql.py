@@ -279,7 +279,7 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                     for span_child in chunk["spans"]:
                         if (
                             "type" in span_child
-                            and span_child["type"] == "sql"
+                            and (span_child["type"] == "sql" or span_child["type"] == "db")
                             and span_child["traceID"] == span["traceID"]
                             and span_child["resource"]
                             != "SELECT ?"  # workaround to avoid conflicts on connection check on mssql
@@ -307,6 +307,16 @@ class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass):
 
 @scenarios.integrations
 class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
+    db_service = "postgresql"
+
+    @missing_feature(library="python", reason="Python is using the correct span: db.system")
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
+    def test_db_type(self):
+        super().test_db_type()
+
+
+@scenarios.otel_integrations
+class Test_Agent_Postgres_db_otel_integration(_BaseAgentIntegrationsSqlTestClass):
     db_service = "postgresql"
 
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
