@@ -34,8 +34,8 @@ class TestHeaderValue:
         self.source_fixture.setup_telemetry_metric_instrumented_source()
 
     @missing_feature(
-        context.library < "java@1.13.0" or
-        (context.library.library == "java" and not context.weblog_variant.startswith("spring-boot")),
+        context.library < "java@1.13.0"
+        or (context.library.library == "java" and not context.weblog_variant.startswith("spring-boot")),
         reason="Not implemented",
     )
     def test_telemetry_metric_instrumented_source(self):
