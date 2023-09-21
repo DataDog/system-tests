@@ -4,6 +4,7 @@
 
 import re
 from utils import coverage, weblog, interfaces, irrelevant, scenarios
+from utils._context.header_tag_vars import headers
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
@@ -21,16 +22,16 @@ class Test_HeaderTags:
 # Should "irrelevant" tests go in the cpp.yaml with "missing_feature"?
 @irrelevant(library="cpp")
 @coverage.basic
-@scenarios.library_conf_custom_headers_short
+@scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsShortFormat:
     """Validates that the short, header name only, format for specifying headers correctly tags spans"""
 
     def setup_trace_header_tags(self):
-        self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        self.headers = {headers[1]: "val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_short.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
+        tag_conf = scenarios.library_conf_custom_header_tags.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
@@ -43,16 +44,16 @@ class Test_HeaderTagsShortFormat:
 
 @irrelevant(library="cpp")
 @coverage.basic
-@scenarios.library_conf_custom_headers_long
+@scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsLongFormat:
-    """Validates that the `<header>:<tag_name>` format correctly tags spans"""
+    """Validates that tracer uses `<header>:<tag_name>` format correctly tags spans"""
 
     def setup_trace_header_tags(self):
-        self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        self.headers = {headers[2]: "val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_long.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
+        tag_conf = scenarios.library_conf_custom_header_tags.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
@@ -64,17 +65,17 @@ class Test_HeaderTagsLongFormat:
 
 @irrelevant(library="cpp")
 @coverage.basic
-@scenarios.library_conf_custom_headers_whitespacing_headers
+@scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsWhitespacing_Headers:
     """Validates that leading/trailing whitespaces are trimmed on the header values given to DD_TRACE_HEADER_TAGS
     e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header' """
 
     def setup_trace_header_tags(self):
-        self.headers = {"header-tag1": "header-val1"}
+        self.headers = {headers[3]: "val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_whitespacing_headers.weblog_container.environment[
+        tag_conf = scenarios.library_conf_custom_header_tags.weblog_container.environment[
             "DD_TRACE_HEADER_TAGS"
         ]
 
@@ -94,17 +95,17 @@ class Test_HeaderTagsWhitespacing_Headers:
 @irrelevant(library="cpp")
 
 @coverage.basic
-@scenarios.library_conf_custom_headers_whitespacing_tags
+@scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsWhitespacing_Tags:
     """Validates that leading/trailing whitespaces are trimmed on mapping parts, but whitespaces
     in between non-whitespace chars are left in-tact."""
 
     def setup_trace_header_tags(self):
-        self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        self.headers = {headers[4]: "val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_whitespacing_tags.weblog_container.environment[
+        tag_conf = scenarios.library_conf_custom_header_tags.weblog_container.environment[
             "DD_TRACE_HEADER_TAGS"
         ]
 
@@ -125,16 +126,16 @@ class Test_HeaderTagsWhitespacing_Tags:
 @irrelevant(library="cpp")
 
 @coverage.basic
-@scenarios.library_conf_custom_headers_whitespacing_vals
+@scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsWhitespacing_Vals:
     """Validates that whitespaces in header values are not removed in the span tag value"""
 
     def setup_trace_header_tags(self):
-        self.headers = {"header-tag1": "header-val1 ", "header-tag2": "h e a d e r - v a l 2"}
+        self.headers = {headers[1]: " v a l "}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_whitespacing_vals.weblog_container.environment[
+        tag_conf = scenarios.library_conf_custom_header_tags.weblog_container.environment[
             "DD_TRACE_HEADER_TAGS"
         ]
 
