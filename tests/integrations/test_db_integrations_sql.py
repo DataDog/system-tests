@@ -4,7 +4,7 @@
 from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 from utils.tools import logger
 
-# @scenarios.integrations
+
 class _BaseIntegrationsSqlTestClass:
 
     """ Verify basic DB operations over different databases.
@@ -12,9 +12,6 @@ class _BaseIntegrationsSqlTestClass:
 
     db_service = None
     requests = {}
-
-    # Set to false
-    tracer_interface_validation = True
 
     @classmethod
     def _setup(cls):
@@ -415,17 +412,16 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass):
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
             # We launch all queries with two parameters (from weblog)
-            # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-            if db_operation in ["insert"] or (db_operation in ["procedure"] and context.library.library != "nodejs"):
-                assert (
-                    span["meta"]["sql.query"].count("?") == 1
-                ), f"The mssql query is not properly obfuscated for operation {db_operation}"
-            elif db_operation in ["procedure"]:
-                # The proccedure has a input parameter, but we are calling through method execute and we can't see the parameters in the traces
-                assert (
-                    span["meta"]["sql.query"].count("?") == 0
-                ), "The mssql query is not properly obfuscated for operation procedure (nodejs)"
+            if db_operation == "insert":
+                expected_obfuscation_count = 1
+            elif db_operation == "procedure":
+                # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
+                # Nodejs: The proccedure has a input parameter, but we are calling through method execute and we can't see the parameters in the traces
+                expected_obfuscation_count = 0 if context.library.library == "nodejs" else 1
             else:
-                assert (
-                    span["meta"]["sql.query"].count("?") == 2
-                ), f"The mssql query is not properly obfuscated for operation {db_operation}"
+                expected_obfuscation_count = 2
+
+            observed_obfuscation_count = span["meta"]["sql.query"].count("?")
+            assert (
+                observed_obfuscation_count == expected_obfuscation_count
+            ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['sql.query']}"
