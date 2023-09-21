@@ -5,6 +5,8 @@
     "tests/": { "$ref": "#/$defs/folder_content" }
   },
 
+  "additionalProperties": false,
+
   "$defs": {
     "folder_content": {
       "type": "object",
@@ -44,7 +46,8 @@
             }
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
 
     "declaration_per_weblog": {
@@ -55,10 +58,9 @@
     },
 
     "feature_state": {
-      "oneOf": [
-        { "$ref": "#/$defs/version" },
-        { "$ref": "#/$defs/skipped_declaration" }
-      ]
+      "if": { "type": "string", "pattern": "^v\\d.+" },
+      "then": { "$ref": "#/$defs/version" },
+      "else": { "$ref": "#/$defs/skipped_declaration" }
     },
 
     "version": { "type": "string", "pattern": "^v\\d.+" },
