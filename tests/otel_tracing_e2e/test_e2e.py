@@ -66,7 +66,7 @@ class Test_OTelTracingE2E:
 
 @scenarios.otel_metric_e2e
 @irrelevant(context.library != "open_telemetry")
-@flaky(reason="Backend responses often don't include series")
+@flaky(True, reason="Backend responses often don't include series")
 class Test_OTelMetricE2E:
     def setup_main(self):
         self.start = int(time.time())

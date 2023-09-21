@@ -19,7 +19,6 @@ from utils import (
 
 @coverage.basic
 @scenarios.appsec_blocking
-@bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -135,7 +134,16 @@ class Test_BlockingAddresses:
         self.rss_req = weblog.get(path="/status", params={"code": "418"})
 
     @missing_feature(context.library < "dotnet@2.32.0")
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library < "java@1.18.0" and context.weblog_variant in ("spring-boot", "uds-spring-boot"))
+    @missing_feature(
+        context.library < "java@1.19.0"
+        and context.weblog_variant in ("spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
+    )
+    @missing_feature(
+        context.library == "java"
+        and context.weblog_variant
+        not in ("spring-boot", "uds-spring-boot", "spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
+    )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
     @missing_feature(library="nodejs", reason="Not supported yet")
