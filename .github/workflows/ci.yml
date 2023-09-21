@@ -601,7 +601,7 @@ jobs:
     - name: Pull mitmproxy image
       run: docker pull datadog/system-tests:proxy-v1 || true
     - name: Download Open Telemetry auto instrumentation jar
-      run: curl -o binaries/dd-java-agent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar 
+      run: curl -o binaries/dd-java-agent.jar -L https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar 
     - name: Build proxy image
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
       run: ./build.sh -i proxy
