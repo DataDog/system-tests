@@ -48,7 +48,7 @@ tests/:
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: v1.19.0
         test_path_traversal.py:
-          TestPathTraversal: v1.19.0
+          TestPathTraversal: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.12.0
