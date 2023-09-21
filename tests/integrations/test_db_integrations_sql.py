@@ -211,11 +211,10 @@ class _BaseIntegrationsSqlTestClass:
         assert span["meta"]["error.stack"].strip()
 
     def _get_sql_span_for_request(self, weblog_request):
-        """To be implemented by subclasses"""
-        return {}
+        """Returns the spans associated with a request. Should be implemented by subclasses in order to get this info from library or agent interfaces"""
+        raise NotImplementedError("This method should be implemented by subclasses")
 
 
-@scenarios.integrations
 class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
     @missing_feature(
         library="java",
@@ -225,11 +224,11 @@ class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
         """ All queries come out without obfuscation from tracer library """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            assert span["resource"].count("?") == 0
+            assert span["resource"].count("?") == 0, f"The query should not be obfuscated for operation {db_operation}"
 
     def _get_sql_span_for_request(self, weblog_request):
         for data, trace, span in interfaces.library.get_spans(weblog_request):
-            logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']} ")
+            logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
             for trace in data["request"]["content"]:
                 for span_child in trace:
                     if (
@@ -241,12 +240,11 @@ class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                     ):
                         logger.debug("Span type sql found!")
                         logger.info(
-                            f"CHILD Span found with trace id: {span_child['trace_id']} and span id: {span_child['span_id']} "
+                            f"CHILD Span found with trace id: {span_child['trace_id']} and span id: {span_child['span_id']}"
                         )
                         return span_child
 
 
-@scenarios.integrations
 class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
     def test_sql_query(self):
         """ Usually the query """
@@ -262,9 +260,13 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
             # We launch all queries with two parameters (from weblog)
             # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
             if db_operation in ["insert", "procedure"]:
-                assert span["meta"]["sql.query"].count("?") == 1
+                assert (
+                    span["meta"]["sql.query"].count("?") == 1
+                ), f"The query is not properly obfuscated for operation {db_operation}"
             else:
-                assert span["meta"]["sql.query"].count("?") == 2
+                assert (
+                    span["meta"]["sql.query"].count("?") == 2
+                ), f"The query is not properly obfuscated for operation {db_operation}"
 
     def _get_sql_span_for_request(self, weblog_request):
         for data, span in interfaces.agent.get_spans(weblog_request):
@@ -293,6 +295,7 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
 ############################################################
 # Postgres: Tracer and Agent validations
 ############################################################
+@scenarios.integrations
 class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "postgresql"
 
@@ -302,6 +305,7 @@ class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass):
         super().test_db_type()
 
 
+@scenarios.integrations
 class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
     db_service = "postgresql"
 
@@ -314,6 +318,7 @@ class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
 ############################################################
 # Mysql: Tracer and Agent validations
 ############################################################
+@scenarios.integrations
 class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "mysql"
 
@@ -327,6 +332,7 @@ class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass):
         super().test_db_user()
 
 
+@scenarios.integrations
 class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass):
     db_service = "mysql"
 
@@ -343,6 +349,7 @@ class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass):
 ############################################################
 # Mssql: Tracer and Agent validations
 ############################################################
+@scenarios.integrations
 class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "mssql"
 
@@ -354,7 +361,9 @@ class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass):
             This value should be set only if it’s specified on the mssql connection string. """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            assert span["meta"]["db.mssql.instance_name"].strip(), f"Test is failing for {db_operation}"
+            assert span["meta"][
+                "db.mssql.instance_name"
+            ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
 
     @bug(library="python", reason="bug on pyodbc driver?")
     @missing_feature(library="java", reason="Java is using the correct span: db.instance")
@@ -372,6 +381,7 @@ class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass):
         super().test_db_user()
 
 
+@scenarios.integrations
 class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass):
     db_service = "mssql"
 
@@ -407,9 +417,15 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass):
             # We launch all queries with two parameters (from weblog)
             # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
             if db_operation in ["insert"] or (db_operation in ["procedure"] and context.library.library != "nodejs"):
-                assert span["meta"]["sql.query"].count("?") == 1
+                assert (
+                    span["meta"]["sql.query"].count("?") == 1
+                ), f"The mssql query is not properly obfuscated for operation {db_operation}"
             elif db_operation in ["procedure"]:
                 # The proccedure has a input parameter, but we are calling through method execute and we can't see the parameters in the traces
-                assert span["meta"]["sql.query"].count("?") == 0
+                assert (
+                    span["meta"]["sql.query"].count("?") == 0
+                ), "The mssql query is not properly obfuscated for operation procedure (nodejs)"
             else:
-                assert span["meta"]["sql.query"].count("?") == 2
+                assert (
+                    span["meta"]["sql.query"].count("?") == 2
+                ), f"The mssql query is not properly obfuscated for operation {db_operation}"
