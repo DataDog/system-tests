@@ -234,6 +234,8 @@ class _BaseIntegrationsSqlTestClass:
 
 
 class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
+    """ Encapsulates tracer interface specific validations """
+
     @missing_feature(
         library="java",
         reason="The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality",
@@ -316,7 +318,7 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
 
 
 class _BaseOtelAgentIntegrationsSqlTestClass(_BaseAgentIntegrationsSqlTestClass):
-    """Extends the class that validates the agent interface and overwrite or add specific methods for application that has been auto intrumented by Open Telemetry"""
+    """ Overwrite or add specific methods (on agent interface) for application that has been auto intrumented by Open Telemetry """
 
     def test_error_msg(self):
         """ A string representing the error message. """
@@ -342,28 +344,9 @@ class _BaseOtelAgentIntegrationsSqlTestClass(_BaseAgentIntegrationsSqlTestClass)
 ################################################################################
 # Postgres: Tracer and Agent validations (dd-tracer and open telemetry tracer)
 ################################################################################
-@scenarios.integrations
-class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass):
-    db_service = "postgresql"
+class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
+    """ Overwrite or add specific methods for postgres (Validations works on agent and tracer interfaces) """
 
-    @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
-    def test_db_type(self):
-        super().test_db_type()
-
-
-@scenarios.integrations
-class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
-    db_service = "postgresql"
-
-    @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
-    def test_db_type(self):
-        super().test_db_type()
-
-
-@scenarios.otel_integrations
-class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass):
     db_service = "postgresql"
 
     @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
@@ -373,39 +356,33 @@ class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestC
         super().test_db_type()
 
 
-################################################################################
-# Mysql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
-################################################################################
 @scenarios.integrations
-class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass):
-    db_service = "mysql"
+class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Postgres_db_integration):
+    """ Overwrite or add specific validation methods for postgres on tracer interface """
 
-    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
-    @bug(library="python", reason="the value of this span should be 'world' instead of  'b'world'' ")
-    def test_db_name(self):
-        super().test_db_name()
-
-    @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
-    def test_db_user(self):
-        super().test_db_user()
+    pass
 
 
 @scenarios.integrations
-class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass):
-    db_service = "mysql"
+class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Postgres_db_integration):
+    """ Overwrite or add specific validation methods for postgres on agent interface """
 
-    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
-    @bug(library="python", reason="the value of this span should be 'world' instead of  'b'world'' ")
-    def test_db_name(self):
-        super().test_db_name()
-
-    @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
-    def test_db_user(self):
-        super().test_db_user()
+    pass
 
 
 @scenarios.otel_integrations
-class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass):
+class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass, _Base_Postgres_db_integration):
+    """ Overwrite or add specific validation methods for postgres on agent interface (app instrumented by open telemetry) """
+
+    pass
+
+
+################################################################################
+# Mysql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
+################################################################################
+class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
+    """ Overwrite or add specific methods for Mysql (Validations works on agent and tracer interfaces) """
+
     db_service = "mysql"
 
     @missing_feature(library="java", reason="Java is using the correct span: db.instance")
@@ -416,6 +393,25 @@ class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
     @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
     def test_db_user(self):
         super().test_db_user()
+
+
+@scenarios.integrations
+class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mysql_db_integration):
+    """ Overwrite or add specific validation methods for mysql on tracer interface """
+
+    pass
+
+
+@scenarios.integrations
+class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
+    """ Overwrite or add specific validation methods for mysql on agent interface """
+
+    pass
+
+
+@scenarios.otel_integrations
+class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
+    """ Overwrite or add specific validation methods for mysql on agent interface (app instrumented by open telemetry) """
 
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
@@ -440,13 +436,15 @@ class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
 ################################################################################
 # Mssql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
 ################################################################################
-@scenarios.integrations
-class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass):
+class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
+    """ Overwrite or add specific methods for Mssql (Validations works on agent and tracer interfaces) """
+
     db_service = "mssql"
 
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
     def test_db_mssql_instance__name(self):
         """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
             This value should be set only if it’s specified on the mssql connection string. """
@@ -473,33 +471,15 @@ class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass):
 
 
 @scenarios.integrations
-class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass):
-    db_service = "mssql"
+class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mssql_db_integration):
+    """ Overwrite or add specific validation methods for mssql on tracer interface """
 
-    @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(library="java", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
-    def test_db_mssql_instance__name(self):
-        """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
-            This value should be set only if it’s specified on the mssql connection string. """
-        for db_operation, request in self.requests[self.db_service].items():
-            span = self._get_sql_span_for_request(request)
-            assert span["meta"]["db.mssql.instance_name"].strip(), f"Test is failing for {db_operation}"
+    pass
 
-    @bug(library="python", reason="bug on pyodbc driver?")
-    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
-    def test_db_name(self):
-        super().test_db_name()
 
-    @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
-    @bug(library="python", reason="bug on pyodbc driver?")
-    def test_db_system(self):
-        super().test_db_system()
-
-    @bug(library="python", reason="bug on pyodbc driver?")
-    def test_db_user(self):
-        super().test_db_user()
+@scenarios.integrations
+class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Mssql_db_integration):
+    """ Overwrite or add specific validation methods for mssql on agent interface """
 
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
@@ -522,34 +502,8 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass):
 
 
 @scenarios.otel_integrations
-class Test_Agent_Mssql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass):
-    db_service = "mssql"
-
-    @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(library="java", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
-    def test_db_mssql_instance__name(self):
-        """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
-            This value should be set only if it’s specified on the mssql connection string. """
-        for db_operation, request in self.requests[self.db_service].items():
-            span = self._get_sql_span_for_request(request)
-            assert span["meta"]["db.mssql.instance_name"].strip(), f"Test is failing for {db_operation}"
-
-    @bug(library="python", reason="bug on pyodbc driver?")
-    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
-    def test_db_name(self):
-        super().test_db_name()
-
-    @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
-    @bug(library="python", reason="bug on pyodbc driver?")
-    def test_db_system(self):
-        super().test_db_system()
-
-    @bug(library="python", reason="bug on pyodbc driver?")
-    def test_db_user(self):
-        super().test_db_user()
+class Test_Agent_Mssql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass, _Base_Mssql_db_integration):
+    """ Overwrite or add specific validation methods for mssql on agent interface (app instrumented by open telemetry) """
 
     def test_db_operation(self):
         """ The name of the operation being executed. Mssql and Open Telemetry doesn't report this span when we call to procedure """
@@ -566,7 +520,7 @@ class Test_Agent_Mssql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            # We launch all queries with two parameters (from weblog)
+
             if db_operation in ["insert", "select"]:
                 expected_obfuscation_count = 3
             elif db_operation == "procedure":
