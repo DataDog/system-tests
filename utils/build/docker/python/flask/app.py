@@ -3,6 +3,8 @@ import subprocess
 
 import psycopg2
 import requests
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response, jsonify
 from flask import request
 from flask import request as flask_request
@@ -14,12 +16,9 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
-from integrations.db.postgres import executePostgresOperation
-from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.mssql import executeMssqlOperation
-
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
+from integrations.db.mysqldb import executeMysqlOperation
+from integrations.db.postgres import executePostgresOperation
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -52,16 +51,16 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 @app.route("/waf/", methods=["GET", "POST", "OPTIONS"])
 @app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
 @app.route("/params/<path>", methods=["GET", "POST", "OPTIONS"])
-@app.route("/tag_value/<string:value>/<int:code>", methods=["GET", "POST", "OPTIONS"])
+@app.route("/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"])
 def waf(*args, **kwargs):
-    if "value" in kwargs:
+    if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
         )
-        if kwargs["value"].startswith("payload_in_response_body") and request.method == "POST":
+        if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
             return jsonify({"payload": request.form})
 
-        return "Value tagged", kwargs["code"], flask_request.args
+        return "Value tagged", kwargs["status_code"], flask_request.args
     return "Hello, World!\\n"
 
 
