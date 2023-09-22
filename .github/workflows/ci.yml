@@ -582,7 +582,7 @@ jobs:
       id: build_otel
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel --weblog-variant spring-boot
     - name: Run OTEL_INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success'
+      if: always() && steps.build_otel.outcome == 'success'
       run: ./run.sh OTEL_INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
