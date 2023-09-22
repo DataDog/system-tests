@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, released, irrelevant, context, bug
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug
 from utils.tools import logger
 import time
 import datetime
@@ -64,8 +64,6 @@ class Test_DsmKafka:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.12.1", "*": "?"})
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -83,9 +81,6 @@ class Test_DsmHttp:
         )
 
 
-@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
-@released(dotnet="2.29.0")
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -139,8 +134,6 @@ class Test_DsmRabbitmq:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
@@ -178,8 +171,6 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""

@@ -1,11 +1,7 @@
 from tests.apm_tracing_e2e.test_single_span import _get_spans_submitted, _assert_msg
-from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant, flaky
+from utils import context, weblog, scenarios, interfaces, irrelevant
 
 
-@missing_feature(
-    context.weblog_variant not in "net-http",
-    reason="The /e2e_otel_span endpoint is only implemented in Go net/http at the moment.",
-)
 @scenarios.apm_tracing_e2e_otel
 class Test_Otel_Span:
     """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API.
@@ -31,7 +27,8 @@ class Test_Otel_Span:
         # Assert the parent span sent by the agent.
         parent = _get_span(spans, "parent.span.otel")
         assert parent.get("parentID") is None
-        assert parent.get("spanID") == "10000"
+        if parent.get("meta")["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
+            assert parent.get("spanID") == "10000"
         assert parent.get("meta").get("attributes") == "values"
         assert parent.get("meta").get("error.message") == "testing_end_span_options"
         assert parent["metrics"]["_dd.top_level"] == 1.0

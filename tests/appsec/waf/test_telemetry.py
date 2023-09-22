@@ -1,12 +1,8 @@
-from utils import interfaces, released, rfc, weblog, scenarios, context, bug, missing_feature, flaky
+from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky
 from utils.tools import logger
-import pytest
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
-
-if context.weblog_variant == "akka-http":
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 def _setup(self):
@@ -41,8 +37,6 @@ class Test_TelemetryResponses:
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
-@released(python="1.14.0", cpp="?", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
@@ -66,7 +60,12 @@ class Test_TelemetryMetrics:
             "waf_version",
             "event_rules_version",
         }
-        valid_tag_prefixes = mandatory_tag_prefixes
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "version",
+            "lib_language",
+        }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
         if context.library == "python" and context.weblog_variant != "uwsgi-poc":
@@ -99,7 +98,12 @@ class Test_TelemetryMetrics:
             "waf_version",
             "event_rules_version",
         }
-        valid_tag_prefixes = mandatory_tag_prefixes
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "version",
+            "lib_language",
+        }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         assert len(series) == 1
         s = series[0]
@@ -130,6 +134,8 @@ class Test_TelemetryMetrics:
             "request_blocked",
             "request_excluded",
             "waf_timeout",
+            "version",
+            "lib_language",
         }
         mandatory_tag_prefixes = {
             "waf_version",

@@ -16,8 +16,6 @@ app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
 app.use(require("cookie-parser")());
 
-require('./auth')(app, passport, tracer)
-
 app.get("/", (req, res) => {
   console.log("Received a request");
   res.send("Hello\n");
@@ -160,7 +158,7 @@ app.get("/dsm", (req, res) => {
     await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
 
     await consumer.run({
-      eachMessage: async ({topic, partition, message}) => {
+      eachMessage: async ({ topic, partition, message }) => {
         console.log({
           value: message.value.toString(),
         });
@@ -170,13 +168,13 @@ app.get("/dsm", (req, res) => {
     })
   }
   doKafkaOperations()
-      .then(() => {
-        res.send('ok');
-      })
-      .catch((error) => {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      });
+    .then(() => {
+      res.send('ok');
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+    });
 });
 
 app.get('/load_dependency', (req, res) => {
@@ -206,9 +204,29 @@ app.get('/read_file', (req, res) => {
   });
 });
 
+
+app.get('/db', async (req, res) => {
+  console.log("Service: " + req.query.service)
+  console.log("Operation: " + req.query.operation)
+
+  const pgsql = require('./integrations/db/postgres');
+  const mysql = require('./integrations/db/mysql');
+  const mssql = require('./integrations/db/mssql');
+  var opResponse = "Service " + req.query.service + " not supported"
+  if (req.query.service == "postgresql") {
+    res.send(await pgsql.doOperation(req.query.operation));
+  } else if (req.query.service == "mysql") {
+    res.send(await mysql.doOperation(req.query.operation));
+  } else if (req.query.service == "mssql") {
+    res.send(await mssql.doOperation(req.query.operation));
+  }
+});
+
 require("./iast")(app, tracer);
+require('./auth')(app, passport, tracer)
+require('./graphql')(app)
 
 app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => {});
+  tracer.trace('init.service', () => { });
   console.log('listening');
 });

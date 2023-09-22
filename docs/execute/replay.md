@@ -26,7 +26,7 @@ Once you have ran a scenario, you can replay it using :
 3. run the scenario with `./run.sh <SCENARIO_NAME>`
 4. you can now iterate on your test method using `./run.sh <SCENARIO_NAME> --replay`
 
-In particular, if you need to remove/add `@missing_feature` or `@bug`, or modify a `@released`, you can load an artifact from your CI and directly use it. 
+In particular, if you need to remove/add `@missing_feature` or `@bug`, or modify a manifest file, you can load an artifact from your CI and directly use it. 
 
 ## When it can't help ?
 

@@ -24,7 +24,7 @@
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
     - export AWS_PROFILE=agent-qa-ci
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
-    - pulumi plugin install resource command
+    - pulumi plugin install resource command 0.8.2
     - pulumi plugin install resource aws 5.41.0
     #We need some variable for after script
     - echo "GITHUB_USER=${GITHUB_USER}" >> .env_ci

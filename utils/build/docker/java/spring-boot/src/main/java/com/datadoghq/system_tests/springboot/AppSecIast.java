@@ -13,6 +13,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -31,8 +32,8 @@ public class AppSecIast {
     private volatile LDAPExamples ldapExamples;
     private final SsrfExamples ssrfExamples;
     private final WeakRandomnessExamples weakRandomnessExamples;
-
     private final XPathExamples xPathExamples;
+    private final XSSExamples xssExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -43,6 +44,7 @@ public class AppSecIast {
         this.ssrfExamples = new SsrfExamples();
         this.weakRandomnessExamples = new WeakRandomnessExamples();
         this.xPathExamples = new XPathExamples();
+        this.xssExamples = new XSSExamples();
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -272,6 +274,29 @@ public class AppSecIast {
     String secureXPath(final ServletRequest request) {
         xPathExamples.secureXPath();
         return "XPath secure";
+    }
+
+    @GetMapping("/trust-boundary-violation/test_insecure")
+    public String trustBoundaryViolationInSecureSpringBoot(final HttpServletRequest request) {
+      String paramValue = request.getParameter("username");
+      request.getSession().putValue("name", paramValue);
+      return "Trust Boundary violation page";
+    }
+
+    @GetMapping("/trust-boundary-violation/test_secure")
+    public String trustBoundaryViolationSecureSpringBoot(final HttpServletRequest request) {
+      request.getSession().putValue("name", "value");
+      return "Trust Boundary violation page";
+    }
+
+    @PostMapping("/xss/test_insecure")
+    void insecureXSS(final ServletRequest request, final ServletResponse response) throws IOException {
+        xssExamples.insecureXSS(response.getWriter(), request.getParameter("param"));
+    }
+
+    @PostMapping("/xss/test_secure")
+    void secureXSS(final ServletResponse response) throws IOException {
+        xssExamples.secureXSS(response.getWriter());
     }
 
     /**

@@ -5,25 +5,16 @@
 import datetime
 import time
 
-import pytest
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenarios, missing_feature, flaky
+from utils import weblog, context, coverage, interfaces, rfc, bug, scenarios, flaky
 from utils.tools import logger
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
-
-if context.weblog_variant == "akka-http":
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@released(dotnet="2.6.0", nodejs="2.0.0")
 @bug(
     context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427",
 )
 @coverage.basic
 @scenarios.appsec_rate_limiter
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Main:
     """Basic tests for rate limiter"""
 
@@ -50,7 +41,7 @@ class Test_Main:
         logger.debug(f"Sent 50 requests in {(datetime.datetime.now() - start_time).total_seconds()} s")
 
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
-    @flaky(context.weblog_variant in ("rails51", "rails70"), reason="APPSEC-10303")
+    @flaky("rails" in context.weblog_variant, reason="APPSEC-10303")
     def test_main(self):
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
