@@ -65,6 +65,9 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
 
     def decorator(function_or_class):
 
+        if inspect.isclass(function_or_class):
+            assert condition is not None or (library is None and weblog_variant is None), "Please use manifest file"
+
         if not skip:
             return function_or_class
 
@@ -81,6 +84,9 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
+
+        if inspect.isclass(function_or_class):
+            assert condition is not None, "Please use manifest file"
 
         if not skip:
             return function_or_class
@@ -101,6 +107,9 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
 
     def decorator(function_or_class):
 
+        if inspect.isclass(function_or_class):
+            assert condition is not None, "Please use manifest file"
+
         if not expected_to_fail:
             return function_or_class
 
@@ -116,6 +125,9 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
+
+        if inspect.isclass(function_or_class):
+            assert condition is not None, "Please use manifest file"
 
         if not skip:
             return function_or_class

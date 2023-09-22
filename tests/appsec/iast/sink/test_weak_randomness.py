@@ -16,7 +16,10 @@ class TestWeakRandomness:
         insecure_endpoint="/iast/weak_randomness/test_insecure",
         secure_endpoint="/iast/weak_randomness/test_secure",
         data=None,
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples"},
+        location_map={
+            "java": "com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples",
+            "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+        },
     )
 
     def setup_insecure(self):

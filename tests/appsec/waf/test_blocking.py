@@ -202,7 +202,6 @@ class Test_Blocking:
 
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
-@bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenarios.appsec_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")

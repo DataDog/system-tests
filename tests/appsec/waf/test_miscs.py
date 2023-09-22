@@ -73,7 +73,6 @@ class Test_MultipleAttacks:
         interfaces.library.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
 
 
-@bug(context.library < "nodejs@3.19.0", reason="fixed in a waf update")
 @coverage.good
 class Test_CorrectOptionProcessing:
     """Check that the case sensitive option is properly processed"""

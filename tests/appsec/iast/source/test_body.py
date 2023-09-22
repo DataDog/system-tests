@@ -23,6 +23,7 @@ class TestRequestBody:
         self.source_fixture.setup()
 
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
+    @missing_feature(library="python", reason="Not implemented yet")
     def test_source_reported(self):
         self.source_fixture.test()
 
@@ -31,7 +32,6 @@ class TestRequestBody:
 
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
 
@@ -40,6 +40,5 @@ class TestRequestBody:
 
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_source(self):
         self.source_fixture.test_telemetry_metric_executed_source()
