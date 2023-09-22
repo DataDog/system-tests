@@ -263,6 +263,8 @@ class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
 
 
 class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
+    """ Encapsulates agent interface specific validations """
+
     @missing_feature(library="java_otel", reason="OpenTelemetry uses db.statement")
     def test_sql_query(self):
         """ Usually the query """
@@ -312,32 +314,8 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                             return span_child
 
 
-############################################################
-# Postgres: Tracer and Agent validations
-############################################################
-@scenarios.integrations
-class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass):
-    db_service = "postgresql"
-
-    @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
-    def test_db_type(self):
-        super().test_db_type()
-
-
-@scenarios.integrations
-class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
-    db_service = "postgresql"
-
-    @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
-    def test_db_type(self):
-        super().test_db_type()
-
-
-@scenarios.otel_integrations
-class Test_Agent_Postgres_db_otel_integration(_BaseAgentIntegrationsSqlTestClass):
-    db_service = "postgresql"
+class _BaseOtelAgentIntegrationsSqlTestClass(_BaseAgentIntegrationsSqlTestClass):
+    """Extends the class that validates the agent interface and overwrite or add specific methods for application that has been auto intrumented by Open Telemetry"""
 
     def test_error_msg(self):
         """ A string representing the error message. """
@@ -359,6 +337,34 @@ class Test_Agent_Postgres_db_otel_integration(_BaseAgentIntegrationsSqlTestClass
                     span["meta"]["db.statement"].count("?") == 3
                 ), f"The query is not properly obfuscated for operation {db_operation}"
 
+
+################################################################################
+# Postgres: Tracer and Agent validations (dd-tracer and open telemetry tracer)
+################################################################################
+@scenarios.integrations
+class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass):
+    db_service = "postgresql"
+
+    @missing_feature(library="python", reason="Python is using the correct span: db.system")
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
+    def test_db_type(self):
+        super().test_db_type()
+
+
+@scenarios.integrations
+class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
+    db_service = "postgresql"
+
+    @missing_feature(library="python", reason="Python is using the correct span: db.system")
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
+    def test_db_type(self):
+        super().test_db_type()
+
+
+@scenarios.otel_integrations
+class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass):
+    db_service = "postgresql"
+
     @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
@@ -366,9 +372,9 @@ class Test_Agent_Postgres_db_otel_integration(_BaseAgentIntegrationsSqlTestClass
         super().test_db_type()
 
 
-############################################################
-# Mysql: Tracer and Agent validations
-############################################################
+################################################################################
+# Mysql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
+################################################################################
 @scenarios.integrations
 class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "mysql"
@@ -397,9 +403,9 @@ class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass):
         super().test_db_user()
 
 
-############################################################
-# Mssql: Tracer and Agent validations
-############################################################
+################################################################################
+# Mssql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
+################################################################################
 @scenarios.integrations
 class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "mssql"
