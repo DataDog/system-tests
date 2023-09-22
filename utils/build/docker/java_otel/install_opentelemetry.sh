@@ -4,14 +4,14 @@ set -eu
 
 mkdir /otel-tracer
 
-if [ $(ls /binaries/opentelemetry-javaagent*.jar | wc -l) = 0 ]; then
+if [ "$(ls /binaries/opentelemetry-javaagent*.jar | wc -l)" = 0 ]; then
     BUILD_URL="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar"
     echo "install from Github release: $BUILD_URL"
     curl  -Lf -o /otel-tracer/opentelemetry-javaagent.jar $BUILD_URL
 
-elif [ $(ls /binaries/opentelemetry-javaagent*.jar | wc -l) = 1 ]; then
+elif [ "$(ls /binaries/opentelemetry-javaagent*.jar | wc -l)" = 1 ]; then
     echo "Install local file $(ls /binaries/opentelemetry-javaagent*.jar)"
-    cp $(ls /binaries/opentelemetry-javaagent*.jar) /otel-tracer/opentelemetry-javaagent.jar
+    cp "$(ls /binaries/opentelemetry-javaagent*.jar)" /otel-tracer/opentelemetry-javaagent.jar
 
 else
     echo "Too many jar files in binaries"
