@@ -1,5 +1,6 @@
 # pages/urls.py
 import json
+import os
 import random
 import subprocess
 
@@ -221,6 +222,24 @@ def view_cmdi_secure(request):
 
 
 @csrf_exempt
+def view_iast_path_traversal_insecure(request):
+    path = request.POST.get("path", "")
+    os.mkdir(path)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_path_traversal_secure(request):
+    path = request.POST.get("path", "")
+    root_dir = "/home/usr/secure_folder/"
+
+    if os.path.commonprefix((os.path.realpath(path), root_dir)) == root_dir:
+        open(path)
+
+    return HttpResponse("OK")
+
+
+@csrf_exempt
 def view_sqli_insecure(request):
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
@@ -415,6 +434,8 @@ urlpatterns = [
     path("iast/cmdi/test_secure", view_cmdi_secure),
     path("iast/weak_randomness/test_insecure", view_iast_weak_randomness_insecure),
     path("iast/weak_randomness/test_secure", view_iast_weak_randomness_secure),
+    path("iast/path_traversal/test_insecure", view_iast_path_traversal_insecure),
+    path("iast/path_traversal/test_secure", view_iast_path_traversal_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),
