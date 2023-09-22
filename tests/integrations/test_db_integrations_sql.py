@@ -155,12 +155,12 @@ class _BaseIntegrationsSqlTestClass:
         """ The name of the operation being executed """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            if db_operation is "procedure":
-                assert (
-                    "call" in span["meta"]["db.operation"].lower()
-                ), "db.operation span not found for procedure operation"
-            elif db_operation is "select_error":
+            if db_operation is "select_error":
                 continue
+            if db_operation is "procedure":
+                assert any(
+                    substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
+                ), "db.operation span not found for procedure operation"
             else:
                 assert (
                     db_operation.lower() in span["meta"]["db.operation"].lower()
@@ -200,6 +200,7 @@ class _BaseIntegrationsSqlTestClass:
                     "out.host",
                     "db.name",
                     "peer.service",
+                    "net.peer.name",
                 ]:  # These fields hostname, user... are the same as password
                     assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
 
@@ -403,6 +404,39 @@ class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass):
         super().test_db_user()
 
 
+@scenarios.otel_integrations
+class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass):
+    db_service = "mysql"
+
+    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    @bug(library="python", reason="the value of this span should be 'world' instead of  'b'world'' ")
+    def test_db_name(self):
+        super().test_db_name()
+
+    @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
+    def test_db_user(self):
+        super().test_db_user()
+
+    def test_obfuscate_query(self):
+        """ All queries come out obfuscated from agent """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            if db_operation in ["update", "delete"]:
+                assert (
+                    span["meta"]["db.statement"].count("?") == 2
+                ), f"The query is not properly obfuscated for operation {db_operation}"
+            elif db_operation is "select_error":
+                continue
+            elif db_operation is "procedure":
+                assert (
+                    span["meta"]["db.statement"].count("?") == 1
+                ), f"The query is not properly obfuscated for operation {db_operation}"
+            else:
+                assert (
+                    span["meta"]["db.statement"].count("?") == 3
+                ), f"The query is not properly obfuscated for operation {db_operation}"
+
+
 ################################################################################
 # Mssql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
 ################################################################################
@@ -485,3 +519,62 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass):
             assert (
                 observed_obfuscation_count == expected_obfuscation_count
             ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['sql.query']}"
+
+
+@scenarios.otel_integrations
+class Test_Agent_Mssql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass):
+    db_service = "mssql"
+
+    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
+    def test_db_mssql_instance__name(self):
+        """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
+            This value should be set only if it’s specified on the mssql connection string. """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            assert span["meta"]["db.mssql.instance_name"].strip(), f"Test is failing for {db_operation}"
+
+    @bug(library="python", reason="bug on pyodbc driver?")
+    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    def test_db_name(self):
+        super().test_db_name()
+
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="java", reason="not implemented yet")
+    @bug(library="python", reason="bug on pyodbc driver?")
+    def test_db_system(self):
+        super().test_db_system()
+
+    @bug(library="python", reason="bug on pyodbc driver?")
+    def test_db_user(self):
+        super().test_db_user()
+
+    def test_db_operation(self):
+        """ The name of the operation being executed. Mssql and Open Telemetry doesn't report this span when we call to procedure """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            if db_operation in ["select_error", "procedure"]:
+                continue
+            else:
+                assert (
+                    db_operation.lower() in span["meta"]["db.operation"].lower()
+                ), f"Test is failing for {db_operation}"
+
+    def test_obfuscate_query(self):
+        """ All queries come out obfuscated from agent """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            # We launch all queries with two parameters (from weblog)
+            if db_operation in ["insert", "select"]:
+                expected_obfuscation_count = 3
+            elif db_operation == "procedure":
+                expected_obfuscation_count = 1
+            else:
+                expected_obfuscation_count = 2
+
+            observed_obfuscation_count = span["meta"]["db.statement"].count("?")
+            assert (
+                observed_obfuscation_count == expected_obfuscation_count
+            ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['db.statement']}"
