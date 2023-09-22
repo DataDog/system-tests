@@ -6,14 +6,9 @@ import psycopg2
 import requests
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-<<<<<<< HEAD
 import ddtrace
 ddtrace.patch_all()
-from flask import Flask, Response
-=======
-from flask import Flask, Response, jsonify
 from flask import request
->>>>>>> origin/main
 from flask import request as flask_request
 from iast import (
     weak_cipher,
@@ -23,16 +18,13 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
-<<<<<<< HEAD
 from threading import Thread
 import threading
 from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 import os
-=======
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
->>>>>>> origin/main
 
 try:
     from ddtrace.contrib.trace_utils import set_user
