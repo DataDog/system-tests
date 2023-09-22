@@ -1,3 +1,4 @@
+import os
 import random
 import subprocess
 
@@ -265,6 +266,24 @@ def view_iast_source_parameter():
     else:
         table = flask_request.json.get("table")
     _sink_point(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/path_traversal/test_insecure", methods=["POST"])
+def view_iast_path_traversal_insecure():
+    path = flask_request.form["path"]
+    os.mkdir(path)
+    return Response("OK")
+
+
+@app.route("/iast/path_traversal/test_secure", methods=["POST"])
+def view_iast_path_traversal_secure():
+    path = flask_request.form["path"]
+    root_dir = "/home/usr/secure_folder/"
+
+    if os.path.commonprefix((os.path.realpath(path), root_dir)) == root_dir:
+        open(path)
+
     return Response("OK")
 
 
