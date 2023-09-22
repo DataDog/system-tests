@@ -38,7 +38,18 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
         return False
 
     if library is not None:
-        if library not in ("cpp", "dotnet", "golang", "java", "nodejs", "python", "php", "ruby", "python_http"):
+        if library not in (
+            "cpp",
+            "dotnet",
+            "golang",
+            "java",
+            "nodejs",
+            "python",
+            "php",
+            "ruby",
+            "python_http",
+            "java_otel",
+        ):
             raise ValueError(f"Unknown library: {library}")
 
         if context.library != library:

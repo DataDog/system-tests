@@ -524,7 +524,7 @@ jobs:
 
   open-telemetry:
     runs-on: ubuntu-latest
-    if: needs.scenarios.outputs.run_open_telemetry == 'true'
+    #if: needs.scenarios.outputs.run_open_telemetry == 'true'
     needs:
     - lint
     - test_the_test

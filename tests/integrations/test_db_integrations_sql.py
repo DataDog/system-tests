@@ -94,6 +94,7 @@ class _BaseIntegrationsSqlTestClass:
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
+    @missing_feature(library="java_otel", reason="not supported by open telemetry")
     def test_runtime___id(self):
         """ Unique identifier for the current process."""
         for db_operation, request in self.requests[self.db_service].items():
@@ -129,6 +130,7 @@ class _BaseIntegrationsSqlTestClass:
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="java_otel", reason="Open Telemetry uses db.name")
     def test_db_instance(self):
         """ The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
@@ -147,7 +149,7 @@ class _BaseIntegrationsSqlTestClass:
         """ The name of the operation being executed """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            assert db_operation in span["meta"]["db.operation"], f"Test is failing for {db_operation}"
+            assert db_operation.lower() in span["meta"]["db.operation"].lower(), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
@@ -156,7 +158,8 @@ class _BaseIntegrationsSqlTestClass:
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
+            if db_operation is not "procedure":
+                assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
@@ -192,6 +195,7 @@ class _BaseIntegrationsSqlTestClass:
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.jdbc.driver_classname"].strip(), f"Test is failing for {db_operation}"
 
+    @missing_feature(library="java_otel", reason="OpenTelemetry uses error.msg")
     def test_error_message(self):
         """ A string representing the error message. """
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select_error"])
@@ -315,6 +319,11 @@ class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
 @scenarios.otel_integrations
 class Test_Agent_Postgres_db_otel_integration(_BaseAgentIntegrationsSqlTestClass):
     db_service = "postgresql"
+
+    def test_error_msg(self):
+        """ A string representing the error message. """
+        span = self._get_sql_span_for_request(self.requests[self.db_service]["select_error"])
+        assert span["meta"]["error.msg"].strip()
 
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
