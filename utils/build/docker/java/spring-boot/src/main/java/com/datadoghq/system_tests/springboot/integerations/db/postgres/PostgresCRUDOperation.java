@@ -18,7 +18,7 @@ public class PostgresCRUDOperation extends BaseCRUDOperation {
     try (Connection con = getConnector().getConnection()) {
 
       Statement stmt = con.createStatement();
-      String procedure = "CREATE OR REPLACE PROCEDURE helloworld() LANGUAGE plpgsql " 
+      String procedure = "CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10)) LANGUAGE plpgsql " 
       + " AS " 
       + " $$ "
       + " BEGIN "
@@ -36,7 +36,7 @@ public class PostgresCRUDOperation extends BaseCRUDOperation {
 
   @Override
   public void callProcedure() {
-    String query = "call helloworld()";
+    String query = "call helloworld(1,'test')";
     try (Connection con = getConnector().getConnection();
         CallableStatement stmt = con.prepareCall(query)) {
         stmt.execute();

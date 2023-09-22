@@ -19,98 +19,92 @@ function getConnection() {
     });
     return con;
 }
-
-function initData() {
+async function launchQuery(query) {
+    return new Promise(function (resolve, reject) {
+        // simple query
+        getConnection().query(
+            query,
+            function (err, results, fields) {
+                if (err) {
+                    console.log("Error launching mysql query:" + err);
+                    return resolve("Error on mysql query")
+                }
+                console.log("mysql query result:" + results);
+                resolve("Mysql query done!")
+            }
+        );
+    });
+}
+async function initData() {
     console.log("loading mysql data")
     const query = readFileSync(join(__dirname, 'resources', 'mysql.sql')).toString()
     console.log("Create query: " + query)
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
+    return await launchQuery(query)
 }
 
-function select() {
-    const query = 'SELECT * FROM demo '
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
+async function select() {
+    const query = 'SELECT * FROM demo where id=1 or id IN (3, 4)'
+    return await launchQuery(query)
 }
 
-function update() {
+async function update() {
     const query = 'update demo set age=22 where id=1 '
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
+    return await launchQuery(query)
 }
 
-function insert() {
+async function insert() {
     const query = "insert into demo (id,name,age) values(3,'test3',163) "
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
+    return await launchQuery(query)
+}
+
+async function deleteSQL() {
+    const query = 'delete from demo where id=2 or id=11111111'
+    return await launchQuery(query)
+}
+
+async function callProcedure() {
+    const query = 'call test_procedure(?,?)'
+    console.log("Calling procedure....");
+    return new Promise(function (resolve, reject) {
+        getConnection().query(query, [1, 'test'], (error, results, fields) => {
+            if (error) {
+                console.log("Error calling procedure:" + error.message);
+                return resolve("Error on mysql procedure")
+            }
+            console.log("Ok. Procedure executed!");
+            resolve("mysql procedure done")
+        });
     });
 }
 
-function deleteSQL() {
-    const query = 'delete from demo where id=2 '
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
+async function selectError() {
+    const query = 'SELECT * FROM demossssss where id=1 or id=233333'
+    return await launchQuery(query)
 }
-
-function callProcedure() {
-    const query = 'call test_procedure(?)'
-
-    getConnection().query(query, 1, (error, results, fields) => {
-        if (error) {
-            return console.error(error.message);
-        }
-        console.log(results[0]);
-    });
-}
-
-function selectError() {
-    const query = 'SELECT * FROM demossssss'
-    getConnection().query(query, function (err, result) {
-        if (err) console.log(err);
-        console.log("Result: " + result);
-    });
-}
-function doOperation(operation) {
-    console.log("Selecting operation");
+async function doOperation(operation) {
+    console.log("Selecting operation:");
     switch (operation) {
+        case "init":
+            return await initData();
         case "select":
-            select();
-            break;
+            return await select();
         case "select_error":
-            selectError();
-            break;
+            return await selectError();
         case "insert":
-            insert();
-            break;
+            return await insert();
         case "delete":
-            deleteSQL();
-            break;
+            return await deleteSQL();
         case "update":
-            update();
-            break;
+            return await update();
         case "procedure":
-            callProcedure();
-            break;
+            console.log("Executing " + operation + " db operation");
+            return await callProcedure();
         default:
-            console.log("Operation " + crudOp + " not allowed");
+            console.log("Operation " + operation + " not allowed");
 
     }
 }
-function init(app) {
-    console.log("Initializing nodejs module");
-    initData();
-};
+
 module.exports = {
-    init: init,
     doOperation: doOperation
 };

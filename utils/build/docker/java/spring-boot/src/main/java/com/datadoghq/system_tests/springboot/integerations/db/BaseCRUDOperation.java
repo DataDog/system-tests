@@ -69,7 +69,7 @@ public class BaseCRUDOperation implements ICRUDOperation {
     System.out.println("Executing select query...");
     try (Connection con = this.connector.getConnection()) {
       Statement stmt = con.createStatement();
-      ResultSet rs = stmt.executeQuery("select id,name,age from demo");
+      ResultSet rs = stmt.executeQuery("select id,name,age from demo where id=122222 or id IN (3, 4)");
     } catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
     }
@@ -80,7 +80,7 @@ public class BaseCRUDOperation implements ICRUDOperation {
     System.out.println("Executing a erroneous select query...");
     try (Connection con = this.connector.getConnection()) {
       Statement stmt = con.createStatement();
-      ResultSet rs = stmt.executeQuery("select id,name,age from demosssss");
+      ResultSet rs = stmt.executeQuery("select id,name,age from demosssss where id=1 or id=233333");
     } catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
     }
@@ -90,7 +90,7 @@ public class BaseCRUDOperation implements ICRUDOperation {
   public void update() {
     try (Connection con = this.connector.getConnection()) {
       Statement stmt = con.createStatement();
-      stmt.execute("update demo set age=22 where id=1");
+      stmt.execute("update demo set age=22 where name like '%tes%'");
     } catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
     }
@@ -110,7 +110,7 @@ public class BaseCRUDOperation implements ICRUDOperation {
   public void delete() {
     try (Connection con = this.connector.getConnection()) {
       Statement stmt = con.createStatement();
-      stmt.execute("delete from demo where id=2");
+      stmt.execute("delete from demo where id=2 or id=11111111");
     } catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
     }

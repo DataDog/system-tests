@@ -20,6 +20,7 @@ public class MssqlCRUDOperation extends BaseCRUDOperation {
   
         Statement stmt = con.createStatement();
         String procedure = "CREATE PROCEDURE helloworld "
+        + " @Name VARCHAR(100) "
         + " AS "
         + " BEGIN "
         + " SET NOCOUNT ON; "
@@ -38,7 +39,7 @@ public class MssqlCRUDOperation extends BaseCRUDOperation {
   
     @Override
     public void callProcedure() {
-      String query = "helloworld";
+      String query = "helloworld('hey')";
       try (Connection con = getConnector().getConnection();
       PreparedStatement stmt = con.prepareStatement(query)) {
         ResultSet rs =  stmt.executeQuery();

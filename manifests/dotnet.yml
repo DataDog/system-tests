@@ -168,9 +168,12 @@ tests/:
       Test_Debugger_Method_Probe_Statuses: v2.33.0
   integrations/:
     test_db_integrations_sql.py:
-      Test_Mssql_db_integration: missing_feature
-      Test_Mysql_db_integration: missing_feature
-      Test_Postgres_db_integration: missing_feature
+      Test_Agent_Mssql_db_integration: missing_feature
+      Test_Agent_Mysql_db_integration: missing_feature
+      Test_Agent_Postgres_db_integration: missing_feature
+      Test_Tracer_Mssql_db_integration: missing_feature
+      Test_Tracer_Mysql_db_integration: missing_feature
+      Test_Tracer_Postgres_db_integration: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0

@@ -1,12 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
 from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 from utils.tools import logger
 
 
-@scenarios.integrations
 class _BaseIntegrationsSqlTestClass:
 
     """ Verify basic DB operations over different databases.
@@ -24,13 +22,23 @@ class _BaseIntegrationsSqlTestClass:
 
         cls.requests[cls.db_service] = {}
 
-        for db_operation in "select", "insert", "update", "delete", "procedure", "select_error":
+        # Initiaze DB
+        logger.info("Initializing DB...")
+        response_db_creation = weblog.get(
+            "/db", params={"service": cls.db_service, "operation": "init"}, timeout=20
+        )  # DB initialization can take more time ( mssql )
+        logger.info(f"Response from de init endpoint: {response_db_creation.text}")
+
+        # Request for db operations
+        logger.info("Perform queries.....")
+        for db_operation in ["select", "insert", "update", "delete", "procedure", "select_error"]:
             cls.requests[cls.db_service][db_operation] = weblog.get(
                 "/db", params={"service": cls.db_service, "operation": db_operation}
             )
 
     # Setup methods
     setup_sql_traces = _setup
+    setup_resource = _setup
     setup_db_type = _setup
     setup_db_name = _setup
     setup_error_stack = _setup
@@ -54,6 +62,13 @@ class _BaseIntegrationsSqlTestClass:
         """ After make the requests we check that we are producing sql traces """
         for db_operation, request in self.requests[self.db_service].items():
             assert self._get_sql_span_for_request(request) is not None, f"Test is failing for {db_operation}"
+
+    def test_resource(self):
+        """ Usually the query """
+        for db_operation, request in self.requests[self.db_service].items():
+            if db_operation not in ["procedure", "select_error"]:
+                span = self._get_sql_span_for_request(request)
+                assert db_operation in span["resource"].lower()
 
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     def test_db_type(self):
@@ -150,7 +165,7 @@ class _BaseIntegrationsSqlTestClass:
         """ The number of rows/results from the query or operation. For caches and other datastores. 
         This tag should only set for operations that retrieve stored data, such as GET operations and queries, excluding SET and other commands not returning data.  """
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select"])
-        assert span["meta"]["db.row_count"] > 0, f"Test is failing for {db_operation}"
+        assert span["meta"]["db.row_count"] > 0, "Test is failing for select"
 
     def test_db_password(self):
         """ The database password should not show in the traces """
@@ -193,6 +208,22 @@ class _BaseIntegrationsSqlTestClass:
         assert span["meta"]["error.stack"].strip()
 
     def _get_sql_span_for_request(self, weblog_request):
+        """Returns the spans associated with a request. Should be implemented by subclasses in order to get this info from library or agent interfaces"""
+        raise NotImplementedError("This method should be implemented by subclasses")
+
+
+class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
+    @missing_feature(
+        library="java",
+        reason="The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality",
+    )
+    def test_NOT_obfuscate_query(self):
+        """ All queries come out without obfuscation from tracer library """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            assert span["resource"].count("?") == 0, f"The query should not be obfuscated for operation {db_operation}"
+
+    def _get_sql_span_for_request(self, weblog_request):
         for data, trace, span in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
             for trace in data["request"]["content"]:
@@ -211,7 +242,58 @@ class _BaseIntegrationsSqlTestClass:
                         return span_child
 
 
-class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
+class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
+    def test_sql_query(self):
+        """ Usually the query """
+        for db_operation, request in self.requests[self.db_service].items():
+            if db_operation not in ["procedure", "select_error"]:
+                span = self._get_sql_span_for_request(request)
+                assert db_operation in span["meta"]["sql.query"].lower()
+
+    def test_obfuscate_query(self):
+        """ All queries come out obfuscated from agent """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            # We launch all queries with two parameters (from weblog)
+            # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
+            if db_operation in ["insert", "procedure"]:
+                assert (
+                    span["meta"]["sql.query"].count("?") == 1
+                ), f"The query is not properly obfuscated for operation {db_operation}"
+            else:
+                assert (
+                    span["meta"]["sql.query"].count("?") == 2
+                ), f"The query is not properly obfuscated for operation {db_operation}"
+
+    def _get_sql_span_for_request(self, weblog_request):
+        for data, span in interfaces.agent.get_spans(weblog_request):
+            logger.info(
+                f"Agent: Span found with trace id: {span['traceID']} and span id: {span['spanID']} in file {data['log_filename']}"
+            )
+            content = data["request"]["content"]["tracerPayloads"]
+            for payload in content:
+                for chunk in payload["chunks"]:
+                    for span_child in chunk["spans"]:
+                        if (
+                            "type" in span_child
+                            and span_child["type"] == "sql"
+                            and span_child["traceID"] == span["traceID"]
+                            and span_child["resource"]
+                            != "SELECT ?"  # workaround to avoid conflicts on connection check on mssql
+                        ):
+                            logger.debug("Agent: Span type sql found!")
+                            logger.info(
+                                f"Agent: Span SQL found with trace id: {span_child['traceID']} and span id: {span_child['spanID']}"
+                            )
+                            logger.debug(f"Agent: Span: {span_child}")
+                            return span_child
+
+
+############################################################
+# Postgres: Tracer and Agent validations
+############################################################
+@scenarios.integrations
+class Test_Tracer_Postgres_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "postgresql"
 
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
@@ -220,7 +302,21 @@ class Test_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_type()
 
 
-class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
+@scenarios.integrations
+class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass):
+    db_service = "postgresql"
+
+    @missing_feature(library="python", reason="Python is using the correct span: db.system")
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
+    def test_db_type(self):
+        super().test_db_type()
+
+
+############################################################
+# Mysql: Tracer and Agent validations
+############################################################
+@scenarios.integrations
+class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass):
     db_service = "mysql"
 
     @missing_feature(library="java", reason="Java is using the correct span: db.instance")
@@ -233,7 +329,57 @@ class Test_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_user()
 
 
-class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
+@scenarios.integrations
+class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass):
+    db_service = "mysql"
+
+    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    @bug(library="python", reason="the value of this span should be 'world' instead of  'b'world'' ")
+    def test_db_name(self):
+        super().test_db_name()
+
+    @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
+    def test_db_user(self):
+        super().test_db_user()
+
+
+############################################################
+# Mssql: Tracer and Agent validations
+############################################################
+@scenarios.integrations
+class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass):
+    db_service = "mssql"
+
+    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    def test_db_mssql_instance__name(self):
+        """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
+            This value should be set only if it’s specified on the mssql connection string. """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            assert span["meta"][
+                "db.mssql.instance_name"
+            ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
+
+    @bug(library="python", reason="bug on pyodbc driver?")
+    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    def test_db_name(self):
+        super().test_db_name()
+
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="java", reason="not implemented yet")
+    @bug(library="python", reason="bug on pyodbc driver?")
+    def test_db_system(self):
+        super().test_db_system()
+
+    @bug(library="python", reason="bug on pyodbc driver?")
+    def test_db_user(self):
+        super().test_db_user()
+
+
+@scenarios.integrations
+class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass):
     db_service = "mssql"
 
     @missing_feature(library="python", reason="Not implemented yet")
@@ -260,3 +406,22 @@ class Test_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     @bug(library="python", reason="bug on pyodbc driver?")
     def test_db_user(self):
         super().test_db_user()
+
+    def test_obfuscate_query(self):
+        """ All queries come out obfuscated from agent """
+        for db_operation, request in self.requests[self.db_service].items():
+            span = self._get_sql_span_for_request(request)
+            # We launch all queries with two parameters (from weblog)
+            if db_operation == "insert":
+                expected_obfuscation_count = 1
+            elif db_operation == "procedure":
+                # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
+                # Nodejs: The proccedure has a input parameter, but we are calling through method execute and we can't see the parameters in the traces
+                expected_obfuscation_count = 0 if context.library.library == "nodejs" else 1
+            else:
+                expected_obfuscation_count = 2
+
+            observed_obfuscation_count = span["meta"]["sql.query"].count("?")
+            assert (
+                observed_obfuscation_count == expected_obfuscation_count
+            ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['sql.query']}"
