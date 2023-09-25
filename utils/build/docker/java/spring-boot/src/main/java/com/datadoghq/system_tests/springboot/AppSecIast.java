@@ -3,6 +3,7 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.iast.utils.*;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -297,6 +298,19 @@ public class AppSecIast {
     @PostMapping("/xss/test_secure")
     void secureXSS(final ServletResponse response) throws IOException {
         xssExamples.secureXSS(response.getWriter());
+    }
+
+    @GetMapping(value = "/hstsmissing/test_insecure", produces = "text/html")
+    public String hstsHeaderMissingInsecure(HttpServletResponse response) {
+      response.setStatus(HttpStatus.OK.value());
+      return "ok";
+    }
+
+    @GetMapping(value = "/hstsmissing/test_secure", produces = "text/html")
+    public String hstsHeaderMissingSecure(HttpServletResponse response) {
+      response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+      response.setStatus(HttpStatus.OK.value());
+      return "ok";
     }
 
     /**
