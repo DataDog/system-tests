@@ -58,6 +58,8 @@ tests/:
             express4: v3.11.0
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
+        test_xcontent_sniffing.py:
+          Test_XContentSniffing: missing_feature        
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
