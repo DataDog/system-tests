@@ -14,6 +14,15 @@ class Test_DsmKafka:
         self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_kafka(self):
+        print("In test_dsm_kafka")
+        print("Response object")
+        print(self.r)
+        print("Status")
+        print(self.r.status_code)
+        print("Headers")
+        print(self.r.headers)
+        print("Text")
+        print(self.r.text)
         assert self.r.text == "ok"
 
         # Hashes are created by applying the FNV-1 algorithm on
