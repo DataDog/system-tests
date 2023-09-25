@@ -300,7 +300,9 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_with_appsec_event_and_vendor_headers(self):
         self._setup_with_attack()
 
-    @missing_feature(library="java", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(
+        context.library < "java@1.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
+    )
     @missing_feature(library="golang", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
     @missing_feature(library="nodejs", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
     @missing_feature(library="ruby", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
