@@ -117,7 +117,7 @@ class Test_Telemetry:
         )
 
     @missing_feature(library="python")
-    # @flaky(library="ruby", reason="Sometimes, seq_id jump from N to N+2")
+    @flaky(library="ruby", reason="AIT-8418")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
