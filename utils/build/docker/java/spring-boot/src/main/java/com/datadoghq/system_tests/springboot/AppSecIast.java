@@ -289,6 +289,18 @@ public class AppSecIast {
       return "Trust Boundary violation page";
     }
 
+    @GetMapping(value="/xcontent-missing-header/test_insecure", produces = "text/html")
+    public String xcontentMissingHeaderInsecure(final HttpServletResponse response) {
+        response.addHeader("X-Content-Type-Options", "dosniffplease");
+        return "ok";
+    }
+
+    @GetMapping(value="/xcontent-missing-header/test_secure", produces = "text/html")
+    public String xcontentMissingHeaderSecure(final HttpServletResponse response) {
+        response.addHeader("X-Content-Type-Options", "nosniff");
+        return "ok";
+    }
+
     @PostMapping("/xss/test_insecure")
     void insecureXSS(final ServletRequest request, final ServletResponse response) throws IOException {
         xssExamples.insecureXSS(response.getWriter(), request.getParameter("param"));

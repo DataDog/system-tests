@@ -114,6 +114,14 @@ tests/:
           TestWeakRandomness:
             '*': v1.15.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        test_xcontent_sniffing.py:
+          Test_XContentSniffing:
+            "*": "missing_feature"
+            sping-boot-undertow: "v1.20.0"
+            spring-boot: "v1.20.0"
+            spring-boot-jetty: "v1.20.0"
+            spring-boot-wildfly: "v1.20.0"
+            uds-spring-boot: "v1.20.0"            
         test_xpath_injection.py:
           TestXPathInjection:
             '*': v1.18.0
