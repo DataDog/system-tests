@@ -77,7 +77,6 @@ jobs:
 
   main:
     runs-on: ubuntu-latest
-    if: ${{ false }}  # RMM disable for now
     needs:
     - lint
     - test_the_test
@@ -285,7 +284,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success'
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -524,7 +523,7 @@ jobs:
 
   open-telemetry:
     runs-on: ubuntu-latest
-    #if: needs.scenarios.outputs.run_open_telemetry == 'true'
+    if: needs.scenarios.outputs.run_open_telemetry == 'true'
     needs:
     - lint
     - test_the_test

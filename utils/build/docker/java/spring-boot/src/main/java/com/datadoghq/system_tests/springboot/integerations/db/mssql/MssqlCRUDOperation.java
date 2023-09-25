@@ -20,7 +20,7 @@ public class MssqlCRUDOperation extends BaseCRUDOperation {
   
         Statement stmt = con.createStatement();
         String procedure = "CREATE PROCEDURE helloworld "
-        + " @Name VARCHAR(100) "
+        + " @Name VARCHAR(100), @Test VARCHAR(100) "
         + " AS "
         + " BEGIN "
         + " SET NOCOUNT ON; "
@@ -40,7 +40,7 @@ public class MssqlCRUDOperation extends BaseCRUDOperation {
     @Override
     public void callProcedure() {
       try (Connection con = getConnector().getConnection();
-      CallableStatement stmt = con.prepareCall("EXEC helloworld @Name = 'New'");
+      CallableStatement stmt = con.prepareCall("EXEC helloworld @Name = 'New', @Test = 'test' ");
       ) {
         stmt.executeQuery();
       } catch (Exception e) {

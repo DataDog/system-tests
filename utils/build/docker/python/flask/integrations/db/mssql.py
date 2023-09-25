@@ -37,14 +37,14 @@ def connect_db():
 
 
 def createDatabase():
-    print("CREATING MSSQL DATABASE")
+    print("CREATING MSSQL DATABASE!")
 
     sql_table = " CREATE TABLE demo(id INT NOT NULL, name VARCHAR (20) NOT NULL,age INT NOT NULL,PRIMARY KEY (ID));"
     sql_insert_1 = "insert into demo (id,name,age) values(1,'test',16);"
     sql_insert_2 = "insert into demo (id,name,age) values(2,'test2',17);"
 
     procedure = """ CREATE PROCEDURE helloworld 
-         @Name VARCHAR(100) 
+         @Name VARCHAR(100) , @Test VARCHAR(100) 
          AS 
          BEGIN 
          SET NOCOUNT ON 
@@ -58,7 +58,9 @@ def createDatabase():
     cursor.execute(sql_insert_1)
     cursor.execute(sql_insert_2)
     cursor.execute(procedure)
+    conn.commit()
     cursor.close()
+    print(" MSSQL DATABASE CREATED")
     return "OK"
 
 
@@ -93,7 +95,7 @@ def insert():
 
 
 def procedure():
-    _executeQuery("helloworld('hey')")
+    _executeQuery("exec helloworld  @Name='param1', @Test= 'param2'")
     return "OK"
 
 

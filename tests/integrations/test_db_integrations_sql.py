@@ -70,6 +70,13 @@ class _BaseIntegrationsSqlTestClass:
                 span = self._get_sql_span_for_request(request)
                 assert db_operation in span["resource"].lower()
 
+    def test_sql_success(self):
+        """ We check all sql launched for the app work """
+        for db_operation, request in self.requests[self.db_service].items():
+            if db_operation not in ["select_error"]:
+                span = self._get_sql_span_for_request(request)
+                assert "error" not in span or span["error"] == 0
+
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     def test_db_type(self):
@@ -151,6 +158,8 @@ class _BaseIntegrationsSqlTestClass:
                     db_operation in span["meta"]["db.statement"].lower()
                 ), f"db.statement span not found for operation {db_operation}"
 
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_operation(self):
         """ The name of the operation being executed """
         for db_operation, request in self.requests[self.db_service].items():
@@ -417,16 +426,12 @@ class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            if db_operation in ["update", "delete"]:
+            if db_operation in ["update", "delete", "procedure"]:
                 assert (
                     span["meta"]["db.statement"].count("?") == 2
                 ), f"The query is not properly obfuscated for operation {db_operation}"
             elif db_operation is "select_error":
                 continue
-            elif db_operation is "procedure":
-                assert (
-                    span["meta"]["db.statement"].count("?") == 1
-                ), f"The query is not properly obfuscated for operation {db_operation}"
             else:
                 assert (
                     span["meta"]["db.statement"].count("?") == 3
@@ -491,7 +496,7 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
             elif db_operation == "procedure":
                 # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
                 # Nodejs: The proccedure has a input parameter, but we are calling through method execute and we can't see the parameters in the traces
-                expected_obfuscation_count = 0 if context.library.library == "nodejs" else 1
+                expected_obfuscation_count = 0 if context.library.library == "nodejs" else 2
             else:
                 expected_obfuscation_count = 2
 
@@ -523,8 +528,6 @@ class Test_Agent_Mssql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
 
             if db_operation in ["insert", "select"]:
                 expected_obfuscation_count = 3
-            elif db_operation == "procedure":
-                expected_obfuscation_count = 1
             else:
                 expected_obfuscation_count = 2
 
