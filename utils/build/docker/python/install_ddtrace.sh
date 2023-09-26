@@ -6,7 +6,6 @@ cd /binaries
 
 if [ -e "dd-trace-py" ]; then
     echo "Install from local folder /binaries/dd-trace-py"
-    export CMAKE_BUILD_PARALLEL_LEVEL=12 
     pip install /binaries/dd-trace-py
 elif [ "$(ls *.whl *.tar.gz | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *.whl *.tar.gz))

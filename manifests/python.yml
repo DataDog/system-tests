@@ -300,7 +300,7 @@ tests/:
       Test_TracerUniversalServiceTagging: v0.36.0
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: v1.19.0
+      Test_RemoteConfigurationExtraServices: v2.1.0.dev
       Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
