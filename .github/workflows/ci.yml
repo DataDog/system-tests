@@ -590,7 +590,7 @@ jobs:
     - name: Build weblog opentelemetry autoinstrumentation
       if: always() 
       id: build_otel
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel --weblog-variant spring-boot
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel --weblog-variant spring-boot-otel
     - name: Run OTEL_INTEGRATIONS scenario
       if: always() && steps.build_otel.outcome == 'success'
       run: ./run.sh OTEL_INTEGRATIONS
