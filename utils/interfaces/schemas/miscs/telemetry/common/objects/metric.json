@@ -52,7 +52,7 @@
         }
       },
       "then": {
-        "required": ["namespace", "metric", "points"]
+        "required": ["namespace", "metric", "points", "interval"]
       }
     },
     {
