@@ -11,7 +11,7 @@ class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
     def setup_dsm_kafka(self):
-        self.r = weblog.get("/dsm?integration=kafka")
+        self.r = weblog.get("/dsm?integration=kafka", timeout=10)
 
     def test_dsm_kafka(self):
         print("In test_dsm_kafka")

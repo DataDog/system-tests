@@ -10,7 +10,7 @@ COPY utils/build/docker/python/iast.py /app/iast.py
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
-ENV DD_DATA_STREAMS_ENABLED=true
+ENV DD_DATA_STREAMS_ENABLED=True
 
 # docker startup
 # FIXME: Ensure gevent patching occurs before ddtrace

@@ -25,6 +25,7 @@ from iast import (
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
+import logging
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -173,27 +174,35 @@ def dbm():
 
 @app.route("/dsm")
 def dsm():
+    logging.basicConfig(
+        format = '%(asctime)s %(levelname)-8s %(message)s',
+        level = logging.INFO,
+        datefmt = '%Y-%m-%d %H:%M:%S')
     topic = "dsm-system-tests-queue"
     consumer_group = "testgroup1"
-    print(os.environ)
+    logging.info(os.environ)
 
     def delivery_report(err, msg):
         if err is not None:
-            print(f"[kafka] Message delivery failed: {err}")
+            logging.info(f"[kafka] Message delivery failed: {err}")
         else:
-            print(f"[kafka] Message delivered to {msg.topic()} [{msg.partition()}]")
+            logging.info(f"[kafka] Message delivered to {msg.topic()} [{msg.partition()}]")
 
     def produce():
+        logging.info("[kafka] Before creating Producer")
         producer = Producer({
             'bootstrap.servers': 'kafka:9092',
             'client.id': "python-producer"
         })
         message = b"Hello, Kafka!"
+        logging.info("[kafka] Before produce")
         producer.produce(topic, value=message, callback=delivery_report)
-        producer.flush()
-        print("[kafka] Produced and flushed message")
+        logging.info("[kafka] After produce, before flush")
+        producer.poll()
+        logging.info("[kafka] Produced and flushed message")
 
     def consume():
+        logging.info("[kafka] Before creating Consumer")
         consumer = Consumer(
             {
                 'bootstrap.servers': 'kafka:9092',
@@ -202,35 +211,40 @@ def dsm():
                 'auto.offset.reset': 'earliest',
             })
 
+        logging.info("[kafka] Before subscribe")
         consumer.subscribe([topic])
 
         msg_received = False
         while not msg_received:
+            logging.info("[kafka] Before poll")
             msg = consumer.poll(10)
+            logging.info("[kafka] After poll")
             if msg is None:
-                print("[kafka] Consumed message but got nothing")
+                logging.info("[kafka] Consumed message but got nothing")
             elif msg.error():
-                print("[kafka] Consumed message but got error " + msg.error())
+                logging.info("[kafka] Consumed message but got error " + msg.error())
             else:
-                print("[kafka] Consumed message: ")
-                print(f"[kafka] from topic {msg.topic()}, partition {msg.partition()}, offset {msg.offset()}, key {str(msg.key())}")
-                print(f"[kafka] value {msg.value()}")
+                logging.info("[kafka] Consumed message: ")
+                logging.info(f"[kafka] from topic {msg.topic()}, partition {msg.partition()}, offset {msg.offset()}, key {str(msg.key())}")
+                logging.info(f"[kafka] value {msg.value()}")
                 msg_received = True
         consumer.close()
 
     integration = flask_request.args.get("integration")
-    print(f"[kafka] Got request with integration: {integration}")
+    logging.info(f"[kafka] Got request with integration: {integration}")
     if integration == "kafka":
-        print("DD_DATA_STREAMS_ENABLED")
-        print(os.environ['DD_DATA_STREAMS_ENABLED'])
-        print(os.getenv('DD_DATA_STREAMS_ENABLED'))
+        logging.info("DD_DATA_STREAMS_ENABLED")
+        logging.info(os.environ['DD_DATA_STREAMS_ENABLED'])
+        logging.info(os.getenv('DD_DATA_STREAMS_ENABLED'))
         produce_thread = threading.Thread(target=produce, args=())
         consume_thread = threading.Thread(target=consume, args=())
+        logging.info("[kafka] After create thread")
         produce_thread.start()
         consume_thread.start()
+        logging.info("[kafka] After thread start")
         produce_thread.join()
         consume_thread.join()
-        print("[kafka] returning response")
+        logging.info("[kafka] returning response")
         return Response("ok")
 
     return Response(f"Integration is not supported: {integration}", 406)
