@@ -26,6 +26,7 @@ from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
 import logging
+import os
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -183,13 +184,20 @@ def dsm():
     logging.info(os.environ)
 
     def delivery_report(err, msg):
+        logging.info("[kafka] start delivery_report")
         if err is not None:
             logging.info(f"[kafka] Message delivery failed: {err}")
+        elif msg is not None:
+            logging.info("[kafka] Delivered to partition:")
+            logging.info(msg.partition())
+            logging.info(f"[kafka] Message delivered to {msg.partition()}")
         else:
-            logging.info(f"[kafka] Message delivered to {msg.topic()} [{msg.partition()}]")
+            logging.info("[kafka] Both err and msg are None")
+        logging.info("[kafka] done delivery_report")
 
     def produce():
         logging.info("[kafka] Before creating Producer")
+        logging.info(os.getpid())
         producer = Producer({
             'bootstrap.servers': 'kafka:9092',
             'client.id': "python-producer"
@@ -203,6 +211,7 @@ def dsm():
 
     def consume():
         logging.info("[kafka] Before creating Consumer")
+        logging.info(os.getpid())
         consumer = Consumer(
             {
                 'bootstrap.servers': 'kafka:9092',
@@ -225,8 +234,6 @@ def dsm():
                 logging.info("[kafka] Consumed message but got error " + msg.error())
             else:
                 logging.info("[kafka] Consumed message: ")
-                logging.info(f"[kafka] from topic {msg.topic()}, partition {msg.partition()}, offset {msg.offset()}, key {str(msg.key())}")
-                logging.info(f"[kafka] value {msg.value()}")
                 msg_received = True
         consumer.close()
 
