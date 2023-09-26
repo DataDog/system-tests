@@ -7,6 +7,9 @@
   "allOf": [
     {
       "properties": {
+        "namespace": {
+          "type": "string"
+        },
         "common": {
           "type": "boolean"
         },
@@ -49,7 +52,7 @@
         }
       },
       "then": {
-        "required": ["metric", "points"]
+        "required": ["namespace", "metric", "points"]
       }
     },
     {
@@ -61,7 +64,7 @@
         }
       },
       "then": {
-        "required": ["metric", "points"]
+        "required": ["namespace", "metric", "points"]
       }
     },
     {
@@ -73,7 +76,7 @@
         }
       },
       "then": {
-        "required": ["metric", "points", "tags", "common", "type"]
+        "required": ["namespace", "metric", "points", "tags", "common", "type"]
       }
     }
   ]
