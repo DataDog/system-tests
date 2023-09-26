@@ -7,20 +7,15 @@ from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-class TestPathTraversal:
-    """Test path traversal detection."""
+class Test_XContentSniffing:
+    """Test X Content options header missing detection."""
 
     sink_fixture = SinkFixture(
-        vulnerability_type="PATH_TRAVERSAL",
-        http_method="POST",
-        insecure_endpoint="/iast/path_traversal/test_insecure",
-        secure_endpoint="/iast/path_traversal/test_secure",
-        data={"path": "/var/log"},
-        location_map={
-            "java": "com.datadoghq.system_tests.iast.utils.PathExamples",
-            "nodejs": "iast/index.js",
-            "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
-        },
+        vulnerability_type="XCONTENTTYPE_HEADER_MISSING",
+        http_method="GET",
+        insecure_endpoint="/iast/xcontent-missing-header/test_insecure",
+        secure_endpoint="/iast/xcontent-missing-header/test_secure",
+        data={},
     )
 
     def setup_insecure(self):
@@ -32,22 +27,21 @@ class TestPathTraversal:
     def setup_secure(self):
         self.sink_fixture.setup_secure()
 
-    @missing_feature(library="nodejs", reason="Endpoint not implemented")
     def test_secure(self):
         self.sink_fixture.test_secure()
 
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Metrics implemented")
+    @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
     def setup_telemetry_metric_executed_sink(self):
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Metrics implemented")
+    @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

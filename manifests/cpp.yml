@@ -10,6 +10,7 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
         test_insecure_cookie.py: irrelevant (ASM is not implemented in C++)
         test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
         test_no_httponly_cookie.py: irrelevant (ASM is not implemented in C++)
@@ -23,6 +24,7 @@ tests/:
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
         test_weak_hash.py: irrelevant (ASM is not implemented in C++)
         test_weak_randomness.py: irrelevant (ASM is not implemented in C++)
+        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)       
         test_xpath_injection.py: irrelevant (ASM is not implemented in C++)
         test_xss.py: irrelevant (ASM is not implemented in C++)
       source/:
