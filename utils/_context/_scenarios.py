@@ -288,7 +288,6 @@ class EndToEndScenario(_DockerScenario):
         name,
         doc,
         weblog_env=None,
-        agent_env=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
         appsec_enabled=True,
@@ -320,9 +319,7 @@ class EndToEndScenario(_DockerScenario):
             include_sqlserver=include_sqlserver,
         )
 
-        self.agent_container = AgentContainer(
-            host_log_folder=self.host_log_folder, use_proxy=use_proxy, append_environment=agent_env
-        )
+        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
 
         self.weblog_container = WeblogContainer(
             self.host_log_folder,
@@ -551,16 +548,41 @@ class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
     def __init__(
-        self, name, doc, include_agent=True, include_collector=True, include_intake=True, backend_interface_timeout=20
+        self,
+        name,
+        doc,
+        weblog_env=None,
+        include_agent=True,
+        include_collector=True,
+        include_intake=True,
+        include_postgres_db=False,
+        include_cassandra_db=False,
+        include_mongo_db=False,
+        include_kafka=False,
+        include_rabbitmq=False,
+        include_mysql_db=False,
+        include_sqlserver=False,
+        backend_interface_timeout=20,
     ) -> None:
-        super().__init__(name, doc=doc, use_proxy=True)
+        super().__init__(
+            name,
+            doc=doc,
+            use_proxy=True,
+            include_postgres_db=include_postgres_db,
+            include_cassandra_db=include_cassandra_db,
+            include_mongo_db=include_mongo_db,
+            include_kafka=include_kafka,
+            include_rabbitmq=include_rabbitmq,
+            include_mysql_db=include_mysql_db,
+            include_sqlserver=include_sqlserver,
+        )
         if include_agent:
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
             self._required_containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
             self._required_containers.append(self.collector_container)
-        self.weblog_container = WeblogContainer(self.host_log_folder)
+        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
         self._required_containers.append(self.weblog_container)
         self.include_agent = include_agent
         self.include_collector = include_collector
@@ -651,13 +673,18 @@ class OpenTelemetryScenario(_DockerScenario):
         interface.wait(timeout)
 
     def _check_env_vars(self):
-        for env in ["DD_API_KEY", "DD_APP_KEY", "DD_API_KEY_2", "DD_APP_KEY_2", "DD_API_KEY_3", "DD_APP_KEY_3"]:
-            if env not in os.environ:
-                raise Exception(f"Please set {env}, OTel E2E test requires 3 API keys and 3 APP keys")
+        if self.include_intake:
+            assert all(
+                key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")
+            ), "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+        if self.include_collector:
+            assert all(
+                key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")
+            ), "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
 
     @property
     def library(self):
-        return LibraryVersion("open_telemetry", "0.0.0")
+        return self.weblog_container.library
 
     @property
     def agent_version(self):
@@ -900,14 +927,15 @@ class scenarios:
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
     )
 
-    otel_integrations = EndToEndScenario(
+    otel_integrations = OpenTelemetryScenario(
         "OTEL_INTEGRATIONS",
         weblog_env={
-            "DD_DBM_PROPAGATION_MODE": "full",
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://agent:4317",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:8126",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
         },
-        agent_env={"DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT": "0.0.0.0:4317"},
+        include_intake=False,
+        include_collector=False,
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
@@ -915,7 +943,7 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
-        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
+        doc="",
     )
 
     profiling = EndToEndScenario(

@@ -306,7 +306,7 @@ class ProxyContainer(TestedContainer):
 
 
 class AgentContainer(TestedContainer):
-    def __init__(self, host_log_folder, use_proxy=True, append_environment=None) -> None:
+    def __init__(self, host_log_folder, use_proxy=True) -> None:
 
         environment = {
             "DD_ENV": "system-tests",
@@ -315,8 +315,6 @@ class AgentContainer(TestedContainer):
             "DD_APM_RECEIVER_PORT": self.agent_port,
             "DD_DOGSTATSD_PORT": "8125",
         }
-        if append_environment:
-            environment.update(append_environment)
 
         if use_proxy:
             environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
