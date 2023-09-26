@@ -16,5 +16,5 @@
             "minItems": 1
         }
     },
-    "required": ["namespace", "series"]
+    "required": ["series"]
 }

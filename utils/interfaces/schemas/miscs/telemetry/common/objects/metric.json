@@ -49,7 +49,7 @@
         }
       },
       "then": {
-        "required": ["metric", "points", "interval"]
+        "required": ["metric", "points"]
       }
     },
     {
