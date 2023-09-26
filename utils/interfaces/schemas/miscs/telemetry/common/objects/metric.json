@@ -52,7 +52,7 @@
         }
       },
       "then": {
-        "required": ["namespace", "metric", "points", "interval"]
+        "required": ["metric", "points", "interval"]
       }
     },
     {
@@ -64,7 +64,7 @@
         }
       },
       "then": {
-        "required": ["namespace", "metric", "points"]
+        "required": ["metric", "points"]
       }
     },
     {
@@ -76,7 +76,7 @@
         }
       },
       "then": {
-        "required": ["namespace", "metric", "points", "tags", "common", "type"]
+        "required": ["metric", "points", "tags", "common", "type"]
       }
     }
   ]
