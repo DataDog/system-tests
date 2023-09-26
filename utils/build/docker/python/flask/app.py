@@ -457,7 +457,6 @@ def db():
 @app.route("/createextraservice", methods=["GET"])
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
-    print("FLASK", new_service_name)
     if new_service_name:
         Pin.override(Flask, service=new_service_name, tracer=tracer)
     return Response("OK")
