@@ -3,22 +3,19 @@ import subprocess
 
 import psycopg2
 import requests
-from ddtrace import Pin, tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response, jsonify
 from flask import request
 from flask import request as flask_request
-from iast import (
-    weak_cipher,
-    weak_cipher_secure_algorithm,
-    weak_hash,
-    weak_hash_duplicates,
-    weak_hash_multiple,
-    weak_hash_secure_algorithm,
-)
+
+# from iast import (weak_cipher, weak_cipher_secure_algorithm, weak_hash,
+#                   weak_hash_duplicates, weak_hash_multiple,
+#                   weak_hash_secure_algorithm)
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
+
+from ddtrace import Pin, tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -61,7 +58,7 @@ def waf(*args, **kwargs):
             return jsonify({"payload": request.form})
 
         return "Value tagged", kwargs["code"], flask_request.args
-    return "Hello, World!\\n"
+    return "Hello, World!\n"
 
 
 @app.route("/read_file", methods=["GET"])
@@ -437,6 +434,7 @@ def db():
 @app.route("/createextraservice", methods=["GET"])
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
+    print("FLASK", new_service_name)
     if new_service_name:
         Pin.override(Flask, service=new_service_name, tracer=tracer)
     return Response("OK")

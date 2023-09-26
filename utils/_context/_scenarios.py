@@ -1,34 +1,32 @@
-from logging import FileHandler
 import os
-from pathlib import Path
 import shutil
-import time
 import subprocess
+import time
+from logging import FileHandler
+from pathlib import Path
 
 import pytest
-from watchdog.observers.polling import PollingObserver
-from watchdog.events import FileSystemEventHandler
-from utils._context.library_version import LibraryVersion, Version
-from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
-
 from utils._context.containers import (
-    WeblogContainer,
     AgentContainer,
-    ProxyContainer,
-    PostgresContainer,
-    MongoContainer,
-    KafkaContainer,
-    ZooKeeperContainer,
     CassandraContainer,
-    RabbitMqContainer,
+    KafkaContainer,
+    MongoContainer,
     MySqlContainer,
     OpenTelemetryCollectorContainer,
-    SqlServerContainer,
-    create_network,
+    PostgresContainer,
+    ProxyContainer,
+    RabbitMqContainer,
     SqlDbTestedContainer,
+    SqlServerContainer,
+    WeblogContainer,
+    ZooKeeperContainer,
+    create_network,
 )
-
-from utils.tools import logger, get_log_formatter, update_environ_with_local_env
+from utils._context.library_version import LibraryVersion, Version
+from utils.onboarding.provision_utils import ProvisionFilter, ProvisionMatrix
+from utils.tools import get_log_formatter, logger, update_environ_with_local_env
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers.polling import PollingObserver
 
 update_environ_with_local_env()
 
@@ -1065,7 +1063,7 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES"},
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
+        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true", "DD_TRACE_DEBUG": "true"},
         library_interface_timeout=100,
         doc="",
     )
