@@ -436,10 +436,8 @@ class EndToEndScenario(_DockerScenario):
             logger.debug("Wait for app readiness")
 
             if not interfaces.library.ready.wait(40):
-                # raise Exception("Library not ready")
-                logger.warn(
-                    "TODO RMM  I need to change this behaviour when we are aut-intrumenting with open telemetry"
-                )
+                raise Exception("Library not ready")
+
             logger.debug("Library ready")
 
             if not interfaces.agent.ready.wait(40):
