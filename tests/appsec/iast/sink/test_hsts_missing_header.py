@@ -2,57 +2,50 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, bug
+from utils import context, coverage, missing_feature, weblog
 from .._test_iast_fixtures import SinkFixture
 
 
 @coverage.basic
-class TestInsecureCookie:
-    """Test insecure cookie detection."""
+class Test_HstsMissingHeader:
+    """Test HSTS missing header detection."""
 
     sink_fixture = SinkFixture(
-        vulnerability_type="INSECURE_COOKIE",
+        vulnerability_type="HSTS_HEADER_MISSING",
         http_method="GET",
-        insecure_endpoint="/iast/insecure-cookie/test_insecure",
-        secure_endpoint="/iast/insecure-cookie/test_secure",
-        data={},
+        insecure_endpoint="/iast/hstsmissing/test_insecure",
+        secure_endpoint="/iast/hstsmissing/test_secure",
         location_map={"nodejs": "iast/index.js",},
-    )
-
-    sink_fixture_empty_cookie = SinkFixture(
-        vulnerability_type="INSECURE_COOKIE",
-        http_method="GET",
-        insecure_endpoint="",
-        secure_endpoint="/iast/insecure-cookie/test_empty_cookie",
         data={},
-        location_map={"nodejs": "iast/index.js",},
     )
 
     def setup_insecure(self):
-        self.sink_fixture.setup_insecure()
+        self.sink_fixture.insecure_request = weblog.request(
+            method=self.sink_fixture.http_method,
+            path=self.sink_fixture.insecure_endpoint,
+            data=self.sink_fixture.data,
+            headers={"X-Forwarded-Proto": "https"},
+        )
 
     def test_insecure(self):
         self.sink_fixture.test_insecure()
 
     def setup_secure(self):
-        self.sink_fixture.setup_secure()
+        self.sink_fixture.secure_request = weblog.request(
+            method=self.sink_fixture.http_method,
+            path=self.sink_fixture.secure_endpoint,
+            data=self.sink_fixture.data,
+            headers={"X-Forwarded-Proto": "https"},
+        )
 
-    @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
     def test_secure(self):
         self.sink_fixture.test_secure()
-
-    def setup_empty_cookie(self):
-        self.sink_fixture_empty_cookie.setup_secure()
-
-    def test_empty_cookie(self):
-        self.sink_fixture_empty_cookie.test_secure()
 
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
-    @missing_feature(library="python", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 

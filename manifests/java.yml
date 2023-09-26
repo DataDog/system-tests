@@ -30,6 +30,14 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_hsts_missing_header.py:
+          Test_HstsMissingHeader:
+            "*": "missing_feature"
+            sping-boot-undertow: "v1.20.0"
+            spring-boot: "v1.20.0"
+            spring-boot-jetty: "v1.20.0"
+            spring-boot-wildfly: "v1.20.0"
+            uds-spring-boot: "v1.20.0"            
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.18.0
@@ -114,6 +122,14 @@ tests/:
           TestWeakRandomness:
             '*': v1.15.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        test_xcontent_sniffing.py:
+          Test_XContentSniffing:
+            "*": "missing_feature"
+            sping-boot-undertow: "v1.20.0"
+            spring-boot: "v1.20.0"
+            spring-boot-jetty: "v1.20.0"
+            spring-boot-wildfly: "v1.20.0"
+            uds-spring-boot: "v1.20.0"            
         test_xpath_injection.py:
           TestXPathInjection:
             '*': v1.18.0
@@ -725,13 +741,22 @@ tests/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_db_integrations_sql.py:
-      Test_Mssql_db_integration:
+      Test_Agent_Mssql_db_integration:
         '*': missing_feature
         spring-boot: v1.12.0
-      Test_Mysql_db_integration:
+      Test_Agent_Mysql_db_integration:
         '*': missing_feature
         spring-boot: v1.12.0
-      Test_Postgres_db_integration:
+      Test_Agent_Postgres_db_integration:
+        '*': missing_feature
+        spring-boot: v1.12.0
+      Test_Tracer_Mssql_db_integration:
+        '*': missing_feature
+        spring-boot: v1.12.0
+      Test_Tracer_Mysql_db_integration:
+        '*': missing_feature
+        spring-boot: v1.12.0
+      Test_Tracer_Postgres_db_integration:
         '*': missing_feature
         spring-boot: v1.12.0
     test_dbm.py:
@@ -833,3 +858,4 @@ tests/:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetryV2: missing_feature
+    

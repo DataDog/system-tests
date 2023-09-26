@@ -1,9 +1,12 @@
 # pages/urls.py
 import json
+import os
 import random
 import subprocess
 
 import requests
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
@@ -16,9 +19,6 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
-
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -41,13 +41,13 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 @csrf_exempt
 def waf(request, *args, **kwargs):
-    if "value" in kwargs:
+    if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
         )
-        if kwargs["value"].startswith("payload_in_response_body") and request.method == "POST":
+        if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
             return HttpResponse(json.dumps({"payload": dict(request.POST)}), content_type="application/json")
-        return HttpResponse("Value tagged", status=int(kwargs["code"]), headers=request.GET.dict())
+        return HttpResponse("Value tagged", status=int(kwargs["status_code"]), headers=request.GET.dict())
     return HttpResponse("Hello, World!")
 
 
@@ -222,6 +222,24 @@ def view_cmdi_secure(request):
 
 
 @csrf_exempt
+def view_iast_path_traversal_insecure(request):
+    path = request.POST.get("path", "")
+    os.mkdir(path)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_path_traversal_secure(request):
+    path = request.POST.get("path", "")
+    root_dir = "/home/usr/secure_folder/"
+
+    if os.path.commonprefix((os.path.realpath(path), root_dir)) == root_dir:
+        open(path)
+
+    return HttpResponse("OK")
+
+
+@csrf_exempt
 def view_sqli_insecure(request):
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
@@ -353,7 +371,6 @@ def track_custom_event(request):
 
 
 def read_file(request):
-
     if "file" not in request.GET:
         return HttpResponseBadRequest("Please provide a file parameter")
 
@@ -390,7 +407,7 @@ urlpatterns = [
     path("waf/", waf),
     path("waf/<url>", waf),
     path("params/<appscan_fingerprint>", waf),
-    path("tag_value/<str:value>/<int:code>", waf),
+    path("tag_value/<str:tag_value>/<int:status_code>", waf),
     path("headers", headers),
     path("status", status_code),
     path("identify", identify),
@@ -417,6 +434,8 @@ urlpatterns = [
     path("iast/cmdi/test_secure", view_cmdi_secure),
     path("iast/weak_randomness/test_insecure", view_iast_weak_randomness_insecure),
     path("iast/weak_randomness/test_secure", view_iast_weak_randomness_secure),
+    path("iast/path_traversal/test_insecure", view_iast_path_traversal_insecure),
+    path("iast/path_traversal/test_secure", view_iast_path_traversal_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),

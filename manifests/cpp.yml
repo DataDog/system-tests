@@ -2,7 +2,7 @@ tests/:
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
-    test_single_span:
+    test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
@@ -10,6 +10,7 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
         test_insecure_cookie.py: irrelevant (ASM is not implemented in C++)
         test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
         test_no_httponly_cookie.py: irrelevant (ASM is not implemented in C++)
@@ -23,6 +24,7 @@ tests/:
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
         test_weak_hash.py: irrelevant (ASM is not implemented in C++)
         test_weak_randomness.py: irrelevant (ASM is not implemented in C++)
+        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)       
         test_xpath_injection.py: irrelevant (ASM is not implemented in C++)
         test_xss.py: irrelevant (ASM is not implemented in C++)
       source/:
@@ -71,9 +73,12 @@ tests/:
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py: 
-      Test_Mssql_db_integration: missing_feature
-      Test_Mysql_db_integration: missing_feature
-      Test_Postgres_db_integration: missing_feature
+      Test_Agent_Mssql_db_integration: missing_feature
+      Test_Agent_Mysql_db_integration: missing_feature
+      Test_Agent_Postgres_db_integration: missing_feature
+      Test_Tracer_Mssql_db_integration: missing_feature
+      Test_Tracer_Mysql_db_integration: missing_feature
+      Test_Tracer_Postgres_db_integration: missing_feature
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:

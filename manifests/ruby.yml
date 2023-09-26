@@ -2,7 +2,7 @@ tests/:
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
-    test_single_span:
+    test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
@@ -18,6 +18,8 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hsts_missing_header.py: 
+          Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
         test_ldap_injection.py:
@@ -44,6 +46,8 @@ tests/:
           TestWeakHash: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
+        test_xcontent_sniffing.py:
+          Test_XContentSniffing: missing_feature        
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -177,9 +181,12 @@ tests/:
       Test_Debugger_Method_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py:
-      Test_Mssql_db_integration: missing_feature
-      Test_Mysql_db_integration: missing_feature
-      Test_Postgres_db_integration: missing_feature
+      Test_Agent_Mssql_db_integration: missing_feature
+      Test_Agent_Mysql_db_integration: missing_feature
+      Test_Agent_Postgres_db_integration: missing_feature
+      Test_Tracer_Mssql_db_integration: missing_feature
+      Test_Tracer_Mysql_db_integration: missing_feature
+      Test_Tracer_Postgres_db_integration: missing_feature
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:

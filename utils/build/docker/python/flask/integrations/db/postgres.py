@@ -4,16 +4,12 @@ POSTGRES_CONFIG = dict(
     host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
 )
 
-database_postgres_loaded = 0
-
 
 def executePostgresOperation(operation):
-    global database_postgres_loaded
-    if database_postgres_loaded == 0:
-        createDatabae()
-    database_postgres_loaded = 1
     print(f"Executing postgres {operation} operation")
-    if operation == "select":
+    if operation == "init":
+        createDatabase()
+    elif operation == "select":
         select()
     elif operation == "select_error":
         select_error()
@@ -29,13 +25,13 @@ def executePostgresOperation(operation):
         print(f"Operation {operation} doesn't exist")
 
 
-def createDatabae():
+def createDatabase():
     print("CREATING POSTGRES DATABASE")
     sql = "CREATE TABLE demo(id INT NOT NULL, name VARCHAR (20) NOT NULL, age INT NOT NULL, PRIMARY KEY (ID));"
     sql = sql + "insert into demo (id,name,age) values(1,'test',16);"
     sql = sql + "insert into demo (id,name,age) values(2,'test2',17);"
 
-    procedure = "CREATE OR REPLACE PROCEDURE helloworld() LANGUAGE plpgsql "
+    procedure = "CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10)) LANGUAGE plpgsql "
     procedure = procedure + " AS "
     procedure = procedure + " $$ "
     procedure = procedure + " BEGIN "
@@ -55,19 +51,19 @@ def createDatabae():
 
 
 def select():
-    sql = "SELECT * from demo"
+    sql = "SELECT * from demo where id=1 or id IN (3, 4)"
     _executeQuery(sql)
     return "OK"
 
 
 def select_error():
-    sql = "SELECT * from demosssssssss"
+    sql = "SELECT * from demosssssssss where id=1 or id=233333"
     _executeQuery(sql)
     return "OK"
 
 
 def update():
-    sql = "update demo set age=22 where id=1"
+    sql = "update demo set age=22 where name like '%tes%'"
     _executeQuery(sql)
     return "OK"
 
@@ -79,13 +75,13 @@ def insert():
 
 
 def delete():
-    sql = "delete from demo where id=2"
+    sql = "delete from demo where id=2 or id=11111111"
     _executeQuery(sql)
     return "OK"
 
 
 def procedure():
-    sql = "call helloworld()"
+    sql = "call helloworld(1,'test')"
     _executeQuery(sql)
     return "OK"
 
