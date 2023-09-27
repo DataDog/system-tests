@@ -8,10 +8,18 @@ RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 COPY utils/build/docker/python/flask /app
-COPY utils/build/docker/python/iast.py /app/iast.py
+COPY utils/build/docker/python_otel/flask-poc-otel/app.py /app
 COPY utils/build/docker/python_otel/flask-poc-otel/app.sh /app
 
+#TODO RMM: Change docker flask-poc base to fix psycopg2 ( psycopg2-binary is not supported by open telemetry)
+RUN apt install -y libpq-dev python3-dev
+RUN pip uninstall -y psycopg2-binary
+RUN pip install psycopg2
+#############
+
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp
+#RUN pip install opentelemetry-instrumentation-psycopg2
+
 RUN opentelemetry-bootstrap -a install
 
 ENV FLASK_APP=app.py
