@@ -3,6 +3,7 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.iast.utils.*;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -289,6 +290,18 @@ public class AppSecIast {
       return "Trust Boundary violation page";
     }
 
+    @GetMapping(value="/xcontent-missing-header/test_insecure", produces = "text/html")
+    public String xcontentMissingHeaderInsecure(final HttpServletResponse response) {
+        response.addHeader("X-Content-Type-Options", "dosniffplease");
+        return "ok";
+    }
+
+    @GetMapping(value="/xcontent-missing-header/test_secure", produces = "text/html")
+    public String xcontentMissingHeaderSecure(final HttpServletResponse response) {
+        response.addHeader("X-Content-Type-Options", "nosniff");
+        return "ok";
+    }
+
     @PostMapping("/xss/test_insecure")
     void insecureXSS(final ServletRequest request, final ServletResponse response) throws IOException {
         xssExamples.insecureXSS(response.getWriter(), request.getParameter("param"));
@@ -297,6 +310,23 @@ public class AppSecIast {
     @PostMapping("/xss/test_secure")
     void secureXSS(final ServletResponse response) throws IOException {
         xssExamples.secureXSS(response.getWriter());
+    }
+
+    @GetMapping(value = "/hstsmissing/test_insecure", produces = "text/html")
+    public String hstsHeaderMissingInsecure(HttpServletResponse response) {
+        // XXX: Avoid triggering XCONTENTTYPE_MISSING_HEADER vulnerability when checking HSTS.
+        response.addHeader("X-Content-Type-Options", "nosniff");
+        response.setStatus(HttpStatus.OK.value());
+        return "ok";
+    }
+
+    @GetMapping(value = "/hstsmissing/test_secure", produces = "text/html")
+    public String hstsHeaderMissingSecure(HttpServletResponse response) {
+        // XXX: Avoid triggering XCONTENTTYPE_MISSING_HEADER vulnerability when checking HSTS.
+        response.addHeader("X-Content-Type-Options", "nosniff");
+        response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+        response.setStatus(HttpStatus.OK.value());
+        return "ok";
     }
 
     /**

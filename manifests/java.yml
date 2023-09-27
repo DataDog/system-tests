@@ -30,6 +30,14 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_hsts_missing_header.py:
+          Test_HstsMissingHeader:
+            "*": "missing_feature"
+            sping-boot-undertow: "v1.20.0"
+            spring-boot: "v1.20.0"
+            spring-boot-jetty: "v1.20.0"
+            spring-boot-wildfly: "v1.20.0"
+            uds-spring-boot: "v1.20.0"            
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.18.0
@@ -114,6 +122,14 @@ tests/:
           TestWeakRandomness:
             '*': v1.15.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        test_xcontent_sniffing.py:
+          Test_XContentSniffing:
+            "*": "missing_feature"
+            sping-boot-undertow: "bug (APPSEC-11353)"
+            spring-boot: "bug (APPSEC-11353)"
+            spring-boot-jetty: "bug (APPSEC-11353)"
+            spring-boot-wildfly: "bug (APPSEC-11353)"
+            uds-spring-boot: "bug (APPSEC-11353)"
         test_xpath_injection.py:
           TestXPathInjection:
             '*': v1.18.0
@@ -842,3 +858,4 @@ tests/:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetryV2: missing_feature
+    

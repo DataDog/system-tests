@@ -26,6 +26,7 @@ VARIANT_COMPONENT_MAP = {
     "express4-typescript": "express",
     "uwsgi-poc": "flask",
     "django-poc": "django",
+    "python3.12": "django",
     "gin": "gin-gonic/gin",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",

@@ -4,9 +4,8 @@ import os
 import random
 import subprocess
 
+import django
 import requests
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
@@ -19,6 +18,9 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+
+from ddtrace import Pin, tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -400,6 +402,13 @@ def get_value(request):
     return HttpResponse(VALUE_STORED)
 
 
+def create_extra_service(request):
+    new_service_name = request.GET.get("serviceName", default="")
+    if new_service_name:
+        Pin.override(django, service=new_service_name, tracer=tracer)
+    return HttpResponse("OK")
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -408,6 +417,7 @@ urlpatterns = [
     path("waf/<url>", waf),
     path("params/<appscan_fingerprint>", waf),
     path("tag_value/<str:tag_value>/<int:status_code>", waf),
+    path("createextraservice", create_extra_service),
     path("headers", headers),
     path("status", status_code),
     path("identify", identify),
