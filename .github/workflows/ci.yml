@@ -642,10 +642,10 @@ jobs:
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Compress logs
-      if: always() && steps.build.outcome == 'success'
+      if: always() && steps.build_otel.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
-      if: always() && steps.build.outcome == 'success'
+      if: always() && steps.build_otel.outcome == 'success'
       uses: actions/upload-artifact@v3
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.version }}
