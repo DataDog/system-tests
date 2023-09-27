@@ -49,6 +49,7 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
             "ruby",
             "python_http",
             "java_otel",
+            "python_otel",
         ):
             raise ValueError(f"Unknown library: {library}")
 
