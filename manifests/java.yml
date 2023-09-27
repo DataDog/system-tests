@@ -125,11 +125,11 @@ tests/:
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
             "*": "missing_feature"
-            sping-boot-undertow: "v1.20.0"
-            spring-boot: "v1.20.0"
-            spring-boot-jetty: "v1.20.0"
-            spring-boot-wildfly: "v1.20.0"
-            uds-spring-boot: "v1.20.0"            
+            sping-boot-undertow: "bug (APPSEC-11353)"
+            spring-boot: "bug (APPSEC-11353)"
+            spring-boot-jetty: "bug (APPSEC-11353)"
+            spring-boot-wildfly: "bug (APPSEC-11353)"
+            uds-spring-boot: "bug (APPSEC-11353)"
         test_xpath_injection.py:
           TestXPathInjection:
             '*': v1.18.0

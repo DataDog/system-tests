@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "/miscs/telemetry/common/objects/metric.json",
-  "description": "Metric Object",
+  "$id": "/miscs/telemetry/common/objects/metric_with_namespace.json",
+  "description": "Metric Object With Namespace",
   "title": "Instrumentation Telemetry Metric",
   "type": "object",
   "allOf": [
@@ -52,7 +52,7 @@
         }
       },
       "then": {
-        "required": ["metric", "points", "interval"]
+        "required": ["namespace", "metric", "points", "interval"]
       }
     },
     {
@@ -64,7 +64,7 @@
         }
       },
       "then": {
-        "required": ["metric", "points"]
+        "required": ["namespace", "metric", "points"]
       }
     },
     {
@@ -76,7 +76,7 @@
         }
       },
       "then": {
-        "required": ["metric", "points", "tags", "common", "type"]
+        "required": ["namespace", "metric", "points", "tags", "common", "type"]
       }
     }
   ]
