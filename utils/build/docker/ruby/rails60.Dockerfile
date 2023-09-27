@@ -1,12 +1,7 @@
 FROM ghcr.io/datadog/dd-trace-rb/ruby:2.7.6-dd
 
-RUN apt-get update && apt-get install -y python2 && rm -rf /var/lib/apt/lists/*
-RUN arch="$(arch | sed -e 's/x86_64/x64/' -e 's/aarch64/arm64/')" : \
- && curl -L -O https://nodejs.org/download/release/v12.22.12/node-v12.22.12-linux-${arch}.tar.gz \
- && tar -C /opt -xvzf node-v12.22.12-linux-${arch}.tar.gz \
- && rm -v node-v12.22.12-linux-${arch}.tar.gz \
- && echo 'export PATH="/opt/node-v12.22.12-linux-'${arch}'/bin:$PATH"' > /etc/profile.d/node.sh
-RUN . /etc/profile.d/node.sh && npm install -g yarn
+RUN apt-get update && apt-get install -y nodejs npm
+RUN npm install -g yarn
 
 RUN mkdir -p /app
 WORKDIR /app
