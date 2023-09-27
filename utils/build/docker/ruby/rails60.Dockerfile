@@ -10,7 +10,7 @@ COPY utils/build/docker/ruby/rails60/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-RUN . /etc/profile.d/node.sh && yarn install --check-files
+RUN yarn install --check-files
 
 ENV DD_TRACE_HEADER_TAGS=user-agent
 ENV RAILS_ENV=production
