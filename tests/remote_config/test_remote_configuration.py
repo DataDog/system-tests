@@ -310,7 +310,7 @@ class Test_RemoteConfigurationExtraServices:
                 if "extra_services" in client_tracer:
                     extra_services.append(client_tracer["extra_services"])
         assert self.r_outgoing.status_code == 200
-        assert extra_services, "extra_services not found"
+        assert len(extra_services) != 0, "extra_services not found"
         assert any(es == ["extraVegetables"] for es in extra_services), "extraVegetables extra service not found"
 
 
