@@ -1,14 +1,14 @@
+import logging
 import os
 import random
 import subprocess
-
-import ddtrace
-ddtrace.patch_all()
-from threading import Thread
 import threading
-from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
+
+from confluent_kafka import Producer, Consumer
 import psycopg2
 import requests
+import ddtrace
+ddtrace.patch_all()
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response, jsonify
@@ -25,8 +25,6 @@ from iast import (
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
-import logging
-import os
 
 try:
     from ddtrace.contrib.trace_utils import set_user
