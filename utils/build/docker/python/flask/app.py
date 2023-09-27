@@ -23,6 +23,7 @@ from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
 
 import ddtrace
+
 ddtrace.patch_all()
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
@@ -177,9 +178,8 @@ def dbm():
 @app.route("/dsm")
 def dsm():
     logging.basicConfig(
-        format = '%(asctime)s %(levelname)-8s %(message)s',
-        level = logging.INFO,
-        datefmt = '%Y-%m-%d %H:%M:%S')
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+    )
     topic = "dsm-system-tests-queue"
     consumer_group = "testgroup1"
 
@@ -190,10 +190,7 @@ def dsm():
             logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
     def produce():
-        producer = Producer({
-            'bootstrap.servers': 'kafka:9092',
-            'client.id': "python-producer"
-        })
+        producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
         message = b"Hello, Kafka!"
         producer.produce(topic, value=message, callback=delivery_report)
         producer.flush()
@@ -201,11 +198,12 @@ def dsm():
     def consume():
         consumer = Consumer(
             {
-                'bootstrap.servers': 'kafka:9092',
-                'group.id': consumer_group,
-                'enable.auto.commit': True,
-                'auto.offset.reset': 'earliest',
-            })
+                "bootstrap.servers": "kafka:9092",
+                "group.id": consumer_group,
+                "enable.auto.commit": True,
+                "auto.offset.reset": "earliest",
+            }
+        )
 
         consumer.subscribe([topic])
 
