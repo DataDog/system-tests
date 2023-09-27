@@ -181,37 +181,23 @@ def dsm():
         datefmt = '%Y-%m-%d %H:%M:%S')
     topic = "dsm-system-tests-queue"
     consumer_group = "testgroup1"
-    logging.info(os.environ)
 
     def delivery_report(err, msg):
-        logging.info("[kafka] start delivery_report")
         if err is not None:
             logging.info(f"[kafka] Message delivery failed: {err}")
-        elif msg is not None:
-            logging.info("[kafka] Delivered to partition:")
-            logging.info(msg.partition())
-            logging.info(f"[kafka] Message delivered to {msg.partition()}")
         else:
-            logging.info("[kafka] Both err and msg are None")
-        logging.info("[kafka] done delivery_report")
+            logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
     def produce():
-        logging.info("[kafka] Before creating Producer")
-        logging.info(os.getpid())
         producer = Producer({
             'bootstrap.servers': 'kafka:9092',
             'client.id': "python-producer"
         })
         message = b"Hello, Kafka!"
-        logging.info("[kafka] Before produce")
         producer.produce(topic, value=message, callback=delivery_report)
-        logging.info("[kafka] After produce, before flush")
-        producer.poll()
-        logging.info("[kafka] Produced and flushed message")
+        producer.flush()
 
     def consume():
-        logging.info("[kafka] Before creating Consumer")
-        logging.info(os.getpid())
         consumer = Consumer(
             {
                 'bootstrap.servers': 'kafka:9092',
@@ -220,38 +206,30 @@ def dsm():
                 'auto.offset.reset': 'earliest',
             })
 
-        logging.info("[kafka] Before subscribe")
         consumer.subscribe([topic])
 
         msg_received = False
         while not msg_received:
-            logging.info("[kafka] Before poll")
-            msg = consumer.poll(10)
-            logging.info("[kafka] After poll")
+            msg = consumer.poll(1)
             if msg is None:
                 logging.info("[kafka] Consumed message but got nothing")
             elif msg.error():
                 logging.info("[kafka] Consumed message but got error " + msg.error())
             else:
-                logging.info("[kafka] Consumed message: ")
+                logging.info("[kafka] Consumed message")
                 msg_received = True
         consumer.close()
 
     integration = flask_request.args.get("integration")
     logging.info(f"[kafka] Got request with integration: {integration}")
     if integration == "kafka":
-        logging.info("DD_DATA_STREAMS_ENABLED")
-        logging.info(os.environ['DD_DATA_STREAMS_ENABLED'])
-        logging.info(os.getenv('DD_DATA_STREAMS_ENABLED'))
         produce_thread = threading.Thread(target=produce, args=())
         consume_thread = threading.Thread(target=consume, args=())
-        logging.info("[kafka] After create thread")
         produce_thread.start()
         consume_thread.start()
-        logging.info("[kafka] After thread start")
         produce_thread.join()
         consume_thread.join()
-        logging.info("[kafka] returning response")
+        logging.info("[kafka] Returning response")
         return Response("ok")
 
     return Response(f"Integration is not supported: {integration}", 406)

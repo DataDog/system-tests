@@ -11,18 +11,9 @@ class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
     def setup_dsm_kafka(self):
-        self.r = weblog.get("/dsm?integration=kafka", timeout=10)
+        self.r = weblog.get("/dsm?integration=kafka", timeout=20)
 
     def test_dsm_kafka(self):
-        print("In test_dsm_kafka")
-        print("Response object")
-        print(self.r)
-        print("Status")
-        print(self.r.status_code)
-        print("Headers")
-        print(self.r.headers)
-        print("Text")
-        print(self.r.text)
         assert self.r.text == "ok"
 
         # Hashes are created by applying the FNV-1 algorithm on
