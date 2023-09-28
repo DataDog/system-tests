@@ -32,12 +32,12 @@ tests/:
             vertx4: v1.12.0
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
-            "*": "missing_feature"
-            sping-boot-undertow: "v1.20.0"
-            spring-boot: "v1.20.0"
-            spring-boot-jetty: "v1.20.0"
-            spring-boot-wildfly: "v1.20.0"
-            uds-spring-boot: "v1.20.0"            
+            '*': missing_feature
+            sping-boot-undertow: v1.22.0
+            spring-boot: v1.22.0
+            spring-boot-jetty: v1.22.0
+            spring-boot-wildfly: v1.22.0
+            uds-spring-boot: v1.22.0
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.18.0
