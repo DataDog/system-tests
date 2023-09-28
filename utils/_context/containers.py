@@ -139,13 +139,13 @@ class TestedContainer:
 
         for i in range(len(additional_warmups)):
             cmd = additional_warmups[i]
-      
+
             if not isinstance(cmd, str):
                 assert cmd[0] == "CMD-SHELL", "Only CMD-SHELL is supported"
                 cmd = cmd[1]
 
             try:
-                result = self._container.exec_run(['sh', '-c', cmd])
+                result = self._container.exec_run(["sh", "-c", cmd])
                 logger.info(f"Healthcheck warmup: {result}")
 
                 if result.exit_code == 0:
@@ -550,9 +550,18 @@ class KafkaContainer(TestedContainer):
             healthcheck={
                 "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
                 "additional_warmups": [
-                    ["CMD-SHELL", "kafka-topics.sh --create --topic dsm-system-tests-queue --bootstrap-server 127.0.0.1:9092",],
-                    ["CMD-SHELL", "echo hello | kafka-console-producer.sh --bootstrap-server 127.0.0.1:9092 --topic dsm-system-tests-queue < /dev/stdin",],
-                    ["CMD-SHELL", "kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --topic dsm-system-tests-queue --max-messages 1 --group testgroup1 --from-beginning",],
+                    [
+                        "CMD-SHELL",
+                        "kafka-topics.sh --create --topic dsm-system-tests-queue --bootstrap-server 127.0.0.1:9092",
+                    ],
+                    [
+                        "CMD-SHELL",
+                        "echo hello | kafka-console-producer.sh --bootstrap-server 127.0.0.1:9092 --topic dsm-system-tests-queue < /dev/stdin",
+                    ],
+                    [
+                        "CMD-SHELL",
+                        "kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --topic dsm-system-tests-queue --max-messages 1 --group testgroup1 --from-beginning",
+                    ],
                 ],
                 "start_period": 15 * 1_000_000_000,
                 "interval": 2 * 1_000_000_000,
