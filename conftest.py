@@ -141,7 +141,6 @@ def pytest_pycollect_makemodule(module_path, parent):
     else:
         library = context.scenario.library.library
 
-    logger.info(f"RMM library: {library}")
     manifests = load_manifests()
 
     nodeid = str(module_path.relative_to(module_path.cwd()))

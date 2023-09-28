@@ -18,7 +18,6 @@ RUN pip install psycopg2
 #############
 
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp
-#RUN pip install opentelemetry-instrumentation-psycopg2
 
 RUN opentelemetry-bootstrap -a install
 
