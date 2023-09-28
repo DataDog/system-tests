@@ -126,6 +126,39 @@ class TestedContainer:
         )
 
         self.wait_for_health()
+        self.wait_for_warmup()
+
+    def wait_for_warmup(self):
+        if not self.healthcheck:
+            return
+
+        if not "additional_warmups" in self.healthcheck:
+            return
+
+        additional_warmups = self.healthcheck["additional_warmups"]
+
+        for i in range(len(additional_warmups)):
+            cmd = additional_warmups[i]
+      
+            if not isinstance(cmd, str):
+                assert cmd[0] == "CMD-SHELL", "Only CMD-SHELL is supported"
+                cmd = cmd[1]
+
+            try:
+                result = self._container.exec_run(['sh', '-c', cmd])
+                logger.stdout(f"Healthcheck warmup: {result}")
+
+                if result.exit_code == 0:
+                    continue
+
+            except APIError as e:
+                logger.exception(f"Healthcheck warmup failed")
+                pytest.exit(f"Healthcheck warmup {cmd} failed for {self._container.name}: {e.explanation}", 1)
+
+            except Exception as e:
+                logger.stdout(f"Healthcheck warmup: {e}")
+
+        logger.stdout(f"Done waiting for warmups for {self._container.name}")
 
     def wait_for_health(self):
         if not self.healthcheck:
@@ -145,13 +178,14 @@ class TestedContainer:
         if start_period:
             time.sleep(start_period)
 
-        logger.info(f"Executing healthcheck {cmd} for {self.name}")
+        logger.stdout(f"Executing healthcheck {cmd} for {self.name}")
 
         for i in range(retries + 1):
+            logger.stdout(f"Before healthcheck #{i}")
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.debug(f"Healthcheck #{i}: {result}")
+                logger.stdout(f"Healthcheck #{i}: {result}")
 
                 if result.exit_code == 0:
                     return
@@ -161,10 +195,11 @@ class TestedContainer:
                 pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}: {e.explanation}", 1)
 
             except Exception as e:
-                logger.debug(f"Healthcheck #{i}: {e}")
+                logger.stdout(f"Healthcheck #{i}: {e}")
 
             time.sleep(interval)
 
+        logger.stdout(f"Healthcheck {cmd} failed for {self._container.name}")
         pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}", 1)
 
     def _fix_host_pwd_in_volumes(self):
@@ -516,6 +551,11 @@ class KafkaContainer(TestedContainer):
             allow_old_container=True,
             healthcheck={
                 "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
+                "additional_warmups": [
+                    ["CMD-SHELL", "kafka-topics.sh --create --topic dsm-system-tests-queue --bootstrap-server 127.0.0.1:9092",],
+                    ["CMD-SHELL", "echo hello | kafka-console-producer.sh --bootstrap-server 127.0.0.1:9092 --topic dsm-system-tests-queue < /dev/stdin",],
+                    ["CMD-SHELL", "kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --topic dsm-system-tests-queue --max-messages 1 --group testgroup1 --from-beginning",],
+                ],
                 "start_period": 15 * 1_000_000_000,
                 "interval": 2 * 1_000_000_000,
                 "timeout": 2 * 1_000_000_000,
