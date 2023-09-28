@@ -126,9 +126,9 @@ class TestedContainer:
         )
 
         self.wait_for_health()
-        self.wait_for_warmup()
+        self.wait_for_additional_warmups()
 
-    def wait_for_warmup(self):
+    def wait_for_additional_warmups(self):
         if not self.healthcheck:
             return
 
@@ -146,7 +146,7 @@ class TestedContainer:
 
             try:
                 result = self._container.exec_run(['sh', '-c', cmd])
-                logger.stdout(f"Healthcheck warmup: {result}")
+                logger.info(f"Healthcheck warmup: {result}")
 
                 if result.exit_code == 0:
                     continue
@@ -156,9 +156,9 @@ class TestedContainer:
                 pytest.exit(f"Healthcheck warmup {cmd} failed for {self._container.name}: {e.explanation}", 1)
 
             except Exception as e:
-                logger.stdout(f"Healthcheck warmup: {e}")
+                logger.info(f"Healthcheck warmup: {e}")
 
-        logger.stdout(f"Done waiting for warmups for {self._container.name}")
+        logger.info(f"Done waiting for additional warmups for {self._container.name}")
 
     def wait_for_health(self):
         if not self.healthcheck:
@@ -178,14 +178,13 @@ class TestedContainer:
         if start_period:
             time.sleep(start_period)
 
-        logger.stdout(f"Executing healthcheck {cmd} for {self.name}")
+        logger.info(f"Executing healthcheck {cmd} for {self.name}")
 
         for i in range(retries + 1):
-            logger.stdout(f"Before healthcheck #{i}")
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.stdout(f"Healthcheck #{i}: {result}")
+                logger.info(f"Healthcheck #{i}: {result}")
 
                 if result.exit_code == 0:
                     return
@@ -195,11 +194,10 @@ class TestedContainer:
                 pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}: {e.explanation}", 1)
 
             except Exception as e:
-                logger.stdout(f"Healthcheck #{i}: {e}")
+                logger.info(f"Healthcheck #{i}: {e}")
 
             time.sleep(interval)
 
-        logger.stdout(f"Healthcheck {cmd} failed for {self._container.name}")
         pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}", 1)
 
     def _fix_host_pwd_in_volumes(self):

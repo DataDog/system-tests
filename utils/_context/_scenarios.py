@@ -86,9 +86,8 @@ class _Scenario:
 
         try:
             for warmup in self._get_warmups():
-                logger.stdout(f"Executing warmup {warmup}")
+                logger.info(f"Executing warmup {warmup}")
                 warmup()
-                logger.stdout(f"Done executing warmup {warmup}")
         except:
             self.close_targets()
             raise
