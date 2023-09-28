@@ -643,10 +643,7 @@ tests/:
       Test_AttackTimestamp:
         akka-http: missing_feature (No AppSec support)
         spring-boot-payara: missing_feature (No AppSec support)
-      Test_ExtraTagsFromRule:
-        '*': v1.14.0
-        akka-http: missing_feature (No AppSec support)
-        spring-boot-payara: missing_feature (No AppSec support)
+      Test_ExtraTagsFromRule: v1.22.0    # Supported since v1.22.0
       Test_HttpClientIP:
         '*': v0.98.1
         akka-http: missing_feature (No AppSec support)
