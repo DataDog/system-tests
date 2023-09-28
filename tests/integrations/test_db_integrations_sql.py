@@ -343,6 +343,9 @@ class _BaseOtelAgentIntegrationsSqlTestClass(_BaseAgentIntegrationsSqlTestClass)
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select_error"])
         assert len(span["meta"]["error.msg"].strip()) != 0
 
+    @bug(
+        library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940",
+    )
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.requests[self.db_service].items():
@@ -392,12 +395,6 @@ class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestC
     """ Overwrite or add specific validation methods for postgres on agent interface (app instrumented by open telemetry) """
 
     pass
-
-    @bug(
-        library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940",
-    )
-    def test_obfuscate_query(self):
-        super().test_obfuscate_query()
 
 
 ################################################################################
