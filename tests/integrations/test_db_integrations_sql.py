@@ -370,6 +370,7 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
+    @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     def test_db_type(self):
         super().test_db_type()
 
@@ -395,8 +396,7 @@ class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestC
     pass
 
     @bug(
-        library="python_otel",
-        reason="Open Telemetry, we aren't obfuscatign the queries for python with otel (automatic)",
+        library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940",
     )
     def test_obfuscate_query(self):
         super().test_obfuscate_query()
@@ -439,8 +439,7 @@ class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
     """ Overwrite or add specific validation methods for mysql on agent interface (app instrumented by open telemetry) """
 
     @bug(
-        library="python_otel",
-        reason="Open Telemetry, we aren't obfuscatign the queries for python with otel (automatic)",
+        library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940",
     )
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
