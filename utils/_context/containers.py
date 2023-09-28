@@ -184,7 +184,7 @@ class TestedContainer:
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.info(f"Healthcheck #{i}: {result}")
+                logger.debug(f"Healthcheck #{i}: {result}")
 
                 if result.exit_code == 0:
                     return
@@ -194,7 +194,7 @@ class TestedContainer:
                 pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}: {e.explanation}", 1)
 
             except Exception as e:
-                logger.info(f"Healthcheck #{i}: {e}")
+                logger.debug(f"Healthcheck #{i}: {e}")
 
             time.sleep(interval)
 
