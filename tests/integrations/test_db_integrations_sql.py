@@ -322,7 +322,7 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                     for span_child in chunk["spans"]:
                         if (
                             "type" in span_child
-                            and (span_child["type"] == "sql" or span_child["type"] == "db")
+                            and span_child["type"] in ("sql", "db")
                             and span_child["traceID"] == span["traceID"]
                             and span_child["resource"]
                             != "SELECT ?"  # workaround to avoid conflicts on connection check on mssql
@@ -341,18 +341,16 @@ class _BaseOtelAgentIntegrationsSqlTestClass(_BaseAgentIntegrationsSqlTestClass)
     def test_error_msg(self):
         """ A string representing the error message. """
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select_error"])
-        assert span["meta"]["error.msg"].strip()
+        assert len(span["meta"]["error.msg"].strip()) != 0
 
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            if db_operation in ["update", "delete", "procedure"]:
+            if db_operation in ["update", "delete", "procedure", "select_error"]:
                 assert (
                     span["meta"]["db.statement"].count("?") == 2
                 ), f"The query is not properly obfuscated for operation {db_operation}"
-            elif db_operation is "select_error":
-                continue
             else:
                 assert (
                     span["meta"]["db.statement"].count("?") == 3
@@ -438,23 +436,7 @@ class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
 class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
     """ Overwrite or add specific validation methods for mysql on agent interface (app instrumented by open telemetry) """
 
-    @bug(
-        library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940",
-    )
-    def test_obfuscate_query(self):
-        """ All queries come out obfuscated from agent """
-        for db_operation, request in self.requests[self.db_service].items():
-            span = self._get_sql_span_for_request(request)
-            if db_operation in ["update", "delete", "procedure"]:
-                assert (
-                    span["meta"]["db.statement"].count("?") == 2
-                ), f"The query is not properly obfuscated for operation {db_operation}"
-            elif db_operation is "select_error":
-                continue
-            else:
-                assert (
-                    span["meta"]["db.statement"].count("?") == 3
-                ), f"The query is not properly obfuscated for operation {db_operation}"
+    pass
 
 
 ################################################################################
@@ -533,9 +515,8 @@ class Test_Agent_Mssql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
         """ The name of the operation being executed. Mssql and Open Telemetry doesn't report this span when we call to procedure """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            if db_operation in ["select_error", "procedure"]:
-                continue
-            else:
+            # db.operation span is not generating by Open Telemetry when we call to procedure or we have a syntax error on the SQL
+            if db_operation not in ["select_error", "procedure"]:
                 assert (
                     db_operation.lower() in span["meta"]["db.operation"].lower()
                 ), f"Test is failing for {db_operation}"
