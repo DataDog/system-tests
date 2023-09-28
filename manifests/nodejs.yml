@@ -21,7 +21,8 @@ tests/:
             '*': missing_feature
             express4: v3.11.0
         test_hsts_missing_header.py: 
-          Test_HstsMissingHeader: missing_feature
+            '*': missing_feature
+            express4: v4.8.0
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': missing_feature
@@ -59,7 +60,9 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: 
+            '*': missing_feature
+            express4: v4.8.0
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:

@@ -15,7 +15,6 @@ class Test_HstsMissingHeader:
         http_method="GET",
         insecure_endpoint="/iast/hstsmissing/test_insecure",
         secure_endpoint="/iast/hstsmissing/test_secure",
-        location_map={"nodejs": "iast/index.js",},
         data={},
     )
 
@@ -44,7 +43,6 @@ class Test_HstsMissingHeader:
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
-    @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
@@ -52,7 +50,6 @@ class Test_HstsMissingHeader:
     def setup_telemetry_metric_executed_sink(self):
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
-    @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()
