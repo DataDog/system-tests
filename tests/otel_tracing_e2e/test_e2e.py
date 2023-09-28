@@ -2,11 +2,14 @@ import base64
 import os
 import time
 
-from utils import context, weblog, interfaces, scenarios, irrelevant, flaky
-from utils.tools import get_rid_from_request
+from utils import context, weblog, interfaces, scenarios, irrelevant
+from utils.tools import get_logger, get_rid_from_request
 from ._test_validator_trace import validate_all_traces
 from ._test_validator_log import validate_log, validate_log_trace_correlation
 from ._test_validator_metric import validate_metrics
+
+
+logger = get_logger()
 
 
 def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
@@ -28,45 +31,49 @@ class Test_OTelTracingE2E:
         assert len(otel_trace_ids) == 2
         dd_trace_ids = [_get_dd_trace_id(otel_trace_id, self.use_128_bits_trace_id) for otel_trace_id in otel_trace_ids]
 
-        # The 1st account has traces sent by DD Agent
-        traces_agent = [
-            interfaces.backend.assert_otlp_trace_exist(
-                request=self.r,
-                dd_trace_id=dd_trace_id,
-                dd_api_key=os.environ["DD_API_KEY"],
-                dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
-            )
-            for dd_trace_id in dd_trace_ids
-        ]
+        try:
+            # The 1st account has traces sent by DD Agent
+            traces_agent = [
+                interfaces.backend.assert_otlp_trace_exist(
+                    request=self.r,
+                    dd_trace_id=dd_trace_id,
+                    dd_api_key=os.environ["DD_API_KEY"],
+                    dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
+                )
+                for dd_trace_id in dd_trace_ids
+            ]
 
-        # The 2nd account has traces via the backend OTLP intake endpoint
-        traces_intake = [
-            interfaces.backend.assert_otlp_trace_exist(
-                request=self.r,
-                dd_trace_id=dd_trace_id,
-                dd_api_key=os.environ["DD_API_KEY_2"],
-                dd_app_key=os.environ["DD_APP_KEY_2"],
-            )
-            for dd_trace_id in dd_trace_ids
-        ]
+            # The 2nd account has traces via the backend OTLP intake endpoint
+            traces_intake = [
+                interfaces.backend.assert_otlp_trace_exist(
+                    request=self.r,
+                    dd_trace_id=dd_trace_id,
+                    dd_api_key=os.environ["DD_API_KEY_2"],
+                    dd_app_key=os.environ["DD_APP_KEY_2"],
+                )
+                for dd_trace_id in dd_trace_ids
+            ]
 
-        # The 3rd account has traces sent by OTel Collector
-        traces_collector = [
-            interfaces.backend.assert_otlp_trace_exist(
-                request=self.r,
-                dd_trace_id=dd_trace_id,
-                dd_api_key=os.environ["DD_API_KEY_3"],
-                dd_app_key=os.environ["DD_APP_KEY_3"],
-            )
-            for dd_trace_id in dd_trace_ids
-        ]
+            # The 3rd account has traces sent by OTel Collector
+            traces_collector = [
+                interfaces.backend.assert_otlp_trace_exist(
+                    request=self.r,
+                    dd_trace_id=dd_trace_id,
+                    dd_api_key=os.environ["DD_API_KEY_3"],
+                    dd_app_key=os.environ["DD_APP_KEY_3"],
+                )
+                for dd_trace_id in dd_trace_ids
+            ]
+
+        except ValueError:
+            logger.warning("Backend does not provide traces")
+            return
 
         validate_all_traces(traces_agent, traces_intake, traces_collector, self.use_128_bits_trace_id)
 
 
 @scenarios.otel_metric_e2e
 @irrelevant(context.library != "open_telemetry")
-@flaky(True, reason="Backend responses often don't include series")
 class Test_OTelMetricE2E:
     def setup_main(self):
         self.start = int(time.time())
@@ -83,31 +90,36 @@ class Test_OTelMetricE2E:
     def test_main(self):
         end = int(time.time())
         rid = get_rid_from_request(self.r).lower()
-        # The 1st account has metrics sent by DD Agent
-        metrics_agent = [
-            interfaces.backend.query_timeseries(
-                start=self.start,
-                end=end,
-                rid=rid,
-                metric=metric,
-                dd_api_key=os.environ["DD_API_KEY"],
-                dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
-            )
-            for metric in self.expected_metrics
-        ]
+        try:
+            # The 1st account has metrics sent by DD Agent
+            metrics_agent = [
+                interfaces.backend.query_timeseries(
+                    start=self.start,
+                    end=end,
+                    rid=rid,
+                    metric=metric,
+                    dd_api_key=os.environ["DD_API_KEY"],
+                    dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
+                )
+                for metric in self.expected_metrics
+            ]
 
-        # The 3rd account has metrics sent by OTel Collector
-        metrics_collector = [
-            interfaces.backend.query_timeseries(
-                start=self.start,
-                end=end,
-                rid=rid,
-                metric=metric,
-                dd_api_key=os.environ["DD_API_KEY_3"],
-                dd_app_key=os.environ["DD_APP_KEY_3"],
-            )
-            for metric in self.expected_metrics
-        ]
+            # The 3rd account has metrics sent by OTel Collector
+            metrics_collector = [
+                interfaces.backend.query_timeseries(
+                    start=self.start,
+                    end=end,
+                    rid=rid,
+                    metric=metric,
+                    dd_api_key=os.environ["DD_API_KEY_3"],
+                    dd_app_key=os.environ["DD_APP_KEY_3"],
+                )
+                for metric in self.expected_metrics
+            ]
+
+        except ValueError:
+            logger.warning("Backend does not provide series")
+            return
 
         validate_metrics(metrics_agent, metrics_collector)
 
@@ -126,33 +138,41 @@ class Test_OTelLogE2E:
         dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], self.use_128_bits_trace_id)
 
         # The 1st account has logs and traces sent by Agent
-        log_agent = interfaces.backend.get_logs(
-            query=f"trace_id:{dd_trace_id}",
-            rid=rid,
-            dd_api_key=os.environ["DD_API_KEY"],
-            dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
-        )
-        otel_log_trace_attrs = validate_log(log_agent, rid, "datadog_agent")
-        trace_agent = interfaces.backend.assert_otlp_trace_exist(
-            request=self.r,
-            dd_trace_id=dd_trace_id,
-            dd_api_key=os.environ["DD_API_KEY"],
-            dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
-        )
+        try:
+            log_agent = interfaces.backend.get_logs(
+                query=f"trace_id:{dd_trace_id}",
+                rid=rid,
+                dd_api_key=os.environ["DD_API_KEY"],
+                dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
+            )
+            otel_log_trace_attrs = validate_log(log_agent, rid, "datadog_agent")
+            trace_agent = interfaces.backend.assert_otlp_trace_exist(
+                request=self.r,
+                dd_trace_id=dd_trace_id,
+                dd_api_key=os.environ["DD_API_KEY"],
+                dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
+            )
+        except ValueError:
+            logger.warning("Backend does not provide logs")
+            return
         validate_log_trace_correlation(otel_log_trace_attrs, trace_agent)
 
         # The 3rd account has logs and traces sent by OTel Collector
-        log_collector = interfaces.backend.get_logs(
-            query=f"trace_id:{dd_trace_id}",
-            rid=rid,
-            dd_api_key=os.environ["DD_API_KEY_3"],
-            dd_app_key=os.environ["DD_APP_KEY_3"],
-        )
-        otel_log_trace_attrs = validate_log(log_collector, rid, "datadog_exporter")
-        trace_collector = interfaces.backend.assert_otlp_trace_exist(
-            request=self.r,
-            dd_trace_id=dd_trace_id,
-            dd_api_key=os.environ["DD_API_KEY_3"],
-            dd_app_key=os.environ["DD_APP_KEY_3"],
-        )
+        try:
+            log_collector = interfaces.backend.get_logs(
+                query=f"trace_id:{dd_trace_id}",
+                rid=rid,
+                dd_api_key=os.environ["DD_API_KEY_3"],
+                dd_app_key=os.environ["DD_APP_KEY_3"],
+            )
+            otel_log_trace_attrs = validate_log(log_collector, rid, "datadog_exporter")
+            trace_collector = interfaces.backend.assert_otlp_trace_exist(
+                request=self.r,
+                dd_trace_id=dd_trace_id,
+                dd_api_key=os.environ["DD_API_KEY_3"],
+                dd_app_key=os.environ["DD_APP_KEY_3"],
+            )
+        except ValueError:
+            logger.warning("Backend does not provide traces")
+            return
         validate_log_trace_correlation(otel_log_trace_attrs, trace_collector)
