@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, weblog
+from utils import bug, context, coverage, missing_feature, weblog
 from .._test_iast_fixtures import SinkFixture
 
 
@@ -30,6 +30,7 @@ class Test_HstsMissingHeader:
     def test_insecure(self):
         self.sink_fixture.test_insecure()
 
+    @bug(library="java", reason="Unrelated bug interferes with this test APPSEC-11353")
     def setup_secure(self):
         self.sink_fixture.secure_request = weblog.request(
             method=self.sink_fixture.http_method,
