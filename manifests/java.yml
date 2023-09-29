@@ -141,6 +141,7 @@ tests/:
             spring-boot: v1.19.0
             spring-boot-jetty: v1.19.0
             spring-boot-openliberty: v1.19.0
+            spring-boot-payara: v1.19.0
             spring-boot-undertow: v1.19.0
             spring-boot-wildfly: v1.19.0
             uds-spring-boot: v1.19.0
@@ -643,10 +644,7 @@ tests/:
       Test_AttackTimestamp:
         akka-http: missing_feature (No AppSec support)
         spring-boot-payara: missing_feature (No AppSec support)
-      Test_ExtraTagsFromRule:
-        '*': v1.14.0
-        akka-http: missing_feature (No AppSec support)
-        spring-boot-payara: missing_feature (No AppSec support)
+      Test_ExtraTagsFromRule: v1.22.0    # Supported since v1.22.0
       Test_HttpClientIP:
         '*': v0.98.1
         akka-http: missing_feature (No AppSec support)
