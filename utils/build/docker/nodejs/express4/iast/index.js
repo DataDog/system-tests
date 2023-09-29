@@ -229,6 +229,7 @@ function initRoutes (app, tracer) {
   });
 
   app.get('/iast/xcontent-missing-header/test_secure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
     res.send('<html><body><h1>Test</h1></html>')
   })
 
