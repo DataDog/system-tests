@@ -141,6 +141,7 @@ tests/:
             spring-boot: v1.19.0
             spring-boot-jetty: v1.19.0
             spring-boot-openliberty: v1.19.0
+            spring-boot-payara: v1.19.0
             spring-boot-undertow: v1.19.0
             spring-boot-wildfly: v1.19.0
             uds-spring-boot: v1.19.0
