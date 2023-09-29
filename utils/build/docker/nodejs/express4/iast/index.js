@@ -3,8 +3,8 @@
 const { Client, Pool } = require('pg')
 const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
-const crypto = require('crypto');
-const { execSync } = require('child_process');
+const crypto = require('crypto')
+const { execSync } = require('child_process')
 const https = require('https');
 
 function initData () {
@@ -14,9 +14,22 @@ function initData () {
     return client.query(query)
   })
 }
-function init (app, tracer) {  
-  initData().catch(() => {})
 
+function initMiddlewares (app) {
+  const hstsMissingInsecurePattern = /.*hstsmissing\/test_insecure$/gmi
+  const xcontenttypeMissingInsecurePattern = /.*xcontent-missing-header\/test_insecure$/gmi
+  app.use((req, res, next) => {
+    if (!req.url.match(hstsMissingInsecurePattern)) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000')
+    }
+    if (!req.url.match(xcontenttypeMissingInsecurePattern)) {
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+    }
+    next()
+  })
+}
+
+function initRoutes (app, tracer) { 
   app.get('/iast/insecure_hashing/deduplicate', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
@@ -199,8 +212,29 @@ function init (app, tracer) {
     res.redirect(req.body.location)
   });
 
-  require('./sources')(app, tracer);
+  app.get('/iast/hstsmissing/test_insecure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.end('<html><body><h1>Test</h1></html>')
+  })
+
+  app.get('/iast/hstsmissing/test_secure', (req, res) => {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000')
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.send('<html><body><h1>Test</h1></html>')
+  })
+
+  app.get('/iast/xcontent-missing-header/test_insecure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.end('<html><body><h1>Test</h1></html>')
+  });
+
+  app.get('/iast/xcontent-missing-header/test_secure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.send('<html><body><h1>Test</h1></html>')
+  })
+
+  require('./sources')(app, tracer)
 
 }
 
-module.exports = init;
+module.exports = { initRoutes, initData, initMiddlewares }

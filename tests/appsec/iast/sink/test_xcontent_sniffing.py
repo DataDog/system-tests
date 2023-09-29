@@ -33,7 +33,6 @@ class Test_XContentSniffing:
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
-    @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
@@ -41,7 +40,6 @@ class Test_XContentSniffing:
     def setup_telemetry_metric_executed_sink(self):
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
-    @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()
