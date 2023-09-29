@@ -30,7 +30,7 @@ class Test_HstsMissingHeader:
     def test_insecure(self):
         self.sink_fixture.test_insecure()
 
-    @bug(library="java", reason="Unrelated bug interferes with this test APPSEC-11353")
+    @bug(context.library < "java@1.22.0", reason="Unrelated bug interferes with this test APPSEC-11353")
     def setup_secure(self):
         self.sink_fixture.secure_request = weblog.request(
             method=self.sink_fixture.http_method,
