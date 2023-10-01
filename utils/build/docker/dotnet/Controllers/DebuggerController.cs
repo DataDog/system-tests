@@ -42,5 +42,14 @@ namespace weblog
             intLocal = intArg * arg.Length;
             return Content($"Span Decoration Probe {intLocal}");
         }
+
+        private int intMixLocal = 0;
+        [HttpGet("mix/{arg}/{intArg}")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult MixProbe(string arg, int intArg)
+        {
+            intMixLocal = intArg * arg.Length;
+            return Content($"Mixed result {intMixLocal}");
+        }
     }
 }
