@@ -42,4 +42,13 @@ public class DebuggerController {
         intLocal = intArg * arg.length();
         return "Span Decoration Probe " + intLocal;
     }
+    
+// Dummy line
+// Dummy line
+    private int intMixLocal = 0;
+    @GetMapping("/mix/{arg}/{intArg}")
+    public String mixProbe(@PathVariable String arg, @PathVariable int intArg) {
+        intMixLocal = intArg * arg.length();
+        return "Span Decoration Probe " + intMixLocal;
+    }
 }

@@ -3,7 +3,7 @@
     [
         {
             "language": "",
-            "id": "logProbe-installed",
+            "id": "log170aa-acda-4453-9111-1478a697line",
             "where": {
                 "typeName": null,
                 "sourceFile": "ACTUAL_SOURCE_FILE",
@@ -14,7 +14,7 @@
         },
         {
             "language": "",
-            "id": "metricProbe-installed",
+            "id": "metricaa-acda-4453-9111-1478a697line",
             "kind": "COUNT",
             "metricName": "MetricCountInt",
             "value": {
@@ -33,7 +33,7 @@
         },
         {
             "language": "",
-            "id": "spanDecorationProbe-installed",
+            "id": "decor0aa-acda-4453-9111-1478a697line",
             "targetSpan": "ACTIVE",
             "decorations": [
                 {

@@ -274,7 +274,8 @@ class ImageInfo:
 
         for var in attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
-            self.env[key] = value
+            if value:
+                self.env[key] = value
 
     def save_image_info(self, dir_path):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
