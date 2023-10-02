@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature
+from utils import context, coverage, missing_feature, scenarios
 from .._test_iast_fixtures import SinkFixture
 
 
@@ -26,12 +26,14 @@ class TestSqlInjection:
     def setup_insecure(self):
         self.sink_fixture.setup_insecure()
 
+    @scenarios.integrations
     def test_insecure(self):
         self.sink_fixture.test_insecure()
 
     def setup_secure(self):
         self.sink_fixture.setup_secure()
 
+    @scenarios.integrations
     def test_secure(self):
         self.sink_fixture.test_secure()
 

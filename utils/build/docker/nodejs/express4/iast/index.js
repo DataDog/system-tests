@@ -1,6 +1,6 @@
 'use strict'
 
-const { Client, Pool } = require('pg')
+const { Client } = require('pg')
 const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto')
@@ -12,6 +12,8 @@ function initData () {
   const client = new Client()
   return client.connect().then(() => {
     return client.query(query)
+  }).catch(() => {
+    // do nothing, just continue
   })
 }
 

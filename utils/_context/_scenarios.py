@@ -898,9 +898,7 @@ class scenarios:
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
     default = EndToEndScenario(
-        "DEFAULT",
-        include_postgres_db=True,
-        doc="Default scenario, spwan tracer and agent, and run most of exisiting tests",
+        "DEFAULT", doc="Default scenario, spwan tracer and agent, and run most of exisiting tests",
     )
     sleep = EndToEndScenario(
         "SLEEP",
