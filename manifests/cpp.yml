@@ -15,6 +15,7 @@ tests/:
         test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
         test_no_httponly_cookie.py: irrelevant (ASM is not implemented in C++)
         test_no_samesite_cookie.py: irrelevant (ASM is not implemented in C++)
+        test_nosql_mongodb_injection.py: irrelevant (ASM is not implemented in C++)
         test_path_traversal.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)

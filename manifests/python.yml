@@ -62,6 +62,8 @@ tests/:
           TestNoSamesiteCookie:
             '*': v1.19.0
             python3.12: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: v2.1.0
         test_sql_injection.py:
