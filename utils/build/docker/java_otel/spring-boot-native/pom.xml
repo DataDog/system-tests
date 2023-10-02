@@ -14,13 +14,15 @@
     <artifactId>myproject</artifactId>
     <version>3.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-
+    <properties>
+        <io.opentelemetry.version>${env.OTEL_VERSION}</io.opentelemetry.version>
+    </properties>
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-bom</artifactId>
-                <version>1.26.0</version>
+                <version>${io.opentelemetry.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

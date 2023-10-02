@@ -17,7 +17,7 @@ def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
 
 
 @scenarios.otel_tracing_e2e
-@irrelevant(context.library != "open_telemetry")
+@irrelevant(context.library != "java_otel")
 class Test_OTelTracingE2E:
     def setup_main(self):
         self.use_128_bits_trace_id = False
@@ -65,7 +65,7 @@ class Test_OTelTracingE2E:
 
 
 @scenarios.otel_metric_e2e
-@irrelevant(context.library != "open_telemetry")
+@irrelevant(context.library != "java_otel")
 @flaky(True, reason="Backend responses often don't include series")
 class Test_OTelMetricE2E:
     def setup_main(self):
@@ -113,7 +113,7 @@ class Test_OTelMetricE2E:
 
 
 @scenarios.otel_log_e2e
-@irrelevant(context.library != "open_telemetry")
+@irrelevant(context.library != "java_otel")
 class Test_OTelLogE2E:
     def setup_main(self):
         self.r = weblog.get(path="/basic/log")
