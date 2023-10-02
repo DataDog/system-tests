@@ -266,8 +266,6 @@ class _BaseIntegrationsSqlTestClass:
 class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
     """ Encapsulates tracer interface specific validations """
 
-    """ Encapsulates tracer interface specific validations """
-
     @missing_feature(
         library="java",
         reason="The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality",
@@ -423,26 +421,6 @@ class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestC
 class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
     """ Overwrite or add specific methods for Mysql (Validations works on agent and tracer interfaces) """
 
-
-class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Postgres_db_integration):
-    """ Overwrite or add specific validation methods for postgres on agent interface """
-
-    pass
-
-
-@scenarios.otel_integrations
-class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass, _Base_Postgres_db_integration):
-    """ Overwrite or add specific validation methods for postgres on agent interface (app instrumented by open telemetry) """
-
-    pass
-
-
-################################################################################
-# Mysql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
-################################################################################
-class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
-    """ Overwrite or add specific methods for Mysql (Validations works on agent and tracer interfaces) """
-
     db_service = "mysql"
 
     @missing_feature(library="java", reason="Java is using the correct span: db.instance")
@@ -459,34 +437,10 @@ class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
 class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mysql_db_integration):
     """ Overwrite or add specific validation methods for mysql on tracer interface """
 
-
-class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mysql_db_integration):
-    """ Overwrite or add specific validation methods for mysql on tracer interface """
-
     pass
 
 
 @scenarios.integrations
-class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
-    """ Overwrite or add specific validation methods for mysql on agent interface """
-
-    pass
-
-
-@scenarios.otel_integrations
-class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
-    """ Overwrite or add specific validation methods for mysql on agent interface (app instrumented by open telemetry) """
-
-    pass
-
-
-################################################################################
-# Mssql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
-################################################################################
-class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
-    """ Overwrite or add specific methods for Mssql (Validations works on agent and tracer interfaces) """
-
-
 class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
     """ Overwrite or add specific validation methods for mysql on agent interface """
 
