@@ -179,6 +179,16 @@ class _BaseIntegrationsSqlTestClass:
                 assert (
                     db_operation.lower() in span["meta"]["db.operation"].lower()
                 ), f"Test is failing for {db_operation}"
+            if db_operation is "select_error":
+                continue
+            if db_operation is "procedure":
+                assert any(
+                    substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
+                ), "db.operation span not found for procedure operation"
+            else:
+                assert (
+                    db_operation.lower() in span["meta"]["db.operation"].lower()
+                ), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
@@ -188,6 +198,8 @@ class _BaseIntegrationsSqlTestClass:
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
+            if db_operation is not "procedure":
+                assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
             if db_operation is not "procedure":
                 assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
@@ -216,6 +228,7 @@ class _BaseIntegrationsSqlTestClass:
                     "out.host",
                     "db.name",
                     "peer.service",
+                    "net.peer.name",
                     "net.peer.name",
                 ]:  # These fields hostname, user... are the same as password
                     assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
@@ -251,6 +264,8 @@ class _BaseIntegrationsSqlTestClass:
 
 
 class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
+    """ Encapsulates tracer interface specific validations """
+
     """ Encapsulates tracer interface specific validations """
 
     @missing_feature(
@@ -295,6 +310,9 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                 assert (
                     db_operation in span["meta"]["sql.query"].lower()
                 ), f"sql.query span not found for operation {db_operation}"
+                assert (
+                    db_operation in span["meta"]["sql.query"].lower()
+                ), f"sql.query span not found for operation {db_operation}"
 
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
@@ -322,6 +340,7 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                     for span_child in chunk["spans"]:
                         if (
                             "type" in span_child
+                            and span_child["type"] in ("sql", "db")
                             and span_child["type"] in ("sql", "db")
                             and span_child["traceID"] == span["traceID"]
                             and span_child["resource"]
@@ -368,6 +387,7 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
 
     db_service = "postgresql"
 
+    @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
@@ -403,6 +423,26 @@ class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestC
 class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
     """ Overwrite or add specific methods for Mysql (Validations works on agent and tracer interfaces) """
 
+
+class Test_Agent_Postgres_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Postgres_db_integration):
+    """ Overwrite or add specific validation methods for postgres on agent interface """
+
+    pass
+
+
+@scenarios.otel_integrations
+class Test_Agent_Postgres_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass, _Base_Postgres_db_integration):
+    """ Overwrite or add specific validation methods for postgres on agent interface (app instrumented by open telemetry) """
+
+    pass
+
+
+################################################################################
+# Mysql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
+################################################################################
+class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
+    """ Overwrite or add specific methods for Mysql (Validations works on agent and tracer interfaces) """
+
     db_service = "mysql"
 
     @missing_feature(library="java", reason="Java is using the correct span: db.instance")
@@ -416,6 +456,10 @@ class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
 
 
 @scenarios.integrations
+class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mysql_db_integration):
+    """ Overwrite or add specific validation methods for mysql on tracer interface """
+
+
 class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mysql_db_integration):
     """ Overwrite or add specific validation methods for mysql on tracer interface """
 
@@ -442,11 +486,32 @@ class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
 class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     """ Overwrite or add specific methods for Mssql (Validations works on agent and tracer interfaces) """
 
+
+class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
+    """ Overwrite or add specific validation methods for mysql on agent interface """
+
+    pass
+
+
+@scenarios.otel_integrations
+class Test_Agent_Mysql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
+    """ Overwrite or add specific validation methods for mysql on agent interface (app instrumented by open telemetry) """
+
+    pass
+
+
+################################################################################
+# Mssql: Tracer and Agent validations (dd-tracer and open telemetry tracer)
+################################################################################
+class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
+    """ Overwrite or add specific methods for Mssql (Validations works on agent and tracer interfaces) """
+
     db_service = "mssql"
 
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
     @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
     def test_db_mssql_instance__name(self):
         """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 

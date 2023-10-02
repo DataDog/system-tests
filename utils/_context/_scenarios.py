@@ -1263,6 +1263,14 @@ class scenarios:
         doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
     )
 
+    debugger_mix_log_probe = EndToEndScenario(
+        "DEBUGGER_MIX_LOG_PROBE",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_MIX_LOG_PROBE"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=5,
+        doc="Set both method and line probes at the same code",
+    )
+
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
 
 
