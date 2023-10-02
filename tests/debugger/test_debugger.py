@@ -249,7 +249,7 @@ class Test_Debugger_Mix_Log_Probe(_Base_Debugger_Snapshot_Test):
             "logfb5a-1974-4cdb-b1dd-77dba2method",
             "logfb5a-1974-4cdb-b1dd-77dba2f1line",
         ]
-        
+
         interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.multi_probe_response = weblog.get("/debugger/mix/asd/1")
