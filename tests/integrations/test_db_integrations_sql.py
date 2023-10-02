@@ -402,7 +402,8 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
-    @missing_feature(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
+    @missing_feature(library="python", reason="Python is using the correct span: db.system")
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     def test_db_type(self):
         super().test_db_type()
 
