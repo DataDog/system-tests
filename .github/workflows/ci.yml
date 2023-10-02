@@ -610,6 +610,8 @@ jobs:
           weblog: spring-boot-otel
         - library: python_otel
           weblog: flask-poc-otel
+        - library: nodejs_otel
+          weblog: express4-otel
         version:
         - prod        
       fail-fast: false
