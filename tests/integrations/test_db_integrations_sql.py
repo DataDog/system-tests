@@ -183,6 +183,16 @@ class _BaseIntegrationsSqlTestClass:
                 assert (
                     db_operation.lower() in span["meta"]["db.operation"].lower()
                 ), f"Test is failing for {db_operation}"
+            if db_operation is "select_error":
+                continue
+            if db_operation is "procedure":
+                assert any(
+                    substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
+                ), "db.operation span not found for procedure operation"
+            else:
+                assert (
+                    db_operation.lower() in span["meta"]["db.operation"].lower()
+                ), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
@@ -193,6 +203,8 @@ class _BaseIntegrationsSqlTestClass:
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
+            if db_operation is not "procedure":
+                assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
             if db_operation is not "procedure":
                 assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
@@ -388,7 +400,6 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "postgresql"
 
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")

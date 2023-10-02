@@ -3,7 +3,7 @@
     [
         {
             "language": "",
-            "id": "logProbe-installed",
+            "id": "loga0cf2-9e4e-45cf-9f39-59installed",
             "where": {
                 "typeName": null,
                 "sourceFile": "ACTUAL_SOURCE_FILE",
@@ -16,7 +16,7 @@
     [
         {
             "language": "",
-            "id": "metricProbe-installed",
+            "id": "metricf2-9e4e-45cf-9f39-59installed",
             "kind": "COUNT",
             "metricName": "MetricCountInt",
             "value": {
@@ -37,7 +37,7 @@
     [
         {
             "language": "",
-            "id": "spanDecorationProbe-installed",
+            "id": "decorcf2-9e4e-45cf-9f39-59installed",
             "targetSpan": "ACTIVE",
             "decorations": [
                 {

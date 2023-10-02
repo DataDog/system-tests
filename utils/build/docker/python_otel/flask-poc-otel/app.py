@@ -26,7 +26,7 @@ def db():
     service = flask_request.args.get("service")
     operation = flask_request.args.get("operation")
 
-    print("REQUEST RECEIVED!")
+    print(f"Request received for db service [{service}] and operation [{operation}]")
 
     if service == "postgresql":
         executePostgresOperation(operation)
