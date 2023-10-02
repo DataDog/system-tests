@@ -245,16 +245,16 @@ class Test_Debugger_Mix_Log_Probe(_Base_Debugger_Snapshot_Test):
     multi_probe_response = None
 
     def setup_mix_probe(self):
+        self.expected_probe_ids = [
+            "logfb5a-1974-4cdb-b1dd-77dba2method",
+            "logfb5a-1974-4cdb-b1dd-77dba2f1line",
+        ]
+        
         interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.multi_probe_response = weblog.get("/debugger/mix/asd/1")
 
     def test_mix_probe(self):
-        self.expected_probe_ids = [
-            "logfb5a-1974-4cdb-b1dd-77dba2method",
-            "logfb5a-1974-4cdb-b1dd-77dba2f1line",
-        ]
-
         assert self.remote_config_is_sent is True
         assert self.all_probes_installed is True
         assert self.multi_probe_response.status_code == 200

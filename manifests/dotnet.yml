@@ -172,7 +172,7 @@ tests/:
       Test_Debugger_Line_Probe_Statuses: v2.33.0
       Test_Debugger_Method_Probe_Snaphots: v2.33.0
       Test_Debugger_Method_Probe_Statuses: v2.33.0
-      Test_Debugger_Mix_Log_Probe: bug (Not receiving snapshots)
+      Test_Debugger_Mix_Log_Probe: v2.33.0
   integrations/:
     test_db_integrations_sql.py:
       Test_Agent_Mssql_db_integration: missing_feature
