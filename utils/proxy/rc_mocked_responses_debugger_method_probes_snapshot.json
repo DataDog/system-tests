@@ -3,7 +3,7 @@
   [
     {
       "language": "",
-      "id": "logProbe-installed",
+      "id": "log170aa-acda-4453-9111-1478a6method",
       "where": {
         "typeName": "ACTUAL_TYPE_NAME",
         "methodName": "LogProbe",
@@ -13,7 +13,7 @@
     },
     {
       "language": "",
-      "id": "metricProbe-installed",
+      "id": "metricaa-acda-4453-9111-1478a6method",
       "metricName": "MetricCountInt",
       "kind": "COUNT",
       "value": {
@@ -30,7 +30,7 @@
     },
     {
       "language": "",
-      "id": "spanProbe-installed",
+      "id": "span70aa-acda-4453-9111-1478a6method",
       "where": {
         "typeName": "ACTUAL_TYPE_NAME",
         "methodName": "SpanProbe",
@@ -40,7 +40,7 @@
     },
     {
       "language": "",
-      "id": "spanDecorationProbe-installed",
+      "id": "decor0aa-acda-4453-9111-1478a6method",
       "targetSpan": "ACTIVE",
       "decorations": [
         {

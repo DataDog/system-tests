@@ -472,6 +472,11 @@ jobs:
       run: ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_MIX_LOG_PROBE scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
+      run: ./run.sh DEBUGGER_MIX_LOG_PROBE
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: |
@@ -508,6 +513,7 @@ jobs:
         # ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay  # currently not working on replay mode
         ./run.sh DEBUGGER_LINE_PROBES_STATUS --replay
         # ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay  # currently not working on replay mode
+        # ./run.sh DEBUGGER_MIX_LOG_PROBE --replay  # currently not working on replay mode
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -586,6 +592,18 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+
+    - name: Build weblog opentelemetry autoinstrumentation
+      if: always() 
+      id: build_otel
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel --weblog-variant spring-boot-otel
+    - name: Run OTEL_INTEGRATIONS scenario
+      if: always() && steps.build_otel.outcome == 'success'
+      run: ./run.sh OTEL_INTEGRATIONS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Compress logs
       if: always() && steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
@@ -593,7 +611,7 @@ jobs:
       if: always() && steps.build.outcome == 'success'
       uses: actions/upload-artifact@v3
       with:
-        name: logs_java-otel_spring-boot-native_prod
+        name: logs_java-otel_prod
         path: artifact.tar.gz
 
   update-CI-visibility:
