@@ -79,6 +79,7 @@ class _BaseIntegrationsSqlTestClass:
 
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
+    @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
     def test_db_type(self):
         """ DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
             Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
@@ -103,6 +104,7 @@ class _BaseIntegrationsSqlTestClass:
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="java_otel", reason="not supported by open telemetry")
+    @missing_feature(library="python_otel", reason="not supported by open telemetry")
     def test_runtime___id(self):
         """ Unique identifier for the current process."""
         for db_operation, request in self.requests[self.db_service].items():
@@ -121,6 +123,7 @@ class _BaseIntegrationsSqlTestClass:
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
+    @missing_feature(library="python_otel", reason="Open telemetry doesn't send this span for python")
     def test_db_connection__string(self):
         """ The connection string used to connect to the database. """
         for db_operation, request in self.requests[self.db_service].items():
@@ -139,6 +142,7 @@ class _BaseIntegrationsSqlTestClass:
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java_otel", reason="Open Telemetry uses db.name")
+    @missing_feature(library="python_otel", reason="Open Telemetry uses db.name")
     def test_db_instance(self):
         """ The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
@@ -160,6 +164,7 @@ class _BaseIntegrationsSqlTestClass:
 
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="python", reason="not implemented yet")
+    @missing_feature(library="python_otel", reason="Open Telemetry doesn't send this span for  python")
     def test_db_operation(self):
         """ The name of the operation being executed """
         for db_operation, request in self.requests[self.db_service].items():
@@ -174,14 +179,27 @@ class _BaseIntegrationsSqlTestClass:
                 assert (
                     db_operation.lower() in span["meta"]["db.operation"].lower()
                 ), f"Test is failing for {db_operation}"
+            if db_operation is "select_error":
+                continue
+            if db_operation is "procedure":
+                assert any(
+                    substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
+                ), "db.operation span not found for procedure operation"
+            else:
+                assert (
+                    db_operation.lower() in span["meta"]["db.operation"].lower()
+                ), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="python_otel", reason="Open Telemetry doesn't send this span for python")
     def test_db_sql_table(self):
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
+            if db_operation is not "procedure":
+                assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
             if db_operation is not "procedure":
                 assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
@@ -189,6 +207,7 @@ class _BaseIntegrationsSqlTestClass:
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
+    @missing_feature(library="python_otel", reason="Open Telemetry doesn't generate this span")
     def test_db_row__count(self):
         """ The number of rows/results from the query or operation. For caches and other datastores. 
         This tag should only set for operations that retrieve stored data, such as GET operations and queries, excluding SET and other commands not returning data.  """
@@ -222,6 +241,7 @@ class _BaseIntegrationsSqlTestClass:
             assert span["meta"]["db.jdbc.driver_classname"].strip(), f"Test is failing for {db_operation}"
 
     @missing_feature(library="java_otel", reason="OpenTelemetry uses error.msg")
+    @missing_feature(library="python_otel", reason="OpenTelemetry uses error.msg")
     def test_error_message(self):
         """ A string representing the error message. """
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select_error"])
@@ -278,6 +298,7 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
     """ Encapsulates agent interface specific validations """
 
     @missing_feature(library="java_otel", reason="OpenTelemetry uses db.statement")
+    @missing_feature(library="python_otel", reason="OpenTelemetry uses db.statement")
     def test_sql_query(self):
         """ Usually the query """
         for db_operation, request in self.requests[self.db_service].items():
@@ -334,6 +355,9 @@ class _BaseOtelAgentIntegrationsSqlTestClass(_BaseAgentIntegrationsSqlTestClass)
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select_error"])
         assert len(span["meta"]["error.msg"].strip()) != 0
 
+    @bug(
+        library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940",
+    )
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.requests[self.db_service].items():
@@ -356,8 +380,9 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
 
     db_service = "postgresql"
 
-    @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
+    @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
+    @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     def test_db_type(self):
         super().test_db_type()

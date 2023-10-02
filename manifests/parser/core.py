@@ -51,7 +51,19 @@ def load():
 
     result = defaultdict(dict)
 
-    for component in ("agent", "cpp", "dotnet", "golang", "java", "nodejs", "php_appsec", "php", "python", "ruby"):
+    for component in (
+        "agent",
+        "cpp",
+        "dotnet",
+        "golang",
+        "java",
+        "nodejs",
+        "php_appsec",
+        "php",
+        "python",
+        "python_otel",
+        "ruby",
+    ):
         data = _load_file(f"manifests/{component}.yml")
 
         for nodeid, value in data.items():
