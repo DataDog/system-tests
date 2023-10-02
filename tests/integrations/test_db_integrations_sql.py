@@ -229,7 +229,6 @@ class _BaseIntegrationsSqlTestClass:
                     "db.name",
                     "peer.service",
                     "net.peer.name",
-                    "net.peer.name",
                 ]:  # These fields hostname, user... are the same as password
                     assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
 
@@ -308,9 +307,6 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                 assert (
                     db_operation in span["meta"]["sql.query"].lower()
                 ), f"sql.query span not found for operation {db_operation}"
-                assert (
-                    db_operation in span["meta"]["sql.query"].lower()
-                ), f"sql.query span not found for operation {db_operation}"
 
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
@@ -338,7 +334,6 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                     for span_child in chunk["spans"]:
                         if (
                             "type" in span_child
-                            and span_child["type"] in ("sql", "db")
                             and span_child["type"] in ("sql", "db")
                             and span_child["traceID"] == span["traceID"]
                             and span_child["resource"]
@@ -385,11 +380,10 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
 
     db_service = "postgresql"
 
-    @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     def test_db_type(self):
         super().test_db_type()
 
@@ -465,7 +459,6 @@ class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
     @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
     def test_db_mssql_instance__name(self):
         """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
