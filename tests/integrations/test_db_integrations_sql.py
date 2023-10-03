@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, context, bug, missing_feature, scenarios
+from utils import weblog, interfaces, context, bug, missing_feature, irrelevant, scenarios
 from utils.tools import logger
 
 
@@ -77,10 +77,10 @@ class _BaseIntegrationsSqlTestClass:
                 span = self._get_sql_span_for_request(request)
                 assert "error" not in span or span["error"] == 0
 
-    @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
-    @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
-    @missing_feature(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
+    @irrelevant(library="python", reason="Python is using the correct span: db.system")
+    @irrelevant(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
+    @irrelevant(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
+    @irrelevant(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
     def test_db_type(self):
         """ DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
             Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
@@ -88,7 +88,7 @@ class _BaseIntegrationsSqlTestClass:
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.type"] == self.db_service, f"Test is failing for {db_operation}"
 
-    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         """ DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name."""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
@@ -104,9 +104,9 @@ class _BaseIntegrationsSqlTestClass:
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
-    @missing_feature(library="java_otel", reason="not supported by open telemetry")
-    @missing_feature(library="python_otel", reason="not supported by open telemetry")
-    @missing_feature(library="nodejs_otel", reason="not supported by open telemetry")
+    @irrelevant(library="java_otel", reason="not supported by open telemetry")
+    @irrelevant(library="python_otel", reason="not supported by open telemetry")
+    @irrelevant(library="nodejs_otel", reason="not supported by open telemetry")
     def test_runtime___id(self):
         """ Unique identifier for the current process."""
         for db_operation, request in self.requests[self.db_service].items():
@@ -143,9 +143,9 @@ class _BaseIntegrationsSqlTestClass:
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java_otel", reason="Open Telemetry uses db.name")
-    @missing_feature(library="python_otel", reason="Open Telemetry uses db.name")
-    @missing_feature(library="nodejs_otel", reason="Open Telemetry uses db.name")
+    @irrelevant(library="java_otel", reason="Open Telemetry uses db.name")
+    @irrelevant(library="python_otel", reason="Open Telemetry uses db.name")
+    @irrelevant(library="nodejs_otel", reason="Open Telemetry uses db.name")
     def test_db_instance(self):
         """ The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
@@ -167,8 +167,8 @@ class _BaseIntegrationsSqlTestClass:
 
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="python_otel", reason="Open Telemetry doesn't send this span for  python")
-    @missing_feature(library="nodejs_otel", reason="Open Telemetry doesn't send this span for  python")
+    @bug(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
+    @bug(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
     def test_db_operation(self):
         """ The name of the operation being executed """
         for db_operation, request in self.requests[self.db_service].items():
@@ -197,8 +197,14 @@ class _BaseIntegrationsSqlTestClass:
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="python_otel", reason="Open Telemetry doesn't send this span for python")
-    @missing_feature(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs")
+    @missing_feature(
+        library="python_otel",
+        reason="Open Telemetry doesn't send this span for python. But according to the OTEL specification it would be recommended ",
+    )
+    @missing_feature(
+        library="nodejs_otel",
+        reason="Open Telemetry doesn't send this span for nodejs. But according to the OTEL specification it would be recommended",
+    )
     def test_db_sql_table(self):
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
         for db_operation, request in self.requests[self.db_service].items():
@@ -243,9 +249,18 @@ class _BaseIntegrationsSqlTestClass:
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.jdbc.driver_classname"].strip(), f"Test is failing for {db_operation}"
 
-    @missing_feature(library="java_otel", reason="OpenTelemetry uses error.msg")
-    @missing_feature(library="python_otel", reason="OpenTelemetry uses error.msg")
-    @missing_feature(library="nodejs_otel", reason="OpenTelemetry uses error.msg")
+    @bug(
+        library="java_otel",
+        reason="OpenTelemetry uses error.msg. Pending confirmation if this is a bug or if it is irrelevant.",
+    )
+    @bug(
+        library="python_otel",
+        reason="OpenTelemetry uses error.msg. Pending confirmation if this is a bug or if it is irrelevant.",
+    )
+    @bug(
+        library="nodejs_otel",
+        reason="OpenTelemetry uses error.msg. Pending confirmation if this is a bug or if it is irrelevant.",
+    )
     def test_error_message(self):
         """ A string representing the error message. """
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select_error"])
@@ -303,9 +318,9 @@ class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
 class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
     """ Encapsulates agent interface specific validations """
 
-    @missing_feature(library="java_otel", reason="OpenTelemetry uses db.statement")
-    @missing_feature(library="python_otel", reason="OpenTelemetry uses db.statement")
-    @missing_feature(library="nodejs_otel", reason="OpenTelemetry uses db.statement")
+    @irrelevant(library="java_otel", reason="OpenTelemetry uses db.statement")
+    @irrelevant(library="python_otel", reason="OpenTelemetry uses db.statement")
+    @irrelevant(library="nodejs_otel", reason="OpenTelemetry uses db.statement")
     def test_sql_query(self):
         """ Usually the query """
         for db_operation, request in self.requests[self.db_service].items():
@@ -387,9 +402,9 @@ class _BaseOtelAgentIntegrationsSqlTestClass(_BaseAgentIntegrationsSqlTestClass)
                     span["meta"]["db.statement"].count("?") == 3
                 ), f"The query is not properly obfuscated for operation {db_operation}"
 
-    @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
-    @missing_feature(library="python_otel", reason="Open Telemetry doesn't generate this span")
-    @missing_feature(library="nodejs_otel", reason="Open Telemetry doesn't generate this span")
+    @irrelevant(library="java_otel", reason="Open Telemetry doesn't generate this span")
+    @irrelevant(library="python_otel", reason="Open Telemetry doesn't generate this span")
+    @irrelevant(library="nodejs_otel", reason="Open Telemetry doesn't generate this span")
     def test_db_row__count(self):
         super().test_db_row__count()
 
@@ -403,10 +418,10 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     db_service = "postgresql"
 
     @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
-    @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
-    @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
-    @missing_feature(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
+    @irrelevant(library="python", reason="Python is using the correct span: db.system")
+    @irrelevant(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
+    @irrelevant(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
+    @irrelevant(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
     def test_db_type(self):
         super().test_db_type()
 
@@ -440,7 +455,7 @@ class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
 
     db_service = "mysql"
 
-    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     @bug(library="python", reason="the value of this span should be 'world' instead of  'b'world'' ")
     def test_db_name(self):
         super().test_db_name()
@@ -482,8 +497,12 @@ class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="java_otel", reason="Open Telemetry doesn't generate this span")
-    @missing_feature(library="nodejs_otel", reason="Open Telemetry doesn't generate this span")
+    @irrelevant(
+        library="java_otel", reason="Open Telemetry doesn't generate this span. It's recomended but not mandatory"
+    )
+    @irrelevant(
+        library="nodejs_otel", reason="Open Telemetry doesn't generate this span. It's recomended but not mandatory"
+    )
     def test_db_mssql_instance__name(self):
         """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
             This value should be set only if it’s specified on the mssql connection string. """
@@ -494,7 +513,7 @@ class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
             ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
 
     @bug(library="python", reason=" https://github.com/DataDog/dd-trace-py/issues/7104")
-    @missing_feature(library="java", reason="Java is using the correct span: db.instance")
+    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         super().test_db_name()
 
@@ -562,7 +581,10 @@ class Test_Agent_Mssql_db_otel_integration(_BaseOtelAgentIntegrationsSqlTestClas
     def test_resource(self):
         super().test_resource()
 
-    @missing_feature(library="nodejs_otel", reason="Open telemetry doesn't send this span for nodejs and mssql")
+    @irrelevant(
+        library="nodejs_otel",
+        reason="Open telemetry doesn't send this span for nodejs and mssql. It's recomended but not mandatory",
+    )
     def test_db_connection__string(self):
         super().test_db_connection__string()
 
