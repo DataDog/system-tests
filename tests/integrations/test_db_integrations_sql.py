@@ -351,7 +351,10 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                             # workaround to avoid conflicts on postgres + nodejs + opentelemetry
                             and span_child["name"] != "pg.connect"
                             # workaround to avoid conflicts on mssql + nodejs + opentelemetry
-                            and span_child["meta"]["db.statement"] != "SELECT 1;"
+                            and (
+                                "db.statement" not in span_child["meta"]
+                                or span_child["meta"]["db.statement"] != "SELECT 1;"
+                            )
                         ):
                             logger.debug("Agent: Span type sql found!")
                             logger.info(
@@ -399,11 +402,11 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
 
     db_service = "postgresql"
 
+    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     @missing_feature(library="python", reason="Python is using the correct span: db.system")
     @missing_feature(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
     @missing_feature(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
-    @missing_feature(library="python", reason="Python is using the correct span: db.system")
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
+    @missing_feature(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
     def test_db_type(self):
         super().test_db_type()
 
@@ -490,18 +493,18 @@ class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
                 "db.mssql.instance_name"
             ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
 
-    @bug(library="python", reason="bug on pyodbc driver?")
+    @bug(library="python", reason=" https://github.com/DataDog/dd-trace-py/issues/7104")
     @missing_feature(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         super().test_db_name()
 
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
-    @bug(library="python", reason="bug on pyodbc driver?")
+    @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
     def test_db_system(self):
         super().test_db_system()
 
-    @bug(library="python", reason="bug on pyodbc driver?")
+    @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
     def test_db_user(self):
         super().test_db_user()
 
