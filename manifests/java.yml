@@ -723,19 +723,15 @@ tests/:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
-      Test_Debugger_Line_Probe_Statuses:
-        '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        uds-spring-boot: v0.1  # real version not known
       Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
-      Test_Debugger_Method_Probe_Statuses:
+      Test_Debugger_Mix_Log_Probe:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
-      Test_Debugger_Mix_Log_Probe:
+      Test_Debugger_Probe_Statuses:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known

@@ -94,30 +94,27 @@ def validate_spans(expected_spans):
         check_trace(expected_trace, span_map)
 
 
-@scenarios.debugger_method_probes_status
-class Test_Debugger_Method_Probe_Statuses:
+@scenarios.debugger_probes_status
+class Test_Debugger_Probe_Statuses:
     def test_method_probe_status(self):
         expected_probes = {
-            "loga0cf2-9e4e-45cf-9f39-591received": "RECEIVED",
-            "loga0cf2-9e4e-45cf-9f39-59installed": "INSTALLED",
-            "metricf2-9e4e-45cf-9f39-591received": "RECEIVED",
-            "metricf2-9e4e-45cf-9f39-59installed": "INSTALLED",
-            "span0cf2-9e4e-45cf-9f39-591received": "RECEIVED",
-            "span0cf2-9e4e-45cf-9f39-59installed": "INSTALLED",
-            "decorcf2-9e4e-45cf-9f39-591received": "RECEIVED",
-            "decorcf2-9e4e-45cf-9f39-59installed": "INSTALLED",
+            "loga0cf2-meth-45cf-9f39-591received": "RECEIVED",
+            "loga0cf2-meth-45cf-9f39-59installed": "INSTALLED",
+            "metricf2-meth-45cf-9f39-591received": "RECEIVED",
+            "metricf2-meth-45cf-9f39-59installed": "INSTALLED",
+            "span0cf2-meth-45cf-9f39-591received": "RECEIVED",
+            "span0cf2-meth-45cf-9f39-59installed": "INSTALLED",
+            "decorcf2-meth-45cf-9f39-591received": "RECEIVED",
+            "decorcf2-meth-45cf-9f39-59installed": "INSTALLED",
         }
 
         validate_probes(expected_probes)
 
-
-@scenarios.debugger_line_probes_status
-class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
         expected_probes = {
-            "loga0cf2-9e4e-45cf-9f39-59installed": "INSTALLED",
-            "metricf2-9e4e-45cf-9f39-59installed": "INSTALLED",
-            "decorcf2-9e4e-45cf-9f39-59installed": "INSTALLED",
+            "loga0cf2-line-45cf-9f39-59installed": "INSTALLED",
+            "metricf2-line-45cf-9f39-59installed": "INSTALLED",
+            "decorcf2-line-45cf-9f39-59installed": "INSTALLED",
         }
 
         validate_probes(expected_probes)
