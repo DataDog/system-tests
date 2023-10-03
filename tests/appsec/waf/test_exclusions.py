@@ -17,6 +17,7 @@ class Test_Exclusions:
     def setup_input_exclusion_positive_test(self):
         self.r_iexpt = weblog.get("/waf/", params={"excluded_key": "true", "activate_exclusion": "true"})
 
+    @bug(library="nodejs", reason="Exclusion not supported yet when the same address is send twice to the waf")
     def test_input_exclusion_positive_test(self):
         interfaces.library.assert_no_appsec_event(self.r_iexpt)
 
