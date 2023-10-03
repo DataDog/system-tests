@@ -1,3 +1,5 @@
+#if DDTRACE_2_23_0_OR_GREATER
+
 #nullable enable
 using System;
 using System.Text;
@@ -100,3 +102,4 @@ public class LoginController : Controller
         return RedirectToAction(nameof(Index));
     }
 }
+#endif

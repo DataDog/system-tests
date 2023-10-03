@@ -33,5 +33,7 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV APP_EXTRA_ARGS="--port 7777"
 # https://docs.hazelcast.com/hazelcast/5.3/phone-homes
 ENV HZ_PHONE_HOME_ENABLED=false
+# https://blog.payara.fish/faster-payara-micro-startup-times-with-openj9
+ENV payaramicro_noCluster=true
 
 CMD [ "/app/app.sh" ]

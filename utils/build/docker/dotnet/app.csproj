@@ -9,6 +9,9 @@
 	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.7.0'">
 		<DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.23.0'">
+		<DefineConstants>$(DefineConstants);DDTRACE_2_23_0_OR_GREATER</DefineConstants>
+	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="MySql.Data" Version="8.0.30" />
 		<PackageReference Include="Npgsql" Version="4.0.10" />

@@ -1,12 +1,13 @@
 FROM datadog/system-tests:uwsgi-poc.base-v0
 
-COPY utils/build/docker/python/flask /app
-COPY utils/build/docker/python/iast.py /app/iast.py
 WORKDIR /app
-ENV FLASK_APP=app.py
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
+COPY utils/build/docker/python/flask /app
+COPY utils/build/docker/python/iast.py /app/iast.py
+ENV FLASK_APP=app.py
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1

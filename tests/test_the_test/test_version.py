@@ -40,7 +40,7 @@ def test_version_comparizon():
     assert Version("1.0.0beta1", "ruby") < Version("1.0.0beta1+8a50f1f", "ruby")
 
     assert Version("1.1.0rc2.dev15+gc41d325d", "python") >= "1.1.0rc2.dev"
-    assert Version("1.1.0", "python") >= "1.1.0rc2.dev"
+    assert Version("1.1.0", "python") > "1.1.0rc2.dev"
 
 
 def test_version_serialization():

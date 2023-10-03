@@ -1,12 +1,9 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import pytest
-from utils import weblog, interfaces, context, bug, missing_feature, coverage, released
-from ..iast_fixtures import SinkFixture, get_iast_event, assert_iast_vulnerability
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import weblog, context, bug, missing_feature, coverage
+from .._test_iast_fixtures import SinkFixture, assert_iast_vulnerability
 
 
 def _expected_location():
@@ -28,9 +25,6 @@ def _expected_location():
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", java="0.108.0", php_appsec="?", python="1.6.0", ruby="?")
-@released(nodejs={"express4": "3.11.0", "*": "?"})
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakHash:
     """Verify weak hash detection."""
 
@@ -60,7 +54,6 @@ class TestWeakHash:
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
 
     @missing_feature(weblog_variant="spring-boot-openliberty")
-    @missing_feature(library="python", reason="Need to be implement duplicates vulnerability hashes")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -90,7 +83,6 @@ class TestWeakHash:
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
@@ -99,6 +91,5 @@ class TestWeakHash:
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

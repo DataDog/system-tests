@@ -1,8 +1,11 @@
+import os
+import random
+import subprocess
+
 import psycopg2
 import requests
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
-from flask import Flask, Response
+from flask import Flask, Response, jsonify
+from flask import request
 from flask import request as flask_request
 from iast import (
     weak_cipher,
@@ -12,6 +15,12 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+from integrations.db.mssql import executeMssqlOperation
+from integrations.db.mysqldb import executeMysqlOperation
+from integrations.db.postgres import executePostgresOperation
+
+from ddtrace import Pin, tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -44,14 +53,17 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 @app.route("/waf/", methods=["GET", "POST", "OPTIONS"])
 @app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
 @app.route("/params/<path>", methods=["GET", "POST", "OPTIONS"])
-@app.route("/tag_value/<string:value>/<int:code>", methods=["GET", "POST", "OPTIONS"])
+@app.route("/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"])
 def waf(*args, **kwargs):
-    if "value" in kwargs:
+    if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
         )
-        return "Value tagged", kwargs["code"], flask_request.args
-    return "Hello, World!\\n"
+        if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
+            return jsonify({"payload": request.form})
+
+        return "Value tagged", kwargs["status_code"], flask_request.args
+    return "Hello, World!\n"
 
 
 @app.route("/read_file", methods=["GET"])
@@ -258,6 +270,24 @@ def view_iast_source_parameter():
     return Response("OK")
 
 
+@app.route("/iast/path_traversal/test_insecure", methods=["POST"])
+def view_iast_path_traversal_insecure():
+    path = flask_request.form["path"]
+    os.mkdir(path)
+    return Response("OK")
+
+
+@app.route("/iast/path_traversal/test_secure", methods=["POST"])
+def view_iast_path_traversal_secure():
+    path = flask_request.form["path"]
+    root_dir = "/home/usr/secure_folder/"
+
+    if os.path.commonprefix((os.path.realpath(path), root_dir)) == root_dir:
+        open(path)
+
+    return Response("OK")
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
@@ -311,4 +341,122 @@ def view_sqli_insecure():
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     cursor.execute(sql)
+    return Response("OK")
+
+
+@app.route("/iast/insecure-cookie/test_insecure")
+def test_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="None")
+    return resp
+
+
+@app.route("/iast/insecure-cookie/test_secure")
+def test_secure_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/insecure-cookie/test_empty_cookie")
+def test_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-httponly-cookie/test_insecure")
+def test_nohttponly_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=True, httponly=False, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-httponly-cookie/test_secure")
+def test_nohttponly_secure_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-httponly-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_insecure")
+def test_nosamesite_insecure_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "cookie", secure=True, httponly=True, samesite="None")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_secure")
+def test_nosamesite_secure_cookie():
+    resp = Response("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/weak_randomness/test_insecure")
+def test_weak_randomness_insecure():
+    _ = random.randint(1, 100)
+    return Response("OK")
+
+
+@app.route("/iast/weak_randomness/test_secure")
+def test_weak_randomness_secure():
+    random_secure = random.SystemRandom()
+    _ = random_secure.randint(1, 100)
+    return Response("OK")
+
+
+@app.route("/iast/cmdi/test_insecure", methods=["POST"])
+def view_cmdi_insecure():
+    filename = "/"
+    command = flask_request.form["cmd"]
+    subp = subprocess.Popen(args=[command, "-la", filename])
+    subp.communicate()
+    subp.wait()
+
+    return Response("OK")
+
+
+@app.route("/iast/cmdi/test_secure", methods=["POST"])
+def view_cmdi_secure():
+    filename = "/"
+    command = " ".join([flask_request.form["cmd"], "-la", filename])
+    # TODO: add secure command
+    # subp = subprocess.check_output(command, shell=False)
+    # subp.communicate()
+    # subp.wait()
+    return Response("OK")
+
+
+@app.route("/db", methods=["GET", "POST", "OPTIONS"])
+def db():
+    service = flask_request.args.get("service")
+    operation = flask_request.args.get("operation")
+
+    print("REQUEST RECEIVED!")
+
+    if service == "postgresql":
+        executePostgresOperation(operation)
+    elif service == "mysql":
+        executeMysqlOperation(operation)
+    elif service == "mssql":
+        executeMssqlOperation(operation)
+    else:
+        print(f"SERVICE NOT SUPPORTED: {service}")
+
+    return "YEAH"
+
+
+@app.route("/createextraservice", methods=["GET"])
+def create_extra_service():
+    new_service_name = request.args.get("serviceName", default="", type=str)
+    if new_service_name:
+        Pin.override(Flask, service=new_service_name, tracer=tracer)
     return Response("OK")

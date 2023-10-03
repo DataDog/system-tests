@@ -13,6 +13,12 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.trace.api.Trace;
 import datadog.trace.api.interceptor.MutableSpan;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ognl.Ognl;
@@ -46,6 +52,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.Instant;
 import java.util.Scanner;
 
 import org.springframework.web.servlet.view.RedirectView;
@@ -65,6 +72,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
+import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
+import static io.opentelemetry.api.trace.StatusCode.ERROR;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 
 @RestController
@@ -76,7 +86,11 @@ public class App {
     MongoClient mongoClient;
 
     @RequestMapping("/")
-    String home() {
+    String home(HttpServletResponse response) {
+        // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
+        // if a java engineer knows how to remove this?
+        // waiting for that, just set a random value 
+        response.setHeader("Content-Language", "not-set");
         return "Hello World!";
     }
 
@@ -479,6 +493,47 @@ public class App {
         return new RedirectView("https://" + redirect);
     }
 
+    @RequestMapping("/e2e_otel_span")
+    String e2eOtelSpan(@RequestHeader(name = "User-Agent") String userAgent,
+                       @RequestParam(name="parentName") String parentName,
+                       @RequestParam(name="childName") String childName,
+                       @RequestParam(required = false, name="shouldIndex") int shouldIndex) {
+        // Get an OpenTelemetry tracer
+        Tracer tracer = GlobalOpenTelemetry.getTracer("system-tests");
+        // Aggregate common attributes
+        AttributesBuilder commonAttributesBuilder = Attributes.builder()
+                .put("http.useragent", userAgent);
+        if (shouldIndex == 1) {
+            commonAttributesBuilder.put("_dd.filter.kept", 1);
+            commonAttributesBuilder.put("_dd.filter.id", "system_tests_e2e");
+        }
+        Attributes commonAttributes = commonAttributesBuilder.build();
+        // Create parent span according test requirements
+        SpanBuilder parentSpanBuilder = tracer.spanBuilder(parentName)
+                .setNoParent()
+                .setAllAttributes(commonAttributes)
+                .setAttribute("attributes", "values");
+        io.opentelemetry.api.trace.Span parentSpan = parentSpanBuilder.startSpan();
+        parentSpan.setStatus(ERROR, "testing_end_span_options");
+
+        try (Scope scope = parentSpan.makeCurrent()) {
+            // Create child span according test requirements
+            Instant now = Instant.now();
+            Instant oneSecLater = now.plus(1, SECONDS);
+
+            io.opentelemetry.api.trace.Span childSpan = tracer.spanBuilder(childName)
+                    .setStartTimestamp(now)
+                    .setAllAttributes(commonAttributes)
+                    .setSpanKind(INTERNAL)
+                    .startSpan();
+
+            childSpan.end(oneSecLater);
+        }
+        parentSpan.end();
+
+        return "OK";
+    }
+
     @RequestMapping("/e2e_single_span")
     String e2eSingleSpan(@RequestHeader(required = true, name = "User-Agent") String userAgent,
                          @RequestParam(required = true, name="parentName") String parentName,
@@ -527,6 +582,44 @@ public class App {
         }
 
         return new ResponseEntity<>(content, HttpStatus.OK);
+    }
+
+    @RequestMapping("/db")
+    String db_sql_integrations(@RequestParam(required = true, name="service") String service,
+                         @RequestParam(required = true, name="operation") String operation)
+  {
+        System.out.println("DB service [" + service + "], operation: [" + operation + "]");
+        com.datadoghq.system_tests.springboot.integrations.db.DBFactory dbFactory = new com.datadoghq.system_tests.springboot.integrations.db.DBFactory();
+
+        com.datadoghq.system_tests.springboot.integrations.db.ICRUDOperation crudOperation = dbFactory.getDBOperator(service);
+
+        switch (operation) {
+           case "init":
+                crudOperation.createSampleData();
+                break;
+            case "select":
+                crudOperation.select();
+                break;
+            case "select_error":
+                crudOperation.selectError();
+                break;
+            case "insert":
+                crudOperation.insert();
+                break;
+            case "delete":
+                crudOperation.delete();
+                break;
+            case "update":
+                crudOperation.update();
+                break;
+            case "procedure":
+                crudOperation.callProcedure();
+                break;
+            default:
+                throw new UnsupportedOperationException("Operation " + operation + " not allowed");
+        }
+
+        return "OK";
     }
 
     @Bean

@@ -14,6 +14,7 @@ import requests
 
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
+from utils import interfaces
 
 
 @lru_cache
@@ -44,6 +45,7 @@ class TestedContainer:
         environment=None,
         allow_old_container=False,
         healthcheck=None,
+        stdout_interface=None,
         **kwargs,
     ) -> None:
         self.name = name
@@ -56,6 +58,7 @@ class TestedContainer:
         self.environment = environment
         self.kwargs = kwargs
         self._container = None
+        self.stdout_interface = stdout_interface
 
     def configure(self, replay):
 
@@ -69,6 +72,9 @@ class TestedContainer:
             self.image.save_image_info(self.log_folder_path)
         else:
             self.image.load_from_logs(self.log_folder_path)
+
+        if self.stdout_interface is not None:
+            self.stdout_interface.configure(replay)
 
     @property
     def container_name(self):
@@ -178,32 +184,67 @@ class TestedContainer:
 
         self.kwargs["volumes"] = result
 
-    def save_logs(self):
-        if not self._container:
-            return
-
-        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(self._container.logs(stdout=True, stderr=False))
-
-        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(self._container.logs(stdout=False, stderr=True))
-
     def stop(self):
         self._container.stop()
 
     def remove(self):
+        logger.debug(f"Removing container {self.name}")
 
-        if not self._container:
-            return
+        if self._container:
+            try:
+                # collect logs before removing
+                with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
+                    f.write(self._container.logs(stdout=True, stderr=False))
 
-        try:
-            self._container.remove(force=True)
-        except:
-            # Sometimes, the container does not exists.
-            # We can safely ignore this, because if it's another issue
-            # it will be killed at startup
+                with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
+                    f.write(self._container.logs(stdout=False, stderr=True))
 
-            pass
+                self._container.remove(force=True)
+            except:
+                # Sometimes, the container does not exists.
+                # We can safely ignore this, because if it's another issue
+                # it will be killed at startup
+
+                pass
+
+        if self.stdout_interface is not None:
+            self.stdout_interface.load_data()
+
+
+class SqlDbTestedContainer(TestedContainer):
+    def __init__(
+        self,
+        name,
+        image_name,
+        host_log_folder,
+        environment=None,
+        allow_old_container=False,
+        healthcheck=None,
+        stdout_interface=None,
+        ports=None,
+        db_user=None,
+        db_password=None,
+        db_instance=None,
+        db_host=None,
+        dd_integration_service=None,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            image_name=image_name,
+            name=name,
+            host_log_folder=host_log_folder,
+            environment=environment,
+            stdout_interface=stdout_interface,
+            healthcheck=healthcheck,
+            allow_old_container=allow_old_container,
+            ports=ports,
+            **kwargs,
+        )
+        self.dd_integration_service = dd_integration_service
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_instance = db_instance
 
 
 class ImageInfo:
@@ -233,7 +274,8 @@ class ImageInfo:
 
         for var in attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
-            self.env[key] = value
+            if value:
+                self.env[key] = value
 
     def save_image_info(self, dir_path):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
@@ -283,8 +325,12 @@ class AgentContainer(TestedContainer):
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
-            healthcheck={"test": f"curl --fail http://localhost:{self.agent_port}/info", "retries": 60},
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{self.agent_port}/info",
+                "retries": 60,
+            },
             ports={self.agent_port: f"{self.agent_port}/tcp"},
+            stdout_interface=interfaces.agent_stdout,
         )
 
         self.agent_version = None
@@ -334,8 +380,9 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail localhost:{weblog.port}", "retries": 60},
+            healthcheck={"test": f"curl --fail --silent --show-error localhost:{weblog.port}", "retries": 60},
             ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
+            stdout_interface=interfaces.library_stdout,
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
@@ -379,6 +426,12 @@ class WeblogContainer(TestedContainer):
 
         if self.library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
+
+            if self.library == "python":
+                # activating debug log on python causes a huge amount of logs, making the network
+                # stack fails a lot randomly
+                self.environment["DD_TRACE_DEBUG"] = "false"
+
         elif self.library in ("golang", "nodejs", "php", "ruby"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
         else:
@@ -391,6 +444,10 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
         else:
             self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
+
+        if self.weblog_variant == "python3.12":
+            # IAST is not working as now on python3.12
+            self.environment["DD_IAST_ENABLED"] = "false"
 
     @property
     def library(self):
@@ -411,7 +468,7 @@ class WeblogContainer(TestedContainer):
         return 2
 
 
-class PostgresContainer(TestedContainer):
+class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="postgres:latest",
@@ -425,6 +482,12 @@ class PostgresContainer(TestedContainer):
                     "mode": "ro",
                 }
             },
+            stdout_interface=interfaces.postgres,
+            dd_integration_service="postgresql",
+            db_user="system_tests_user",
+            db_password="system_tests",
+            db_host="postgres",
+            db_instance="system_tests",
         )
 
 
@@ -493,7 +556,7 @@ class RabbitMqContainer(TestedContainer):
         )
 
 
-class MySqlContainer(TestedContainer):
+class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="mysql/mysql-server:latest",
@@ -507,18 +570,30 @@ class MySqlContainer(TestedContainer):
             allow_old_container=True,
             host_log_folder=host_log_folder,
             healthcheck={"test": "/healthcheck.sh", "retries": 60},
+            dd_integration_service="mysql",
+            db_user="mysqldb",
+            db_password="mysqldb",
+            db_host="mysqldb",
+            db_instance="world",
         )
 
 
-class SqlServerContainer(TestedContainer):
+class SqlServerContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
+        self.data_mssql = f"./{host_log_folder}/data-mssql"
         super().__init__(
-            image_name="mcr.microsoft.com/mssql/server:latest",
-            name="sqlserver",
-            environment={"SA_PASSWORD": "Strong!Passw0rd", "ACCEPT_EULA": "Y",},
+            image_name="mcr.microsoft.com/azure-sql-edge:latest",
+            name="mssql",
+            environment={"ACCEPT_EULA": "1", "MSSQL_SA_PASSWORD": "yourStrong(!)Password"},
             allow_old_container=True,
             host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
+            #  volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
+            dd_integration_service="mssql",
+            db_user="SA",
+            db_password="yourStrong(!)Password",
+            db_host="mssql",
+            db_instance="master",
         )
 
 
@@ -528,7 +603,9 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
 
         if "DOCKER_HOST" in os.environ:
-            self._otel_host = re.sub(r"^ssh://([^@]+@|)", "", os.environ["DOCKER_HOST"])
+            m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+            if m is not None:
+                self._otel_host = m.group(1)
         else:
             self._otel_host = "localhost"
 

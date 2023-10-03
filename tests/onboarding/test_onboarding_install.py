@@ -1,6 +1,4 @@
-import pytest
-
-from utils import missing_feature, context, scenarios
+from utils import scenarios
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id

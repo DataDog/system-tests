@@ -5,9 +5,10 @@ import pytest
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span
+from utils import missing_feature, context, scenarios
+
 from .conftest import _TestAgentAPI
 from .conftest import APMLibrary
-from utils import missing_feature, context, scenarios, released
 
 
 parametrize = pytest.mark.parametrize
@@ -43,7 +44,6 @@ class Test_Tracer:
 
 
 @scenarios.parametric
-@released(python="0.36.0")
 class Test_TracerUniversalServiceTagging:
     @missing_feature(reason="FIXME: library test client sets empty string as the service name")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])
