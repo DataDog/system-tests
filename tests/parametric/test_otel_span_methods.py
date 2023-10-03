@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
 from utils.parametric.spec.otel_trace import OtelSpan
-from utils.parametric.spec.otel_trace import SK_PRODUCER
+from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.test_agent import get_span
@@ -286,3 +286,535 @@ class Test_Otel_Span_Methods:
                     assert context.get("trace_id") == parent.span_context().get("trace_id")
                     assert context.get("span_id") == "{:016x}".format(span.span_id)
                     assert context.get("trace_flags") == "01"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_http_server_request(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to "http.server.request" when:
+            - Span kind is set to Server
+            - http.request.method is set to something (e.g., GET in this example)
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/http/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+                span.set_attributes({"http.request.method": "GET"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "http.server.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_http_client_request(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to "http.client.request" when:
+            - Span kind is set to Client
+            - http.request.method is set to something (e.g., GET in this example)
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/http/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"http.request.method": "GET"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "http.client.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_database_001(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `db.system + "." + db.operation` when:
+            - Span kind is set to Client
+            - db.system is set to something (e.g., mongodb in this example)
+            - db.operation is set to something (e.g., delete in this example)
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/database/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"db.system": "mongodb"})
+                span.set_attributes({"db.operation": "delete"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "mongodb.delete"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_database_002(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `db.system + ".query"` when:
+            - Span kind is set to Client
+            - db.system is set to something (e.g., mongodb in this example)
+            - db.operation is NOT set
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/database/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"db.system": "mongodb"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "mongodb.query"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_message_consumer_001(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
+            - Span kind is set to Client
+            - messaging.system is set to something
+            - messaging.operation is set to something
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"messaging.system": "kafka"})
+                span.set_attributes({"messaging.operation": "receive"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "kafka.receive"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_message_consumer_002(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
+            - Span kind is set to Consumer
+            - messaging.system is set to something
+            - messaging.operation is set to something
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CONSUMER) as span:
+                span.set_attributes({"messaging.system": "kafka"})
+                span.set_attributes({"messaging.operation": "receive"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "kafka.receive"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_message_producer(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
+            - Span kind is set to Producer
+            - messaging.system is set to something
+            - messaging.operation is set to something
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_PRODUCER) as span:
+                span.set_attributes({"messaging.system": "kafka"})
+                span.set_attributes({"messaging.operation": "publish"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "kafka.publish"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_aws_client(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to aws:
+            - Span kind is set to Client
+            - rpc.system is set to aws-api
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"rpc.system": "aws-api"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "aws"  # TODO is there more stuff here that needs to be done?
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_rpc_client(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to the `rpc.system + ".request"`
+            - Span kind is set to Client
+            - rpc.system is set to something
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/rpc/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"rpc.system": "grpc"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "grpc.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_rpc_server(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to the `rpc.system + ".call"`
+            - Span kind is set to Server
+            - rpc.system is set to something
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/rpc/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+                span.set_attributes({"rpc.system": "grpc"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "grpc.call"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_graphql(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `"graphql." + graphql.operationtype` when:
+            - Span kind is set to Server
+            - graphql.operation.type is set to something (e.g., query in this example)
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/graphql/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+                span.set_attributes({"graphql.operation.type": "query"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "graphql.query"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_generic_server_001(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `network.protocol.name` + ".server.request"` when:
+            - Span kind is set to Server
+            - network.protocol.name is set to something (e.g., amqp in this example)
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/span-general/#network-attributes)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+                span.set_attributes({"network.protocol.name": "amqp"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "amqp.server.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_generic_server_002(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to "unknown.server.request" when:
+            - Span kind is set to Server
+            - no other known attributes to help determine operation name
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "unknown.server.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_generic_client_001(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `network.protocol.name + ".client.request"` when:
+            - Span kind is set to Client
+            - network.protocol.name is set to something (e.g., amqp in this example)
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/span-general/#network-attributes)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"network.protocol.name": "amqp"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "amqp.client.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_generic_client_002(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to "unknown.client.request" when:
+            - Span kind is set to Client
+            - no other known attributes to help determine operation name
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "unknown.client.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_faas_server(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `faas.trigger + ".trigger"` when:
+            - Span kind is set to Server
+            - faas.trigger is present with a value
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/faas/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+                span.set_attributes({"faas.trigger": "datasource"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "datasource.trigger"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_faas_client(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `faas.invoked_provider + ".invoke"` when:
+            - Span kind is set to Client
+            - faas.invoked_provider is present with a value
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/faas/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"faas.invoked_provider": "alibaba_cloud"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "alibaba_cloud.invoke"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_internal_001(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `code.namespace + "." + code.function` when:
+            - Span kind is set to Internal
+            - code.namespace is set to Datadog
+            - code.function is set to Foo()
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_INTERNAL) as span:
+                span.set_attributes({"code.namespace": "Datadog"})
+                span.set_attributes({"code.function": "Foo()"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "Datadog.Foo()"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_internal_002(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to "unknown.operation" when:
+            - Span kind is set to Internal
+            - no other known attributes for setting the operation name
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_INTERNAL) as span:
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "unknown.operation"
+        assert root_span["resource"] == "otel_span_name"
