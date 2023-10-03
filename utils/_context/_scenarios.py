@@ -1224,7 +1224,12 @@ class scenarios:
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_PROBES_STATUS"},
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+        },
         library_interface_timeout=100,
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
     )
