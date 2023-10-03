@@ -4,7 +4,15 @@ import random
 import subprocess
 import threading
 
+<<<<<<< HEAD
 from confluent_kafka import Producer, Consumer
+=======
+import ddtrace
+ddtrace.patch_all()
+from threading import Thread
+import threading
+from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
+>>>>>>> aeb5cfcc (Adding python test for DSM)
 import psycopg2
 import requests
 from flask import Flask, Response, jsonify
@@ -21,6 +29,8 @@ from iast import (
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
+import logging
+import os
 
 import ddtrace
 
@@ -177,6 +187,8 @@ def dbm():
 
 @app.route("/dsm")
 def dsm():
+<<<<<<< HEAD
+<<<<<<< HEAD
     logging.basicConfig(
         format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -194,21 +206,76 @@ def dsm():
         message = b"Hello, Kafka!"
         producer.produce(topic, value=message, callback=delivery_report)
         producer.flush()
+=======
+=======
+    logging.basicConfig(
+        format = '%(asctime)s %(levelname)-8s %(message)s',
+        level = logging.INFO,
+        datefmt = '%Y-%m-%d %H:%M:%S')
+>>>>>>> b7316dc4 (Update to dsm tests)
+    topic = "dsm-system-tests-queue"
+    consumer_group = "testgroup1"
+    logging.info(os.environ)
+
+    def delivery_report(err, msg):
+        logging.info("[kafka] start delivery_report")
+        if err is not None:
+            logging.info(f"[kafka] Message delivery failed: {err}")
+        elif msg is not None:
+            logging.info("[kafka] Delivered to partition:")
+            logging.info(msg.partition())
+            logging.info(f"[kafka] Message delivered to {msg.partition()}")
+        else:
+            logging.info("[kafka] Both err and msg are None")
+        logging.info("[kafka] done delivery_report")
+
+    def produce():
+        logging.info("[kafka] Before creating Producer")
+        logging.info(os.getpid())
+        producer = Producer({
+            'bootstrap.servers': 'kafka:9092',
+            'client.id': "python-producer"
+        })
+        message = b"Hello, Kafka!"
+        logging.info("[kafka] Before produce")
+        producer.produce(topic, value=message, callback=delivery_report)
+<<<<<<< HEAD
+        producer.flush()
+        print("[kafka] Produced and flushed message")
+>>>>>>> aeb5cfcc (Adding python test for DSM)
+=======
+        logging.info("[kafka] After produce, before flush")
+        producer.poll()
+        logging.info("[kafka] Produced and flushed message")
+>>>>>>> b7316dc4 (Update to dsm tests)
 
     def consume():
+        logging.info("[kafka] Before creating Consumer")
+        logging.info(os.getpid())
         consumer = Consumer(
             {
+<<<<<<< HEAD
                 "bootstrap.servers": "kafka:9092",
                 "group.id": consumer_group,
                 "enable.auto.commit": True,
                 "auto.offset.reset": "earliest",
             }
         )
+=======
+                'bootstrap.servers': 'kafka:9092',
+                'group.id': consumer_group,
+                'enable.auto.commit': True,
+                'auto.offset.reset': 'earliest',
+            })
+>>>>>>> aeb5cfcc (Adding python test for DSM)
 
+        logging.info("[kafka] Before subscribe")
         consumer.subscribe([topic])
 
         msg_received = False
         while not msg_received:
+<<<<<<< HEAD
+<<<<<<< HEAD
             msg = consumer.poll(1)
             if msg is None:
                 logging.info("[kafka] Consumed message but got nothing")
@@ -216,19 +283,69 @@ def dsm():
                 logging.info("[kafka] Consumed message but got error " + msg.error())
             else:
                 logging.info("[kafka] Consumed message")
+=======
+=======
+            logging.info("[kafka] Before poll")
+>>>>>>> b7316dc4 (Update to dsm tests)
+            msg = consumer.poll(10)
+            logging.info("[kafka] After poll")
+            if msg is None:
+                logging.info("[kafka] Consumed message but got nothing")
+            elif msg.error():
+                logging.info("[kafka] Consumed message but got error " + msg.error())
+            else:
+<<<<<<< HEAD
+                print("[kafka] Consumed message: ")
+                print(f"[kafka] from topic {msg.topic()}, partition {msg.partition()}, offset {msg.offset()}, key {str(msg.key())}")
+                print(f"[kafka] value {msg.value()}")
+>>>>>>> aeb5cfcc (Adding python test for DSM)
+=======
+                logging.info("[kafka] Consumed message: ")
+<<<<<<< HEAD
+                logging.info(f"[kafka] from topic {msg.topic()}, partition {msg.partition()}, offset {msg.offset()}, key {str(msg.key())}")
+                logging.info(f"[kafka] value {msg.value()}")
+>>>>>>> b7316dc4 (Update to dsm tests)
+=======
+>>>>>>> 85022733 (narrow down the segsigv)
                 msg_received = True
         consumer.close()
 
     integration = flask_request.args.get("integration")
+<<<<<<< HEAD
+<<<<<<< HEAD
     logging.info(f"[kafka] Got request with integration: {integration}")
     if integration == "kafka":
+=======
+    print(f"[kafka] Got request with integration: {integration}")
+    if integration == "kafka":
+        print("DD_DATA_STREAMS_ENABLED")
+        print(os.environ['DD_DATA_STREAMS_ENABLED'])
+        print(os.getenv('DD_DATA_STREAMS_ENABLED'))
+>>>>>>> aeb5cfcc (Adding python test for DSM)
+=======
+    logging.info(f"[kafka] Got request with integration: {integration}")
+    if integration == "kafka":
+        logging.info("DD_DATA_STREAMS_ENABLED")
+        logging.info(os.environ['DD_DATA_STREAMS_ENABLED'])
+        logging.info(os.getenv('DD_DATA_STREAMS_ENABLED'))
+>>>>>>> b7316dc4 (Update to dsm tests)
         produce_thread = threading.Thread(target=produce, args=())
         consume_thread = threading.Thread(target=consume, args=())
+        logging.info("[kafka] After create thread")
         produce_thread.start()
         consume_thread.start()
+        logging.info("[kafka] After thread start")
         produce_thread.join()
         consume_thread.join()
+<<<<<<< HEAD
+<<<<<<< HEAD
         logging.info("[kafka] Returning response")
+=======
+        print("[kafka] returning response")
+>>>>>>> aeb5cfcc (Adding python test for DSM)
+=======
+        logging.info("[kafka] returning response")
+>>>>>>> b7316dc4 (Update to dsm tests)
         return Response("ok")
 
     return Response(f"Integration is not supported: {integration}", 406)
