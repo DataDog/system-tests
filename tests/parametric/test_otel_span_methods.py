@@ -717,6 +717,56 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_generic_producer_001(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to "unknown.producer.request" when:
+            - Span kind is set to Producer
+            - no other known attributes to help determine operation name
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_PRODUCER) as span:
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "unknown.producer.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_generic_consumer_001(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to "unknown.consumer.request" when:
+            - Span kind is set to Consumer
+            - no other known attributes to help determine operation name
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CONSUMER) as span:
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "unknown.consumer.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_faas_server(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `faas.trigger + ".trigger"` when:
