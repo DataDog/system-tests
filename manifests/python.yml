@@ -68,14 +68,11 @@ tests/:
             python3.12: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
-            django-poc: v1.12.0
-            flask-poc: v1.12.0
-            pylons: missing_feature
+            '*': v1.12.0
             python3.12: missing_feature
-            uds-flask: missing_feature
-            uwsgi-poc: missing_feature
         test_ssrf.py:
-          TestSSRF: missing_feature
+            '*': v2.2.0
+            python3.12: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
