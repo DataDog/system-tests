@@ -24,6 +24,7 @@ VARIANT_COMPONENT_MAP = {
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
+    "nextjs": "next",
     "uwsgi-poc": "flask",
     "django-poc": "django",
     "python3.12": "django",

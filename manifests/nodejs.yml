@@ -15,6 +15,7 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Headers: missing_feature
     iast/:
+      nextjs: missing_feature
       sink/:
         test_command_injection.py:
           TestCommandInjection:
@@ -91,8 +92,12 @@ tests/:
       test_addresses.py:
         Test_BodyJson: v2.2.0
         Test_BodyRaw: missing_feature
-        Test_BodyUrlEncoded: v2.2.0
-        Test_BodyXml: v2.2.0
+        Test_BodyUrlEncoded: 
+            '*': v2.2.0
+            nextjs: missing_feature  # request.text() method does not decode the content, so can't detect the threat
+        Test_BodyXml: 
+            '*': v2.2.0
+            nextjs: missing_feature  # Body xml is not converted to JSON in nextjs
         Test_ClientIP: missing_feature
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
@@ -100,7 +105,9 @@ tests/:
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
-        Test_PathParams: v2.0.0
+        Test_PathParams: 
+            '*': v2.0.0
+            nextjs: missing_feature
         Test_ResponseStatus: v2.0.0
         Test_UrlQuery: v2.0.0
         Test_UrlQueryKey: v2.6.0
@@ -141,8 +148,12 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_automated_login_events.py:
-      Test_Login_Events: v4.4.0
-      Test_Login_Events_Extended: v4.4.0
+      Test_Login_Events: 
+        '*': v4.4.0
+        nextjs: missing_feature
+      Test_Login_Events_Extended: 
+        '*': v4.4.0
+        nextjs: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v3.19.0
       Test_BlockingGraphqlResolvers: missing_feature
@@ -167,9 +178,15 @@ tests/:
       Test_MissingRules: missing_feature
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
-      Test_CustomEvent: v3.13.0
-      Test_UserLoginFailureEvent: v3.13.0
-      Test_UserLoginSuccessEvent: v3.13.0
+      Test_CustomEvent: 
+        '*': v3.13.0
+        nextjs: missing_feature
+      Test_UserLoginFailureEvent: 
+        '*': v3.13.0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEvent: 
+        '*': v3.13.0
+        nextjs: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
@@ -261,12 +278,18 @@ tests/:
     Test_UrlField: v3.13.1
     Test_UrlQuery: v3.0.0
   test_semantic_conventions.py:
-    Test_Meta: v3.13.1
+    Test_Meta: 
+            '*': v3.13.1
+            nextjs: missing_feature # nextjs makes some internal requests and we have different tag names
     Test_MetricsStandardTags: v3.13.1
   test_standard_tags.py:
-    Test_StandardTagsClientIp: v3.6.0
+    Test_StandardTagsClientIp: 
+            '*': v3.6.0
+            nextjs: missing_feature # nextjs makes some internal requests, so we have more than 1 rootspans
     Test_StandardTagsMethod: v2.11.0
-    Test_StandardTagsRoute: v2.11.0
+    Test_StandardTagsRoute: 
+            '*': v2.11.0
+            nextjs: missing_feature # http.route not added in nextjs
     Test_StandardTagsStatusCode: v2.11.0
     Test_StandardTagsUrl: v3.0.0
     Test_StandardTagsUserAgent: v2.9.0
@@ -279,5 +302,6 @@ tests/:
     Test_ProductsDisabled: missing_feature
     Test_Telemetry:
       '*': v3.2.0
-      uds-express4: v3.7.0
+      uds-express4: v3.7.0,
+      nextjs: missing_feature
     Test_TelemetryV2: missing_feature

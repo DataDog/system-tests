@@ -134,6 +134,8 @@ jobs:
           weblog: uds-express4
         - library: nodejs
           weblog: express4-typescript
+        - library: nodejs
+          weblog: nextjs
         - library: php
           weblog: apache-mod-7.0
         - library: php
