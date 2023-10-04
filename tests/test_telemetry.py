@@ -169,7 +169,7 @@ class Test_Telemetry:
                     raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
     @bug(library="ruby", reason="app-started not sent")
-    @flaky(library="python", reason="app-started is sent twice")
+    @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
 
