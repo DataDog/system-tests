@@ -111,7 +111,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         data = self._wait_for_trace(
             rid=rid,
             trace_id=dd_trace_id,
-            retries=5,
+            retries=10,
             sleep_interval_multiplier=2.0,
             dd_api_key=dd_api_key,
             dd_app_key=dd_app_key,
@@ -349,7 +349,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         metric: str,
         dd_api_key=None,
         dd_app_key=None,
-        retries=10,
+        retries=12,
         sleep_interval_multiplier=2.0,
         initial_delay_s=10.0,
     ):
@@ -384,7 +384,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
     # Queries the backend log search API and returns the log matching the given query.
     def get_logs(
-        self, query: str, rid: str, dd_api_key=None, dd_app_key=None, retries=8, sleep_interval_multiplier=2.0
+        self, query: str, rid: str, dd_api_key=None, dd_app_key=None, retries=10, sleep_interval_multiplier=2.0
     ):
         path = f"/api/v2/logs/events?query={query}"
         sleep_interval_s = 1
