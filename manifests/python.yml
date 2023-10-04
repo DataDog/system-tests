@@ -51,25 +51,30 @@ tests/:
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.19.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': v1.19.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': v1.19.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': v2.1.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.12.0
             flask-poc: v1.12.0
+            fastapi-poc: missing_feature
             pylons: missing_feature
             python3.12: missing_feature
             uds-flask: missing_feature
@@ -85,14 +90,17 @@ tests/:
         test_weak_cipher.py:
           TestWeakCipher:
             '*': v1.7.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_weak_hash.py:
           TestWeakHash:
             '*': v1.6.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature        
@@ -105,29 +113,35 @@ tests/:
           TestRequestBody:
             django-poc: v1.20.0
             flask-poc: v1.20.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
             uds-flask: v1.20.0
             uwsgi-poc: v1.20.0
         test_cookie_name.py:
           TestCookieName:
             '*': v1.18.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_cookie_value.py:
           TestCookieValue:
             '*': v1.18.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_header_name.py:
           TestHeaderName:
             '*': v1.18.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
+            fastapi-poc: missing_feature
             python3.12: missing_feature
         test_parameter_name.py:
           TestParameterName:
             django-poc: v1.18.0
             flask-poc: missing_feature
+            fastapi-poc: missing_feature
             python3.12: missing_feature
             uds-flask: missing_feature
             uwsgi-poc: missing_feature
@@ -146,6 +160,7 @@ tests/:
         Test_Cookies:
           django-poc: v1.1.0rc2.dev
           flask-poc: v1.4.0rc1.dev
+          fastapi-poc: missing_feature
           pylons: v1.1.0rc2.dev
           python3.12: v1.1.0rc2.dev
           uds-flask: v1.4.0rc1.dev
@@ -158,6 +173,7 @@ tests/:
         Test_PathParams:
           django-poc: v1.1.0rc2.dev
           flask-poc: v1.4.0rc1.dev
+          fastapi-poc: missing_feature
           pylons: v1.1.0rc2.dev
           python3.12: v1.1.0rc2.dev
           uds-flask: v1.4.0rc1.dev
@@ -172,17 +188,22 @@ tests/:
           '*': v1.16.1
           django-poc: v1.10
           flask-poc: v1.10
-        Test_CustomBlockingResponse: v1.20.0.dev
+          fastapi-poc: missing_feature
+        Test_CustomBlockingResponse: 
+          '*': v1.20.0.dev
+          fastapi-poc: missing_feature
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.16.1
           django-poc: v1.12
           flask-poc: v1.12
+          fastapi-poc: missing_feature
       test_exclusions.py:
         Test_Exclusions:
           '*': v1.16.1
           django-poc: v1.12
           flask-poc: v1.12
+          fastapi-poc: missing_feature
       test_miscs.py:
         Test_404: v1.1.0rc2.dev
         Test_CorrectOptionProcessing: v1.1.0
