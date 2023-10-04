@@ -501,15 +501,17 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_aws_client(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to aws:
+            Tests that the operation name will be set to `rpc.system + "." + rpc.service.ToLower()` :
             - Span kind is set to Client
             - rpc.system is set to aws-api
+            - rpc.service is set to something (note the ToLower() on it when making the operation name)
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
                 span.set_attributes({"rpc.system": "aws-api"})
+                span.set_attributes({"rpc.service": "S3"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
@@ -517,7 +519,7 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "aws"  # TODO is there more stuff here that needs to be done?
+        assert root_span["name"] == "aws.s3"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
