@@ -40,7 +40,7 @@ class TestSqlInjection:
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(context.library < "python@2.1.0.dev", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
@@ -49,6 +49,6 @@ class TestSqlInjection:
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(context.library < "python@2.1.0.dev", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()
