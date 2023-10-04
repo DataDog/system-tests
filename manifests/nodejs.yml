@@ -15,7 +15,6 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Headers: missing_feature
     iast/:
-      nextjs: missing_feature
       sink/:
         test_command_injection.py:
           TestCommandInjection:
