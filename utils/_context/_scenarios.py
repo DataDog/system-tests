@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 import time
 import subprocess
+import json
 
 import pytest
 from watchdog.observers.polling import PollingObserver
@@ -840,6 +841,41 @@ class OnBoardingScenario(_Scenario):
 
 
 class ParametricScenario(_Scenario):
+    class PersistentParametricTestConf(dict):
+        """ Parametric tests are executed in multiple thread, we need a mechanism to persist each parametrized_tests_metadata on a file"""
+
+        def __init__(self, outer_inst):
+            self.outer_inst = outer_inst
+            # To handle correctly we need to add data by default
+            self.update({"scenario": outer_inst.name})
+
+        def __setitem__(self, item, value):
+            super().__setitem__(item, value)
+            # Append to the file
+            with open(f"{self.outer_inst.host_log_folder}/context.json", "a") as f:
+                json.dump({item: value}, f)
+                f.write(",")
+                f.write(os.linesep)
+
+        def deserialize(self):
+            with open(f"{self.outer_inst.host_log_folder}/context.json", "r") as f:
+                fileContent = f.read()
+                # Remove last carriage return and the last comma
+                all_params = json.loads(f"[{fileContent[:-2]}]")
+                # Change from array to unique dict
+                result = {}
+                for d in all_params:
+                    result.update(d)
+                return result
+
+    def __init__(self, name, doc) -> None:
+        super().__init__(name, doc=doc)
+        self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
+
+    @property
+    def parametrized_tests_metadata(self):
+        return self._parametric_tests_confs
+
     def configure(self, option):
         super().configure(option)
         assert "TEST_LIBRARY" in os.environ

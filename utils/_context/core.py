@@ -83,8 +83,12 @@ class _Context:
         result |= self.components
 
         # If a test is parametrized, it could contain specific data for each test. This node will contain this data associated with test id
+        # If we are on multi thread environment we need to store this data on a file. We should deserialize json data (extract data from file)
         if self.parametrized_tests_metadata:
-            result["parametrized_tests_metadata"] = self.parametrized_tests_metadata
+            try:
+                result["parametrized_tests_metadata"] = self.parametrized_tests_metadata.deserialize()
+            except AttributeError:
+                result["parametrized_tests_metadata"] = self.parametrized_tests_metadata
 
         if self.library == "php":
             result["php_appsec"] = self.php_appsec
