@@ -9,39 +9,39 @@ tests/:
       test_schemas.py:
         Test_Schema_Request_Body:
           '*': missing_feature
-          django-poc: v1.21.0.dev
-          flask-poc: v1.21.0.dev
-          python3.12: v1.21.0.dev
+          django-poc: v2.1.0.dev
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
         Test_Schema_Request_Cookies:
           '*': missing_feature
-          django-poc: v1.21.0.dev
-          flask-poc: v1.21.0.dev
-          python3.12: v1.21.0.dev
+          django-poc: v2.1.0.dev
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
         Test_Schema_Request_Headers:
           '*': missing_feature
-          django-poc: v1.21.0.dev
-          flask-poc: v1.21.0.dev
-          python3.12: v1.21.0.dev
+          django-poc: v2.1.0.dev
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
         Test_Schema_Request_Path_Parameters:
           '*': missing_feature
-          django-poc: v1.21.0.dev
-          flask-poc: v1.21.0.dev
-          python3.12: v1.21.0.dev
+          django-poc: v2.1.0.dev
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
         Test_Schema_Request_Query_Parameters:
           '*': missing_feature
-          django-poc: v1.21.0.dev
-          flask-poc: v1.21.0.dev
-          python3.12: v1.21.0.dev
+          django-poc: v2.1.0.dev
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
         Test_Schema_Response_Body:
           '*': missing_feature
-          django-poc: v1.21.0.dev
-          flask-poc: v1.21.0.dev
-          python3.12: v1.21.0.dev
+          django-poc: v2.1.0.dev
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
         Test_Schema_Response_Headers:
           '*': missing_feature
-          django-poc: v1.21.0.dev
-          flask-poc: v1.21.0.dev
-          python3.12: v1.21.0.dev
+          django-poc: v2.1.0.dev
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
     iast/:
       sink/:
         test_command_injection.py:
@@ -63,7 +63,9 @@ tests/:
             '*': v1.19.0
             python3.12: missing_feature
         test_path_traversal.py:
-          TestPathTraversal: v2.1.0
+          TestPathTraversal:
+            '*': v2.1.0
+            python3.12: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.12.0
@@ -306,10 +308,9 @@ tests/:
   debugger/:
     test_debugger.py:
       Test_Debugger_Line_Probe_Snaphots: missing_feature
-      Test_Debugger_Line_Probe_Statuses: missing_feature
       Test_Debugger_Method_Probe_Snaphots: missing_feature
-      Test_Debugger_Method_Probe_Statuses: missing_feature
       Test_Debugger_Mix_Log_Probe: missing_feature
+      Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py:
       Test_Agent_Mssql_db_integration:

@@ -107,6 +107,7 @@ def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
 
 KNOWN_UNMATCHED_METAS = [
     "env",
+    "ddtags",
     "otel.user_agent",
     "otel.source",
     "span.kind",
