@@ -1,4 +1,4 @@
-FROM python:3.12.0rc3-slim
+FROM python:3.10-slim
 
 # install bin dependancies
 RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
 RUN python --version && curl --version
 
 # install python deps
-RUN pip install fastapi
+RUN pip install fastapi uvicorn
 
 RUN mkdir app
 WORKDIR /app

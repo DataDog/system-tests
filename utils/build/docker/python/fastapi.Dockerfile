@@ -4,9 +4,11 @@ WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+RUN pip install PyYAML uvicorn
 
 COPY utils/build/docker/python/fastapi/app.sh /app/app.sh
 COPY utils/build/docker/python/fastapi/main.py /app/main.py
+COPY utils/build/docker/python/fastapi/log_conf.yaml /app/log_conf.yaml
 COPY utils/build/docker/python/iast.py /app/iast.py
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
