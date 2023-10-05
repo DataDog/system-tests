@@ -103,9 +103,15 @@ class SystemTestController < ApplicationController
   end
 
   def tag_value
-    headers = request.query_string.split('&').map {|e | e.split('=')} || []
-    event_value = params[:key]
+    event_value = params[:tag_value]
     status_code = params[:status_code]
+
+    if request.method == "POST" && event_value.include?('payload_in_response_body')
+      render json: { payload: request.POST }
+      return
+    end
+
+    headers = request.query_string.split('&').map {|e | e.split('=')} || []
 
     trace = Datadog::Tracing.active_trace
     trace.set_tag("appsec.events.system_tests_appsec_event.value", event_value)
