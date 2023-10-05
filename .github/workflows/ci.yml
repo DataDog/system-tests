@@ -191,6 +191,8 @@ jobs:
         - library: python
           weblog: uds-flask
         - library: python
+          weblog: python3.12
+        - library: python
           weblog: fastapi
         - library: ruby
           weblog: rack
@@ -225,14 +227,6 @@ jobs:
         version:
         - prod
         - dev
-      
-        # python tracer does not support yet python3.12
-        include:
-          - version: dev
-            variant:
-              library: python
-              weblog: python3.12
-            
             
       fail-fast: false
     env:

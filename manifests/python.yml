@@ -388,6 +388,10 @@ tests/:
     Test_HeaderTags: v0.53
     Test_HeaderTagsLongFormat: v1.2.1
     Test_HeaderTagsShortFormat: missing_feature
+  test_profiling.py:
+    Test_Profile:
+      '*': v0.1  # real version unknown
+      python3.12: v2.1.0.dev  # 2.0.0 does not support it (seg fault)
   test_scrubbing.py:
     Test_UrlField: v1.7.1
     Test_UrlQuery: v1.6.0rc1.dev
