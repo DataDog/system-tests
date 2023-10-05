@@ -11,9 +11,6 @@ RUN pip install fastapi
 
 RUN mkdir app
 WORKDIR /app
-RUN app.sh
 
-
-# docker build --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v0 .
-# docker push datadog/system-tests:python3.12.base-v0
-
+# docker build --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v0 .
+# docker push datadog/system-tests:fastapi.base-v0
