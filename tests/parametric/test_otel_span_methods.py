@@ -414,7 +414,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_message_consumer_001(self, test_agent, test_library):
+    def test_otel_span_operation_name_message_client(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
             - Span kind is set to Client
