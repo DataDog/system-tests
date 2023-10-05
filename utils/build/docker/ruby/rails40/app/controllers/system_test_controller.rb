@@ -95,7 +95,7 @@ class SystemTestController < ApplicationController
     trace.set_tag("appsec.events.system_tests_appsec_event.value", event_value)
 
     headers.each do |key, value|
-      response.set_header(key, value)
+      response.headers[key] = value
     end
 
     render text: 'Value tagged', status: status_code
