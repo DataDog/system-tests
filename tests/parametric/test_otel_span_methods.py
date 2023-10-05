@@ -876,7 +876,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_internal_002(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to "unknown.operation" when:
+            Tests that the operation name will be set to `span.kind` (in this case "internal") when:
             - Span kind is set to Internal
             - no other known attributes for setting the operation name
         """
@@ -889,5 +889,5 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "unknown.operation"
+        assert root_span["name"] == "internal"
         assert root_span["resource"] == "otel_span_name"
