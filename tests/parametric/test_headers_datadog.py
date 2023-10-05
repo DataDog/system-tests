@@ -33,6 +33,28 @@ class Test_Headers_Datadog:
         assert span["meta"].get("_dd.p.dm") == "-4"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
+    def test_distributed_headers_extract_datadog_span_id_0(self, test_agent, test_library):
+        """Ensure that Datadog distributed tracing headers are extracted
+        and activated properly.
+        """
+        with test_library:
+            headers = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "0"],
+                    ["x-datadog-sampling-priority", "1"],
+                    ["x-datadog-origin", "synthetics"],
+                ],
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+
+        assert span.get("trace_id") == 123456789
+        assert span_has_no_parent(span)
+        assert span["meta"].get(ORIGIN) == "synthetics"
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
+
     def test_distributed_headers_extract_datadog_invalid_D002(self, test_agent, test_library):
         """Ensure that invalid Datadog distributed tracing headers are not extracted.
         """
