@@ -17,7 +17,6 @@ class Test_Exclusions:
     def setup_input_exclusion_positive_test(self):
         self.r_iexpt = weblog.get("/waf/", params={"excluded_key": "true", "activate_exclusion": "true"})
 
-    @bug(context.library == "nodejs@5.0.0pre0", reason="Should be fixed before the release")
     def test_input_exclusion_positive_test(self):
         interfaces.library.assert_no_appsec_event(self.r_iexpt)
 
