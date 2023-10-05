@@ -190,6 +190,8 @@ jobs:
           weblog: uwsgi-poc
         - library: python
           weblog: uds-flask
+        - library: python
+          weblog: python3.12
         - library: ruby
           weblog: rack
         - library: ruby
@@ -222,15 +224,7 @@ jobs:
           weblog: rails70
         version:
         - prod
-        - dev
-      
-        # python tracer does not support yet python3.12
-        include:
-          - version: dev
-            variant:
-              library: python
-              weblog: python3.12
-            
+        - dev      
             
       fail-fast: false
     env:
