@@ -21,7 +21,7 @@ if value is dict, the weblog variant has multiple spans each with a different ex
 VARIANT_COMPONENT_MAP = {
     "chi": ["go-chi/chi", "go-chi/chi.v5"],
     "flask-poc": "flask",
-    "fastapi-poc": "fastapi",
+    "fastapi": "fastapi",
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
