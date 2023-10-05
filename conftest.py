@@ -38,6 +38,9 @@ def pytest_addoption(parser):
     parser.addoption("--obd-weblog", type=str, action="store", help="Set onboarding weblog")
     parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
     parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
+    parser.addoption(
+        "--obd-uninstall", action="store_true", default=False, help="Test with dd software uninstallation process"
+    )
 
 
 def pytest_configure(config):

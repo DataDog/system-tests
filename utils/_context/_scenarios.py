@@ -740,7 +740,13 @@ class OnBoardingScenario(_Scenario):
         self._weblog = option.obd_weblog
         self.provision_vms = list(
             ProvisionMatrix(
-                ProvisionFilter(self.name, language=self._library.library, env=self._env, weblog=self._weblog)
+                ProvisionFilter(
+                    self.name,
+                    language=self._library.library,
+                    env=self._env,
+                    weblog=self._weblog,
+                    uninstall=option.obd_uninstall,
+                )
             ).get_infrastructure_provision()
         )
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
@@ -811,7 +817,7 @@ class OnBoardingScenario(_Scenario):
                 provision_vm.start()
 
         project_name = "system-tests-onboarding"
-        stack_name = "testing"
+        stack_name = "testing_v2"
 
         try:
             self.stack = auto.create_or_select_stack(

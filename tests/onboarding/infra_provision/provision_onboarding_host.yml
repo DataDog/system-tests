@@ -113,7 +113,9 @@ autoinjection:
             yumdownloader datadog-apm-inject
             rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
             echo "Package signature verified!"
- 
+      uninstall: 
+        - os_type: linux 
+          command: dd-host-install --uninstall
     - env: prod
       install: 
         - os_type: linux
@@ -130,6 +132,9 @@ autoinjection:
             #Verify package signature. Fails if it isn't V4
             yumdownloader datadog-apm-inject
             rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
+      uninstall: 
+        - os_type: linux 
+          command: dd-host-install --uninstall
 
   - nodejs: 
     - env: dev
@@ -145,6 +150,9 @@ autoinjection:
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-js
             dd-host-install
+      uninstall: 
+        - os_type: linux 
+          command: dd-host-install --uninstall
 
     - env: prod
       install: 
@@ -159,6 +167,9 @@ autoinjection:
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
             dd-host-install
+      uninstall: 
+        - os_type: linux 
+          command: dd-host-install --uninstall
   - dotnet: 
     - env: dev
       install: 
@@ -167,6 +178,9 @@ autoinjection:
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject  datadog-apm-library-dotnet
             dd-host-install
+      uninstall: 
+        - os_type: linux 
+          command: dd-host-install --uninstall
     - env: prod
       install: 
         - os_type: linux
@@ -174,6 +188,9 @@ autoinjection:
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-dotnet
             dd-host-install
+      uninstall: 
+        - os_type: linux 
+          command: dd-host-install --uninstall
   - python:
     - env: prod
       install: 
@@ -188,6 +205,9 @@ autoinjection:
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-python
             dd-host-install
+      uninstall: 
+        - os_type: linux 
+          command: dd-host-install --uninstall
     - env: dev
       install: 
         - os_type: linux
@@ -201,6 +221,9 @@ autoinjection:
           command: |         
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-python
             dd-host-install
+      uninstall: 
+        - os_type: linux 
+          command: dd-host-install --uninstall
 language-variants:
   - java: 
     - name: OpenJDK11
@@ -272,7 +295,9 @@ weblogs:
               local_path: test-app-java.tar
               
           command: sh test-app-java_run.sh
-
+      uninstall: 
+        - os_type: linux
+          command: sudo systemctl stop test-app-java.service
     - name: wildfly
       supported-language-versions:
         - 11
@@ -286,6 +311,9 @@ weblogs:
               local_path: tests/onboarding/weblog/java/wildfly/wildfly_run.sh
 
           command: sh wildfly_run.sh
+      uninstall: 
+        - os_type: linux
+          command: sudo systemctl stop wildfly.service
   - nodejs: 
     - name: test-app-nodejs
       supported-language-versions:
@@ -303,6 +331,9 @@ weblogs:
               local_path: lib-injection/build/docker/nodejs/sample-app/index.js
 
           command: sh test-app-nodejs_run.sh
+      uninstall: 
+        - os_type: linux
+          command: sudo systemctl stop test-app-nodejs.service
 
   - dotnet: 
     - name: test-app-dotnet
@@ -323,6 +354,9 @@ weblogs:
             - name: copy-run-weblog-script
               local_path: tests/onboarding/weblog/dotnet/test-app-dotnet/test-app-dotnet_run.sh
           command: sh test-app-dotnet_run.sh
+      uninstall: 
+        - os_type: linux
+          command: sudo systemctl stop test-app-dotnet.service
 
   - python: 
     - name: test-app-python
@@ -342,5 +376,8 @@ weblogs:
               local_path: test-app-python.tar
 
           command: export PATH="~/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sh test-app-python_run.sh
+      uninstall: 
+        - os_type: linux
+          command: sudo systemctl stop test-app-python.service
 
 installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml
