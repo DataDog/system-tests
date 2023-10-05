@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET (request) {
-  global._ddtrace.setUser({
+  global._ddtrace?.setUser({
     id: 'usr.id',
     email: 'usr.email',
     name: 'usr.name',

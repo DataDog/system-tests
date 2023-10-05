@@ -89,7 +89,9 @@ tests/:
             express4: v3.19.0
     waf/:
       test_addresses.py:
-        Test_BodyJson: v2.2.0
+        Test_BodyJson: 
+          '*': v2.2.0
+          nextjs: v4.17.0
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded: 
             '*': v2.2.0
@@ -98,54 +100,108 @@ tests/:
             '*': v2.2.0
             nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
         Test_ClientIP: missing_feature
-        Test_Cookies: v2.0.0
+        Test_Cookies:
+          '*': v2.0.0
+          nextjs: v4.17.0
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
-        Test_Headers: v2.0.0
+        Test_Headers:
+          '*': v2.0.0
+          nextjs: v4.17.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
-        Test_PathParams: 
+        Test_PathParams:
             '*': v2.0.0
             nextjs: missing_feature
-        Test_ResponseStatus: v2.0.0
-        Test_UrlQuery: v2.0.0
-        Test_UrlQueryKey: v2.6.0
-        Test_UrlRaw: v2.0.0
+        Test_ResponseStatus:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_UrlQuery:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_UrlQueryKey:
+          '*': v2.6.0
+          nextjs: v4.17.0
+        Test_UrlRaw:
+          '*': v2.0.0
+          nextjs: v4.17.0
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v3.19.0
         Test_CustomBlockingResponse: missing_feature
       test_custom_rules.py:
-        Test_CustomRules: v4.1.0
+        Test_CustomRules:
+          '*': v4.1.0
+          nextjs: v4.17.0
       test_exclusions.py:
-        Test_Exclusions: v3.19.0
+        Test_Exclusions:
+          '*': v3.19.0
+          nextjs: v4.17.0
       test_miscs.py:
-        Test_404: v2.0.0
-        Test_CorrectOptionProcessing: v3.19.0  # probably sooner, but bugged
-        Test_MultipleAttacks: v2.0.0
-        Test_MultipleHighlight: v2.0.0
+        Test_404:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_CorrectOptionProcessing: 
+          '*': v3.19.0  # probably sooner, but bugged
+          nextjs: v4.17.0
+        Test_MultipleAttacks: 
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_MultipleHighlight: 
+          '*': v2.0.0
+          nextjs: v4.17.0
       test_reports.py:
-        Test_Monitoring: v2.8.0
+        Test_Monitoring: 
+          '*': v2.8.0
+          nextjs: v4.17.0
       test_rules.py:
-        Test_CommandInjection: v2.0.0
-        Test_DiscoveryScan: v2.0.0
-        Test_HttpProtocol: v2.0.0
-        Test_JavaCodeInjection: v2.0.0
-        Test_JsInjection: v2.0.0
-        Test_LFI: v2.0.0
-        Test_NoSqli: v2.0.0
-        Test_PhpCodeInjection: v2.0.0
-        Test_RFI: v2.0.0
-        Test_SQLI: v2.0.0
-        Test_SSRF: v2.0.0
-        Test_Scanners: v2.0.0
-        Test_XSS: v2.0.0
+        Test_CommandInjection:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_DiscoveryScan:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_HttpProtocol:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_JavaCodeInjection:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_JsInjection:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_LFI:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_NoSqli:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_PhpCodeInjection:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_RFI:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_SQLI:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_SSRF:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_Scanners:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_XSS:
+          '*': v2.0.0
+          nextjs: v4.17.0
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:
-      Test_Basic: v2.0.0
+      Test_Basic:
+          '*': v2.0.0
+          nextjs: v4.17.0
     test_automated_login_events.py:
       Test_Login_Events: 
         '*': v4.4.0
@@ -154,28 +210,56 @@ tests/:
         '*': v4.4.0
         nextjs: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: v3.19.0
+      Test_BlockingAddresses:
+          '*': v3.19.0
+          nextjs: v4.17.0
       Test_BlockingGraphqlResolvers: missing_feature
-      Test_Blocking_request_body: v3.19.0
-      Test_Blocking_request_cookies: v14.16.0
-      Test_Blocking_request_headers: v3.19.0
-      Test_Blocking_request_method: v3.19.0
+      Test_Blocking_request_body:
+          '*': v3.19.0
+          nextjs: missing_feature
+      Test_Blocking_request_cookies:
+          '*': v4.16.0
+          nextjs: v4.17.0
+      Test_Blocking_request_headers:
+          '*': v3.19.0
+          nextjs: v4.17.0
+      Test_Blocking_request_method:
+          '*': v3.19.0
+          nextjs: v4.17.0
       Test_Blocking_request_path_params: missing_feature
-      Test_Blocking_request_query: v3.19.0
-      Test_Blocking_request_uri: v3.19.0
+      Test_Blocking_request_query:
+          '*': v3.19.0
+          nextjs: missing_feature
+      Test_Blocking_request_uri:
+          '*': v3.19.0
+          nextjs: missing_feature
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
-      Test_Suspicious_Request_Blocking: v3.19.0
+      Test_Suspicious_Request_Blocking:
+          '*': v3.19.0
+          nextjs: missing_feature
     test_client_ip.py:
-      Test_StandardTagsClientIp: v3.6.0
+      Test_StandardTagsClientIp:
+          '*': v3.6.0
+          nextjs: v4.17.0
     test_conf.py:
-      Test_ConfigurationVariables: v2.7.0
-      Test_RuleSet_1_3_1: v2.5.0
-      Test_StaticRuleSet: v2.0.0
+      Test_ConfigurationVariables:
+          '*': v2.7.0
+          nextjs: v4.17.0
+      Test_RuleSet_1_3_1:
+          '*': v2.5.0
+          nextjs: v4.17.0
+      Test_StaticRuleSet:
+          '*': v2.0.0
+          nextjs: v4.17.0
     test_customconf.py:
-      Test_ConfRuleSet: v2.0.0
+      Test_ConfRuleSet: 
+          '*': v2.0.0
+          nextjs: v4.17.0
       Test_MissingRules: missing_feature
-      Test_NoLimitOnWafRules: v2.4.0
+      Test_NoLimitOnWafRules:
+          '*': v2.4.0
+          nextjs: v4.17.0
     test_event_tracking.py:
       Test_CustomEvent: 
         '*': v3.13.0
@@ -194,26 +278,54 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_rate_limiter.py:
-      Test_Main: v2.0.0
+      Test_Main:
+          '*': v2.0.0
+          nextjs: v4.17.0
     test_reports.py:
-      Test_ExtraTagsFromRule: v4.1.0
-      Test_HttpClientIP: v2.0.0
-      Test_Info: v2.0.0
-      Test_RequestHeaders: v2.0.0
-      Test_StatusCode: v2.0.0
+      Test_ExtraTagsFromRule:
+          '*': v4.1.0
+          nextjs: v4.17.0
+      Test_HttpClientIP:
+          '*': v2.0.0
+          nextjs: v4.17.0
+      Test_Info:
+          '*': v2.0.0
+          nextjs: v4.17.0
+      Test_RequestHeaders:
+          '*': v2.0.0
+          nextjs: v4.17.0
+      Test_StatusCode:
+          '*': v2.0.0
+          nextjs: v4.17.0
     test_request_blocking.py:
-      Test_AppSecRequestBlocking: v3.19.0
+      Test_AppSecRequestBlocking:
+          '*': v3.19.0
+          nextjs: v4.17.0
     test_runtime_activation.py:
-      Test_RuntimeActivation: v3.9.0
+      Test_RuntimeActivation:
+          '*': v3.9.0
+          nextjs: v4.17.0
     test_traces.py:
-      Test_AppSecEventSpanTags: v2.0.0
-      Test_AppSecObfuscator: v2.6.0
-      Test_CollectRespondHeaders: v2.0.0
-      Test_RetainTraces: v2.0.0
+      Test_AppSecEventSpanTags:
+          '*': v2.0.0
+          nextjs: v4.17.0
+      Test_AppSecObfuscator:
+          '*': v2.6.0
+          nextjs: v4.17.0
+      Test_CollectRespondHeaders:
+          '*': v2.0.0
+          nextjs: v4.17.0
+      Test_RetainTraces:
+          '*': v2.0.0
+          nextjs: v4.17.0
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v3.15.0
+      Test_UserBlocking_FullDenylist:
+          '*': v3.15.0
+          nextjs: v4.17.0
     test_versions.py:
-      Test_Events: v2.0.0
+      Test_Events:
+          '*': v2.0.0
+          nextjs: v4.17.0
   debugger/:
     test_debugger.py:
       Test_Debugger_Line_Probe_Snaphots: irrelevant
@@ -250,20 +362,28 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigV1: v4.11.0
+      TestDynamicConfigV1:
+          '*': v4.11.0
+          nextjs: v4.17.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
-      Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
+      Test_RemoteConfigurationUpdateSequenceASMDD:
+          '*': v3.19.0
+          nextjs: v4.17.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
+      Test_RemoteConfigurationUpdateSequenceFeatures:
+          '*': v3.9.0
+          nextjs: v4.17.0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
-    Test_Basic: v2.4.0
+    Test_Basic:
+          '*': v2.4.0
+          nextjs: v4.17.0
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
@@ -273,8 +393,12 @@ tests/:
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:
-    Test_UrlField: v3.13.1
-    Test_UrlQuery: v3.0.0
+    Test_UrlField:
+          '*': v3.13.1
+          nextjs: v4.17.0
+    Test_UrlQuery:
+          '*': v3.0.0
+          nextjs: v4.17.0
   test_semantic_conventions.py:
     Test_Meta: 
             '*': v3.13.1
@@ -288,9 +412,15 @@ tests/:
     Test_StandardTagsRoute: 
             '*': v2.11.0
             nextjs: missing_feature # http.route not added in nextjs
-    Test_StandardTagsStatusCode: v2.11.0
-    Test_StandardTagsUrl: v3.0.0
-    Test_StandardTagsUserAgent: v2.9.0
+    Test_StandardTagsStatusCode:
+          '*': v2.11.0
+          nextjs: v4.17.0
+    Test_StandardTagsUrl:
+          '*': v3.0.0
+          nextjs: v4.17.0
+    Test_StandardTagsUserAgent:
+          '*': v2.9.0
+          nextjs: v4.17.0
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
     Test_Log_Generation: missing_feature
