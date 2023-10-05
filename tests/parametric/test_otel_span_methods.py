@@ -569,7 +569,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_rpc_server(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to the `rpc.system + ".call"`
+            Tests that the operation name will be set to the `rpc.system + "." + span.kind + ".request"`
             - Span kind is set to Server
             - rpc.system is set to something
 
@@ -585,7 +585,7 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "grpc.call"
+        assert root_span["name"] == "grpc.server.request"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
