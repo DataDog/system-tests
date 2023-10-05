@@ -5,6 +5,7 @@ import shutil
 import time
 import subprocess
 import json
+import glob
 
 import pytest
 from watchdog.observers.polling import PollingObserver
@@ -851,22 +852,24 @@ class ParametricScenario(_Scenario):
 
         def __setitem__(self, item, value):
             super().__setitem__(item, value)
-            # Append to the file
-            with open(f"{self.outer_inst.host_log_folder}/context.json", "a") as f:
+            # Append to the context file
+            ctx_filename = f"{self.outer_inst.host_log_folder}/{os.environ.get('PYTEST_XDIST_WORKER')}_context.json"
+            with open(ctx_filename, "a") as f:
                 json.dump({item: value}, f)
                 f.write(",")
                 f.write(os.linesep)
 
         def deserialize(self):
-            with open(f"{self.outer_inst.host_log_folder}/context.json", "r") as f:
-                fileContent = f.read()
-                # Remove last carriage return and the last comma
-                all_params = json.loads(f"[{fileContent[:-2]}]")
-                # Change from array to unique dict
-                result = {}
-                for d in all_params:
-                    result.update(d)
-                return result
+            result = {}
+            for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
+                with open(ctx_filename, "r") as f:
+                    fileContent = f.read()
+                    # Remove last carriage return and the last comma. Wrap into json array.
+                    all_params = json.loads(f"[{fileContent[:-2]}]")
+                    # Change from array to unique dict
+                    for d in all_params:
+                        result.update(d)
+            return result
 
     def __init__(self, name, doc) -> None:
         super().__init__(name, doc=doc)
