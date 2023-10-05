@@ -23,5 +23,5 @@ export async function POST (request) {
     console.error('Error parsing body', e)
   }
 
-  return NextResponse.json({ mesage: 'OK' })
+  return NextResponse.json({ mesage: 'OK', body })
 }

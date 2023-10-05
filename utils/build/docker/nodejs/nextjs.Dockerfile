@@ -17,6 +17,7 @@ EXPOSE 7777
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+ENV NODE_OPTIONS="--require dd-trace/init.js"
 RUN npm run build
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
@@ -25,7 +26,6 @@ ENV DD_DATA_STREAMS_ENABLED=true
 ENV PORT=7777
 ENV HOSTNAME=0.0.0.0
 ENV DD_TRACE_DEBUG=true
-ENV NODE_OPTIONS="--require dd-trace/init.js"
 RUN echo '#!/bin/bash\nnode .next/standalone/server.js' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
