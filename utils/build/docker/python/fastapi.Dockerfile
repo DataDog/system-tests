@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-RUN pip install PyYAML uvicorn
+RUN python3.10 -m pip install --upgrade pip
+RUN python3.10 -m pip install PyYAML uvicorn requests psycopg2-binary
 
 COPY utils/build/docker/python/fastapi/app.sh /app/app.sh
 COPY utils/build/docker/python/fastapi/main.py /app/main.py
