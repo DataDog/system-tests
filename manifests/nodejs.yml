@@ -300,6 +300,6 @@ tests/:
     Test_ProductsDisabled: missing_feature
     Test_Telemetry:
       '*': v3.2.0
-      uds-express4: v3.7.0
       nextjs: missing_feature
+      uds-express4: v3.7.0
     Test_TelemetryV2: missing_feature
