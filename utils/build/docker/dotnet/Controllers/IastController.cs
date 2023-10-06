@@ -18,7 +18,7 @@ namespace weblog
         {
             var byteArg = new byte[] { 3, 5, 6 };
             var result = MD5.Create().ComputeHash(byteArg);
-			return Content(result.ToString());
+            return Content(result.ToString());
         }
 
         [HttpGet("insecure_hashing/test_secure_algorithm")]
@@ -26,7 +26,7 @@ namespace weblog
         {
             var byteArg = new byte[] { 3, 5, 6 };
             var result = SHA256.Create().ComputeHash(byteArg);
-			return Content(result.ToString());
+            return Content(result.ToString());
         }
 
 
@@ -35,27 +35,27 @@ namespace weblog
         {
             var byteArg = new byte[] { 3, 5, 6 };
             var result = MD5.Create().ComputeHash(byteArg);
-			_ = GetSHA1(byteArg);
-			return Content(result.ToString());
+            _ = GetSHA1(byteArg);
+            return Content(result.ToString());
         }
 		
-		private byte[] GetSHA1(byte[] array)
-		{
-			return SHA1.Create().ComputeHash(array);
-		}
+        private byte[] GetSHA1(byte[] array)
+        {
+            return SHA1.Create().ComputeHash(array);
+        }
 		
         [HttpGet("insecure_hashing/deduplicate")]
         public IActionResult deduplicate(string user)
         {
             var byteArg = new byte[] { 3, 5, 6 };
 			
-			byte[] result = null;
-			for (int i = 0; i < 10; i++)
-			{
-				result = MD5.Create().ComputeHash(byteArg);
-			}
+            byte[] result = null;
+            for (int i = 0; i < 10; i++)
+            {
+                result = MD5.Create().ComputeHash(byteArg);
+            }
 			
-			return Content(result.ToString());
+            return Content(result.ToString());
         }
     }
 }
