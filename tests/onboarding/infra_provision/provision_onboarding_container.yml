@@ -491,7 +491,13 @@ weblogs:
           command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl restart docker.service
+          command: |
+            echo "Stopping docker service"
+            sudo systemctl stop docker.service
+            echo "Stop docker service DONE"
+            echo "Starting docker service"
+            sudo systemctl start docker.service
+            echo "Start docker service DONE"
   - python: 
     - name: test-app-python
       install: 
