@@ -230,7 +230,9 @@ tests/:
           "*": v1.2.1
           fastapi: missing_feature
       test_reports.py:
-        Test_Monitoring: v1.5.0rc1.dev
+        Test_Monitoring:
+          "*": v1.5.0rc1.dev
+          fastapi: missing_feature
       test_rules.py:
         Test_CommandInjection:
           "*": v1.2.1
@@ -273,7 +275,9 @@ tests/:
           "*": v1.3.0
           fastapi: missing_feature
       test_telemetry.py:
-        Test_TelemetryMetrics: v1.14.0
+        Test_TelemetryMetrics: 
+          "*": v1.14.0
+          fastapi: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:
@@ -339,7 +343,9 @@ tests/:
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
-      Test_ConfigurationVariables: v1.1.2
+      Test_ConfigurationVariables: 
+        "*": v1.1.2
+        fastapi: missing_feature
       Test_RuleSet_1_3_1:
         "*": v1.2.1
         fastapi: missing_feature
@@ -369,7 +375,9 @@ tests/:
       Test_RequestHeaders: v1.1.0rc2.dev
       Test_StatusCode: v1.1.0rc2.dev
     test_request_blocking.py:
-      Test_AppSecRequestBlocking: v1.10.0
+      Test_AppSecRequestBlocking: 
+        "*": v1.10.0
+        fastapi: missing_feature
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
     test_traces.py:
