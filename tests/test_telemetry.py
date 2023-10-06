@@ -525,7 +525,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
-@released(java="1.20.0", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
+@released(java="1.22.0", python="1.17.3", nodejs="?", php="0.90", ruby="1.11")
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
@@ -604,7 +604,7 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
-@released(java="1.20.0", nodejs="?", php="?", python="?", ruby="?")
+@released(java="1.22.0", nodejs="?", php="?", python="?", ruby="?")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_MessageBatch:
     """ Tests on Message batching """
