@@ -53,6 +53,7 @@ onboarding_nodejs:
     - schedules
   variables:
     TEST_LIBRARY: "nodejs"
+    ONBOARDING_FILTER_OS_DISTRO: "rpm"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -73,6 +74,7 @@ onboarding_java:
         - onboarding_nodejs
   variables:
     TEST_LIBRARY: "java"
+    ONBOARDING_FILTER_OS_DISTRO: "rpm"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -97,6 +99,7 @@ onboarding_python:
         - onboarding_java
   variables:
     TEST_LIBRARY: "python"
+    ONBOARDING_FILTER_OS_DISTRO: "rpm"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -117,6 +120,7 @@ onboarding_dotnet:
         - onboarding_python
   variables:
     TEST_LIBRARY: "dotnet"
+    ONBOARDING_FILTER_OS_DISTRO: "rpm"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
