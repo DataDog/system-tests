@@ -65,6 +65,9 @@ class Test_BlockingAddresses:
         context.library < "java@1.15.0", reason="When supported, path parameter detection happens on subsequent WAF run"
     )
     @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(
+        context.library == "java" and context.weblog_variant == "akka-http", reason="path parameters not supported"
+    )
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
     def test_path_params(self):
@@ -142,7 +145,15 @@ class Test_BlockingAddresses:
     @missing_feature(
         context.library == "java"
         and context.weblog_variant
-        not in ("spring-boot", "uds-spring-boot", "spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
+        not in (
+            "akka-http",
+            "play",
+            "spring-boot",
+            "uds-spring-boot",
+            "spring-boot-jetty",
+            "spring-boot-undertow",
+            "spring-boot-wildfly",
+        )
     )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
@@ -156,7 +167,10 @@ class Test_BlockingAddresses:
     def setup_not_found(self):
         self.rnf_req = weblog.get(path="/finger_print")
 
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(
+        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
+        reason="Happens on a subsequent WAF run",
+    )
     @missing_feature(context.library == "ruby", reason="Not working")
     @missing_feature(library="nodejs", reason="Not supported yet")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
@@ -170,7 +184,10 @@ class Test_BlockingAddresses:
         self.rsh_req = weblog.get(path="/headers")
 
     @missing_feature(context.library < "dotnet@2.32.0")
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(
+        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
+        reason="Happens on a subsequent WAF run",
+    )
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
     @missing_feature(library="nodejs", reason="Not supported yet")
@@ -502,7 +519,7 @@ class Test_Blocking_request_body:
         )
 
     @irrelevant(
-        context.weblog_variant in ("jersey-grizzly2", "resteasy-netty3"),
+        context.weblog_variant in ("akka-http", "play", "jersey-grizzly2", "resteasy-netty3"),
         reason="Blocks on text/plain if parsed to a String",
     )
     def test_non_blocking_plain_text(self):
