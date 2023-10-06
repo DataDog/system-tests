@@ -356,6 +356,8 @@ weblogs:
           command: sh test-app-dotnet_run.sh
       uninstall: 
         - os_type: linux
+          os_distro: rpm
+          os_branch: amazon-netcore6
           command: sudo systemctl stop test-app-dotnet.service
 
   - python: 
