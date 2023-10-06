@@ -45,6 +45,10 @@ class Test_Tracer:
 
 @scenarios.parametric
 class Test_TracerSCITagging:
+    @missing_feature(context.library == "cpp", reason="FIXME: not implemented yet")
+    @missing_feature(context.library == "php", reason="FIXME: not implemented yet")
+    @missing_feature(context.library == "ruby", reason="FIXME: not implemented yet")
+    @missing_feature(context.library == "dotnet", reason="FIXME: different implementation")
     @parametrize("library_env", [{"DD_GIT_REPOSITORY_URL": "https://github.com/DataDog/dd-trace-go"}])
     def test_tracer_repository_url_environment_variable(
         self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
@@ -69,6 +73,10 @@ class Test_TracerSCITagging:
         # and not in the others
         assert "_dd.git.repository_url" not in trace[1].get("meta", {})
 
+    @missing_feature(context.library == "cpp", reason="FIXME: not implemented yet")
+    @missing_feature(context.library == "php", reason="FIXME: not implemented yet")
+    @missing_feature(context.library == "ruby", reason="FIXME: not implemented yet")
+    @missing_feature(context.library == "dotnet", reason="FIXME: different implementation")
     @parametrize("library_env", [{"DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}])
     def test_tracer_commit_sha_environment_variable(
         self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
