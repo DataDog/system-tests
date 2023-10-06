@@ -275,7 +275,7 @@ tests/:
           "*": v1.3.0
           fastapi: missing_feature
       test_telemetry.py:
-        Test_TelemetryMetrics: 
+        Test_TelemetryMetrics:
           "*": v1.14.0
           fastapi: missing_feature
     test_PII.py:
@@ -343,7 +343,7 @@ tests/:
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
-      Test_ConfigurationVariables: 
+      Test_ConfigurationVariables:
         "*": v1.1.2
         fastapi: missing_feature
       Test_RuleSet_1_3_1:
@@ -375,7 +375,7 @@ tests/:
       Test_RequestHeaders: v1.1.0rc2.dev
       Test_StatusCode: v1.1.0rc2.dev
     test_request_blocking.py:
-      Test_AppSecRequestBlocking: 
+      Test_AppSecRequestBlocking:
         "*": v1.10.0
         fastapi: missing_feature
     test_runtime_activation.py:
@@ -463,7 +463,9 @@ tests/:
       "*": v0.1 # real version unknown
       python3.12: v2.1.0.dev # 2.0.0 does not support it (seg fault)
   test_scrubbing.py:
-    Test_UrlField: v1.7.1
+    Test_UrlField:
+      "*": v1.7.1
+      fastapi: missing_feature
     Test_UrlQuery: v1.6.0rc1.dev
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
