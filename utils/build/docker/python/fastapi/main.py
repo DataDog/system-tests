@@ -10,9 +10,14 @@ from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from fastapi import Cookie, FastAPI, Form, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
-from iast import (weak_cipher, weak_cipher_secure_algorithm, weak_hash,
-                  weak_hash_duplicates, weak_hash_multiple,
-                  weak_hash_secure_algorithm)
+from iast import (
+    weak_cipher,
+    weak_cipher_secure_algorithm,
+    weak_hash,
+    weak_hash_duplicates,
+    weak_hash_multiple,
+    weak_hash_secure_algorithm,
+)
 from pydantic import BaseModel
 
 try:
