@@ -17,7 +17,7 @@ var config = {
 
 async function initData() {
     const query_procedure = "CREATE PROCEDURE helloworld "
-    + " @Name VARCHAR(100) "
+    + " @Name VARCHAR(100),@Test VARCHAR(100) "
     + " AS "
     + " BEGIN "
     + " SET NOCOUNT ON "
@@ -78,7 +78,7 @@ async function callProcedure() {
                 return reject(new Error("Error on database connection"))
             }
             var request = new mssql.Request();
-            request.input('Name', 'MyParam').execute('helloworld', function (err, recordset) {
+            request.input('Name', 'MyParam').input('Test', 'MyTestParam').execute('helloworld', function (err, recordset) {
                 if (err) {
                     console.log("Error launching mssql query:" + err);
                     return resolve("Error on mssql query")

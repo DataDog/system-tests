@@ -141,6 +141,7 @@ tests/:
             spring-boot: v1.19.0
             spring-boot-jetty: v1.19.0
             spring-boot-openliberty: v1.19.0
+            spring-boot-payara: v1.19.0
             spring-boot-undertow: v1.19.0
             spring-boot-wildfly: v1.19.0
             uds-spring-boot: v1.19.0
@@ -722,15 +723,15 @@ tests/:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
-      Test_Debugger_Line_Probe_Statuses:
-        '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        uds-spring-boot: v0.1  # real version not known
       Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
-      Test_Debugger_Method_Probe_Statuses:
+      Test_Debugger_Mix_Log_Probe:
+        '*': missing_feature
+        spring-boot: v0.1  # real version not known
+        uds-spring-boot: v0.1  # real version not known
+      Test_Debugger_Probe_Statuses:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known

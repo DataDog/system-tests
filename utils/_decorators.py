@@ -38,7 +38,20 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
         return False
 
     if library is not None:
-        if library not in ("cpp", "dotnet", "golang", "java", "nodejs", "python", "php", "ruby", "python_http"):
+        if library not in (
+            "cpp",
+            "dotnet",
+            "golang",
+            "java",
+            "nodejs",
+            "python",
+            "php",
+            "ruby",
+            "python_http",
+            "java_otel",
+            "python_otel",
+            "nodejs_otel",
+        ):
             raise ValueError(f"Unknown library: {library}")
 
         if context.library != library:
@@ -135,6 +148,8 @@ def released(
     nodejs=None,
     php=None,
     python=None,
+    python_otel=None,
+    nodejs_otel=None,
     ruby=None,
     php_appsec=None,
     agent=None,
@@ -198,9 +213,11 @@ def released(
             compute_declaration("golang", "golang", golang, context.library.version),
             compute_declaration("java", "java", java, context.library.version),
             compute_declaration("nodejs", "nodejs", nodejs, context.library.version),
+            compute_declaration("nodejs_otel", "nodejs_otel", nodejs_otel, context.library.version),
             compute_declaration("php", "php_appsec", php_appsec, context.php_appsec),
             compute_declaration("php", "php", php, context.library.version),
             compute_declaration("python", "python", python, context.library.version),
+            compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
             compute_declaration("python_http", "python_http", python, context.library.version),
             compute_declaration("ruby", "ruby", ruby, context.library.version),
             compute_declaration("*", "agent", agent, context.agent_version),

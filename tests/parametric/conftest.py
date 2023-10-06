@@ -505,6 +505,8 @@ def apm_test_server_image(
 def apm_test_server(request, library_env, test_id, apm_test_server_image):
     """Request level definition of the library test server with the session Docker image built"""
     new_env = dict(library_env)
+    context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
+
     new_env.update(apm_test_server_image.env)
     yield dataclasses.replace(
         apm_test_server_image,

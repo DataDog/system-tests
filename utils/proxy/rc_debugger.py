@@ -32,6 +32,18 @@ def create_rcm_probe_response(library, probes, version):
         bytes = base64.b64decode(str)
         return hashlib.sha256(bytes).hexdigest()
 
+    def _get_probe_type(probe_id):
+        if probe_id.startswith("log"):
+            return "logProbe"
+        elif probe_id.startswith("metric"):
+            return "metricProbe"
+        elif probe_id.startswith("span"):
+            return "spanProbe"
+        elif probe_id.startswith("decor"):
+            return "spanDecorationProbe"
+        else:
+            return "not_supported"
+
     rcm = copy.deepcopy(_BASE_RCM)
     signed = copy.deepcopy(_BASE_SIGNED)
     signed["signed"]["version"] = version
@@ -60,7 +72,8 @@ def create_rcm_probe_response(library, probes, version):
                     probe["where"]["sourceFile"] = "DebuggerController.java"
 
             probe_64 = _json_to_base64(probe)
-            path = "datadog/2/LIVE_DEBUGGING/" + probe["id"].split("-")[0] + "_" + probe["id"] + "/config"
+            type = _get_probe_type(probe["id"])
+            path = "datadog/2/LIVE_DEBUGGING/" + type + "_" + probe["id"] + "/config"
 
             target["hashes"]["sha256"] = _sha256(probe_64)
             target["length"] = len(json.dumps(probe).encode("utf-8"))
