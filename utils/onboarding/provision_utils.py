@@ -2,7 +2,6 @@ import os
 import yaml
 from yamlinclude import YamlIncludeConstructor
 from utils._context.virtual_machines import TestedVirtualMachine
-from utils.tools import logger
 
 
 class ProvisionMatrix:
