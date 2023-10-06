@@ -1,11 +1,13 @@
-import json
+import os
+import random
+import subprocess
 import typing
 
 import psycopg2
 import requests
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from fastapi import FastAPI, Request
+from fastapi import Cookie, FastAPI, Form, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from iast import (
     weak_cipher,
@@ -15,6 +17,7 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+from pydantic import BaseModel
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -23,6 +26,9 @@ except ImportError:
 
 app = FastAPI()
 
+POSTGRES_CONFIG = dict(
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+)
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 
@@ -71,8 +77,7 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
         tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
     )
     if tag_value.startswith(payload_in_response_body):
-        raw_body = await request.body()
-        json_body = json.loads(raw_body)
+        json_body = await request.json()
         return JSONResponse({"payload": json_body}, status_code=status_code, headers=request.query_params)
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
 
@@ -176,13 +181,13 @@ def view_weak_hash_multiple_hash():
 
 @app.get("/iast/insecure_hashing/test_secure_algorithm", response_class=PlainTextResponse)
 def view_weak_hash_secure_algorithm():
-    result = weak_hash_secure_algorithm()
+    _ = weak_hash_secure_algorithm()
     return "OK"
 
 
 @app.get("/iast/insecure_hashing/test_md5_algorithm", response_class=PlainTextResponse)
 def view_weak_hash_md5_algorithm():
-    result = weak_hash()
+    _ = weak_hash()
     return "OK"
 
 
@@ -201,4 +206,258 @@ def view_weak_cipher_insecure():
 @app.get("/iast/insecure_cipher/test_secure_algorithm", response_class=PlainTextResponse)
 def view_weak_cipher_secure():
     weak_cipher_secure_algorithm()
+    return "OK"
+
+
+def _sink_point(table="user", id="1"):
+    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql)
+
+
+class Body_for_iast(BaseModel):
+    table: str
+    user: str
+
+
+@app.post("/iast/source/body/test", response_class=PlainTextResponse)
+async def view_iast_source_body(body: Body_for_iast):
+    _sink_point(table=body.table, id=body.user)
+    return "OK"
+
+
+@app.get("/iast/source/cookiename/test", response_class=PlainTextResponse)
+async def view_iast_source_cookie_name(request: Request):
+    param = [key for key in request.cookies if key == "user"]
+    if param:
+        _sink_point(id=param[0])
+        return "OK"
+    return "KO"
+
+
+@app.get("/iast/source/cookievalue/test", response_class=PlainTextResponse)
+async def view_iast_source_cookie_value(table: typing.Annotated[str, Cookie()] = "undefined"):
+    _sink_point(table=table)
+    return "OK"
+
+
+@app.get("/iast/source/headername/test", response_class=PlainTextResponse)
+async def view_iast_source_cookie_name(request: Request):
+    param = [key for key in request.headers if key == "User"]
+    if param:
+        _sink_point(id=param[0])
+        return "OK"
+    return "KO"
+
+
+@app.get("/iast/source/header/test", response_class=PlainTextResponse)
+async def view_iast_source_header_value(table: typing.Annotated[str, Header()] = "undefined"):
+    _sink_point(table=table)
+    return "OK"
+
+
+@app.get("/iast/source/parametername/test", response_class=PlainTextResponse)
+async def view_iast_source_parametername_get(request: Request):
+    param = [key for key in request.query_params if key == "user"]
+    if param:
+        _sink_point(id=param[0])
+        return "OK"
+    return "KO"
+
+
+@app.post("/iast/source/parametername/test", response_class=PlainTextResponse)
+async def view_iast_source_parametername_post(request: Request):
+    json_body = await request.json()
+    param = [key for key in json_body if key == "user"]
+    if param:
+        _sink_point(id=param[0])
+        return "OK"
+    return "KO"
+
+
+@app.get("/iast/source/parameter/test", response_class=PlainTextResponse)
+@app.post("/iast/source/parameter/test", response_class=PlainTextResponse)
+async def view_iast_source_parameter(request: Request, table: typing.Optional[str] = None):
+    if table is None:
+        json_body = await request.json()
+        table = json_body.get("table")
+    _sink_point(table=table)
+    return "OK"
+
+
+@app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
+async def view_iast_path_traversal_insecure(path: typing.Annotated[str, Form()]):
+    os.mkdir(path)
+    return "OK"
+
+
+@app.post("/iast/path_traversal/test_secure", response_class=PlainTextResponse)
+def view_iast_path_traversal_secure(path: typing.Annotated[str, Form()]):
+    root_dir = "/home/usr/secure_folder/"
+
+    if os.path.commonprefix((os.path.realpath(path), root_dir)) == root_dir:
+        open(path)
+
+    return "OK"
+
+
+_TRACK_METADATA = {
+    "metadata0": "value0",
+    "metadata1": "value1",
+}
+
+
+_TRACK_USER = "system_tests_user"
+
+
+@app.get("/user_login_success_event", response_class=PlainTextResponse)
+def track_user_login_success_event():
+    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    return "OK"
+
+
+@app.get("/user_login_failure_event", response_class=PlainTextResponse)
+def track_user_login_failure_event():
+    appsec_trace_utils.track_user_login_failure_event(
+        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+    )
+    return "OK"
+
+
+_TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
+
+
+@app.get("/custom_event", response_class=PlainTextResponse)
+def track_custom_event():
+    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    return "OK"
+
+
+@app.post("/iast/sqli/test_secure", response_class=PlainTextResponse)
+def view_sqli_secure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
+    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql, username, password)
+    return "OK"
+
+
+@app.post("/iast/sqli/test_insecure", response_class=PlainTextResponse)
+def view_sqli_insecure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
+    sql = "SELECT * FROM IAST_USER WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "'"
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql)
+    return "OK"
+
+
+@app.get("/iast/insecure-cookie/test_insecure")
+def test_insecure_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="none")
+    return resp
+
+
+@app.get("/iast/insecure-cookie/test_secure")
+def test_secure_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="strict")
+    return resp
+
+
+@app.get("/iast/insecure-cookie/test_empty_cookie")
+def test_empty_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="strict")
+    return resp
+
+
+@app.get("/iast/no-httponly-cookie/test_insecure")
+def test_nohttponly_insecure_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie("insecure", "cookie", secure=True, httponly=False, samesite="strict")
+    return resp
+
+
+@app.get("/iast/no-httponly-cookie/test_secure")
+def test_nohttponly_secure_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="strict")
+    return resp
+
+
+@app.get("/iast/no-httponly-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="strict")
+    return resp
+
+
+@app.get("/iast/no-samesite-cookie/test_insecure")
+def test_nosamesite_insecure_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie("insecure", "cookie", secure=True, httponly=True, samesite="none")
+    return resp
+
+
+@app.get("/iast/no-samesite-cookie/test_secure")
+def test_nosamesite_secure_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="strict")
+    return resp
+
+
+@app.get("/iast/weak_randomness/test_insecure", response_class=PlainTextResponse)
+def test_weak_randomness_insecure():
+    _ = random.randint(1, 100)
+    return "OK"
+
+
+@app.get("/iast/weak_randomness/test_secure", response_class=PlainTextResponse)
+def test_weak_randomness_secure():
+    random_secure = random.SystemRandom()
+    _ = random_secure.randint(1, 100)
+    return "OK"
+
+
+@app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
+def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
+    filename = "/"
+    subp = subprocess.Popen(args=[cmd, "-la", filename])
+    subp.communicate()
+    subp.wait()
+    return "OK"
+
+
+@app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
+def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
+    filename = "/"
+    command = " ".join([cmd, "-la", filename])
+    # TODO: add secure command
+    # subp = subprocess.check_output(command, shell=False)
+    # subp.communicate()
+    # subp.wait()
+    return "OK"
+
+
+# @app.get("/db", response_class=PlainTextResponse)
+# @app.post("/db", response_class=PlainTextResponse)
+# @app.options("/db", response_class=PlainTextResponse)
+# def db(service: str, operation: str):
+#     if service == "postgresql":
+#         executePostgresOperation(operation)
+#     elif service == "mysql":
+#         executeMysqlOperation(operation)
+#     elif service == "mssql":
+#         executeMssqlOperation(operation)
+#     else:
+#         print(f"SERVICE NOT SUPPORTED: {service}")
+#     return "YEAH"
+
+
+@app.get("/createextraservice", response_class=PlainTextResponse)
+def create_extra_service(serviceName: str = ""):
+    if serviceName:
+        Pin.override(Flask, service=serviceName, tracer=tracer)
     return "OK"
