@@ -2,6 +2,7 @@ import os
 import yaml
 from yamlinclude import YamlIncludeConstructor
 from utils._context.virtual_machines import TestedVirtualMachine
+from utils.tools import logger
 
 
 class ProvisionMatrix:
@@ -105,11 +106,8 @@ class ProvisionParser:
 
     def ec2_autoinjection_uninstall_data(self):
         autoinjection_language_data = {}
-        if self.is_auto_install:
-            # Not supported yet
-            return None
-        else:
-            autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
+        # Although the installation was automatic, the uninstallation method is the same as the manual installation.
+        autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
         if not autoinjection_language_data:
             return None
         for autoinjection_env_data in autoinjection_language_data:
