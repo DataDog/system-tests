@@ -167,7 +167,11 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            echo "uninstall autoinjection: "
+            echo "uninstall autoinjection: 2"
+            dd-container-install --uninstall
+            echo "uninstall autoinjection: DONE"
 
     - env: prod
       install: 
@@ -194,7 +198,11 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            echo "uninstall autoinjection: "
+            echo "uninstall autoinjection: 2"
+            dd-container-install --uninstall
+            echo "uninstall autoinjection: DONE"
   - nodejs: 
     - env: dev
       install: 
@@ -221,7 +229,11 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            echo "uninstall autoinjection: "
+            echo "uninstall autoinjection: 2"
+            dd-container-install --uninstall
+            echo "uninstall autoinjection: DONE"
 
     - env: prod
       install: 
@@ -248,7 +260,11 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            echo "uninstall autoinjection: "
+            echo "uninstall autoinjection: 2"
+            dd-container-install --uninstall
+            echo "uninstall autoinjection: DONE"
   - python: 
     - env: dev
       install: 
@@ -275,7 +291,11 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            echo "uninstall autoinjection: "
+            echo "uninstall autoinjection: 2"
+            dd-container-install --uninstall
+            echo "uninstall autoinjection: DONE"
     - env: prod
       install: 
         - os_type: linux
@@ -301,7 +321,11 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            echo "uninstall autoinjection: "
+            echo "uninstall autoinjection: 2"
+            dd-container-install --uninstall
+            echo "uninstall autoinjection: DONE"
   - dotnet: 
     - env: dev
       install: 
@@ -328,7 +352,11 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            echo "uninstall autoinjection: "
+            echo "uninstall autoinjection: 2"
+            dd-container-install --uninstall
+            echo "uninstall autoinjection: DONE"
     - env: prod
       install: 
         - os_type: linux
@@ -354,7 +382,11 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            echo "uninstall autoinjection: "
+            echo "uninstall autoinjection: 2"
+            dd-container-install --uninstall
+            echo "uninstall autoinjection: DONE"
 language-variants:
   - java: 
     - name: OpenJDK11
