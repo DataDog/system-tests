@@ -43,7 +43,8 @@ tests/:
         test_weak_cipher.py:
           TestWeakCipher: missing_feature
         test_weak_hash.py:
-          TestWeakHash: missing_feature
+          TestWeakHash:
+              '*': v2.24.0
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
