@@ -6,4 +6,5 @@ sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans d
 sleep 20
 sudo -E docker-compose -f docker-compose.yml up -d test-app-nodejs
 sudo docker-compose logs
-echo "RUN DONE"
+echo "RUN DONE!"
+exit 0

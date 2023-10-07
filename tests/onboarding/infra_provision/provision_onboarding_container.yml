@@ -487,9 +487,7 @@ weblogs:
 
             - name: copy-nodejs-app
               local_path: test-app-nodejs.tar
-
-          #command: sh test-app-nodejs_docker_compose_run.sh
-          command: echo "Instalo la applicacion"
+          command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
         - os_type: linux
           command: echo "Stopping docker service"
