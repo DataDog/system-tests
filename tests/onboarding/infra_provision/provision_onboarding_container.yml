@@ -167,11 +167,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-container-install --uninstall
-            echo "uninstall autoinjection: DONE"
+          command: dd-container-install --uninstall
 
     - env: prod
       install: 
@@ -198,11 +194,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-container-install --uninstall
-            echo "uninstall autoinjection: DONE"
+          command: dd-container-install --uninstall
   - nodejs: 
     - env: dev
       install: 
@@ -229,11 +221,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-container-install --uninstall
-            echo "uninstall autoinjection: DONE"
+          command: dd-container-install --uninstall
 
     - env: prod
       install: 
@@ -260,11 +248,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-container-install --uninstall
-            echo "uninstall autoinjection: DONE"
+          command: dd-container-install --uninstall
   - python: 
     - env: dev
       install: 
@@ -291,11 +275,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-container-install --uninstall
-            echo "uninstall autoinjection: DONE"
+          command: dd-container-install --uninstall
     - env: prod
       install: 
         - os_type: linux
@@ -321,11 +301,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-container-install --uninstall
-            echo "uninstall autoinjection: DONE"
+          command: dd-container-install --uninstall
   - dotnet: 
     - env: dev
       install: 
@@ -352,11 +328,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-container-install --uninstall
-            echo "uninstall autoinjection: DONE"
+          command: dd-container-install --uninstall
     - env: prod
       install: 
         - os_type: linux
@@ -382,11 +354,8 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-container-install --uninstall
-            echo "uninstall autoinjection: DONE"
+          command: dd-container-install --uninstall
+
 language-variants:
   - java: 
     - name: OpenJDK11
@@ -490,7 +459,7 @@ weblogs:
           command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: echo "Stopping docker service"
+          command: sudo systemctl restart docker.service
   - python: 
     - name: test-app-python
       install: 

@@ -115,11 +115,7 @@ autoinjection:
             echo "Package signature verified!"
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection 2: "
-            dd-host-install --uninstall
-            echo "uninstall autoinjection DONE "
+          command: dd-host-install --uninstall
     - env: prod
       install: 
         - os_type: linux
@@ -138,11 +134,7 @@ autoinjection:
             rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-host-install --uninstall
-            echo "uninstall autoinjection DONE "
+          command: dd-host-install --uninstall
 
   - nodejs: 
     - env: dev
@@ -160,11 +152,7 @@ autoinjection:
             dd-host-install
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-host-install --uninstall
-            echo "uninstall autoinjection DONE "
+          command: dd-host-install --uninstall
 
     - env: prod
       install: 
@@ -181,11 +169,7 @@ autoinjection:
             dd-host-install
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-host-install --uninstall
-            echo "uninstall autoinjection DONE "
+          command: dd-host-install --uninstall
   - dotnet: 
     - env: dev
       install: 
@@ -196,11 +180,7 @@ autoinjection:
             dd-host-install
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-host-install --uninstall
-            echo "uninstall autoinjection DONE "
+          command: dd-host-install --uninstall
     - env: prod
       install: 
         - os_type: linux
@@ -210,11 +190,7 @@ autoinjection:
             dd-host-install
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-host-install --uninstall
-            echo "uninstall autoinjection DONE "
+          command: dd-host-install --uninstall
   - python:
     - env: prod
       install: 
@@ -231,11 +207,7 @@ autoinjection:
             dd-host-install
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-host-install --uninstall
-            echo "uninstall autoinjection DONE "
+          command: dd-host-install --uninstall
     - env: dev
       install: 
         - os_type: linux
@@ -251,11 +223,7 @@ autoinjection:
             dd-host-install
       uninstall: 
         - os_type: linux 
-          command: |
-            echo "uninstall autoinjection: "
-            echo "uninstall autoinjection: 2"
-            dd-host-install --uninstall
-            echo "uninstall autoinjection DONE "
+          command: dd-host-install --uninstall
 language-variants:
   - java: 
     - name: OpenJDK11
