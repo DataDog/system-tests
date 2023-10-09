@@ -465,7 +465,6 @@ tests/:
   test_scrubbing.py:
     Test_UrlField:
       '*': v1.7.1
-      fastapi: missing_feature
     Test_UrlQuery: v1.6.0rc1.dev
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
