@@ -248,7 +248,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: echo "RMM DESINSTALO EL SOFTWARE QUE NO INSTALE"
+          command: dd-container-install --uninstall
   - python: 
     - env: dev
       install: 
@@ -466,12 +466,10 @@ weblogs:
             - name: copy-nodejs-app-3
               local_path: lib-injection/build/docker/nodejs/sample-app/index.js
 
-
-
           command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: echo "RMM UNISTALL APP!!!!!!!!!!!!"
+          command: sudo systemctl restart docker.service
   - python: 
     - name: test-app-python
       install: 
