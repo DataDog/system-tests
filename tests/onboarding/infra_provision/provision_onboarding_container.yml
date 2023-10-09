@@ -243,10 +243,9 @@ autoinjection:
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
 
           command: |
-            echo "RMM INSTALANDO EL SOFTWARE QUE NO INSTALO"
-            #sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
-            #dd-container-install
-            #sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
+            dd-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
           command: echo "RMM DESINSTALO EL SOFTWARE QUE NO INSTALE"
@@ -455,8 +454,20 @@ weblogs:
             - name: copy-docker-compose-file
               local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/docker-compose.yml
 
-            - name: copy-nodejs-app
-              local_path: test-app-nodejs.tar
+           # - name: copy-nodejs-app
+           #   local_path: test-app-nodejs.tar
+
+            - name: copy-nodejs-app-1
+              local_path: lib-injection/build/docker/nodejs/sample-app/build.sh
+
+            - name: copy-nodejs-app-2
+              local_path: lib-injection/build/docker/nodejs/sample-app/Dockerfile
+
+            - name: copy-nodejs-app-3
+              local_path: lib-injection/build/docker/nodejs/sample-app/index.js
+
+
+
           command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
         - os_type: linux
