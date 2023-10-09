@@ -69,10 +69,16 @@ Werkzeug==2.0.1
 dictdiffer==0.9.0
 
 #On Boarding requirements
-pulumi==3.73.0
-pulumi-aws==5.41.0
+#pulumi==3.73.0
+#pulumi-aws==5.41.0
+#pulumi-tls==5.0.0a0
+#pulumi-command==0.7.2
+
+pulumi==3.87.0
+pulumi-aws==6.4.0
 pulumi-tls==5.0.0a0
-pulumi-command==0.7.2
+pulumi-command==0.9.1
+
 pyyaml==6.0.0
 pyyaml-include==1.3
 
