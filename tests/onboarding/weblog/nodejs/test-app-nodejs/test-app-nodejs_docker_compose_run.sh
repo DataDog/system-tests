@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "COMANDO 1"
+sudo yum install -y tar
 echo "COMANDO 2"
 #tar xf test-app-nodejs.tar &>/dev/null
 #sudo docker build -t system-tests/local .
