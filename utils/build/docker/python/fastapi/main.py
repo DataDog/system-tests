@@ -38,7 +38,7 @@ async def root():
     return "Hello, World!"
 
 
-@app.get("/sample_rate_route/<i>", response_class=PlainTextResponse)
+@app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"
 
@@ -53,18 +53,18 @@ async def waf():
     return "Hello, World!\n"
 
 
-@app.get("/waf/<path>", response_class=PlainTextResponse)
-@app.post("/waf/<path>", response_class=PlainTextResponse)
-@app.options("/waf/<path>", response_class=PlainTextResponse)
-@app.get("/params/<path>", response_class=PlainTextResponse)
-@app.post("/params/<path>", response_class=PlainTextResponse)
-@app.options("/params/<path>", response_class=PlainTextResponse)
+@app.get("/waf/{path}", response_class=PlainTextResponse)
+@app.post("/waf/{path}", response_class=PlainTextResponse)
+@app.options("/waf/{path}", response_class=PlainTextResponse)
+@app.get("/params/{path}", response_class=PlainTextResponse)
+@app.post("/params/{path}", response_class=PlainTextResponse)
+@app.options("/params/{path}", response_class=PlainTextResponse)
 async def waf_params(path):
     return "Hello, World!\n"
 
 
-@app.get("/tag_value/<tag_value>/<status_code>", response_class=PlainTextResponse)
-@app.options("/tag_value/<tag_value>/<status_code>", response_class=PlainTextResponse)
+@app.get("/tag_value/{tag_value}/{status_code}", response_class=PlainTextResponse)
+@app.options("/tag_value/{tag_value}/{status_code}", response_class=PlainTextResponse)
 async def tag_value(tag_value: str, status_code: int, request: Request):
     appsec_trace_utils.track_custom_event(
         tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
@@ -72,7 +72,7 @@ async def tag_value(tag_value: str, status_code: int, request: Request):
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
 
 
-@app.post("/tag_value/<tag_value>/<status_code>")
+@app.post("/tag_value/{tag_value}/{status_code}")
 async def tag_value_post(tag_value: str, status_code: int, request: Request):
     appsec_trace_utils.track_custom_event(
         tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}

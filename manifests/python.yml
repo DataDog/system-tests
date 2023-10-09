@@ -475,7 +475,6 @@ tests/:
     Test_StandardTagsMethod: v1.2.1
     Test_StandardTagsRoute:
       '*': v1.6.0
-      fastapi: missing_feature
     Test_StandardTagsStatusCode: v1.4.0rc1.dev
     Test_StandardTagsUrl:
       '*': v1.6.0rc1.dev
