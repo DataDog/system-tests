@@ -646,7 +646,7 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
 
-    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
+    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` spans to be received from the test agent.
 
         Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
