@@ -568,7 +568,7 @@ class _TestAgentAPI:
                 reported_tracer_version = packaging.version.parse(library_version)
                 if reported_tracer_version < released_version:
                     pytest.skip(
-                        "Tested library version %s is older than the released version %s"
+                        "irrelevant: Tested library version %s is older than the released version %s"
                         % (reported_tracer_version, released_version)
                     )
                 break
