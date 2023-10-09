@@ -154,6 +154,11 @@ end
 
 %i(get post options).each do |request_method|
   send(request_method, '/tag_value/:tag_value/:status_code') do
+    if request_method == :post && params["tag_value"].include?('payload_in_response_body')
+      content_type :json
+      return {"payload":  request.POST }.to_json
+    end
+
     trace = Datadog::Tracing.active_trace
     trace.set_tag("appsec.events.system_tests_appsec_event.value", params["tag_value"])
 

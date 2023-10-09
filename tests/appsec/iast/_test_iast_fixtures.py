@@ -48,6 +48,18 @@ def assert_iast_vulnerability(
     assert len(vulns) == vulnerability_count
 
 
+def _check_telemetry_response_from_agent():
+    # Java tracer (at least) disable telemetry if agent answer 403
+    # Checking that agent answers 200
+    # we do not fail the test, because we are not sure it's the official behavior
+    for data in interfaces.library.get_telemetry_data():
+        code = data["response"]["status_code"]
+        if code != 200:
+            filename = data["log_filename"]
+            logging.warning(f"Agent answered {code} on {filename}, it may cause telemetry issues")
+            return
+
+
 class SinkFixture:
     def __init__(
         self,
@@ -95,6 +107,9 @@ class SinkFixture:
         self.setup_insecure()
 
     def test_telemetry_metric_instrumented_sink(self):
+
+        _check_telemetry_response_from_agent()
+
         expected_namespace = "iast"
         expected_metric = "instrumented.sink"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
@@ -122,6 +137,9 @@ class SinkFixture:
         self.setup_insecure()
 
     def test_telemetry_metric_executed_sink(self):
+
+        _check_telemetry_response_from_agent()
+
         expected_namespace = "iast"
         expected_metric = "executed.sink"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
@@ -182,6 +200,9 @@ class SourceFixture:
         self.setup()
 
     def test_telemetry_metric_instrumented_source(self):
+
+        _check_telemetry_response_from_agent()
+
         expected_namespace = "iast"
         expected_metric = "instrumented.source"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
@@ -209,6 +230,9 @@ class SourceFixture:
         self.setup()
 
     def test_telemetry_metric_executed_source(self):
+
+        _check_telemetry_response_from_agent()
+
         expected_namespace = "iast"
         expected_metric = "executed.source"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
