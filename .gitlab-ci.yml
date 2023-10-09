@@ -71,8 +71,8 @@ onboarding_java:
   extends: .base_job_onboarding
   only:
     - schedules
-  rules:
-   - when: never
+  needs:
+   - onboarding_nodejs
   variables:
     TEST_LIBRARY: "java"
     ONBOARDING_FILTER_OS_DISTRO: "deb"
@@ -96,8 +96,8 @@ onboarding_python:
   extends: .base_job_onboarding
   only:
     - schedules
-  rules:
-   - when: never
+  needs:
+   - onboarding_nodejs
   variables:
     TEST_LIBRARY: "python"
     ONBOARDING_FILTER_OS_DISTRO: "deb"
@@ -117,8 +117,8 @@ onboarding_dotnet:
   extends: .base_job_onboarding
   only:
     - schedules
-  rules:
-   - when: never
+  needs:
+   - onboarding_nodejs
   variables:
     TEST_LIBRARY: "dotnet"
     ONBOARDING_FILTER_OS_DISTRO: "deb"
