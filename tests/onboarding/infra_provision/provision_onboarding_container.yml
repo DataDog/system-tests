@@ -249,7 +249,7 @@ autoinjection:
       uninstall: 
         - os_type: linux 
           command: |
-            dd-container-install --uninstall && sudo systemctl start docker.service
+            dd-container-install --uninstall && sudo systemctl start docker.socket
   - python: 
     - env: dev
       install: 
@@ -470,7 +470,7 @@ weblogs:
           command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl restart docker.service
+          command: sudo systemctl stop docker.socket
   - python: 
     - name: test-app-python
       install: 
