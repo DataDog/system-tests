@@ -460,7 +460,7 @@ weblogs:
           command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl restart docker.service
+          command: echo "RMM UNISTALL APP!!!!!!!!!!!!"
   - python: 
     - name: test-app-python
       install: 
