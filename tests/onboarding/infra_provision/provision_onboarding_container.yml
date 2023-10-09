@@ -248,7 +248,8 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: |
+            dd-container-install --uninstall && sudo systemctl start docker.service
   - python: 
     - env: dev
       install: 
@@ -486,7 +487,7 @@ weblogs:
           command: sh test-app-python_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl restart docker.service
+          command: sudo systemctl stop docker.service
   - dotnet: 
     - name: test-app-dotnet
       install: 
