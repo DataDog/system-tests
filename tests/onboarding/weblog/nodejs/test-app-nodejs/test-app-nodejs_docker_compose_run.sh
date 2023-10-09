@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Starting nodejs app deployment"
-tar xvf test-app-nodejs.tar 
+nohup tar xvf test-app-nodejs.tar 
 ls
 echo "Starting nodejs app deployment 222222"
 sudo docker build -t system-tests/local .
