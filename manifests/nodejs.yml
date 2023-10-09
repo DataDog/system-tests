@@ -135,7 +135,7 @@ tests/:
         Test_Scanners: v2.0.0
         Test_XSS: v2.0.0
       test_telemetry.py:
-        Test_TelemetryMetrics: missing_feature
+        Test_TelemetryMetrics: v4.16.1
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:
