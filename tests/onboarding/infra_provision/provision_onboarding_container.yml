@@ -243,12 +243,13 @@ autoinjection:
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
 
           command: |
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
-            dd-container-install
-            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+            echo "RMM INSTALANDO EL SOFTWARE QUE NO INSTALO"
+            #sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
+            #dd-container-install
+            #sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: echo "RMM DESINSTALO EL SOFTWARE QUE NO INSTALE"
   - python: 
     - env: dev
       install: 
@@ -394,7 +395,7 @@ weblogs:
           command: sh test-app-java_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl restart docker.service
+          command: echo "RMM DESINSTALANDO LA APLICACION QUE NO INSTALO"
 
     - name: test-app-java-alpine
       supported-language-versions:
