@@ -41,7 +41,7 @@ class TestWeakHash:
         secure_endpoint="/iast/insecure_hashing/test_secure_algorithm",
         data=None,
         location_map=_expected_location,
-        evidence_map= _expected_evidence(),
+        evidence_map=_expected_evidence(),
     )
 
     def setup_insecure(self):
