@@ -30,6 +30,7 @@ def _expected_evidence():
     else:
         return "md5"
 
+
 @coverage.basic
 class TestWeakHash:
     """Verify weak hash detection."""
