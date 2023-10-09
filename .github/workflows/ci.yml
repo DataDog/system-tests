@@ -527,7 +527,7 @@ jobs:
     - name: Print fancy log report
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
-
+#test
   open-telemetry-manual:
     runs-on: ubuntu-latest
     if: needs.scenarios.outputs.run_open_telemetry == 'true'
