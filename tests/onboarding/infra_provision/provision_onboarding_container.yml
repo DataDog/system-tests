@@ -455,17 +455,17 @@ weblogs:
             - name: copy-docker-compose-file
               local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/docker-compose.yml
 
-           # - name: copy-nodejs-app
-           #   local_path: test-app-nodejs.tar
+            - name: copy-nodejs-app
+              local_path: test-app-nodejs.tar
 
-            - name: copy-nodejs-app-1
-              local_path: lib-injection/build/docker/nodejs/sample-app/build.sh
+          #  - name: copy-nodejs-app-1
+          #    local_path: lib-injection/build/docker/nodejs/sample-app/build.sh
 
-            - name: copy-nodejs-app-2
-              local_path: lib-injection/build/docker/nodejs/sample-app/Dockerfile
+          #  - name: copy-nodejs-app-2
+          #    local_path: lib-injection/build/docker/nodejs/sample-app/Dockerfile
 
-            - name: copy-nodejs-app-3
-              local_path: lib-injection/build/docker/nodejs/sample-app/index.js
+          # - name: copy-nodejs-app-3
+          #    local_path: lib-injection/build/docker/nodejs/sample-app/index.js
 
           command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
