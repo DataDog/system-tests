@@ -550,31 +550,7 @@ class _TestAgentAPI:
             log.write(f"\n{type}>>>>\n")
             log.write(json.dumps(json_trace))
 
-    def _version_check(self, reqs=None):
-        """Check if the version of the library is compatible with the test case based on the library version reported
-        in requests.
-
-        A better way to do with check would be to have APMLibraryTestServer declare the version of the library
-        to be installed and used so that the version reported by the library can be verified against a source of
-        truth. Right now we assume that the library version reported is correct.
-        """
-        if not hasattr(self._pytest_request.instance, "__released__"):
-            return
-
-        released_version = packaging.version.parse(self._pytest_request.instance.__released__[context.library.library])
-        for r in reqs or self.requests():
-            if "Datadog-Meta-Tracer-Version" in r["headers"]:
-                library_version = r["headers"]["Datadog-Meta-Tracer-Version"]
-                reported_tracer_version = packaging.version.parse(library_version)
-                if reported_tracer_version < released_version:
-                    pytest.skip(
-                        "irrelevant: Tested library version %s is older than the released version %s"
-                        % (reported_tracer_version, released_version)
-                    )
-                break
-
     def traces(self, clear=False, **kwargs):
-        self._version_check()
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
@@ -595,7 +571,6 @@ class _TestAgentAPI:
         return resp.json()
 
     def tracestats(self, **kwargs):
-        self._version_check()
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
         json = resp.json()
         self._write_log("tracestats", json)
@@ -604,12 +579,10 @@ class _TestAgentAPI:
     def requests(self, **kwargs) -> List[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
         json = resp.json()
-        self._version_check(reqs=json)
         self._write_log("requests", json)
         return json
 
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
-        self._version_check()
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
         for raw in raw_requests:
