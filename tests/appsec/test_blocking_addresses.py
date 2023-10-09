@@ -442,7 +442,7 @@ class Test_Blocking_request_cookies:
 
     def setup_non_blocking(self):
         # headers parameters are not a part of cookies
-        self.rm_req_nonblock1 = weblog.get("/waf" "/waf", headers={"foo": "jdfoSDGFkivRG_234"})
+        self.rm_req_nonblock1 = weblog.get("/waf", headers={"foo": "jdfoSDGFkivRG_234"})
         # cookies parameters are blocking only on value not parameter name
         self.rm_req_nonblock2 = weblog.get("/waf", headers={"jdfoSDGFkivRG_234": "foo"})
 
