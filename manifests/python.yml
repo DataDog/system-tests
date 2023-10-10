@@ -474,9 +474,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.5.0
     Test_StandardTagsMethod: v1.2.1
-    Test_StandardTagsRoute:
-      '*': v1.6.0
-      fastapi: missing_feature
+    Test_StandardTagsRoute: v1.6.0
     Test_StandardTagsStatusCode: v1.4.0rc1.dev
     Test_StandardTagsUrl:
       '*': v1.6.0rc1.dev
