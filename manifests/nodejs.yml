@@ -235,6 +235,8 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v4.11.0
+    test_tracer.py:
+      Test_TracerSCITagging: v3.21.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
