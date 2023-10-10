@@ -2,12 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 from utils import weblog, context, coverage, interfaces, bug, missing_feature, scenarios
 
-
-if context.weblog_variant == "akka-http":
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed

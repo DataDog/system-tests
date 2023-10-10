@@ -3,7 +3,7 @@ from utils.tools import logger
 import os
 import json
 
-from utils import missing_feature, irrelevant, released, coverage, scenarios, rfc
+from utils import missing_feature, irrelevant, coverage, scenarios, rfc
 
 
 @scenarios.test_the_test

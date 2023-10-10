@@ -1,4 +1,9 @@
 tests/:
+  apm_tracing_e2e/:
+    test_otel.py:
+      Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_single_span.py:
+      Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
       test_schemas.py:
@@ -13,6 +18,8 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hsts_missing_header.py: 
+          Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
         test_ldap_injection.py:
@@ -21,6 +28,8 @@ tests/:
           TestNoHttponlyCookie: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
         test_sql_injection.py:
@@ -36,9 +45,12 @@ tests/:
         test_weak_cipher.py:
           TestWeakCipher: missing_feature
         test_weak_hash.py:
-          TestWeakHash: missing_feature
+          TestWeakHash:
+              '*': v2.24.0
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
+        test_xcontent_sniffing.py:
+          Test_XContentSniffing: missing_feature        
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -159,13 +171,18 @@ tests/:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Statuses: v2.33.0
-      Test_Debugger_Method_Probe_Statuses: v2.33.0
+      Test_Debugger_Line_Probe_Snaphots: v2.33.0
+      Test_Debugger_Method_Probe_Snaphots: v2.33.0
+      Test_Debugger_Mix_Log_Probe: v2.33.0
+      Test_Debugger_Probe_Statuses: v2.33.0
   integrations/:
     test_db_integrations_sql.py:
-      Test_Mssql_db_integration: missing_feature
-      Test_Mysql_db_integration: missing_feature
-      Test_Postgres_db_integration: missing_feature
+      Test_Agent_Mssql_db_integration: missing_feature
+      Test_Agent_Mysql_db_integration: missing_feature
+      Test_Agent_Postgres_db_integration: missing_feature
+      Test_Tracer_Mssql_db_integration: missing_feature
+      Test_Tracer_Mysql_db_integration: missing_feature
+      Test_Tracer_Postgres_db_integration: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
@@ -175,15 +192,17 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v2.33.0
+    test_tracer.py:
+      Test_TracerSCITagging: bug (Both env vars are not independent; injected tags are duplicated in all spans)
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.36.0
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: v2.15.0
+      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: v2.15.0
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: v2.15.0
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -194,10 +213,15 @@ tests/:
     Test_HeaderTags: v2.27.0
     Test_HeaderTagsLongFormat: v2.1.0
     Test_HeaderTagsShortFormat: v2.1.0
+<<<<<<< HEAD
     Test_HeaderTagsWhitespacing_Headers: v2.1.0
     Test_HeaderTagsWhitespacing_Tags: missing_feature # Should I mark missing_feature if it's a bug?
     Test_HeaderTagsWhitespacing_Vals: v2.1.0
     Test_HeaderTagsColon_Edge: v2.1.0
+=======
+  test_profiling.py:
+    Test_Profile: missing_feature (Not receiving profiles)
+>>>>>>> main
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0

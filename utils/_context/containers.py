@@ -274,7 +274,8 @@ class ImageInfo:
 
         for var in attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
-            self.env[key] = value
+            if value:
+                self.env[key] = value
 
     def save_image_info(self, dir_path):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
@@ -425,6 +426,12 @@ class WeblogContainer(TestedContainer):
 
         if self.library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
+
+            if self.library == "python":
+                # activating debug log on python causes a huge amount of logs, making the network
+                # stack fails a lot randomly
+                self.environment["DD_TRACE_DEBUG"] = "false"
+
         elif self.library in ("golang", "nodejs", "php", "ruby"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
         else:
@@ -437,6 +444,11 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
         else:
             self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
+
+        if self.weblog_variant == "python3.12":
+            self.environment["DD_IAST_ENABLED"] = "false"  # IAST is not working as now on python3.12
+            if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
+                self.environment["DD_PROFILING_ENABLED"] = "false"
 
     @property
     def library(self):

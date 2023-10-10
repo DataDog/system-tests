@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-from utils import bug, context, coverage, interfaces, released, rfc, weblog, missing_feature
+from utils import bug, context, coverage, interfaces, rfc, weblog, missing_feature
 from utils.tools import logger
 
 
@@ -61,7 +61,6 @@ class Test_UrlQuery:
         interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
 
 
-@missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
     """ PII in url field is removed on client HTTP calls """

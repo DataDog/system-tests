@@ -1,14 +1,21 @@
 tests/:
+  apm_tracing_e2e/:
+    test_otel.py:
+      Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_single_span.py:
+      Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
       test_schemas.py: irrelevant (ASM is not implemented in C++)
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
         test_insecure_cookie.py: irrelevant (ASM is not implemented in C++)
         test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
         test_no_httponly_cookie.py: irrelevant (ASM is not implemented in C++)
         test_no_samesite_cookie.py: irrelevant (ASM is not implemented in C++)
+        test_nosql_mongodb_injection.py: irrelevant (ASM is not implemented in C++)
         test_path_traversal.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
@@ -18,6 +25,7 @@ tests/:
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
         test_weak_hash.py: irrelevant (ASM is not implemented in C++)
         test_weak_randomness.py: irrelevant (ASM is not implemented in C++)
+        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)       
         test_xpath_injection.py: irrelevant (ASM is not implemented in C++)
         test_xss.py: irrelevant (ASM is not implemented in C++)
       source/:
@@ -60,13 +68,18 @@ tests/:
     test_versions.py: irrelevant (ASM is not implemented in C++)
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Statuses: missing_feature
-      Test_Debugger_Method_Probe_Statuses: missing_feature
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
+      Test_Debugger_Mix_Log_Probe: irrelevant
+      Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_db_integrations_sql.py: 
-      Test_Mssql_db_integration: missing_feature
-      Test_Mysql_db_integration: missing_feature
-      Test_Postgres_db_integration: missing_feature
+      Test_Agent_Mssql_db_integration: missing_feature
+      Test_Agent_Mysql_db_integration: missing_feature
+      Test_Agent_Postgres_db_integration: missing_feature
+      Test_Tracer_Mssql_db_integration: missing_feature
+      Test_Tracer_Mysql_db_integration: missing_feature
+      Test_Tracer_Postgres_db_integration: missing_feature
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
@@ -78,6 +91,8 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
+    test_tracer.py:
+      Test_TracerSCITagging: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
@@ -90,11 +105,21 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant
+  test_library_conf.py: irrelevant
+  test_miscs.py: irrelevant
+  test_profiling.py:
+    Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
+  test_sampling_rates.py:
+    Test_SamplingRates: missing_feature (https://github.com/DataDog/dd-opentracing-cpp/issues/173)
   test_scrubbing.py: irrelevant
+  test_semantic_conventions.py:
+    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
   test_standard_tags.py: irrelevant
   test_telemetry.py:
     Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
+    Test_ProductsDisabled: irrelevant
+    Test_Telemetry: missing_feature
     Test_TelemetryV2: missing_feature

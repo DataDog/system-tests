@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, released, missing_feature
+from utils import coverage, missing_feature
 from .._test_iast_fixtures import SinkFixture
 
 
@@ -16,7 +16,11 @@ class TestSSRF:
         insecure_endpoint="/iast/ssrf/test_insecure",
         secure_endpoint="/iast/ssrf/test_secure",
         data={"url": "https://www.datadoghq.com"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.SsrfExamples", "nodejs": "iast/index.js",},
+        location_map={
+            "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
+            "nodejs": "iast/index.js",
+            "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+        },
     )
 
     def setup_insecure(self):
@@ -35,6 +39,7 @@ class TestSSRF:
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
+    @missing_feature(library="python", reason="Endpoint not implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 

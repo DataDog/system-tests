@@ -7,7 +7,6 @@ from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@bug(library="python")
 class TestParameterValue:
     """Verify that request parameters are tainted"""
 

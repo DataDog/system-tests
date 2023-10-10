@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released, missing_feature, bug
+from utils import context, coverage, missing_feature, bug
 from .._test_iast_fixtures import SinkFixture
 
 
@@ -61,6 +61,5 @@ class TestInsecureCookie:
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
-    @missing_feature(library="python", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

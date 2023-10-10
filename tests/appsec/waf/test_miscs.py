@@ -2,13 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-
-from utils import context, weblog, interfaces, released, bug, coverage, missing_feature
+from utils import context, weblog, interfaces, bug, coverage, missing_feature
 from .utils import rules
-
-if context.weblog_variant in ("akka-http", "spring-boot-payara"):
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
@@ -78,7 +73,6 @@ class Test_MultipleAttacks:
         interfaces.library.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
 
 
-@bug(context.library < "nodejs@3.19.0", reason="fixed in a waf update")
 @coverage.good
 class Test_CorrectOptionProcessing:
     """Check that the case sensitive option is properly processed"""

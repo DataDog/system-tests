@@ -5,9 +5,10 @@ import pytest
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span
+from utils import missing_feature, context, scenarios
+
 from .conftest import _TestAgentAPI
 from .conftest import APMLibrary
-from utils import missing_feature, context, scenarios, released
 
 
 parametrize = pytest.mark.parametrize
@@ -40,6 +41,57 @@ class Test_Tracer:
         child_span = find_span(trace, Span(name="operation.child"))
         assert child_span["name"] == "operation.child"
         assert child_span["meta"]["key"] == "val"
+
+
+@scenarios.parametric
+class Test_TracerSCITagging:
+    @parametrize("library_env", [{"DD_GIT_REPOSITORY_URL": "https://github.com/DataDog/dd-trace-go"}])
+    def test_tracer_repository_url_environment_variable(
+        self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """
+        When DD_GIT_REPOSITORY_URL is specified
+            When a trace chunk is emitted
+                The first span of the trace chunk should have the value of DD_GIT_REPOSITORY_URL
+                in meta._dd.git.repository_url
+        """
+        with test_library:
+            with test_library.start_span("operation") as parent:
+                with test_library.start_span("operation.child", parent_id=parent.span_id):
+                    pass
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, Span(name="operation"))
+        assert len(trace) == 2
+
+        # the repository url should be injected in the first span of the trace
+        assert trace[0]["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
+        # and not in the others
+        assert "_dd.git.repository_url" not in trace[1].get("meta", {})
+
+    @parametrize("library_env", [{"DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}])
+    def test_tracer_commit_sha_environment_variable(
+        self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """
+        When DD_GIT_COMMIT_SHA is specified
+            When a trace chunk is emitted
+                The first span of the trace chunk should have the value of DD_GIT_COMMIT_SHA
+                in meta._dd.git.commit.sha
+        """
+        with test_library:
+            with test_library.start_span("operation") as parent:
+                with test_library.start_span("operation.child", parent_id=parent.span_id):
+                    pass
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, Span(name="operation"))
+        assert len(trace) == 2
+
+        # the repository url should be injected in the first span of the trace
+        assert trace[0]["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
+        # and not in the others
+        assert "_dd.git.commit.sha" not in trace[1].get("meta", {})
 
 
 @scenarios.parametric

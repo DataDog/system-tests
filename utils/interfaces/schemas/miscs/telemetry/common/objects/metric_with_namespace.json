@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/common/objects/metric_with_namespace.json",
+  "description": "Metric Object With Namespace",
+  "title": "Instrumentation Telemetry Metric",
+  "type": "object",
+  "allOf": [
+    {
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "common": {
+          "type": "boolean"
+        },
+        "metric": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "description": "Metric type variant",
+          "enum": ["gauge", "count", "rate"],
+          "example": "gauge"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "interval": {
+          "description": "Set for gauge and rate metric types",
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": ["gauge", "rate"]
+          }
+        }
+      },
+      "then": {
+        "required": ["namespace", "metric", "points", "interval"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "count"
+          }
+        }
+      },
+      "then": {
+        "required": ["namespace", "metric", "points"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "gauge"
+          }
+        }
+      },
+      "then": {
+        "required": ["namespace", "metric", "points", "tags", "common", "type"]
+      }
+    }
+  ]
+}
