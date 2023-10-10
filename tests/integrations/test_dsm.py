@@ -181,7 +181,6 @@ class DsmHelper:
                 return False
         return True
 
-
     @staticmethod
     def assert_checkpoint_presence(hash_, parent_hash, tags):
 
@@ -197,8 +196,11 @@ class DsmHelper:
                     observed_tags = tuple(stats_point["EdgeTags"])
 
                     logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
-                    if observed_hash == hash_ and observed_parent_hash == parent_hash and DsmHelper.is_tags_included(
-                            observed_tags, tags):
+                    if (
+                        observed_hash == hash_
+                        and observed_parent_hash == parent_hash
+                        and DsmHelper.is_tags_included(observed_tags, tags)
+                    ):
                         logger.info("checkpoint found ✅")
                         return
 
