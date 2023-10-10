@@ -3,7 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-from utils import bug, context, coverage, interfaces, rfc, weblog, missing_feature
+
+from utils import bug, context, coverage, interfaces, missing_feature, rfc, weblog
 from utils.tools import logger
 
 
