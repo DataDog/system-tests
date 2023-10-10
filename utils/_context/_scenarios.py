@@ -8,7 +8,6 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
-from utils._context.header_tag_vars import headers
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
@@ -1113,34 +1112,16 @@ class scenarios:
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
     library_conf_custom_header_tags = EndToEndScenario(
-            "LIBRARY_CONF_HEADER_TAGS", additional_trace_header_tags=(list(headers.values())), doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS"
-    )
-    # dummy value because the tests skip the first input.
-    library_conf_custom_headers_short = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("dummy", "header-tag1", "header-tag2"), doc="Scenario with <header_name> input given to DD_TRACE_HEADER_TAGS"
-    )
-    library_conf_custom_headers_long = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
-        additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
-        doc="Scenario with <header>:<tag_name> formatted input given to DD_TRACE_HEADER_TAGS",
-    )
-    library_conf_custom_headers_whitespacing_headers = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_WHITESPACING_HEADERS", additional_trace_header_tags=("dummy", " header-tag1 "), doc="Scenario with whitespacing around the input to DD_TRACE_HEADER_TAGS"
-    )
-    library_conf_custom_headers_whitespacing_tags = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_WHITESPACING_TAGS",
-        additional_trace_header_tags=(
-            "dummy",
-            "header-tag1: custom.header-tag1 ",
-            "header-tag2:c u s t o m.header-tag2",
-        ), doc="Scenario with whitespacing around the mapped 'tag' part of the input to DD_TRACE_HEADER_TAGS"
-    )
-    library_conf_custom_headers_whitespacing_vals = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_WHITESPACING_VALS",
-        additional_trace_header_tags=("dummy", "header-tag1", "header-tag2"), doc="Scenario with whitespacing around the values for the headers given to DD_TRACE_HEADER_TAGS"
-    )
-    library_conf_custom_headers_colon_edge = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_COLON_EDGE", additional_trace_header_tags=("dummy", ":header-tag1", "header-tag2:"), doc="Scenario with leading & trailing colon on the input to DD_TRACE_HEADER_TAGS"
+            "LIBRARY_CONF_CUSTOM_HEADER_TAGS", 
+            additional_trace_header_tags=(
+                "header1",
+                "header2:mapped-header",
+                " header3 ",
+                "header4: t a g ",
+                "header5",
+                ":header6",
+                "header7:"
+            ), doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS"
     )
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 

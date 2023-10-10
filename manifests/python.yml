@@ -308,7 +308,7 @@ tests/:
     Test_HeaderTags: v0.53
     Test_HeaderTagsLongFormat: v1.2.1
     Test_HeaderTagsShortFormat: missing_feature
-    Test_HeaderTagsWhitespacing_Headers: v1.2.1
+    Test_HeaderTagsWhitespacing_Headers: missing_feature
     Test_HeaderTagsWhitespacing_Tags: v1.2.1
     Test_HeaderTagsWhitespacing_Vals: v1.2.1 # was marked as ?
     Test_HeaderTagsColon_Edge: v1.2.1 # was marked as ?

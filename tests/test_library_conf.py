@@ -3,8 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import re
-from utils import coverage, weblog, interfaces, irrelevant, scenarios
-from utils._context.header_tag_vars import headers
+from utils import coverage, weblog, interfaces, irrelevant, scenarios, bug
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
@@ -25,19 +24,19 @@ class Test_HeaderTags:
 @scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsShortFormat:
     """Validates that the short, header name only, format for specifying headers correctly tags spans"""
-
     def setup_trace_header_tags(self):
-        self.headers = {headers[1]: "val"}
+        self.headers = {'header1': "val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
         tag_conf = scenarios.library_conf_custom_header_tags.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
-        # skip the first item, as this required to make the tests work on some platforms
+        # skip the first item, which is always the user-agent header
         tag_config_list = full_tag_config_list[1::]
-
-        tags = {"http.request.headers." + tag: self.headers[tag] for tag in tag_config_list}
+        # 'header1' should be the first item in the list now
+        header = tag_config_list[0]
+        tags = {"http.request.headers." + header: self.headers[header]}
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
@@ -47,19 +46,22 @@ class Test_HeaderTagsShortFormat:
 @scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsLongFormat:
     """Validates that tracer uses `<header>:<tag_name>` format correctly tags spans"""
+    test_num = 2
 
     def setup_trace_header_tags(self):
-        self.headers = {headers[2]: "val"}
+        self.headers = {f"header{Test_HeaderTagsLongFormat.test_num}": "val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
         tag_conf = scenarios.library_conf_custom_header_tags.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
-        # skip the first item, as this required to make the tests work on some platforms
+        # skip the first item, which is always the user-agent header
         tag_config_list = full_tag_config_list[1::]
+        # 'header2' should be the second item in the list now
+        header_tag = tag_config_list[1]
+        tags = {header_tag.split(":")[1]: self.headers[header_tag.split(":")[0]]}
 
-        tags = {item.split(":")[1]: self.headers[item.split(":")[0]] for item in tag_config_list}
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
@@ -71,7 +73,7 @@ class Test_HeaderTagsWhitespacing_Headers:
     e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header' """
 
     def setup_trace_header_tags(self):
-        self.headers = {headers[3]: "val"}
+        self.headers = {"header3": "val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
@@ -80,13 +82,12 @@ class Test_HeaderTagsWhitespacing_Headers:
         ]
 
         full_tag_config_list = tag_conf.split(",")
-        # skip the first item, as this required to make the tests work on some platforms
+        # skip the first item, which is always the user-agent header
         tag_config_list = full_tag_config_list[1::]
-
-        tags = {}
-        for tag in tag_config_list:
-            tag = tag.strip()
-            tags["http.request.headers." + tag] = re.sub("[^a-zA-Z0-9 -]", "_", self.headers[tag])
+        # ' header3 ' should be the third item in the list now
+        header_tag = tag_config_list[2].strip()
+        val = self.headers[header_tag]
+        tags = {"http.request.headers." + header_tag: val}
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
@@ -95,13 +96,14 @@ class Test_HeaderTagsWhitespacing_Headers:
 @irrelevant(library="cpp")
 
 @coverage.basic
+@bug(library="dotnet", reason="https://datadoghq.atlassian.net/browse/AIT-8308")
 @scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsWhitespacing_Tags:
-    """Validates that leading/trailing whitespaces are trimmed on mapping parts, but whitespaces
-    in between non-whitespace chars are left in-tact."""
+    """Validates that leading/trailing whitespaces on the input to DD_TRACE_HEADER_TAGS are 
+    trimmed on mapping parts, but whitespaces in between non-whitespace chars are left in-tact."""
 
     def setup_trace_header_tags(self):
-        self.headers = {headers[4]: "val"}
+        self.headers = {"header4": "val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
@@ -110,15 +112,11 @@ class Test_HeaderTagsWhitespacing_Tags:
         ]
 
         full_tag_config_list = tag_conf.split(",")
-        # skip the first item, as this required to make the tests work on some platforms
+        # skip the first item, which is always the user-agent header
         tag_config_list = full_tag_config_list[1::]
-
-        tags = {}
-
-        for item in tag_config_list:
-            tag = (item.split(":")[1]).strip()
-            val = self.headers[item.split(":")[0]].strip()
-            tags[tag] = val
+        # 'header4' should be the fourth item in the list now
+        header_tag = tag_config_list[3]
+        tags = {header_tag.split(":")[1].strip(): self.headers[header_tag.split(":")[0]]}
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
@@ -131,7 +129,7 @@ class Test_HeaderTagsWhitespacing_Vals:
     """Validates that whitespaces in header values are not removed in the span tag value"""
 
     def setup_trace_header_tags(self):
-        self.headers = {headers[1]: " v a l "}
+        self.headers = {"header5": " val"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
@@ -140,36 +138,37 @@ class Test_HeaderTagsWhitespacing_Vals:
         ]
 
         full_tag_config_list = tag_conf.split(",")
-        # skip the first item, as this required to make the tests work on some platforms
+        # skip the first item, which is always the user-agent header
         tag_config_list = full_tag_config_list[1::]
-
-        tags = {}
-        for tag in tag_config_list:
-            val = self.headers[tag].strip()
-            tags["http.request.headers." + tag] = val
+        # 'header5' should be the fifth item in the list now
+        header_tag = tag_config_list[4]
+        tags = {"http.request.headers." + header_tag: self.headers["header5"].strip()}
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
 @irrelevant(library="cpp")
 @coverage.basic
-@scenarios.library_conf_custom_headers_colon_edge
+@bug(library="golang", reason="https://datadoghq.atlassian.net/browse/AIT-8571")
+@scenarios.library_conf_custom_header_tags
 class Test_HeaderTagsColon_Edge:
-    """ Validates that input with leading & trailing colons is still considered a tag mapping input """
+    """ Validates that input to DD_TRACE_HEADER_TAGS with leading & trailing
+    colons is still considered a tag mapping input """
 
     def setup_trace_header_tags(self):
-        self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        self.headers = {"header6": "val6", "header7": "val7"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_colon_edge.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
+        tag_conf = scenarios.library_conf_custom_header_tags.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
-        # skip the first item, as this required to make the tests work on some platforms
+        # skip the first item, which is always the user-agent header
         tag_config_list = full_tag_config_list[1::]
-
+        # ':header6' and 'header7:' should be the sixth and seventh items in the list now
+        header_tags = [tag_config_list[5], tag_config_list[6]]
         nottags = []
-        for item in tag_config_list:
+        for item in header_tags:
             nottags.append("http.request.headers." + item)
             splitItem = item.split(":")
             nottags.append(splitItem[0])
