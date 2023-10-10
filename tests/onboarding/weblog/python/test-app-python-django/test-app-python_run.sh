@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "START RUN APP"
-tar xvf test-app-python.tar
-
+set -e
+chmod -R 755 * || true
 
 pip3 install django
 echo "Testing weblog with python version:"

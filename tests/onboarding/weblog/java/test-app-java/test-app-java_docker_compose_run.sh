@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-chmod -R 755 *
+chmod -R 755 * || true
 
 ./gradlew build
 sudo docker build -t system-tests/local .

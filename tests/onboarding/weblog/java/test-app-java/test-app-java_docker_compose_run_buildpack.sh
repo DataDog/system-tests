@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-chmod -R 755 *
+chmod -R 755 * || true
 
 ./gradlew build
 sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest clean bootBuildImage
