@@ -1,6 +1,8 @@
 #!/bin/bash
 
-tar xvf test-app-java.tar
+set -e
+chmod -R 755 *
+
 ./gradlew build
 sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest clean bootBuildImage
 sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog

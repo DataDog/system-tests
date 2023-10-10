@@ -2,6 +2,8 @@ import os
 import logging
 import logging.config
 import shutil
+import pathlib
+
 import pulumi
 from pulumi import Output
 import pulumi_command as command
@@ -65,9 +67,8 @@ def remote_install(
             else:
                 remote_path = os.path.basename(file_to_copy["local_path"])
 
-            logger.info(f"RMM REMOTEPATH TIENE VALOR INICIAL: {remote_path}")
             if os.path.isfile(file_to_copy["local_path"]):
-                logger.info("RMM COPIANDO FICHERO.....")
+                logger.debug(f"Copy file from {file_to_copy['local_path']} to {remote_path}")
                 # Launch copy file command
                 cmd_cp_webapp = command.remote.CopyFile(
                     file_to_copy["name"] + "-" + command_identifier,
@@ -78,7 +79,6 @@ def remote_install(
                 )
                 depends_on = cmd_cp_webapp
             else:
-                logger.info("RMM COPIANDO DIRECTORIO .....")
                 depends_on = remote_copy_folders(
                     file_to_copy["local_path"], remote_path, command_identifier, connection, depends_on
                 )
@@ -104,15 +104,18 @@ def remote_install(
     return cmd_exec_install
 
 
-def remote_copy_folders(source_folder, destination_folder, command_id, connection, depends_on):
+def remote_copy_folders(source_folder, destination_folder, command_id, connection, depends_on, relative_path=False):
     copy_depends_on = depends_on
     for file_name in os.listdir(source_folder):
         # construct full file path
         source = source_folder + "/" + file_name
         destination = destination_folder + "/" + file_name
-        destination = os.path.basename(destination)
+
         logger.debug(f"remote_copy_folders: source:[{source}] and remote destination: [{destination}] ")
         if os.path.isfile(source):
+            if not relative_path:
+                destination = os.path.basename(destination)
+            logger.debug(f"Copy single file: source:[{source}] and remote destination: [{destination}] ")
             # Launch copy file command
             cmd_cp = command.remote.CopyFile(
                 file_name + "-" + command_id,
@@ -123,7 +126,20 @@ def remote_copy_folders(source_folder, destination_folder, command_id, connectio
             )
             copy_depends_on = cmd_cp
         else:
-            copy_depends_on = remote_copy_folders(source, destination, command_id, connection, depends_on)
+            # mkdir remote
+            if not relative_path:
+                p = pathlib.Path("/" + destination)
+                destination = str(p.relative_to(*p.parts[:2]))
+            logger.debug(f"Creating remote folder: {destination}")
+            depends_on = command.remote.Command(
+                "mkdir-" + file_name + "-" + command_id,
+                connection=connection,
+                create=f"mkdir -p {destination}",
+                opts=pulumi.ResourceOptions(depends_on=[depends_on]),
+            )
+            copy_depends_on = remote_copy_folders(
+                source, destination, command_id, connection, depends_on, relative_path=True
+            )
     return copy_depends_on
 
 

@@ -1,8 +1,7 @@
 #!/bin/bash
+chmod -R 755 *
 
 echo "Starting nodejs app deployment"
-#tar xvf test-app-nodejs.tar 
-
 sudo docker build -t system-tests/local .
 sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
 sleep 20

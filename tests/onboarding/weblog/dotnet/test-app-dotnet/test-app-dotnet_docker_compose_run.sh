@@ -1,6 +1,8 @@
 #!/bin/bash
 
-tar xvf test-app-dotnet.tar
+set -e
+chmod -R 755 *
+
 sudo docker build --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
 sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
 sleep 20

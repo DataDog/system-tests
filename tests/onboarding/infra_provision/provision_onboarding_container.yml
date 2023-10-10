@@ -167,7 +167,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: dd-container-install --uninstall && sudo systemctl restart docker
 
     - env: prod
       install: 
@@ -194,7 +194,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: dd-container-install --uninstall && sudo systemctl restart docker
   - nodejs: 
     - env: dev
       install: 
@@ -221,7 +221,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: dd-container-install --uninstall && sudo systemctl restart docker
 
     - env: prod
       install: 
@@ -248,8 +248,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: |
-            dd-container-install --uninstall && sudo systemctl start docker.socket
+          command: dd-container-install --uninstall && sudo systemctl restart docker
   - python: 
     - env: dev
       install: 
@@ -276,7 +275,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: dd-container-install --uninstall && sudo systemctl restart docker
     - env: prod
       install: 
         - os_type: linux
@@ -302,7 +301,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: dd-container-install --uninstall && sudo systemctl restart docker
   - dotnet: 
     - env: dev
       install: 
@@ -329,7 +328,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: dd-container-install --uninstall && sudo systemctl restart docker
     - env: prod
       install: 
         - os_type: linux
@@ -355,7 +354,7 @@ autoinjection:
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
       uninstall: 
         - os_type: linux 
-          command: dd-container-install --uninstall
+          command: dd-container-install --uninstall && sudo systemctl restart docker
 
 language-variants:
   - java: 
@@ -378,7 +377,6 @@ weblogs:
         - 11
       install: 
         - os_type: linux
-          local-command: tar cvf test-app-java.tar -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
           copy_files:
             - name: copy-run-weblog-script
               local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_docker_compose_run.sh
@@ -390,19 +388,18 @@ weblogs:
               local_path: tests/onboarding/weblog/java/test-app-java/docker-compose.yml
 
             - name: copy-java-app
-              local_path: test-app-java.tar
+              local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
           command: sh test-app-java_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: echo "RMM DESINSTALANDO LA APLICACION QUE NO INSTALO"
+          command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down
 
     - name: test-app-java-alpine
       supported-language-versions:
         - 11
       install: 
         - os_type: linux
-          local-command: tar cvf test-app-java.tar -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
           copy_files:
             - name: copy-run-weblog-script
               local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_docker_compose_run.sh
@@ -418,84 +415,68 @@ weblogs:
               local_path: tests/onboarding/weblog/java/test-app-java/docker-compose.yml
 
             - name: copy-java-app
-              local_path: test-app-java.tar
+              local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
           command: sh test-app-java_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl restart docker.service
+          command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down
 
     - name: test-app-java-buildpack
       supported-language-versions:
         - 11
       install: 
         - os_type: linux
-          local-command: tar cvf test-app-java.tar -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
           copy_files:
             - name: copy-run-weblog-script
               local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_docker_compose_run_buildpack.sh
             - name: copy-docker-compose-file
               local_path: tests/onboarding/weblog/java/test-app-java/docker-compose.yml
             - name: copy-java-app
-              local_path: test-app-java.tar
+              local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
           command: sh test-app-java_docker_compose_run_buildpack.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl restart docker.service
+          command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down
   - nodejs: 
     - name: test-app-nodejs
       install: 
         - os_type: linux
-          local-command: tar cvf test-app-nodejs.tar -C lib-injection/build/docker/nodejs/sample-app .
           copy_files:
             - name: copy-run-weblog-script
               local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/test-app-nodejs_docker_compose_run.sh
 
             - name: copy-docker-compose-file
               local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/docker-compose.yml
-            
-            #- name: copy-nodejs-app
-            #  local_path: test-app-nodejs.tar
 
             - name: copy-nodejs-app
               local_path: lib-injection/build/docker/nodejs/sample-app
 
-          #  - name: copy-nodejs-app-1
-          #    local_path: lib-injection/build/docker/nodejs/sample-app/build.sh
-
-          #  - name: copy-nodejs-app-2
-          #    local_path: lib-injection/build/docker/nodejs/sample-app/Dockerfile
-
-          # - name: copy-nodejs-app-3
-          #    local_path: lib-injection/build/docker/nodejs/sample-app/index.js
-
           command: sh test-app-nodejs_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl stop docker.socket
+          command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down
   - python: 
     - name: test-app-python
       install: 
         - os_type: linux
-          local-command: tar cvf test-app-python.tar -C lib-injection/build/docker/python/dd-lib-python-init-test-django .
           copy_files:
             - name: copy-run-weblog-script
               local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python_docker_compose_run.sh
             - name: copy-docker-compose-file
               local_path: tests/onboarding/weblog/python/test-app-python-django/docker-compose.yml
             - name: copy-python-app
-              local_path: test-app-python.tar
+              local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
 
           command: sh test-app-python_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl stop docker.service
+          command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down
   - dotnet: 
     - name: test-app-dotnet
       install: 
         - os_type: linux
-          local-command: tar cvf test-app-dotnet.tar -C lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app .
           copy_files:
             - name: copy-run-weblog-script
               local_path: tests/onboarding/weblog/dotnet/test-app-dotnet/test-app-dotnet_docker_compose_run.sh
@@ -504,11 +485,11 @@ weblogs:
               local_path: tests/onboarding/weblog/dotnet/test-app-dotnet/docker-compose.yml
 
             - name: copy-dotnet-app
-              local_path: test-app-dotnet.tar
+              local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
 
           command: sh test-app-dotnet_docker_compose_run.sh
       uninstall: 
         - os_type: linux
-          command: sudo systemctl restart docker.service
+          command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down
 
 installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml
