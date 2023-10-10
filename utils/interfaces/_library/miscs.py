@@ -18,7 +18,6 @@ class _SpanTagValidator:
 
     def __call__(self, span):
         for tagKey in self.tags:
-            print(span["meta"])
             if tagKey not in span["meta"]:
                 raise ValueError(f"{tagKey} tag not found in span's meta")
 

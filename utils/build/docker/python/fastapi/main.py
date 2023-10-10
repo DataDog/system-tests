@@ -8,7 +8,6 @@ import psycopg2
 import requests
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.contrib.fastapi import patch as fastapi_patch
 from fastapi import Cookie, FastAPI, Form, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from iast import (
