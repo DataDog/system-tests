@@ -356,7 +356,9 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
-      Test_DsmKafka: v4.4.0
+      Test_DsmKafka: 
+        '*': v4.4.0
+        nextjs: missing_feature (missing endpoint)
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
