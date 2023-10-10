@@ -454,9 +454,12 @@ weblogs:
 
             - name: copy-docker-compose-file
               local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/docker-compose.yml
+            
+            #- name: copy-nodejs-app
+            #  local_path: test-app-nodejs.tar
 
             - name: copy-nodejs-app
-              local_path: test-app-nodejs.tar
+              local_path: lib-injection/build/docker/nodejs/sample-app
 
           #  - name: copy-nodejs-app-1
           #    local_path: lib-injection/build/docker/nodejs/sample-app/build.sh
