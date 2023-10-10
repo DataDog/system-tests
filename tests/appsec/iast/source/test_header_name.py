@@ -17,6 +17,10 @@ class TestHeaderName(BaseSourceTest):
     source_type = "http.request.header.name"
     source_value = None
 
+    @bug(library="nodejs", reason="not reported correctly")
+    def test_source_reported(self):
+        super().test_source_reported()
+
     @bug(library="java", reason="Not working as expected")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()

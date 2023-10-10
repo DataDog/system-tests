@@ -8,6 +8,7 @@ const { execSync } = require('child_process')
 const https = require('https');
 const { MongoClient } = require('mongodb');
 const mongoSanitize = require('express-mongo-sanitize')
+const ldap = require('../integrations/ldap')
 
 async function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
@@ -133,8 +134,11 @@ function initRoutes (app, tracer) {
   });
 
   app.post('/iast/ssrf/test_insecure', (req, res) => {
-    https.get(req.body.url, () => {
-      res.send('OK')
+    https.get(req.body.url, (clientResponse) => {
+      clientResponse.on('data', function noop () {})
+      clientResponse.on('end', () => {
+        res.send('OK')
+      })
     })
   });
 
@@ -259,6 +263,34 @@ function initRoutes (app, tracer) {
       param: req.body.key
     })
     res.send('OK')
+  })
+
+  function searchLdap(filter, req, res) {
+    const sendError = (err) => res.status(500).send(`Error: ${err}`) 
+
+    ldap.connect()
+      .catch(sendError)
+      .then(client => 
+        client.search('ou=people', filter, (err, searchRes) => {
+          if (err) return sendError(err)
+
+          const entries = new Set()
+          searchRes.on('searchEntry', entry => entries.add(entry.json));
+          searchRes.on('end', () => res.json([...entries]))
+          searchRes.on('error', sendError)
+        })
+      )
+  }
+
+  app.post('/iast/ldapi/test_insecure', (req, res) => {
+    const { username, password } = req.body
+    const filter = '(&(uid=' + username + ')(password=' + password + '))'
+    searchLdap(filter, req, res)
+  })
+
+  app.post('/iast/ldapi/test_secure', (req, res) => {
+    const filter = '(&(uid=ssam)(password=sammy))'
+    searchLdap(filter, req, res)
   })
 
   require('./sources')(app, tracer)

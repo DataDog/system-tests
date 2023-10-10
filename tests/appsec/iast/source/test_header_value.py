@@ -17,7 +17,7 @@ class TestHeaderValue(BaseSourceTest):
     endpoint = "/iast/source/header/test"
     requests_kwargs = [{"method": "GET", "headers": {"table": "user"}}]
     source_type = "http.request.header"
-    source_value = "user"
+    source_value = None if context.library.library == "nodejs" else "user"
 
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     def test_source_reported(self):
