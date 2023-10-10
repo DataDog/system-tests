@@ -66,6 +66,8 @@ tests/:
             akka-http: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature            
         test_path_traversal.py:
           TestPathTraversal:
             '*': v1.1.0

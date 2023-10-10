@@ -65,6 +65,8 @@ tests/:
             '*': v1.19.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': v2.1.0

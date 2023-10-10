@@ -23,6 +23,8 @@ tests/:
           TestNoHttponlyCookie: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
         test_sql_injection.py:
