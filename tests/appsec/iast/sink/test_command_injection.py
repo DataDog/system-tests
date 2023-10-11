@@ -26,7 +26,6 @@ class TestCommandInjection:
     def setup_insecure(self):
         self.sink_fixture.setup_insecure()
 
-    @missing_feature(context.library < "dotnet@2.28.0", reason="Not implemented yet")
     def test_insecure(self):
         self.sink_fixture.test_insecure()
 
@@ -34,7 +33,6 @@ class TestCommandInjection:
         self.sink_fixture.setup_secure()
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
-    @missing_feature(context.library < "dotnet@2.28.0", reason="Not implemented yet")
     def test_secure(self):
         self.sink_fixture.test_secure()
 
@@ -52,7 +50,6 @@ class TestCommandInjection:
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
-    @missing_feature(context.library < "dotnet@2.28.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
