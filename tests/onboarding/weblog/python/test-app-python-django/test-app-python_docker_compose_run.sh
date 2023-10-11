@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-chmod -R 755 * || true
+sudo chmod -R 755 *
 
 sudo docker build -t system-tests/local .
 sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog

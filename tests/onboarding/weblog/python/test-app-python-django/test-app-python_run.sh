@@ -1,7 +1,8 @@
 #!/bin/bash
 echo "START RUN APP"
+
 set -e
-chmod -R 755 * || true
+sudo chmod -R 755 *
 
 pip3 install django
 echo "Testing weblog with python version:"

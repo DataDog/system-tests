@@ -1,5 +1,7 @@
 #!/bin/bash
-chmod -R 755 *
+
+set -e
+sudo chmod -R 755 *
 
 echo "Starting nodejs app deployment"
 sudo docker build -t system-tests/local .
