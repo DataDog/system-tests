@@ -285,11 +285,10 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    # @flaky(library="dotnet", reason="Heartbeats are sometimes sent too slowly")
-    # @flaky(library="python", reason="Heartbeats are sometimes sent too slowly")
     @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @flaky(library="ruby")
     @bug(context.library > "php@0.90")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     def test_app_heartbeat(self):
