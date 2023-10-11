@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import subprocess
@@ -10,17 +11,17 @@ from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from fastapi import Cookie, FastAPI, Form, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
-from iast import (
-    weak_cipher,
-    weak_cipher_secure_algorithm,
-    weak_hash,
-    weak_hash_duplicates,
-    weak_hash_multiple,
-    weak_hash_secure_algorithm,
-)
+
+try:
+    from iast import (weak_cipher, weak_cipher_secure_algorithm, weak_hash,
+                      weak_hash_duplicates, weak_hash_multiple,
+                      weak_hash_secure_algorithm)
+except ImportError:
+    pass
 from pydantic import BaseModel
 
 tracer.trace("init.service").finish()
+logger = logging.getLogger(__name__)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -33,6 +34,12 @@ POSTGRES_CONFIG = dict(
     host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
 )
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
+
+
+@app.exception_handler(404)
+async def custom_404_handler(request: Request, _):
+    logger.critical(f"request {request.url} failed with 404")
+    return JSONResponse({"error": 404})
 
 
 @app.get("/", response_class=PlainTextResponse)

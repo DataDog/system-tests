@@ -6,18 +6,16 @@ import copy
 import json
 import threading
 
-from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
-from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
+from utils.interfaces._library.appsec import _ReportedHeader, _WafAttack
 from utils.interfaces._library.miscs import _SpanTagValidator
-from utils.interfaces._library.telemetry import (
-    _SeqIdLatencyValidation,
-    _NoSkippedSeqId,
-)
-
+from utils.interfaces._library.telemetry import (_NoSkippedSeqId,
+                                                 _SeqIdLatencyValidation)
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
+from utils.tools import (get_rid_from_request, get_rid_from_span,
+                         get_rid_from_user_agent, logger)
 
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -293,6 +291,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
         success = False
         for _, _, span in self.get_spans(request=request):
+            print(span)
             success = success or validator(span)
 
         if not success:
