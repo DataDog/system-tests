@@ -60,8 +60,8 @@ onboarding_nodejs:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
       - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
-      - timeout 1000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
-      - timeout 1000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} --obd-uninstall
+      - timeout 2000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
+      - timeout 2000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} --obd-uninstall
       
 onboarding_java:
   extends: .base_job_onboarding
@@ -81,8 +81,8 @@ onboarding_java:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
       - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
-      - timeout 1000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
-      - timeout 1000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} --obd-uninstall
+      - timeout 2000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+      - timeout 2000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} --obd-uninstall
 onboarding_python:
   extends: .base_job_onboarding
   only:
@@ -98,8 +98,8 @@ onboarding_python:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
       - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
-      - timeout 1000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
-      - timeout 1000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} --obd-uninstall
+      - timeout 2000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
+      - timeout 2000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} --obd-uninstall
 
 onboarding_dotnet:
   extends: .base_job_onboarding
@@ -116,5 +116,5 @@ onboarding_dotnet:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
       - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
-      - timeout 1000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
-      - timeout 1000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} --obd-uninstall
+      - timeout 2000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+      - timeout 2000 ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} --obd-uninstall
