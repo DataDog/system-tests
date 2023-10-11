@@ -189,8 +189,10 @@ class DsmHelper:
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
 
         for data in interfaces.agent.get_dsm_data():
-            for stats_bucket in data["request"]["content"]["Stats"]:
-                for stats_point in stats_bucket["Stats"]:
+            # some tracers may send separate payloads with stats
+            # or backlogs so "Stats" may be empty
+            for stats_bucket in data["request"]["content"].get("Stats", {}):
+                for stats_point in stats_bucket.get("Stats", {}):
                     observed_hash = stats_point["Hash"]
                     observed_parent_hash = stats_point["ParentHash"]
                     observed_tags = tuple(stats_point["EdgeTags"])
