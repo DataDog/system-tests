@@ -1,0 +1,84 @@
+[
+  null,
+  [
+    {
+      "language": "",
+      "id": "log170aa-acda-4453-9111-1478a6method",
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "LogProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "metricaa-acda-4453-9111-1478a6method",
+      "metricName": "MetricCountInt",
+      "kind": "COUNT",
+      "value": {
+        "json": {
+          "ref": "id"
+        }
+      },
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "MetricProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "span70aa-acda-4453-9111-1478a6method",
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "SpanProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "decor0aa-acda-4453-9111-1478a6method",
+      "targetSpan": "ACTIVE",
+      "decorations": [
+        {
+          "when": {
+            "json": {
+              "gt": [
+                {
+                  "ref": "intLocal"
+                },
+                {
+                  "ref": "intArg"
+                }
+              ]
+            }
+          },
+          "tags": [
+            {
+              "name": "SpanDecorationArgsAndLocals",
+              "value": {
+                "template": null,
+                "segments": [
+                  {
+                    "json": {
+                      "ref": "intLocal"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "SpanDecorationProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    }
+  ]
+]

@@ -37,7 +37,9 @@ module QueryVersions =
    
     let writeRulesVersion () =
         let ruleVersion =
-            use stream = assem.GetManifestResourceStream("Datadog.Trace.AppSec.Waf.rule-set.json")
+            let mutable stream = assem.GetManifestResourceStream("Datadog.Trace.AppSec.Waf.rule-set.json")
+            if stream = null then
+                stream <- assem.GetManifestResourceStream("Datadog.Trace.AppSec.Waf.ConfigFiles.rule-set.json")
             use reader = new StreamReader(stream);
             use jsonReader = new JsonTextReader(reader);
             let root = JToken.ReadFrom(jsonReader);

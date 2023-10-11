@@ -3,27 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 import json
 
-from utils import weblog, context, coverage, interfaces, released, scenarios
+from utils import weblog, coverage, interfaces, scenarios
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@released(php_appsec="0.7.0", python="1.10.0", ruby="1.11.1")
-@released(
-    java={
-        "spring-boot": "1.9.0",
-        "sprint-boot-jetty": "1.9.0",
-        "spring-boot-undertow": "1.9.0",
-        "spring-boot-openliberty": "1.9.0",
-        "ratpack": "1.9.0",
-        "jersey-grizzly2": "1.9.0",
-        "resteasy-netty3": "1.9.0",
-        "vertx3": "1.9.0",
-        "*": "?",
-    }
-)
 @coverage.basic
 @scenarios.appsec_request_blocking
 class Test_AppSecRequestBlocking:

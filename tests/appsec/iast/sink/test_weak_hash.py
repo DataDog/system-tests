@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, coverage, released
-from .._test_iast_fixtures import SinkFixture, get_iast_event, assert_iast_vulnerability
+from utils import weblog, context, bug, missing_feature, coverage
+from .._test_iast_fixtures import SinkFixture, assert_iast_vulnerability
 
 
 def _expected_location():
@@ -24,9 +24,14 @@ def _expected_location():
                 return "/app/iast.py"
 
 
+def _expected_evidence():
+    if context.library.library == "dotnet":
+        return "MD5"
+    else:
+        return "md5"
+
+
 @coverage.basic
-@released(java="0.108.0", php_appsec="?", python="1.6.0", ruby="?")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakHash:
     """Verify weak hash detection."""
 
@@ -37,7 +42,7 @@ class TestWeakHash:
         secure_endpoint="/iast/insecure_hashing/test_secure_algorithm",
         data=None,
         location_map=_expected_location,
-        evidence_map="md5",
+        evidence_map=_expected_evidence(),
     )
 
     def setup_insecure(self):
@@ -56,7 +61,6 @@ class TestWeakHash:
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
 
     @missing_feature(weblog_variant="spring-boot-openliberty")
-    @missing_feature(library="python", reason="Need to be implement duplicates vulnerability hashes")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -86,7 +90,7 @@ class TestWeakHash:
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
@@ -95,6 +99,6 @@ class TestWeakHash:
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(context.library < "dotnet@2.38.0", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

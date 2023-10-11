@@ -1,3 +1,4 @@
+from collections import defaultdict
 from functools import lru_cache
 import json
 import os
@@ -28,25 +29,45 @@ def _load_file(file):
     except FileNotFoundError:
         return {}
 
-    return {nodeid: value for nodeid, value in _flatten("", data)}
-
-
-def _fix_irrelevant_legacy(value: [str, dict]):
-    # in JSON report, the marker for irrelevant is "not relevant", where the decorator is "irrelevant"
-    if isinstance(value, dict):
-        return {k: _fix_irrelevant_legacy(v) for k, v in value.items()}
-
-    if value.startswith("irrelevant"):
-        return "not relevant" + value[len("irrelevant") :]
-
-    return value
+    return {nodeid: value for nodeid, value in _flatten("", data) if value is not None}
 
 
 @lru_cache
-def load(library):
+def load():
+    """
+    Returns a dict of nodeid, value are another dict where the key is the component
+    and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
+    
+    Data example:
 
-    result = _load_file(f"manifests/{library}.yml")
-    result = {nodeid: _fix_irrelevant_legacy(value) for nodeid, value in result.items() if value is not None}
+    {
+        "tests/test_x.py::Test_feature":
+        {
+            "agent": "v1.0",
+            "php": "missing_feature"
+        }
+    }
+    """
+
+    result = defaultdict(dict)
+
+    for component in (
+        "agent",
+        "cpp",
+        "dotnet",
+        "golang",
+        "java",
+        "nodejs",
+        "php_appsec",
+        "php",
+        "python",
+        "python_otel",
+        "ruby",
+    ):
+        data = _load_file(f"manifests/{component}.yml")
+
+        for nodeid, value in data.items():
+            result[nodeid][component] = value
 
     return result
 
@@ -58,7 +79,7 @@ def assert_key_order(obj: dict, path=""):
         if last_key.endswith("/") and not key.endswith("/"):  # transition from folder fo files, nothing to do
             pass
         elif not last_key.endswith("/") and key.endswith("/"):  # folder must be before files
-            raise ValueError("Folders must be placed before files at {path}")
+            raise ValueError(f"Folders must be placed before files at {path}/{last_key}")
         else:  # otherwise, it must be sorted
             assert last_key < key, f"Order is not respcted at {path} ({last_key} < {key})"
 

@@ -2,10 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, released, irrelevant
+from utils import weblog, interfaces
 
 
-@irrelevant(library="cpp")
 class Test_Basic:
     """ Make sure the spans endpoint is successful """
 

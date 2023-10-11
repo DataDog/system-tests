@@ -6,7 +6,7 @@ from collections import defaultdict
 import csv
 from random import randint, seed
 
-from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenarios
+from utils import weblog, interfaces, context, missing_feature, bug, irrelevant, flaky, scenarios
 from utils.tools import logger
 
 
@@ -44,7 +44,6 @@ def _spans_with_parent(traces, parent_ids):
                     yield span
 
 
-@missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
 @bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2")
 @bug(context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces")
 @scenarios.sampling
@@ -109,14 +108,6 @@ class Test_SamplingRates:
         assert len(trace_ids) == 0, f"Some traces have not been sent by the agent: {trace_ids}"
 
 
-@released(php="0.71.0")
-@missing_feature(library="ruby", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="vertx3", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="vertx4", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="jersey-grizzly2", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="ratpack", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="resteasy-netty3", reason="Endpoint /sample_rate_route not implemented")
-@missing_feature(weblog_variant="akka-http", reason="Endpoint /sample_rate_route not implemented")
 @scenarios.sampling
 class Test_SamplingDecisions:
     """Sampling configuration"""
@@ -297,9 +288,9 @@ class Test_SamplingDecisions:
 
     @bug(library="python", reason="APMRP-259")
     @bug(library="nodejs", reason="APMRP-258")
-    @bug(library="dotnet", reason="APMRP-258")
     @bug(library="php", reason="APMRP-258")
     @bug(library="cpp", reason="APMRP-258")
+    @bug(context.library < "dotnet@2.37.0", reason="APMRP-258")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
 

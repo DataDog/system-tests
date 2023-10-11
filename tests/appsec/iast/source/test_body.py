@@ -2,25 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released, missing_feature, bug
+from utils import coverage, missing_feature, bug
 from .._test_iast_fixtures import SourceFixture
 
 
 @coverage.basic
-@released(php_appsec="?", ruby="?")
-@released(python={"flask-poc": "?", "uwsgi-poc": "?", "django-poc": "?", "uds-flask": "?"})
-@released(
-    java={
-        "jersey-grizzly2": "?",
-        "resteasy-netty3": "?",
-        "vertx3": "1.12.0",
-        "vertx4": "1.12.0",
-        "akka-http": "1.12.0",
-        "ratpack": "?",
-        "*": "1.7.0",
-    }
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestRequestBody:
     """Verify that request json body is tainted"""
 
@@ -37,6 +23,7 @@ class TestRequestBody:
         self.source_fixture.setup()
 
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
+    @missing_feature(library="python", reason="Not implemented yet")
     def test_source_reported(self):
         self.source_fixture.test()
 
@@ -45,7 +32,6 @@ class TestRequestBody:
 
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
 
@@ -54,6 +40,5 @@ class TestRequestBody:
 
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_source(self):
         self.source_fixture.test_telemetry_metric_executed_source()

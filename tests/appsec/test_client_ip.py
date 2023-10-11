@@ -2,11 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, scenarios
+from utils import weblog, coverage, interfaces, scenarios
 
 
-@released(java="0.114.0")
-@released(php="0.81.0", python="1.5.0", ruby="1.8.0")
 @coverage.basic
 @scenarios.appsec_disabled
 class Test_StandardTagsClientIp:

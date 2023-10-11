@@ -1,22 +1,36 @@
 'use strict'
 
-const { Client, Pool } = require('pg')
+const { Client } = require('pg')
 const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
-const crypto = require('crypto');
-const { execSync } = require('child_process');
+const crypto = require('crypto')
+const { execSync } = require('child_process')
 const https = require('https');
+const { MongoClient } = require('mongodb');
+const mongoSanitize = require('express-mongo-sanitize')
 
-function initData () {
+async function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
   const client = new Client()
-  return client.connect().then(() => {
-    return client.query(query)
+  await client.connect()
+  await client.query(query)
+}
+
+function initMiddlewares (app) {
+  const hstsMissingInsecurePattern = /.*hstsmissing\/test_insecure$/gmi
+  const xcontenttypeMissingInsecurePattern = /.*xcontent-missing-header\/test_insecure$/gmi
+  app.use((req, res, next) => {
+    if (!req.url.match(hstsMissingInsecurePattern)) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000')
+    }
+    if (!req.url.match(xcontenttypeMissingInsecurePattern)) {
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+    }
+    next()
   })
 }
-function init (app, tracer) {  
-  initData().catch(() => {})
 
+function initRoutes (app, tracer) { 
   app.get('/iast/insecure_hashing/deduplicate', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
@@ -199,8 +213,56 @@ function init (app, tracer) {
     res.redirect(req.body.location)
   });
 
-  require('./sources')(app, tracer);
+  app.get('/iast/hstsmissing/test_insecure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.end('<html><body><h1>Test</h1></html>')
+  })
+
+  app.get('/iast/hstsmissing/test_secure', (req, res) => {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000')
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.send('<html><body><h1>Test</h1></html>')
+  })
+
+  app.get('/iast/xcontent-missing-header/test_insecure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.end('<html><body><h1>Test</h1></html>')
+  });
+
+  app.get('/iast/xcontent-missing-header/test_secure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.send('<html><body><h1>Test</h1></html>')
+  })
+
+  app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
+  app.post('/iast/mongodb-nosql-injection/test_secure', async function (req, res) {
+    const url = 'mongodb://mongodb:27017/'
+    const client = new MongoClient(url);
+    await client.connect()
+    const db = client.db('mydb')
+    const collection = db.collection('test')
+    await collection.find({
+      param: req.body.key
+    })
+    res.send('OK')
+  })
+
+  // Same method, without sanitization middleware
+  // DO NOT extract to one method, we should force different line numbers
+  app.post('/iast/mongodb-nosql-injection/test_insecure', async function (req, res) {
+    const url = 'mongodb://mongodb:27017/'
+    const client = new MongoClient(url);
+    await client.connect()
+    const db = client.db('mydb')
+    const collection = db.collection('test')
+    await collection.find({
+      param: req.body.key
+    })
+    res.send('OK')
+  })
+
+  require('./sources')(app, tracer)
 
 }
 
-module.exports = init;
+module.exports = { initRoutes, initData, initMiddlewares }
