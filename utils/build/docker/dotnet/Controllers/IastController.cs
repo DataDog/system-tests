@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace weblog
 {
-	public class RequestData
-	{
-		public string cmd{get; set;}
-	};
-	
+    public class RequestData
+    {
+        public string cmd{get; set;}
+    };
+    
     [ApiController]
     [Route("iast")]
     public class IastController : Controller
@@ -41,31 +41,31 @@ namespace weblog
             _ = GetSHA1(byteArg);
             return Content(result.ToString());
         }
-		
+        
         private byte[] GetSHA1(byte[] array)
         {
             return SHA1.Create().ComputeHash(array);
         }
-		
+        
         [HttpGet("insecure_hashing/deduplicate")]
         public IActionResult deduplicate(string user)
         {
             var byteArg = new byte[] { 3, 5, 6 };
-			
+            
             byte[] result = null;
             for (int i = 0; i < 10; i++)
             {
                 result = MD5.Create().ComputeHash(byteArg);
             }
-			
+            
             return Content(result.ToString());
         }
 
-		[HttpPost("cmdi/test_insecure")]
+        [HttpPost("cmdi/test_insecure")]
         public async Task<IActionResult>  test_insecure_cmdI([FromForm] RequestData data)
         {
-			try
-            {			
+            try
+            {            
                 if (!string.IsNullOrEmpty(data.cmd))
                 {
                     var result = Process.Start(data.cmd);
@@ -81,11 +81,11 @@ namespace weblog
                 return StatusCode(500, "Error launching projjcess. " + data.cmd + ex.ToString());
             }
         }
-		
-		[HttpPost("cmdi/test_secure")]
+        
+        [HttpPost("cmdi/test_secure")]
         public IActionResult test_secure_cmdI([FromForm] RequestData data)
         {
-			try
+            try
             {
                     var result = Process.Start("ls");
                     return Content($"Process launched: " + result.ProcessName);
@@ -95,6 +95,6 @@ namespace weblog
                 return StatusCode(500, "Error launching process.");
             }
         }
-		
+        
     }
 }

@@ -1,0 +1,1 @@
+cp ./logs/docker/weblog/logs/* ./logs
