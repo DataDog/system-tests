@@ -34,7 +34,6 @@ public class KafkaConnector {
     public KafkaConnector() {
         kafkaTemplate = createKafkaTemplateForProducer();
         consumer = createKafkaConsumer();
-        System.out.println("Created kafka connector " + new java.util.Date());
     }
 
     private static KafkaTemplate<String, String> createKafkaTemplateForProducer() {
@@ -42,7 +41,7 @@ public class KafkaConnector {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        /* Refreshes metadata every 1 second */
+        // Refreshes metadata every 1 second
         props.put(ProducerConfig.METADATA_MAX_AGE_CONFIG, 1000);
         ProducerFactory<String, String> producerFactory = new DefaultKafkaProducerFactory<>(props);
         return new KafkaTemplate<String, String>(producerFactory);
@@ -62,14 +61,11 @@ public class KafkaConnector {
     public void startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("KafkaProduce") {
             public void run() {
-                //KafkaTemplate kafkaTemplate = createKafkaTemplateForProducer();
                 System.out.println(String.format("Publishing message: %s", message));
-                System.out.println("Publishing message " + new java.util.Date());
                 kafkaTemplate.send(TOPIC, message);
             }
         };
         kafkaTemplate.flush();
-        System.out.println("Before sleeping producer " + new java.util.Date());
         Thread.sleep(1500);
         thread.start();
     }
@@ -79,7 +75,6 @@ public class KafkaConnector {
     public void startConsumingMessages() throws Exception {
         Thread thread = new Thread("KafkaConsume") {
             public void run() {
-                //KafkaConsumer<String, String> consumer = createKafkaConsumer();
                 consumer.subscribe(Arrays.asList(TOPIC));
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
                 for (ConsumerRecord<String, String> record : records) {
@@ -87,7 +82,6 @@ public class KafkaConnector {
                 }
             }
         };
-        System.out.println("Before sleeping consumer " + new java.util.Date());
         Thread.sleep(1500);
         thread.start();
         System.out.println("Started Kafka consumer thread");
