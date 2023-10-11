@@ -31,8 +31,7 @@ namespace weblog
                 var userDetails = new UserDetails()
                 {
                     Id = "usr.id",
-                    // TODO Needs new SDK version merging before enabling this next line
-                    // PropagateId = true
+                    PropagateId = true
                 };
                 var scope = Tracer.Instance.ActiveScope;
                 scope?.Span.SetUser(userDetails);

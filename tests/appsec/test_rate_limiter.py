@@ -3,41 +3,45 @@
 # Copyright 2021 Datadog, Inc.
 
 import datetime
-import pytest
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenarios, missing_feature
+import time
 
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import weblog, context, coverage, interfaces, rfc, bug, scenarios, flaky
+from utils.tools import logger
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@released(dotnet="2.6.0", nodejs="2.0.0")
 @bug(
     context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427",
 )
 @coverage.basic
 @scenarios.appsec_rate_limiter
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Main:
     """Basic tests for rate limiter"""
 
     # TODO: a scenario with DD_TRACE_SAMPLE_RATE set to something
     # as sampling mechnism is very different across agent, it won't be an easy task
 
-    request_count = 0
-
     def setup_main(self):
+        """
+            Make 5 requests per second, for 10 seconds.
+
+            The test may be flaky if all requests takes more than 200ms, but it's very unlikely
+        """
         self.requests = []
 
-        end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
+        start_time = datetime.datetime.now()
 
-        while datetime.datetime.now() < end_time:
+        for i in range(10):
+            for _ in range(5):
+                self.requests.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
-            self.requests.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
-            self.request_count += 1
+            end_time = start_time + datetime.timedelta(seconds=i + 1)
+            time.sleep(max(0, (end_time - datetime.datetime.now()).total_seconds()))
+
+        logger.debug(f"Sent 50 requests in {(datetime.datetime.now() - start_time).total_seconds()} s")
 
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @flaky("rails" in context.weblog_variant, reason="APPSEC-10303")
     def test_main(self):
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
@@ -56,7 +60,7 @@ class Test_Main:
                 if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
                     trace_count += 1
 
-        message = f"sent {self.request_count} in 10 s. Expecting to see 10 events but saw {trace_count} events"
+        message = f"Sent 50 requests in 10 s. Expecting to see less than 10 events but saw {trace_count} events"
 
         # very permissive test. We expect 10 traces, allow from 1 to 30.
         assert 1 <= trace_count <= 30, message

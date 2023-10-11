@@ -2,30 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-
-from utils import weblog, context, interfaces, released, irrelevant, missing_feature, bug, coverage
-
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
+from utils import weblog, context, interfaces, irrelevant, missing_feature, bug, coverage
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(golang="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Standardization:
     """AppSec logs should be standardized"""
-
-    @classmethod
-    def setup_class(cls):
-        """Send a bunch of attack, to be sure that something is done on AppSec side"""
-        weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
-        weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     @irrelevant(library="java", reason="Cannot be implemented with cooperation from libddwaf")
     @missing_feature(library="php")
@@ -51,6 +36,10 @@ class Test_Standardization:
     def test_d04(self):
         """Log D4: When calling the WAF, logs parameters"""
         stdout.assert_presence(r"Executing AppSec In-App WAF with parameters:", level="DEBUG")
+
+    def setup_d05(self):
+        weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     @bug(context.library == "java@0.90.0", reason="APPSEC-2190")
     @bug(context.library == "java@0.91.0", reason="APPSEC-2190")
@@ -93,12 +82,10 @@ class Test_Standardization:
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110$", level="INFO")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_StandardizationBlockMode:
     """AppSec blocking logs should be standardized"""
 
-    @classmethod
-    def setup_class(cls):
+    def setup_i06(self):
         """Send a bunch of attack, to be sure that something is done on AppSec side"""
 
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160

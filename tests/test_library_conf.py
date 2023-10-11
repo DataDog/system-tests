@@ -2,12 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
+from utils import coverage, weblog, interfaces, scenarios
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag
-@irrelevant(library="cpp")
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
 @coverage.basic
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
@@ -15,13 +13,11 @@ class Test_HeaderTags:
     def test_trace_header_tags_basic(self):
         """ Test that http.request.headers.user-agent is in all web spans """
 
-        for _, _, span in interfaces.library.get_spans():
+        for _, span in interfaces.library.get_root_spans():
             if span.get("type") == "web":
                 assert "http.request.headers.user-agent" in span.get("meta", {})
 
 
-@irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_short
 class Test_HeaderTagsShortFormat:
@@ -43,8 +39,6 @@ class Test_HeaderTagsShortFormat:
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
-@irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_long
 class Test_HeaderTagsLongFormat:

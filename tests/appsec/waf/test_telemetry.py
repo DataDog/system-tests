@@ -1,199 +1,247 @@
-from utils import interfaces, released, rfc, weblog, scenarios, context
-
+from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky
+from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
 
 
-def _validate_headers(headers, request_type):
-    """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/how-to-use.md
+def _setup(self):
     """
-    # empty value means we don't care about the content, but we want to check the key exists
-    expected_headers = {
-        "Content-type": "application/json",
-        "DD-Telemetry-API-Version": "v1",
-        "DD-Telemetry-Request-Type": request_type,
-        "DD-Client-Library-Language": context.library,
-        "DD-Client-Library-Version": "",
-        "DD-Agent-Env": "system-tests",
-        "DD-Agent-Hostname": "",
-    }
-
-    for key, value in headers:
-        if expected_headers.get(key) is not None:
-            expected_value = expected_headers.pop(key)
-            if expected_value != "":
-                assert value == expected_value
-            else:
-                assert value is not None, f"Empty `{key}` header"
-
-    if len(expected_headers) > 0:
-        raise AssertionError(
-            "Headers %s not found in payload headers: %s" % ([header for header in expected_headers], headers)
-        )
-
-
-def _validate_generate_metrics_headers(headers):
-    _validate_headers(headers, TELEMETRY_REQUEST_TYPE_GENERATE_METRICS)
-
-
-def _validate_distributions_headers(headers):
-    _validate_headers(headers, TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS)
-
-
-def _validate_tags(payload_tags, expected_tags, metric_name):
-    for tag in payload_tags:
-        tag_key, tag_value = tag.split(":")
-
-        if expected_tags.get(tag_key) is not None:
-            expected_tag = expected_tags.pop(tag_key)
-            if expected_tag != "":
-                assert tag_value.lower() == expected_tag, "Metric %s Tag %s. Expected %s. get %s" % (
-                    metric_name,
-                    tag_key,
-                    expected_tag,
-                    tag_value,
-                )
-            else:
-                assert expected_tag is not None, f"Empty `{expected_tag}` tag"
-
-    if len(expected_tags) > 0:
-        raise AssertionError(f"Metric %s Tags %s not found" % (metric_name, [metric for metric in expected_tags]))
-
-
-def _validate_generate_metrics_metrics(payload):
-    """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/SchemaDocumentation/Schemas/metric_data.md
+    Common setup for all tests in this module. They all depend on the same set
+    of requests, which must be run only once.
     """
-    # CAVEAT: each library could have different metrics result. If you get an error ping in slack
-    expected_common_tags = [
-        {
-            "waf_version": "1.6.1",
-            "event_rules_version": context.appsec_rules_version,
-            "rule_triggered": "false",
-            "request_blocked": "false",
-        },
-        {
-            "waf_version": "1.6.1",
-            "event_rules_version": context.appsec_rules_version,
-            "rule_triggered": "true",
-            "request_blocked": "false",
-        },
-    ]
-    expected_metrics = {
-        "event_rules.loaded": {"type": "count", "num_points": 1, "point": 134.0, "tags": {}, "found": 0},
-        "waf.requests": {"type": "count", "num_points": 1, "point": 1.0, "tags": {}, "found": 0},
-    }
-    assert payload["namespace"] == "appsec"
-    assert len(payload["series"]) == 4
-
-    for serie in payload["series"]:
-        if expected_metrics.get(serie["metric"]):
-            expected_metric = expected_metrics.get(serie["metric"])
-            assert serie["common"] is True
-            assert serie["type"] == expected_metric["type"], "Metric %s. Expected %s. get %s" % (
-                serie["metric"],
-                expected_metric["type"],
-                serie["type"],
-            )
-            assert len(serie["points"]) == expected_metric["num_points"], "Metric %s. Expected %s point. get %s" % (
-                serie["metric"],
-                expected_metric["num_points"],
-                serie["points"],
-            )
-            assert serie["points"][0][1] >= expected_metric["point"], "Metric %s. Expected %s. get %s" % (
-                serie["metric"],
-                expected_metric["point"],
-                serie["points"],
-            )
-            _validate_tags(
-                serie["tags"],
-                dict(expected_common_tags[expected_metric["found"]], **expected_metric["tags"]),
-                serie["metric"],
-            )
-            expected_metric["found"] += 1
-    if not all(metric["found"] > 0 for _, metric in expected_metrics.items()):
-        raise AssertionError(
-            f"Metrics %s not found in payload"
-            % [(metric, value["found"]) for metric, value in expected_metrics.items()]
-        )
+    # Run only once, even across multiple class instances.
+    if hasattr(Test_TelemetryMetrics, "__common_setup_done"):
+        return
+    r_plain = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
+    r_triggered = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
+    r_blocked = weblog.get(
+        "/",
+        headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
+        # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
+        rid_in_user_agent=False,
+    )
+    Test_TelemetryMetrics.__common_setup_done = True
 
 
-def _validate_distributions_metrics(payload):
-    """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/SchemaDocumentation/Schemas/metric_data.md
-    """
-    # CAVEAT: each library could have different metrics result. If you get an error ping in slack
-    expected_common_tags = [
-        {
-            "waf_version": "",
-            "event_rules_version": context.appsec_rules_version,
-            "rule_triggered": "false",
-            "request_blocked": "false",
-        },
-        {
-            "waf_version": "",
-            "event_rules_version": context.appsec_rules_version,
-            "rule_triggered": "true",
-            "request_blocked": "false",
-        },
-    ]
-    expected_metrics = {
-        "waf.duration": {"num_points": 1, "point": 0.01, "tags": {}, "found": 0},
-        "waf.duration_ext": {"num_points": 1, "point": 0.01, "tags": {}, "found": 0},
-    }
-    assert payload["namespace"] == "appsec"
-    assert len(payload["series"]) == 4
+class Test_TelemetryResponses:
+    """ Test response from backend/agent """
 
-    for serie in payload["series"]:
-        if expected_metrics.get(serie["metric"]):
-            expected_metric = expected_metrics.get(serie["metric"])
-            assert len(serie["points"]) == expected_metric["num_points"], "Metric %s. Expected %s point. get %s" % (
-                serie["metric"],
-                expected_metric["num_points"],
-                serie["points"],
-            )
-            assert serie["points"][0] >= expected_metric["point"], "Metric %s. Expected %s. get %s" % (
-                serie["metric"],
-                expected_metric["point"],
-                serie["points"],
-            )
-            _validate_tags(
-                serie["tags"],
-                dict(expected_common_tags[expected_metric["found"]], **expected_metric["tags"]),
-                serie["metric"],
-            )
-            expected_metric["found"] += 1
+    setup_all_telemetry_requests_are_successful = _setup
 
-    if not all(metric["found"] > 0 for _, metric in expected_metrics.items()):
-        raise AssertionError(
-            f"Metrics %s not found in payload"
-            % [(metric, value["found"]) for metric, value in expected_metrics.items()]
-        )
+    @flaky(True, reason="Backend is far away from being stable enough")
+    def test_all_telemetry_requests_are_successful(self):
+        """Tests that all telemetry requests succeed."""
+        for data in interfaces.library.get_telemetry_data():
+            assert data["response"]["status_code"] == 202
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
-@released(python="?", cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
 @scenarios.appsec_waf_telemetry
-class Test_TelemetryMetricsTriggered:
+class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
 
-    generate_metrics_requests = False
+    setup_headers_are_correct = _setup
 
-    def setup_telemetry_metrics_request_analyzed(self):
-        """AppSec catches attacks in URL query key"""
-        self.r = weblog.get("/myadmin")
+    @bug(context.library < "java@1.13.0", reason="Missing two headers")
+    def test_headers_are_correct(self):
+        """Tests that all telemetry requests have correct headers."""
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
+            request_type = data["request"]["content"].get("request_type")
+            _validate_headers(data["request"]["headers"], request_type)
 
-    def test_telemetry_metrics_request_analyzed(self):
-        """Test that telemetry requests are successful"""
+    setup_metric_waf_init = _setup
 
-        def validator(data):
-            assert data["response"]["status_code"] == 202
-            if data["request"]["content"].get("request_type") == TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS:
-                self.generate_metrics_requests = True
-                _validate_distributions_headers(data["request"]["headers"])
-                _validate_distributions_metrics(data["request"]["content"]["payload"])
-            if data["request"]["content"].get("request_type") == TELEMETRY_REQUEST_TYPE_GENERATE_METRICS:
-                self.generate_metrics_requests = True
-                _validate_generate_metrics_headers(data["request"]["headers"])
-                _validate_generate_metrics_metrics(data["request"]["content"]["payload"])
+    @flaky(context.weblog_variant == "django-poc", reason="APPSEC-10509")
+    def test_metric_waf_init(self):
+        """Test waf.init metric."""
+        expected_metric_name = "waf.init"
+        mandatory_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+        }
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "version",
+            "lib_language",
+        }
+        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
+        # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
+        if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+            assert len(series) == 2
+        else:
+            assert len(series) == 1
+        s = series[0]
+        assert s["_computed_namespace"] == "appsec"
+        assert s["metric"] == expected_metric_name
+        assert s["common"] is True
+        assert s["type"] == "count"
 
-        interfaces.library.validate_telemetry(validator, success_by_default=True)
+        full_tags = set(s["tags"])
+        self._assert_valid_tags(
+            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
+        )
+
+        assert len(s["points"]) == 1
+        p = s["points"][0]
+        assert p[1] == 1
+
+    setup_metric_waf_updates = _setup
+
+    @missing_feature(reason="Test not implemented")
+    @bug(context.library < "java@1.13.0", reason="Missing tags")
+    def test_metric_waf_updates(self):
+        """Test waf.updates metric."""
+        expected_metric_name = "waf.updates"
+        mandatory_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+        }
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "version",
+            "lib_language",
+        }
+        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
+        assert len(series) == 1
+        s = series[0]
+        assert s["_computed_namespace"] == "appsec"
+        assert s["metric"] == expected_metric_name
+        assert s["common"] is True
+        assert s["type"] == "count"
+
+        full_tags = set(s["tags"])
+        self._assert_valid_tags(
+            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
+        )
+
+        assert len(s["points"]) == 1
+        p = s["points"][0]
+        assert p[1] == 1
+
+    setup_metric_waf_requests = _setup
+
+    @bug(context.library < "java@1.13.0", reason="Missing tags")
+    def test_metric_waf_requests(self):
+        """Test waf.requests metric."""
+        expected_metric_name = "waf.requests"
+        valid_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "rule_triggered",
+            "request_blocked",
+            "request_excluded",
+            "waf_timeout",
+            "version",
+            "lib_language",
+        }
+        mandatory_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "rule_triggered",
+            "request_blocked",
+        }
+        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
+        logger.debug(series)
+        # Depending on the timing, there might be more than 3 series. For example, if a warmup
+        # request goes first, we might have two series for rule_triggered:false,blocked_request:false
+        assert len(series) >= 3
+
+        matched_not_blocked = 0
+        matched_triggered = 0
+        matched_blocked = 0
+        for s in series:
+            assert s["_computed_namespace"] == "appsec"
+            assert s["metric"] == expected_metric_name
+            assert s["common"] is True
+            assert s["type"] == "count"
+            assert len(s["points"]) == 1
+            p = s["points"][0]
+
+            full_tags = set(s["tags"])
+            self._assert_valid_tags(
+                full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
+            )
+
+            if len(full_tags & {"request_blocked:false", "rule_triggered:false"}) == 2:
+                matched_not_blocked += 1
+                assert p[1] >= 1
+            elif len(full_tags & {"request_blocked:false", "rule_triggered:true"}) == 2:
+                matched_triggered += 1
+                assert p[1] == 1
+            elif len(full_tags & {"request_blocked:true", "rule_triggered:true"}) == 2:
+                matched_blocked += 1
+                assert p[1] == 1
+
+        assert matched_not_blocked >= 1
+        assert matched_triggered == 1
+        assert matched_blocked == 1
+
+    def _find_series(self, request_type, namespace, metric):
+        series = []
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != request_type:
+                continue
+            fallback_namespace = content["payload"].get("namespace")
+            for serie in content["payload"]["series"]:
+                computed_namespace = serie.get("namespace", fallback_namespace)
+                # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+                serie["_computed_namespace"] = computed_namespace
+                if computed_namespace == namespace and serie["metric"] == metric:
+                    series.append(serie)
+        return series
+
+    def _assert_valid_tags(self, full_tags, valid_prefixes, mandatory_prefixes):
+        full_tags = set(full_tags)
+        tag_prefixes = {t.split(":")[0] for t in full_tags}
+
+        invalid_tags = tag_prefixes - valid_prefixes
+        assert not invalid_tags
+
+        missing_tags = mandatory_prefixes - tag_prefixes
+        assert not missing_tags
+
+
+def _validate_headers(headers, request_type):
+    """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/how-to-use.md"""
+
+    expected_language = context.library.library
+    if expected_language == "java":
+        expected_language = "jvm"
+
+    # empty value means we don't care about the content, but we want to check the key exists
+    # a set means "any of"
+    expected_headers = {
+        "Content-Type": {"application/json", "application/json; charset=utf-8"},
+        "DD-Telemetry-API-Version": "v1",
+        "DD-Telemetry-Request-Type": request_type,
+        "DD-Client-Library-Language": expected_language,
+        "DD-Client-Library-Version": "",
+    }
+
+    # APM Python migrates Telemetry to V2
+    expected_headers["DD-Telemetry-API-Version"] = "v2" if expected_language == "python" else "v1"
+
+    expected_headers = {k.lower(): v for k, v in expected_headers.items()}
+
+    seen_headers = set()
+    for key, value in headers:
+        lower_key = key.lower()
+        expected_value = expected_headers.get(lower_key)
+        if expected_value is None:
+            # Irrelevant header
+            continue
+        assert lower_key not in seen_headers, f"Duplicated header {lower_key}"
+        seen_headers.add(lower_key)
+        if isinstance(expected_value, set):
+            assert value in expected_value
+        elif expected_value != "":
+            assert value == expected_value
+        else:
+            assert value, f"Empty {key} header"
+
+    missing_headers = set(expected_headers.keys()) - seen_headers
+    assert not missing_headers, f"Missing required headers: {missing_headers}"

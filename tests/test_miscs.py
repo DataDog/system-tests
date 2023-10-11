@@ -2,11 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, released, irrelevant
+from utils import weblog, interfaces
 
 
-@released(golang="1.43.0", java="0.97.0", nodejs="3.1.0", php="0.74.0", python="0.59.1", ruby="1.8.0")
-@irrelevant(library="cpp")
 class Test_Basic:
     """ Make sure the spans endpoint is successful """
 

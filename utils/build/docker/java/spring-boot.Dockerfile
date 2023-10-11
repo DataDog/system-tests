@@ -1,7 +1,6 @@
-FROM maven:3.8-jdk-8 as build
+FROM maven:3.9-eclipse-temurin-11 as build
 
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
+COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
 
@@ -28,5 +27,6 @@ RUN chmod +x /app/app.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV APP_EXTRA_ARGS="--server.port=7777"
+ENV DD_DATA_STREAMS_ENABLED=true
 
 CMD [ "/app/app.sh" ]

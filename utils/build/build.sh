@@ -19,14 +19,19 @@ readonly ALIAS_CACHE_TO="W" #write cache
 
 readonly DEFAULT_TEST_LIBRARY=nodejs
 readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
+readonly DEFAULT_DOCKER_MODE=0
 
 # Define default weblog variants.
 # XXX: Avoid associative arrays for Bash 3 compatibility.
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
+readonly DEFAULT_python_http=
 readonly DEFAULT_ruby=rails70
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
+readonly DEFAULT_java_otel=spring-boot-native
+readonly DEFAULT_python_otel=flask-poc-otel
+readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
@@ -49,12 +54,15 @@ print_usage() {
     echo -e "  ${CYAN}--library <lib>${NC}            Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
     echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
     echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
+    echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
     echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
     echo -e "  ${CYAN}--cache-mode <mode>${NC}        Cache mode (env: DOCKER_CACHE_MODE)."
     echo -e "  ${CYAN}--platform <platform>${NC}      Target Docker platform."
     echo -e "  ${CYAN}--list-libraries${NC}           Lists all available libraries and exits."
     echo -e "  ${CYAN}--list-weblogs${NC}             Lists all available weblogs for a library and exits."
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
+    echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
+    echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -62,6 +70,10 @@ print_usage() {
     echo -e "    ${SCRIPT_NAME}"
     echo -e "  Build images for Java and Spring Boot:"
     echo -e "    ${SCRIPT_NAME} --library java --weblog-variant spring-boot"
+    echo -e "  Build default images for Dotnet with binary path:"
+    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""    
+    echo -e "  Build default images for Dotnet with binary url:"
+    echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
     echo -e "  List libraries:"
     echo -e "    ${SCRIPT_NAME} --list-libraries"
     echo -e "  List weblogs for PHP:"
@@ -69,7 +81,7 @@ print_usage() {
     echo -e "  Print default weblog for Python:"
     echo -e "    ${SCRIPT_NAME} --default-weblogs --library python"
     echo
-    echo -e "More info at https://github.com/DataDog/system-tests/blob/master/docs/execute/build.md"
+    echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
 }
 
@@ -121,8 +133,38 @@ build() {
 
         echo "-----------------------"
         echo Build $IMAGE_NAME
-        if [[ $IMAGE_NAME == runner ]]; then
-            docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
+        if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
+            if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+              if [ ! -d "venv/" ]
+              then
+                  echo "Build virtual env"
+                  python3.9 -m venv venv
+              fi
+
+              source venv/bin/activate
+              python -m pip install --upgrade pip
+            fi
+            pip install -r requirements.txt
+
+        elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/runner.Dockerfile \
+                -t system_tests/runner \
+                $EXTRA_DOCKER_ARGS \
+                .
+
+        elif [[ $IMAGE_NAME == proxy ]]; then
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/proxy.Dockerfile \
+                -t datadog/system-tests:proxy-v1 \
+                $EXTRA_DOCKER_ARGS \
+                .
 
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then
@@ -133,26 +175,50 @@ build() {
 
             echo "using $AGENT_BASE_IMAGE image for datadog agent"
 
-            docker build \
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 -f utils/build/docker/agent.Dockerfile \
                 -t system_tests/agent \
+		--pull \
                 --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
                 $EXTRA_DOCKER_ARGS \
                 .
 
             SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
 
-            docker build \
+            docker buildx build \
                 --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
                 -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
                 -t system_tests/agent \
                 .
 
         elif [[ $IMAGE_NAME == weblog ]]; then
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+            clean-binaries() {
+                find . -mindepth 1 -type d -exec rm -rf {} +
+                find . ! -name 'README.md' -type f -exec rm -f {} +
+            }
+
+            if ! [[ -z "$BINARY_URL" ]]; then 
+                cd binaries
+                clean-binaries
+                curl -L -O $BINARY_URL
+                cd ..
+            fi
+
+            if ! [[ -z "$BINARY_PATH" ]]; then 
+                cd binaries
+                clean-binaries
+                cp -r $BINARY_PATH/* ./
+                cd ..
+            fi
+
+            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile          
 
             docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
@@ -160,13 +226,14 @@ build() {
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \
-                --load \
                 .
 
             if test -f "binaries/waf_rule_set.json"; then
                 SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 
-                docker build \
+                docker buildx build \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
@@ -188,7 +255,9 @@ build() {
             SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
 
-            docker build \
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
@@ -213,13 +282,16 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
+        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
+        -d|--docker) DOCKER_MODE=1;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
+        --binary-url) BINARY_URL="$2"; shift ;;
+        --binary-path) BINARY_PATH="$2"; shift ;;
         --list-libraries) COMMAND=list-libraries ;;
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
@@ -233,10 +305,13 @@ done
 DOCKER_CACHE_MODE="${DOCKER_CACHE_MODE:-}"
 EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS:-}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-}"
+DOCKER_MODE="${DOCKER_MODE:-${DEFAULT_DOCKER_MODE}}"
 BUILD_IMAGES="${BUILD_IMAGES:-${DEFAULT_BUILD_IMAGES}}"
 TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
+BINARY_PATH="${BINARY_PATH:-}"
+BINARY_URL="${BINARY_URL:-}"
 
-if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     echo "Library ${TEST_LIBRARY} not found"
     echo "Available libraries: $(echo $(list-libraries))"
     exit 1
@@ -244,7 +319,7 @@ fi
 
 WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
 
-if [[ ! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" ]]; then
+if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
     echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
     echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
     exit 1

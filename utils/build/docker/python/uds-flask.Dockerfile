@@ -1,17 +1,12 @@
-FROM python:3.9
+FROM datadog/system-tests:flask-poc.base-v0
 
-# print versions
-RUN python --version && curl --version
-
-# install hello world app
-RUN pip install flask gunicorn gevent requests pycryptodome psycopg2
-
-COPY utils/build/docker/python/flask /app
-COPY utils/build/docker/python/iast.py /app/iast.py
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
+COPY utils/build/docker/python/flask /app
+COPY utils/build/docker/python/iast.py /app/iast.py
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
@@ -22,6 +17,7 @@ ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV FLASK_APP=app.py
 
 ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
+RUN apt-get update && apt-get install socat -y
 ENV UDS_WEBLOG=1
 COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 

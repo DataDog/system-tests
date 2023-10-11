@@ -2,13 +2,23 @@ package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
-import com.datastax.oss.driver.api.core.CqlSession;
+import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
+import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
+import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
+import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.trace.api.Trace;
+import datadog.trace.api.interceptor.MutableSpan;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ognl.Ognl;
@@ -30,22 +40,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import org.apache.http.impl.client.CloseableHttpClient;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.time.Instant;
+import java.util.Scanner;
 
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
@@ -55,12 +67,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
+import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
+import static io.opentelemetry.api.trace.StatusCode.ERROR;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 
 @RestController
@@ -72,7 +86,11 @@ public class App {
     MongoClient mongoClient;
 
     @RequestMapping("/")
-    String home() {
+    String home(HttpServletResponse response) {
+        // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
+        // if a java engineer knows how to remove this?
+        // waiting for that, just set a random value 
+        response.setHeader("Content-Language", "not-set");
         return "Hello World!";
     }
 
@@ -82,8 +100,25 @@ public class App {
         return "012345678901234567890123456789012345678901";
     }
 
-    @GetMapping("/waf/**")
+    @RequestMapping(value = "/tag_value/{value}/{code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
+    ResponseEntity<String> tagValue(@PathVariable final String value, @PathVariable final int code) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        return ResponseEntity.status(code).body("Value tagged");
+    }
+
+    @PostMapping(value = "/tag_value/{value}/{code}", headers = "accept=*",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String value, @PathVariable final int code, @RequestParam MultiValueMap<String, String> body) {
+        return tagValue(value, code);
+    }
+
+    @RequestMapping("/waf/**")
     String waf() {
+        return "Hello World!";
+    }
+
+    @RequestMapping("/waf/{param}")
+    String wafWithParams(@PathVariable("param") String param) {
         return "Hello World!";
     }
 
@@ -251,6 +286,78 @@ public class App {
         return "hi Mongo";
     }
 
+    @RequestMapping("/dsm")
+    String publishToKafka(@RequestParam(required = true, name="integration") String integration) {
+        if ("kafka".equals(integration)) {
+            KafkaConnector kafka = new KafkaConnector();
+            try {
+                kafka.startProducingMessage("hello world!");
+            } catch (Exception e) {
+                System.out.println("[kafka] Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                kafka.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[kafka] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+        } else if ("rabbitmq".equals(integration)) {
+            RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange();
+            try {
+                rabbitmq.startProducingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq] Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                rabbitmq.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+        } else if ("rabbitmq_topic_exchange".equals(integration)) {
+            RabbitmqConnectorForTopicExchange rabbitmq = new RabbitmqConnectorForTopicExchange();
+            try {
+                rabbitmq.startProducingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq_topic] Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                rabbitmq.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq_topic] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+        } else if ("rabbitmq_fanout_exchange".equals(integration)) {
+            RabbitmqConnectorForFanoutExchange rabbitmq = new RabbitmqConnectorForFanoutExchange();
+            try {
+                rabbitmq.startProducingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq_fanout] Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                rabbitmq.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq_fanout] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+        } else {
+            return "unknown integration: " + integration;
+        }
+        return "ok";
+    }
+
     @RequestMapping("/trace/ognl")
     String traceOGNL() {
         final Span span = GlobalTracer.get().activeSpan();
@@ -260,7 +367,7 @@ public class App {
 
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
-        try {
+        try { 
             Object expr = Ognl.parseExpression("[1]");
             String value = (String) Ognl.getValue(expr, list);
             return "hi OGNL, " + value;
@@ -386,6 +493,47 @@ public class App {
         return new RedirectView("https://" + redirect);
     }
 
+    @RequestMapping("/e2e_otel_span")
+    String e2eOtelSpan(@RequestHeader(name = "User-Agent") String userAgent,
+                       @RequestParam(name="parentName") String parentName,
+                       @RequestParam(name="childName") String childName,
+                       @RequestParam(required = false, name="shouldIndex") int shouldIndex) {
+        // Get an OpenTelemetry tracer
+        Tracer tracer = GlobalOpenTelemetry.getTracer("system-tests");
+        // Aggregate common attributes
+        AttributesBuilder commonAttributesBuilder = Attributes.builder()
+                .put("http.useragent", userAgent);
+        if (shouldIndex == 1) {
+            commonAttributesBuilder.put("_dd.filter.kept", 1);
+            commonAttributesBuilder.put("_dd.filter.id", "system_tests_e2e");
+        }
+        Attributes commonAttributes = commonAttributesBuilder.build();
+        // Create parent span according test requirements
+        SpanBuilder parentSpanBuilder = tracer.spanBuilder(parentName)
+                .setNoParent()
+                .setAllAttributes(commonAttributes)
+                .setAttribute("attributes", "values");
+        io.opentelemetry.api.trace.Span parentSpan = parentSpanBuilder.startSpan();
+        parentSpan.setStatus(ERROR, "testing_end_span_options");
+
+        try (Scope scope = parentSpan.makeCurrent()) {
+            // Create child span according test requirements
+            Instant now = Instant.now();
+            Instant oneSecLater = now.plus(1, SECONDS);
+
+            io.opentelemetry.api.trace.Span childSpan = tracer.spanBuilder(childName)
+                    .setStartTimestamp(now)
+                    .setAllAttributes(commonAttributes)
+                    .setSpanKind(INTERNAL)
+                    .startSpan();
+
+            childSpan.end(oneSecLater);
+        }
+        parentSpan.end();
+
+        return "OK";
+    }
+
     @RequestMapping("/e2e_single_span")
     String e2eSingleSpan(@RequestHeader(required = true, name = "User-Agent") String userAgent,
                          @RequestParam(required = true, name="parentName") String parentName,
@@ -423,6 +571,56 @@ public class App {
         return "Loaded Dependency\n".concat(klass.toString());
     }
 
+    @RequestMapping("/read_file")
+    public ResponseEntity<String> readFile(@RequestParam String file) {
+        String content;
+        try {
+            content = new Scanner(new File(file)).useDelimiter("\\Z").next();
+        }
+        catch (FileNotFoundException ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(content, HttpStatus.OK);
+    }
+
+    @RequestMapping("/db")
+    String db_sql_integrations(@RequestParam(required = true, name="service") String service,
+                         @RequestParam(required = true, name="operation") String operation)
+  {
+        System.out.println("DB service [" + service + "], operation: [" + operation + "]");
+        com.datadoghq.system_tests.springboot.integrations.db.DBFactory dbFactory = new com.datadoghq.system_tests.springboot.integrations.db.DBFactory();
+
+        com.datadoghq.system_tests.springboot.integrations.db.ICRUDOperation crudOperation = dbFactory.getDBOperator(service);
+
+        switch (operation) {
+           case "init":
+                crudOperation.createSampleData();
+                break;
+            case "select":
+                crudOperation.select();
+                break;
+            case "select_error":
+                crudOperation.selectError();
+                break;
+            case "insert":
+                crudOperation.insert();
+                break;
+            case "delete":
+                crudOperation.delete();
+                break;
+            case "update":
+                crudOperation.update();
+                break;
+            case "procedure":
+                crudOperation.callProcedure();
+                break;
+            default:
+                throw new UnsupportedOperationException("Operation " + operation + " not allowed");
+        }
+
+        return "OK";
+    }
 
     @Bean
     @ConditionalOnProperty(
@@ -440,6 +638,16 @@ public class App {
         matchIfMissing = true)
     WebLogInterface localInterface() throws IOException {
         return new WebLogInterface();
+    }
+
+    private void setRootSpanTag(final String key, final String value) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) span).getLocalRootSpan();
+            if (rootSpan != null) {
+                rootSpan.setTag(key, value);
+            }
+        }
     }
 
     public static void main(String[] args) {

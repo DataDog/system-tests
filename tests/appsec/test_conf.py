@@ -2,14 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import weblog, context, coverage, interfaces, released, missing_feature, irrelevant, rfc, scenarios
+from utils import weblog, context, coverage, interfaces, missing_feature, irrelevant, rfc, scenarios
+from utils.tools import nested_lookup
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
-
-
-if context.library == "cpp":
-    pytestmark = pytest.mark.skip("not relevant")
 
 
 @coverage.not_testable
@@ -17,16 +13,12 @@ class Test_OneVariableInstallation:
     """Installation with 1 env variable"""
 
 
-@released(dotnet="1.29.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="1.8.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
 
     @missing_feature(library="golang", reason="standard logs not implemented")
     @missing_feature(library="ruby", reason="standard logs not implemented")
-    @missing_feature(library="dotnet", reason="Rules file is not parsed")
     @missing_feature(library="php", reason="Rules file is not parsed")
     @missing_feature(library="nodejs", reason="Rules file is not parsed")
     def test_basic_hardcoded_ruleset(self):
@@ -35,15 +27,7 @@ class Test_StaticRuleSet:
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@coverage.not_implemented
-class Test_FleetManagement:
-    """ApppSec supports Fleet management"""
-
-
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_4:
     """ AppSec uses rule set 1.2.4 or higher """
 
@@ -52,8 +36,6 @@ class Test_RuleSet_1_2_4:
 
 
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_5:
     """ AppSec uses rule set 1.2.5 or higher """
 
@@ -61,10 +43,6 @@ class Test_RuleSet_1_2_5:
         assert context.appsec_rules_version >= "1.2.5"
 
 
-@released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="2.5.0")
-@released(php_appsec="0.3.0", python="1.2.1", ruby="1.0.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RuleSet_1_3_1:
     """ AppSec uses rule set 1.3.1 or higher """
@@ -92,9 +70,6 @@ class Test_RuleSet_1_3_1:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
-@released(java="0.100.0", nodejs="2.7.0", python="1.1.2")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ConfigurationVariables:
     """ Configuration environment variables """
 
@@ -153,12 +128,12 @@ class Test_ConfigurationVariables:
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.SECRET, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_op_key, pattern="<Redacted>")
-        interfaces.library.validate_appsec(self.r_op_key, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_op_key, validate_appsec_span_tags, success_by_default=True)
 
     def setup_obfuscation_parameter_value(self):
         headers = {"attack": f"acunetix-user-agreement {self.SECRET_WITH_HIDDEN_VALUE}"}
@@ -171,9 +146,9 @@ class Test_ConfigurationVariables:
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET_WITH_HIDDEN_VALUE in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
-        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)
