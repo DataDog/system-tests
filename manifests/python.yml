@@ -65,6 +65,8 @@ tests/:
             '*': v1.19.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': v2.1.0
@@ -77,10 +79,11 @@ tests/:
             flask-poc: v1.12.0
             pylons: missing_feature
             python3.12: missing_feature
-            uds-flask: missing_feature
-            uwsgi-poc: missing_feature
         test_ssrf.py:
-          TestSSRF: missing_feature
+          TestSSRF:
+            '*': v2.2.0
+            fastapi: missing_feature
+            python3.12: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
@@ -436,6 +439,7 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
     test_tracer.py:
+      Test_TracerSCITagging: v1.12.0
       Test_TracerUniversalServiceTagging: v0.36.0
   remote_config/:
     test_remote_configuration.py:
@@ -473,9 +477,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.5.0
     Test_StandardTagsMethod: v1.2.1
-    Test_StandardTagsRoute:
-      '*': v1.6.0
-      fastapi: missing_feature
+    Test_StandardTagsRoute: v1.6.0
     Test_StandardTagsStatusCode: v1.4.0rc1.dev
     Test_StandardTagsUrl:
       '*': v1.6.0rc1.dev

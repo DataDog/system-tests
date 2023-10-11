@@ -32,12 +32,12 @@ tests/:
             vertx4: v1.12.0
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
-            "*": "missing_feature"
-            sping-boot-undertow: "v1.20.0"
-            spring-boot: "v1.20.0"
-            spring-boot-jetty: "v1.20.0"
-            spring-boot-wildfly: "v1.20.0"
-            uds-spring-boot: "v1.20.0"            
+            '*': missing_feature
+            sping-boot-undertow: v1.20.0
+            spring-boot: v1.20.0
+            spring-boot-jetty: v1.20.0
+            spring-boot-wildfly: v1.20.0
+            uds-spring-boot: v1.20.0
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.18.0
@@ -66,6 +66,8 @@ tests/:
             akka-http: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature            
         test_path_traversal.py:
           TestPathTraversal:
             '*': v1.1.0
@@ -782,6 +784,8 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.17.0
+    test_tracer.py:
+      Test_TracerSCITagging: v1.12.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature

@@ -34,6 +34,8 @@ tests/:
           TestNoHttponlyCookie: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': missing_feature
@@ -104,7 +106,9 @@ tests/:
           '*': v2.0.0
           nextjs: v4.17.0
         Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
+        Test_GraphQL:
+          '*': v4.16.0
+          nextjs: irrelevant # nextjs is not related with graphql
         Test_Headers:
           '*': v2.0.0
           nextjs: v4.17.0
@@ -364,9 +368,13 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigV1:
-          '*': v4.11.0
-          nextjs: v4.17.0
+      TestDynamicConfigV1: 
+        '*': v4.11.0
+        nextjs: v4.17.0
+    test_tracer.py:
+      Test_TracerSCITagging: 
+        '*': v3.21.0
+        nextjs: v4.17.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature

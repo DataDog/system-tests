@@ -1,18 +1,19 @@
 'use strict'
 
-const { Client, Pool } = require('pg')
+const { Client } = require('pg')
 const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto')
 const { execSync } = require('child_process')
 const https = require('https');
+const { MongoClient } = require('mongodb');
+const mongoSanitize = require('express-mongo-sanitize')
 
-function initData () {
+async function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
   const client = new Client()
-  return client.connect().then(() => {
-    return client.query(query)
-  })
+  await client.connect()
+  await client.query(query)
 }
 
 function initMiddlewares (app) {
@@ -231,6 +232,33 @@ function initRoutes (app, tracer) {
   app.get('/iast/xcontent-missing-header/test_secure', (req, res) => {
     res.setHeader('Content-Type', 'text/html')
     res.send('<html><body><h1>Test</h1></html>')
+  })
+
+  app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
+  app.post('/iast/mongodb-nosql-injection/test_secure', async function (req, res) {
+    const url = 'mongodb://mongodb:27017/'
+    const client = new MongoClient(url);
+    await client.connect()
+    const db = client.db('mydb')
+    const collection = db.collection('test')
+    await collection.find({
+      param: req.body.key
+    })
+    res.send('OK')
+  })
+
+  // Same method, without sanitization middleware
+  // DO NOT extract to one method, we should force different line numbers
+  app.post('/iast/mongodb-nosql-injection/test_insecure', async function (req, res) {
+    const url = 'mongodb://mongodb:27017/'
+    const client = new MongoClient(url);
+    await client.connect()
+    const db = client.db('mydb')
+    const collection = db.collection('test')
+    await collection.find({
+      param: req.body.key
+    })
+    res.send('OK')
   })
 
   require('./sources')(app, tracer)

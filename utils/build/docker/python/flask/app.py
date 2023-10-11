@@ -288,6 +288,39 @@ def view_iast_path_traversal_secure():
     return Response("OK")
 
 
+@app.route("/iast/ssrf/test_insecure", methods=["POST"])
+def view_iast_ssrf_insecure():
+    import requests
+
+    url = flask_request.form["url"]
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+    return Response("OK")
+
+
+@app.route("/iast/ssrf/test_secure", methods=["POST"])
+def view_iast_ssrf_secure():
+    from urllib.parse import urlparse
+    import requests
+
+    url = flask_request.form["url"]
+    # Validate the URL and enforce whitelist
+    allowed_domains = ["example.com", "api.example.com"]
+    parsed_url = urlparse(url)
+
+    if parsed_url.hostname not in allowed_domains:
+        return "Forbidden", 403
+
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+
+    return Response("OK")
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
