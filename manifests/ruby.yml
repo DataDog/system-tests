@@ -7,18 +7,20 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_Headers: missing_feature
-        Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Request_Body: v1.15.0
+        Test_Schema_Request_Cookies: v1.15.0
+        Test_Schema_Request_Headers: v1.15.0
+        Test_Schema_Request_Path_Parameters:
+          '*': v1.15.0
+          rack: missing_feature (rack does not have path parameters support)
+        Test_Schema_Request_Query_Parameters: v1.15.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Headers: v1.15.0
     iast/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
-        test_hsts_missing_header.py: 
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
@@ -49,7 +51,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
