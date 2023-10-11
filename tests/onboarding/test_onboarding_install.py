@@ -40,7 +40,7 @@ class _OnboardingInstallBaseTest:
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{onboardig_vm.ip}]")
         try:
             wait_backend_trace_id(request_uuid, 10.0)
-            raise AssertionError("The weblog application is instrumented after install DD software")
+            raise AssertionError("The weblog application is instrumented after uninstall DD software")
         except TimeoutError:
             # OK there are no traces, the weblog app is not instrumented
             pass

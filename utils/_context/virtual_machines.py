@@ -171,7 +171,6 @@ class TestedVirtualMachine:
             lang_variant_installer = autoinjection_installer
 
         # Build weblog app
-        
         weblog_runner = remote_install(
             connection,
             "run-weblog_" + self.name,
@@ -185,7 +184,9 @@ class TestedVirtualMachine:
 
         # Uninstall process (stop app, uninstall autoinjection and rerun the app)
         if self.uninstall:
-            logger.info(f"Uninstall the autoinjection software. Command herer: {self.weblog_uninstall_data['uninstall']} ")
+            logger.info(
+                f"Uninstall the autoinjection software. Command herer: {self.weblog_uninstall_data['uninstall']} "
+            )
             weblog_uninstall = remote_install(
                 connection,
                 "uninstall-weblog_" + self.name,

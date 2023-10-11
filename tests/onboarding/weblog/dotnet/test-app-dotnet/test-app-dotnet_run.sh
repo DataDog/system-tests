@@ -1,7 +1,9 @@
 #!/bin/bash
+set -e
+chmod -R 755 * || true
+
 echo "START RUN APP"
 
-tar xvf test-app-dotnet.tar
 sudo sed -i "s/net7.0/net6.0/g" MinimalWebApp.csproj 
 dotnet restore
 dotnet build -c Release

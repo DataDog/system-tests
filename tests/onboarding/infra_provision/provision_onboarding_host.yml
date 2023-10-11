@@ -9,7 +9,7 @@ ami:
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
-  os_type: linux__
+  os_type: linux
   os_distro: deb
 
 - name: amazon-linux-x86
@@ -342,10 +342,9 @@ weblogs:
         - os_type: linux
           os_distro: rpm
           os_branch: amazon-netcore6
-          local-command: tar cvf test-app-dotnet.tar -C lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app .
           copy_files:
             - name: copy-dotnet-app
-              local_path: test-app-dotnet.tar
+              local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app 
 
             - name: copy-service
               local_path: tests/onboarding/weblog/dotnet/test-app-dotnet/test-app-dotnet.service
