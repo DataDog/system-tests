@@ -62,7 +62,7 @@ namespace weblog
         }
 
         [HttpPost("cmdi/test_insecure")]
-        public async Task<IActionResult>  test_insecure_cmdI([FromForm] RequestData data)
+        public IActionResult test_insecure_cmdI([FromForm] RequestData data)
         {
             try
             {            
