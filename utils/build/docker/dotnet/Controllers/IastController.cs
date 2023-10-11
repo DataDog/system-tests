@@ -76,9 +76,9 @@ namespace weblog
                     return BadRequest($"No file was provided");
                 }
             }
-            catch(Exception ex)
+            catch
             {
-                return StatusCode(500, "Error launching projjcess. " + data.cmd + ex.ToString());
+                return StatusCode(500, "Error launching process.");
             }
         }
         
