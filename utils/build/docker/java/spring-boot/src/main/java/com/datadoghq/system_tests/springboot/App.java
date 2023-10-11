@@ -84,6 +84,7 @@ public class App {
 
     CassandraConnector cassandra;
     MongoClient mongoClient;
+    KafkaConnector kafka;
 
     @RequestMapping("/")
     String home(HttpServletResponse response) {
@@ -289,7 +290,6 @@ public class App {
     @RequestMapping("/dsm")
     String publishToKafka(@RequestParam(required = true, name="integration") String integration) {
         if ("kafka".equals(integration)) {
-            KafkaConnector kafka = new KafkaConnector();
             try {
                 kafka.startProducingMessage("hello world!");
             } catch (Exception e) {

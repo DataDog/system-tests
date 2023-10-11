@@ -768,6 +768,9 @@ tests/:
       Test_DsmKafka:
         '*': missing_feature
         spring-boot: v1.13.0
+      Test_DsmKafkaHasClusterId:
+        '*': missing_feature
+        spring-boot: v1.21.0
       Test_DsmRabbitmq:
         '*': missing_feature
         spring-boot: v1.13.0

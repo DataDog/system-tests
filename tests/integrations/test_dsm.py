@@ -38,6 +38,33 @@ class Test_DsmKafka:
 
 
 @scenarios.integrations
+class Test_DsmKafkaHasClusterId:
+    """ Verify DSM stats points for Kafka """
+
+    def setup_dsm_kafka(self):
+        self.r = weblog.get("/dsm?integration=kafka")
+
+    def test_dsm_kafka(self):
+        assert self.r.text == "ok"
+
+        consumer_hash = 4463699290244539355
+        producer_hash = 3735318893869752335
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash,
+            parent_hash=0,
+            tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
+            should_have_cluster_tag=True,
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash,
+            parent_hash=consumer_hash,
+            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
+            should_have_cluster_tag=True,
+        )
+
+
+@scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
@@ -182,7 +209,14 @@ class DsmHelper:
         return True
 
     @staticmethod
-    def assert_checkpoint_presence(hash_, parent_hash, tags):
+    def has_kafka_cluster(actual_tags):
+        for tag in actual_tags:
+            if tag.startswith("kafka_cluster_id"):
+                return True
+        return False
+
+    @staticmethod
+    def assert_checkpoint_presence(hash_, parent_hash, tags, should_have_cluster_tag=False):
 
         assert isinstance(tags, tuple)
 
@@ -200,6 +234,7 @@ class DsmHelper:
                         observed_hash == hash_
                         and observed_parent_hash == parent_hash
                         and DsmHelper.is_tags_included(observed_tags, tags)
+                        and (not should_have_cluster_tag or DsmHelper.has_kafka_cluster(observed_tags))
                     ):
                         logger.info("checkpoint found ✅")
                         return

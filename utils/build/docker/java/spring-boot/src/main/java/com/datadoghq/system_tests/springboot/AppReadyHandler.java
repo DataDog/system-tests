@@ -1,5 +1,6 @@
 package com.datadoghq.system_tests.springboot;
 
+import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -19,6 +20,8 @@ public class AppReadyHandler extends Thread{
   }
 
   public void init() {
+    System.out.println("Trying to start kafka");
+    app.kafka = new KafkaConnector();
     System.out.println("Trying to start cassandra");
     app.cassandra = new CassandraConnector();
     app.cassandra.setup();
