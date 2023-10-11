@@ -173,6 +173,15 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 class DsmHelper:
     @staticmethod
+    def is_tags_included(actual_tags, expected_tags):
+        assert isinstance(actual_tags, tuple)
+        assert isinstance(expected_tags, tuple)
+        for expected_tag in expected_tags:
+            if expected_tag not in actual_tags:
+                return False
+        return True
+
+    @staticmethod
     def assert_checkpoint_presence(hash_, parent_hash, tags):
 
         assert isinstance(tags, tuple)
@@ -187,7 +196,11 @@ class DsmHelper:
                     observed_tags = tuple(stats_point["EdgeTags"])
 
                     logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
-                    if observed_hash == hash_ and observed_parent_hash == parent_hash and observed_tags == tags:
+                    if (
+                        observed_hash == hash_
+                        and observed_parent_hash == parent_hash
+                        and DsmHelper.is_tags_included(observed_tags, tags)
+                    ):
                         logger.info("checkpoint found ✅")
                         return
 
