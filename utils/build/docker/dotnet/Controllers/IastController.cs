@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
+using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -56,6 +58,32 @@ namespace weblog
             }
 			
             return Content(result.ToString());
+        }
+        
+        [HttpGet("parameter/test")]
+        public IActionResult parameterTest(string table)
+        {
+            try
+            {
+                using var conn = new SqlConnection(Constants.SqlConnectionString);
+                string result = string.Empty;
+                conn.Open();
+
+                var query = "SELECT * FROM dbo." + table;
+                using var cmd = new SqlCommand(query, conn);
+                using var reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    result += reader["Value"]?.ToString();
+                }
+                
+                return Content(result);
+            }
+            catch
+            {
+                return StatusCode(500, "Error in SQL.");
+            }
         }
     }
 }
