@@ -4,6 +4,9 @@ import pytest
 from utils._context.core import context
 
 
+_MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
+
+
 def _get_skipped_item(item, skip_reason):
 
     if not inspect.isfunction(item) and not inspect.isclass(item):
@@ -68,7 +71,7 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
     def decorator(function_or_class):
 
         if inspect.isclass(function_or_class):
-            assert condition is not None or (library is None and weblog_variant is None), "Please use manifest file"
+            assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
 
         if not skip:
             return function_or_class
@@ -88,7 +91,7 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     def decorator(function_or_class):
 
         if inspect.isclass(function_or_class):
-            assert condition is not None, "Please use manifest file"
+            assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
         if not skip:
             return function_or_class
@@ -110,7 +113,7 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
     def decorator(function_or_class):
 
         if inspect.isclass(function_or_class):
-            assert condition is not None, "Please use manifest file"
+            assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
         if not expected_to_fail:
             return function_or_class
@@ -129,7 +132,7 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     def decorator(function_or_class):
 
         if inspect.isclass(function_or_class):
-            assert condition is not None, "Please use manifest file"
+            assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
         if not skip:
             return function_or_class
