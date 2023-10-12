@@ -860,4 +860,7 @@ tests/:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetryV2: missing_feature
+  test_status_error_mapping.py:
+    Test_Error_Status_Mapping:
+      jersey-grizzly2: bug (The check for client spans with the make a distant call results in a 404.)
     

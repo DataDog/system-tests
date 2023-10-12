@@ -123,3 +123,5 @@ tests/:
     Test_ProductsDisabled: irrelevant
     Test_Telemetry: missing_feature
     Test_TelemetryV2: missing_feature
+  test_status_error_mapping.py:
+    Test_Error_Status_Mapping: missing_feature

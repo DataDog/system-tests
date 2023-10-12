@@ -17,33 +17,6 @@ from utils import bug, context, coverage, interfaces, irrelevant, rfc, weblog, m
 # 500-510 should be an error
 # 511-599 should not be an error
 
-
-@bug(
-    library="cpp", reason="The span's do not comeo with the correct status code, it's always 200 for some reason.",
-)
-@bug(
-    library="nodejs",
-    reason="The span's should not be marked as an error as they are not listed in the environment variable but they are.",
-)
-@bug(
-    library="golang",
-    reason="The spans should be marked as errors but they are not, in fact none of them are being marked as errors.",
-)
-@bug(
-    library="php",
-    reason="None of the spans are marked with the span.kind to determine if it's a server or client span.",
-)
-@bug(
-    library="python",
-    reason="The spans should be marked as errors but they are not, in fact none of them are being marked as errors.",
-)
-@bug(
-    library="java",
-    weblog_variant="jersey-grizzly2",
-    reason="The check for client spans with the make a distant call results in a 404.",
-)
-@bug(library="ruby", reason="the spans are still being marked as an error regardless of the configuration.")
-@bug(library="java", weblog_variant="vertx3", reason="This variant doesn't have the endpoints.")
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/status-error-mapping/rfc.md")
 class Test_Error_Status_Mapping:
     """ Verify behavior of Error Status Mapping for Client and Server"""

@@ -112,3 +112,5 @@ tests/:
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v0.90
     Test_TelemetryV2: v0.90
+  test_status_error_mapping.py:
+    Test_Error_Status_Mapping: bug (None of the spans are marked with the span.kind to determine if it's a server or client span.)

@@ -284,3 +284,6 @@ tests/:
       '*': v3.2.0
       uds-express4: v3.7.0
     Test_TelemetryV2: missing_feature
+  test_status_error_mapping.py:
+    Test_Error_Status_Mapping: bug (The spans should not be marked as an error as they are not listed in the environment variable but they are)
+

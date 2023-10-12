@@ -492,3 +492,5 @@ tests/:
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v1.7.0
     Test_TelemetryV2: v1.17.3
+  test_status_error_mapping.py:
+    Test_Error_Status_Mapping: bug (The spans should be marked as errors but they are not, in fact none of them are being marked as errors.)
