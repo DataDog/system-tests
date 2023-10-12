@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
+from utils import coverage, weblog, interfaces, irrelevant, scenarios
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
-@released(java="?", php="0.68.2", python="0.53", ruby="?")
 @coverage.basic
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
@@ -21,7 +20,6 @@ class Test_HeaderTags:
 
 
 @irrelevant(library="cpp")
-@released(java="0.102.0", php="0.74.0", python="?", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_short
 class Test_HeaderTagsShortFormat:
@@ -44,7 +42,6 @@ class Test_HeaderTagsShortFormat:
 
 
 @irrelevant(library="cpp")
-@released(java="0.102.0", php="?", python="1.2.1", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_long
 class Test_HeaderTagsLongFormat:

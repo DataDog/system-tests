@@ -2,12 +2,13 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Reponse_Body: missing_feature
-        Test_Schema_Reponse_Headers: missing_feature
         Test_Schema_Request_Body: missing_feature
+        Test_Schema_Request_Cookies: missing_feature
         Test_Schema_Request_Headers: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
         test_command_injection.py:
@@ -41,8 +42,7 @@ tests/:
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
-          TestXSS:
-            '*': missing_feature
+          TestXSS: missing_feature
       source/:
         test_body.py:
           TestRequestBody: missing_feature
@@ -110,8 +110,7 @@ tests/:
       Test_Login_Events_Extended: v2.33.0
     test_blocking_addresses.py:
       Test_BlockingAddresses: v2.27.0
-      Test_BlockingGraphqlResolvers:
-        '*': missing_feature
+      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: v2.29.0
       Test_Blocking_request_cookies: v2.29.0
       Test_Blocking_request_headers: v2.29.0
@@ -142,6 +141,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.6.0
     test_reports.py:
+      Test_ExtraTagsFromRule: v2.34.0
       Test_HttpClientIP: v1.30.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v1.30.0
@@ -162,6 +162,10 @@ tests/:
       Test_Debugger_Line_Probe_Statuses: v2.33.0
       Test_Debugger_Method_Probe_Statuses: v2.33.0
   integrations/:
+    test_db_integrations_sql.py:
+      Test_Mssql_db_integration: missing_feature
+      Test_Mysql_db_integration: missing_feature
+      Test_Postgres_db_integration: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
@@ -173,6 +177,7 @@ tests/:
       TestDynamicConfigV1: v2.33.0
   remote_config/:
     test_remote_configuration.py:
+      Test_RemoteConfigurationExtraServices: v2.36.0
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.15.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: v2.15.0
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0

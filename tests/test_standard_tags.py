@@ -2,11 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, weblog
+from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, rfc, weblog
 
 
-@released(java="0.102.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
 @coverage.good
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -32,8 +30,6 @@ class Test_StandardTagsMethod:
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
 
-@released(java="0.107.1")
-@released(php="0.76.0", python="1.6.0rc1.dev", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl:
@@ -156,8 +152,6 @@ class Test_StandardTagsUrl:
         )
 
 
-@released(java="0.107.1")
-@released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.8.0")
 @coverage.basic
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -171,8 +165,6 @@ class Test_StandardTagsUserAgent:
         interfaces.library.add_span_tag_validation(self.r, tags=tags, value_as_regular_expression=True)
 
 
-@released(java="0.102.0")
-@released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.8.0")
 @coverage.good
 class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -186,12 +178,6 @@ class Test_StandardTagsStatusCode:
             interfaces.library.add_span_tag_validation(request=r, tags={"http.status_code": code})
 
 
-@released(php="?", python="1.6.0", ruby="?")
-@released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
-@irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
-@missing_feature(
-    context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
-)
 @coverage.basic
 class Test_StandardTagsRoute:
     """Tests to verify that libraries annotate spans with correct http.route tags"""
@@ -223,64 +209,113 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@released(java="0.114.0")
-@released(php_appsec="0.4.4", python="1.5.0", ruby="1.10.1")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 
-    def setup(self):
-        """Send two_request, on with an attack, another one without attack"""
+    PUBLIC_IP = "43.43.43.43"
+    PUBLIC_IPV6 = "2001:4860:4860:0:0:0:0:8888"
+    # Some libraries might compress IPv6 addresses, so we need to accept both forms.
+    VALID_PUBLIC_IPS = {PUBLIC_IP, PUBLIC_IPV6, "2001:4860:4860::8888"}
+    FORWARD_HEADERS = {
+        "x-forwarded-for": PUBLIC_IP,
+        "x-real-ip": PUBLIC_IP,
+        "true-client-ip": PUBLIC_IP,
+        "x-client-ip": PUBLIC_IP,
+        "forwarded-for": PUBLIC_IP,
+        "x-forwarded": PUBLIC_IP,
+        "x-cluster-client-ip": f"10.42.42.42, {PUBLIC_IP}, fe80::1",
+    }
+    FORWARD_HEADERS_VENDOR = {
+        "fastly-client-ip": PUBLIC_IP,
+        "cf-connecting-ip": PUBLIC_IP,
+        "cf-connecting-ipv6": PUBLIC_IPV6,
+    }
 
-        if hasattr(self, "setup_done"):
+    def _setup_with_attack(self):
+        if hasattr(self, "_setup_with_attack_done"):
             return
+        self._setup_with_attack_done = True
 
-        self.setup_done = True
-
-        headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1"}
         attack_headers = {"User-Agent": "Arachni/v1"}
+        self.request_with_attack = weblog.get(
+            "/waf/", headers=self.FORWARD_HEADERS | self.FORWARD_HEADERS_VENDOR | attack_headers,
+        )
 
-        self.request_with_attack = weblog.get("/waf/", headers=headers | attack_headers)
-        self.request_without_attack = weblog.get("/waf/", headers=headers)
+    def _setup_without_attack(self):
+        if hasattr(self, "_setup_without_attack_done"):
+            return
+        self._setup_without_attack_done = True
+
+        self.requests_without_attack = {}
+        for header, value in (self.FORWARD_HEADERS | self.FORWARD_HEADERS_VENDOR).items():
+            self.requests_without_attack[header] = weblog.get("/waf/", headers={header: value})
+
+    def _test_client_ip(self, forward_headers):
+        for header, _ in forward_headers.items():
+            if header == "x-forwarded":
+                # TODO: Java currently handles X-Forwarded as Forwarded, while other tracers handle it as X-Forwarded-For.
+                # Keeping this case out until it's clear how to handle it.
+                continue
+            request = self.requests_without_attack[header]
+            meta = self._get_root_span_meta(request)
+            assert "http.client_ip" in meta, f"Missing http.client_ip for {header}"
+            assert meta["http.client_ip"] in self.VALID_PUBLIC_IPS, f"Unexpected http.client_ip for {header}"
 
     def setup_client_ip(self):
-        self.setup()
+        self._setup_without_attack()
+        self._setup_with_attack()
 
+    @bug(library="python", reason="cf-connecting-ipv6 seems to have higher precedence than it should")
     def test_client_ip(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled"""
+        meta = self._get_root_span_meta(self.request_with_attack)
+        assert "http.client_ip" in meta
+        assert meta["http.client_ip"] == self.PUBLIC_IP
 
-        def validator(span):
-            meta = span.get("meta", {})
-            assert "http.client_ip" in meta, "missing http.client_ip tag"
+        self._test_client_ip(self.FORWARD_HEADERS)
 
-            got = meta["http.client_ip"]
-            expected = "43.43.43.43"
-            assert got == expected, f"unexpected http.client_ip value {got} instead of {expected}"
+    def setup_client_ip_vendor(self):
+        self._setup_without_attack()
 
-            return True
-
-        interfaces.library.validate_spans(request=self.request_with_attack, validator=validator)
-        interfaces.library.validate_spans(request=self.request_without_attack, validator=validator)
+    @bug(library="golang", reason="missing cf-connecting-ipv6")
+    def test_client_ip_vendor(self):
+        """Test http.client_ip is always reported in the default scenario which has ASM enabled when using vendor headers"""
+        self._test_client_ip(self.FORWARD_HEADERS_VENDOR)
 
     def setup_client_ip_with_appsec_event(self):
-        self.setup()
+        self._setup_with_attack()
 
     def test_client_ip_with_appsec_event(self):
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled"""
+        meta = self._get_root_span_meta(self.request_with_attack)
+        assert "appsec.event" in meta
+        assert "network.client.ip" in meta
+        for header, value in self.FORWARD_HEADERS.items():
+            header = header.lower()
+            tag = f"http.request.headers.{header}"
+            assert tag in meta
+            assert meta[tag] == value
 
-        def validator(span):
-            meta = span.get("meta", {})
+    def setup_client_ip_with_appsec_event_and_vendor_headers(self):
+        self._setup_with_attack()
 
-            # ASM should report extra IP-related span tags.
-            assert "appsec.event" in meta, "missing appsec.event tag"
-            assert "network.client.ip" in meta, "missing network.client.ip tag"
-            assert (
-                "http.request.headers.x-cluster-client-ip" in meta
-            ), "missing http.request.headers.x-cluster-client-ip tag"
+    @missing_feature(library="java", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(library="golang", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(library="nodejs", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(library="ruby", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(library="php", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    def test_client_ip_with_appsec_event_and_vendor_headers(self):
+        """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
+        meta = self._get_root_span_meta(self.request_with_attack)
+        for header, value in self.FORWARD_HEADERS_VENDOR.items():
+            header = header.lower()
+            tag = f"http.request.headers.{header}"
+            assert tag in meta, f"missing {tag} tag"
+            assert meta[tag] == value
 
-            return True
-
-        interfaces.library.validate_spans(request=self.request_with_attack, validator=validator)
+    def _get_root_span_meta(self, request):
+        root_spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
+        assert len(root_spans) == 1
+        span = root_spans[0]
+        return span.get("meta", {})

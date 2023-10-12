@@ -2,12 +2,13 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Reponse_Body: missing_feature
-        Test_Schema_Reponse_Headers: missing_feature
         Test_Schema_Request_Body: missing_feature
+        Test_Schema_Request_Cookies: missing_feature
         Test_Schema_Request_Headers: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
         test_command_injection.py:
@@ -53,8 +54,7 @@ tests/:
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
-          TestXSS:
-            '*': missing_feature
+          TestXSS: missing_feature
       source/:
         test_body.py:
           TestRequestBody:
@@ -131,10 +131,9 @@ tests/:
       Test_Login_Events_Extended: v4.4.0
     test_blocking_addresses.py:
       Test_BlockingAddresses: v3.19.0
-      Test_BlockingGraphqlResolvers:
-        '*': missing_feature
+      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: v3.19.0
-      Test_Blocking_request_cookies: missing_feature
+      Test_Blocking_request_cookies: v14.16.0
       Test_Blocking_request_headers: v3.19.0
       Test_Blocking_request_method: v3.19.0
       Test_Blocking_request_path_params: missing_feature
@@ -167,6 +166,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_reports.py:
+      Test_ExtraTagsFromRule: v4.1.0
       Test_HttpClientIP: v2.0.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v2.0.0
@@ -188,8 +188,31 @@ tests/:
     test_debugger.py:
       Test_Debugger_Line_Probe_Statuses: missing_feature
       Test_Debugger_Method_Probe_Statuses: missing_feature
+  integrations/:
+    test_db_integrations_sql.py:
+      Test_Mssql_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+      Test_Mysql_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+      Test_Postgres_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+    test_dbm.py:
+      Test_Dbm: missing_feature
+    test_dsm.py:
+      Test_DsmHttp: missing_feature
+      Test_DsmKafka: v4.4.0
+      Test_DsmRabbitmq: missing_feature
+      Test_DsmRabbitmq_FanoutExchange: missing_feature
+      Test_DsmRabbitmq_TopicExchange: missing_feature
+  parametric/:
+    test_dynamic_configuration.py:
+      TestDynamicConfigV1: v4.11.0
   remote_config/:
     test_remote_configuration.py:
+      Test_RemoteConfigurationExtraServices: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
@@ -219,3 +242,12 @@ tests/:
     Test_StandardTagsStatusCode: v2.11.0
     Test_StandardTagsUrl: v3.0.0
     Test_StandardTagsUserAgent: v2.9.0
+  test_telemetry.py:
+    Test_DependencyEnable: missing_feature
+    Test_Log_Generation: missing_feature
+    Test_MessageBatch: missing_feature
+    Test_Metric_Generation_Disabled: missing_feature
+    Test_Metric_Generation_Enabled: missing_feature
+    Test_ProductsDisabled: missing_feature
+    Test_Telemetry: v3.2.0
+    Test_TelemetryV2: missing_feature

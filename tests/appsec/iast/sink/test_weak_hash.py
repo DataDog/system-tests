@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, coverage, released
-from .._test_iast_fixtures import SinkFixture, get_iast_event, assert_iast_vulnerability
+from utils import weblog, context, bug, missing_feature, coverage
+from .._test_iast_fixtures import SinkFixture, assert_iast_vulnerability
 
 
 def _expected_location():
@@ -25,8 +25,6 @@ def _expected_location():
 
 
 @coverage.basic
-@released(java="0.108.0", php_appsec="?", python="1.6.0", ruby="?")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakHash:
     """Verify weak hash detection."""
 

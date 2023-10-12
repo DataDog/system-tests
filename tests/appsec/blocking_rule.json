@@ -136,6 +136,60 @@
       ]
     },
     {
+      "id": "canary_rule3",
+      "name": "Canary 3",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^Canary\\/v3"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "on_match": [
+        "block3"
+      ]
+    },
+    {
+      "id": "canary_rule4",
+      "name": "Canary 4",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^Canary\\/v4"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "on_match": [
+        "block4"
+      ]
+    },
+    {
       "id": "tst-037-009",
       "name": "Test block on response header",
       "tags": {
@@ -479,6 +533,22 @@
       "parameters": {
         "status_code": 301,
         "location": "/you-have-been-blocked"
+      }
+    },
+    {
+      "id": "block3",
+      "type": "redirect_request",
+      "parameters": {
+        "status_code": 200,
+        "location": "/you-have-been-blocked"
+      }
+    },
+    {
+      "id": "block4",
+      "type": "redirect_request",
+      "parameters": {
+        "status_code": 303,
+        "location": ""
       }
     }
   ],
