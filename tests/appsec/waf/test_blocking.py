@@ -1,12 +1,8 @@
 import os.path
 
-import pytest
-
 from utils import coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky
 from utils._context.core import context
 
-if context.weblog_variant in ("akka-http", "spring-boot-payara"):
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -206,7 +202,6 @@ class Test_Blocking:
 
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
-@bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenarios.appsec_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")

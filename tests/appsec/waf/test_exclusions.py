@@ -1,8 +1,4 @@
-import pytest
 from utils import context, interfaces, scenarios, weblog, bug
-
-if context.weblog_variant == "akka-http":
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 @scenarios.appsec_custom_rules

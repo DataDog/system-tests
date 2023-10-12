@@ -70,7 +70,13 @@ class Test_TraceHeaders:
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
 
     @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
-    @missing_feature(context.library == "java" and context.weblog_variant != "spring-boot", reason="Missing endpoint")
+    @missing_feature(
+        context.library == "java" and "spring-boot" not in context.weblog_variant, reason="Missing endpoint"
+    )
+    @missing_feature(weblog_variant="spring-boot-3-native", reason="Missing endpoint")
+    @missing_feature(
+        context.library == "nodejs" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
+    )
     @missing_feature(context.library == "nodejs" and context.weblog_variant != "express4", reason="Missing endpoint")
     @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
     def test_trace_header_container_tags(self):

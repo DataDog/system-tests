@@ -4,14 +4,8 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-import pytest
-
 from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, coverage
 from .utils import rules
-
-# TODO move this in manifest file
-if context.weblog_variant in ("akka-http", "spring-boot-payara"):
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 @coverage.good
@@ -104,7 +98,6 @@ class Test_RFI:
         interfaces.library.assert_waf_attack(self.r_2, rules.rfi.crs_931_120)
 
 
-@flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_CommandInjection:
     """ Appsec WAF tests on Command injection rules """
@@ -206,7 +199,6 @@ class Test_XSS:
         interfaces.library.assert_waf_attack(self.r_xss2, rules.xss)
 
 
-@flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_SQLI:
     """ Appsec WAF tests on SQLI rules """
@@ -255,7 +247,6 @@ class Test_SQLI:
         interfaces.library.assert_waf_attack(self.r_6, "crs-942-140")
 
 
-@flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_NoSqli:
     """ Appsec WAF tests on NoSQLi rules """

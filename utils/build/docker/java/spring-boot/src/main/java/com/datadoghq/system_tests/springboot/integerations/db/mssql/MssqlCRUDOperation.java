@@ -20,6 +20,7 @@ public class MssqlCRUDOperation extends BaseCRUDOperation {
   
         Statement stmt = con.createStatement();
         String procedure = "CREATE PROCEDURE helloworld "
+        + " @Name VARCHAR(100), @Test VARCHAR(100) "
         + " AS "
         + " BEGIN "
         + " SET NOCOUNT ON; "
@@ -29,22 +30,19 @@ public class MssqlCRUDOperation extends BaseCRUDOperation {
         ;
   
         stmt.execute(procedure);
-        System.out.println("Initial data created");
+        System.out.println("MSSQL Initial data created");
       } catch (Exception e) {
         System.out.println("Error creating mssql procedure data: " + e.getMessage());
   
       }
     }
-  
+
     @Override
     public void callProcedure() {
-      String query = "helloworld";
       try (Connection con = getConnector().getConnection();
-      PreparedStatement stmt = con.prepareStatement(query)) {
-        ResultSet rs =  stmt.executeQuery();
-        while (rs.next()) {  
-            System.out.println("RS NEXT... " + rs.getInt("id"));
-        }
+      CallableStatement stmt = con.prepareCall("EXEC helloworld @Name = 'New', @Test = 'test' ");
+      ) {
+        stmt.executeQuery();
       } catch (Exception e) {
         System.out.println("Error: " + e.getMessage());
       }

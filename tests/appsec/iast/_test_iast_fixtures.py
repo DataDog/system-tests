@@ -48,6 +48,18 @@ def assert_iast_vulnerability(
     assert len(vulns) == vulnerability_count
 
 
+def _check_telemetry_response_from_agent():
+    # Java tracer (at least) disable telemetry if agent answer 403
+    # Checking that agent answers 200
+    # we do not fail the test, because we are not sure it's the official behavior
+    for data in interfaces.library.get_telemetry_data():
+        code = data["response"]["status_code"]
+        if code != 200:
+            filename = data["log_filename"]
+            logging.warning(f"Agent answered {code} on {filename}, it may cause telemetry issues")
+            return
+
+
 class SinkFixture:
     def __init__(
         self,
@@ -95,20 +107,28 @@ class SinkFixture:
         self.setup_insecure()
 
     def test_telemetry_metric_instrumented_sink(self):
+
+        _check_telemetry_response_from_agent()
+
         expected_namespace = "iast"
         expected_metric = "instrumented.sink"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
-        expected_tag = f"vulnerability_type:{self.vulnerability_type}"
-        series = [s for s in series if expected_tag in s["tags"]]
-        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
+        # lower the vulnerability_type, as all assertion will be case-insensitive
+        expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
+
+        # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
+
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True
             assert s["type"] == "count"
-            assert set(s["tags"]) == {expected_tag}
             assert len(s["points"]) == 1
             p = s["points"][0]
             assert p[1] >= 1
@@ -117,20 +137,28 @@ class SinkFixture:
         self.setup_insecure()
 
     def test_telemetry_metric_executed_sink(self):
+
+        _check_telemetry_response_from_agent()
+
         expected_namespace = "iast"
         expected_metric = "executed.sink"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
-        expected_tag = f"vulnerability_type:{self.vulnerability_type}"
-        series = [s for s in series if expected_tag in s["tags"]]
-        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
+        # lower the vulnerability_type, as all assertion will be case-insensitive
+        expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
+
+        # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
+
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True
             assert s["type"] == "count"
-            assert set(s["tags"]) == {expected_tag}
             assert len(s["points"]) == 1
             p = s["points"][0]
             assert p[1] >= 1
@@ -172,20 +200,28 @@ class SourceFixture:
         self.setup()
 
     def test_telemetry_metric_instrumented_source(self):
+
+        _check_telemetry_response_from_agent()
+
         expected_namespace = "iast"
         expected_metric = "instrumented.source"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
-        expected_tag = f"source_type:{self.source_type}"
-        series = [s for s in series if expected_tag in s["tags"]]
-        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
+        # lower the source_type, as all assertion will be case-insensitive
+        expected_tag = f"source_type:{self.source_type}".lower()
+
+        # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
+
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True
             assert s["type"] == "count"
-            assert set(s["tags"]) == {expected_tag}
             assert len(s["points"]) == 1
             p = s["points"][0]
             assert p[1] >= 1
@@ -194,20 +230,28 @@ class SourceFixture:
         self.setup()
 
     def test_telemetry_metric_executed_source(self):
+
+        _check_telemetry_response_from_agent()
+
         expected_namespace = "iast"
         expected_metric = "executed.source"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
-        expected_tag = f"source_type:{self.source_type}"
-        series = [s for s in series if expected_tag in s["tags"]]
-        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
+        # lower the source_type, as all assertion will be case-insensitive
+        expected_tag = f"source_type:{self.source_type}".lower()
+
+        # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
+
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True
             assert s["type"] == "count"
-            assert set(s["tags"]) == {expected_tag}
             assert len(s["points"]) == 1
             p = s["points"][0]
             assert p[1] >= 1

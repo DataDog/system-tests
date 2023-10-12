@@ -19,11 +19,11 @@ namespace weblog
             return Content($"Log probe");
         }
 
-        [HttpGet("metric")]
+        [HttpGet("metric/{id}")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult MetricProbe()
+        public IActionResult MetricProbe(int id)
         {
-            int id = 0;
+            id++;
             return Content($"Metric Probe {id}");
         }
 
@@ -31,16 +31,25 @@ namespace weblog
         [Consumes("application/json", "application/xml")]
         public IActionResult SpanProbe()
         {
-            string span = "some";
-            return Content($"Span Probe {span}");
+            return Content("Span probe");
         }
 
-        [HttpGet("span-decoration")]
+        private int intLocal = 0;
+        [HttpGet("span-decoration/{arg}/{intArg}")]
         [Consumes("application/json", "application/xml")]
         public IActionResult SpanDecorationProbe(string arg, int intArg)
         {
-            var intLocal = arg.Length * 2;
+            intLocal = intArg * arg.Length;
             return Content($"Span Decoration Probe {intLocal}");
+        }
+
+        private int intMixLocal = 0;
+        [HttpGet("mix/{arg}/{intArg}")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult MixProbe(string arg, int intArg)
+        {
+            intMixLocal = intArg * arg.Length;
+            return Content($"Mixed result {intMixLocal}");
         }
     }
 }

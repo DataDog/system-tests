@@ -30,6 +30,8 @@ readonly DEFAULT_ruby=rails70
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
 readonly DEFAULT_java_otel=spring-boot-native
+readonly DEFAULT_python_otel=flask-poc-otel
+readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
@@ -280,7 +282,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|java_otel|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
+        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;

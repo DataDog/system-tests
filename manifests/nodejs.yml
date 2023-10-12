@@ -1,4 +1,9 @@
 tests/:
+  apm_tracing_e2e/:
+    test_otel.py:
+      Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_single_span.py:
+      Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
       test_schemas.py:
@@ -15,6 +20,10 @@ tests/:
           TestCommandInjection:
             '*': missing_feature
             express4: v3.11.0
+        test_hsts_missing_header.py: 
+          Test_HstsMissingHeader:
+            '*': missing_feature
+            express4: v4.8.0
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': missing_feature
@@ -25,6 +34,8 @@ tests/:
           TestNoHttponlyCookie: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': missing_feature
@@ -51,6 +62,10 @@ tests/:
             express4: v3.11.0
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
+        test_xcontent_sniffing.py:
+          Test_XContentSniffing: 
+            '*': missing_feature
+            express4: v4.8.0
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -83,7 +98,7 @@ tests/:
         Test_ClientIP: missing_feature
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
+        Test_GraphQL: v4.16.0
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -102,6 +117,7 @@ tests/:
         Test_Exclusions: v3.19.0
       test_miscs.py:
         Test_404: v2.0.0
+        Test_CorrectOptionProcessing: v3.19.0  # probably sooner, but bugged
         Test_MultipleAttacks: v2.0.0
         Test_MultipleHighlight: v2.0.0
       test_reports.py:
@@ -133,7 +149,7 @@ tests/:
       Test_BlockingAddresses: v3.19.0
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: v3.19.0
-      Test_Blocking_request_cookies: missing_feature
+      Test_Blocking_request_cookies: v14.16.0
       Test_Blocking_request_headers: v3.19.0
       Test_Blocking_request_method: v3.19.0
       Test_Blocking_request_path_params: missing_feature
@@ -186,17 +202,28 @@ tests/:
       Test_Events: v2.0.0
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Statuses: missing_feature
-      Test_Debugger_Method_Probe_Statuses: missing_feature
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
+      Test_Debugger_Mix_Log_Probe: irrelevant
+      Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_db_integrations_sql.py:
-      Test_Mssql_db_integration:
+      Test_Agent_Mssql_db_integration:
         '*': missing_feature
         express4: v1.0.0
-      Test_Mysql_db_integration:
+      Test_Agent_Mysql_db_integration:
         '*': missing_feature
         express4: v1.0.0
-      Test_Postgres_db_integration:
+      Test_Agent_Postgres_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+      Test_Tracer_Mssql_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+      Test_Tracer_Mysql_db_integration:
+        '*': missing_feature
+        express4: v1.0.0
+      Test_Tracer_Postgres_db_integration:
         '*': missing_feature
         express4: v1.0.0
     test_dbm.py:
@@ -210,15 +237,17 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v4.11.0
+    test_tracer.py:
+      Test_TracerSCITagging: v3.21.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
-      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: v3.9.0
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -229,6 +258,8 @@ tests/:
     Test_HeaderTags: missing_feature
     Test_HeaderTagsLongFormat: missing_feature
     Test_HeaderTagsShortFormat: missing_feature
+  test_profiling.py:
+    Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:
     Test_UrlField: v3.13.1
     Test_UrlQuery: v3.0.0
@@ -249,5 +280,7 @@ tests/:
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
-    Test_Telemetry: v3.2.0
+    Test_Telemetry:
+      '*': v3.2.0
+      uds-express4: v3.7.0
     Test_TelemetryV2: missing_feature

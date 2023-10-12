@@ -16,7 +16,11 @@ class TestPathTraversal:
         insecure_endpoint="/iast/path_traversal/test_insecure",
         secure_endpoint="/iast/path_traversal/test_secure",
         data={"path": "/var/log"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.PathExamples", "nodejs": "iast/index.js",},
+        location_map={
+            "java": "com.datadoghq.system_tests.iast.utils.PathExamples",
+            "nodejs": "iast/index.js",
+            "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+        },
     )
 
     def setup_insecure(self):

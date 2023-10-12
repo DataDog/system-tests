@@ -5,13 +5,8 @@
 import datetime
 import time
 
-import pytest
 from utils import weblog, context, coverage, interfaces, rfc, bug, scenarios, flaky
 from utils.tools import logger
-
-
-if context.weblog_variant == "akka-http":
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")

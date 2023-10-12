@@ -1,4 +1,9 @@
 tests/:
+  apm_tracing_e2e/:
+    test_otel.py:
+      Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_single_span.py:
+      Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     iast/:
       sink/:
@@ -10,7 +15,13 @@ tests/:
         Test_BodyJson: missing_feature
         Test_BodyXml: missing_feature
         Test_ClientIP: missing_feature
+        Test_Headers: v0.68.3  # probably sooner, but was flaky 
         Test_Method: missing_feature
+        Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
+      test_rules.py:
+        Test_CommandInjection: v0.68.3  # probably sooner, but was flaky
+        Test_NoSqli: v0.68.3  # probably sooner, but was flaky
+        Test_SQLI: v0.68.3  # probably sooner, but was flaky
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
     test_PII.py:
@@ -19,8 +30,10 @@ tests/:
       Test_Login_Events: v0.89.0
       Test_Login_Events_Extended: v0.89.0
     test_blocking_addresses.py:
-      Test_BlockingGraphqlResolvers:
-        '*': missing_feature
+      Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
+      Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
+      Test_Blocking_response_status: irrelevant (On php it is not possible change the status code once its header is sent)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
     test_identify.py:
@@ -29,14 +42,23 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
-      Test_Info: v0.68.2
+      Test_Info: v0.68.3  # probably 0.68.2, vut was flaky
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
+  debugger/:
+    test_debugger.py:
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
+      Test_Debugger_Mix_Log_Probe: irrelevant
+      Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_db_integrations_sql.py:
-      Test_Mssql_db_integration: missing_feature
-      Test_Mysql_db_integration: missing_feature
-      Test_Postgres_db_integration: missing_feature
+      Test_Agent_Mssql_db_integration: missing_feature
+      Test_Agent_Mysql_db_integration: missing_feature
+      Test_Agent_Postgres_db_integration: missing_feature
+      Test_Tracer_Mssql_db_integration: missing_feature
+      Test_Tracer_Mysql_db_integration: missing_feature
+      Test_Tracer_Postgres_db_integration: missing_feature
     test_dbm.py:
       Test_Dbm: v0.91.1
     test_dsm.py:
@@ -48,9 +70,13 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
+    test_tracer.py:
+      Test_TracerSCITagging: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   test_distributed.py:
@@ -63,6 +89,8 @@ tests/:
     Test_HeaderTags: v0.68.2
     Test_HeaderTagsLongFormat: missing_feature
     Test_HeaderTagsShortFormat: v0.74.0
+  test_profiling.py:
+    Test_Profile: bug (Not receiving profiles)
   test_sampling_rates.py:
     Test_SamplingDecisions: v0.71.0
   test_scrubbing.py:
