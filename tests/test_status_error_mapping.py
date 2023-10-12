@@ -2,9 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, released, scenarios
+from utils import weblog, interfaces, context, missing_feature, scenarios
 from utils.tools import logger
-from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
+from utils import bug, context, coverage, interfaces, irrelevant, rfc, weblog, missing_feature
 
 # TODO: figure out how to add in the environment variable to only effec this test.
 ### CLIENT SPANS ###
