@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, released, missing_feature
+from utils import context, interfaces, bug, missing_feature
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -21,11 +21,13 @@ if value is dict, the weblog variant has multiple spans each with a different ex
 VARIANT_COMPONENT_MAP = {
     "chi": ["go-chi/chi", "go-chi/chi.v5"],
     "flask-poc": "flask",
+    "fastapi": "fastapi",
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
     "uwsgi-poc": "flask",
     "django-poc": "django",
+    "python3.12": "django",
     "gin": "gin-gonic/gin",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
@@ -126,7 +128,6 @@ def get_component_name(weblog_variant, language, span_name):
     return expected_component
 
 
-@released(ruby="1.7.0", golang="1.45.0", python="1.80.0", nodejs="3.13.1")
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -293,10 +294,6 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
-@bug(
-    context.library in ("cpp", "python", "ruby"),
-    reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
-)
 class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
@@ -314,7 +311,6 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
-@released(ruby="1.7.0", nodejs="3.13.1", java="1.6.0", php="0.83.1", dotnet="2.6.0")
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

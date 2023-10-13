@@ -2,14 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, released, irrelevant, context, bug
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug
 from utils.tools import logger
 
 
-@released(cpp="?", golang="?", php="?", python="?", ruby="?")
-@released(dotnet="2.29.0")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
-@released(nodejs="4.4.0")
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -41,8 +37,6 @@ class Test_DsmKafka:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.12.1", "*": "?"})
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -58,9 +52,6 @@ class Test_DsmHttp:
         )
 
 
-@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
-@released(dotnet="2.29.0")
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -110,8 +101,6 @@ class Test_DsmRabbitmq:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
@@ -147,8 +136,6 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
@@ -186,6 +173,15 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 class DsmHelper:
     @staticmethod
+    def is_tags_included(actual_tags, expected_tags):
+        assert isinstance(actual_tags, tuple)
+        assert isinstance(expected_tags, tuple)
+        for expected_tag in expected_tags:
+            if expected_tag not in actual_tags:
+                return False
+        return True
+
+    @staticmethod
     def assert_checkpoint_presence(hash_, parent_hash, tags):
 
         assert isinstance(tags, tuple)
@@ -193,14 +189,20 @@ class DsmHelper:
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
 
         for data in interfaces.agent.get_dsm_data():
-            for stats_bucket in data["request"]["content"]["Stats"]:
-                for stats_point in stats_bucket["Stats"]:
+            # some tracers may send separate payloads with stats
+            # or backlogs so "Stats" may be empty
+            for stats_bucket in data["request"]["content"].get("Stats", {}):
+                for stats_point in stats_bucket.get("Stats", {}):
                     observed_hash = stats_point["Hash"]
                     observed_parent_hash = stats_point["ParentHash"]
                     observed_tags = tuple(stats_point["EdgeTags"])
 
                     logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
-                    if observed_hash == hash_ and observed_parent_hash == parent_hash and observed_tags == tags:
+                    if (
+                        observed_hash == hash_
+                        and observed_parent_hash == parent_hash
+                        and DsmHelper.is_tags_included(observed_tags, tags)
+                    ):
                         logger.info("checkpoint found ✅")
                         return
 

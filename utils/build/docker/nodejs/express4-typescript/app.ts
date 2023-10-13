@@ -16,6 +16,7 @@ app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
 
 require('./auth')(app, passport, tracer)
+require('./graphql')(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');

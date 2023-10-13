@@ -81,7 +81,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
-                appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
+                appsec_data = span["meta"]["_dd.appsec.json"]
                 yield data, trace, span, appsec_data
 
     def get_legacy_appsec_events(self, request=None):

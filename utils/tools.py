@@ -134,6 +134,12 @@ def get_rid_from_span(span):
     if not user_agent:  # last hope
         user_agent = meta.get("http.useragent")
 
+    if not user_agent:  # last last hope (java opentelemetry autoinstrumentation)
+        user_agent = meta.get("user_agent.original")
+
+    if not user_agent:  # last last last hope (python opentelemetry autoinstrumentation)
+        user_agent = meta.get("http.user_agent")
+
     return get_rid_from_user_agent(user_agent)
 
 
@@ -147,3 +153,32 @@ def get_rid_from_user_agent(user_agent):
         return None
 
     return match.group(1)
+
+
+def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
+    """ look for needle in heystack, heystack can be a dict or an array """
+
+    if isinstance(heystack, str):
+        return (needle == heystack) if exact_match else (needle in heystack)
+
+    if isinstance(heystack, (list, tuple)):
+        for item in heystack:
+            if nested_lookup(needle, item, look_in_keys=look_in_keys, exact_match=exact_match):
+                return True
+
+        return False
+
+    if isinstance(heystack, dict):
+        for key, value in heystack.items():
+            if look_in_keys and nested_lookup(needle, key, look_in_keys=look_in_keys, exact_match=exact_match):
+                return True
+
+            if nested_lookup(needle, value, look_in_keys=look_in_keys, exact_match=exact_match):
+                return True
+
+        return False
+
+    if isinstance(heystack, (bool, float, int)) or heystack is None:
+        return False
+
+    raise TypeError(f"Can't handle type {type(heystack)}")
