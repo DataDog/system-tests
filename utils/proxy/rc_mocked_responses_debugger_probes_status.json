@@ -3,31 +3,40 @@
   [
     {
       "language": "",
-      "id": "logProbe-received",
+      "id": "loga0cf2-meth-45cf-9f39-591received",
       "where": {
         "typeName": "NotReallyExists",
         "methodName": "SomeMethod",
         "sourceFile": null
       },
       "evaluateAt": "EXIT"
-    }
-  ],
-  [
+    },
     {
       "language": "",
-      "id": "logProbe-installed",
+      "id": "loga0cf2-meth-45cf-9f39-59installed",
       "where": {
         "typeName": "ACTUAL_TYPE_NAME",
         "methodName": "LogProbe",
         "sourceFile": null
       },
       "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "loga0cf2-line-45cf-9f39-59installed",
+      "where": {
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": [
+          "19"
+        ]
+      }
     }
   ],
   [
     {
       "language": "",
-      "id": "metricProbe-received",
+      "id": "metricf2-meth-45cf-9f39-591received",
       "metricName": "MetricCountInt",
       "kind": "COUNT",
       "value": {
@@ -41,12 +50,10 @@
         "sourceFile": null
       },
       "evaluateAt": "EXIT"
-    }
-  ],
-  [
+    },
     {
       "language": "",
-      "id": "metricProbe-installed",
+      "id": "metricf2-meth-45cf-9f39-59installed",
       "metricName": "MetricCountInt",
       "kind": "COUNT",
       "value": {
@@ -60,16 +67,23 @@
         "sourceFile": null
       },
       "evaluateAt": "EXIT"
-    }
-  ],
-  [
+    },
     {
       "language": "",
-      "id": "spanProbe-received",
+      "id": "metricf2-line-45cf-9f39-59installed",
+      "kind": "COUNT",
+      "metricName": "MetricCountInt",
+      "value": {
+        "json": {
+          "ref": "id"
+        }
+      },
       "where": {
-        "typeName": "NotReallyExists",
-        "methodName": "SomeMethod",
-        "sourceFile": null
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": [
+          "27"
+        ]
       },
       "evaluateAt": "EXIT"
     }
@@ -77,7 +91,17 @@
   [
     {
       "language": "",
-      "id": "spanProbe-installed",
+      "id": "span0cf2-meth-45cf-9f39-591received",
+      "where": {
+        "typeName": "NotReallyExists",
+        "methodName": "SomeMethod",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "span0cf2-meth-45cf-9f39-59installed",
       "where": {
         "typeName": "ACTUAL_TYPE_NAME",
         "methodName": "SpanProbe",
@@ -89,7 +113,7 @@
   [
     {
       "language": "",
-      "id": "spanDecorationProbe-received",
+      "id": "decorcf2-meth-45cf-9f39-591received",
       "targetSpan": "ACTIVE",
       "decorations": [
         {
@@ -113,12 +137,10 @@
         "sourceFile": null
       },
       "evaluateAt": "EXIT"
-    }
-  ],
-  [
+    },
     {
       "language": "",
-      "id": "spanDecorationProbe-installed",
+      "id": "decorcf2-meth-45cf-9f39-59installed",
       "targetSpan": "ACTIVE",
       "decorations": [
         {
@@ -140,6 +162,35 @@
         "typeName": "ACTUAL_TYPE_NAME",
         "methodName": "SpanDecorationProbe",
         "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "decorcf2-line-45cf-9f39-59installed",
+      "targetSpan": "ACTIVE",
+      "decorations": [
+        {
+          "when": {
+            "json": {
+              "gt": [
+                {
+                  "ref": "intLocal"
+                },
+                {
+                  "ref": "intArg"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "where": {
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": [
+          "43"
+        ]
       },
       "evaluateAt": "EXIT"
     }

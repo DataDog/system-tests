@@ -27,10 +27,4 @@ public class DBFactory {
         return SupportedDB.valueOf(dbService).getCurrentCrud();
 
     }
-
-    public void createAllSampleDatabases() {
-        for (SupportedDB value : SupportedDB.values()) {
-            value.getCurrentCrud().createSampleData();
-        }
-    }
 }

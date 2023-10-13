@@ -202,7 +202,7 @@ class Test_StandardTagsRoute:
         if context.library == "python":
             if context.weblog_variant in ("flask-poc", "uwsgi-poc", "uds-flask"):
                 tags["http.route"] = "/sample_rate_route/<i>"
-            elif context.weblog_variant == "django-poc":
+            elif context.weblog_variant in ("django-poc", "python3.12"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
@@ -300,7 +300,9 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_with_appsec_event_and_vendor_headers(self):
         self._setup_with_attack()
 
-    @missing_feature(library="java", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(
+        context.library < "java@1.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
+    )
     @missing_feature(library="golang", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
     @missing_feature(library="nodejs", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
     @missing_feature(library="ruby", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")

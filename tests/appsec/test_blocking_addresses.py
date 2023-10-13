@@ -19,7 +19,6 @@ from utils import (
 
 @coverage.basic
 @scenarios.appsec_blocking
-@bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -135,7 +134,16 @@ class Test_BlockingAddresses:
         self.rss_req = weblog.get(path="/status", params={"code": "418"})
 
     @missing_feature(context.library < "dotnet@2.32.0")
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library < "java@1.18.0" and context.weblog_variant in ("spring-boot", "uds-spring-boot"))
+    @missing_feature(
+        context.library < "java@1.19.0"
+        and context.weblog_variant in ("spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
+    )
+    @missing_feature(
+        context.library == "java"
+        and context.weblog_variant
+        not in ("spring-boot", "uds-spring-boot", "spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
+    )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
     @missing_feature(library="nodejs", reason="Not supported yet")
@@ -201,7 +209,6 @@ def _assert_custom_event_tag_absence():
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -241,7 +248,6 @@ class Test_Blocking_request_method:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -291,8 +297,6 @@ class Test_Blocking_request_uri:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
-@irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
@@ -334,7 +338,6 @@ class Test_Blocking_request_path_params:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -379,7 +382,6 @@ class Test_Blocking_request_query:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -424,7 +426,6 @@ class Test_Blocking_request_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -441,7 +442,7 @@ class Test_Blocking_request_cookies:
 
     def setup_non_blocking(self):
         # headers parameters are not a part of cookies
-        self.rm_req_nonblock1 = weblog.get("/waf" "/waf", headers={"foo": "jdfoSDGFkivRG_234"})
+        self.rm_req_nonblock1 = weblog.get("/waf", headers={"foo": "jdfoSDGFkivRG_234"})
         # cookies parameters are blocking only on value not parameter name
         self.rm_req_nonblock2 = weblog.get("/waf", headers={"jdfoSDGFkivRG_234": "foo"})
 
@@ -469,7 +470,6 @@ class Test_Blocking_request_cookies:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(library="php", reason="Php does not accept url encoded entries without key")
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
@@ -529,7 +529,6 @@ class Test_Blocking_request_body:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
@@ -554,7 +553,6 @@ class Test_Blocking_response_status:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
-@irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
