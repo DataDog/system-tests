@@ -78,4 +78,7 @@ class Test_Dbm:
     @scenarios.integrations
     def test_trace_payload_full(self):
         self.find_db_spans()
-        self.assert_span_is_tagged()
+        if self.db_span.get("meta", {}).get("db.type") == "sql-server":
+            self.assert_span_is_untagged()
+        else:
+            self.assert_span_is_tagged()
