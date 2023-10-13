@@ -51,7 +51,7 @@ async def custom_404_handler(request: Request, _):
 @app.post("/", response_class=PlainTextResponse)
 @app.options("/", response_class=PlainTextResponse)
 async def root():
-    return "Hello World!"
+    return "Hello, World!"
 
 
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
