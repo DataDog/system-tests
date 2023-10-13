@@ -16,7 +16,7 @@ elif [ $(ls python-load-from-pip | wc -l) = 1 ]; then
     pip install "$(cat python-load-from-pip)"
 elif [ $(ls *.whl | wc -l) = 0 ]; then
     echo "Install ddtrace from pypi"
-    pip install git+https://github.com/Datadog/dd-trace-py.git@a664f66dbbd9cb387dafee74bb90a684c49d8ff4
+    pip install ddtrace
 else
     echo "ERROR: Found several wheel files in binaries/, abort."
     exit 1

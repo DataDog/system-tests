@@ -286,7 +286,7 @@ tests/:
     test_alpha.py:
       Test_Basic:
         '*': v1.1.0rc2.dev
-        # fastapi: missing_feature
+        fastapi: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
@@ -294,43 +294,43 @@ tests/:
       Test_BlockingAddresses:
         '*': v1.16.1
         django-poc: v1.10
-        # fastapi: missing_feature
+        fastapi: missing_feature
         flask-poc: v1.10
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
         '*': v1.16.1
         django-poc: v1.10
-        # fastapi: missing_feature
+        fastapi: missing_feature
         flask-poc: v1.10
       Test_Blocking_request_cookies:
         '*': v1.16.1
         django-poc: v1.10
-        # fastapi: missing_feature
+        fastapi: missing_feature
         flask-poc: v1.10
       Test_Blocking_request_headers:
         '*': v1.16.1
         django-poc: v1.10
-        # fastapi: missing_feature
+        fastapi: missing_feature
         flask-poc: v1.10
       Test_Blocking_request_method:
         '*': v1.16.1
         django-poc: v1.10
-        # fastapi: missing_feature
+        fastapi: missing_feature
         flask-poc: v1.10
       Test_Blocking_request_path_params:
         '*': v1.16.1
         django-poc: v1.10
-        # fastapi: missing_feature
+        fastapi: missing_feature
         flask-poc: v1.13
       Test_Blocking_request_query:
         '*': v1.16.1
         django-poc: v1.10
-        # fastapi: missing_feature
+        fastapi: missing_feature
         flask-poc: v1.10
       Test_Blocking_request_uri:
         '*': v1.16.1
         django-poc: v1.15
-        # fastapi: missing_feature
+        fastapi: missing_feature
         flask-poc: v1.15
       Test_Blocking_response_headers:
         '*': v1.16.1
@@ -481,7 +481,7 @@ tests/:
     Test_StandardTagsStatusCode: v1.4.0rc1.dev
     Test_StandardTagsUrl:
       '*': v1.6.0rc1.dev
-      # fastapi: missing_feature
+      fastapi: missing_feature
     Test_StandardTagsUserAgent: v1.5.0rc1.dev
   test_telemetry.py:
     Test_DependencyEnable: missing_feature

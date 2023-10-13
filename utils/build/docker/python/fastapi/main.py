@@ -44,12 +44,14 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, _):
     logger.critical(f"request {request.url} failed with 404")
-    return JSONResponse({"error": 404})
+    return JSONResponse({"error": 404}, status_code=404)
 
 
 @app.get("/", response_class=PlainTextResponse)
+@app.post("/", response_class=PlainTextResponse)
+@app.options("/", response_class=PlainTextResponse)
 async def root():
-    return "Hello, World!"
+    return "Hello World!"
 
 
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
@@ -91,7 +93,7 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
     appsec_trace_utils.track_custom_event(
         tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
     )
-    if tag_value.startswith(payload_in_response_body):
+    if tag_value.startswith("payload_in_response_body"):
         json_body = await request.json()
         return JSONResponse({"payload": json_body}, status_code=status_code, headers=request.query_params)
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
