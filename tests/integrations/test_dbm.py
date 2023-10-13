@@ -26,7 +26,8 @@ class Test_Dbm:
             ]
         elif self.library_name == "php":
             self.requests = [
-                weblog.get("/dbm", params={"integration": "pdo"}),
+                weblog.get("/dbm", params={"integration": "pdo-mysql"}),
+                weblog.get("/dbm", params={"integration": "pdo-pgsql"}),
                 weblog.get("/dbm", params={"integration": "mysqli"}),
             ]
 
