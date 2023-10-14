@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, coverage
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -619,14 +619,22 @@ class Test_MessageBatch:
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
-@scenarios.telemetry_log_generation_disabled
+@coverage.basic
 class Test_Log_Generation:
-    """Assert that logs are not reported when logs generation is disabled in telemetry"""
+    """Assert that logs reported by default, and not reported when logs generation is disabled in telemetry"""
 
+    def _get_filename_with_logs(self):
+        all_data = interfaces.library.get_telemetry_data()
+        return [data["log_filename"] for data in all_data if get_request_type(data) == "logs"]
+
+    @scenarios.telemetry_log_generation_disabled
     def test_log_generation_disabled(self):
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
-            if get_request_type(data) == "logs":
-                raise Exception(" Logs event is sent when log generation is disabled")
+        """ When DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false, no log should be sent"""
+        assert len(self._get_filename_with_logs()) == 0, "Library shouldn't have sent any log"
+
+    def test_log_generation_enabled(self):
+        """ By default, some logs should be sent"""
+        assert len(self._get_filename_with_logs()) != 0
 
 
 @scenarios.telemetry_metric_generation_disabled
