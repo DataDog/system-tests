@@ -103,6 +103,25 @@ public class AppSecIastSource {
         String fileName = file.getName();
         sql.insecureSql(fileName);
         return "fileName: " + file.getName();
+
+    @GetMapping("/uri/test")
+    String uriTest(HttpServletRequest request) {
+        StringBuffer url = request.getRequestURL();
+        String urlString = url.toString();
+        String param = urlString.substring(url.lastIndexOf("/") +1 , url.length());
+        System.out.println(" uri param " + param);
+        sql.insecureSql(param, param, (statement, sql) -> {statement.executeQuery(sql); System.out.println(" uri test: " + sql);return null;});
+        return "OK";
+    }
+
+    @GetMapping("/path/test")
+    String pathTest(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        System.out.println("path uri: " +  uri);
+        String param = uri.substring(uri.lastIndexOf("/") +1, uri.length());
+        System.out.println("path param: " +  param);
+        sql.insecureSql(param, param, (statement, sql) -> {statement.executeQuery(sql); System.out.println(" path test: " + sql);return null;});
+        return "OK";
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
