@@ -625,9 +625,10 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_graphql(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to `"graphql." + graphql.operationtype` when:
+            Tests that the operation name will be set to `"graphql.server.request"` when:
             - Span kind is set to Server
             - graphql.operation.type is set to something (e.g., query in this example)
+              - Note the graphql.operation.type value should be set as a tag on the Span
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/graphql/)
         """
@@ -641,7 +642,7 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "graphql.query"
+        assert root_span["name"] == "graphql.server.request"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
