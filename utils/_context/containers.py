@@ -562,6 +562,7 @@ class MySqlContainer(SqlDbTestedContainer):
         super().__init__(
             image_name="mysql/mysql-server:latest",
             name="mysqldb",
+            command="--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "world",
                 "MYSQL_USER": "mysqldb",
