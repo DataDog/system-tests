@@ -355,17 +355,15 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_database_001(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to `db.system + "." + db.operation` when:
+            Tests that the operation name will be set to `db.system + "." + "command" when:
             - Span kind is set to Client
-            - db.system is set to something (e.g., mongodb in this example)
-            - db.operation is set to something (e.g., delete in this example)
+            - db.system is set to some messaging system (e.g., redis in this example)
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/database/)
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"db.system": "mongodb"})
-                span.set_attributes({"db.operation": "delete"})
+                span.set_attributes({"db.system": "redis"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
@@ -373,7 +371,7 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "mongodb.delete"
+        assert root_span["name"] == "reddis.command"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
@@ -388,8 +386,7 @@ class Test_Otel_Span_Methods:
         """
             Tests that the operation name will be set to `db.system + ".query"` when:
             - Span kind is set to Client
-            - db.system is set to something (e.g., mongodb in this example)
-            - db.operation is NOT set
+            - db.system is set to some database (e.g., mongodb in this example)
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/database/)
         """
