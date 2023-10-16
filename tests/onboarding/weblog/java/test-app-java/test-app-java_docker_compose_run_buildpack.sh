@@ -3,7 +3,7 @@
 set -e
 sudo chmod -R 755 *
 
-./gradlew build
+sudo ./gradlew build
 sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest clean bootBuildImage
 sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
 sleep 20
