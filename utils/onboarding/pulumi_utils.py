@@ -1,7 +1,6 @@
 import os
 import logging
 import logging.config
-import shutil
 import pathlib
 
 import pulumi
@@ -31,7 +30,8 @@ def remote_install(
     scenario_name=None,
     output_callback=None,
 ):
-    # List to store the latest commands in order to manage dependecy between commands (wait for one command finished before launch next command)
+    # List to store the latest commands in order to manage dependecy between commands
+    # (wait for one command finished before launch next command)
     quee_depends_on = [depends_on]
 
     # Do we need to add env variables?
