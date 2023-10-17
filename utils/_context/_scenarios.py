@@ -744,8 +744,8 @@ class OnBoardingScenario(_Scenario):
                     self.name,
                     language=self._library.library,
                     env=self._env,
-                    weblog=self._weblog,
-                    uninstall=option.obd_uninstall,
+                    weblog=self._weblog
+                  #  uninstall=option.obd_uninstall,
                 )
             ).get_infrastructure_provision()
         )
