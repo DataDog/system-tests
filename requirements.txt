@@ -62,7 +62,7 @@ toml==0.10.2
 tomli==2.0.1
 typed-ast==1.5.4
 typing_extensions==4.3.0
-urllib3==1.26.12
+urllib3==1.26.18
 Werkzeug==2.0.1
 
 -r utils/build/docker/python_http/parametric/requirements.txt
