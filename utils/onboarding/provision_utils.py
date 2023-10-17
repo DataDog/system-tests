@@ -291,4 +291,4 @@ class ProvisionFilter:
         self.env = env
         self.os_distro = os.getenv("ONBOARDING_FILTER_OS_DISTRO")
         self.weblog = weblog
-        self.uninstall = os.getenv("ONBOARDING_UNINSTALL", 'False').lower()
+        self.uninstall = os.getenv("ONBOARDING_UNINSTALL", "False").lower() == "true"

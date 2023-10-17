@@ -1,3 +1,9 @@
+stages:
+  - nodejs_tracer
+  - java_tracer
+  - python_tracer
+  - dotnet_tracer
+
 .base_job_onboarding:
   only:
       - web
@@ -47,6 +53,7 @@ variables:
     
 onboarding_nodejs:
   extends: .base_job_onboarding
+  stage: nodejs_tracer
   only:
     - schedules
   variables:
@@ -65,6 +72,7 @@ onboarding_nodejs:
       
 onboarding_java:
   extends: .base_job_onboarding
+  stage: java_tracer
   only:
     - schedules
   variables:
@@ -86,6 +94,7 @@ onboarding_java:
       - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 onboarding_python:
   extends: .base_job_onboarding
+  stage: python_tracer
   only:
     - schedules
   variables:
@@ -104,6 +113,7 @@ onboarding_python:
 
 onboarding_dotnet:
   extends: .base_job_onboarding
+  stage: dotnet_tracer
   only:
     - schedules
   variables:
