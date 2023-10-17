@@ -1,17 +1,20 @@
-import pytest
+import os
 
-from utils import scenarios
+from utils import scenarios, context, bug, irrelevant
 from utils.tools import logger
+
 from utils.onboarding.weblog_interface import make_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
 class _OnboardingInstallBaseTest:
-    @pytest.mark.skipif(
-        "config.getoption('--obd-uninstall')==True",
-        reason="Test traces for dd intrumented application (Only if dd software is installed)",
-    )
+    #@pytest.mark.skipif(
+    #    "config.getoption('--obd-uninstall')==True",
+    #    reason="Test traces for dd intrumented application (Only if dd software is installed)",
+    #)
+   # @irrelevant("config.getoption('--obd-uninstall') == True")
+    @irrelevant(not os.getenv('ONBOARDING_UNINSTALL'))
     def test_for_traces(self, onboardig_vm):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
             After starting application we can see application HTTP requests traces in the backend.
@@ -26,10 +29,11 @@ class _OnboardingInstallBaseTest:
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{onboardig_vm.ip}]")
         wait_backend_trace_id(request_uuid, 60.0)
 
-    @pytest.mark.skipif(
-        "config.getoption('--obd-uninstall') != True",
-        reason="It would only be executed in case we have uninstalled the DD Software.",
-    )
+    #@pytest.mark.skipif(
+    #    "config.getoption('--obd-uninstall') != True",
+    #    reason="It would only be executed in case we have uninstalled the DD Software.",
+    #)
+    @irrelevant(os.getenv('ONBOARDING_UNINSTALL') is True)
     def test_no_traces_after_uninstall(self, onboardig_vm):
         logger.info(f"Launching uninstallation test for : [{onboardig_vm.ip}]")
         logger.info(f"Waiting for weblog available [{onboardig_vm.ip}]")
@@ -48,7 +52,9 @@ class _OnboardingInstallBaseTest:
 
 @scenarios.onboarding_container
 class TestOnboardingInstallContainer(_OnboardingInstallBaseTest):
-    pass
+    @bug(context.library=="python" and os.getenv('ONBOARDING_UNINSTALL') is True, reason="AIT-8581")
+    def test_no_traces_after_uninstall(self, onboardig_vm):
+        super().test_no_traces_after_uninstall(onboardig_vm)
 
 
 @scenarios.onboarding_host_container
@@ -73,4 +79,6 @@ class TestOnboardingInstallHostContainerAutoInstall(_OnboardingInstallBaseTest):
 
 @scenarios.onboarding_container_auto_install
 class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
-    pass
+    @bug(context.library=="python" and os.getenv('ONBOARDING_UNINSTALL') is True, reason="AIT-8581")
+    def test_no_traces_after_uninstall(self, onboardig_vm):
+        super().test_no_traces_after_uninstall(onboardig_vm)
