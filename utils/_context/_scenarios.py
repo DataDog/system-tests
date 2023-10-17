@@ -740,13 +740,7 @@ class OnBoardingScenario(_Scenario):
         self._weblog = option.obd_weblog
         self.provision_vms = list(
             ProvisionMatrix(
-                ProvisionFilter(
-                    self.name,
-                    language=self._library.library,
-                    env=self._env,
-                    weblog=self._weblog
-                  #  uninstall=option.obd_uninstall,
-                )
+                ProvisionFilter(self.name, language=self._library.library, env=self._env, weblog=self._weblog)
             ).get_infrastructure_provision()
         )
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
