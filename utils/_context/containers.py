@@ -314,6 +314,7 @@ class AgentContainer(TestedContainer):
             "DD_SITE": self.dd_site,
             "DD_APM_RECEIVER_PORT": self.agent_port,
             "DD_DOGSTATSD_PORT": "8125",
+            "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
         }
 
         if use_proxy:
@@ -343,10 +344,16 @@ class AgentContainer(TestedContainer):
 
         self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-        agent_version = self.image.env.get("SYSTEM_TESTS_AGENT_VERSION")
+        logger.debug("Get agent version from agent container")
+
+        agent_version = self._container = _get_client().containers.run(
+            image=self.image.name, auto_remove=True, command="/opt/datadog-agent/bin/agent/agent version"
+        )
+
+        logger.info(f"Agent version is {agent_version}")
 
         if agent_version:
-            self.agent_version = Version(agent_version, "agent")
+            self.agent_version = Version(agent_version.decode("ascii"), "agent")
 
     @property
     def dd_site(self):
