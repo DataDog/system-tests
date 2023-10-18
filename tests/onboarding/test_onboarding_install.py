@@ -9,7 +9,6 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
 class _OnboardingInstallBaseTest:
-    @irrelevant(os.getenv("ONBOARDING_UNINSTALL", "False").lower() == "true")
     def test_for_traces(self, onboardig_vm):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
             After starting application we can see application HTTP requests traces in the backend.
@@ -24,7 +23,8 @@ class _OnboardingInstallBaseTest:
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{onboardig_vm.ip}]")
         wait_backend_trace_id(request_uuid, 60.0)
 
-    @irrelevant(os.getenv("ONBOARDING_UNINSTALL", "False").lower() == "false")
+
+class _OnboardingUninstallBaseTest:
     def test_no_traces_after_uninstall(self, onboardig_vm):
         logger.info(f"Launching uninstallation test for : [{onboardig_vm.ip}]")
         logger.info(f"Waiting for weblog available [{onboardig_vm.ip}]")
@@ -43,16 +43,6 @@ class _OnboardingInstallBaseTest:
 
 @scenarios.onboarding_container
 class TestOnboardingInstallContainer(_OnboardingInstallBaseTest):
-    @irrelevant(os.getenv("ONBOARDING_UNINSTALL", "False").lower() == "false")
-    @bug(
-        context.library == "python" and os.getenv("ONBOARDING_UNINSTALL", "False").lower() == "true", reason="AIT-8581"
-    )
-    def test_no_traces_after_uninstall(self, onboardig_vm):
-        super().test_no_traces_after_uninstall(onboardig_vm)
-
-
-@scenarios.onboarding_host_container
-class TestOnboardingInstallHostContainer(_OnboardingInstallBaseTest):
     pass
 
 
@@ -66,16 +56,35 @@ class TestOnboardingInstallHostAutoInstall(_OnboardingInstallBaseTest):
     pass
 
 
-@scenarios.onboarding_host_container_auto_install
-class TestOnboardingInstallHostContainerAutoInstall(_OnboardingInstallBaseTest):
+@scenarios.onboarding_container_auto_install
+class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
     pass
 
 
-@scenarios.onboarding_container_auto_install
-class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
-    @irrelevant(os.getenv("ONBOARDING_UNINSTALL", "False").lower() == "false")
-    @bug(
-        context.library == "python" and os.getenv("ONBOARDING_UNINSTALL", "False").lower() == "true", reason="AIT-8581"
-    )
+#########################
+# Uninstall scenarios
+#########################
+
+
+@scenarios.onboarding_container_uninstall
+class TestOnboardingUninstallContainer(_OnboardingUninstallBaseTest):
+    @bug(context.library == "python", reason="AIT-8581")
+    def test_no_traces_after_uninstall(self, onboardig_vm):
+        super().test_no_traces_after_uninstall(onboardig_vm)
+
+
+@scenarios.onboarding_host_uninstall
+class TestOnboardingUninstallHost(_OnboardingUninstallBaseTest):
+    pass
+
+
+@scenarios.onboarding_host_auto_install_uninstall
+class TestOnboardingUninstallHostAutoInstall(_OnboardingUninstallBaseTest):
+    pass
+
+
+@scenarios.onboarding_container_auto_install_uninstall
+class TestOnboardingUninstallContainerAutoInstall(_OnboardingUninstallBaseTest):
+    @bug(context.library == "python", reason="AIT-8581")
     def test_no_traces_after_uninstall(self, onboardig_vm):
         super().test_no_traces_after_uninstall(onboardig_vm)

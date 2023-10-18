@@ -42,8 +42,6 @@ class TestedVirtualMachine:
         self.components = None
         # Uninstall process after install all software requirements
         self.uninstall = uninstall
-        if uninstall:
-            self.name = self.name + "_uninstall"
 
     def configure(self):
         self.datadog_config = DataDogConfig()

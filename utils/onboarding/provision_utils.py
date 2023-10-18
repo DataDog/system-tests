@@ -31,7 +31,7 @@ class ProvisionMatrix:
                             installation_check_data = self.provision_parser.ec2_installation_checks_data()
                             autoinjection_uninstall = None
                             weblog_uninstall = None
-                            if self.provision_filter.uninstall:
+                            if self.provision_parser.is_uninstall:
                                 autoinjection_uninstall = self.provision_parser.ec2_autoinjection_uninstall_data()
                                 weblog_uninstall = self.provision_parser.ec2_weblog_uninstall_data(
                                     weblog_instalations["name"]
@@ -51,7 +51,7 @@ class ProvisionMatrix:
                                 prepare_docker_install,
                                 installation_check_data,
                                 self.provision_filter.provision_scenario.lower(),
-                                self.provision_filter.uninstall,
+                                self.provision_parser.is_uninstall,
                             )
 
 
@@ -60,7 +60,12 @@ class ProvisionParser:
         self.provision_filter = provision_filter
         # If the scenario name has suffix "AUTO_INSTALL" the parser behaviour will change
         self.auto_install_suffix = "_AUTO_INSTALL"
-        self.is_auto_install = provision_filter.provision_scenario.endswith(self.auto_install_suffix)
+        # If the scenario name has suffix "UNINSTALL" the parser behaviour will change
+        self.uninstall_suffix = "_UNINSTALL"
+        self.is_auto_install = provision_filter.provision_scenario.endswith(
+            self.auto_install_suffix
+        ) or provision_filter.provision_scenario.endswith(self.auto_install_suffix + self.uninstall_suffix)
+        self.is_uninstall = provision_filter.provision_scenario.endswith(self.uninstall_suffix)
         self.config_data = self._load_provision()
 
     def ec2_instances_data(self):
@@ -274,9 +279,11 @@ class ProvisionParser:
 
         # Open the file associated with the scenario name.
         # Remember that we remove the suffix "AUTO_INSTALLL", we use the same provision
+        # Remember that we remove the suffix "UNINSTALL", we use the same provision
+        provision_file_name = self.provision_filter.provision_scenario.removesuffix(self.uninstall_suffix)
         provision_file = (
             "tests/onboarding/infra_provision/provision_"
-            + self.provision_filter.provision_scenario.removesuffix(self.auto_install_suffix).lower()
+            + provision_file_name.removesuffix(self.auto_install_suffix).lower()
             + ".yml"
         )
         with open(provision_file, encoding="utf-8") as f:
@@ -285,10 +292,9 @@ class ProvisionParser:
 
 
 class ProvisionFilter:
-    def __init__(self, provision_scenario, language=None, env=None, os_distro=None, weblog=None, uninstall=None):
+    def __init__(self, provision_scenario, language=None, env=None, os_distro=None, weblog=None):
         self.provision_scenario = provision_scenario
         self.language = language
         self.env = env
         self.os_distro = os.getenv("ONBOARDING_FILTER_OS_DISTRO")
         self.weblog = weblog
-        self.uninstall = os.getenv("ONBOARDING_UNINSTALL", "False").lower() == "true"
