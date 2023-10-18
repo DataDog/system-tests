@@ -353,16 +353,25 @@ class AgentContainer(TestedContainer):
 
         self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-        logger.debug("Get agent version from agent container")
+        if not replay:
+            logger.debug("Get agent version from agent container")
 
-        agent_version = self._container = _get_client().containers.run(
-            image=self.image.name, auto_remove=True, command="/opt/datadog-agent/bin/agent/agent version"
-        )
+            agent_version = self._container = _get_client().containers.run(
+                image=self.image.name, auto_remove=True, command="/opt/datadog-agent/bin/agent/agent version"
+            )
+
+            agent_version = agent_version.decode("ascii")
+
+            with open(f"{self.host_log_folder}/agent_version", mode="w", encoding="utf-8") as f:
+                f.write(agent_version)
+        else:
+            with open(f"{self.host_log_folder}/agent_version", mode="r", encoding="utf-8") as f:
+                agent_version = f.read()
 
         logger.info(f"Agent version is {agent_version}")
 
         if agent_version:
-            self.agent_version = Version(agent_version.decode("ascii"), "agent")
+            self.agent_version = Version(agent_version, "agent")
 
     @property
     def dd_site(self):
