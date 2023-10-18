@@ -484,7 +484,7 @@ class Test_Telemetry:
                         raise Exception(
                             "Client Configuration information is not accurately reported, "
                             + cnf
-                            + "is not present in configuration on app-started event"
+                            + " is not present in configuration on app-started event"
                         )
 
         self.validate_library_telemetry_data(validator)
@@ -531,6 +531,7 @@ class Test_TelemetryV2:
     @missing_feature(library="golang", reason="Product started missing")
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
+    @missing_feature(library="python", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
@@ -538,7 +539,7 @@ class Test_TelemetryV2:
             if not is_v2_payload(data):
                 continue
             if get_request_type(data) == "app-started":
-                products = data["request"]["content"]["application"]["products"]
+                products = data["request"]["content"]["payload"]["products"]
                 assert (
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
