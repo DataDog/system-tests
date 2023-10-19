@@ -1243,10 +1243,7 @@ class scenarios:
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
-    # library_conf_custom_header_tags = EndToEndScenario(
-    #         "LIBRARY_CONF_CUSTOM_HEADER_TAGS", 
-    #         additional_trace_header_tags=(Header_Tags.values()), doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS"
-    # )
+    
     library_conf_custom_header_tags = EndToEndScenario(
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS", 
             additional_trace_header_tags=(All_Configs()), doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS"
