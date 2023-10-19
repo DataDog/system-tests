@@ -35,7 +35,7 @@ class Test_HeaderTags_Short:
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
 class Test_HeaderTags_Long:
-    """Validates that tracer uses `<header>:<tag_name>` format correctly tags spans"""
+    """Validates that input in `<header>:<tag_name>` format correctly tags spans"""
 
     def setup_trace_header_tags(self):
         self.name = self.__class__.__name__ #Test_HeaderTags_Long
@@ -84,7 +84,8 @@ class Test_HeaderTags_Whitespace_Tag:
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
 class Test_HeaderTags_Whitespace_Val_Short:
-    """Validates that whitespaces in header values are not removed in the span tag value, using short form Input"""
+    """Validates that between-char whitespaces in header values are not removed,
+    but leading/trailing whitespace is stripped, using short form input"""
 
     def setup_trace_header_tags(self):
         self.name = self.__class__.__name__ #Test_HeaderTags_Whitespace_Val_Short
@@ -99,7 +100,8 @@ class Test_HeaderTags_Whitespace_Val_Short:
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
 class Test_HeaderTags_Whitespace_Val_Long:
-    """Validates that whitespaces in header values are not removed in the span tag value, using long form Input"""
+    """Validates that between-char whitespaces in header values are not removed,
+    but leading/trailing whitespace is stripped, using long form input"""
 
     def setup_trace_header_tags(self):
         self.name = self.__class__.__name__ #Test_HeaderTags_Whitespace_Val_Long
