@@ -9,13 +9,17 @@ from pytest_jsonreport.plugin import JSONReport
 from manifests.parser.core import load as load_manifests
 from utils import context
 from utils._context._scenarios import scenarios
-from utils.tools import logger
+from utils.tools import logger, TestClassesProperties
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
 from utils._decorators import released
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
+
+# used to store test class properties, for replay mode, and re-attach weblog requests' logs
+# made on setups to each test item
+class_properties = TestClassesProperties()
 
 
 def _JSON_REPORT_FILE():
@@ -244,10 +248,11 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session):
-    from utils import weblog
-
     if session.config.option.collectonly:
         return
+
+    if session.config.option.replay:
+        class_properties.load(context.scenario.host_log_folder)
 
     last_file = ""
     for item in session.items:
@@ -258,9 +263,14 @@ def pytest_collection_finish(session):
         if not item.instance:  # item is a method bounded to a class
             continue
 
+        # on replay mode, we do not executethe setup, but rather take the properties
+        # serialized in class_properties
+        if session.config.option.replay:
+            class_properties.deserialize_test_class(item)
+            continue
+
         # the test metohd name is like test_xxxx
         # we replace the test_ by setup_, and call it if it exists
-
         setup_method_name = f"setup_{item.name[5:]}"
 
         if not hasattr(item.instance, setup_method_name):
@@ -275,10 +285,9 @@ def pytest_collection_finish(session):
 
         setup_method = getattr(item.instance, setup_method_name)
         logger.debug(f"Call {setup_method} for {item}")
+
         try:
-            weblog.current_nodeid = item.nodeid
             setup_method()
-            weblog.current_nodeid = None
         except Exception:
             logger.exception("Unexpected failure during setup method call")
             logger.terminal.write("x", bold=True, red=True)
@@ -286,8 +295,12 @@ def pytest_collection_finish(session):
             raise
         else:
             logger.terminal.write(".", bold=True, green=True)
-        finally:
-            weblog.current_nodeid = None
+
+        if not session.config.option.replay:
+            class_properties.serialize_test_class(item)
+
+    if not session.config.option.replay:
+        class_properties.save(context.scenario.host_log_folder)
 
     logger.terminal.write("\n\n")
 
@@ -295,15 +308,7 @@ def pytest_collection_finish(session):
 
 
 def pytest_runtest_call(item):
-    from utils import weblog
-
-    if item.nodeid in weblog.responses:
-        for response in weblog.responses[item.nodeid]:
-            request = response["request"]
-            if "method" in request:
-                logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
-            else:
-                logger.info("weblog GRPC request")
+    class_properties.log_nested_requests(item)
 
 
 @pytest.hookimpl(optionalhook=True)

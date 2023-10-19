@@ -2,10 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import inspect
 import logging
+import json
 import os
 import re
 import sys
+
+from requests.structures import CaseInsensitiveDict
 
 
 class bcolors:
@@ -182,3 +186,161 @@ def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
         return False
 
     raise TypeError(f"Can't handle type {type(heystack)}")
+
+
+# some GRPC request wrapper to fit into validator model
+class GrpcRequest:
+    def __init__(self, data):
+        # self.content = request
+        # fake the HTTP header model
+        self.headers = {"user-agent": f"rid/{data['rid']}"}
+
+
+class GrpcResponse:
+    def __init__(self, data):
+        self.request = GrpcRequest(data["request"])
+        self.response = data["response"]
+
+        self.underlying_data = data
+
+
+class HttpRequest:
+    def __init__(self, data):
+        self.headers = CaseInsensitiveDict(data.get("headers", {}))
+        self.method = data["method"]
+        self.url = data["url"]
+
+    def __repr__(self) -> str:
+        return f"HttpRequest(method:{self.method}, url:{self.url}, headers:{self.headers})"
+
+
+class HttpResponse:
+    def __init__(self, data):
+        self.request = HttpRequest(data["request"])
+        self.status_code = data["status_code"]
+        self.headers = CaseInsensitiveDict(data.get("headers", {}))
+        self.text = data["text"]
+
+        self.underlying_data = data
+
+
+class TestClassesProperties(dict):
+    """ The purpose of this class is to serialize/deserialize test classes properties """
+
+    class _UnsupportedType(Exception):
+        """ Private exception for properties that can't and won't be serilized by TestClassProperties """
+
+    def serialize_test_class(self, item):
+        result = {}
+
+        for name in dir(item.instance):
+            if name.startswith("_"):
+                continue
+
+            try:
+                result[name] = self._serialize(inspect.getattr_static(item.instance, name))
+            except TestClassesProperties._UnsupportedType:
+                ...
+
+        if len(result) != 0:
+            self[item.nodeid] = result
+
+    def deserialize_test_class(self, item):
+        if item.nodeid not in self:
+            return
+
+        for name, value in self[item.nodeid].items():
+            setattr(item.instance, name, value)
+
+    def log_nested_requests(self, item):
+        # add a log entry for every weblog requests made by test item.
+        # As pytest does not understand that logs made on setup phases should be reported
+        # We need to put ourself this entry
+
+        def log_request(value):
+            if isinstance(value, dict):
+                if "__class__name__" not in value:
+                    log_request(list(value.values()))
+                    return
+
+                class_name = value["__class__name__"]
+
+                if class_name == "HttpResponse":
+                    request = value["request"]
+                    logger.info(f"weblog {request['method']} {request['url']} -> {value['status_code']}")
+
+                if class_name == "GrpcResponse":
+                    logger.info("weblog GRPC request")
+
+                return
+
+            if isinstance(value, list):
+                for sub_value in value:
+                    log_request(sub_value)
+
+        if item.nodeid not in self:
+            return
+
+        log_request(self[item.nodeid])
+
+    @classmethod
+    def _deserialize(cls, value):
+        if isinstance(value, (int, str, bool)):
+            return value
+
+        if isinstance(value, (list, tuple)):
+            return [cls._deserialize(item) for item in value]
+
+        if isinstance(value, dict):
+            if "__class__name__" in value:
+                class_name = value["__class__name__"]
+                if class_name == "HttpResponse":
+                    return HttpResponse(value)
+
+                if class_name == "GrpcResponse":
+                    return GrpcResponse(value)
+
+                raise TypeError(f"I don't know how to deserialize {class_name}")
+
+            return {key: cls._deserialize(sub_value) for key, sub_value in value.items()}
+
+        if value is None:
+            return None
+
+    @classmethod
+    def _serialize(cls, value):
+
+        if isinstance(value, (int, str, bool)):
+            return value
+
+        if isinstance(value, (list, tuple)):
+            return [cls._serialize(item) for item in value]
+
+        if isinstance(value, dict):
+            return {key: cls._serialize(sub_value) for key, sub_value in value.items()}
+
+        if hasattr(value, "underlying_data"):
+            return value.underlying_data | {"__class__name__": value.__class__.__name__}
+
+        if value is None:
+            return None
+
+        raise TestClassesProperties._UnsupportedType()
+
+    def save(self, host_log_folder):
+        class ResponseEncoder(json.JSONEncoder):
+            def default(self, o):  # pylint: disable=redefined-outer-name
+                if isinstance(o, CaseInsensitiveDict):
+                    return dict(o.items())
+                # Let the base class default method raise the TypeError
+                return json.JSONEncoder.default(self, o)
+
+        with open(f"{host_log_folder}/test_classes_properties.json", mode="w", encoding="utf-8") as f:
+            json.dump({**self}, f, indent=2, cls=ResponseEncoder)
+
+    def load(self, host_log_folder):
+        with open(f"{host_log_folder}/test_classes_properties.json", mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        for k, v in data.items():
+            self[k] = self._deserialize(v)
