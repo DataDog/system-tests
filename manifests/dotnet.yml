@@ -18,7 +18,7 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
-        test_hsts_missing_header.py: 
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
@@ -46,11 +46,11 @@ tests/:
           TestWeakCipher: missing_feature
         test_weak_hash.py:
           TestWeakHash:
-              '*': v2.24.0
+            '*': v2.24.0
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -211,17 +211,16 @@ tests/:
     Test_Propagate_Legacy: v2.26.0
   test_library_conf.py:
     Test_HeaderTags: v2.27.0
-    Test_HeaderTagsLongFormat: v2.1.0
-    Test_HeaderTagsShortFormat: v2.1.0
-<<<<<<< HEAD
-    Test_HeaderTagsWhitespacing_Headers: v2.1.0
-    Test_HeaderTagsWhitespacing_Tags: missing_feature # Should I mark missing_feature if it's a bug?
-    Test_HeaderTagsWhitespacing_Vals: v2.1.0
-    Test_HeaderTagsColon_Edge: v2.1.0
-=======
+    Test_HeaderTags_Long: v2.1.0
+    Test_HeaderTags_Short: v2.1.0
+    Test_HeaderTags_Whitespace_Header: v2.1.0
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-8308)
+    Test_HeaderTags_Whitespace_Val_Short: v2.1.0
+    Test_HeaderTags_Whitespace_Val_Long: v2.1.0
+    Test_HeaderTags_Colon_Leading: v2.1.0
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8600)
   test_profiling.py:
     Test_Profile: missing_feature (Not receiving profiles)
->>>>>>> main
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0

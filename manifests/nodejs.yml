@@ -256,12 +256,14 @@ tests/:
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
     Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: missing_feature
-    Test_HeaderTagsWhitespacing_Headers: missing_feature
-    Test_HeaderTagsWhitespacing_Tags: missing_feature
-    Test_HeaderTagsWhitespacing_Vals: missing_feature
-    Test_HeaderTagsColon_Edge: missing_feature
+    Test_HeaderTags_Long: missing_feature
+    Test_HeaderTags_Short: missing_feature
+    Test_HeaderTags_Whitespace_Header: missing_feature
+    Test_HeaderTags_Whitespace_Tag: missing_feature
+    Test_HeaderTags_Whitespace_Val_Short: missing_feature
+    Test_HeaderTags_Whitespace_Val_Long: missing_feature
+    Test_HeaderTags_Colon_Leading: missing_feature
+    Test_HeaderTags_Colon_Trailing: missing_feature
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:

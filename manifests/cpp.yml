@@ -25,7 +25,7 @@ tests/:
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
         test_weak_hash.py: irrelevant (ASM is not implemented in C++)
         test_weak_randomness.py: irrelevant (ASM is not implemented in C++)
-        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)       
+        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)
         test_xpath_injection.py: irrelevant (ASM is not implemented in C++)
         test_xss.py: irrelevant (ASM is not implemented in C++)
       source/:
@@ -73,7 +73,7 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
-    test_db_integrations_sql.py: 
+    test_db_integrations_sql.py:
       Test_Agent_Mssql_db_integration: missing_feature
       Test_Agent_Mysql_db_integration: missing_feature
       Test_Agent_Postgres_db_integration: missing_feature
@@ -105,7 +105,7 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant
-  test_library_conf.py: irrelevant
+  test_library_conf.py: irrelevant # Is this enough, or do I need to list every sub-test with `irrelevant`?
   test_miscs.py: irrelevant
   test_profiling.py:
     Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)

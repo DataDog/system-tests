@@ -10,14 +10,7 @@ from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
-from utils.interfaces._library.appsec_iast import _AppSecIastValidator
-from utils.interfaces._library.appsec_iast import _AppSecIastSourceValidator
 from utils.interfaces._library.miscs import _SpanTagValidator, _NotSpanTagValidator
-from utils.interfaces._library.sampling import (
-    _TracesSamplingDecisionValidator,
-    _AddSamplingDecisionValidator,
-    _DistributedTracesDeterministicSamplingDecisisonValidator,
-)
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,

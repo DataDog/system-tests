@@ -3,11 +3,11 @@ tests/:
     test_otel.py:
       Test_Otel_Span:
         '*': missing_feature (/e2e_otel_span endpoint is only implemented in Java Spring Boot at the moment)
-        spring-boot:  v0.1 # real version not known
+        spring-boot: v0.1 # real version not known
     test_single_span.py:
       Test_SingleSpan:
         '*': missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
-        spring-boot:  v0.1 # real version not known
+        spring-boot: v0.1 # real version not known
   appsec/:
     api_security/:
       test_schemas.py:
@@ -67,7 +67,7 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature            
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': v1.1.0
@@ -126,12 +126,12 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
-            "*": "missing_feature"
-            sping-boot-undertow: "bug (APPSEC-11353)"
-            spring-boot: "bug (APPSEC-11353)"
-            spring-boot-jetty: "bug (APPSEC-11353)"
-            spring-boot-wildfly: "bug (APPSEC-11353)"
-            uds-spring-boot: "bug (APPSEC-11353)"
+            '*': 'missing_feature'
+            sping-boot-undertow: 'bug (APPSEC-11353)'
+            spring-boot: 'bug (APPSEC-11353)'
+            spring-boot-jetty: 'bug (APPSEC-11353)'
+            spring-boot-wildfly: 'bug (APPSEC-11353)'
+            uds-spring-boot: 'bug (APPSEC-11353)'
         test_xpath_injection.py:
           TestXPathInjection:
             '*': v1.18.0
@@ -447,7 +447,7 @@ tests/:
         jersey-grizzly2: v1.7.0
         ratpack: v1.6.0
         resteasy-netty3: v1.7.0
-        spring-boot: v0.111.0  # initially v0.110.0, but was bugged
+        spring-boot: v0.111.0 # initially v0.110.0, but was bugged
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0
@@ -649,7 +649,7 @@ tests/:
       Test_AttackTimestamp:
         akka-http: missing_feature (No AppSec support)
         spring-boot-payara: missing_feature (No AppSec support)
-      Test_ExtraTagsFromRule: v1.22.0    # Supported since v1.22.0
+      Test_ExtraTagsFromRule: v1.22.0 # Supported since v1.22.0
       Test_HttpClientIP:
         '*': v0.98.1
         akka-http: missing_feature (No AppSec support)
@@ -727,20 +727,20 @@ tests/:
     test_debugger.py:
       Test_Debugger_Line_Probe_Snaphots:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot: v0.1 # real version not known
+        uds-spring-boot: v0.1 # real version not known
       Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot: v0.1 # real version not known
+        uds-spring-boot: v0.1 # real version not known
       Test_Debugger_Mix_Log_Probe:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot: v0.1 # real version not known
+        uds-spring-boot: v0.1 # real version not known
       Test_Debugger_Probe_Statuses:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot: v0.1 # real version not known
+        uds-spring-boot: v0.1 # real version not known
   integrations/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
@@ -818,12 +818,13 @@ tests/:
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
     Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: v0.102.0
-    Test_HeaderTagsShortFormat: v0.102.0
-    Test_HeaderTagsWhitespacing_Headers: v0.102.0
-    Test_HeaderTagsWhitespacing_Tags: v0.102.0
-    Test_HeaderTagsWhitespacing_Vals: v0.102.0
-    Test_HeaderTagsColon_Edge: v0.102.0
+    Test_HeaderTags_Long: v0.102.0
+    Test_HeaderTags_Short: v0.102.0
+    Test_HeaderTags_Whitespace_Header: v0.102.0
+    Test_HeaderTags_Whitespace_Tag: v0.102.0
+    Test_HeaderTags_Whitespace_Val_Short: v0.102.0
+    Test_HeaderTags_Colon_Leading: v0.102.0
+    Test_HeaderTags_Colon_Trailing: v0.102.0
   test_profiling.py:
     Test_Profile:
       akka-http: missing_feature (Endpoint not implemented)
@@ -868,4 +869,3 @@ tests/:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetryV2: missing_feature
-    
