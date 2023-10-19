@@ -101,6 +101,7 @@ def remote_install(
             depends_on=[quee_depends_on.pop()]
         ),  # Here the quee should contain only one element
     )
+
     if logger_name:
         cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, logger_name).info(outputlog))
     else:
