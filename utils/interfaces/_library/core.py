@@ -298,7 +298,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         if not success:
             raise ValueError("Can't find anything to validate this test")
-        
+
     def add_not_span_tag_validation(self, request=None, nottags=None):
         validator = _NotSpanTagValidator(nottags=nottags)
         success = False
