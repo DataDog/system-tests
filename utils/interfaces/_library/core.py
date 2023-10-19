@@ -11,7 +11,6 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator, _NotSpanTagValidator
-from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,

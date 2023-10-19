@@ -45,6 +45,6 @@ class _NotSpanTagValidator:
     def __call__(self, span):
         for tagKey in self.nottags:
             if tagKey in span["meta"]:
-                raise Exception(f"{tagKey} tag found in span's meta")
+                raise ValueError(f"{tagKey} tag found in span's meta")
 
         return True
