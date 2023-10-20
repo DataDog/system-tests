@@ -60,29 +60,33 @@ namespace weblog
             return Content(result.ToString());
         }
         
-        [HttpGet("parameter/test")]
+        [HttpPost("source/parameter/test")]
+        public IActionResult parameterTestPost([FromForm] string user)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(user);
+                
+                return Content("Ok");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+
+        [HttpGet("source/parameter/test")]
         public IActionResult parameterTest(string table)
         {
             try
             {
-                using var conn = new SqlConnection(Constants.SqlConnectionString);
-                string result = string.Empty;
-                conn.Open();
-
-                var query = "SELECT * FROM dbo." + table;
-                using var cmd = new SqlCommand(query, conn);
-                using var reader = cmd.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    result += reader["Value"]?.ToString();
-                }
+                System.Diagnostics.Process.Start(table);
                 
-                return Content(result);
+                return Content("Ok");
             }
-            catch
+            catch(Exception ex)
             {
-                return StatusCode(500, "Error in SQL.");
+                return StatusCode(500, "NotOk");
             }
         }
     }
