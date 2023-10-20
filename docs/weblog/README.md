@@ -254,7 +254,7 @@ This endpoint accept a mandatory parameter `url`. It'll make a call to these url
 
 ### GET /dbm
 
-This endpoint executes database queries for DBM supported libraries. A 200 response is returned if the query
+This endpoint executes database queries for [DBM supported libraries](https://docs.datadoghq.com/database_monitoring/guide/connect_dbm_and_apm/?tab=go#before-you-begin). A 200 response is returned if the query
 is executed successfully.
 
 Expected query params:
@@ -265,10 +265,14 @@ Expected query params:
 
 
 Supported Libraries:
-  - pyscopg (Python PostgreSQL adapter)
-  - npgsql (ADO.NET Data Provider for PostgreSQL)
-  - mysql (ADO.NET driver for MySQL)
-  - sqlclient (Microsoft Data Provider for SQLServer & Azure SQL Database)
+  - Python:
+    - [pyscopg](https://www.psycopg.org/docs/index.html) (Python PostgreSQL adapter)
+  - .NET:
+    - [npgsql](https://www.nuget.org/packages/npgsql) (ADO.NET Data Provider for PostgreSQL)
+    - [mysql](https://www.nuget.org/packages/MySql.Data) (ADO.NET driver for MySQL)
+  - PHP:
+    - [pdo](https://www.php.net/manual/en/book.pdo.php) (Data Objects for accessing multiple databases)
+    - [mysqli](https://www.php.net/manual/en/book.mysqli.php) (Extension that interacts with MySQL)
 
 ### GET /dsm
 

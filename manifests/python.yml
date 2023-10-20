@@ -74,9 +74,9 @@ tests/:
             python3.12: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
-            django-poc: v1.12.0
+            django-poc: v1.18.0
             fastapi: missing_feature
-            flask-poc: v1.12.0
+            flask-poc: v1.18.0
             pylons: missing_feature
             python3.12: missing_feature
         test_ssrf.py:
@@ -92,12 +92,12 @@ tests/:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
           TestWeakCipher:
-            '*': v1.7.0
+            '*': v1.18.0
             fastapi: missing_feature
             python3.12: missing_feature
         test_weak_hash.py:
           TestWeakHash:
-            '*': v1.6.0
+            '*': v1.18.0
             fastapi: missing_feature
             python3.12: missing_feature
         test_weak_randomness.py:
@@ -431,7 +431,9 @@ tests/:
         flask-poc: v0.1 # real version not known
     test_dsm.py:
       Test_DsmHttp: missing_feature
-      Test_DsmKafka: missing_feature
+      Test_DsmKafka:
+        '*': missing_feature
+        flask-poc: v1.20.3
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
@@ -490,5 +492,5 @@ tests/:
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
-    Test_Telemetry: v1.7.0
+    Test_Telemetry: v1.16.0
     Test_TelemetryV2: v1.17.3
