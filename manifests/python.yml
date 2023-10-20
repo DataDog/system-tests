@@ -74,9 +74,9 @@ tests/:
             python3.12: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
-            django-poc: v1.12.0
+            django-poc: v1.18.0
             fastapi: missing_feature
-            flask-poc: v1.12.0
+            flask-poc: v1.18.0
             pylons: missing_feature
             python3.12: missing_feature
         test_ssrf.py:
