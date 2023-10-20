@@ -140,7 +140,7 @@ class Test_StandardTagsUrl:
 
     def setup_multiple_matching_substring(self):
         self.request_multiple_matching_substring = weblog.get(
-            "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D"  # pylint: disable=line-too-long
+            "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D&ecdsa-1-1%20aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=%09test"  # pylint: disable=line-too-long
         )
 
     @missing_feature(
@@ -152,7 +152,7 @@ class Test_StandardTagsUrl:
     # remove = of <= when PR https://github.com/DataDog/dd-trace-dotnet/pull/4504 is merged
     @irrelevant(context.library <= "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
     def test_multiple_matching_substring(self):
-        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
+        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20<redacted>%7D&<redacted>$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
             self.request_multiple_matching_substring, tags={"http.url": tag}, value_as_regular_expression=True
         )
