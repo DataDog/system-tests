@@ -6,6 +6,8 @@ import subprocess
 
 import django
 import requests
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
@@ -21,6 +23,7 @@ from iast import (
 
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.settings import _config as config
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -28,6 +31,9 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
+
+# user = User.objects.create_user('test', password='1234')
+# user.save()
 
 
 def hello_world(request):
@@ -409,6 +415,34 @@ def create_extra_service(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def login_endpoint(request):
+    sdk_event = request.GET.get("sdk_event", "")
+    sdk_user = request.GET.get("sdk_user", "")
+    sdk_user_exists = request.GET.get("sdk_user_exists", "false").lower() == "true"
+
+    if sdk_event:
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user)
+            return HttpResponse("OK")
+
+        appsec_trace_utils.track_user_login_failure_event(tracer, user_id=sdk_user, exists=sdk_user_exists)
+        return HttpResponse("Unauthorized from SDK", status=401)
+
+    if request.method == "GET":
+        return HttpResponse("Basic Auth not supported on Django by default")
+    elif request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return HttpResponse("OK")
+
+    return HttpResponse("Unauthorized, method: %s" % str(request.method), status=401)
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -458,4 +492,5 @@ urlpatterns = [
     path("user_login_failure_event", track_user_login_failure_event),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
+    path("login", login_endpoint),
 ]

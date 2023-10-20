@@ -51,6 +51,7 @@ class Test_Login_Events:
         )
 
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @missing_feature(context.library == "python", reason="APM is storing the user.ID anyway")
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -64,6 +65,7 @@ class Test_Login_Events:
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
@@ -92,6 +94,7 @@ class Test_Login_Events:
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
@@ -127,6 +130,7 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -152,8 +156,8 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library not in ["nodejs", "python"]:
+                # Currently in nodejs and Python there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
@@ -168,6 +172,7 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -206,6 +211,7 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -240,6 +246,7 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -288,7 +295,7 @@ class Test_Login_Events_Extended:
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "social-security-id"
 
-            if context.library == "dotnet":
+            if context.library in ("dotnet", "python"):
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
                 assert meta["usr.email"] == "testuser@ddog.com"
@@ -311,6 +318,7 @@ class Test_Login_Events_Extended:
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
@@ -320,7 +328,7 @@ class Test_Login_Events_Extended:
             assert meta["usr.id"] == "social-security-id"
             assert meta["usr.email"] == "testuser@ddog.com"
 
-            if context.library == "dotnet":
+            if context.library in ("dotnet", "python"):
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
                 assert meta["usr.name"] == "test"
@@ -342,9 +350,9 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
-                # this assertion is disabled for this library.
+            if context.library not in ("nodejs", "python"):
+                # Currently in nodejs and python there is no way to check if the user exists upon authentication
+                # failure so this assertion is disabled for these libraries.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
@@ -368,6 +376,7 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -401,15 +410,20 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library == "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library not in ("nodejs", "python"):
+                # Currently in nodejs or python there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
             else:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
-                assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
-                assert meta["appsec.events.users.login.failure.username"] == "test"
+                if context.library != "python":
+                    # Python does not provide if the user exists or other info on failed logins other than
+                    # the username used to authenticate (stored as usr.id)
+                    assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                    assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+                    assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
+                    assert meta["appsec.events.users.login.failure.username"] == "test"
+                else:
+                    assert meta["appsec.events.users.login.failure.usr.id"] == "test"
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"
@@ -420,6 +434,7 @@ class Test_Login_Events_Extended:
         self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -462,6 +477,7 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -479,6 +495,7 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "python", reason="Basic auth not implemented")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):

@@ -214,8 +214,8 @@ tests/:
     test_alpha.py:
       Test_Basic: v1.1.0rc2.dev
     test_automated_login_events.py:
-      Test_Login_Events: missing_feature
-      Test_Login_Events_Extended: missing_feature
+      Test_Login_Events: v2.0.0
+      Test_Login_Events_Extended: v2.0.0
     test_blocking_addresses.py:
       Test_BlockingAddresses:
         '*': v1.16.1

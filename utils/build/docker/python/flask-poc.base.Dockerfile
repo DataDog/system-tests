@@ -19,7 +19,7 @@ RUN pip install pymysql cryptography pyodbc
 
 # install python deps
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now
-RUN pip install flask==2.2.4 gunicorn gevent requests pycryptodome psycopg2-binary
+RUN pip install flask==2.2.4 gunicorn gevent requests pycryptodome psycopg2-binary flask-login
 
 # docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
 # docker push datadog/system-tests:flask-poc.base-v1

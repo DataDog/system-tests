@@ -15,6 +15,7 @@ ENV DD_REMOTECONFIG_POLL_SECONDS=1
 # FIXME: Ensure gevent patching occurs before ddtrace
 
 ENV FLASK_APP=app.py
+RUN pip install flask-login
 CMD ./app.sh
 
 # docker build -f utils/build/docker/python/flask-poc.Dockerfile -t test .

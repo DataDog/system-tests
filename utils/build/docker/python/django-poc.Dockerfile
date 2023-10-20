@@ -6,8 +6,15 @@ COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_
 RUN /binaries/install_ddtrace.sh
 
 COPY utils/build/docker/python/django/app.sh /app/app.sh
+COPY utils/build/docker/python/django/settings.py /app/django_app/settings.py
+COPY utils/build/docker/python/django/models.py /app/app/models.py
+COPY utils/build/docker/python/django/users.json /app/users.json
 COPY utils/build/docker/python/django/django.app.urls.py /app/app/urls.py
 COPY utils/build/docker/python/iast.py /app/iast.py
+
+RUN python3 manage.py makemigrations
+RUN python3 manage.py migrate
+RUN python3 manage.py loaddata users.json
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1

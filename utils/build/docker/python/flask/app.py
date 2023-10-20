@@ -19,6 +19,11 @@ from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
 
+# JJJ sort imports
+from flask_login import LoginManager
+from flask_login import UserMixin
+from flask_login import login_user
+
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
@@ -32,8 +37,55 @@ POSTGRES_CONFIG = dict(
 )
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = '7110c8ae51a4b5af97be6534caef90e4bb9bdcb3380af008f90b23a5d1616bf319bc'
+login_manager = LoginManager(app)
 
 tracer.trace("init.service").finish()
+
+
+class User(UserMixin):
+    def __init__(self, _id, login, name, email, password, is_admin=False):
+        self.id = _id
+        self.login = login
+        self.name = name
+        self.email = email
+        self.password = password
+        self.is_admin = is_admin
+
+    def set_password(self, password):
+        self.password = password
+
+    def check_password(self, password):
+        return self.password == password
+
+    def __repr__(self):
+        return "<User {}>".format(self.email)
+
+    def get_id(self):
+        return self.id
+
+
+EMPTY_USER = User(-1, "", "", "", "", False)
+
+_USERS = [
+    User("social-security-id", "test", "tester man", "testuser@ddog.com", "1234", False),
+    User("591dc126-8431-4d0f-9509-b23318d3dce4", "testuuid", "tester uuid", "testuseruuid@ddog.com", "1234", False),
+]
+
+
+def get_user(login):
+    for _user in _USERS:
+        if _user.login == login:
+            return _user
+    return None
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    for user in _USERS:
+        if user.id == int(user_id):
+            return user
+    return None
 
 
 @app.route("/")
@@ -309,6 +361,43 @@ def track_user_login_failure_event():
         tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
     )
     return Response("OK")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login_endpoint():
+    sdk_event = request.args.get("sdk_event", "")
+    sdk_user = request.args.get("sdk_user", "")
+    sdk_user_exists = request.args.get("sdk_user_exists", "false").lower() == "true"
+
+    if sdk_event:
+        print("JJJ sdk event")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user)
+            return Response("OK")
+
+        appsec_trace_utils.track_user_login_failure_event(tracer, user_id=sdk_user, exists=sdk_user_exists)
+        return Response("Unauthorized from SDK", status=401)
+
+    if request.method == "GET":
+        print("JJJ GET")
+        return Response("Basic Auth not supported on flask-login by default")
+    elif request.method == "POST":
+        print("JJJ POST 1, username: %s" % flask_request.form["username"])
+        _user = get_user(flask_request.form["username"])
+        if _user:
+            if _user.password == flask_request.form["password"]:
+                print("JJJ POST 3")
+                login_user(_user, remember=False)
+                print("JJJ POST 3.1")
+                return Response("OK", status=200)
+            else:
+                print("JJJ POST 4")
+                return Response("Wrong authentication", status=401)
+
+
+    print("JJJ end")
+    return Response("Unauthorized, method: %s" % str(request.method), status=401)
+
 
 
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
