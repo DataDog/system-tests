@@ -24,7 +24,8 @@ from flask_login import LoginManager
 from flask_login import UserMixin
 from flask_login import login_user
 
-from ddtrace import Pin, tracer
+from ddtrace import Pin, tracer, config
+from ddtrace.appsec._constants import LOGIN_EVENTS_MODE
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
@@ -37,7 +38,7 @@ POSTGRES_CONFIG = dict(
 )
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '7110c8ae51a4b5af97be6534caef90e4bb9bdcb3380af008f90b23a5d1616bf319bc'
+app.config["SECRET_KEY"] = "7110c8ae51a4b5af97be6534caef90e4bb9bdcb3380af008f90b23a5d1616bf319bc"
 login_manager = LoginManager(app)
 
 tracer.trace("init.service").finish()
@@ -370,34 +371,34 @@ def login_endpoint():
     sdk_user_exists = request.args.get("sdk_user_exists", "false").lower() == "true"
 
     if sdk_event:
-        print("JJJ sdk event")
         if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user)
+            appsec_trace_utils.track_user_login_success_event(
+                tracer, user_id=sdk_user, login_events_mode=LOGIN_EVENTS_MODE.SDK
+            )
             return Response("OK")
 
-        appsec_trace_utils.track_user_login_failure_event(tracer, user_id=sdk_user, exists=sdk_user_exists)
+        appsec_trace_utils.track_user_login_failure_event(
+            tracer, user_id=sdk_user, exists=sdk_user_exists, login_events_mode=LOGIN_EVENTS_MODE.SDK
+        )
         return Response("Unauthorized from SDK", status=401)
 
+    mode = config._automatic_login_events_mode
     if request.method == "GET":
-        print("JJJ GET")
         return Response("Basic Auth not supported on flask-login by default")
     elif request.method == "POST":
-        print("JJJ POST 1, username: %s" % flask_request.form["username"])
         _user = get_user(flask_request.form["username"])
         if _user:
             if _user.password == flask_request.form["password"]:
-                print("JJJ POST 3")
                 login_user(_user, remember=False)
-                print("JJJ POST 3.1")
                 return Response("OK", status=200)
             else:
-                print("JJJ POST 4")
+                appsec_trace_utils.track_user_login_failure_event(
+                    tracer, user_id=_user.id, exists=True, login_events_mode=mode
+                )
                 return Response("Wrong authentication", status=401)
 
-
-    print("JJJ end")
+    appsec_trace_utils.track_user_login_failure_event(tracer, user_id=None, exists=False, login_events_mode=mode)
     return Response("Unauthorized, method: %s" % str(request.method), status=401)
-
 
 
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
