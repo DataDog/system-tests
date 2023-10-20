@@ -1,3 +1,4 @@
+import json
 from utils import weblog, interfaces, context
 from utils.tools import logging
 
@@ -164,40 +165,53 @@ class SinkFixture:
             assert p[1] >= 1
 
 
-class SourceFixture:
-    def __init__(self, http_method, endpoint, request_kwargs, source_type, source_name, source_value):
-        self.http_method = http_method
-        self.endpoint = endpoint
-        self.request_kwargs = request_kwargs
-        self.source_type = source_type
-        self.source_name = source_name
-        self.source_value = source_value
-        self.request = None
+class BaseSourceTest:
+    endpoint = None
+    requests_kwargs = None
+    source_type = None
+    source_name = None
+    source_value = None
+    requests: dict = None
 
-    def setup(self):
-        if self.request is None:
-            self.request = weblog.request(method=self.http_method, path=self.endpoint, **self.request_kwargs)
+    def setup_source_reported(self):
+        assert isinstance(self.requests_kwargs, list), f"{self.__class__}.requests_kwargs must be a list of dicts"
 
-    def test(self):
-        iast = get_iast_event(request=self.request)
+        # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
+        # to self, and we need to attach the request on class object, as there are one class instance by test case
+
+        if self.__class__.requests is None:
+            self.__class__.requests = {}
+            for kwargs in self.requests_kwargs:
+                method = kwargs["method"]
+                # store them as method:request to allow later custom test by method
+                self.__class__.requests[method] = weblog.request(path=self.endpoint, **kwargs)
+
+        self.requests = self.__class__.requests
+
+    def test_source_reported(self):
+        for request in self.requests.values():
+            self.validate_request_reported(request)
+
+    def validate_request_reported(self, request, source_type=None):
+        if source_type is None:  # allow to overwrite source_type for parameter value node's use case
+            source_type = self.source_type
+
+        iast = get_iast_event(request=request)
         sources = iast["sources"]
         assert sources, "No source reported"
-        if self.source_type:
-            assert self.source_type in {s.get("origin") for s in sources}
-            sources = [s for s in sources if s["origin"] == self.source_type]
+        if source_type:
+            assert source_type in {s.get("origin") for s in sources}
+            sources = [s for s in sources if s["origin"] == source_type]
         if self.source_name:
             assert self.source_name in {s.get("name") for s in sources}
             sources = [s for s in sources if s["name"] == self.source_name]
         if self.source_value:
             assert self.source_value in {s.get("value") for s in sources}
             sources = [s for s in sources if s["value"] == self.source_value]
-        assert (
-            sources
-        ), f"No source found with origin={self.source_type}, name={self.source_name}, value={self.source_value}"
+        assert sources, f"No source found with origin={source_type}, name={self.source_name}, value={self.source_value}"
         assert len(sources) == 1, "Expected a single source with the matching criteria"
 
-    def setup_telemetry_metric_instrumented_source(self):
-        self.setup()
+    setup_telemetry_metric_instrumented_source = setup_source_reported
 
     def test_telemetry_metric_instrumented_source(self):
 
@@ -207,7 +221,7 @@ class SourceFixture:
         expected_metric = "instrumented.source"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
-        logging.debug("Series: %s", series)
+        logging.debug(f"Series: {json.dumps(series, indent=2)}")
 
         # lower the source_type, as all assertion will be case-insensitive
         expected_tag = f"source_type:{self.source_type}".lower()
@@ -226,8 +240,7 @@ class SourceFixture:
             p = s["points"][0]
             assert p[1] >= 1
 
-    def setup_telemetry_metric_executed_source(self):
-        self.setup()
+    setup_telemetry_metric_executed_source = setup_source_reported
 
     def test_telemetry_metric_executed_source(self):
 
@@ -237,7 +250,6 @@ class SourceFixture:
         expected_metric = "executed.source"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
-        logging.debug("Series: %s", series)
 
         # lower the source_type, as all assertion will be case-insensitive
         expected_tag = f"source_type:{self.source_type}".lower()
@@ -246,6 +258,8 @@ class SourceFixture:
         series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
         assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+
+        logging.debug(f"Series:\n{json.dumps(series, indent=2)}")
 
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
