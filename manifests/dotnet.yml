@@ -71,7 +71,7 @@ tests/:
           TestParameterName: missing_feature
         test_parameter_value.py:
           TestParameterValue:
-              '*': v2.26.0
+              '*': v2.28.0
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
