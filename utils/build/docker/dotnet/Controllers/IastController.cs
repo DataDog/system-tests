@@ -12,6 +12,7 @@ namespace weblog
     public class RequestData
     {
         public string cmd{get; set;}
+        public string table{get; set;}
     };
     
     [ApiController]
@@ -64,11 +65,11 @@ namespace weblog
         }
         
         [HttpPost("source/parameter/test")]
-        public IActionResult parameterTestPost([FromForm] string user)
+        public IActionResult parameterTestPost([FromForm] RequestData data)
         {
             try
             {
-                System.Diagnostics.Process.Start(user);
+                System.Diagnostics.Process.Start(data.table);
                 
                 return Content("Ok");
             }

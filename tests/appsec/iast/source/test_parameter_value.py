@@ -17,7 +17,11 @@ class TestParameterValue(BaseSourceTest):
     ]
     # In test case in node, the value is redacted
     source_value = None if context.library.library == "nodejs" else "user"
-    source_type = "http.request.body" if context.library.library == "nodejs" else "http.request.parameter"
+    source_type = (
+        "http.request.body"
+        if context.library.library == "nodejs" or context.library.library == "dotnet"
+        else "http.request.parameter"
+    )
     source_name = "table"
 
     def test_source_reported(self):
