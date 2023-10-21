@@ -215,15 +215,15 @@ language-variants:
           command: sudo amazon-linux-extras install java-openjdk11
  
   - nodejs:
-    - name: node16
-      version: 16
+    - name: node18
+      version: 18
       install: 
         - os_type: linux
           os_distro: deb
-          command: curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - && sudo apt-get install -y nodejs
+          command: curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && sudo apt-get install -y nodejs
         - os_type: linux
           os_distro: rpm
-          command: curl -sL https://rpm.nodesource.com/setup_16.x | sudo bash - && sudo yum install -y nodejs       
+          command: curl -sL https://rpm.nodesource.com/setup_18.x | sudo bash - && sudo yum install -y nodejs       
 
   - dotnet:
     - name: dotnet
