@@ -7,7 +7,6 @@ cd "$base_path"
 mkdir system-tests-dashboard
 git clone https://"${GITHUB_USER}":"${GITHUB_TOKEN}"@github.com/DataDog/system-tests-dashboard.git system-tests-dashboard
 cd system-tests-dashboard
-git checkout robertomonteromiguel/onboarding_tests_reports_check
 SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
 REPORTS_PATH="reports/$ENV/$TEST_LIBRARY/$WEBLOG"
 
