@@ -28,7 +28,8 @@ tests/:
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie: missing_feature
         test_no_samesite_cookie.py:
-          TestNoSamesiteCookie: missing_feature
+          TestNoSamesiteCookie:
+              '*': v2.39.0
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
@@ -68,6 +69,8 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName: missing_feature
         test_parameter_value.py:
