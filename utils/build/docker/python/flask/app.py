@@ -2,6 +2,7 @@ import logging
 import os
 import random
 import subprocess
+<<<<<<< HEAD
 import threading
 
 <<<<<<< HEAD
@@ -13,6 +14,11 @@ from threading import Thread
 import threading
 from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 >>>>>>> aeb5cfcc (Adding python test for DSM)
+=======
+import threading
+
+from confluent_kafka import Producer, Consumer
+>>>>>>> eb5ceb52 (rearrange and clean up imports)
 import psycopg2
 import requests
 from flask import Flask, Response, jsonify
@@ -29,14 +35,27 @@ from iast import (
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
-import logging
-import os
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 28e4f9b2 (Ran formatter)
+=======
+>>>>>>> 4c59b952 (rebased)
 import ddtrace
 
 ddtrace.patch_all()
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a78c280 (Ran formatter)
+>>>>>>> 28e4f9b2 (Ran formatter)
+=======
+>>>>>>> 4c59b952 (rebased)
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
@@ -203,6 +222,7 @@ def dsm():
 
     def produce():
         producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
+<<<<<<< HEAD
         message = b"Hello, Kafka!"
         producer.produce(topic, value=message, callback=delivery_report)
         producer.flush()
@@ -236,6 +256,8 @@ def dsm():
             'bootstrap.servers': 'kafka:9092',
             'client.id': "python-producer"
         })
+=======
+>>>>>>> 28e4f9b2 (Ran formatter)
         message = b"Hello, Kafka!"
         logging.info("[kafka] Before produce")
         producer.produce(topic, value=message, callback=delivery_report)
@@ -255,12 +277,16 @@ def dsm():
         consumer = Consumer(
             {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 28e4f9b2 (Ran formatter)
                 "bootstrap.servers": "kafka:9092",
                 "group.id": consumer_group,
                 "enable.auto.commit": True,
                 "auto.offset.reset": "earliest",
             }
         )
+<<<<<<< HEAD
 =======
                 'bootstrap.servers': 'kafka:9092',
                 'group.id': consumer_group,
@@ -268,6 +294,8 @@ def dsm():
                 'auto.offset.reset': 'earliest',
             })
 >>>>>>> aeb5cfcc (Adding python test for DSM)
+=======
+>>>>>>> 28e4f9b2 (Ran formatter)
 
         logging.info("[kafka] Before subscribe")
         consumer.subscribe([topic])
