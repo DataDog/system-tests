@@ -141,6 +141,8 @@ tests/:
             '*': v1.18.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName:
             django-poc: v1.18.0

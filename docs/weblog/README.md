@@ -229,6 +229,9 @@ A GET request using a cookie with name `table` and any value. The value must be 
 
 A GET request using a cookie with name `user` and any value. The name must be used in the vulnerability.
 
+#### POST /iast/source/multipart/test
+A multipart request uploading a file (with a file name).
+
 #### POST /iast/source/body/test
 
 A POST request which will receive the following JSON body:
