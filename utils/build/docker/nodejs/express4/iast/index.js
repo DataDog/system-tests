@@ -161,7 +161,6 @@ function initRoutes (app, tracer) {
     res.send('OK')
   });
 
-
   app.get('/iast/no-httponly-cookie/test_insecure', (req, res) => {
     res.cookie('no-httponly', 'cookie')
     res.send('OK')
@@ -275,7 +274,7 @@ function initRoutes (app, tracer) {
           if (err) return sendError(err)
 
           const entries = new Set()
-          searchRes.on('searchEntry', entry => entries.add(entry.json));
+          searchRes.on('searchEntry', entry => entries.add(entry.json))
           searchRes.on('end', () => res.json([...entries]))
           searchRes.on('error', sendError)
         })

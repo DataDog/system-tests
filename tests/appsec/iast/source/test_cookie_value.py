@@ -14,10 +14,9 @@ class TestCookieValue(BaseSourceTest):
     requests_kwargs = [{"method": "GET", "cookies": {"table": "user"}}]
     source_type = "http.request.cookie.value"
     source_name = "table"
-    source_value = None if context.library.library == "nodejs" else "user"
+    source_value = "user"
 
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    # @bug(library="nodejs", reason="Source value not reported correctly (because of the redaction)")
     def test_source_reported(self):
         super().test_source_reported()
 
