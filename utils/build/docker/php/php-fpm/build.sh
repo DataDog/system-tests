@@ -20,7 +20,8 @@ add-apt-repository ppa:ondrej/apache2 -y
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
-apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2
+apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql
+apt-get install -y 
 
 find /var/www/html -mindepth 1 -delete
 

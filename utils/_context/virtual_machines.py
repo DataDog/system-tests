@@ -1,6 +1,7 @@
 import os
-from utils.tools import logger
 import json
+
+from utils.tools import logger
 
 
 class TestedVirtualMachine:
@@ -10,20 +11,25 @@ class TestedVirtualMachine:
         agent_install_data,
         language,
         autoinjection_install_data,
+        autoinjection_uninstall_data,
         language_variant_install_data,
         weblog_install_data,
+        weblog_uninstall_data,
         prepare_init_config_install,
         prepare_repos_install,
         prepare_docker_install,
         installation_check_data,
         provision_scenario,
+        uninstall,
     ) -> None:
         self.ec2_data = ec2_data
         self.agent_install_data = agent_install_data
         self.language = language
         self.autoinjection_install_data = autoinjection_install_data
+        self.autoinjection_uninstall_data = autoinjection_uninstall_data
         self.language_variant_install_data = language_variant_install_data
         self.weblog_install_data = weblog_install_data
+        self.weblog_uninstall_data = weblog_uninstall_data
         self.ip = None
         self.datadog_config = None
         self.aws_infra_config = None
@@ -34,6 +40,8 @@ class TestedVirtualMachine:
         self.provision_scenario = provision_scenario
         self.name = self.ec2_data["name"] + "__lang-variant-" + self.language_variant_install_data["name"]
         self.components = None
+        # Uninstall process after install all software requirements
+        self.uninstall = uninstall
 
     def configure(self):
         self.datadog_config = DataDogConfig()
@@ -47,7 +55,6 @@ class TestedVirtualMachine:
         from utils.onboarding.pulumi_ssh import PulumiSSH
         from utils.onboarding.pulumi_utils import remote_install, pulumi_logger, remote_docker_login
 
-        logger.info("start...")
         self.configure()
         # Startup VM and prepare connection
         server = aws.ec2.Instance(
@@ -172,6 +179,35 @@ class TestedVirtualMachine:
             dd_site=self.datadog_config.dd_site,
             scenario_name=self.provision_scenario,
         )
+
+        # Uninstall process (stop app, uninstall autoinjection and rerun the app)
+        if self.uninstall:
+            logger.info(f"Uninstall the autoinjection software. Command: {self.weblog_uninstall_data['uninstall']} ")
+            weblog_uninstall = remote_install(
+                connection,
+                "uninstall-weblog_" + self.name,
+                self.weblog_uninstall_data["uninstall"],
+                weblog_runner,
+                scenario_name=self.provision_scenario,
+            )
+            autoinjection_uninstall = remote_install(
+                connection,
+                "uninstall-autoinjection_" + self.name,
+                self.autoinjection_uninstall_data["uninstall"],
+                weblog_uninstall,
+                scenario_name=self.provision_scenario,
+            )
+            # Rerun weblog app again, but without autoinstrumentation
+            weblog_rerunner = remote_install(
+                connection,
+                "rerun-weblog_" + self.name,
+                self.weblog_install_data["install"],
+                autoinjection_uninstall,
+                add_dd_keys=True,
+                dd_api_key=self.datadog_config.dd_api_key,
+                dd_site=self.datadog_config.dd_site,
+                scenario_name=self.provision_scenario,
+            )
 
     def set_ip(self, instance_ip):
         self.ip = instance_ip
