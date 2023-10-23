@@ -104,14 +104,12 @@ tests/:
         Test_ClientIP: missing_feature
         Test_Cookies:
           '*': v2.0.0
-          nextjs: v4.17.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
           '*': v4.16.0
           nextjs: irrelevant # nextjs is not related with graphql
         Test_Headers:
           '*': v2.0.0
-          nextjs: v4.17.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
         Test_PathParams:
@@ -119,7 +117,6 @@ tests/:
             nextjs: missing_feature
         Test_ResponseStatus:
           '*': v2.0.0
-          nextjs: v4.17.0
         Test_UrlQuery:
           '*': v2.0.0
           nextjs: v4.17.0
@@ -128,7 +125,6 @@ tests/:
           nextjs: v4.17.0
         Test_UrlRaw:
           '*': v2.0.0
-          nextjs: v4.17.0
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v3.19.0
