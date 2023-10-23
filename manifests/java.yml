@@ -96,6 +96,13 @@ tests/:
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
+          TestUnvalidatedHeader: 
+            '*': v1.16.0
+            akka-http: missing_feature
+            ratpack: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-jetty: v1.17.0
+            vertx4: v1.17.0
           TestUnvalidatedRedirect:
             '*': v1.16.0
             akka-http: missing_feature

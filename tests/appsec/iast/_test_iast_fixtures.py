@@ -4,17 +4,16 @@ from utils.tools import logging
 
 
 def _get_expectation(d):
-    if d is None:
-        return None
-    if isinstance(d, str):
+    if d is None or isinstance(d, str):
         return d
-    elif callable(d):
-        return d()
-    else:
+
+    if isinstance(d, dict):
         expected = d.get(context.library.library)
         if isinstance(expected, dict):
             expected = expected.get(context.weblog_variant)
         return expected
+
+    raise TypeError(f"Unsupported expectation type: {d}")
 
 
 def _get_span_meta(request):
@@ -61,30 +60,40 @@ def _check_telemetry_response_from_agent():
             return
 
 
-class SinkFixture:
-    def __init__(
-        self,
-        vulnerability_type,
-        http_method,
-        insecure_endpoint,
-        secure_endpoint,
-        data,
-        location_map=None,
-        evidence_map=None,
-    ):
-        self.vulnerability_type = vulnerability_type
-        self.http_method = http_method
-        self.insecure_endpoint = insecure_endpoint
-        self.secure_endpoint = secure_endpoint
-        self.data = data
-        self.expected_location = _get_expectation(location_map)
-        self.expected_evidence = _get_expectation(evidence_map)
-        self.insecure_request = None
-        self.secure_request = None
+class BaseSinkTestWithoutTelemetry:
+    vulnerability_type = None
+    http_method = None
+    insecure_endpoint = None
+    secure_endpoint = None
+    data = None
+    headers = None
+    location_map = None
+    evidence_map = None
+
+    insecure_request = None
+    secure_request = None
+
+    @property
+    def expected_location(self):
+        return _get_expectation(self.location_map)
+
+    @property
+    def expected_evidence(self):
+        return _get_expectation(self.evidence_map)
 
     def setup_insecure(self):
-        if self.insecure_request is None:
-            self.insecure_request = weblog.request(method=self.http_method, path=self.insecure_endpoint, data=self.data)
+
+        # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
+        # to self, and we need to attach the request on class object, as there are one class instance by test case
+
+        if self.__class__.insecure_request is None:
+            assert self.insecure_endpoint is not None, f"{self}.insecure_endpoint must not be None"
+
+            self.__class__.insecure_request = weblog.request(
+                method=self.http_method, path=self.insecure_endpoint, data=self.data, headers=self.headers
+            )
+
+        self.insecure_request = self.__class__.insecure_request
 
     def test_insecure(self):
         assert_iast_vulnerability(
@@ -96,14 +105,30 @@ class SinkFixture:
         )
 
     def setup_secure(self):
-        if self.secure_request is None:
-            self.secure_request = weblog.request(method=self.http_method, path=self.secure_endpoint, data=self.data)
+
+        # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
+        # to self, and we need to attach the request on class object, as there are one class instance by test case
+
+        if self.__class__.secure_request is None:
+            assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
+            assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
+            self.__class__.secure_request = weblog.request(
+                method=self.http_method, path=self.secure_endpoint, data=self.data, headers=self.headers
+            )
+
+        self.secure_request = self.__class__.secure_request
 
     def test_secure(self):
-        meta = _get_span_meta(request=self.secure_request)
+        self.assert_no_iast_event(self.secure_request)
+
+    @staticmethod
+    def assert_no_iast_event(request):
+        meta = _get_span_meta(request=request)
         iast_json = meta.get("_dd.iast.json")
         assert iast_json is None, f"Unexpected vulnerabilities reported: {iast_json}"
 
+
+class BaseSinkTest(BaseSinkTestWithoutTelemetry):
     def setup_telemetry_metric_instrumented_sink(self):
         self.setup_insecure()
 
