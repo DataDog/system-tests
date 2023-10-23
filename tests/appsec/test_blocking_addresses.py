@@ -533,21 +533,21 @@ class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
     def setup_blocking(self):
-        self.rm_req_block = {status: weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)}
+        self.rm_req_block = [weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)]
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        for code, response in self.rm_req_block.items():
+        for response in self.rm_req_block:
             assert response.status_code == 403, response.request.url
             interfaces.library.assert_waf_attack(response, rule="tst-037-005")
 
     def setup_non_blocking(self):
-        self.rm_req_nonblock = {status: weblog.get(f"/tag_value/anything/{status}") for status in (411, 412, 413, 414)}
+        self.rm_req_nonblock = {str(status): weblog.get(f"/tag_value/anything/{status}") for status in (411, 412, 413, 414)}
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         for code, response in self.rm_req_nonblock.items():
-            assert response.status_code == code, response.request.url
+            assert str(response.status_code) == code, response.request.url
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
