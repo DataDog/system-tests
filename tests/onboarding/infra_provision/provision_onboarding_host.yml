@@ -9,13 +9,13 @@ ami:
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
-  os_type: linux__
+  os_type: linux
   os_distro: deb
 
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
   user: ec2-user
-  os_type: linux__
+  os_type: linux
   os_distro: rpm
 
 - name: amazon-linux-dotnet
