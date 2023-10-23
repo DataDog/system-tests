@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, coverage, irrelevant
-from .._test_iast_fixtures import SinkFixture
+from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
 def _expected_location():
@@ -23,48 +23,32 @@ def _expected_location():
 
 
 @coverage.basic
-class TestUnvalidatedRedirect:
+class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection."""
 
-    sink_fixture_header = SinkFixture(
-        vulnerability_type="UNVALIDATED_REDIRECT",
-        http_method="POST",
-        insecure_endpoint="/iast/unvalidated_redirect/test_insecure_header",
-        secure_endpoint="/iast/unvalidated_redirect/test_secure_header",
-        data={"location": "http://dummy.location.com"},
-        location_map=_expected_location,
-    )
-    sink_fixture_redirect = SinkFixture(
-        vulnerability_type="UNVALIDATED_REDIRECT",
-        http_method="POST",
-        insecure_endpoint="/iast/unvalidated_redirect/test_insecure_redirect",
-        secure_endpoint="/iast/unvalidated_redirect/test_secure_redirect",
-        data={"location": "http://dummy.location.com"},
-        location_map=_expected_location,
-    )
-
-    def setup_insecure_header(self):
-        self.sink_fixture_header.setup_insecure()
-
-    def test_insecure_header(self):
-        self.sink_fixture_header.test_insecure()
-
-    def setup_secure_header(self):
-        self.sink_fixture_header.setup_secure()
-
-    def test_secure_header(self):
-        self.sink_fixture_header.test_secure()
-
-    def setup_insecure_redirect(self):
-        self.sink_fixture_redirect.setup_insecure()
+    vulnerability_type = "UNVALIDATED_REDIRECT"
+    http_method = "POST"
+    insecure_endpoint = "/iast/unvalidated_redirect/test_insecure_redirect"
+    secure_endpoint = "/iast/unvalidated_redirect/test_secure_redirect"
+    data = {"location": "http://dummy.location.com"}
+    location_map = _expected_location()
 
     @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
-    def test_insecure_redirect(self):
-        self.sink_fixture_redirect.test_insecure()
-
-    def setup_secure_redirect(self):
-        self.sink_fixture_redirect.setup_secure()
+    def test_insecure(self):
+        super().test_insecure()
 
     @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
-    def test_secure_redirect(self):
-        self.sink_fixture_redirect.test_secure()
+    def test_secure(self):
+        super().test_secure()
+
+
+@coverage.basic
+class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
+    """Verify Unvalidated redirect detection threw header."""
+
+    vulnerability_type = "UNVALIDATED_REDIRECT"
+    http_method = "POST"
+    insecure_endpoint = "/iast/unvalidated_redirect/test_insecure_header"
+    secure_endpoint = "/iast/unvalidated_redirect/test_secure_header"
+    data = {"location": "http://dummy.location.com"}
+    location_map = _expected_location()

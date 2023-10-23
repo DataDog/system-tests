@@ -62,7 +62,7 @@ class _Weblog:
     ):
 
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
-        headers = headers or {}
+        headers = {**headers} if headers else {}  # get our own copy of headers, as we'll modify them
 
         user_agent_key = "User-Agent"
         for k in headers:
