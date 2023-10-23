@@ -4,10 +4,10 @@ echo "START RUN APP"
 set -e
 sudo chmod -R 755 *
 
-pip3 install django
+sudo cp django_app.py /home/datadog/
+sudo /home/datadog/.pyenv/shims/pip3 install django
 echo "Testing weblog with python version:"
-python --version
-sudo sed -i "s/MY_USER/$(whoami)/g" test-app-python.service 
+sudo /home/datadog/.pyenv/shims/python --version
 sudo cp test-app-python.service /etc/systemd/system/test-app-python.service
 sudo systemctl daemon-reload
 sudo systemctl enable test-app-python.service
