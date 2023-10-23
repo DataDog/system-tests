@@ -273,27 +273,25 @@ def pytest_collection_finish(session):
         # we replace the test_ by setup_, and call it if it exists
         setup_method_name = f"setup_{item.name[5:]}"
 
-        if not hasattr(item.instance, setup_method_name):
-            continue
+        if hasattr(item.instance, setup_method_name):
+            if last_file != item.location[0]:
+                if len(last_file) == 0:
+                    logger.terminal.write_sep("-", "tests setup", bold=True)
 
-        if last_file != item.location[0]:
-            if len(last_file) == 0:
-                logger.terminal.write_sep("-", "tests setup", bold=True)
+                logger.terminal.write(f"\n{item.location[0]} ")
+                last_file = item.location[0]
 
-            logger.terminal.write(f"\n{item.location[0]} ")
-            last_file = item.location[0]
+            setup_method = getattr(item.instance, setup_method_name)
+            logger.debug(f"Call {setup_method} for {item}")
 
-        setup_method = getattr(item.instance, setup_method_name)
-        logger.debug(f"Call {setup_method} for {item}")
+            try:
+                setup_method()
+            except Exception:
+                logger.exception("Unexpected failure during setup method call")
+                logger.terminal.write("x", bold=True, red=True)
+                context.scenario.close_targets()
+                raise
 
-        try:
-            setup_method()
-        except Exception:
-            logger.exception("Unexpected failure during setup method call")
-            logger.terminal.write("x", bold=True, red=True)
-            context.scenario.close_targets()
-            raise
-        else:
             logger.terminal.write(".", bold=True, green=True)
 
         if not session.config.option.replay:
@@ -367,7 +365,8 @@ def pytest_sessionfinish(session, exitstatus):
     if session.config.option.collectonly or session.config.option.replay:
         return
 
-    # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute, it will run in the master thread after all other processes have finished testing
+    # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
+    # it will run in the master thread after all other processes have finished testing
     if not hasattr(session.config, "workerinput"):
         json.dump(
             {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},

@@ -24,10 +24,14 @@ class TestParameterValue(BaseSourceTest):
         # overwrite the base test, to handle the source_type spcial use case in node
         ...
 
+    setup_source_post_reported = BaseSourceTest.setup_source_reported
+
     @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
+
+    setup_source_get_reported = BaseSourceTest.setup_source_reported
 
     @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     def test_source_get_reported(self):
