@@ -316,7 +316,8 @@ class TestClassesProperties(dict):
         if isinstance(value, (list, tuple)):
             return [cls._serialize(item) for item in value]
 
-        if isinstance(value, dict):
+        if type(value) is dict:  # pylint: disable=unidiomatic-typecheck
+            # do not use istance, to prevent serializing stuff like defaultdict
             return {key: cls._serialize(sub_value) for key, sub_value in value.items()}
 
         if hasattr(value, "underlying_data"):
