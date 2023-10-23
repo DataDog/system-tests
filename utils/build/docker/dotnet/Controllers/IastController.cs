@@ -242,14 +242,15 @@ namespace weblog
                 {
                     var sb = new System.Text.StringBuilder();
                     sb.AppendLine("Insecure SQL command executed:");
-                    using var conn = new SqlConnection(Constants.SqlConnectionString);
+                    using var conn = Sql.GetSqliteConnection();
                     conn.Open();
-                    using var cmd = new SqlCommand("SELECT * FROM dbo.Items WHERE Value = '" + username + "'", conn);
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM users WHERE user = '" + username + "'";
                     using var reader = cmd.ExecuteReader();
 
                     while (reader.Read())
                     {
-                        sb.AppendLine(reader["Value"]?.ToString());
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
                     }
 
                     return Content(sb.ToString());
@@ -261,7 +262,7 @@ namespace weblog
             }
             catch
             {
-                return StatusCode(500, "Error launching process.");
+                return StatusCode(500, "Error executing query.");
             }
         }
         
@@ -270,19 +271,20 @@ namespace weblog
         {
             try
             {
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                if (!string.IsNullOrEmpty(username))
                 {
                     var sb = new System.Text.StringBuilder();
                     sb.AppendLine("Secure SQL command executed:");
-                    using var conn = new SqlConnection(Constants.SqlConnectionString);
+                    using var conn = Sql.GetSqliteConnection();
                     conn.Open();
-                    using var cmd = new SqlCommand("SELECT * FROM dbo.Items WHERE Value = @user", conn);
-                    cmd.Parameters.Add("@user", System.Data.SqlDbType.VarChar);
-                    cmd.Parameters["@user"].Value = username;
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM data WHERE value = $user";
+                    cmd.Parameters.Add("$user");
+                    cmd.Parameters["$user"].Value = username;
                     using var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        sb.AppendLine(reader["Value"]?.ToString());
+                        sb.AppendLine(reader["value"]?.ToString());
                     }
 
                     return Content(sb.ToString());
@@ -294,7 +296,7 @@ namespace weblog
             }
             catch
             {
-                return StatusCode(500, "Error launching process.");
+                return StatusCode(500, "Error executing query.");
             }
         }
     }
