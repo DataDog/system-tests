@@ -320,24 +320,24 @@ class Test_RemoteConfigurationExtraServices:
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
-    # Index the request number by runtime ID so that we can support applications
-    # that spawns multiple worker processes, each running its own RCM client.
-    request_number = defaultdict(int)
-
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        # Index the request number by runtime ID so that we can support applications
+        # that spawns multiple worker processes, each running its own RCM client.
+        request_number = defaultdict(int)
+
         def validate(data):
             """Helper to validate config request content"""
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
-            logger.info(f"validating request number {self.request_number[runtime_id]}")
-            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            logger.info(f"validating request number {request_number[runtime_id]}")
+            if request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=True)
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[request_number[runtime_id]], caching=True)
 
-            self.request_number[runtime_id] += 1
+            request_number[runtime_id] += 1
 
             return False
 
@@ -409,21 +409,21 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
-    request_number = defaultdict(int)
-
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        request_number = defaultdict(int)
 
         def validate(data):
             """Helper to validate config request content"""
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
-            logger.info(f"validating request number {self.request_number[runtime_id]}")
-            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            logger.info(f"validating request number {request_number[runtime_id]}")
+            if request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=False)
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[request_number[runtime_id]], caching=False)
 
-            self.request_number[runtime_id] += 1
+            request_number[runtime_id] += 1
 
             return False
 
