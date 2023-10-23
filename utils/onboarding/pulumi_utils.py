@@ -1,10 +1,12 @@
 import os
 import logging
 import logging.config
+import pathlib
 
 import pulumi
 from pulumi import Output
 import pulumi_command as command
+from utils.tools import logger
 
 
 def remote_docker_login(command_id, user, password, connection, depends_on):
@@ -28,6 +30,10 @@ def remote_install(
     scenario_name=None,
     output_callback=None,
 ):
+    # List to store the latest commands in order to manage dependecy between commands
+    # (wait for one command finished before launch next command)
+    quee_depends_on = [depends_on]
+
     # Do we need to add env variables?
     if install_info is None:
         return depends_on
@@ -49,10 +55,10 @@ def remote_install(
         webapp_build = command.local.Command(
             "local-script_" + command_identifier,
             create=local_command,
-            opts=pulumi.ResourceOptions(depends_on=[depends_on]),
+            opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
         )
         webapp_build.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, "build_local_weblogs").info(outputlog))
-        depends_on = webapp_build
+        quee_depends_on.insert(0, webapp_build)
 
     # Copy files from local to remote if we need
     if "copy_files" in install_info:
@@ -64,23 +70,38 @@ def remote_install(
             else:
                 remote_path = os.path.basename(file_to_copy["local_path"])
 
-            # Launch copy file command
-            cmd_cp_webapp = command.remote.CopyFile(
-                file_to_copy["name"] + "-" + command_identifier,
-                connection=connection,
-                local_path=file_to_copy["local_path"],
-                remote_path=remote_path,
-                opts=pulumi.ResourceOptions(depends_on=[depends_on]),
-            )
-            depends_on = cmd_cp_webapp
+            if os.path.isfile(file_to_copy["local_path"]):
+                logger.debug(f"Copy file from {file_to_copy['local_path']} to {remote_path}")
+                # Launch copy file command
+                quee_depends_on.insert(
+                    0,
+                    command.remote.CopyFile(
+                        file_to_copy["name"] + "-" + command_identifier,
+                        connection=connection,
+                        local_path=file_to_copy["local_path"],
+                        remote_path=remote_path,
+                        opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
+                    ),
+                )
+
+            else:
+                quee_depends_on.insert(
+                    0,
+                    remote_copy_folders(
+                        file_to_copy["local_path"], remote_path, command_identifier, connection, quee_depends_on.pop()
+                    ),
+                )
 
     # Execute a basic command on our server.
     cmd_exec_install = command.remote.Command(
         command_identifier,
         connection=connection,
         create=command_exec,
-        opts=pulumi.ResourceOptions(depends_on=[depends_on]),
+        opts=pulumi.ResourceOptions(
+            depends_on=[quee_depends_on.pop()]
+        ),  # Here the quee should contain only one element
     )
+
     if logger_name:
         cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, logger_name).info(outputlog))
     else:
@@ -93,6 +114,55 @@ def remote_install(
         cmd_exec_install.stdout.apply(output_callback)
 
     return cmd_exec_install
+
+
+def remote_copy_folders(source_folder, destination_folder, command_id, connection, depends_on, relative_path=False):
+    quee_depends_on = [depends_on]
+    for file_name in os.listdir(source_folder):
+        # construct full file path
+        source = source_folder + "/" + file_name
+        destination = destination_folder + "/" + file_name
+        logger.debug(f"remote_copy_folders: source:[{source}] and remote destination: [{destination}] ")
+
+        if os.path.isfile(source):
+            if not relative_path:
+                destination = os.path.basename(destination)
+
+            logger.debug(f"Copy single file: source:[{source}] and remote destination: [{destination}] ")
+            # Launch copy file command
+            quee_depends_on.insert(
+                0,
+                command.remote.CopyFile(
+                    file_name + "-" + command_id,
+                    connection=connection,
+                    local_path=source,
+                    remote_path=destination,
+                    opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
+                ),
+            )
+        else:
+            # mkdir remote
+            if not relative_path:
+                p = pathlib.Path("/" + destination)
+                destination = str(p.relative_to(*p.parts[:2]))
+            logger.debug(f"Creating remote folder: {destination}")
+
+            quee_depends_on.insert(
+                0,
+                command.remote.Command(
+                    "mkdir-" + file_name + "-" + command_id,
+                    connection=connection,
+                    create=f"mkdir -p {destination}",
+                    opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
+                ),
+            )
+            quee_depends_on.insert(
+                0,
+                remote_copy_folders(
+                    source, destination, command_id, connection, quee_depends_on.pop(), relative_path=True
+                ),
+            )
+    return quee_depends_on.pop()  # Here the quee should contain only one element
 
 
 def pulumi_logger(scenario_name, log_name, level=logging.INFO):

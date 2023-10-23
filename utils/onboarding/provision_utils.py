@@ -29,18 +29,29 @@ class ProvisionMatrix:
                             prepare_repos_install = self.provision_parser.ec2_prepare_repos_install_data()
                             prepare_docker_install = self.provision_parser.ec2_prepare_docker_install_data()
                             installation_check_data = self.provision_parser.ec2_installation_checks_data()
+                            autoinjection_uninstall = None
+                            weblog_uninstall = None
+                            if self.provision_parser.is_uninstall:
+                                autoinjection_uninstall = self.provision_parser.ec2_autoinjection_uninstall_data()
+                                weblog_uninstall = self.provision_parser.ec2_weblog_uninstall_data(
+                                    weblog_instalations["name"]
+                                )
+
                             yield TestedVirtualMachine(
                                 ec2_data,
                                 agent_instalations,
                                 self.provision_filter.language,
                                 autoinjection_instalations,
+                                autoinjection_uninstall,
                                 language_variants_instalations,
                                 weblog_instalations,
+                                weblog_uninstall,
                                 prepare_init_config,
                                 prepare_repos_install,
                                 prepare_docker_install,
                                 installation_check_data,
                                 self.provision_filter.provision_scenario.lower(),
+                                self.provision_parser.is_uninstall,
                             )
 
 
@@ -49,7 +60,12 @@ class ProvisionParser:
         self.provision_filter = provision_filter
         # If the scenario name has suffix "AUTO_INSTALL" the parser behaviour will change
         self.auto_install_suffix = "_AUTO_INSTALL"
-        self.is_auto_install = provision_filter.provision_scenario.endswith(self.auto_install_suffix)
+        # If the scenario name has suffix "UNINSTALL" the parser behaviour will change
+        self.uninstall_suffix = "_UNINSTALL"
+        self.is_auto_install = provision_filter.provision_scenario.endswith(
+            self.auto_install_suffix
+        ) or provision_filter.provision_scenario.endswith(self.auto_install_suffix + self.uninstall_suffix)
+        self.is_uninstall = provision_filter.provision_scenario.endswith(self.uninstall_suffix)
         self.config_data = self._load_provision()
 
     def ec2_instances_data(self):
@@ -91,6 +107,22 @@ class ProvisionParser:
                 continue
 
             yield {"env": autoinjection_env_data["env"], "install": filteredInstalations[0]}
+
+    def ec2_autoinjection_uninstall_data(self):
+        autoinjection_language_data = {}
+        # Although the installation was automatic, the uninstallation method is the same as the manual installation.
+        autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
+        if not autoinjection_language_data:
+            return None
+        for autoinjection_env_data in autoinjection_language_data:
+            if self.provision_filter.env and autoinjection_env_data["env"] != self.provision_filter.env:
+                continue
+            filteredInstalations = self._filter_install_data(autoinjection_env_data, operation="uninstall")
+            # No instalation for this os_type/branch. Skip it
+            if not filteredInstalations:
+                continue
+
+            return {"uninstall": filteredInstalations[0]}
 
     def _get_autoinstall_data_for_current_lang(self):
         for autoinjection_language_data in self.config_data["agent_auto_install"]:
@@ -150,6 +182,15 @@ class ProvisionParser:
                         continue
                     yield filtered_weblog_data
 
+    def ec2_weblog_uninstall_data(self, weblog_filter):
+        for language_weblog_data in self.config_data["weblogs"]:
+            for filtered_weblog_data in self._filter_provision_data(
+                language_weblog_data, self.provision_filter.language, exact_match=True, operation="uninstall"
+            ):
+                if weblog_filter and filtered_weblog_data["name"] != weblog_filter:
+                    continue
+                return filtered_weblog_data
+
     def ec2_installation_checks_data(self):
         for installation_checks_data in self.config_data["installation_checks"]:
             for filtered_installation_checks_data in self._filter_provision_data(
@@ -158,7 +199,9 @@ class ProvisionParser:
                 # Only one check
                 return filtered_installation_checks_data
 
-    def _filter_install_data(self, data, exact_match=False):
+    def _filter_install_data(self, data, exact_match=False, operation=None):
+        if not operation:
+            operation = "install"
 
         os_type = self.provision_filter.os_type
         os_distro = self.provision_filter.os_distro
@@ -166,7 +209,7 @@ class ProvisionParser:
         # Filter by type,  distro and branch
         filteredInstalations = [
             agent_data_install
-            for agent_data_install in data["install"]
+            for agent_data_install in data[operation]
             if agent_data_install["os_type"] == os_type
             and ("os_distro" in agent_data_install and agent_data_install["os_distro"] == os_distro)
             and ("os_branch" in agent_data_install and agent_data_install["os_branch"] == os_branch)
@@ -180,7 +223,7 @@ class ProvisionParser:
 
             if os_branch is None:
                 filteredInstalations = [
-                    agent_data_install for agent_data_install in data["install"] if "os_branch" in agent_data_install
+                    agent_data_install for agent_data_install in data[operation] if "os_branch" in agent_data_install
                 ]
                 if filteredInstalations:
                     return []
@@ -189,7 +232,7 @@ class ProvisionParser:
         if not filteredInstalations:
             filteredInstalations = [
                 agent_data_install
-                for agent_data_install in data["install"]
+                for agent_data_install in data[operation]
                 if agent_data_install["os_type"] == os_type
                 and ("os_distro" in agent_data_install and agent_data_install["os_distro"] == os_distro)
             ]
@@ -198,22 +241,24 @@ class ProvisionParser:
         if not filteredInstalations:
             filteredInstalations = [
                 agent_data_install
-                for agent_data_install in data["install"]
+                for agent_data_install in data[operation]
                 if agent_data_install["os_type"] == os_type and "os_distro" not in agent_data_install
             ]
 
         # Only one instalation
         if len(filteredInstalations) > 1:
-            raise ValueError("Only one type of installation is allowed!", os_type, os_distro)
+            raise ValueError("Only one type of installation/uninstallation is allowed!", os_type, os_distro)
 
         return filteredInstalations
 
-    def _filter_provision_data(self, data, node_name, exact_match=False):
+    def _filter_provision_data(self, data, node_name, exact_match=False, operation=None):
         filtered_data = []
+        if not operation:
+            operation = "install"
         if node_name in data:
             for provision_data in data[node_name]:
 
-                filteredInstalations = self._filter_install_data(provision_data, exact_match)
+                filteredInstalations = self._filter_install_data(provision_data, exact_match, operation=operation)
 
                 # No instalation for this os_type/branch. Skip it
                 if not filteredInstalations:
@@ -221,7 +266,7 @@ class ProvisionParser:
 
                 allowed_fields = ["env", "version", "name", "supported-language-versions"]
                 dic_data = {}
-                dic_data["install"] = filteredInstalations[0]
+                dic_data[operation] = filteredInstalations[0]
                 for allowed_field in allowed_fields:
                     if allowed_field in provision_data:
                         dic_data[allowed_field] = provision_data[allowed_field]
@@ -234,9 +279,11 @@ class ProvisionParser:
 
         # Open the file associated with the scenario name.
         # Remember that we remove the suffix "AUTO_INSTALLL", we use the same provision
+        # Remember that we remove the suffix "UNINSTALL", we use the same provision
+        provision_file_name = self.provision_filter.provision_scenario.removesuffix(self.uninstall_suffix)
         provision_file = (
             "tests/onboarding/infra_provision/provision_"
-            + self.provision_filter.provision_scenario.removesuffix(self.auto_install_suffix).lower()
+            + provision_file_name.removesuffix(self.auto_install_suffix).lower()
             + ".yml"
         )
         with open(provision_file, encoding="utf-8") as f:
