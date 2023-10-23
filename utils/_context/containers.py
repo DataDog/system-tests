@@ -126,46 +126,55 @@ class TestedContainer:
         )
 
         self.wait_for_health()
+        self.warmup()
+
+    def warmup(self):
+        """ if some stuff must be done after healthcheck """
 
     def wait_for_health(self):
-        if not self.healthcheck:
-            return
+        if self.healthcheck:
+            self.execute_command(**self.healthcheck)
 
-        cmd = self.healthcheck["test"]
+    def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
+        """ 
+            Execute a command inside a container. Usefull for healthcheck and warmups. 
+            test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+        """
+
+        cmd = test
 
         if not isinstance(cmd, str):
             assert cmd[0] == "CMD-SHELL", "Only CMD-SHELL is supported"
             cmd = cmd[1]
 
-        retries = self.healthcheck.get("retries", 10)
-        interval = self.healthcheck.get("interval", 1 * 1_000_000_000) / 1_000_000_000
-        # timeout = self.healthcheck.get("timeout", 1 * 1_000_000_000) / 1_000_000_000
-        start_period = self.healthcheck.get("start_period", 0) / 1_000_000_000
+        interval = interval / 1_000_000_000
+        # timeout = timeout / 1_000_000_000
+        start_period = start_period / 1_000_000_000
 
         if start_period:
             time.sleep(start_period)
 
-        logger.info(f"Executing healthcheck {cmd} for {self.name}")
+        logger.info(f"Executing command {cmd} for {self.name}")
 
         for i in range(retries + 1):
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.debug(f"Healthcheck #{i}: {result}")
+                logger.debug(f"Try #{i}: {result}")
 
                 if result.exit_code == 0:
                     return
 
             except APIError as e:
-                logger.exception(f"Healthcheck #{i} failed")
-                pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}: {e.explanation}", 1)
+                logger.exception(f"Try #{i} failed")
+                pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
 
             except Exception as e:
-                logger.debug(f"Healthcheck #{i}: {e}")
+                logger.debug(f"Try #{i}: {e}")
 
             time.sleep(interval)
 
-        pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}", 1)
+        pytest.exit(f"Command {cmd} failed for {self._container.name}", 1)
 
     def _fix_host_pwd_in_volumes(self):
         # on docker compose, volume host path can starts with a "."
@@ -314,6 +323,7 @@ class AgentContainer(TestedContainer):
             "DD_SITE": self.dd_site,
             "DD_APM_RECEIVER_PORT": self.agent_port,
             "DD_DOGSTATSD_PORT": "8125",
+            "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
         }
 
         if use_proxy:
@@ -343,7 +353,22 @@ class AgentContainer(TestedContainer):
 
         self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-        agent_version = self.image.env.get("SYSTEM_TESTS_AGENT_VERSION")
+        if not replay:
+            logger.debug("Get agent version from agent container")
+
+            agent_version = self._container = _get_client().containers.run(
+                image=self.image.name, auto_remove=True, command="/opt/datadog-agent/bin/agent/agent version"
+            )
+
+            agent_version = agent_version.decode("ascii")
+
+            with open(f"{self.host_log_folder}/agent_version", mode="w", encoding="utf-8") as f:
+                f.write(agent_version)
+        else:
+            with open(f"{self.host_log_folder}/agent_version", mode="r", encoding="utf-8") as f:
+                agent_version = f.read()
+
+        logger.info(f"Agent version is {agent_version}")
 
         if agent_version:
             self.agent_version = Version(agent_version, "agent")
@@ -518,12 +543,27 @@ class KafkaContainer(TestedContainer):
             allow_old_container=True,
             healthcheck={
                 "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
-                "start_period": 15 * 1_000_000_000,
+                "start_period": 5 * 1_000_000_000,
                 "interval": 2 * 1_000_000_000,
                 "timeout": 2 * 1_000_000_000,
-                "retries": 15,
+                "retries": 25,
             },
         )
+
+    def warmup(self):
+        topic = "dsm-system-tests-queue"
+        server = "127.0.0.1:9092"
+
+        kafka_options = f"--topic {topic} --bootstrap-server {server}"
+
+        commands = [
+            f"kafka-topics.sh --create {kafka_options}",
+            f'bash -c "echo hello | kafka-console-producer.sh {kafka_options}"',
+            f"kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
+        ]
+
+        for command in commands:
+            self.execute_command(test=command, interval=2 * 1_000_000_000, retries=15)
 
 
 class ZooKeeperContainer(TestedContainer):

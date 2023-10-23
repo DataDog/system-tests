@@ -455,14 +455,22 @@ class EndToEndScenario(_DockerScenario):
             logger.terminal.flush()
 
             interfaces.library.load_data_from_logs()
+            interfaces.library.check_deserialization_errors()
+
             interfaces.agent.load_data_from_logs()
+            interfaces.agent.check_deserialization_errors()
+
             interfaces.backend.load_data_from_logs()
 
         elif self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
             self.weblog_container.stop()
+            interfaces.library.check_deserialization_errors()
+
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
             self.agent_container.stop()
+            interfaces.agent.check_deserialization_errors()
+
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()

@@ -82,6 +82,19 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
     def wait(self, timeout):
         time.sleep(timeout)
 
+    def check_deserialization_errors(self):
+        """ Verify that all proxy deserialization are successful """
+
+        for data in self._data_list:
+            filename = data["log_filename"]
+            if "content" not in data["request"]:
+                traceback = data["request"].get("traceback", "no traceback")
+                pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
+
+            if data["response"] and "content" not in data["response"]:
+                traceback = data["response"].get("traceback", "no traceback")
+                pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
+
     def load_data_from_logs(self):
 
         for filename in sorted(listdir(self._log_folder)):
@@ -95,15 +108,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
                 logger.info(f"{self.name} interface gets {file_path}")
 
     def _append_data(self, data):
-        filename = data["log_filename"]
-        if "content" not in data["request"]:
-            traceback = data["request"].get("traceback", "no traceback")
-            pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
-
-        if data["response"] and "content" not in data["response"]:
-            traceback = data["response"].get("traceback", "no traceback")
-            pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
-
         self._data_list.append(data)
 
     def get_data(self, path_filters=None):
