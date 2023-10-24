@@ -193,7 +193,7 @@ def golang_library_factory():
         container_name="go-test-library",
         container_tag="go118-test-library",
         container_img=f"""
-FROM golang:1.18
+FROM golang:1.20
 WORKDIR /client
 COPY ./go.mod /client
 COPY ./go.sum /client
