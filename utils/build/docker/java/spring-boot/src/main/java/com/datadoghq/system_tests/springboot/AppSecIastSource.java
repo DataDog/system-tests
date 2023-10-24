@@ -101,8 +101,30 @@ public class AppSecIastSource {
     @PostMapping("/multipart/test")
     public String handleFileUpload(@RequestParam("file1") MultipartFile file) {
         String fileName = file.getName();
-        sql.insecureSql(fileName);
+        sql.insecureSql(fileName, (statement, sql) -> {
+            try {
+                statement.executeQuery(sql);
+            } catch (Exception ex) {
+                // Using table that does not exist, ignore error.
+            }
+            return null;
+        });
         return "fileName: " + file.getName();
+    }
+
+    @GetMapping("/path/test")
+    String sourcePath(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String param = path.substring(path.lastIndexOf('/'));
+        sql.insecureSql(param, (statement, sql) -> {
+            try {
+                statement.executeQuery(sql);
+            } catch (Exception ex) {
+                // Using table that does not exist, ignore error.
+            }
+            return null;
+        });
+        return "OK";
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
