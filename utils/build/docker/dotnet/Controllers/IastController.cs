@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -10,6 +13,7 @@ namespace weblog
     public class RequestData
     {
         public string cmd{get; set;}
+        public string table{get; set;}
     };
     
     [ApiController]
@@ -60,6 +64,36 @@ namespace weblog
             
             return Content(result.ToString());
         }
+        
+        [HttpPost("source/parameter/test")]
+        public IActionResult parameterTestPost([FromForm] RequestData data)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(data.table);
+                
+                return Content("Ok");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+
+        [HttpGet("source/parameter/test")]
+        public IActionResult parameterTest(string table)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(table);
+                
+                return Content("Ok");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
 
         [HttpPost("cmdi/test_insecure")]
         public IActionResult test_insecure_cmdI([FromForm] RequestData data)
@@ -95,6 +129,34 @@ namespace weblog
                 return StatusCode(500, "Error launching process.");
             }
         }
+
+        [HttpGet("insecure-cookie/test_insecure")]
+        public IActionResult test_insecure_insecureCookie()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
+            return StatusCode(200);
+        }
+
+        [HttpGet("insecure-cookie/test_secure")]
+        public IActionResult test_secure_insecureCookie()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
+            return StatusCode(200);
+        }
+
         
+        [HttpGet("no-samesite-cookie/test_insecure")]
+        public IActionResult test_insecure_noSameSiteCookie()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;HttpOnly;Secure");
+            return StatusCode(200);
+        }
+        
+        [HttpGet("no-samesite-cookie/test_secure")]
+        public IActionResult test_secure_noSameSiteCookie()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
+            return StatusCode(200);
+        }
     }
 }
