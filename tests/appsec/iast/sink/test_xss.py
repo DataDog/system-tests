@@ -3,30 +3,16 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import coverage
-from .._test_iast_fixtures import SinkFixture
+from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
 @coverage.basic
-class TestXSS:
+class TestXSS(BaseSinkTestWithoutTelemetry):
     """Test xss detection."""
 
-    sink_fixture = SinkFixture(
-        vulnerability_type="XSS",
-        http_method="POST",
-        insecure_endpoint="/iast/xss/test_insecure",
-        secure_endpoint="/iast/xss/test_secure",
-        data={"param": "param"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.XSSExamples"},
-    )
-
-    def setup_insecure(self):
-        self.sink_fixture.setup_insecure()
-
-    def test_insecure(self):
-        self.sink_fixture.test_insecure()
-
-    def setup_secure(self):
-        self.sink_fixture.setup_secure()
-
-    def test_secure(self):
-        self.sink_fixture.test_secure()
+    vulnerability_type = "XSS"
+    http_method = "POST"
+    insecure_endpoint = "/iast/xss/test_insecure"
+    secure_endpoint = "/iast/xss/test_secure"
+    data = {"param": "param"}
+    location_map = {"java": "com.datadoghq.system_tests.iast.utils.XSSExamples"}
