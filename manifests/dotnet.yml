@@ -47,7 +47,8 @@ tests/:
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
-          TestWeakCipher: missing_feature
+          TestWeakCipher:
+              '*': v2.24.0
         test_weak_hash.py:
           TestWeakHash:
               '*': v2.24.0
