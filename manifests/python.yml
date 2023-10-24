@@ -45,7 +45,10 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py:
-          TestCommandInjection: missing_feature
+          TestCommandInjection:
+            '*': v2.2.0
+            fastapi: missing_feature
+            python3.12: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
