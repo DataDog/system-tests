@@ -73,31 +73,13 @@ namespace weblog
         [HttpPost("source/parameter/test")]
         public IActionResult parameterTestPost([FromForm] RequestData data)
         {
-            try
-            {
-                System.Diagnostics.Process.Start(data.table);
-                
-                return Content("Ok");
-            }
-            catch
-            {
-                return StatusCode(500, "NotOk");
-            }
+            return StartProcess(data.table);
         }
 
         [HttpGet("source/parameter/test")]
         public IActionResult parameterTest(string table)
         {
-            try
-            {
-                System.Diagnostics.Process.Start(table);
-                
-                return Content("Ok");
-            }
-            catch
-            {
-                return StatusCode(500, "NotOk");
-            }
+            return StartProcess(table);
         }
         
         [HttpPost("source/parametername/test")]
@@ -147,36 +129,13 @@ namespace weblog
         [HttpPost("cmdi/test_insecure")]
         public IActionResult test_insecure_cmdI([FromForm] RequestData data)
         {
-            try
-            {            
-                if (!string.IsNullOrEmpty(data.cmd))
-                {
-                    var result = Process.Start(data.cmd);
-                    return Content($"Process launched: " + result.ProcessName);
-                }
-                else
-                {
-                    return BadRequest($"No file was provided");
-                }
-            }
-            catch
-            {
-                return StatusCode(500, "Error launching process.");
-            }
+            return StartProcess(data.cmd);
         }
         
         [HttpPost("cmdi/test_secure")]
         public IActionResult test_secure_cmdI([FromForm] RequestData data)
         {
-            try
-            {
-                var result = Process.Start("ls");
-                return Content($"Process launched: " + result.ProcessName);
-            }
-            catch
-            {
-                return StatusCode(500, "Error launching process.");
-            }
+            return StartProcess("ls");
         }
 
         [HttpGet("insecure-cookie/test_insecure")]
@@ -390,5 +349,30 @@ namespace weblog
         {
             return Content("Secure random number: " + RandomNumberGenerator.GetInt32(100).ToString(), "text/html");
         }
+        [HttpGet("source/cookievalue/test")]
+        public IActionResult test_cookie_value()
+        {
+            return StartProcess(Request.Cookies["table"]);
+        }
+        
+        private IActionResult StartProcess(string process)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(process))
+                {
+                    var result = Process.Start(process);
+                    return Content($"Process launched: " + result.ProcessName);
+                }
+                else
+                {
+                    return BadRequest($"No file was provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error launching process.");
+            }
+        }        
     }
 }
