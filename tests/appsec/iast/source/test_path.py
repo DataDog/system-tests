@@ -15,12 +15,3 @@ class TestPath(BaseSourceTest):
     source_name = None
     source_value = "/iast/source/path/test"
     requests_kwargs = [{"method": "GET"}]
-
-    def test_source_reported(self):
-        super().test_source_reported()
-
-    def test_telemetry_metric_instrumented_source(self):
-        super().test_telemetry_metric_instrumented_source()
-
-    def test_telemetry_metric_executed_source(self):
-        super().test_telemetry_metric_executed_source()
