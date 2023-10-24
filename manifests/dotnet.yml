@@ -70,7 +70,7 @@ tests/:
         test_header_value.py:
           TestHeaderValue: missing_feature
         test_multipart.py:
-          TestMultipart: missing_feature          
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName:
               '*': v2.28.0
