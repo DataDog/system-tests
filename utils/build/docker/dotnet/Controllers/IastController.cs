@@ -62,6 +62,20 @@ namespace weblog
             return Content(result.ToString());
         }
 
+        [HttpGet("insecure_cipher/test_insecure_algorithm")]
+        public IActionResult test_insecure_weakCipher()
+        {
+            DES.Create();
+            return StatusCode(200);
+        }
+        
+        [HttpGet("insecure_cipher/test_secure_algorithm")]
+        public IActionResult test_secure_weakCipher()
+        {
+            Aes.Create();
+            return StatusCode(200);
+        }
+
         [HttpPost("cmdi/test_insecure")]
         public IActionResult test_insecure_cmdI([FromForm] RequestData data)
         {
