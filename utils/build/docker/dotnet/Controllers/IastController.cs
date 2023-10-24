@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ namespace weblog
     public class RequestData
     {
         public string cmd{get; set;}
+        public string table{get; set;}
     };
     
     [ApiController]
@@ -60,6 +63,36 @@ namespace weblog
             }
             
             return Content(result.ToString());
+        }
+        
+        [HttpPost("source/parameter/test")]
+        public IActionResult parameterTestPost([FromForm] RequestData data)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(data.table);
+                
+                return Content("Ok");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+
+        [HttpGet("source/parameter/test")]
+        public IActionResult parameterTest(string table)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(table);
+                
+                return Content("Ok");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "NotOk");
+            }
         }
 
         [HttpPost("cmdi/test_insecure")]

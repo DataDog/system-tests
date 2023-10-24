@@ -12,10 +12,11 @@ REPORTS_PATH="reports/$ENV/$TEST_LIBRARY/$WEBLOG"
 
 git config user.name "${GITHUB_USER}"
 git config user.email "${GITHUB_MAIL}"
-git add "$REPORTS_PATH"
-git commit -m "add onboarding report"  
+
 git pull #avoid problems with multiple pushes at same time 
 mkdir -p "$REPORTS_PATH"
 cp ../logs_"${SCENARIO_SUFIX}"/report.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
+git add "$REPORTS_PATH"
+git commit -m "add onboarding report"  
 git push
 echo "DONE Reports commited to system-tests-dashboard!"
