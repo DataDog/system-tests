@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import time
 from functools import lru_cache
+import platform
 
 import docker
 from docker.errors import APIError
@@ -623,6 +624,15 @@ class MySqlContainer(SqlDbTestedContainer):
 class SqlServerContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.data_mssql = f"./{host_log_folder}/data-mssql"
+        healthcheck = {}
+        if not platform.processor().startswith("arm"):
+            # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
+            # see https://hub.docker.com/_/microsoft-azure-sql-edge
+            healthcheck = {
+                "test": '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
+                "retries": 20,
+            }
+
         super().__init__(
             image_name="mcr.microsoft.com/azure-sql-edge:latest",
             name="mssql",
@@ -631,6 +641,7 @@ class SqlServerContainer(SqlDbTestedContainer):
             host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
             #  volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
+            healthcheck=healthcheck,
             dd_integration_service="mssql",
             db_user="SA",
             db_password="yourStrong(!)Password",
