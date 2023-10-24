@@ -79,8 +79,6 @@ tests/:
               '*': v2.28.0
         test_path.py:
           TestPath: missing_feature
-        test_uri.py:
-          TestURI: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0

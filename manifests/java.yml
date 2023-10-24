@@ -236,22 +236,11 @@ tests/:
           TestPath:
             '*': missing_feature
             spring-boot: v1.22.0
-            spring-boot: v1.22.0
             spring-boot-jetty: v1.22.0
             spring-boot-openliberty: v1.22.0
             spring-boot-payara: v1.22.0
             spring-boot-undertow: v1.22.0
-            uds-spring-boot: v1.22.0            
-        test_uri.py:
-          TestURI:
-            '*': missing_feature
-            spring-boot: v1.22.0
-            spring-boot: v1.22.0
-            spring-boot-jetty: v1.22.0
-            spring-boot-openliberty: v1.22.0
-            spring-boot-payara: v1.22.0
-            spring-boot-undertow: v1.22.0
-            uds-spring-boot: v1.22.0            
+            uds-spring-boot: v1.22.0
     waf/:
       test_addresses.py:
         Test_BodyJson:

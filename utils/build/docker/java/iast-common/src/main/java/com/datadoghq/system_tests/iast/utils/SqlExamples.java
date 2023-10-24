@@ -27,17 +27,6 @@ public class SqlExamples {
         }
     }
 
-    public void insecureSql(final String username, final String password, final StatementHandler handler) {
-        try (final Connection con = dataSource.getConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USER WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "'";
-            final ResultSet result = handler.executeQuery(statement, sql);
-        } catch (final Exception e) {
-            throw new UndeclaredThrowableException(e);
-        }
-    }
-
-
     public Object insecureSql(final String username, final String password) {
         try (final Connection con = dataSource.getConnection()) {
             final Statement statement = con.createStatement();

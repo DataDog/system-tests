@@ -155,8 +155,6 @@ tests/:
           TestParameterValue: bug (should have been v1.18.0)
         test_path.py:
           TestPath: missing_feature
-        test_uri.py:
-          TestURI: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:

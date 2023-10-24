@@ -8,10 +8,19 @@ from .._test_iast_fixtures import BaseSourceTest
 
 @coverage.basic
 class TestPath(BaseSourceTest):
-    """Verify that request headers are tainted"""
+    """Verify that request path is tainted"""
 
-    endpoint="/iast/source/path/test"
-    requests_kwargs=[{"method": "GET"}]
-    source_type="http.request.path"
-    source_name="/iast/source/path/test"
-    source_value=None
+    endpoint = "/iast/source/path/test"
+    source_type = "http.request.path"
+    source_name = None
+    source_value = "/iast/source/path/test"
+    requests_kwargs = [{"method": "GET"}]
+
+    def test_source_reported(self):
+        super().test_source_reported()
+
+    def test_telemetry_metric_instrumented_source(self):
+        super().test_telemetry_metric_instrumented_source()
+
+    def test_telemetry_metric_executed_source(self):
+        super().test_telemetry_metric_executed_source()
