@@ -291,7 +291,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      if: always() && steps.build.outcome == 'success' 
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
