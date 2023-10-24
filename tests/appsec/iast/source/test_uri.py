@@ -7,11 +7,10 @@ from .._test_iast_fixtures import BaseSourceTest
 
 
 @coverage.basic
-class TestPath(BaseSourceTest):
-    """Verify that request path is tainted"""
+class TestURI(BaseSourceTest):
+    """Verify that URL is tainted"""
 
-    endpoint = "/iast/source/path/test"
-    source_type = "http.request.path"
-    source_name = None
-    source_value = "/iast/source/path/test"
+    endpoint = "/iast/source/uri/test"
     requests_kwargs = [{"method": "GET"}]
+    source_type = "http.request.uri"
+    source_value = None

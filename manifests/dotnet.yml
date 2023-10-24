@@ -42,7 +42,6 @@ tests/:
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
-          TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -70,13 +69,26 @@ tests/:
         test_header_value.py:
           TestHeaderValue: missing_feature
         test_multipart.py:
-          TestMultipart: missing_feature
+          TestMultipart: missing_feature          
         test_parameter_name.py:
+<<<<<<< HEAD
           TestParameterName: v2.28.0
         test_parameter_value.py:
           TestParameterValue: v2.28.0
+=======
+          TestParameterName:
+              '*': v2.28.0
+        test_parameter_value.py:
+          TestParameterValue:
+              '*': v2.28.0
+<<<<<<< HEAD
+>>>>>>> 0a8f385e (test names)
         test_path.py:
           TestPath: missing_feature
+        test_uri.py:
+          TestURI: missing_feature              
+=======
+>>>>>>> b2e74293 (test names)
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
