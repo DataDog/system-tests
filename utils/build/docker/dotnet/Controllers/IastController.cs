@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System;
@@ -128,6 +129,34 @@ namespace weblog
                 return StatusCode(500, "Error launching process.");
             }
         }
+
+        [HttpGet("insecure-cookie/test_insecure")]
+        public IActionResult test_insecure_insecureCookie()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
+            return StatusCode(200);
+        }
+
+        [HttpGet("insecure-cookie/test_secure")]
+        public IActionResult test_secure_insecureCookie()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
+            return StatusCode(200);
+        }
+
         
+        [HttpGet("no-samesite-cookie/test_insecure")]
+        public IActionResult test_insecure_noSameSiteCookie()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;HttpOnly;Secure");
+            return StatusCode(200);
+        }
+        
+        [HttpGet("no-samesite-cookie/test_secure")]
+        public IActionResult test_secure_noSameSiteCookie()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
+            return StatusCode(200);
+        }
     }
 }

@@ -49,6 +49,7 @@ tests/:
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
+          TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -83,6 +84,8 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName: missing_feature
         test_parameter_value.py:
