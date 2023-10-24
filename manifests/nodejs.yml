@@ -222,7 +222,7 @@ tests/:
           nextjs: missing_feature
       Test_Blocking_request_cookies:
           '*': v4.16.0
-          nextjs: v4.17.0
+          nextjs: missing_feature
       Test_Blocking_request_headers:
           '*': v3.19.0
           nextjs: v4.17.0
@@ -303,7 +303,7 @@ tests/:
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
           '*': v3.19.0
-          nextjs: v4.17.0
+          nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation:
           '*': v3.9.0
@@ -324,7 +324,7 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
           '*': v3.15.0
-          nextjs: v4.17.0
+          nextjs: missing_feature (block method not implemented for nextjs yet)
     test_versions.py:
       Test_Events:
           '*': v2.0.0
