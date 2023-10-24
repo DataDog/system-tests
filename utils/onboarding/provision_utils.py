@@ -90,15 +90,15 @@ class ProvisionParser:
                 yield agent_data
 
     def ec2_autoinjection_install_data(self):
-        autoinjection_language_data = {}
+        autoinjection_data = {}
         if self.is_auto_install:
             # Read agent_auto_install node
-            autoinjection_language_data = self._get_autoinstall_data_for_current_lang()
+            autoinjection_data = self._get_autoinstall_data()
         else:
-            autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
-        if not autoinjection_language_data:
+            autoinjection_data = self._get_autoinjection_data()
+        if not autoinjection_data:
             return None
-        for autoinjection_env_data in autoinjection_language_data:
+        for autoinjection_env_data in autoinjection_data:
             if self.provision_filter.env and autoinjection_env_data["env"] != self.provision_filter.env:
                 continue
             filteredInstalations = self._filter_install_data(autoinjection_env_data)
@@ -109,12 +109,11 @@ class ProvisionParser:
             yield {"env": autoinjection_env_data["env"], "install": filteredInstalations[0]}
 
     def ec2_autoinjection_uninstall_data(self):
-        autoinjection_language_data = {}
         # Although the installation was automatic, the uninstallation method is the same as the manual installation.
-        autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
-        if not autoinjection_language_data:
+        autoinjection_data = self._get_autoinjection_data()
+        if not autoinjection_data:
             return None
-        for autoinjection_env_data in autoinjection_language_data:
+        for autoinjection_env_data in autoinjection_data:
             if self.provision_filter.env and autoinjection_env_data["env"] != self.provision_filter.env:
                 continue
             filteredInstalations = self._filter_install_data(autoinjection_env_data, operation="uninstall")
@@ -124,32 +123,21 @@ class ProvisionParser:
 
             return {"uninstall": filteredInstalations[0]}
 
-    def _get_autoinstall_data_for_current_lang(self):
-        for autoinjection_language_data in self.config_data["agent_auto_install"]:
-            if self.provision_filter.language in autoinjection_language_data:
-                return autoinjection_language_data[self.provision_filter.language]
+    def _get_autoinstall_data(self):
+        return self.config_data["agent_auto_install"]
 
-    def _get_autoinjection_data_for_current_lang(self):
-        for autoinjection_language_data in self.config_data["autoinjection"]:
-            if self.provision_filter.language in autoinjection_language_data:
-                return autoinjection_language_data[self.provision_filter.language]
+    def _get_autoinjection_data(self):
+        return self.config_data["autoinjection"]
 
     def ec2_language_variants_install_data(self):
         language_variants_data_result = []
-
         # Language variants are not mandatory. Perhaps the yml file doesn't contain this node
         if "language-variants" in self.config_data:
-            for language_variants_data in self.config_data["language-variants"]:
-                for filtered_language_variants_data in self._filter_provision_data(
-                    language_variants_data, self.provision_filter.language
-                ):
-                    language_variants_data_result.append(filtered_language_variants_data)
-
+            language_variants_data_result = self._filter_provision_data(self.config_data, "language-variants")
         # If the aren't language variants for this language, we allways return one row.
         # This let us to search weblog variants without "language_specification" versionn (ie container based apps)
         if not language_variants_data_result:
             language_variants_data_result.append({"version": None, "name": "None"})
-
         return language_variants_data_result
 
     def ec2_prepare_init_config_install_data(self):
@@ -170,26 +158,23 @@ class ProvisionParser:
         return {"install": filteredInstalations[0]}
 
     def ec2_weblogs_install_data(self, support_version):
-        for language_weblog_data in self.config_data["weblogs"]:
-            for filtered_weblog_data in self._filter_provision_data(
-                language_weblog_data, self.provision_filter.language, exact_match=True
+
+        for filtered_weblog_data in self._filter_provision_data(self.config_data, "weblogs", exact_match=True):
+            if (not support_version and "supported-language-versions" not in filtered_weblog_data) or (
+                support_version in filtered_weblog_data["supported-language-versions"]
             ):
-                if (not support_version and "supported-language-versions" not in filtered_weblog_data) or (
-                    support_version in filtered_weblog_data["supported-language-versions"]
-                ):
-                    weblog_filter = self.provision_filter.weblog
-                    if weblog_filter and filtered_weblog_data["name"] != weblog_filter:
-                        continue
-                    yield filtered_weblog_data
+                if self.provision_filter.weblog and filtered_weblog_data["name"] != self.provision_filter.weblog:
+                    continue
+                yield filtered_weblog_data
 
     def ec2_weblog_uninstall_data(self, weblog_filter):
-        for language_weblog_data in self.config_data["weblogs"]:
-            for filtered_weblog_data in self._filter_provision_data(
-                language_weblog_data, self.provision_filter.language, exact_match=True, operation="uninstall"
-            ):
-                if weblog_filter and filtered_weblog_data["name"] != weblog_filter:
-                    continue
-                return filtered_weblog_data
+
+        for filtered_weblog_data in self._filter_provision_data(
+            self.config_data, "weblogs", exact_match=True, operation="uninstall"
+        ):
+            if weblog_filter and filtered_weblog_data["name"] != weblog_filter:
+                continue
+            return filtered_weblog_data
 
     def ec2_installation_checks_data(self):
         for installation_checks_data in self.config_data["installation_checks"]:
@@ -284,6 +269,8 @@ class ProvisionParser:
         provision_file = (
             "tests/onboarding/infra_provision/provision_"
             + provision_file_name.removesuffix(self.auto_install_suffix).lower()
+            + "_"
+            + self.provision_filter.language
             + ".yml"
         )
         with open(provision_file, encoding="utf-8") as f:
