@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, coverage, missing_feature
+from utils import context, weblog, interfaces, bug, coverage, missing_feature, scenarios
 from .utils import rules
 
 
@@ -38,9 +38,7 @@ class Test_MultipleHighlight:
 
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
-        interfaces.library.assert_waf_attack(
-            self.r, "multiple_highlight_rule", patterns=["highlight1", "highlight2"]
-        )
+        interfaces.library.assert_waf_attack(self.r, "multiple_highlight_rule", patterns=["highlight1", "highlight2"])
 
 
 @coverage.good
