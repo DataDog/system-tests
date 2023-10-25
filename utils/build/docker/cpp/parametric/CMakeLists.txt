@@ -15,8 +15,8 @@ set(FETCHCONTENT_QUIET OFF)
 FetchContent_Declare(
   dd-trace-cpp
   GIT_REPOSITORY https://github.com/DataDog/dd-trace-cpp
-  GIT_TAG        v0.1.10
-  GIT_SHALLOW    ON
+  GIT_TAG        e93458b2ceff22cdcebd198553f3fd81552ccf65
+  GIT_SHALLOW    OFF
   GIT_PROGRESS   ON
 )
 FetchContent_MakeAvailable(dd-trace-cpp)
