@@ -206,6 +206,20 @@ namespace weblog
             return StatusCode(200);
         }
         
+        [HttpGet("no-httponly-cookie/test_insecure")]
+        public IActionResult test_insecure_noHttpOnly()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure");
+            return StatusCode(200);
+        }
+        
+        [HttpGet("no-httponly-cookie/test_secure")]
+        public IActionResult test_secure_noHttpOnly()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
+            return StatusCode(200);
+        }        
+        
         [HttpPost("path_traversal/test_insecure")]
         public IActionResult TestInsecurePathTraversal([FromForm] RequestData data)
         {
