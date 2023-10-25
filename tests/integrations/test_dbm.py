@@ -20,8 +20,8 @@ class Test_Dbm:
             ]
         elif self.library_name == "dotnet":
             self.requests = [
-                weblog.get("/dbm", params={"integration": "mysql"}),
                 weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
+                weblog.get("/dbm", params={"integration": "mysql"}),
                 weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
         elif self.library_name == "php":
