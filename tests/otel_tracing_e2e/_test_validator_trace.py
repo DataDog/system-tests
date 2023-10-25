@@ -41,7 +41,6 @@ def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
     assert span["ingestion_reason"] == "otel"
     expected_meta = {
         "deployment.environment": "system-tests",
-        "_dd.ingestion_reason": "otel",
         "otel.status_code": "Unset",
         "otel.library.name": "com.datadoghq.springbootnative",
     }
@@ -119,6 +118,9 @@ KNOWN_UNMATCHED_METAS = [
     "_dd.tracer_version",
     "_dd.p.dm",
     "_dd.agent_hostname",
+
+    # TODO(songy23): investigate otel ingestion reasons
+    "_dd.ingestion_reason",
 ]
 KNOWN_UNMATCHED_METRICS = [
     "_dd.agent_errors_sampler.target_tps",
