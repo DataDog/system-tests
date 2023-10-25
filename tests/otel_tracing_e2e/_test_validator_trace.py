@@ -118,7 +118,6 @@ KNOWN_UNMATCHED_METAS = [
     "_dd.tracer_version",
     "_dd.p.dm",
     "_dd.agent_hostname",
-
     # TODO(songy23): investigate otel ingestion reasons
     "_dd.ingestion_reason",
 ]
