@@ -28,17 +28,18 @@ class Test_404:
         )
 
 
+@scenarios.appsec_custom_rules
 @coverage.basic
 class Test_MultipleHighlight:
     """Appsec reports multiple attacks on same request"""
 
     def setup_multiple_hightlight(self):
-        self.r = weblog.get("/waf", params={"value": "processbuilder unmarshaller"})
+        self.r = weblog.get("/waf", params={"value": "highlight1 highlight2"})
 
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
         interfaces.library.assert_waf_attack(
-            self.r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
+            self.r, "multiple_highlight_rule", patterns=["highlight1", "highlight2"]
         )
 
 
