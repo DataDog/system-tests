@@ -118,8 +118,7 @@ KNOWN_UNMATCHED_METAS = [
     "_dd.tracer_version",
     "_dd.p.dm",
     "_dd.agent_hostname",
-    # TODO(songy23): investigate otel ingestion reasons
-    "_dd.ingestion_reason",
+    "_dd.ingestion_reason",  # this is replaced by `ddtags: ingestion_reason:otel` in the latest version
 ]
 KNOWN_UNMATCHED_METRICS = [
     "_dd.agent_errors_sampler.target_tps",
