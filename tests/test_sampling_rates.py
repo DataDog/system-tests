@@ -159,6 +159,8 @@ class Test_SamplingDecisions:
             validator(data, span)
 
     def setup_sampling_decision_added(self):
+        seed(1)  # stay deterministic
+
         self.traces = [{"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)]
 
         for trace in self.traces:
@@ -195,7 +197,7 @@ class Test_SamplingDecisions:
         interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
 
         if len(spans) != len(traces):
-            raise ValueError("Didn't see all requests")
+            raise ValueError(f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}")
 
     def setup_sampling_determinism(self):
         seed(0)  # stay deterministic
