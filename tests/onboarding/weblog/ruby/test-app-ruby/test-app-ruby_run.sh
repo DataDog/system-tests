@@ -1,13 +1,20 @@
 #!/bin/bash
 echo "START RUN APP"
 
+sudo cp -R * /home/datadog
 
-sudo sed -i "s/18080/5985/g" index.js 
-sudo cp index.js /home/datadog
-sudo cp test-app-nodejs.service /etc/systemd/system/test-app-nodejs.service
+# Upgrade RubyGems and Bundler
+gem update --system 3.4.1
+gem install bundler -v '~> 2.3.26'
+mkdir -p "$GEM_HOME" && chmod -R 777 "$GEM_HOME"
+
+sudo cp test-app-ruby.service /etc/systemd/system/test-app-ruby.service
+
+sudo cd /home/datadog/lib_injection_rails_app
+sudo bundle install
 sudo systemctl daemon-reload
-sudo systemctl enable test-app-nodejs.service
-sudo systemctl start test-app-nodejs.service
-sudo systemctl status test-app-nodejs.service
+sudo systemctl enable test-app-ruby.service
+sudo systemctl start test-app-ruby.service
+sudo systemctl status test-app-ruby.service
 
 echo "RUN DONE"

@@ -133,7 +133,7 @@ def remote_copy_folders(source_folder, destination_folder, command_id, connectio
             quee_depends_on.insert(
                 0,
                 command.remote.CopyFile(
-                    file_name + "-" + command_id,
+                    source + "-" + command_id,
                     connection=connection,
                     local_path=source,
                     remote_path=destination,
@@ -150,7 +150,7 @@ def remote_copy_folders(source_folder, destination_folder, command_id, connectio
             quee_depends_on.insert(
                 0,
                 command.remote.Command(
-                    "mkdir-" + file_name + "-" + command_id,
+                    "mkdir-" + destination + "-" + command_id,
                     connection=connection,
                     create=f"mkdir -p {destination}",
                     opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
