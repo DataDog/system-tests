@@ -1,15 +1,13 @@
-## OSError: source code not available
+## On Mac/Parametric tests, fix "allow incoming internet connection" popup 
 
-When an interface test fails, source code that trigger the fail is logged. If `OSError: source code not available` 
-is printed, it means that you have previously ran tests outside docker, and python took the source from cached version.
+??
 
-=> Remove any `__pycache__` folder
+## weblog image is not found ?
 
-## `run.sh` fails at the very beginning, saying `runner` is unhealthy
+When running `build.sh`, you have this error : 
 
-You may have python errors, try `docker-compose up runner` to directly see them
+```
+ERROR: failed to solve: system_tests/weblog: pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed
+```
 
-## `run.sh` fails at the very beginning, saying `agent` is unhealthy
-
-Internet connection issue?
-
+It says it try to get `system_tests/weblog` image from docker hub because it does not exists loccaly. But a `docker images ls -a | grep weblog` says this image exists. You may not using the `default` docker buildx, try `docker buildx use default`.
