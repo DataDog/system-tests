@@ -22,7 +22,7 @@ class Test_Dbm:
             self.requests = [
                 weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
                 weblog.get("/dbm", params={"integration": "mysql"}),
-                weblog.get("/dbm", params={"integration": "sqlclient"}),
+                weblog.get("/dbm", params={"integration": "sqlclient"}, timeout=20),
             ]
         elif self.library_name == "php":
             self.requests = [
