@@ -228,10 +228,7 @@ class Test_Meta:
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
     @bug(library="java", reason="language tag implemented but not for all spans")
-    @bug(
-        library="dotnet",
-        reason="language tag implemented but not for all spans. https://datadoghq.atlassian.net/browse/AIT-8735",
-    )
+    @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
