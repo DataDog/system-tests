@@ -5,7 +5,7 @@ go 1.18
 require (
 	go.opentelemetry.io/otel v1.16.0
 	go.opentelemetry.io/otel/trace v1.16.0
-	google.golang.org/grpc v1.54.0
+	google.golang.org/grpc v1.56.3
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20230808142237-30bfd5205d6a
 )
