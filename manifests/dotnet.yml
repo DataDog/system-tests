@@ -34,7 +34,7 @@ tests/:
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
-          TestPathTraversal: missing_feature
+              '*': v2.31.0
         test_sql_injection.py:
           TestSqlInjection: missing_feature
         test_ssrf.py:
