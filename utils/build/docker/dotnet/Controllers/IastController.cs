@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace weblog
 {
     public class RequestData
     {
+        public string user{get; set;}
         public string cmd{get; set;}
         public string table{get; set;}
     };
@@ -86,6 +88,36 @@ namespace weblog
             try
             {
                 System.Diagnostics.Process.Start(table);
+                
+                return Content("Ok");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+        
+        [HttpPost("source/parametername/test")]
+        public IActionResult parameterNameTestPost([FromForm] RequestData data)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(data.user);
+                
+                return Content("Ok");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+
+        [HttpGet("source/parametername/test")]
+        public IActionResult parameterNameTest(string user)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Request.Query.First().Key);
                 
                 return Content("Ok");
             }

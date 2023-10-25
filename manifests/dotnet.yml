@@ -74,7 +74,8 @@ tests/:
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
-          TestParameterName: missing_feature
+          TestParameterName:
+              '*': v2.28.0
         test_parameter_value.py:
           TestParameterValue:
               '*': v2.28.0
