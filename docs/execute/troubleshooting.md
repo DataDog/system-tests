@@ -1,6 +1,6 @@
 ## On Mac/Parametric tests, fix "allow incoming internet connection" popup 
 
-??
+The popup should disappear, don't worry
 
 ## weblog image is not found ?
 
