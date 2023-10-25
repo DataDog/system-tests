@@ -1,3 +1,8 @@
+## `docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))`
+
+Your docker engine is not started or not ready. start it, and wait.
+It also happens when you do not allow the default socket to be used (see Advanced options in docker desktop).
+
 ## On Mac/Parametric tests, fix "allow incoming internet connection" popup 
 
 The popup should disappear, don't worry
