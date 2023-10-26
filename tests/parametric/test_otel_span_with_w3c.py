@@ -18,7 +18,6 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 class Test_Otel_Span_With_W3c:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")

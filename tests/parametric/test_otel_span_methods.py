@@ -73,6 +73,7 @@ class Test_Otel_Span_Methods:
     )
     @irrelevant(context.library >= "golang@v1.59.0.dev0", reason="New span naming introduced in v1.59.0")
     @irrelevant(context.library == "ruby", reason="Old array encoding no longer supported")
+    @irrelevant(context.library == "php", reason="Old array encoding no longer supported")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
