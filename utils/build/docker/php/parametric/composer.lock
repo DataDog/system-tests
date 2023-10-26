@@ -1563,12 +1563,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "9546d94bdc212214e23aa7ea5a3734417e33e5e1"
+                "reference": "bd1758df12540ddd5a3f00bf06cdf6dfc6fe8b11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/9546d94bdc212214e23aa7ea5a3734417e33e5e1",
-                "reference": "9546d94bdc212214e23aa7ea5a3734417e33e5e1",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/bd1758df12540ddd5a3f00bf06cdf6dfc6fe8b11",
+                "reference": "bd1758df12540ddd5a3f00bf06cdf6dfc6fe8b11",
                 "shasum": ""
             },
             "require": {
@@ -1657,7 +1657,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-08-03T12:04:37+00:00"
+            "time": "2023-10-25T13:15:33+00:00"
         },
         {
             "name": "nikic/fast-route",
@@ -1921,12 +1921,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/opentelemetry-php/sdk.git",
-                "reference": "793ae3f887ff244bb079cdcba8c908dcc0319048"
+                "reference": "1c6020b4f1b85fdd647538ee46f6c83360d7c11e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/sdk/zipball/793ae3f887ff244bb079cdcba8c908dcc0319048",
-                "reference": "793ae3f887ff244bb079cdcba8c908dcc0319048",
+                "url": "https://api.github.com/repos/opentelemetry-php/sdk/zipball/1c6020b4f1b85fdd647538ee46f6c83360d7c11e",
+                "reference": "1c6020b4f1b85fdd647538ee46f6c83360d7c11e",
                 "shasum": ""
             },
             "require": {
@@ -1997,7 +1997,7 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2023-10-13T00:48:23+00:00"
+            "time": "2023-10-18T20:53:08+00:00"
         },
         {
             "name": "open-telemetry/sem-conv",
@@ -2005,12 +2005,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/opentelemetry-php/sem-conv.git",
-                "reference": "45c77006786510ed05d59b61ce253c07afc54d32"
+                "reference": "e582b874ee89bec544f962db212b3966fe9310a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/sem-conv/zipball/45c77006786510ed05d59b61ce253c07afc54d32",
-                "reference": "45c77006786510ed05d59b61ce253c07afc54d32",
+                "url": "https://api.github.com/repos/opentelemetry-php/sem-conv/zipball/e582b874ee89bec544f962db212b3966fe9310a7",
+                "reference": "e582b874ee89bec544f962db212b3966fe9310a7",
                 "shasum": ""
             },
             "require": {
@@ -2055,7 +2055,7 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2023-09-05T03:38:44+00:00"
+            "time": "2023-10-19T20:10:44+00:00"
         },
         {
             "name": "php-http/discovery",
@@ -2409,12 +2409,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/revoltphp/event-loop.git",
-                "reference": "0fe2d31e1cddd26664e55d383d3d5da613334c03"
+                "reference": "40292c18e53d9a1b7e6c807f4fda5908552e1ba5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/revoltphp/event-loop/zipball/0fe2d31e1cddd26664e55d383d3d5da613334c03",
-                "reference": "0fe2d31e1cddd26664e55d383d3d5da613334c03",
+                "url": "https://api.github.com/repos/revoltphp/event-loop/zipball/40292c18e53d9a1b7e6c807f4fda5908552e1ba5",
+                "reference": "40292c18e53d9a1b7e6c807f4fda5908552e1ba5",
                 "shasum": ""
             },
             "require": {
@@ -2472,9 +2472,9 @@
             ],
             "support": {
                 "issues": "https://github.com/revoltphp/event-loop/issues",
-                "source": "https://github.com/revoltphp/event-loop/tree/v1.0.3"
+                "source": "https://github.com/revoltphp/event-loop/tree/v1.0.4"
             },
-            "time": "2023-07-29T17:07:12+00:00"
+            "time": "2023-10-22T03:19:00+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -3134,11 +3134,13 @@
     "stability-flags": {
         "amphp/http-server": 20,
         "amphp/http-server-router": 20,
-        "amphp/log": 20
+        "amphp/log": 20,
+        "symfony/http-client": 20,
+        "nyholm/psr7": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }
