@@ -46,7 +46,6 @@ class TestParameterValue(BaseSourceTest):
         context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented"
     )
     @missing_feature(library="dotnet", reason="Not implemented")
-    @missing_feature(library="nodejs", reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
@@ -54,6 +53,5 @@ class TestParameterValue(BaseSourceTest):
     @missing_feature(
         context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented"
     )
-    @missing_feature(library="nodejs", reason="Not implemented")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

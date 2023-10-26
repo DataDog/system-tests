@@ -8,8 +8,12 @@ get_latest_release() {
 
 NGINX_VERSION=1.17.3
 
-OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
+# OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
+# asset are missing on v0.33.0 : https://github.com/opentracing-contrib/nginx-opentracing/issues/527
+OPENTRACING_NGINX_VERSION="v0.32.0"
+
 DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
+
 echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION"
 echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
 echo $DD_OPENTRACING_CPP_VERSION > SYSTEM_TESTS_LIBRARY_VERSION

@@ -16,6 +16,7 @@ namespace weblog
         public string user{get; set;}
         public string cmd{get; set;}
         public string table{get; set;}
+        public string path{get; set;}
     };
     
     [ApiController]
@@ -76,7 +77,7 @@ namespace weblog
                 
                 return Content("Ok");
             }
-            catch(Exception ex)
+            catch
             {
                 return StatusCode(500, "NotOk");
             }
@@ -91,7 +92,7 @@ namespace weblog
                 
                 return Content("Ok");
             }
-            catch(Exception ex)
+            catch
             {
                 return StatusCode(500, "NotOk");
             }
@@ -106,7 +107,7 @@ namespace weblog
                 
                 return Content("Ok");
             }
-            catch(Exception ex)
+            catch
             {
                 return StatusCode(500, "NotOk");
             }
@@ -121,7 +122,7 @@ namespace weblog
                 
                 return Content("Ok");
             }
-            catch(Exception ex)
+            catch
             {
                 return StatusCode(500, "NotOk");
             }
@@ -167,8 +168,8 @@ namespace weblog
         {
             try
             {
-                    var result = Process.Start("ls");
-                    return Content($"Process launched: " + result.ProcessName);
+                var result = Process.Start("ls");
+                return Content($"Process launched: " + result.ProcessName);
             }
             catch
             {
@@ -203,6 +204,34 @@ namespace weblog
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
+        }
+        
+        [HttpPost("path_traversal/test_insecure")]
+        public IActionResult TestInsecurePathTraversal([FromForm] RequestData data)
+        {
+            try
+            {
+                var result = System.IO.File.ReadAllText(data.path);
+                return Content($"File content: " + result);
+            }
+            catch
+            {
+                return StatusCode(500, "Error reading file.");
+            }
+        }
+
+        [HttpPost("path_traversal/test_secure")]
+        public IActionResult TestSecurePathTraversal([FromForm] RequestData data)
+        {
+            try
+            {
+                var result = System.IO.File.ReadAllText("file.txt");
+                return Content($"File content: " + result);
+            }
+            catch
+            {
+                return StatusCode(500, "Error reading file.");
+            }
         }
     }
 }
