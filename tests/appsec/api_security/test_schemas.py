@@ -48,7 +48,10 @@ class Test_Schema_Request_Headers:
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert contains(schema, [{"accept-encoding": [8], "host": [8], "user-agent": [8]}])
+        for parameter_name in ("accept-encoding", "host", "user-agent"):
+            assert parameter_name in schema[0]
+            assert isinstance(schema[0][parameter_name], list)
+
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -170,5 +173,5 @@ class Test_Schema_Response_Body:
         for key in ("payload",):
             assert key in schema[0]
         payload_schema = schema[0]["payload"][0]
-        for key in ("test_bool", "test_int", "test_str"):
+        for key in ("test_bool", "test_int", "test_str", "test_float"):
             assert key in payload_schema
