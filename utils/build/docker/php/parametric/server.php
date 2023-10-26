@@ -24,6 +24,8 @@ use OpenTelemetry\API\Trace\NonRecordingSpan;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\SDK\Trace as SDK;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use function Amp\trapSignal;
 
@@ -53,6 +55,8 @@ function arg($req, $arg) {
 }
 
 $closed_spans = $spans = [];
+/** @var ScopeInterface[] $scopes */
+$scopes = [];
 
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans) {
@@ -153,7 +157,7 @@ $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(functio
     dd_trace_internal_fn("synchronous_flush");
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(function (Request $req) use (&$spans, &$scopes) {
     $name = arg($req, 'name');
     $timestamp = arg($req, 'timestamp');
     $spanKind = arg($req, 'span_kind');
@@ -200,6 +204,7 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
     $span = $spanBuilder->startSpan();
     $spanId = $span->getContext()->getSpanId();
     $traceId = $span->getContext()->getTraceId();
+    $scopes[$spanId] = $span->activate();
     $spans[$spanId] = $span;
 
     return jsonResponse([
@@ -207,13 +212,15 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         'trace_id' => $traceId
     ]);
 }));
-$router->addRoute('POST', '/trace/otel/end_span', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/otel/end_span', new ClosureRequestHandler(function (Request $req) use (&$spans, &$scopes) {
     $spanId = arg($req, 'id');
     $timestamp = arg($req, 'timestamp');
 
     /** @var ?Span $span */
     $span = $spans[$spanId];
     if ($span) {
+        $scope = $scopes[$spanId];
+        $scope?->detach();
         $span->end($timestamp ? $timestamp * 1000 : null);
     }
 
@@ -272,7 +279,7 @@ $router->addRoute('POST', '/trace/otel/is_recording', new ClosureRequestHandler(
 $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $spanId = arg($req, 'span_id');
 
-    /** @var ?Span $span */
+    /** @var ?SDK\Span $span */
     $span = $spans[$spanId];
     if ($span) {
         $spanContext = $span->getContext();
