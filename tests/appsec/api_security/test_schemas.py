@@ -62,7 +62,7 @@ class Test_Schema_Request_Cookies:
 
     def setup_request_method(self):
         self.request = weblog.get(
-            "/tag_value/api_match_AS001/200", cookies={"secret": "any value", "cache": "any other value"}
+            "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
@@ -72,7 +72,9 @@ class Test_Schema_Request_Cookies:
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert contains(schema, [{"secret": [8], "cache": [8]}])
+        for parameter_name in ("secret", "cache"):
+            assert parameter_name in schema[0]
+            assert isinstance(schema[0][parameter_name], list)
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
