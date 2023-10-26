@@ -22,11 +22,9 @@ class TestRequestBody(BaseSourceTest):
         super().test_source_reported()
 
     @missing_feature(library="java", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
     @missing_feature(library="java", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()
