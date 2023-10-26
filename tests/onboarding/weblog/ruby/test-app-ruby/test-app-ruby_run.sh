@@ -1,17 +1,12 @@
 #!/bin/bash
 echo "START RUN APP"
 
+sudo sed -i "s/3.1.3/3.0.2/g" Gemfile 
+sudo DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
 sudo cp -R * /home/datadog
-
-# Upgrade RubyGems and Bundler
-gem update --system 3.4.1
-gem install bundler -v '~> 2.3.26'
-mkdir -p "$GEM_HOME" && chmod -R 777 "$GEM_HOME"
-
+sudo chmod -R 755 /home/datadog
+sudo chown -R datadog:datadog /home/datadog
 sudo cp test-app-ruby.service /etc/systemd/system/test-app-ruby.service
-
-sudo cd /home/datadog/lib_injection_rails_app
-sudo bundle install
 sudo systemctl daemon-reload
 sudo systemctl enable test-app-ruby.service
 sudo systemctl start test-app-ruby.service
