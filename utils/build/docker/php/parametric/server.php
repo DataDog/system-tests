@@ -7,6 +7,7 @@ require __DIR__ . "/vendor/autoload.php";
 
 use Amp\ByteStream;
 use Amp\Http\Server\DefaultErrorHandler;
+use Amp\Http\Server\Driver\SocketClientFactory;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\Response;
@@ -14,6 +15,7 @@ use Amp\Http\Server\Router;
 use Amp\Http\Server\SocketHttpServer;
 use Amp\Log\ConsoleFormatter;
 use Amp\Log\StreamHandler;
+use Amp\Socket\ResourceServerSocketFactory;
 use DDTrace\OpenTelemetry\API\Trace\SpanContext;
 use League\Uri\Components\Query;
 use Monolog\Logger;
@@ -31,7 +33,10 @@ $logHandler->setFormatter(new ConsoleFormatter);
 $logger = new Logger('server');
 $logger->pushHandler($logHandler);
 
-$server = new SocketHttpServer($logger);
+$serverSocketFactory = new ResourceServerSocketFactory();
+$clientFactory = new SocketClientFactory($logger);
+
+$server = new SocketHttpServer($logger, $serverSocketFactory, $clientFactory);
 
 $port = getenv('APM_TEST_CLIENT_SERVER_PORT');
 $server->expose("0.0.0.0:" . $port);
@@ -49,7 +54,7 @@ function arg($req, $arg) {
 
 $closed_spans = $spans = [];
 
-$router = new Router($server, $errorHandler);
+$router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     if ($parent = arg($req, 'parent_id')) {
         \DDTrace\switch_stack($spans[$parent]);
@@ -163,7 +168,7 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         /** @var ?Span $parentSpan */
         $parentSpan = $spans[$parentId];
         if ($parentSpan === null) {
-            return;
+            return jsonResponse([]);
         }
         $contextWithParentSpan = $parentSpan->storeInContext(OpenTelemetry\Context\Context::getRoot());
         $spanBuilder->setParent($contextWithParentSpan);
