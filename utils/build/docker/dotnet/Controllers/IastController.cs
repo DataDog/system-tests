@@ -206,17 +206,26 @@ namespace weblog
             return StatusCode(200);
         }
         
+        [HttpGet("no-httponly-cookie/test_empty_cookie")]
+        [HttpGet("no-samesite-cookie/test_empty_cookie")]
+        [HttpGet("insecure-cookie/test_empty_cookie")]
+        public IActionResult test_EmptyCookie()
+        {
+            Response.Headers.Append("Set-Cookie", string.Empty);
+            return StatusCode(200);
+        }
+
         [HttpGet("no-httponly-cookie/test_insecure")]
         public IActionResult test_insecure_noHttpOnly()
         {
-            Response.Headers.Append("Set-Cookie", "user-id=7;Secure");
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
             return StatusCode(200);
         }
         
         [HttpGet("no-httponly-cookie/test_secure")]
         public IActionResult test_secure_noHttpOnly()
         {
-            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
         }        
         
