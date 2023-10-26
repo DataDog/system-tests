@@ -29,6 +29,7 @@ class TestNoHttponlyCookie(BaseSinkTest):
 
     @missing_feature(library="java", reason="Metrics implemented")
     @missing_feature(library="python", reason="Metrics implemented")
+    @missing_feature(library="dotnet", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
