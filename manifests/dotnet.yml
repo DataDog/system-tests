@@ -27,7 +27,8 @@ tests/:
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
         test_no_httponly_cookie.py:
-          TestNoHttponlyCookie: missing_feature
+          TestNoHttponlyCookie:
+              '*': v2.39.0
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
               '*': v2.39.0
