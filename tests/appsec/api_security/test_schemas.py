@@ -53,7 +53,6 @@ class Test_Schema_Request_Headers:
             assert isinstance(schema[0][parameter_name], list)
 
 
-
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @coverage.basic
 @scenarios.appsec_api_security
