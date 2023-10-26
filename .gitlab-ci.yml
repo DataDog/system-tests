@@ -146,10 +146,10 @@ onboarding_ruby:
   only:
     - schedules
   variables:
-    TEST_LIBRARY: "dotnet"
+    TEST_LIBRARY: "ruby"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby]     
           SCENARIO: [ONBOARDING_HOST, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_UNINSTALL, ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL] 
   script:
