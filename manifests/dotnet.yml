@@ -17,30 +17,26 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py:
-          TestCommandInjection:
-             '*': v2.28.0
+          TestCommandInjection: v2.28.0
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
-          TestInsecureCookie:
-             '*': v2.39.0
+          TestInsecureCookie: v2.39.0
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
         test_no_httponly_cookie.py:
-          TestNoHttponlyCookie:
-              '*': v2.39.0
+          TestNoHttponlyCookie: v2.39.0
         test_no_samesite_cookie.py:
-          TestNoSamesiteCookie:
-              '*': v2.39.0
+          TestNoSamesiteCookie: v2.39.0
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
-          TestPathTraversal:
-              '*': v2.31.0
+          TestPathTraversal: v2.31.0
         test_sql_injection.py:
-          TestSqlInjection: missing_feature
+          TestSqlInjection: 
+             '*': v2.23.0
         test_ssrf.py:
-          TestSSRF: missing_feature
+          TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
@@ -49,11 +45,9 @@ tests/:
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
-          TestWeakCipher:
-              '*': v2.24.0
+          TestWeakCipher: v2.24.0
         test_weak_hash.py:
-          TestWeakHash:
-              '*': v2.24.0
+          TestWeakHash: v2.24.0
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
@@ -76,11 +70,9 @@ tests/:
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
-          TestParameterName:
-              '*': v2.28.0
+          TestParameterName: v2.28.0
         test_parameter_value.py:
-          TestParameterValue:
-              '*': v2.28.0
+          TestParameterValue: v2.28.0
         test_path.py:
           TestPath: missing_feature
     waf/:

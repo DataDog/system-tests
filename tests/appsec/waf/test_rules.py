@@ -309,7 +309,7 @@ class Test_DiscoveryScan:
     """AppSec WAF Tests on Discovery Scan rules"""
 
     def setup_security_scan(self):
-        self.r1 = weblog.get("/etc/")
+        self.r1 = weblog.get("/etc/something")
         self.r2 = weblog.get("/mysql")
         self.r3 = weblog.get("/myadmin")
         self.r4 = weblog.get("/readme.md")
