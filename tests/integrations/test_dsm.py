@@ -36,6 +36,7 @@ class Test_DsmKafka:
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
+
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):

@@ -22,12 +22,12 @@ class Test_MQKafka:
                 consumer_stats_point = None
 
                 for stats_point in stats_bucket.get("Stats", {}):
-                    if stats_point["EdgeTags"][0] == 'direction:in':
+                    if stats_point["EdgeTags"][0] == "direction:in":
                         consumer_stats_point = stats_point
-                    elif stats_point["EdgeTags"][0] == 'direction:out':
+                    elif stats_point["EdgeTags"][0] == "direction:out":
                         producer_stats_point = stats_point
 
-                assert consumer_stats_point['ParentHash'] == producer_stats_point['Hash']
+                assert consumer_stats_point["ParentHash"] == producer_stats_point["Hash"]
 
     # kafka in dd-trace-py does not propagate span context for tracing purposes
     def test_apm_kafka_default_context_propagation(self):
