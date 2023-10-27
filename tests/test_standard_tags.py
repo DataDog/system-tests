@@ -101,7 +101,10 @@ class Test_StandardTagsUrl:
                 weblog.get("/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934"),
                 r"^.*/waf\?key1=val1&key2=val2&<redacted>$",
             ),
-            (weblog.get("/waf?key1=val1&key2=val2&application_key=123"), r"^.*/waf\?key1=val1&key2=val2&<redacted>$",),
+            (
+                weblog.get("/waf?key1=val1&key2=val2&application_key=123"), 
+                r"^.*/waf\?key1=val1&key2=val2&<redacted>$"
+            ),
             (
                 weblog.get(
                     "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
