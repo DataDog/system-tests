@@ -77,7 +77,7 @@ For running the Go tests, see the README in apps/golang.
 To test unmerged PRs locally, run the following in the apps/golang directory:
 
 ```sh
-go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
+go get -u github.com/DataDog/dd-trace-go/v2@<commit_hash>
 go mod tidy
 ```
 

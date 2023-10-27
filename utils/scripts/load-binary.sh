@@ -211,8 +211,8 @@ elif [ "$TARGET" = "golang" ]; then
 
     # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
-    echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
+    echo "Using github.com/DataDog/dd-trace-go/v2@main"
+    echo "github.com/DataDog/dd-trace-go/v2@main" > golang-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev

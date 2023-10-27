@@ -3,15 +3,15 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	echotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	echotrace "github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4"
+	httptrace "github.com/DataDog/dd-trace-go/v2/contrib/net/http"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
 func main() {

@@ -8,12 +8,12 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	otel_trace "go.opentelemetry.io/otel/trace"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 )
 
 type apmClientServer struct {

@@ -19,7 +19,7 @@ But, obviously, testing validated versions of components is not really interesti
 ## Golang library
 
 1. Add a file `golang-load-from-go-get`, the content will be installed by `go get`. Content example:
-    * `gopkg.in/DataDog/dd-trace-go.v1@master`
+    * `github.com/DataDog/dd-trace-go/v2@master`
 2. Clone the dd-trace-go repo inside `binaries`
 
 ## Java library
