@@ -24,6 +24,7 @@ use OpenTelemetry\API\Trace\NonRecordingSpan;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace as SDK;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -257,6 +258,18 @@ $router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(fu
     $code = arg($req, 'code');
     $description = arg($req, 'description');
 
+    switch ($code) {
+        case 'UNSET':
+            $code = StatusCode::STATUS_UNSET;
+            break;
+        case 'OK':
+            $code = StatusCode::STATUS_OK;
+            break;
+        case 'ERROR':
+            $code = StatusCode::STATUS_ERROR;
+            break;
+    }
+
     /** @var ?Span $span */
     $span = $spans[$spanId];
     if ($span) {
@@ -295,7 +308,7 @@ $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(
         return jsonResponse([
             'trace_id' => $spanContext->getTraceId(),
             'span_id' => $spanContext->getSpanId(),
-            'trace_flags' => $spanContext->getTraceFlags(),
+            'trace_flags' => $spanContext->getTraceFlags() ? '01' : '00',
             'trace_state' => (string) $spanContext->getTraceState(), // Implements __toString()
             'remote' => $spanContext->isRemote()
         ]);
