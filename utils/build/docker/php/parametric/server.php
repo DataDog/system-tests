@@ -178,14 +178,16 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         $spanBuilder->setParent($contextWithParentSpan);
     }
 
-    if ($spanKind && in_array($spanKind, [
+    if ($spanKind && in_array($spanKind - 1, [
             SpanKind::KIND_INTERNAL,
             SpanKind::KIND_CLIENT,
             SpanKind::KIND_SERVER,
             SpanKind::KIND_PRODUCER,
             SpanKind::KIND_CONSUMER
         ])) {
-        $spanBuilder->setSpanKind($spanKind);
+        // otel_trace.py SK_.* ranges from 0 to 5, with 0 being SK_UNSPECIFIED, which doesn't exist in
+        // OpenTelemetry\API\Trace\SpanKind
+        $spanBuilder->setSpanKind($spanKind - 1);
     }
 
     if ($timestamp) {
