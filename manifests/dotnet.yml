@@ -33,7 +33,8 @@ tests/:
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
         test_sql_injection.py:
-          TestSqlInjection: missing_feature
+          TestSqlInjection: 
+             '*': v2.23.0
         test_ssrf.py:
           TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
