@@ -281,7 +281,8 @@ $router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(fu
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$spans) {
-     dd_trace_close_all_spans_and_flush();
+    \DDTrace\flush();
+    dd_trace_internal_fn("synchronous_flush");
      return jsonResponse([
          'success' => true
      ]);
