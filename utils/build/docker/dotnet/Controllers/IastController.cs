@@ -190,7 +190,6 @@ namespace weblog
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
         }
-
         
         [HttpGet("no-samesite-cookie/test_insecure")]
         public IActionResult test_insecure_noSameSiteCookie()
@@ -254,6 +253,73 @@ namespace weblog
             catch
             {
                 return StatusCode(500, "Error reading file.");
+            }
+        }
+
+        [HttpPost("sqli/test_insecure")]
+        public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("Insecure SQL command executed:");
+                    using var conn = Sql.GetSqliteConnection();
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM users WHERE user = '" + username + "'";
+                    using var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
+                    }
+
+                    return Content(sb.ToString());
+                }
+                else
+                {
+                    return BadRequest($"No params provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        [HttpPost("sqli/test_secure")]
+        public IActionResult test_secure_sqlI([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("Secure SQL command executed:");
+                    using var conn = Sql.GetSqliteConnection();
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM data WHERE value = $user";
+                    cmd.Parameters.Add("$user");
+                    cmd.Parameters["$user"].Value = username;
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        sb.AppendLine(reader["value"]?.ToString());
+                    }
+
+                    return Content(sb.ToString());
+                }
+                else
+                {
+                    return BadRequest($"No params provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
             }
         }
     }
