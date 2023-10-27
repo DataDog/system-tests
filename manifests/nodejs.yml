@@ -171,7 +171,7 @@ tests/:
       Test_Blocking_request_cookies: v14.16.0
       Test_Blocking_request_headers: v3.19.0
       Test_Blocking_request_method: v3.19.0
-      Test_Blocking_request_path_params: missing_feature
+      Test_Blocking_request_path_params: v4.16.0
       Test_Blocking_request_query: v3.19.0
       Test_Blocking_request_uri: v3.19.0
       Test_Blocking_response_headers: missing_feature

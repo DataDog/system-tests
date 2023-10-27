@@ -64,7 +64,7 @@ class Test_BlockingAddresses:
     @missing_feature(
         context.library < "java@1.15.0", reason="When supported, path parameter detection happens on subsequent WAF run"
     )
-    @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(context.library < "nodejs@14.16.0", reason="Not supported yet")
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
     def test_path_params(self):
