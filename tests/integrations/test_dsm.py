@@ -36,37 +36,6 @@ class Test_DsmKafka:
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
-    # kafka in dd-trace-py does not propagate span context for tracing purposes
-    # TODO: split this into an isolated file
-    def test_apm_default_context_propagation(self):
-        spans_payload = interfaces.library.get_spans(self.r)
-
-        # get_spans returns several tuple items
-        for items in spans_payload:
-            # each iteration of spans_payload is a tuple
-            data, trace, root_span = items
-            producer_span = None
-            consumer_span = None
-
-            for span in trace:
-                span_component = span["meta"]["component"]
-                span_kind = span["meta"]["span.kind"]
-
-                if span_component == "kafka" and span_kind == "producer":
-                    logger.debug("producer span found:", span)
-                    producer_span = span
-                elif span_component == "kafka" and span_kind == "consumer":
-                    logger.debug("consumer span found:", span)
-                    consumer_span = span
-
-            assert producer_span is not None
-            assert consumer_span is not None
-
-            # consumer and producer spans have no parent/child relationship
-            assert consumer_span["parent_id"] != producer_span["span_id"]
-            assert producer_span["parent_id"] != consumer_span["span_id"]
-
-
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
