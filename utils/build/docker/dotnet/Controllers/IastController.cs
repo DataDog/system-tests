@@ -285,16 +285,30 @@ namespace weblog
         [HttpPost("ldapi/test_insecure")]
         public IActionResult TestInsecureLdap([FromForm] string username, [FromForm] string password)
         {
-            string ldapPath = "LDAP://" + username + ":" + password + "@ldap.example.com/OU=Users,DC=example,DC=com";
-            _ = new System.DirectoryServices.DirectoryEntry(ldapPath);
-            return Content($"Conection created");
+            try
+            {
+                string ldapPath = "LDAP://" + username + ":" + password + "@ldap.example.com/OU=Users,DC=example,DC=com";
+                _ = new System.DirectoryServices.DirectoryEntry(ldapPath);
+                return Content($"Conection created");
+            }
+            catch
+            {
+                return Content($"Error creating connection");
+            }
         }
         
         [HttpPost("ldapi/test_secure")]
         public IActionResult TestSecureLdap([FromForm] string username, [FromForm] string password)
         {
-            _ = new System.DirectoryServices.DirectoryEntry("LDAP://ldap.example.com/OU=Users,DC=example,DC=com", username, password);
-            return Content($"Conection created");
+            try
+            {        
+                _ = new System.DirectoryServices.DirectoryEntry("LDAP://ldap.example.com/OU=Users,DC=example,DC=com", username, password);
+                return Content($"Conection created");
+            }
+            catch
+            {
+                return Content($"Error creating connection");
+            }                
         }
         
         [HttpPost("sqli/test_insecure")]
