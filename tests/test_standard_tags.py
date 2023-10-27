@@ -77,8 +77,8 @@ class Test_StandardTagsUrl:
         ]
 
     # when tracer is updated, add (for example)
-    # @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
-    # @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
+    @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
+    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
     @irrelevant(context.library >= "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
     def test_url_with_sensitive_query_string_legacy(self):
         for r, tag in self.requests_sensitive_query_string:
@@ -101,10 +101,7 @@ class Test_StandardTagsUrl:
                 weblog.get("/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934"),
                 r"^.*/waf\?key1=val1&key2=val2&<redacted>$",
             ),
-            (
-                weblog.get("/waf?key1=val1&key2=val2&application_key=123"),
-                r"^.*/waf\?key1=val1&key2=val2&<redacted>$",
-            ),
+            (weblog.get("/waf?key1=val1&key2=val2&application_key=123"), r"^.*/waf\?key1=val1&key2=val2&<redacted>$",),
             (
                 weblog.get(
                     "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
@@ -114,7 +111,7 @@ class Test_StandardTagsUrl:
         ]
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby"],
+        context.library in ["golang", "nodejs", "php", "ruby", "python", "java"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
@@ -147,7 +144,7 @@ class Test_StandardTagsUrl:
         )
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby"],
+        context.library in ["golang", "nodejs", "php", "ruby", "python", "java"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
