@@ -46,7 +46,6 @@ class Test_Otel_Span_With_W3c:
         assert root_span["duration"] == duration_ns
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_with_w3c_headers(self, test_agent, test_library):
         with test_library:
             with test_library.otel_start_span(

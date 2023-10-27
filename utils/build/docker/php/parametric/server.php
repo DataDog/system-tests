@@ -196,8 +196,13 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
     }
 
     if ($httpHeaders) {
+        print("Extracting context from headers\n");
+        print(json_encode($httpHeaders, JSON_PRETTY_PRINT) . "\n");
         $remoteContext = TraceContextPropagator::getInstance()->extract($httpHeaders);
+        print(get_class($remoteContext) . "\n");
         $spanBuilder->setParent($remoteContext);
+    } else {
+        print("No headers\n");
     }
 
     if ($attributes) {
@@ -272,9 +277,7 @@ $router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(fu
 
     /** @var ?Span $span */
     $span = $spans[$spanId];
-    if ($span) {
-        $span->setStatus($code, $description);
-    }
+    $span?->setStatus($code, $description);
 
     return jsonResponse([]);
 }));
