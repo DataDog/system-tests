@@ -14,7 +14,7 @@ class Test_StatusCode:
     """Appsec reports good status code"""
 
     def setup_basic(self):
-        self.r = weblog.get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
+        self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
     @bug(
         library="java",
