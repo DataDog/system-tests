@@ -209,10 +209,11 @@ elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
 
-    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
+    # TODO(darccio): remove @$ref on v2 release
+    COMMIT_ID=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/dario.castane/AIT-3705/remove-gopkgin | jq --raw-output '.commit.sha')
 
-    echo "Using github.com/DataDog/dd-trace-go/v2@main"
-    echo "github.com/DataDog/dd-trace-go/v2@main" > golang-load-from-go-get
+    echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
+    echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
