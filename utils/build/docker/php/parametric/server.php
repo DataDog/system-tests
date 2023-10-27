@@ -197,8 +197,8 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
 
     if ($httpHeaders) {
         $carrier = [];
-        foreach ($httpHeaders as $header => $value) {
-            $carrier[strtolower($header)] = $value;
+        foreach ($httpHeaders as $headers) {
+            $carrier[$headers[0]] = $headers[1];
         }
         print("Extracting context from headers\n");
         print(json_encode($httpHeaders, JSON_PRETTY_PRINT) . "\n");
