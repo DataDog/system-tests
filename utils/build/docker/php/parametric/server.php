@@ -265,7 +265,9 @@ $router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(fu
 }));
 $router->addRoute('POST', '/trace/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$spans) {
      dd_trace_close_all_spans_and_flush();
-     return jsonResponse([]);
+     return jsonResponse([
+         'success' => true
+     ]);
 }));
 $router->addRoute('POST', '/trace/otel/is_recording', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $spanId = arg($req, 'span_id');
