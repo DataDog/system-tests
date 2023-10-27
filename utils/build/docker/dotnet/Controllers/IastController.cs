@@ -17,6 +17,7 @@ namespace weblog
         public string cmd{get; set;}
         public string table{get; set;}
         public string path{get; set;}
+        public string url{get; set;}
     };
     
     [ApiController]
@@ -253,6 +254,31 @@ namespace weblog
             catch
             {
                 return StatusCode(500, "Error reading file.");
+            }
+        }
+        
+        [HttpPost("ssrf/test_insecure")]
+        public IActionResult TestInsecureSSRF([FromForm] RequestData data)
+        {
+            return MakeRequest(data.url);
+        }
+        
+        [HttpPost("ssrf/test_secure")]
+        public IActionResult TestSecureSSRF([FromForm] RequestData data)
+        {
+            return MakeRequest("notAUrl");
+        }
+        
+        private IActionResult MakeRequest(string url)
+        {
+            try
+            {
+                var result = new System.Net.Http.HttpClient().GetStringAsync(url).Result;
+                return Content($"Reponse: " + result);
+            }
+            catch
+            {
+                return StatusCode(500, "Error in request.");
             }
         }
 
