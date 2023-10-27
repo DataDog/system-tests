@@ -27,6 +27,7 @@ class Test_MQKafka:
                     elif stats_point["EdgeTags"][0] == "direction:out":
                         producer_stats_point = stats_point
 
+                # consumers are a direct child of a producer span
                 assert consumer_stats_point["ParentHash"] == producer_stats_point["Hash"]
 
     # kafka in dd-trace-py does not propagate span context for tracing purposes
@@ -62,11 +63,28 @@ class Test_MQKafka:
             assert producer_span["parent_id"] != consumer_span["span_id"]
 
             # Check for indirect relationships
-            # Assert that the produce span is never a parent:
-            is_producer_a_parent_span = False
-            for span in trace:
-                if "parent_id" in span.keys():
-                    if span["parent_id"] == producer_span["trace_id"]:
-                        is_producer_a_parent_span = True
+            # Assert that the producer span is never a parent:
+            child_span_of_producer_span = MQHelper.find_span_by_field(producer_span, trace, "span_id", "parent_id")
+            assert child_span_of_producer_span == None
 
-            assert is_producer_a_parent_span == False
+            # Check if the consumer span's ancestors contain the producer span at any point in the segment
+            parent_span = ""
+            starting_span = consumer_span
+            while parent_span != None:
+                parent_span = MQHelper.find_span_by_field(starting_span, trace, "parent_id", "span_id")
+                if parent_span != None:
+                    assert parent_span["span_id"] != producer_span["span_id"]
+
+                starting_span = parent_span
+
+
+class MQHelper:
+
+    # Given a current span, look for the first span that matches a target field
+    # Example: finding a current span's parent would be find_span_by_field(current_span, trace, "parent_id", "span_id")
+    def find_span_by_field(current_span, trace, current_field="None", target_field="None"):
+        for span in trace:
+            if target_field in span.keys() and current_field in current_span.keys():
+                if span[target_field] == current_span[current_field]:
+                    return span
+        return None
