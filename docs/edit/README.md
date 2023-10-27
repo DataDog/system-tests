@@ -1,14 +1,13 @@
-## Dev env
+## Run the test loccally
 
-First of all, it'll be more confortable to set-up your dev env. The repo contains basic conf for VSCode, feel free to add conf for other IDE.
+Please have a look on the [weblog](../execute/)
 
 ```bash
-python3.9 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+./build.sh python  # or any another library. This step can be ran only once, as long as you do not need a modification on the lib/agent
+./run.sh
 ```
 
-That's it. If you're using VScode with python extension, your terminal will automatically switch to the virtual env, nad you will be avble to use lint/format tools.
+That's it. If you're using VScode with Python extension, your terminal will automatically switch to the virtual env, and you will be able to use lint/format tools.
 
 ## Propose a modification
 

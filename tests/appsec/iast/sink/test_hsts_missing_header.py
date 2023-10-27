@@ -17,7 +17,7 @@ class Test_HstsMissingHeader(BaseSinkTest):
     data = {}
     headers = {"X-Forwarded-Proto": "https"}
 
-    @flaky(context.library < "java@1.22.0", reason="Unrelated bug interferes with this test APPSEC-11353")
+    @flaky(context.library == "java", reason="An XCONTENTTYPE_HEADER_MISSING event is reported")
     def test_secure(self):
         super().test_secure()
 
