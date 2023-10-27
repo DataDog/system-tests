@@ -10,8 +10,8 @@ struct ManualScheduler : public datadog::tracing::EventScheduler {
   Cancel schedule_recurring_event(std::chrono::steady_clock::duration /* interval */, std::function<void()> callback) override {
     assert(callback != nullptr);
 
-    // NOTE: this is depends on the precise order that dd-trace-cpp sets up the `schedule_recurring_event`s
-    // for traces and telemetry
+    // NOTE: This depends on the precise order that dd-trace-cpp sets up the `schedule_recurring_event`s
+    // for traces and telemetry.
     if (flush_traces == nullptr) {
       flush_traces = callback;
       return {};
