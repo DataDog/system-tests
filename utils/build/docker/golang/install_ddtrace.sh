@@ -12,8 +12,9 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
 
 else
     echo "Installing production dd-trace-version"
-    # TODO(darccio): remove @ref on v2 release
-    go get -v -d -u github.com/DataDog/dd-trace-go/v2@dario.castane/AIT-3705/remove-gopkgin
+    # TODO(darccio): remove @$ref on v2 release
+    ref=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/dario.castane/AIT-3705/remove-gopkgin | jq --raw-output '.commit.sha')
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2@$ref
 fi
 
 # Downloading a newer version of the tracer may require to resolve again all dependencies
