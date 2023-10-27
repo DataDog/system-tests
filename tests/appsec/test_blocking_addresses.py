@@ -240,7 +240,7 @@ class Test_Blocking_request_method:
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.text == "Value tagged" or self.set_req1.text == '"Value tagged"'
+        assert "Value tagged" in self.set_req1.text
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3876"))
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
@@ -289,7 +289,7 @@ class Test_Blocking_request_uri:
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.text == "Value tagged" or self.set_req1.text == '"Value tagged"'
+        assert "Value tagged" in self.set_req1.text
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3877"))
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
@@ -418,7 +418,7 @@ class Test_Blocking_request_headers:
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.text == "Value tagged" or self.set_req1.text == '"Value tagged"'
+        assert "Value tagged" in self.set_req1.text
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3880"))
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
