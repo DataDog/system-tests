@@ -200,6 +200,9 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         print(json_encode($httpHeaders, JSON_PRETTY_PRINT) . "\n");
         $remoteContext = TraceContextPropagator::getInstance()->extract($httpHeaders);
         print(get_class($remoteContext) . "\n");
+        print(Span::fromContext($remoteContext)->getContext()->getTraceState());
+        print(Span::fromContext($remoteContext)->getContext()->getTraceId());
+        print(Span::fromContext($remoteContext)->getContext()->getSpanId());
         $spanBuilder->setParent($remoteContext);
     } else {
         print("No headers\n");
