@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -12,8 +13,11 @@ namespace weblog
 {
     public class RequestData
     {
+        public string user{get; set;}
         public string cmd{get; set;}
         public string table{get; set;}
+        public string path{get; set;}
+        public string url{get; set;}
     };
     
     [ApiController]
@@ -74,7 +78,7 @@ namespace weblog
                 
                 return Content("Ok");
             }
-            catch(Exception ex)
+            catch
             {
                 return StatusCode(500, "NotOk");
             }
@@ -89,10 +93,54 @@ namespace weblog
                 
                 return Content("Ok");
             }
-            catch(Exception ex)
+            catch
             {
                 return StatusCode(500, "NotOk");
             }
+        }
+        
+        [HttpPost("source/parametername/test")]
+        public IActionResult parameterNameTestPost([FromForm] RequestData data)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(data.user);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+
+        [HttpGet("source/parametername/test")]
+        public IActionResult parameterNameTest(string user)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Request.Query.First().Key);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+
+        [HttpGet("insecure_cipher/test_insecure_algorithm")]
+        public IActionResult test_insecure_weakCipher()
+        {
+            DES.Create();
+            return StatusCode(200);
+        }
+        
+        [HttpGet("insecure_cipher/test_secure_algorithm")]
+        public IActionResult test_secure_weakCipher()
+        {
+            Aes.Create();
+            return StatusCode(200);
         }
 
         [HttpPost("cmdi/test_insecure")]
@@ -121,8 +169,8 @@ namespace weblog
         {
             try
             {
-                    var result = Process.Start("ls");
-                    return Content($"Process launched: " + result.ProcessName);
+                var result = Process.Start("ls");
+                return Content($"Process launched: " + result.ProcessName);
             }
             catch
             {
@@ -143,7 +191,6 @@ namespace weblog
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
         }
-
         
         [HttpGet("no-samesite-cookie/test_insecure")]
         public IActionResult test_insecure_noSameSiteCookie()
@@ -157,6 +204,149 @@ namespace weblog
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
+        }
+        
+        [HttpGet("no-httponly-cookie/test_empty_cookie")]
+        [HttpGet("no-samesite-cookie/test_empty_cookie")]
+        [HttpGet("insecure-cookie/test_empty_cookie")]
+        public IActionResult test_EmptyCookie()
+        {
+            Response.Headers.Append("Set-Cookie", string.Empty);
+            return StatusCode(200);
+        }
+
+        [HttpGet("no-httponly-cookie/test_insecure")]
+        public IActionResult test_insecure_noHttpOnly()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
+            return StatusCode(200);
+        }
+        
+        [HttpGet("no-httponly-cookie/test_secure")]
+        public IActionResult test_secure_noHttpOnly()
+        {
+            Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
+            return StatusCode(200);
+        }        
+        
+        [HttpPost("path_traversal/test_insecure")]
+        public IActionResult TestInsecurePathTraversal([FromForm] RequestData data)
+        {
+            try
+            {
+                var result = System.IO.File.ReadAllText(data.path);
+                return Content($"File content: " + result);
+            }
+            catch
+            {
+                return StatusCode(500, "Error reading file.");
+            }
+        }
+
+        [HttpPost("path_traversal/test_secure")]
+        public IActionResult TestSecurePathTraversal([FromForm] RequestData data)
+        {
+            try
+            {
+                var result = System.IO.File.ReadAllText("file.txt");
+                return Content($"File content: " + result);
+            }
+            catch
+            {
+                return StatusCode(500, "Error reading file.");
+            }
+        }
+        
+        [HttpPost("ssrf/test_insecure")]
+        public IActionResult TestInsecureSSRF([FromForm] RequestData data)
+        {
+            return MakeRequest(data.url);
+        }
+        
+        [HttpPost("ssrf/test_secure")]
+        public IActionResult TestSecureSSRF([FromForm] RequestData data)
+        {
+            return MakeRequest("notAUrl");
+        }
+        
+        private IActionResult MakeRequest(string url)
+        {
+            try
+            {
+                var result = new System.Net.Http.HttpClient().GetStringAsync(url).Result;
+                return Content($"Reponse: " + result);
+            }
+            catch
+            {
+                return StatusCode(500, "Error in request.");
+            }
+        }
+
+        [HttpPost("sqli/test_insecure")]
+        public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("Insecure SQL command executed:");
+                    using var conn = Sql.GetSqliteConnection();
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM users WHERE user = '" + username + "'";
+                    using var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
+                    }
+
+                    return Content(sb.ToString());
+                }
+                else
+                {
+                    return BadRequest($"No params provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        [HttpPost("sqli/test_secure")]
+        public IActionResult test_secure_sqlI([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("Secure SQL command executed:");
+                    using var conn = Sql.GetSqliteConnection();
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM data WHERE value = $user";
+                    cmd.Parameters.Add("$user");
+                    cmd.Parameters["$user"].Value = username;
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        sb.AppendLine(reader["value"]?.ToString());
+                    }
+
+                    return Content(sb.ToString());
+                }
+                else
+                {
+                    return BadRequest($"No params provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }
         }
     }
 }

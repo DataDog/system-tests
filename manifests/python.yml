@@ -45,7 +45,10 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py:
-          TestCommandInjection: missing_feature
+          TestCommandInjection:
+            '*': v2.2.0
+            fastapi: missing_feature
+            python3.12: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -153,6 +156,8 @@ tests/:
             uwsgi-poc: missing_feature
         test_parameter_value.py:
           TestParameterValue: bug (should have been v1.18.0)
+        test_path.py:
+          TestPath: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:

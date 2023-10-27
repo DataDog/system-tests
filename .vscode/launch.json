@@ -75,6 +75,15 @@
             "args": ["-S", "INTEGRATIONS_SERVICE", "-p", "no:warnings", "--replay"],
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Replay SAMPLING scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "SAMPLING", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

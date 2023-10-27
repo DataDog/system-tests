@@ -134,6 +134,8 @@ jobs:
           weblog: uds-express4
         - library: nodejs
           weblog: express4-typescript
+        - library: nodejs
+          weblog: nextjs
         - library: php
           weblog: apache-mod-7.0
         - library: php
@@ -505,12 +507,12 @@ jobs:
         ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
         ./run.sh APPSEC_WAF_TELEMETRY --replay
         ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
-        # ./run.sh SAMPLING --replay  # currently not working on replay mode
+        ./run.sh SAMPLING --replay
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
         ./run.sh DEBUGGER_PROBES_STATUS --replay
-        # ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay  # currently not working on replay mode
-        # ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay  # currently not working on replay mode
-        # ./run.sh DEBUGGER_MIX_LOG_PROBE --replay  # currently not working on replay mode
+        ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay
+        ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay
+        ./run.sh DEBUGGER_MIX_LOG_PROBE --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
