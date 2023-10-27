@@ -72,25 +72,61 @@ namespace weblog
         [HttpPost("source/parameter/test")]
         public IActionResult parameterTestPost([FromForm] RequestData data)
         {
-            LaunchProcess(data.table);
+            try
+            {
+                System.Diagnostics.Process.Start(data.table);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
         }
 
         [HttpGet("source/parameter/test")]
         public IActionResult parameterTest(string table)
         {
-            LaunchProcess(table);
+            try
+            {
+                System.Diagnostics.Process.Start(table);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
         }
         
         [HttpPost("source/parametername/test")]
         public IActionResult parameterNameTestPost([FromForm] RequestData data)
         {
-            LaunchProcess(data.user);
+            try
+            {
+                System.Diagnostics.Process.Start(data.user);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
         }
 
         [HttpGet("source/parametername/test")]
         public IActionResult parameterNameTest(string user)
         {
-            LaunchProcess(Request.Query.First().Key);
+            try
+            {
+                System.Diagnostics.Process.Start(Request.Query.First().Key);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
         }
 
         [HttpGet("insecure_cipher/test_insecure_algorithm")]
@@ -110,28 +146,31 @@ namespace weblog
         [HttpPost("cmdi/test_insecure")]
         public IActionResult test_insecure_cmdI([FromForm] RequestData data)
         {
-           LaunchProcess(data.cmd);
-        }
-        
-        [HttpPost("cmdi/test_secure")]
-        public IActionResult test_secure_cmdI([FromForm] RequestData data)
-        {
-            LaunchProcess("ls");
-        }
-        
-        private IActionResult LaunchProcess(string processName)
-        {
             try
             {            
-                if (!string.IsNullOrEmpty(processName))
+                if (!string.IsNullOrEmpty(data.cmd))
                 {
-                    var result = Process.Start(processName);
+                    var result = Process.Start(data.cmd);
                     return Content($"Process launched: " + result.ProcessName);
                 }
                 else
                 {
                     return BadRequest($"No file was provided");
                 }
+            }
+            catch
+            {
+                return StatusCode(500, "Error launching process.");
+            }
+        }
+        
+        [HttpPost("cmdi/test_secure")]
+        public IActionResult test_secure_cmdI([FromForm] RequestData data)
+        {
+            try
+            {
+                var result = Process.Start("ls");
+                return Content($"Process launched: " + result.ProcessName);
             }
             catch
             {
