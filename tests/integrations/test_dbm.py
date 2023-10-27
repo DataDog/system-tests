@@ -2,11 +2,17 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
+
+import json
+
 from utils import weblog, interfaces, context, scenarios
+from utils.tools import logger
 
 
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
+
+    META_TAG = "_dd.dbm_trace_injected"
 
     # Helper Methods
     def weblog_trace_payload(self):
@@ -22,7 +28,7 @@ class Test_Dbm:
             self.requests = [
                 weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
                 weblog.get("/dbm", params={"integration": "mysql"}),
-                weblog.get("/dbm", params={"integration": "sqlclient"}, timeout=20),
+                weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
         elif self.library_name == "php":
             self.requests = [
@@ -31,56 +37,66 @@ class Test_Dbm:
                 weblog.get("/dbm", params={"integration": "mysqli"}),
             ]
 
-    def find_db_spans(self):
-        self.db_span = None
-        for r in self.requests:
-            assert r.status_code == 200, f"Request: {r.request.url} wasn't successful."
-            for _, trace in interfaces.library.get_traces(request=r):
-                for span in trace:
-                    if span.get("resource") == "SELECT version()" or span.get("resource") == "SELECT @@version":
-                        self.db_span = span
-                        break
+    def _get_db_span(self, response):
+        assert response.status_code == 200, f"Request: {response.request.url} wasn't successful."
 
-    def assert_span_is_tagged(self):
-        assert (
-            self.db_span is not None
-        ), "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
-        meta = self.db_span.get("meta", {})
-        assert "_dd.dbm_trace_injected" in meta, "_dd.dbm_trace_injected not found in span meta."
-        tag_value = meta.get("_dd.dbm_trace_injected")
-        assert tag_value == "true", "_dd.dbm_trace_injected value is not `true`."
+        spans = []
+        # we do not use get_spans: the span we look for is not directly the span that carry the request information
+        for data, trace in interfaces.library.get_traces(request=response):
+            spans += [(data, span) for span in trace if span.get("type") == "sql"]
 
-    def assert_span_is_untagged(self):
-        assert (
-            self.db_span is not None
-        ), "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
-        meta = self.db_span.get("meta", {})
-        assert "_dd.dbm_trace_injected" not in meta, "_dd.dbm_trace_injected found in span meta."
+        if len(spans) == 0:
+            raise ValueError("No span found with meta.type == 'sql'")
+
+        # look for the span with the good resource
+        for data, span in spans:
+            if span.get("resource") == "SELECT version()" or span.get("resource") == "SELECT @@version":
+                logger.debug(f"A matching span in found in {data['log_filename']}")
+                return span
+
+        # log span.resource found to help to debug hen resource does not match
+        for _, span in spans:
+            logger.debug(
+                f"Found spans with meta.type=sql span, but the ressource does not match: {span.get('resource')}"
+            )
+
+        raise ValueError("No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found.")
+
+    def _assert_spans_are_untagged(self):
+        for request in self.requests:
+            self._assert_span_is_untagged(self._get_db_span(request))
+
+    def _assert_span_is_untagged(self, span):
+        meta = span.get("meta", {})
+        assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
+
+    def _assert_span_is_tagged(self, span):
+        meta = span.get("meta", {})
+        assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
+        tag_value = meta.get(self.META_TAG)
+        assert tag_value == "true", f"{self.META_TAG} value is not `true`."
 
     # Setup Methods
-    def setup_trace_payload_disabled(self):
-        self.weblog_trace_payload()
-
-    def setup_trace_payload_service(self):
-        self.weblog_trace_payload()
-
-    def setup_trace_payload_full(self):
-        self.weblog_trace_payload()
+    setup_trace_payload_disabled = weblog_trace_payload
 
     # Test Methods
     def test_trace_payload_disabled(self):
-        self.find_db_spans()
-        self.assert_span_is_untagged()
+        self._assert_spans_are_untagged()
+
+    setup_trace_payload_service = weblog_trace_payload
 
     @scenarios.integrations_service
     def test_trace_payload_service(self):
-        self.find_db_spans()
-        self.assert_span_is_untagged()
+        self._assert_spans_are_untagged()
+
+    setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
     def test_trace_payload_full(self):
-        self.find_db_spans()
-        if self.db_span.get("meta", {}).get("db.type") == "sql-server":
-            self.assert_span_is_untagged()
-        else:
-            self.assert_span_is_tagged()
+        for request in self.requests:
+            span = self._get_db_span(request)
+
+            if span.get("meta", {}).get("db.type") == "sql-server":
+                self._assert_span_is_untagged(span)
+            else:
+                self._assert_span_is_tagged(span)
