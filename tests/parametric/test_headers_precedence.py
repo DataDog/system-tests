@@ -3,12 +3,14 @@ from typing import Any
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
-from utils.parametric.headers import make_single_request_and_get_inject_headers, make_single_request_and_get_inject_headers_with_span
+from utils.parametric.headers import (
+    make_single_request_and_get_inject_headers,
+    make_single_request_and_get_inject_headers_with_span,
+)
 from utils import missing_feature, irrelevant, context, scenarios
 
 parametrize = pytest.mark.parametrize
 
-# @irrelevant(context.library not in ["java", "ruby"], reason="The default propagator for this library is 'tracecontext,datadog'")
 
 def enable_tracecontext() -> Any:
     env = {
@@ -29,6 +31,7 @@ def enable_datadog_tracecontext() -> Any:
         "DD_TRACE_PROPAGATION_STYLE": "Datadog,tracecontext",
     }
     return parametrize("library_env", [env])
+
 
 def enable_tracecontext_datadog() -> Any:
     env = {
@@ -95,10 +98,10 @@ class Test_Headers_Precedence:
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "dd=s:-2,foo=1"],
-                    ["x-datadog-trace-id", "8687463697196027922"], # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
-                    ["x-datadog-parent-id", "1311768467284833366"], # Base10 representation of 1234567890123456 (traceparent parent-id)
+                    ["x-datadog-trace-id", "8687463697196027922"],
+                    ["x-datadog-parent-id", "1311768467284833366"],
                     ["x-datadog-sampling-priority", "-2"],
-                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"], # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"],
                 ],
             )
 
@@ -108,10 +111,10 @@ class Test_Headers_Precedence:
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "dd=s:-2,foo=1"],
-                    ["x-datadog-trace-id", "8687463697196027922"], # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
-                    ["x-datadog-parent-id", "987654321"], # Arbitrary parent-id
+                    ["x-datadog-trace-id", "8687463697196027922"],
+                    ["x-datadog-parent-id", "987654321"],  # Arbitrary parent-id
                     ["x-datadog-sampling-priority", "-2"],
-                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"], # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"],
                 ],
             )
 
@@ -161,7 +164,7 @@ class Test_Headers_Precedence:
         assert "x-datadog-sampling-priority" in headers3
 
         # 4) Both tracecontext and Datadog headers, different trace-id and parent-id
-        if (prefer_datadog_headers):
+        if prefer_datadog_headers:
             # Result: datadog used
             assert headers4["x-datadog-trace-id"] == "123456789"
             assert headers4["x-datadog-parent-id"] != "987654321"
@@ -218,10 +221,10 @@ class Test_Headers_Precedence:
 
         # 7) Both tracecontext and Datadog headers, same trace context
         # Result: Datadog and tracecontext header values both emitted with equivalent values
-        assert headers7["x-datadog-trace-id"] == "8687463697196027922" # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
-        assert headers7["x-datadog-parent-id"] != "1311768467284833366" # Base10 representation of 1234567890123456 (traceparent parent-id)
+        assert headers7["x-datadog-trace-id"] == "8687463697196027922"
+        assert headers7["x-datadog-parent-id"] != "1311768467284833366"
         assert headers7["x-datadog-sampling-priority"] == "-2"
-        assert headers7["x-datadog-tags"] == "_dd.p.tid=1311768467284833366" # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+        assert headers7["x-datadog-tags"] == "_dd.p.tid=1311768467284833366"
 
         traceparent7, tracestate7 = get_tracecontext(headers7)
         tracestate7Arr = str(tracestate7).split(",")
@@ -240,18 +243,18 @@ class Test_Headers_Precedence:
 
         # 8) Both tracecontext and Datadog headers, but different parent-id
         # Result: Datadog and tracecontext header values both emitted with equivalent values EXCEPT a different parent-id
-        assert headers8["x-datadog-trace-id"] == "8687463697196027922" # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
-        assert headers8["x-datadog-parent-id"] != "1311768467284833366" # Base10 representation of 1234567890123456 (traceparent parent-id)
-        assert headers8["x-datadog-parent-id"] != "987654321" # Previous value of x-datadog-parent-id
+        assert headers8["x-datadog-trace-id"] == "8687463697196027922"
+        assert headers8["x-datadog-parent-id"] != "1311768467284833366"
+        assert headers8["x-datadog-parent-id"] != "987654321"  # Previous value of x-datadog-parent-id
         assert headers8["x-datadog-sampling-priority"] == "-2"
-        assert headers8["x-datadog-tags"] == "_dd.p.tid=1311768467284833366" # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+        assert headers8["x-datadog-tags"] == "_dd.p.tid=1311768467284833366"
 
         traceparent8, tracestate8 = get_tracecontext(headers8)
         tracestate8Arr = str(tracestate8).split(",")
         assert "traceparent" in headers8
         assert traceparent8.trace_id == "12345678901234567890123456789012"
         assert traceparent8.parent_id != "1234567890123456"
-        assert traceparent8.parent_id != "3ade68b1" # Previous value of x-datadog-parent-id
+        assert traceparent8.parent_id != "3ade68b1"  # Previous value of x-datadog-parent-id
         assert "tracestate" in headers4
         assert len(tracestate8Arr) == 2 and tracestate8Arr[0].startswith("dd=") and tracestate8Arr[1] == "foo=1"
 
@@ -263,16 +266,23 @@ class Test_Headers_Precedence:
         assert int(headers8["x-datadog-parent-id"]) == int(traceparent8.parent_id, base=16)
 
         # Assert that the span inherited from the expected trace context
-        if (prefer_datadog_headers):
-            assert span8.get("parent_id") == "987654321" # Previous value of x-datadog-parent-id
+        if prefer_datadog_headers:
+            # Assert the previous value of x-datadog-parent-id
+            assert span8.get("parent_id") == "987654321"
         else:
-            assert span8.get("parent_id") == "1311768467284833366" # Base10 representation of the previous value of traceparent parent-id
+            # Assert the previous value of traceparent parent-id
+            assert span8.get("parent_id") == "1311768467284833366"
 
-    @irrelevant(context.library not in ["java", "ruby"], reason="The default propagator for this library is 'tracecontext,Datadog'")
+    @irrelevant(
+        context.library not in ["java", "ruby"],
+        reason="The default propagator for this library is 'tracecontext,Datadog'",
+    )
     def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_agent, test_library):
         self._test_headers_datadog_and_tracecontext_headers(test_agent, test_library, prefer_datadog_headers=True)
 
-    @irrelevant(context.library in ["java", "ruby"], reason="The default propagator for this library is 'Datadog,tracecontext'")
+    @irrelevant(
+        context.library in ["java", "ruby"], reason="The default propagator for this library is 'Datadog,tracecontext'"
+    )
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
         self._test_headers_datadog_and_tracecontext_headers(test_agent, test_library, prefer_datadog_headers=False)
 
@@ -341,10 +351,10 @@ class Test_Headers_Precedence:
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "dd=s:-2,foo=1"],
-                    ["x-datadog-trace-id", "8687463697196027922"], # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
-                    ["x-datadog-parent-id", "1311768467284833366"], # Base10 representation of 1234567890123456 (traceparent parent-id)
+                    ["x-datadog-trace-id", "8687463697196027922"],
+                    ["x-datadog-parent-id", "1311768467284833366"],
                     ["x-datadog-sampling-priority", "-2"],
-                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"], # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"],
                 ],
             )
 
@@ -354,10 +364,10 @@ class Test_Headers_Precedence:
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "dd=s:-2,foo=1"],
-                    ["x-datadog-trace-id", "8687463697196027922"], # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
-                    ["x-datadog-parent-id", "987654321"], # Arbitrary parent-id
+                    ["x-datadog-trace-id", "8687463697196027922"],
+                    ["x-datadog-parent-id", "987654321"],  # Arbitrary parent-id
                     ["x-datadog-sampling-priority", "-2"],
-                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"], # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"],
                 ],
             )
 
@@ -457,7 +467,8 @@ class Test_Headers_Precedence:
         assert "x-datadog-sampling-priority" not in headers8
 
         # Assert that the span inherited from the expected trace context
-        assert span8.get("parent_id") == "1311768467284833366" # Base10 representation of 1234567890123456 (traceparent parent-id)
+        # Assert the previous value of traceparent parent-id
+        assert span8.get("parent_id") == "1311768467284833366"
 
     @enable_datadog()
     def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
@@ -516,10 +527,10 @@ class Test_Headers_Precedence:
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "dd=s:-2,foo=1"],
-                    ["x-datadog-trace-id", "8687463697196027922"], # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
-                    ["x-datadog-parent-id", "1311768467284833366"], # Base10 representation of 1234567890123456 (traceparent parent-id)
+                    ["x-datadog-trace-id", "8687463697196027922"],
+                    ["x-datadog-parent-id", "1311768467284833366"],
                     ["x-datadog-sampling-priority", "-2"],
-                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"], # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"],
                 ],
             )
 
@@ -529,10 +540,10 @@ class Test_Headers_Precedence:
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "dd=s:-2,foo=1"],
-                    ["x-datadog-trace-id", "8687463697196027922"], # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
-                    ["x-datadog-parent-id", "987654321"], # Arbitrary parent-id
+                    ["x-datadog-trace-id", "8687463697196027922"],
+                    ["x-datadog-parent-id", "987654321"],  # Arbitrary parent-id
                     ["x-datadog-sampling-priority", "-2"],
-                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"], # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+                    ["x-datadog-tags", "_dd.p.tid=1311768467284833366"],
                 ],
             )
 
@@ -591,23 +602,22 @@ class Test_Headers_Precedence:
         # Result: Datadog used
         assert "traceparent" not in headers7
         assert "tracestate" not in headers7
-        assert headers7["x-datadog-trace-id"] == "8687463697196027922" # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
+        assert headers7["x-datadog-trace-id"] == "8687463697196027922"
         assert "x-datadog-parent-id" in headers7
-        assert headers7["x-datadog-parent-id"] != "1311768467284833366" # Base10 representation of 1234567890123456 (traceparent parent-id)
+        assert headers7["x-datadog-parent-id"] != "1311768467284833366"
         assert headers7["x-datadog-sampling-priority"] == "-2"
-        assert headers7["x-datadog-tags"] == "_dd.p.tid=1311768467284833366" # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+        assert headers7["x-datadog-tags"] == "_dd.p.tid=1311768467284833366"
 
         # 8) Both tracecontext and Datadog headers, but different parent-id
         # Result: Datadog used
         assert "traceparent" not in headers8
         assert "tracestate" not in headers8
-        assert headers8["x-datadog-trace-id"] == "8687463697196027922" # Base10 representation of 7890123456789012 (lower 64 bits of traceparent trace-id)
+        assert headers8["x-datadog-trace-id"] == "8687463697196027922"
         assert "x-datadog-parent-id" in headers8
-        assert headers8["x-datadog-parent-id"] != "1311768467284833366" # Base10 representation of 1234567890123456 (traceparent parent-id)
-        assert headers8["x-datadog-parent-id"] != "987654321" # Previous value of x-datadog-parent-id
+        assert headers8["x-datadog-parent-id"] != "1311768467284833366"
+        assert headers8["x-datadog-parent-id"] != "987654321"
         assert headers8["x-datadog-sampling-priority"] == "-2"
-        assert headers8["x-datadog-tags"] == "_dd.p.tid=1311768467284833366" # Base10 representation of 1311768467284833366 (higher 64 bits of traceparent trace-id)
+        assert headers8["x-datadog-tags"] == "_dd.p.tid=1311768467284833366"
 
         # Assert that the span inherited from the expected trace context
-        assert span8.get("parent_id") == "987654321" # Previous value of x-datadog-parent-id
-
+        assert span8.get("parent_id") == "987654321"  # Previous value of x-datadog-parent-id
