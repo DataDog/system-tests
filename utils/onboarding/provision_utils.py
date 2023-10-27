@@ -138,6 +138,11 @@ class ProvisionParser:
         # This let us to search weblog variants without "language_specification" versionn (ie container based apps)
         if not language_variants_data_result:
             language_variants_data_result.append({"version": None, "name": "None"})
+        elif len(language_variants_data_result) > 1:
+            language_variants_data_result = self._filter_provision_data(
+                self.config_data, "language-variants", exact_match=True
+            )
+
         return language_variants_data_result
 
     def ec2_prepare_init_config_install_data(self):
@@ -158,7 +163,6 @@ class ProvisionParser:
         return {"install": filteredInstalations[0]}
 
     def ec2_weblogs_install_data(self, support_version):
-
         for filtered_weblog_data in self._filter_provision_data(self.config_data, "weblogs", exact_match=True):
             if (not support_version and "supported-language-versions" not in filtered_weblog_data) or (
                 support_version in filtered_weblog_data["supported-language-versions"]
@@ -203,7 +207,10 @@ class ProvisionParser:
         # Weblog is exact_match=true. If AMI has os_branch we will execute only weblogs with the same os_branch
         # If weblog has os_branch, we will execute this weblog only in machines with os_branch
         if exact_match is True:
-            if os_branch is not None:
+
+            if os_branch is not None and "supported-language-versions" in data and "os_branch" in data:
+                return filteredInstalations
+            elif os_branch is not None and "supported-language-versions" not in data:
                 return filteredInstalations
 
             if os_branch is None:
