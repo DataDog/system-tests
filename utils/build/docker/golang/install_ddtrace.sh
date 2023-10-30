@@ -28,8 +28,11 @@ touch SYSTEM_TESTS_LIBDDWAF_VERSION
 rules_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/appsec-internal-go)
 
 # Read the rule file version
-if [[ -f $rules_mod_dir/appsec/rules.json ]]; then
-    # Parse the appsec rules version string out of the inlined rules json
+if [[ -f $lib_mod_dir/internal/appsec/rules.json ]]; then
+    # Look for the ruleset in dd-trace-go
+    rules_version=$(jq -r .metadata.rules_version $lib_mod_dir/internal/appsec/rules.json)
+elif [[ -f $rules_mod_dir/appsec/rules.json ]]; then
+    # Look for the ruleset in appsec-internal-go
     rules_version=$(jq -r .metadata.rules_version $rules_mod_dir/appsec/rules.json)
 elif [[ $(cat $rules_mod_dir/appsec/rules.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
     # Parse the appsec rules version string out of the inlined rules json
