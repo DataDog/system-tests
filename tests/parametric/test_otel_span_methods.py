@@ -477,20 +477,17 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_aws_client_001(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to `cloud.provider + "." + cloud.service.to_lower() + ".request"` :
+            Tests that the operation name will be set to `"aws." + `rpc.service`.lower() + ".request" :
             - Span kind is set to Client
             - rpc.system is set to aws-api
-            - rpc.service is not set (this is not a required attribute)
-            - cloud.provider is set - should be "aws"
-            - cloud.service is set - should be whatever AWS service (e.g., S3)
+            - rpc.service is set to something (e.g., "S3" in this example)
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
                 span.set_attributes({"rpc.system": "aws-api"})
-                span.set_attributes({"cloud.provider": "aws"})
-                span.set_attributes({"cloud.service", "S3"})
+                span.set_attributes({"rpc.service": "S3"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
@@ -499,6 +496,36 @@ class Test_Otel_Span_Methods:
         root_span = get_span(test_agent)
 
         assert root_span["name"] == "aws.s3.request"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_aws_client_002(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `"aws.request" :
+            - Span kind is set to Client
+            - rpc.system is set to aws-api
+            - rpc.service is not set
+
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"rpc.system": "aws-api"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "aws.request"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
