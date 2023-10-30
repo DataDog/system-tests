@@ -1,5 +1,7 @@
 package com.datadoghq.system_tests.springboot.iast;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -23,6 +25,7 @@ public class XContentTypeInterceptor implements HandlerInterceptor {
         if (!isXContentTypeVulnerabilityEndpoint(request)) {
             // XXX: Avoid triggering XCONTENTTYPE_MISSING_HEADER vulnerability.
             response.setHeader(XCONTENT_TYPE_HEADER, NOSNIFF);
+            System.out.println("Set xcontenttype header for request " + request.getRequestURI());
         }
     }
 
