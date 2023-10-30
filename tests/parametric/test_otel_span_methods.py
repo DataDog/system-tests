@@ -594,6 +594,66 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_faas_client(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `faas.invoked_provider` + "." + `faas.invoked_name` + ".invoke" when:
+            - Span kind is set to Client
+            - faas.invoked_provider is present with a value
+            - faas.invoked_name is present with a value
+
+            https://opentelemetry.io/docs/specs/semconv/faas/faas-spans/#outgoing-invocations
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"faas.invoked_provider": "aws"})
+                span.set_attributes({"faas.invoked_name": "my-function"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "aws.my-function.invoke"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_faas_server(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `faas.trigger + ".invoke"` when:
+            - Span kind is set to Server
+            - faas.trigger is present with a value
+
+            https://opentelemetry.io/docs/specs/semconv/faas/faas-spans/#incoming-faas-span-attributes
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+                span.set_attributes({"faas.trigger": "datasource"})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "datasource.invoke"
+        assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_graphql(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `"graphql.server.request"` when:
@@ -776,67 +836,6 @@ class Test_Otel_Span_Methods:
         root_span = get_span(test_agent)
 
         assert root_span["name"] == "unknown.consumer.request"
-        assert root_span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "go", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_faas_server(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `faas.trigger + ".trigger"` when:
-            - Span kind is set to Server
-            - faas.trigger is present with a value
-            - cloud.provider is present with a value
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/faas/)
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"faas.trigger": "datasource"})
-                span.set_attributes({"cloud.provider": "aws"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
-        assert len(trace) == 1
-
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "aws.lambda.invoke"
-        assert root_span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "go", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_faas_client(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `cloud.provider + "lambda.invoke"` when:
-            - Span kind is set to Client
-            - faas.invoked_provider is present with a value
-            - cloud.provider is present with a value
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/faas/)
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"faas.invoked_provider": "aws"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
-        assert len(trace) == 1
-
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "aws.lambda.invoke"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
