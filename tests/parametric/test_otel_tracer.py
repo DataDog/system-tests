@@ -9,14 +9,14 @@ from utils import missing_feature, context, scenarios
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 
+
 @scenarios.parametric
 class Test_Otel_Tracer:
     @missing_feature(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
-        "library_env",
-        [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+        "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
     )
     def test_otel_simple_trace(self, test_agent, test_library):
         """
@@ -59,8 +59,7 @@ class Test_Otel_Tracer:
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @pytest.mark.parametrize(
-        "library_env",
-        [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+        "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
     )
     def test_otel_force_flush(self, test_agent, test_library):
         """
@@ -91,7 +90,8 @@ class Test_Otel_Tracer:
         """
         with test_library:
             with test_library.otel_start_span(
-                name="test_span", http_headers=[["traceparent", "00-00000000000000000000000000000001-1234567890123456-01"]],
+                name="test_span",
+                http_headers=[["traceparent", "00-00000000000000000000000000000001-1234567890123456-01"]],
             ) as span:
                 span.end_span()
             traces = test_agent.wait_for_num_traces(1)
