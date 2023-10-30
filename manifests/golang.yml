@@ -21,7 +21,7 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py:
-          TestCommandInjection: 
+          TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature          
         test_hsts_missing_header.py: 

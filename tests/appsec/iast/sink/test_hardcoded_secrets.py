@@ -4,7 +4,7 @@
 
 from utils import flaky, context, coverage, missing_feature
 from utils.tools import logging
-from .._test_iast_fixtures import BaseSinkTest
+from .._test_iast_fixtures import BaseSinkTest, DetectionStage
 
 
 @coverage.basic
@@ -17,10 +17,7 @@ class Test_HardcodedSecrets(BaseSinkTest):
     secure_endpoint = "/iast/hardcoded_secrets/test_secure"
     data = {}
     location_map = {"nodejs": "iast/index.js"}
-
-    def test_insecure(self):
-        self.insecure_request = None
-        super().test_insecure()
+    detection_stage=DetectionStage.STARTUP
 
     @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
