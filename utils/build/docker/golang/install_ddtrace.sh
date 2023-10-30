@@ -19,17 +19,19 @@ fi
 go mod tidy
 
 # Read the library version out of the version.go file
-mod_dir=$(go list -f '{{.Dir}}' -m gopkg.in/DataDog/dd-trace-go.v1)
-version=$(sed -nrE 's#.*"v(.*)".*#\1#p' $mod_dir/internal/version/version.go) # Parse the version string content "v.*"
+lib_mod_dir=$(go list -f '{{.Dir}}' -m gopkg.in/DataDog/dd-trace-go.v1)
+version=$(sed -nrE 's#.*"v(.*)".*#\1#p' $lib_mod_dir/internal/version/version.go) # Parse the version string content "v.*"
 echo $version > SYSTEM_TESTS_LIBRARY_VERSION
 
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
+rules_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/appsec-internal-go)
+
 # Read the rule file version
-if [[ -f $mod_dir/internal/appsec/rules.json ]]; then
+if [[ -f $rules_mod_dir/appsec/rules.json ]]; then
     # Parse the appsec rules version string out of the inlined rules json
-    rules_version=$(jq -r .metadata.rules_version $mod_dir/internal/appsec/rules.json)
-elif [[ $(cat $mod_dir/internal/appsec/rule.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
+    rules_version=$(jq -r .metadata.rules_version $rules_mod_dir/appsec/rules.json)
+elif [[ $(cat $rules_mod_dir/appsec/rules.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
     # Parse the appsec rules version string out of the inlined rules json
     rules_version="${BASH_REMATCH[1]}"
 else
