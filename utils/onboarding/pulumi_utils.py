@@ -2,6 +2,7 @@ import os
 import logging
 import logging.config
 import pathlib
+import uuid
 
 import pulumi
 from pulumi import Output
@@ -150,7 +151,7 @@ def remote_copy_folders(source_folder, destination_folder, command_id, connectio
             quee_depends_on.insert(
                 0,
                 command.remote.Command(
-                    "mkdir-" + destination + "-" + command_id,
+                    "mkdir-" + destination + "-" + str(uuid.uuid4()) + "-" + command_id,
                     connection=connection,
                     create=f"mkdir -p {destination}",
                     opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),

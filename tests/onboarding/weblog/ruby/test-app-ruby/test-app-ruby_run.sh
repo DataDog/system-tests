@@ -3,7 +3,7 @@ echo "START RUN APP"
 
 sudo sed -i "s/3.1.3/>= 3.0.0\", \"< 3.3.0/g" Gemfile
 
-sudo DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install||DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
+sudo DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
 sudo cp -R * /home/datadog
 sudo chmod -R 755 /home/datadog
 sudo chown -R datadog:datadog /home/datadog
