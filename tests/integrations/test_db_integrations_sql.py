@@ -173,9 +173,9 @@ class _BaseIntegrationsSqlTestClass:
         """ The name of the operation being executed """
         for db_operation, request in self.requests[self.db_service].items():
             span = self._get_sql_span_for_request(request)
-            if db_operation is "select_error":
+            if db_operation == "select_error":
                 continue
-            if db_operation is "procedure":
+            if db_operation == "procedure":
                 assert any(
                     substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
                 ), "db.operation span not found for procedure operation"
@@ -183,9 +183,9 @@ class _BaseIntegrationsSqlTestClass:
                 assert (
                     db_operation.lower() in span["meta"]["db.operation"].lower()
                 ), f"Test is failing for {db_operation}"
-            if db_operation is "select_error":
+            if db_operation == "select_error":
                 continue
-            if db_operation is "procedure":
+            if db_operation == "procedure":
                 assert any(
                     substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
                 ), "db.operation span not found for procedure operation"
