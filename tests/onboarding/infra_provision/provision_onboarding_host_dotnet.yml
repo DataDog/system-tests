@@ -1,4 +1,11 @@
-ami: !include tests/onboarding/infra_provision/includes/provision_ami.yml
+ami: 
+  - name: amazon-linux-dotnet
+    ami_id: ami-005b11f8b84489615
+    user: ec2-user
+    os_type: linux
+    os_distro: rpm
+    os_branch: amazon-netcore6
+
 
 init-config:
   install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml

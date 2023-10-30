@@ -17,6 +17,7 @@ namespace weblog
         public string cmd{get; set;}
         public string table{get; set;}
         public string path{get; set;}
+        public string url{get; set;}
     };
     
     [ApiController]
@@ -190,7 +191,6 @@ namespace weblog
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
         }
-
         
         [HttpGet("no-samesite-cookie/test_insecure")]
         public IActionResult test_insecure_noSameSiteCookie()
@@ -254,6 +254,127 @@ namespace weblog
             catch
             {
                 return StatusCode(500, "Error reading file.");
+            }
+        }
+        
+        [HttpPost("ssrf/test_insecure")]
+        public IActionResult TestInsecureSSRF([FromForm] RequestData data)
+        {
+            return MakeRequest(data.url);
+        }
+        
+        [HttpPost("ssrf/test_secure")]
+        public IActionResult TestSecureSSRF([FromForm] RequestData data)
+        {
+            return MakeRequest("notAUrl");
+        }
+        
+        private IActionResult MakeRequest(string url)
+        {
+            try
+            {
+                var result = new System.Net.Http.HttpClient().GetStringAsync(url).Result;
+                return Content($"Reponse: " + result);
+            }
+            catch
+            {
+                return StatusCode(500, "Error in request.");
+            }
+        }
+        
+        [HttpPost("ldapi/test_insecure")]
+        public IActionResult TestInsecureLdap([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {
+                string ldapPath = "LDAP://" + username + ":" + password + "@ldap.example.com/OU=Users,DC=example,DC=com";
+                _ = new System.DirectoryServices.DirectoryEntry(ldapPath);
+                return Content($"Conection created");
+            }
+            catch
+            {
+                return Content($"Error creating connection");
+            }
+        }
+        
+        [HttpPost("ldapi/test_secure")]
+        public IActionResult TestSecureLdap([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {        
+                _ = new System.DirectoryServices.DirectoryEntry("LDAP://ldap.example.com/OU=Users,DC=example,DC=com", username, password);
+                return Content($"Conection created");
+            }
+            catch
+            {
+                return Content($"Error creating connection");
+            }                
+        }
+        
+        [HttpPost("sqli/test_insecure")]
+        public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("Insecure SQL command executed:");
+                    using var conn = Sql.GetSqliteConnection();
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM users WHERE user = '" + username + "'";
+                    using var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
+                    }
+
+                    return Content(sb.ToString());
+                }
+                else
+                {
+                    return BadRequest($"No params provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        [HttpPost("sqli/test_secure")]
+        public IActionResult test_secure_sqlI([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("Secure SQL command executed:");
+                    using var conn = Sql.GetSqliteConnection();
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM data WHERE value = $user";
+                    cmd.Parameters.Add("$user");
+                    cmd.Parameters["$user"].Value = username;
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        sb.AppendLine(reader["value"]?.ToString());
+                    }
+
+                    return Content(sb.ToString());
+                }
+                else
+                {
+                    return BadRequest($"No params provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
             }
         }
     }
