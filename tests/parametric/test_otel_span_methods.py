@@ -295,7 +295,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_http_server_request(self, test_agent, test_library):
+    def test_otel_span_operation_name_http_server(self, test_agent, test_library):
         """
             Tests that the operation name will be set to "http.server.request" when:
             - Span kind is set to Server
@@ -324,7 +324,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_http_client_request(self, test_agent, test_library):
+    def test_otel_span_operation_name_http_client(self, test_agent, test_library):
         """
             Tests that the operation name will be set to "http.client.request" when:
             - Span kind is set to Client
@@ -359,7 +359,7 @@ class Test_Otel_Span_Methods:
             - Span kind is set to Client
             - db.system is set to some messaging system (e.g., redis in this example)
 
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/database/)
+            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/database-spans/)
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
