@@ -23,7 +23,7 @@ tests/:
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
         test_ldap_injection.py:
-          TestLDAPInjection: missing_feature
+          TestLDAPInjection: v2.36.0
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie: v2.39.0
         test_no_samesite_cookie.py:
