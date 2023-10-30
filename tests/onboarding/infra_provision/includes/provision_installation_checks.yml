@@ -7,7 +7,7 @@
         - os_type: linux
           os_distro: deb
           command: |
-              version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 )&& version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-java| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-java':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
+              version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 )&& version=$((dpkg -s datadog-apm-inject || true) | grep Version) && version_lang=$(dpkg -s datadog-apm-library-java| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-java':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
   - nodejs:
       - install:
         - os_type: linux
@@ -17,7 +17,7 @@
         - os_type: linux
           os_distro: deb
           command: |
-              version_agent=$((dpkg -s datadog-agent || true) | grep Version  | head -n 1) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-js| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-js':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
+              version_agent=$((dpkg -s datadog-agent || true) | grep Version  | head -n 1) && version=$((dpkg -s datadog-apm-inject || true) | grep Version) && version_lang=$(dpkg -s datadog-apm-library-js| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-js':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
   - dotnet:
       - install:
         - os_type: linux
@@ -27,7 +27,7 @@
         - os_type: linux
           os_distro: deb
           command: |
-              version_agent=$((dpkg -s datadog-agent|| true ) | grep Version  | head -n 1) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-dotnet| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-dotnet':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
+              version_agent=$((dpkg -s datadog-agent|| true ) | grep Version  | head -n 1) && version=$((dpkg -s datadog-apm-inject || true) | grep Version) && version_lang=$(dpkg -s datadog-apm-library-dotnet| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-dotnet':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
   - python:
       - install:
         - os_type: linux
@@ -37,7 +37,7 @@
         - os_type: linux
           os_distro: deb
           command: |
-              version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 ) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-python| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-python':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
+              version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 ) && version=$((dpkg -s datadog-apm-inject || true) | grep Version) && version_lang=$(dpkg -s datadog-apm-library-python| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-python':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
 
   - ruby:
       - install:
@@ -48,4 +48,4 @@
         - os_type: linux
           os_distro: deb
           command: |
-              version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 ) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-ruby| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-ruby':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
+              version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 ) && version=$((dpkg -s datadog-apm-inject || true) | grep Version) && version_lang=$(dpkg -s datadog-apm-library-ruby| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-ruby':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"

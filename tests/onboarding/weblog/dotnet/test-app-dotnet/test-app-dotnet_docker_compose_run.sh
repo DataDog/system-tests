@@ -2,7 +2,6 @@
 
 set -e
 
-tar -xvf test-app-ruby.tar
 sudo chmod -R 755 *
 
 sudo docker build --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
