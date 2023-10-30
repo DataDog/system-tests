@@ -27,4 +27,3 @@ class Test_HstsMissingHeader(BaseSinkTest):
     @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
-        
