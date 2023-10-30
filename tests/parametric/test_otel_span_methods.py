@@ -810,7 +810,7 @@ class Test_Otel_Span_Methods:
 
         assert root_span["name"] == "internal"
         assert root_span["resource"] == "otel_span_name"
-    
+
     @missing_feature(context.library == "go", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
@@ -836,7 +836,7 @@ class Test_Otel_Span_Methods:
 
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "otel_span_name"
-   
+
     @missing_feature(context.library == "go", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
