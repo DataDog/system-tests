@@ -208,10 +208,11 @@ class ProvisionParser:
         # If weblog has os_branch, we will execute this weblog only in machines with os_branch
         if exact_match is True:
 
-            if os_branch is not None and "supported-language-versions" in data and "os_branch" in data:
-                return filteredInstalations
-            elif os_branch is not None and "supported-language-versions" not in data:
-                return filteredInstalations
+            if os_branch is not None:
+                if "supported-language-versions" in data and "os_branch" in data:
+                    return filteredInstalations
+                elif "supported-language-versions" not in data:
+                    return filteredInstalations
 
             if os_branch is None:
                 filteredInstalations = [
