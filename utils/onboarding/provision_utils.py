@@ -211,7 +211,7 @@ class ProvisionParser:
             if os_branch is not None:
                 if "supported-language-versions" in data and "os_branch" in data:
                     return filteredInstalations
-                elif "supported-language-versions" not in data:
+                if "supported-language-versions" not in data:
                     return filteredInstalations
 
             if os_branch is None:
