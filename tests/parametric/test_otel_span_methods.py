@@ -793,9 +793,9 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_internal_002(self, test_agent, test_library):
+    def test_otel_span_operation_name_span_kind_001(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to `span.kind` (in this case "internal") when:
+            Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "internal") when:
             - Span kind is set to Internal
             - no other known attributes for setting the operation name
         """
@@ -809,4 +809,56 @@ class Test_Otel_Span_Methods:
         root_span = get_span(test_agent)
 
         assert root_span["name"] == "internal"
+        assert root_span["resource"] == "otel_span_name"
+    
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_span_kind_002(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "producer") when:
+            - Span kind is set to Producer
+            - no other known attributes for setting the operation name
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_PRODUCER) as span:
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "producer"
+        assert root_span["resource"] == "otel_span_name"
+   
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_span_kind_003(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "consumer") when:
+            - Span kind is set to Consumer
+            - no other known attributes for setting the operation name
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name", span_kind=SK_CONSUMER) as span:
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "consumer"
         assert root_span["resource"] == "otel_span_name"
