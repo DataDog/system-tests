@@ -714,7 +714,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_generic_server_002(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to "unknown.server.request" when:
+            Tests that the operation name will be set to "server.request" when:
             - Span kind is set to Server
             - no other known attributes to help determine operation name
         """
@@ -727,7 +727,7 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "unknown.server.request"
+        assert root_span["name"] == "server.request"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
@@ -769,7 +769,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_generic_client_002(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to "unknown.client.request" when:
+            Tests that the operation name will be set to "client.request" when:
             - Span kind is set to Client
             - no other known attributes to help determine operation name
         """
@@ -782,7 +782,7 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "unknown.client.request"
+        assert root_span["name"] == "client.request"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
