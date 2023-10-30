@@ -300,9 +300,7 @@ tests/:
       Test_TracerSCITagging: v3.21.0
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices:
-        '*': missing_feature
-        express4: v4.17.0
+      Test_RemoteConfigurationExtraServices: v4.17.0
       Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
