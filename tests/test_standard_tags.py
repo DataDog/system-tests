@@ -218,7 +218,6 @@ class Test_StandardTagsRoute:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @coverage.basic
-@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 
