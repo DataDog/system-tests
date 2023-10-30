@@ -862,3 +862,29 @@ class Test_Otel_Span_Methods:
 
         assert root_span["name"] == "consumer"
         assert root_span["resource"] == "otel_span_name"
+
+    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_operation_name_unknown(self, test_agent, test_library):
+        """
+            Tests that the operation name will be set to "otel_unknown" when:
+            - span.kind is not present
+            - no other known attributes for setting the operation name
+        """
+        with test_library:
+            with test_library.otel_start_span("otel_span_name") as span:
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "otel_unknown"
+        assert root_span["resource"] == "otel_span_name"
