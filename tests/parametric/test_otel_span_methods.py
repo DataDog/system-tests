@@ -353,7 +353,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_database_001(self, test_agent, test_library):
+    def test_otel_span_operation_name_database(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `db.system + "." + "query" when:
             - Span kind is set to Client
@@ -372,35 +372,6 @@ class Test_Otel_Span_Methods:
         root_span = get_span(test_agent)
 
         assert root_span["name"] == "redis.query"
-        assert root_span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "go", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_database_002(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `db.system + ".query"` when:
-            - Span kind is set to Client
-            - db.system is set to some database (e.g., mongodb in this example)
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/database/)
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"db.system": "mongodb"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
-        assert len(trace) == 1
-
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "mongodb.query"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
