@@ -10,6 +10,7 @@ NGINX_VERSION=1.17.3
 
 OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
 DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
+
 echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION"
 echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
 echo $DD_OPENTRACING_CPP_VERSION > SYSTEM_TESTS_LIBRARY_VERSION

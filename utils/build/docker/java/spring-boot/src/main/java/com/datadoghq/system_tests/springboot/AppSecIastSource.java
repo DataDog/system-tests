@@ -3,17 +3,23 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.iast.utils.SqlExamples;
 import com.datadoghq.system_tests.iast.utils.TestBean;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
+
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("Convert2MethodRef")
 @RestController
@@ -90,6 +96,35 @@ public class AppSecIastSource {
         String value = testBean.getValue();
         sql.insecureSql(value, (statement, sql) -> statement.executeQuery(sql));
         return String.format("@RequestBody to Test bean -> value:%s", value);
+    }
+
+    @PostMapping("/multipart/test")
+    public String handleFileUpload(@RequestParam("file1") MultipartFile file) {
+        String fileName = file.getName();
+        sql.insecureSql(fileName, (statement, sql) -> {
+            try {
+                statement.executeQuery(sql);
+            } catch (Exception ex) {
+                // Using table that does not exist, ignore error.
+            }
+            return null;
+        });
+        return "fileName: " + file.getName();
+    }
+
+    @GetMapping("/path/test")
+    String sourcePath(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String param = path.substring(path.lastIndexOf('/'));
+        sql.insecureSql(param, (statement, sql) -> {
+            try {
+                statement.executeQuery(sql);
+            } catch (Exception ex) {
+                // Using table that does not exist, ignore error.
+            }
+            return null;
+        });
+        return "OK";
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
