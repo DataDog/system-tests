@@ -793,35 +793,6 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_internal_001(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `code.namespace + "." + code.function` when:
-            - Span kind is set to Internal
-            - code.namespace is set to Datadog
-            - code.function is set to Foo()
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_INTERNAL) as span:
-                span.set_attributes({"code.namespace": "Datadog"})
-                span.set_attributes({"code.function": "Foo()"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
-        assert len(trace) == 1
-
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "Datadog.Foo()"
-        assert root_span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "go", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_internal_002(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `span.kind` (in this case "internal") when:
