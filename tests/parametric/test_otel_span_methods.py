@@ -659,7 +659,6 @@ class Test_Otel_Span_Methods:
             Tests that the operation name will be set to `"graphql.server.request"` when:
             - Span kind is set to Server
             - graphql.operation.type is set to something (e.g., query in this example)
-              - Note the graphql.operation.type value should be set as a tag on the Span
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/graphql/)
         """
