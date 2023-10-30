@@ -175,6 +175,42 @@ def dbm():
     return Response(f"Integration is not supported: {integration}", 406)
 
 
+@app.route("/apm")
+def apm():
+    integration = flask_request.args.get("integration")
+    application_type = flask_request.args.get("applicationtype")
+    message_topic = "DistributedTracing"
+
+    def kafka():
+        if application_type == "producer":
+            print("PRODUCER")
+            producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
+            message_content = b"Distributed Tracing Test!"
+            producer.produce(message_topic, value=message_content)
+            producer.flush()
+        elif application_type == "consumer":
+            consumer = Consumer(
+                {
+                    "bootstrap.servers": "kafka:9092",
+                    "group.id": "apm_test",
+                    "enable.auto.commit": True,
+                    "auto.offset.reset": "earliest",
+                }
+            )
+            consumer.subscribe([message_topic])
+            msg_received = False
+            while not msg_received:
+                msg = consumer.poll(1)
+                if msg is not None:
+                    msg_received = True
+            consumer.close()
+
+    if integration == "kafka":
+        kafka()
+
+    return Response("OK")
+
+
 @app.route("/dsm")
 def dsm():
     logging.basicConfig(
