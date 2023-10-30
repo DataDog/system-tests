@@ -21,6 +21,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 @coverage.good
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""

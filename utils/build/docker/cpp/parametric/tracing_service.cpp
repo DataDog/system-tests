@@ -167,7 +167,7 @@ TracingService::~TracingService() {}
 }
 
 ::grpc::Status TracingService::FlushSpans(::grpc::ServerContext* /* context */, const ::FlushSpansArgs* /* request */, ::FlushSpansReturn* /* response */) {
-  event_scheduler_->manual_flush();
+  event_scheduler_->flush_traces();
   return ::grpc::Status(::grpc::StatusCode::OK, "");
 }
 
