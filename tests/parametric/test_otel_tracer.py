@@ -4,21 +4,20 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.otel_trace import OtelSpan
-from utils import missing_feature, irrelevant, context, scenarios
+from utils import missing_feature, context, scenarios
 
-# this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
-pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
-)
-
 
 @scenarios.parametric
 class Test_Otel_Tracer:
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env",
+        [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+    )
     def test_otel_simple_trace(self, test_agent, test_library):
         """
             Perform two traces
@@ -56,10 +55,14 @@ class Test_Otel_Tracer:
         child_span = find_span(trace_one, OtelSpan(name="child"))
         assert child_span["name"] == "child"
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
-    def test_force_flush_otel(self, test_agent, test_library):
+    @pytest.mark.parametrize(
+        "library_env",
+        [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+    )
+    def test_otel_force_flush(self, test_agent, test_library):
         """
             Verify that force flush flushed the spans
         """
@@ -73,3 +76,26 @@ class Test_Otel_Tracer:
             traces = test_agent.wait_for_num_traces(1)
             span = find_span_in_traces(traces, OtelSpan(name="test_span"))
             assert span.get("name") == "test_span"
+
+    @missing_feature(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env",
+        [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+    )
+    def test_otel_default_propagation(self, test_agent, test_library):
+        """
+            Verify that using the OTel API doesn't change the default trace
+            context propagation style to W3C.
+        """
+        with test_library:
+            with test_library.otel_start_span(
+                name="test_span", http_headers=[["traceparent", "00-00000000000000000000000000000001-1234567890123456-01"]],
+            ) as span:
+                span.end_span()
+            traces = test_agent.wait_for_num_traces(1)
+            span = find_span_in_traces(traces, OtelSpan(name="test_span"))
+            assert span.get("name") == "test_span"
+            # Check that W3C headers were ignored
+            assert span.get("trace_id") != 1
