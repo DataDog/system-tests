@@ -355,7 +355,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_database_001(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to `db.system + "." + "command" when:
+            Tests that the operation name will be set to `db.system + "." + "query" when:
             - Span kind is set to Client
             - db.system is set to some messaging system (e.g., redis in this example)
 
@@ -371,7 +371,7 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "reddis.command"
+        assert root_span["name"] == "redis.query"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
