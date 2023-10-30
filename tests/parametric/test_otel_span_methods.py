@@ -359,7 +359,7 @@ class Test_Otel_Span_Methods:
             - Span kind is set to Client
             - db.system is set to some messaging system (e.g., redis in this example)
 
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/database-spans/)
+            (https://opentelemetry.io/docs/specs/semconv/database/database-spans/)
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
@@ -465,37 +465,6 @@ class Test_Otel_Span_Methods:
         root_span = get_span(test_agent)
 
         assert root_span["name"] == "kafka.publish"
-        assert root_span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "go", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    def test_otel_span_operation_name_message_server(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
-            - Span kind is set to Server
-            - messaging.system is set to something
-            - messaging.operation is set to something
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"messaging.system": "kafka"})
-                span.set_attributes({"messaging.operation": "receive"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
-        assert len(trace) == 1
-
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "kafka.receive"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "go", reason="Not implemented")
