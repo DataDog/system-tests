@@ -128,6 +128,8 @@ jobs:
           weblog: spring-boot-payara
         - library: java
           weblog: akka-http
+        - library: java
+          weblog: play
         - library: nodejs
           weblog: express4
         - library: nodejs
