@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+
 sudo chmod -R 755 *
 
 sudo docker build --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
