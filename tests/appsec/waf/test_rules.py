@@ -79,6 +79,9 @@ class Test_LFI:
     @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     @irrelevant(library="python", weblog_variant="django-poc")
     @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
+    @irrelevant(
+        context.weblog_variant in ("akka-http", "play") and context.library == "java", reason="path is normalized to /"
+    )
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
