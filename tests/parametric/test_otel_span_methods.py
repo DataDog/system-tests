@@ -400,10 +400,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "http.server.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "http.server.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -427,10 +426,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "http.client.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "http.client.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -454,10 +452,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "redis.query"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "redis.query"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -483,10 +480,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "kafka.receive"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "kafka.receive"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -512,10 +508,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "kafka.receive"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "kafka.receive"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -541,10 +536,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "kafka.publish"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "kafka.publish"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -570,10 +564,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "kafka.receive"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "kafka.receive"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -599,10 +592,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "aws.s3.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "aws.s3.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -627,10 +619,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "aws.client.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "aws.client.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -654,10 +645,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "grpc.client.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "grpc.client.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -681,10 +671,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "grpc.server.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "grpc.server.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -710,10 +699,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "aws.my-function.invoke"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "aws.my-function.invoke"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -737,10 +725,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "datasource.invoke"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "datasource.invoke"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -764,10 +751,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "graphql.server.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "graphql.server.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -791,10 +777,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "amqp.server.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "amqp.server.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -815,10 +800,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "server.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "server.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -842,10 +826,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "amqp.client.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "amqp.client.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -866,10 +849,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "client.request"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "client.request"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -890,10 +872,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "internal"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "internal"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -914,10 +895,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "producer"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "producer"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -938,10 +918,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "consumer"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "consumer"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -962,10 +941,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "otel_unknown"
-        assert root_span["resource"] == "otel_span_name"
+        span = get_span(test_agent)
+        assert span["name"] == "otel_unknown"
+        assert span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -990,10 +968,9 @@ class Test_Otel_Span_Methods:
         trace = find_trace_by_root(traces, otel_span(name="new.name"))
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "overriden.name"
-        assert root_span["resource"] == "new.name"
-        assert root_span["service"] == "new.service.name"
-        assert root_span["type"] == "new.span.type"
-        assert root_span["metrics"].get("_dd1.sr.eausr") == "1.0"
+        span = get_span(test_agent)
+        assert span["name"] == "overriden.name"
+        assert span["resource"] == "new.name"
+        assert span["service"] == "new.service.name"
+        assert span["type"] == "new.span.type"
+        assert span["metrics"].get("_dd1.sr.eausr") == "1.0"
