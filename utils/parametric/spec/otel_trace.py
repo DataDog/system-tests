@@ -17,6 +17,7 @@ SK_CONSUMER = 5
 class OtelSpan(TypedDict):
     resource: str
 
+
 class OtelSpanContext(TypedDict):
     trace_id: str
     span_id: str
@@ -27,8 +28,10 @@ class OtelSpanContext(TypedDict):
 
 OtelTrace = List[OtelSpan]
 
+
 def otel_span(name: str) -> OtelSpan:
     return {"resource": name}
+
 
 def check_list_type(value, t: type) -> bool:
     if value and all(isinstance(item, t) for item in value):
