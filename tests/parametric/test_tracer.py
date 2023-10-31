@@ -102,8 +102,16 @@ class Test_TracerSCITagging:
                 "expected_repo_url": "https://gitlab.com/DataDog/systems-test.git",
             },
             {
+                "DD_GIT_REPOSITORY_URL": "ssh://gitlab-ci-token:AAA_bbb@gitlab.com/DataDog/systems-test.git",
+                "expected_repo_url": "ssh://gitlab.com/DataDog/systems-test.git",
+            },
+            {
                 "DD_GIT_REPOSITORY_URL": "https://token@gitlab.com/user/project.git",
                 "expected_repo_url": "https://gitlab.com/user/project.git",
+            },
+            {
+                "DD_GIT_REPOSITORY_URL": "ssh://token@gitlab.com/user/project.git",
+                "expected_repo_url": "ssh://gitlab.com/user/project.git",
             },
             {
                 "DD_GIT_REPOSITORY_URL": "https://gitlab.com/DataDog/systems-test.git",
