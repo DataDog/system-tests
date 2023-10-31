@@ -69,6 +69,7 @@ tests/:
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
+    test_otel_span_methods.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
   remote_config/:

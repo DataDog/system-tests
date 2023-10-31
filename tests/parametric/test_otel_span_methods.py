@@ -20,9 +20,6 @@ pytestmark = pytest.mark.parametrize(
 
 @scenarios.parametric
 class Test_Otel_Span_Methods:
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_start_span(self, test_agent, test_library):
         """
             - Start/end a span with start and end options
@@ -45,9 +42,6 @@ class Test_Otel_Span_Methods:
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
         """
             - Update the service name on a span
@@ -61,10 +55,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "parent_span"
         assert root_span["service"] == "new_service"
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_set_attributes_different_types(self, test_agent, test_library):
         """
             - Set attributes of multiple types for an otel span
@@ -131,13 +122,10 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["d_int_val"] == 2
         assert root_span["metrics"]["d_double_val"] == 3.14
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_span_is_recording(self, test_agent, test_library):
         """
         Test functionality of ending a span.
@@ -151,13 +139,10 @@ class Test_Otel_Span_Methods:
                 parent.end_span()
                 assert not parent.is_recording()
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_finished_end_options(self, test_agent, test_library):
         """
         Test functionality of ending a span with end options.
@@ -177,9 +162,6 @@ class Test_Otel_Span_Methods:
         assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
         assert s.get("duration") == duration * 1_000
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_span_end(self, test_agent, test_library):
         """
         Test functionality of ending a span. After ending:
@@ -207,13 +189,10 @@ class Test_Otel_Span_Methods:
         assert child["name"] == "child"
         assert child["parent_id"] == parent_span["span_id"]
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
     )
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_set_span_status_error(self, test_agent, test_library):
         """
             This test verifies that setting the status of a span
@@ -233,13 +212,10 @@ class Test_Otel_Span_Methods:
         assert s.get("meta").get("error.message") == "error_desc"
         assert s.get("name") == "error_span"
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
     )
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(
         context.library == "python",
         reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
@@ -268,9 +244,6 @@ class Test_Otel_Span_Methods:
         assert span.get("meta").get("error.message") is None
         assert span.get("name") == "ok_span"
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -293,9 +266,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_http_server(self, test_agent, test_library):
         """
             Tests that the operation name will be set to "http.server.request" when:
@@ -323,9 +293,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_http_client(self, test_agent, test_library):
         """
             Tests that the operation name will be set to "http.client.request" when:
@@ -353,9 +320,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_database(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `db.system + "." + "query" when:
@@ -383,9 +347,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_message_client(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
@@ -415,9 +376,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_message_consumer(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
@@ -447,9 +405,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_message_producer(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
@@ -479,9 +434,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_message_server(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
@@ -511,9 +463,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_aws_client_001(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `"aws." + `rpc.service`.lower() + ".request" :
@@ -543,9 +492,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_aws_client_002(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `"aws.request" :
@@ -574,9 +520,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_rpc_client(self, test_agent, test_library):
         """
             Tests that the operation name will be set to the `rpc.system + "." + span.kind + ".request"`
@@ -604,9 +547,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_rpc_server(self, test_agent, test_library):
         """
             Tests that the operation name will be set to the `rpc.system + "." + span.kind + ".request"`
@@ -634,9 +574,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_faas_client(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `faas.invoked_provider` + "." + `faas.invoked_name` + ".invoke" when:
@@ -666,9 +603,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_faas_server(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `faas.trigger + ".invoke"` when:
@@ -696,9 +630,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_graphql(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `"graphql.server.request"` when:
@@ -726,9 +657,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_generic_server_001(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `network.protocol.name` + ".server.request"` when:
@@ -756,9 +684,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_generic_server_002(self, test_agent, test_library):
         """
             Tests that the operation name will be set to "server.request" when:
@@ -783,9 +708,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_generic_client_001(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `network.protocol.name + ".client.request"` when:
@@ -813,9 +735,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_generic_client_002(self, test_agent, test_library):
         """
             Tests that the operation name will be set to "client.request" when:
@@ -840,9 +759,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_span_kind_001(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "internal") when:
@@ -867,9 +783,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_span_kind_002(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "producer") when:
@@ -894,9 +807,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_span_kind_003(self, test_agent, test_library):
         """
             Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "consumer") when:
@@ -921,9 +831,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_unknown(self, test_agent, test_library):
         """
             Tests that the operation name will be set to "otel_unknown" when:
@@ -948,9 +855,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_operation_name_override(self, test_agent, test_library):
         """
             Tests that the operation name will be set to contents of `operation.name`.lower() when:
@@ -976,9 +880,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_resource_name_override(self, test_agent, test_library):
         """
             Tests that the resource name will be set to contents of `resource.name` when:
@@ -1004,9 +905,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_service_name_override(self, test_agent, test_library):
         """
             Tests that the service name will be set to contents of `service.name` when:
@@ -1033,9 +931,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_span_type_override(self, test_agent, test_library):
         """
             Tests that the span type will be set to the contents of `span.type` when:
@@ -1062,9 +957,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_analytics_sample_rate_override(self, test_agent, test_library):
         """
             Tests that the metric for the analytics sample rate (_dd1.sr.eausr) will be set when:
