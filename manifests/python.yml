@@ -441,7 +441,7 @@ tests/:
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': missing_feature
-        flask-poc: bug (Should have been v1.20.3, but failing on 2.x branch)
+        flask-poc: v1.20.3
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature

@@ -25,6 +25,7 @@ VARIANT_COMPONENT_MAP = {
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
+    "nextjs": "next",
     "uwsgi-poc": "flask",
     "django-poc": "django",
     "python3.12": "django",
@@ -228,6 +229,7 @@ class Test_Meta:
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
     @bug(library="java", reason="language tag implemented but not for all spans")
+    @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""

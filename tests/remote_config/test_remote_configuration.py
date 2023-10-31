@@ -299,6 +299,7 @@ class Test_RemoteConfigurationExtraServices:
 
         interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
 
+    @bug(library="dotnet", reason="APPSEC-11886")
     def test_tracer_extra_services(self):
         """Test extra services field"""
         import itertools
