@@ -287,7 +287,7 @@ class Test_Otel_Span_Methods:
                     assert context.get("span_id") == "{:016x}".format(span.span_id)
                     assert context.get("trace_flags") == "01"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -316,7 +316,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "http.server.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -345,7 +345,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "http.client.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -374,7 +374,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "redis.query"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -405,7 +405,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "kafka.receive"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -436,7 +436,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "kafka.receive"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -467,7 +467,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "kafka.publish"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -498,7 +498,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "kafka.receive"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -529,7 +529,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "aws.s3.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -559,7 +559,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "aws.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -588,7 +588,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "grpc.client.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -617,7 +617,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "grpc.server.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -648,7 +648,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "aws.my-function.invoke"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -677,7 +677,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "datasource.invoke"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -706,7 +706,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "graphql.server.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -735,7 +735,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "amqp.server.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -761,7 +761,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "server.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -790,7 +790,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "amqp.client.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -816,7 +816,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "client.request"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -842,7 +842,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "internal"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -868,7 +868,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -894,7 +894,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "consumer"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -920,7 +920,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "otel_unknown"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -947,7 +947,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "overriden.name"
         assert root_span["resource"] == "otel_span_name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -974,7 +974,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "http.server.request"
         assert root_span["resource"] == "new.name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -1002,7 +1002,7 @@ class Test_Otel_Span_Methods:
         assert root_span["resource"] == "otel_span_name"
         assert root_span["service.name"] == "new.service.name"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -1030,7 +1030,7 @@ class Test_Otel_Span_Methods:
         assert root_span["resource"] == "otel_span_name"
         assert root_span["type"] == "new.span.type"
 
-    @missing_feature(context.library == "go", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
