@@ -874,7 +874,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_span_operation_name_aws_client_002(self, test_agent, test_library):
         """
-            Tests that the operation name will be set to `"aws.request" :
+            Tests that the operation name will be set to `"aws.client.request" :
             - Span kind is set to Client
             - rpc.system is set to aws-api
             - rpc.service is not set
@@ -891,7 +891,7 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "aws.request"
+        assert root_span["name"] == "aws.client.request"
         assert root_span["resource"] == "otel_span_name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
