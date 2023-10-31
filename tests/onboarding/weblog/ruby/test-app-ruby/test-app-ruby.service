@@ -1,0 +1,18 @@
+[Unit]
+Description=Ruby Weblog App Service
+After=syslog.target network.target
+
+[Service]
+SuccessExitStatus=143
+
+User=datadog
+
+Type=simple
+
+Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
+WorkingDirectory=/home/datadog
+ExecStart=/bin/bash -c 'rails server -b 0.0.0.0 -p 5985'
+ExecStop=/bin/kill -15 $MAINPID
+
+[Install]
+WantedBy=multi-user.target

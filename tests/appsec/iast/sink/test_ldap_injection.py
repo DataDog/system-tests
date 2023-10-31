@@ -15,9 +15,13 @@ class TestLDAPInjection(BaseSinkTest):
     insecure_endpoint = "/iast/ldapi/test_insecure"
     secure_endpoint = "/iast/ldapi/test_secure"
     data = {"username": "ssam", "password": "sammy"}
-    location_map = {"java": "com.datadoghq.system_tests.iast.utils.LDAPExamples"}
+    location_map = {
+        "java": "com.datadoghq.system_tests.iast.utils.LDAPExamples",
+        "nodejs": "iast/index.js",
+    }
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

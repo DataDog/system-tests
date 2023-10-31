@@ -1,10 +1,10 @@
 'use strict'
-const { execSync } = require('child_process')
+const { readFileSync } = require('fs')
 
 function init (app, tracer) {
     
     app.post('/iast/source/body/test', (req, res) => {
-        execSync('ls #' + req.body.name)
+        readFileSync(req.body.name)
         res.send('OK')
     });
 
@@ -13,7 +13,7 @@ function init (app, tracer) {
         Object.keys(req.headers).forEach((key) => {
             vulnParam += key
         })
-        execSync('ls #' + vulnParam)
+        readFileSync(vulnParam)
         res.send('OK')
     });
 
@@ -22,7 +22,7 @@ function init (app, tracer) {
         Object.keys(req.headers).forEach((key) => {
             vulnParam += req.headers[key]
         })
-        execSync('ls #' + vulnParam)
+        readFileSync(vulnParam)
         res.send('OK')
     });
 
@@ -31,7 +31,7 @@ function init (app, tracer) {
         Object.keys(req.query).forEach((key) => {
             vulnParam += key
         })
-        execSync('ls #' + vulnParam)
+        readFileSync(vulnParam)
         res.send('OK')
     });
 
@@ -40,7 +40,7 @@ function init (app, tracer) {
         Object.keys(req.body).forEach((key) => {
             vulnParam += req.body[key]
         })
-        execSync('ls #' + vulnParam)
+        readFileSync(vulnParam)
         res.send('OK')
     });
 
@@ -49,7 +49,7 @@ function init (app, tracer) {
         Object.keys(req.query).forEach((key) => {
             vulnParam += req.query[key]
         })
-        execSync('ls #' + vulnParam)
+        readFileSync(vulnParam)
         res.send('OK')
     });
 
@@ -58,7 +58,7 @@ function init (app, tracer) {
         Object.keys(req.cookies).forEach((key) => {
             vulnParam += key
         })
-        execSync('ls #' + vulnParam)
+        readFileSync(vulnParam)
         res.send('OK')
     });
 
@@ -67,7 +67,7 @@ function init (app, tracer) {
         Object.keys(req.cookies).forEach((key) => {
             vulnParam += req.cookies[key]
         })
-        execSync('ls #' + vulnParam)
+        readFileSync(vulnParam)
         res.send('OK')
     });
 }

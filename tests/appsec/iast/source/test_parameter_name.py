@@ -19,6 +19,8 @@ class TestParameterName(BaseSourceTest):
     source_name = "user"
     source_value = None
 
+    setup_source_post_reported = BaseSourceTest.setup_source_reported
+
     @missing_feature(weblog_variant="express4", reason="Tainted as request body")
     @bug(weblog_variant="resteasy-netty3", reason="Not reported")
     @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
@@ -26,6 +28,8 @@ class TestParameterName(BaseSourceTest):
     def test_source_post_reported(self):
         """ for use case where only one is reported, we want to keep a test on the one reported """
         self.validate_request_reported(self.requests["POST"])
+
+    setup_source_get_reported = BaseSourceTest.setup_source_reported
 
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
     @bug(weblog_variant="resteasy-netty3", reason="Not reported")
