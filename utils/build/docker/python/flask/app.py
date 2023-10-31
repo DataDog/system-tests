@@ -21,6 +21,7 @@ from iast import (
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
+from integrations.kafka import kafka_producer, kafka_consumer
 
 import ddtrace
 
@@ -173,6 +174,54 @@ def dbm():
         return Response(f"Cursor method is not supported: {operation}", 406)
 
     return Response(f"Integration is not supported: {integration}", 406)
+
+
+@app.route("/apm")
+def apm():
+    """
+        The goal of this endpoint is to trigger kafka integration calls
+        Usage:
+        - /apm?integration=kafka&applicationtype=producer
+        - /apm?integration=kafka&applicationtype=consumer
+    """
+    integration = flask_request.args.get("integration")
+    application_type = flask_request.args.get("applicationtype")
+    message_topic = "DistributedTracing"
+
+    if integration == "kafka":
+        if application_type == "producer":
+            kafka_producer(message_topic)
+        elif application_type == "consumer":
+            kafka_consumer(message_topic)
+
+    return Response("OK")
+
+
+@app.route("/apm_run_kafka_tracing_tests")
+def apm_run_kafka_tracing_tests():
+    """
+        The goal of this endpoint run through different kafka calls for different languages
+        Usage:
+        - /apm_run_kafka_tracing_tests
+    """
+    endpoint = flask_request.args.get("endpoint") or "http://localhost:7777"
+    PRODUCER_LANGUAGES = ["python"]
+    CONSUMER_LANGUAGES = ["python"]
+    for lang in PRODUCER_LANGUAGES:
+        requests.get(endpoint + "/apm?integration=kafka&applicationtype=producer")
+
+        # TODO: The consumer calls need to be replaced with the dynamic urls for the endpoints
+        # This is a placeholder for when the other app containers are ready.
+        requests.get(endpoint + "/apm?integration=kafka&applicationtype=consumer")
+
+    for lang in CONSUMER_LANGUAGES:
+        # TODO: The producer calls need to be replaced with the dynamic urls for the endpoints
+        # This is a placeholder for when the other app containers are ready.
+        requests.get(endpoint + "/apm?integration=kafka&applicationtype=producer")
+
+        requests.get(endpoint + "/apm?integration=kafka&applicationtype=consumer")
+
+    return Response("OK")
 
 
 @app.route("/dsm")
