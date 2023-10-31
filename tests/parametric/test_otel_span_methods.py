@@ -462,7 +462,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_message_client(self, test_agent, test_library):
+    @pytest.mark.parametrize("message_span_kind", [SK_SERVER, SK_CLIENT, SK_CONSUMER, SK_PRODUCER])
+    def test_otel_span_operation_name_message(self, message_span_kind: int, test_agent, test_library):
         """
             Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
             - Span kind is set to Client
@@ -472,91 +473,7 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
         """
         with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"messaging.system": "Kafka"})
-                span.set_attributes({"messaging.operation": "Receive"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "kafka.receive"
-        assert span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_message_consumer(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
-            - Span kind is set to Consumer
-            - messaging.system is set to something
-            - messaging.operation is set to something
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CONSUMER) as span:
-                span.set_attributes({"messaging.system": "Kafka"})
-                span.set_attributes({"messaging.operation": "Receive"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "kafka.receive"
-        assert span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_message_producer(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
-            - Span kind is set to Producer
-            - messaging.system is set to something
-            - messaging.operation is set to something
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_PRODUCER) as span:
-                span.set_attributes({"messaging.system": "Kafka"})
-                span.set_attributes({"messaging.operation": "Publish"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "kafka.publish"
-        assert span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_message_server(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
-            - Span kind is set to Server
-            - messaging.system is set to something
-            - messaging.operation is set to something
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+            with test_library.otel_start_span("otel_span_name", span_kind=message_span_kind) as span:
                 span.set_attributes({"messaging.system": "Kafka"})
                 span.set_attributes({"messaging.operation": "Receive"})
                 span.end_span()
