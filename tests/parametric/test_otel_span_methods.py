@@ -55,6 +55,7 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "parent_span"
         assert root_span["service"] == "new_service"
 
+    @irrelevant(context.library >= "java@1.22.0", reason="library implements the new array encoding")
     @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
     def test_otel_set_attributes_different_types(self, test_agent, test_library):
         """
@@ -119,6 +120,67 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["int_val_zero"] == 0
         assert root_span["metrics"]["double_val"] == 4.2
         assert root_span["meta"]["d_str_val"] == "bye"
+        assert root_span["metrics"]["d_int_val"] == 2
+        assert root_span["metrics"]["d_double_val"] == 3.14
+
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @missing_feature(context.library == "dotnet", reason="Array encoding not implemented")
+    @missing_feature(context.library < "java@1.22.0", reason="Array encoding not implemented")
+    @missing_feature(context.library == "golang", reason="Array encoding not implemented")
+    @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Array encoding not implemented")
+    @missing_feature(context.library == "python_http", reason="Array encoding not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    def test_otel_set_attributes_different_types_with_array_encoding(self, test_agent, test_library):
+        """
+            - Set attributes of multiple types for an otel span
+        """
+        start_time = int(time.time())
+        with test_library:
+            with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
+                span.set_attributes({"str_val": "val"})
+                span.set_attributes({"str_val_empty": ""})
+                span.set_attributes({"bool_val": True})
+                span.set_attributes({"int_val": 1})
+                span.set_attributes({"int_val_zero": 0})
+                span.set_attributes({"double_val": 4.2})
+                span.set_attributes({"array_val_str": ["val1", "val2"]})
+                span.set_attributes({"array_val_int": [10, 20]})
+                span.set_attributes({"array_val_bool": [True, False]})
+                span.set_attributes({"array_val_double": [10.1, 20.2]})
+                span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
+                span.end_span()
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(name="operation"))
+        assert len(trace) == 1
+
+        root_span = get_span(test_agent)
+
+        assert root_span["name"] == "operation"
+        assert root_span["resource"] == "operation"
+
+        assert root_span["meta"]["str_val"] == "val"
+        assert root_span["meta"]["str_val_empty"] == ""
+        assert root_span["meta"]["bool_val"] == "true"
+        assert root_span["metrics"]["int_val"] == 1
+        assert root_span["metrics"]["int_val_zero"] == 0
+        assert root_span["metrics"]["double_val"] == 4.2
+
+        assert root_span["meta"]["array_val_str.0"] == "val1"
+        assert root_span["meta"]["array_val_str.1"] == "val2"
+
+        assert root_span["metrics"]["array_val_int.0"] == 10
+        assert root_span["metrics"]["array_val_int.1"] == 20
+
+        assert root_span["meta"]["array_val_bool.0"] == "true"
+        assert root_span["meta"]["array_val_bool.1"] == "false"
+
+        assert root_span["metrics"]["array_val_double.0"] == 10.1
+        assert root_span["metrics"]["array_val_double.1"] == 20.2
+
+        assert root_span["meta"]["d_str_val"] == "bye"
+        assert root_span["meta"]["d_bool_val"] == "false"
         assert root_span["metrics"]["d_int_val"] == 2
         assert root_span["metrics"]["d_double_val"] == 3.14
 

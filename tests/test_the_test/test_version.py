@@ -42,6 +42,9 @@ def test_version_comparizon():
     assert Version("1.1.0rc2.dev15+gc41d325d", "python") >= "1.1.0rc2.dev"
     assert Version("1.1.0", "python") > "1.1.0rc2.dev"
 
+    assert Version("2.1.0.dev", "python") < "2.1.0.dev83+gac1037728"
+    assert Version("2.1.0.dev", "python") < "2.1.0"
+
 
 def test_version_serialization():
 
@@ -156,3 +159,5 @@ def test_library_version():
     assert v < "java@0.94.1"
 
     assert LibraryVersion("agent", "7.39.0-devel") == "agent@7.39.0-devel"
+
+    assert LibraryVersion("php", "0.92.0+721d9389c7b04dd30c7c5ce2861f7191d5830f00") >= "php@0.92.0.dev"

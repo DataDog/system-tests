@@ -4,6 +4,8 @@ from pathlib import Path
 import shutil
 import time
 import subprocess
+import json
+import glob
 
 import pytest
 from watchdog.observers.polling import PollingObserver
@@ -453,14 +455,22 @@ class EndToEndScenario(_DockerScenario):
             logger.terminal.flush()
 
             interfaces.library.load_data_from_logs()
+            interfaces.library.check_deserialization_errors()
+
             interfaces.agent.load_data_from_logs()
+            interfaces.agent.check_deserialization_errors()
+
             interfaces.backend.load_data_from_logs()
 
         elif self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
             self.weblog_container.stop()
+            interfaces.library.check_deserialization_errors()
+
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
             self.agent_container.stop()
+            interfaces.agent.check_deserialization_errors()
+
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()
@@ -811,7 +821,7 @@ class OnBoardingScenario(_Scenario):
                 provision_vm.start()
 
         project_name = "system-tests-onboarding"
-        stack_name = "testing"
+        stack_name = "testing_v2"
 
         try:
             self.stack = auto.create_or_select_stack(
@@ -840,6 +850,43 @@ class OnBoardingScenario(_Scenario):
 
 
 class ParametricScenario(_Scenario):
+    class PersistentParametricTestConf(dict):
+        """ Parametric tests are executed in multiple thread, we need a mechanism to persist each parametrized_tests_metadata on a file"""
+
+        def __init__(self, outer_inst):
+            self.outer_inst = outer_inst
+            # To handle correctly we need to add data by default
+            self.update({"scenario": outer_inst.name})
+
+        def __setitem__(self, item, value):
+            super().__setitem__(item, value)
+            # Append to the context file
+            ctx_filename = f"{self.outer_inst.host_log_folder}/{os.environ.get('PYTEST_XDIST_WORKER')}_context.json"
+            with open(ctx_filename, "a") as f:
+                json.dump({item: value}, f)
+                f.write(",")
+                f.write(os.linesep)
+
+        def deserialize(self):
+            result = {}
+            for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
+                with open(ctx_filename, "r") as f:
+                    fileContent = f.read()
+                    # Remove last carriage return and the last comma. Wrap into json array.
+                    all_params = json.loads(f"[{fileContent[:-2]}]")
+                    # Change from array to unique dict
+                    for d in all_params:
+                        result.update(d)
+            return result
+
+    def __init__(self, name, doc) -> None:
+        super().__init__(name, doc=doc)
+        self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
+
+    @property
+    def parametrized_tests_metadata(self):
+        return self._parametric_tests_confs
+
     def configure(self, option):
         super().configure(option)
         assert "TEST_LIBRARY" in os.environ
@@ -1215,15 +1262,20 @@ class scenarios:
 
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST", doc="")
-    onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER", doc="")
     onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER", doc="")
     onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL", doc="")
-    onboarding_host_container_auto_install = OnBoardingScenario("ONBOARDING_HOST_CONTAINER_AUTO_INSTALL", doc="")
     onboarding_container_auto_install = OnBoardingScenario("ONBOARDING_CONTAINER_AUTO_INSTALL", doc="")
+    # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
+    onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
+    onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
+    onboarding_host_auto_install_uninstall = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL", doc="")
+    onboarding_container_auto_install_uninstall = OnBoardingScenario(
+        "ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL", doc=""
+    )
 
-    debugger_method_probes_status = EndToEndScenario(
-        "DEBUGGER_METHOD_PROBES_STATUS",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_STATUS"},
+    debugger_probes_status = EndToEndScenario(
+        "DEBUGGER_PROBES_STATUS",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_PROBES_STATUS"},
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
@@ -1232,19 +1284,6 @@ class scenarios:
         },
         library_interface_timeout=100,
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
-    )
-
-    debugger_line_probes_status = EndToEndScenario(
-        "DEBUGGER_LINE_PROBES_STATUS",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_STATUS"},
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
-            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
-        },
-        library_interface_timeout=100,
-        doc="Test scenario for checking if line probe statuses can be successfully 'RECIEVED' and 'INSTALLED'",
     )
 
     debugger_method_probes_snapshot = EndToEndScenario(

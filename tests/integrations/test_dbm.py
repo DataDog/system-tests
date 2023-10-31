@@ -24,6 +24,12 @@ class Test_Dbm:
                 weblog.get("/dbm", params={"integration": "mysql"}),
                 weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
+        elif self.library_name == "php":
+            self.requests = [
+                weblog.get("/dbm", params={"integration": "pdo-mysql"}),
+                weblog.get("/dbm", params={"integration": "pdo-pgsql"}),
+                weblog.get("/dbm", params={"integration": "mysqli"}),
+            ]
 
     def test_trace_payload(self):
         for r in self.requests:

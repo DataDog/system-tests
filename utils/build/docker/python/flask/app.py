@@ -1,7 +1,10 @@
+import logging
 import os
 import random
 import subprocess
+import threading
 
+from confluent_kafka import Producer, Consumer
 import psycopg2
 import requests
 from flask import Flask, Response, jsonify
@@ -19,6 +22,11 @@ from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
 
+import ddtrace
+
+ddtrace.patch_all()
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
@@ -167,6 +175,65 @@ def dbm():
     return Response(f"Integration is not supported: {integration}", 406)
 
 
+@app.route("/dsm")
+def dsm():
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    topic = "dsm-system-tests-queue"
+    consumer_group = "testgroup1"
+
+    def delivery_report(err, msg):
+        if err is not None:
+            logging.info(f"[kafka] Message delivery failed: {err}")
+        else:
+            logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
+
+    def produce():
+        producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
+        message = b"Hello, Kafka!"
+        producer.produce(topic, value=message, callback=delivery_report)
+        producer.flush()
+
+    def consume():
+        consumer = Consumer(
+            {
+                "bootstrap.servers": "kafka:9092",
+                "group.id": consumer_group,
+                "enable.auto.commit": True,
+                "auto.offset.reset": "earliest",
+            }
+        )
+
+        consumer.subscribe([topic])
+
+        msg_received = False
+        while not msg_received:
+            msg = consumer.poll(1)
+            if msg is None:
+                logging.info("[kafka] Consumed message but got nothing")
+            elif msg.error():
+                logging.info("[kafka] Consumed message but got error " + msg.error())
+            else:
+                logging.info("[kafka] Consumed message")
+                msg_received = True
+        consumer.close()
+
+    integration = flask_request.args.get("integration")
+    logging.info(f"[kafka] Got request with integration: {integration}")
+    if integration == "kafka":
+        produce_thread = threading.Thread(target=produce, args=())
+        consume_thread = threading.Thread(target=consume, args=())
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[kafka] Returning response")
+        return Response("ok")
+
+    return Response(f"Integration is not supported: {integration}", 406)
+
+
 @app.route("/iast/insecure_hashing/multiple_hash")
 def view_weak_hash_multiple_hash():
     weak_hash_multiple()
@@ -284,6 +351,39 @@ def view_iast_path_traversal_secure():
 
     if os.path.commonprefix((os.path.realpath(path), root_dir)) == root_dir:
         open(path)
+
+    return Response("OK")
+
+
+@app.route("/iast/ssrf/test_insecure", methods=["POST"])
+def view_iast_ssrf_insecure():
+    import requests
+
+    url = flask_request.form["url"]
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+    return Response("OK")
+
+
+@app.route("/iast/ssrf/test_secure", methods=["POST"])
+def view_iast_ssrf_secure():
+    from urllib.parse import urlparse
+    import requests
+
+    url = flask_request.form["url"]
+    # Validate the URL and enforce whitelist
+    allowed_domains = ["example.com", "api.example.com"]
+    parsed_url = urlparse(url)
+
+    if parsed_url.hostname not in allowed_domains:
+        return "Forbidden", 403
+
+    try:
+        requests.get(url)
+    except Exception:
+        pass
 
     return Response("OK")
 

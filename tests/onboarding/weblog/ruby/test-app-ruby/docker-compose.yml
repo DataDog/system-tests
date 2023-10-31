@@ -1,0 +1,7 @@
+version: '3'
+services:
+  test-app-ruby:
+    container_name: test-app-ruby
+    image: system-tests/local:latest
+    ports:
+      - 5985:18080 

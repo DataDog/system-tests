@@ -1,9 +1,10 @@
 #!/bin/bash
+set -e
+sudo chmod -R 755 *
 
-tar xvf test-app-java.tar
 ./gradlew build
 sudo docker build -t system-tests/local .
-sudo -E docker-compose -f docker-compose-agent-prod.yml up -d datadog
+sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
 sleep 20
 sudo -E docker-compose -f docker-compose.yml up -d test-app-java
 sudo docker-compose logs

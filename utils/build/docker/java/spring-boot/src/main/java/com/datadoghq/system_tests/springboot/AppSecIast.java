@@ -314,16 +314,12 @@ public class AppSecIast {
 
     @GetMapping(value = "/hstsmissing/test_insecure", produces = "text/html")
     public String hstsHeaderMissingInsecure(HttpServletResponse response) {
-        // XXX: Avoid triggering XCONTENTTYPE_MISSING_HEADER vulnerability when checking HSTS.
-        response.addHeader("X-Content-Type-Options", "nosniff");
         response.setStatus(HttpStatus.OK.value());
         return "ok";
     }
 
     @GetMapping(value = "/hstsmissing/test_secure", produces = "text/html")
     public String hstsHeaderMissingSecure(HttpServletResponse response) {
-        // XXX: Avoid triggering XCONTENTTYPE_MISSING_HEADER vulnerability when checking HSTS.
-        response.addHeader("X-Content-Type-Options", "nosniff");
         response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
         response.setStatus(HttpStatus.OK.value());
         return "ok";

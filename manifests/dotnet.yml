@@ -17,33 +17,37 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py:
-          TestCommandInjection: missing_feature
+          TestCommandInjection: v2.28.0
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
-          TestInsecureCookie: missing_feature
+          TestInsecureCookie: v2.39.0
         test_ldap_injection.py:
-          TestLDAPInjection: missing_feature
+          TestLDAPInjection: v2.36.0
         test_no_httponly_cookie.py:
-          TestNoHttponlyCookie: missing_feature
+          TestNoHttponlyCookie: v2.39.0
         test_no_samesite_cookie.py:
-          TestNoSamesiteCookie: missing_feature
+          TestNoSamesiteCookie: v2.39.0
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
-          TestPathTraversal: missing_feature
+          TestPathTraversal: v2.31.0
         test_sql_injection.py:
-          TestSqlInjection: missing_feature
+          TestSqlInjection: 
+             '*': v2.23.0
         test_ssrf.py:
-          TestSSRF: missing_feature
+          TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
+          TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
-          TestWeakCipher: missing_feature
+          TestWeakCipher: v2.24.0
         test_weak_hash.py:
-          TestWeakHash: missing_feature
+          TestWeakHash: v2.24.0
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
@@ -63,10 +67,14 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
-          TestParameterName: missing_feature
+          TestParameterName: v2.28.0
         test_parameter_value.py:
-          TestParameterValue: missing_feature
+          TestParameterValue: v2.28.0
+        test_path.py:
+          TestPath: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -169,10 +177,9 @@ tests/:
   debugger/:
     test_debugger.py:
       Test_Debugger_Line_Probe_Snaphots: v2.33.0
-      Test_Debugger_Line_Probe_Statuses: v2.33.0
       Test_Debugger_Method_Probe_Snaphots: v2.33.0
-      Test_Debugger_Method_Probe_Statuses: v2.33.0
       Test_Debugger_Mix_Log_Probe: v2.33.0
+      Test_Debugger_Probe_Statuses: v2.33.0
   integrations/:
     test_db_integrations_sql.py:
       Test_Agent_Mssql_db_integration: missing_feature
@@ -190,6 +197,8 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v2.33.0
+    test_tracer.py:
+      Test_TracerSCITagging: bug (Both env vars are not independent; injected tags are duplicated in all spans)
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.36.0
