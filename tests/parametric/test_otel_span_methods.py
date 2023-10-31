@@ -3,7 +3,7 @@ import time
 import pytest
 
 from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
-from utils.parametric.spec.otel_trace import OtelSpan
+from utils.parametric.spec.otel_trace import OtelSpan, otel_span
 from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
@@ -309,7 +309,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"http.request.method": "GET"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -339,7 +339,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"http.request.method": "GET"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -369,7 +369,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"db.system": "redis"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -401,7 +401,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"messaging.operation": "receive"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -433,7 +433,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"messaging.operation": "receive"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -465,7 +465,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"messaging.operation": "publish"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -497,7 +497,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"messaging.operation": "receive"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -529,7 +529,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"rpc.service": "S3"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -560,7 +560,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"rpc.system": "aws-api"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -590,7 +590,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"rpc.system": "grpc"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -620,7 +620,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"rpc.system": "grpc"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -652,7 +652,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"faas.invoked_name": "my-function"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -682,7 +682,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"faas.trigger": "datasource"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -712,7 +712,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"graphql.operation.type": "query"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -742,7 +742,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"network.protocol.name": "amqp"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -769,7 +769,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -799,7 +799,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"network.protocol.name": "amqp"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -826,7 +826,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -853,7 +853,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_INTERNAL) as span:
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -880,7 +880,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_PRODUCER) as span:
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -907,7 +907,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CONSUMER) as span:
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -934,7 +934,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span("otel_span_name") as span:
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -962,7 +962,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"operation.name": "Overriden.name"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -990,7 +990,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"resource.name": "new.name"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -1018,7 +1018,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"service.name": "new.service.name"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -1047,7 +1047,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"span.type": "new.span.type"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -1076,7 +1076,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"analytics.event": "true"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="otel_span_name"))
+        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
