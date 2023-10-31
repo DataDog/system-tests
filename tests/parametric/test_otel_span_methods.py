@@ -446,7 +446,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"db.system": "redis"})
+                span.set_attributes({"db.system": "Redis"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -473,8 +473,8 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"messaging.system": "kafka"})
-                span.set_attributes({"messaging.operation": "receive"})
+                span.set_attributes({"messaging.system": "Kafka"})
+                span.set_attributes({"messaging.operation": "Receive"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -501,8 +501,8 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CONSUMER) as span:
-                span.set_attributes({"messaging.system": "kafka"})
-                span.set_attributes({"messaging.operation": "receive"})
+                span.set_attributes({"messaging.system": "Kafka"})
+                span.set_attributes({"messaging.operation": "Receive"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -529,8 +529,8 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_PRODUCER) as span:
-                span.set_attributes({"messaging.system": "kafka"})
-                span.set_attributes({"messaging.operation": "publish"})
+                span.set_attributes({"messaging.system": "Kafka"})
+                span.set_attributes({"messaging.operation": "Publish"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -557,8 +557,8 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"messaging.system": "kafka"})
-                span.set_attributes({"messaging.operation": "receive"})
+                span.set_attributes({"messaging.system": "Kafka"})
+                span.set_attributes({"messaging.operation": "Receive"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -639,7 +639,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"rpc.system": "grpc"})
+                span.set_attributes({"rpc.system": "GRPC"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -665,7 +665,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"rpc.system": "grpc"})
+                span.set_attributes({"rpc.system": "GRPC"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -693,7 +693,7 @@ class Test_Otel_Span_Methods:
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
                 span.set_attributes({"faas.invoked_provider": "aws"})
-                span.set_attributes({"faas.invoked_name": "my-function"})
+                span.set_attributes({"faas.invoked_name": "My-Function"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -719,7 +719,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"faas.trigger": "datasource"})
+                span.set_attributes({"faas.trigger": "Datasource"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -771,7 +771,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"network.protocol.name": "amqp"})
+                span.set_attributes({"network.protocol.name": "Amqp"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -820,7 +820,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"network.protocol.name": "amqp"})
+                span.set_attributes({"network.protocol.name": "Amqp"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
