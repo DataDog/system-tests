@@ -99,7 +99,7 @@ def remote_install(
         connection=connection,
         create=command_exec,
         opts=pulumi.ResourceOptions(
-            depends_on=[quee_depends_on.pop()]
+            depends_on=[quee_depends_on.pop()], custom_timeouts=pulumi.resource.CustomTimeouts(create="15m")
         ),  # Here the quee should contain only one element
     )
 

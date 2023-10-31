@@ -43,9 +43,23 @@ class TestedVirtualMachine:
         # Uninstall process after install all software requirements
         self.uninstall = uninstall
 
+        # Calculate AMI name
+        # We are using a AMI with thrid party software installed and configured Linux repositories (If this AMI doesn't exist we will create the first time)
+        self.ami_id = None
+        self.ami_name = self.name
+
+        if "install" not in self.prepare_repos_install:
+            self.ami_name = self.ami_name + "__autoinstall"
+
+        if self.prepare_docker_install["install"] is not None:
+            self.ami_name = self.ami_name + "__container"
+        else:
+            self.ami_name = self.ami_name + "__host"
+
     def configure(self):
         self.datadog_config = DataDogConfig()
         self.aws_infra_config = AWSInfraConfig()
+        self._configure_ami()
 
     def start(self):
         import pulumi
@@ -57,13 +71,14 @@ class TestedVirtualMachine:
 
         self.configure()
         # Startup VM and prepare connection
+
         server = aws.ec2.Instance(
             self.name,
             instance_type=self.aws_infra_config.instance_type,
             vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
             subnet_id=self.aws_infra_config.subnet_id,
             key_name=PulumiSSH.keypair_name,
-            ami=self.ec2_data["ami_id"],
+            ami=self.ec2_data["ami_id"] if self.ami_id is None else self.ami_id,
             tags={"Name": self.name,},
             opts=PulumiSSH.aws_key_resource,
         )
@@ -78,45 +93,69 @@ class TestedVirtualMachine:
             host=server.private_ip,
             user=self.ec2_data["user"],
             private_key=PulumiSSH.private_key_pem,
-            dial_error_limit=-1,
+            dial_error_limit=-1,  # -1 set count to unlimited
         )
-        # We apply initial configurations to the VM before starting with the installation proccess
-        prepare_init_config_installer = remote_install(
-            connection,
-            "prepare_init_config_installer_" + self.name,
-            self.prepare_init_config_install["install"],
-            server,
-            scenario_name=self.provision_scenario,
-        )
+        # To launch remote task in dependency order
+        main_task_dep = server
 
-        # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
-        if "install" in self.prepare_repos_install:
-            prepare_repos_installer = remote_install(
+        if self.ami_id is None:
+            # Ok. The AMI doesn't exist we should create.
+            # We will configure respositories, install docker and lang variant.
+            # After that, we will register the new AMI to use it in the future executions
+
+            # We apply initial configurations to the VM before starting with the installation proccess
+            prepare_init_config_installer = remote_install(
                 connection,
-                "prepare-repos-installer_" + self.name,
-                self.prepare_repos_install["install"],
-                prepare_init_config_installer,
+                "prepare_init_config_installer_" + self.name,
+                self.prepare_init_config_install["install"],
+                server,
                 scenario_name=self.provision_scenario,
             )
-        else:
-            prepare_repos_installer = prepare_init_config_installer
 
-        # Prepare docker installation if we need
-        prepare_docker_installer = remote_install(
-            connection,
-            "prepare-docker-installer_" + self.name,
-            self.prepare_docker_install["install"],
-            prepare_repos_installer,
-            scenario_name=self.provision_scenario,
-        )
-        if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
-            prepare_docker_installer = remote_docker_login(
-                "docker-login_" + self.name,
-                self.datadog_config.docker_login,
-                self.datadog_config.docker_login_pass,
+            # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
+            if "install" in self.prepare_repos_install:
+                prepare_repos_installer = remote_install(
+                    connection,
+                    "prepare-repos-installer_" + self.name,
+                    self.prepare_repos_install["install"],
+                    prepare_init_config_installer,
+                    scenario_name=self.provision_scenario,
+                )
+            else:
+                prepare_repos_installer = prepare_init_config_installer
+
+            # Prepare docker installation if we need
+            prepare_docker_installer = remote_install(
                 connection,
-                prepare_docker_installer,
+                "prepare-docker-installer_" + self.name,
+                self.prepare_docker_install["install"],
+                prepare_repos_installer,
+                scenario_name=self.provision_scenario,
             )
+            if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
+                prepare_docker_installer = remote_docker_login(
+                    "docker-login_" + self.name,
+                    self.datadog_config.docker_login,
+                    self.datadog_config.docker_login_pass,
+                    connection,
+                    prepare_docker_installer,
+                )
+
+            # Install language variants (not mandatory)
+            if "install" in self.language_variant_install_data:
+                main_task_dep = remote_install(
+                    connection,
+                    "lang-variant-installer_" + self.name,
+                    self.language_variant_install_data["install"],
+                    prepare_docker_installer,
+                    scenario_name=self.provision_scenario,
+                )
+            else:
+                main_task_dep = prepare_docker_installer
+
+            # Ok. All third party software is installed, let's create the ami to reuse it in the future
+            logger.info(f"Creating AMI with name [{self.ami_name}] from instance id [{server.id}]")
+            aws.ec2.AmiFromInstance(self.ami_name, source_instance_id=server.id)
 
         # Install agent. If we are using agent autoinstall script, agent install info will be empty, due to we load the install process on auto injection node
         if "install" in self.agent_install_data:
@@ -124,14 +163,14 @@ class TestedVirtualMachine:
                 connection,
                 "agent-installer_" + self.name,
                 self.agent_install_data["install"],
-                prepare_docker_installer,
+                main_task_dep,
                 add_dd_keys=True,
                 dd_api_key=self.datadog_config.dd_api_key,
                 dd_site=self.datadog_config.dd_site,
                 scenario_name=self.provision_scenario,
             )
         else:
-            agent_installer = prepare_docker_installer
+            agent_installer = main_task_dep
 
         # Install autoinjection
         autoinjection_installer = remote_install(
@@ -156,24 +195,12 @@ class TestedVirtualMachine:
             output_callback=lambda command_output: self.set_components(command_output),
         )
 
-        # Install language variants (not mandatory)
-        if "install" in self.language_variant_install_data:
-            lang_variant_installer = remote_install(
-                connection,
-                "lang-variant-installer_" + self.name,
-                self.language_variant_install_data["install"],
-                autoinjection_installer,
-                scenario_name=self.provision_scenario,
-            )
-        else:
-            lang_variant_installer = autoinjection_installer
-
         # Build weblog app
         weblog_runner = remote_install(
             connection,
             "run-weblog_" + self.name,
             self.weblog_install_data["install"],
-            lang_variant_installer,
+            autoinjection_installer,
             add_dd_keys=True,
             dd_api_key=self.datadog_config.dd_api_key,
             dd_site=self.datadog_config.dd_site,
@@ -223,6 +250,23 @@ class TestedVirtualMachine:
         if ":" in raw_version:
             raw_version = raw_version.split(":")[1]
         return raw_version.strip()
+
+    def _configure_ami(self):
+        import pulumi_aws as aws
+
+        # Env var. Created AMI again mandatory
+        if os.getenv("AMI_UPDATE") is not None:
+            return
+
+        ami_existing = aws.ec2.get_ami_ids(
+            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name],)], owners=["self"]
+        )
+        logger.info(f"We found an existing AMI with name {self.ami_name}: {ami_existing.ids}")
+        if len(ami_existing.ids) > 0:
+            # The AMI exists. We don't need to create the AMI again
+            self.create_ami = False
+            self.ami_id = ami_existing.ids[0]
+            return False
 
 
 class AWSInfraConfig:
