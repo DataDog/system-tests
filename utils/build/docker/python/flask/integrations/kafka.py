@@ -18,10 +18,13 @@ def kafka_consumer(message_topic):
         }
     )
     consumer.subscribe([message_topic])
-    msg_received = False
-    while not msg_received:
+
+    msg = None
+    current_attempts = 0
+    max_attempts = 15
+    while not msg and current_attempts < max_attempts:
         msg = consumer.poll(1)
-        if msg is not None:
-            msg_received = True
+        if msg is None:
+            current_attempts += 1
 
     consumer.close()

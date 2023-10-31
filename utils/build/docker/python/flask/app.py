@@ -188,11 +188,10 @@ def apm():
     application_type = flask_request.args.get("applicationtype")
     message_topic = "DistributedTracing"
 
-    if integration == "kafka":
-        if application_type == "producer":
-            kafka_producer(message_topic)
-        elif application_type == "consumer":
-            kafka_consumer(message_topic)
+    request_action = {"kafka": {"consumer": kafka_consumer, "producer": kafka_producer,}}
+
+    action = request_action[integration][application_type]
+    action(message_topic)
 
     return Response("OK")
 
