@@ -1025,7 +1025,7 @@ class Test_Otel_Span_Methods:
 
         assert root_span["name"] == "http.server.request"
         assert root_span["resource"] == "otel_span_name"
-        assert root_span["service.name"] == "new.service.name"
+        assert root_span["service"] == "new.service.name"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
