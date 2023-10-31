@@ -123,15 +123,12 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["d_int_val"] == 2
         assert root_span["metrics"]["d_double_val"] == 3.14
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "dotnet", reason="Array encoding not implemented")
     @missing_feature(context.library < "java@1.22.0", reason="Array encoding not implemented")
     @missing_feature(context.library == "golang", reason="Array encoding not implemented")
     @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Array encoding not implemented")
     @missing_feature(context.library == "python_http", reason="Array encoding not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_set_attributes_different_types_with_array_encoding(self, test_agent, test_library):
         """
             - Set attributes of multiple types for an otel span
