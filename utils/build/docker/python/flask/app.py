@@ -199,7 +199,9 @@ def apm():
 @app.route("/apm_run_kafka_tracing_tests")
 def apm_run_kafka_tracing_tests():
     """
-        The goal of this endpoint run through different kafka calls for different languages
+        The goal of this endpoint is to run through different kafka calls for different languages
+        At the moment, it only tests for Python.
+        TODO: Add other languages when they are ready.
         Usage:
         - /apm_run_kafka_tracing_tests
     """
