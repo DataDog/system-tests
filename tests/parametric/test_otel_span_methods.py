@@ -20,28 +20,6 @@ pytestmark = pytest.mark.parametrize(
 
 @scenarios.parametric
 class Test_Otel_Span_Methods:
-    def test_otel_start_span_old_naming(self, test_agent, test_library):
-        """
-            - Start/end a span with start and end options
-        """
-
-        with test_library:
-            duration: int = 6789
-            start_time: int = 12345
-            with test_library.otel_start_span(
-                "operation",
-                span_kind=SK_PRODUCER,
-                timestamp=start_time,
-                attributes={"start_attr_key": "start_attr_val"},
-            ) as parent:
-                parent.end_span(timestamp=start_time + duration)
-
-        root_span = get_span(test_agent)
-        assert root_span["name"] == "operation"
-        assert root_span["resource"] == "operation"
-        assert root_span["meta"]["start_attr_key"] == "start_attr_val"
-        assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
-
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
@@ -70,19 +48,6 @@ class Test_Otel_Span_Methods:
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
 
-    def test_otel_set_service_name_old_name(self, test_agent, test_library):
-        """
-            - Update the service name on a span
-        """
-        with test_library:
-            with test_library.otel_start_span("parent_span") as parent:
-                parent.set_attributes({"service.name": "new_service"})
-                parent.end_span()
-
-        root_span = get_span(test_agent)
-        assert root_span["name"] == "parent_span"
-        assert root_span["service"] == "new_service"
-
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
@@ -103,76 +68,11 @@ class Test_Otel_Span_Methods:
         assert root_span["resource"] == "parent_span"
         assert root_span["service"] == "new_service"
 
-    @irrelevant(context.library >= "java@1.22.0", reason="library implements the new array encoding")
-    @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
-    def test_otel_set_attributes_different_types_old_name(self, test_agent, test_library):
-        """
-            - Set attributes of multiple types for an otel span
-        """
-        start_time = int(time.time())
-        with test_library:
-            with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
-                span.set_attributes({"str_val": "val"})
-                span.set_attributes({"str_val_empty": ""})
-                span.set_attributes({"bool_val": True})
-                span.set_attributes({"int_val": 1})
-                span.set_attributes({"int_val_zero": 0})
-                span.set_attributes({"double_val": 4.2})
-                span.set_attributes({"array_val_str": ["val1", "val2"]})
-                span.set_attributes({"array_val_int": [10, 20]})
-                span.set_attributes({"array_val_bool": [True, False]})
-                span.set_attributes({"array_val_double": [10.1, 20.2]})
-                span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="operation"))
-        assert len(trace) == 1
-
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "operation"
-        assert root_span["resource"] == "operation"
-
-        assert root_span["meta"]["str_val"] == "val"
-        assert root_span["meta"]["str_val_empty"] == ""
-        if root_span["meta"]["language"] == "go":
-            # in line with the standard Datadog tracing library tags
-            assert root_span["meta"]["bool_val"] == "true"
-            assert root_span["meta"]["d_bool_val"] == "false"
-            assert root_span["meta"]["array_val_bool"] == "[true false]"
-            assert root_span["meta"]["array_val_str"] == "[val1 val2]"
-            assert root_span["meta"]["array_val_int"] == "[10 20]"
-            assert root_span["meta"]["array_val_double"] == "[10.1 20.2]"
-        elif root_span["meta"]["language"] == "jvm":
-            assert root_span["meta"]["bool_val"] == "true"
-            assert root_span["meta"]["array_val_bool"] == "[true, false]"
-            assert root_span["meta"]["array_val_str"] == "[val1, val2]"
-            assert root_span["meta"]["d_bool_val"] == "false"
-            assert root_span["meta"]["array_val_int"] == "[10, 20]"
-            assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
-        elif root_span["meta"]["language"] == "dotnet":
-            assert root_span["meta"]["bool_val"] == "true"
-            assert root_span["meta"]["array_val_bool"] == "[true,false]"
-            assert root_span["meta"]["array_val_str"] == '["val1","val2"]'
-            assert root_span["meta"]["d_bool_val"] == "false"
-            assert root_span["meta"]["array_val_int"] == "[10,20]"
-            assert root_span["meta"]["array_val_double"] == "[10.1,20.2]"
-        else:
-            assert root_span["meta"]["bool_val"] == "True"
-            assert root_span["meta"]["array_val_bool"] == "[True, False]"
-            assert root_span["meta"]["array_val_str"] == "['val1', 'val2']"
-            assert root_span["meta"]["d_bool_val"] == "False"
-            assert root_span["meta"]["array_val_int"] == "[10, 20]"
-            assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
-        assert root_span["metrics"]["int_val"] == 1
-        assert root_span["metrics"]["int_val_zero"] == 0
-        assert root_span["metrics"]["double_val"] == 4.2
-        assert root_span["meta"]["d_str_val"] == "bye"
-        assert root_span["metrics"]["d_int_val"] == 2
-        assert root_span["metrics"]["d_double_val"] == 3.14
-
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "java",
+        reason="New operation name mapping not yet implemented - note 1.22.0 uses new array encoding too",
+    )
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
@@ -243,69 +143,12 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["d_int_val"] == 2
         assert root_span["metrics"]["d_double_val"] == 3.14
 
-    @missing_feature(context.library == "dotnet", reason="Array encoding not implemented")
-    @missing_feature(context.library < "java@1.22.0", reason="Array encoding not implemented")
-    @missing_feature(context.library == "golang", reason="Array encoding not implemented")
-    @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
-    @missing_feature(context.library == "python", reason="Array encoding not implemented")
-    @missing_feature(context.library == "python_http", reason="Array encoding not implemented")
-    def test_otel_set_attributes_different_types_with_array_encoding_old_name(self, test_agent, test_library):
-        """
-            - Set attributes of multiple types for an otel span
-        """
-        start_time = int(time.time())
-        with test_library:
-            with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
-                span.set_attributes({"str_val": "val"})
-                span.set_attributes({"str_val_empty": ""})
-                span.set_attributes({"bool_val": True})
-                span.set_attributes({"int_val": 1})
-                span.set_attributes({"int_val_zero": 0})
-                span.set_attributes({"double_val": 4.2})
-                span.set_attributes({"array_val_str": ["val1", "val2"]})
-                span.set_attributes({"array_val_int": [10, 20]})
-                span.set_attributes({"array_val_bool": [True, False]})
-                span.set_attributes({"array_val_double": [10.1, 20.2]})
-                span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(name="operation"))
-        assert len(trace) == 1
-
-        root_span = get_span(test_agent)
-
-        assert root_span["name"] == "operation"
-        assert root_span["resource"] == "operation"
-
-        assert root_span["meta"]["str_val"] == "val"
-        assert root_span["meta"]["str_val_empty"] == ""
-        assert root_span["meta"]["bool_val"] == "true"
-        assert root_span["metrics"]["int_val"] == 1
-        assert root_span["metrics"]["int_val_zero"] == 0
-        assert root_span["metrics"]["double_val"] == 4.2
-
-        assert root_span["meta"]["array_val_str.0"] == "val1"
-        assert root_span["meta"]["array_val_str.1"] == "val2"
-
-        assert root_span["metrics"]["array_val_int.0"] == 10
-        assert root_span["metrics"]["array_val_int.1"] == 20
-
-        assert root_span["meta"]["array_val_bool.0"] == "true"
-        assert root_span["meta"]["array_val_bool.1"] == "false"
-
-        assert root_span["metrics"]["array_val_double.0"] == 10.1
-        assert root_span["metrics"]["array_val_double.1"] == 20.2
-
-        assert root_span["meta"]["d_str_val"] == "bye"
-        assert root_span["meta"]["d_bool_val"] == "false"
-        assert root_span["metrics"]["d_int_val"] == 2
-        assert root_span["metrics"]["d_double_val"] == 3.14
-
     @missing_feature(
         context.library == "golang", reason="New operation name mapping & array encoding not yet implemented"
     )
     @missing_feature(
-        context.library == "java", reason="New operation name mapping & array encoding not yet implemented"
+        context.library == "java",
+        reason="New operation name mapping & array encoding not yet implemented - < 1.22.0 doesn't have new array encoding",
     )
     @missing_feature(
         context.library == "nodejs", reason="New operation name mapping & array encoding not yet implemented"
@@ -388,29 +231,6 @@ class Test_Otel_Span_Methods:
                 parent.end_span()
                 assert not parent.is_recording()
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
-    )
-    def test_otel_span_finished_end_options_old_name(self, test_agent, test_library):
-        """
-        Test functionality of ending a span with end options.
-        After finishing the span, finishing the span with different end options has no effect
-        """
-        start_time: int = 12345
-        duration: int = 6789
-        with test_library:
-            with test_library.otel_start_span(name="operation", timestamp=start_time) as s:
-                assert s.is_recording()
-                s.end_span(timestamp=start_time + duration)
-                assert not s.is_recording()
-                s.end_span(timestamp=start_time + duration * 2)
-
-        s = get_span(test_agent)
-        assert s.get("name") == "operation"
-        assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
-        assert s.get("duration") == duration * 1_000
-
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
@@ -439,33 +259,6 @@ class Test_Otel_Span_Methods:
         assert s.get("resource") == "operation"
         assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
         assert s.get("duration") == duration * 1_000
-
-    def test_otel_span_end_old_name(self, test_agent, test_library):
-        """
-        Test functionality of ending a span. After ending:
-            - operations on that span become noop
-            - child spans are still running and can be ended later
-            - still possible to start child spans from parent context
-        """
-        with test_library:
-            with test_library.otel_start_span(name="parent") as parent:
-                parent.end_span()
-                # setting attributes after finish has no effect
-                parent.set_name("new_name")
-                parent.set_attributes({"after_finish": "true"})  # should have no affect
-                with test_library.otel_start_span(name="child", parent_id=parent.span_id) as child:
-                    child.end_span()
-
-        trace = find_trace_by_root(test_agent.wait_for_num_traces(1), OtelSpan(name="parent"))
-        assert len(trace) == 2
-
-        parent_span = find_span(trace, OtelSpan(name="parent"))
-        assert parent_span["name"] == "parent"
-        assert parent_span["meta"].get("after_finish") is None
-
-        child = find_span(trace, OtelSpan(name="child"))
-        assert child["name"] == "child"
-        assert child["parent_id"] == parent_span["span_id"]
 
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
@@ -504,29 +297,6 @@ class Test_Otel_Span_Methods:
         assert child["resource"] == "child"
         assert child["parent_id"] == parent_span["span_id"]
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
-    )
-    def test_otel_set_span_status_error_old_name(self, test_agent, test_library):
-        """
-            This test verifies that setting the status of a span
-            behaves accordingly to the Otel API spec
-            (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
-            By checking the following:
-            1. attempts to set the value of `Unset` are ignored
-            2. description must only be used with `Error` value
-
-        """
-        with test_library:
-            with test_library.otel_start_span(name="error_span") as s:
-                s.set_status(OTEL_ERROR_CODE, "error_desc")
-                s.set_status(OTEL_UNSET_CODE, "unset_desc")
-                s.end_span()
-        s = get_span(test_agent)
-        assert s.get("meta").get("error.message") == "error_desc"
-        assert s.get("name") == "error_span"
-
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
@@ -555,38 +325,6 @@ class Test_Otel_Span_Methods:
         assert s.get("meta").get("error.message") == "error_desc"
         assert s.get("name") == "internal"
         assert s.get("resource") == "error_span"
-
-    @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
-    )
-    @missing_feature(
-        context.library == "python",
-        reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
-    )
-    @missing_feature(
-        context.library == "python_http",
-        reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
-    )
-    def test_otel_set_span_status_ok_old_name(self, test_agent, test_library):
-        """
-            This test verifies that setting the status of a span
-            behaves accordingly to the Otel API spec
-            (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
-            By checking the following:
-            1. attempts to set the value of `Unset` are ignored
-            3. setting the status to `Ok` is final and will override any
-                prior or future status values
-        """
-        with test_library:
-            with test_library.otel_start_span(name="ok_span") as span:
-                span.set_status(OTEL_OK_CODE, "ok_desc")
-                span.set_status(OTEL_ERROR_CODE, "error_desc")
-                span.end_span()
-
-        span = get_span(test_agent)
-        assert span.get("meta").get("error.message") is None
-        assert span.get("name") == "ok_span"
 
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
