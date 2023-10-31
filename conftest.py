@@ -249,7 +249,7 @@ def pytest_collection_finish(session):
     if session.config.option.collectonly:
         return
 
-    last_file = ""
+    last_item_file = ""
     for item in session.items:
 
         if _item_is_skipped(item):
@@ -266,12 +266,13 @@ def pytest_collection_finish(session):
         if not hasattr(item.instance, setup_method_name):
             continue
 
-        if last_file != item.location[0]:
-            if len(last_file) == 0:
+        item_file = item.nodeid.split(":", 1)[0]
+        if last_item_file != item_file:
+            if len(last_item_file) == 0:
                 logger.terminal.write_sep("-", "tests setup", bold=True)
 
-            logger.terminal.write(f"\n{item.location[0]} ")
-            last_file = item.location[0]
+            logger.terminal.write(f"\n{item_file} ")
+            last_item_file = item_file
 
         setup_method = getattr(item.instance, setup_method_name)
         logger.debug(f"Call {setup_method} for {item}")

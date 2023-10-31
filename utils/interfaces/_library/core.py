@@ -31,6 +31,19 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.ready.set()
         return super().ingest_file(src_path)
 
+    ################################################################
+    def wait_for_remote_config_request(self, timeout=30):
+        """ Used in setup functions, wait for a request oremote config endpoint with a non-empty client_config """
+
+        def wait_function(data):
+            if data["path"] == "/v0.7/config":
+                if "client_configs" in data.get("response", {}).get("content", {}):
+                    return True
+
+            return False
+
+        self.wait_for(wait_function, timeout)
+
     ############################################################
     def get_traces(self, request=None):
         paths = ["/v0.4/traces", "/v0.5/traces"]
