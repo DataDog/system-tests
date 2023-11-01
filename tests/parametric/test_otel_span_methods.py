@@ -775,9 +775,9 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_special_tag_overrides(self, test_agent, test_library):
+    def test_otel_span_reserved_attributes_overrides(self, test_agent, test_library):
         """
-            Tests that the special tags will override expected values
+            Tests that the reserved attributes will override expected values
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
