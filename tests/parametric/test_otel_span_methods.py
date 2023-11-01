@@ -731,9 +731,12 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "span_kind,expected_operation_name", [(SK_INTERNAL, "internal"), (SK_CONSUMER, "consumer"), (SK_PRODUCER, "producer")]
+        "span_kind,expected_operation_name",
+        [(SK_INTERNAL, "internal"), (SK_CONSUMER, "consumer"), (SK_PRODUCER, "producer")],
     )
-    def test_otel_span_operation_name_span_kind(self, span_kind: int, expected_operation_name: str, test_agent, test_library):
+    def test_otel_span_operation_name_span_kind(
+        self, span_kind: int, expected_operation_name: str, test_agent, test_library
+    ):
         """
             Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "internal") when:
             - Span kind is set to Internal
@@ -800,7 +803,9 @@ class Test_Otel_Span_Methods:
         assert span["metrics"].get("_dd1.sr.eausr") == "1.0"
 
 
-def run_operation_name_test(resource: str, expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
+def run_operation_name_test(
+    resource: str, expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent
+):
     with test_library:
         with test_library.otel_start_span(resource, span_kind=span_kind, attributes=attributes) as span:
             span.end_span()
