@@ -393,8 +393,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/http/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="http.server.request",
+            resource="otel_span_name",
+            expected_operation_name="http.server.request",
             span_kind=SK_SERVER,
             attributes={"http.request.method": "GET"},
             test_library=test_library,
@@ -416,8 +416,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/http/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="http.client.request",
+            resource="otel_span_name",
+            expected_operation_name="http.client.request",
             span_kind=SK_CLIENT,
             attributes={"http.request.method": "GET"},
             test_library=test_library,
@@ -439,8 +439,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/semconv/database/database-spans/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="redis.query",
+            resource="otel_span_name",
+            expected_operation_name="redis.query",
             span_kind=SK_CLIENT,
             attributes={"db.system": "Redis"},
             test_library=test_library,
@@ -464,8 +464,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="kafka.receive",
+            resource="otel_span_name",
+            expected_operation_name="kafka.receive",
             span_kind=message_span_kind,
             attributes={"messaging.system": "Kafka", "messaging.operation": "Receive"},
             test_library=test_library,
@@ -488,8 +488,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="aws.s3.request",
+            resource="otel_span_name",
+            expected_operation_name="aws.s3.request",
             span_kind=SK_CLIENT,
             attributes={"rpc.system": "aws-api", "rpc.service": "S3"},
             test_library=test_library,
@@ -512,8 +512,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="aws.client.request",
+            resource="otel_span_name",
+            expected_operation_name="aws.client.request",
             span_kind=SK_CLIENT,
             attributes={"rpc.system": "aws-api"},
             test_library=test_library,
@@ -535,8 +535,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/rpc/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="grpc.client.request",
+            resource="otel_span_name",
+            expected_operation_name="grpc.client.request",
             span_kind=SK_CLIENT,
             attributes={"rpc.system": "GRPC"},
             test_library=test_library,
@@ -558,8 +558,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/rpc/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="grpc.server.request",
+            resource="otel_span_name",
+            expected_operation_name="grpc.server.request",
             span_kind=SK_SERVER,
             attributes={"rpc.system": "GRPC"},
             test_library=test_library,
@@ -582,8 +582,8 @@ class Test_Otel_Span_Methods:
             https://opentelemetry.io/docs/specs/semconv/faas/faas-spans/#outgoing-invocations
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="aws.my-function.invoke",
+            resource="otel_span_name",
+            expected_operation_name="aws.my-function.invoke",
             span_kind=SK_CLIENT,
             attributes={"faas.invoked_provider": "aws", "faas.invoked_name": "My-Function"},
             test_library=test_library,
@@ -605,8 +605,8 @@ class Test_Otel_Span_Methods:
             https://opentelemetry.io/docs/specs/semconv/faas/faas-spans/#incoming-faas-span-attributes
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="datasource.invoke",
+            resource="otel_span_name",
+            expected_operation_name="datasource.invoke",
             span_kind=SK_SERVER,
             attributes={"faas.trigger": "Datasource"},
             test_library=test_library,
@@ -628,8 +628,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/graphql/)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="graphql.server.request",
+            resource="otel_span_name",
+            expected_operation_name="graphql.server.request",
             span_kind=SK_SERVER,
             attributes={"graphql.operation.type": "query"},
             test_library=test_library,
@@ -651,8 +651,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/span-general/#network-attributes)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="amqp.server.request",
+            resource="otel_span_name",
+            expected_operation_name="amqp.server.request",
             span_kind=SK_SERVER,
             attributes={"network.protocol.name": "Amqp"},
             test_library=test_library,
@@ -672,8 +672,8 @@ class Test_Otel_Span_Methods:
             - no other known attributes to help determine operation name
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="server.request",
+            resource="otel_span_name",
+            expected_operation_name="server.request",
             span_kind=SK_SERVER,
             attributes=None,
             test_library=test_library,
@@ -695,8 +695,8 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/span-general/#network-attributes)
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="amqp.client.request",
+            resource="otel_span_name",
+            expected_operation_name="amqp.client.request",
             span_kind=SK_CLIENT,
             attributes={"network.protocol.name": "Amqp"},
             test_library=test_library,
@@ -716,8 +716,8 @@ class Test_Otel_Span_Methods:
             - no other known attributes to help determine operation name
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="client.request",
+            resource="otel_span_name",
+            expected_operation_name="client.request",
             span_kind=SK_CLIENT,
             attributes=None,
             test_library=test_library,
@@ -731,17 +731,17 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "span_kind,expected_name", [(SK_INTERNAL, "internal"), (SK_CONSUMER, "consumer"), (SK_PRODUCER, "producer")]
+        "span_kind,expected_operation_name", [(SK_INTERNAL, "internal"), (SK_CONSUMER, "consumer"), (SK_PRODUCER, "producer")]
     )
-    def test_otel_span_operation_name_span_kind(self, span_kind: int, expected_name: str, test_agent, test_library):
+    def test_otel_span_operation_name_span_kind(self, span_kind: int, expected_operation_name: str, test_agent, test_library):
         """
             Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "internal") when:
             - Span kind is set to Internal
             - no other known attributes for setting the operation name
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name=expected_name,
+            resource="otel_span_name",
+            expected_operation_name=expected_operation_name,
             span_kind=span_kind,
             attributes=None,
             test_library=test_library,
@@ -761,8 +761,8 @@ class Test_Otel_Span_Methods:
             - no other known attributes for setting the operation name
         """
         run_operation_name_test(
-            name="otel_span_name",
-            expected_name="otel_unknown",
+            resource="otel_span_name",
+            expected_operation_name="otel_unknown",
             span_kind=None,
             attributes=None,
             test_library=test_library,
@@ -800,14 +800,14 @@ class Test_Otel_Span_Methods:
         assert span["metrics"].get("_dd1.sr.eausr") == "1.0"
 
 
-def run_operation_name_test(name: str, expected_name: str, span_kind: int, attributes: dict, test_library, test_agent):
+def run_operation_name_test(resource: str, expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
     with test_library:
-        with test_library.otel_start_span(name, span_kind=span_kind, attributes=attributes) as span:
+        with test_library.otel_start_span(resource, span_kind=span_kind, attributes=attributes) as span:
             span.end_span()
     traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, otel_span(name=name))
+    trace = find_trace_by_root(traces, otel_span(name=resource))
     assert len(trace) == 1
 
     span = get_span(test_agent)
-    assert span["name"] == expected_name
-    assert span["resource"] == name
+    assert span["name"] == expected_operation_name
+    assert span["resource"] == resource
