@@ -392,17 +392,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/http/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"http.request.method": "GET"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "http.server.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="http.server.request",
+            span_kind=SK_SERVER,
+            attributes={"http.request.method": "GET"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -418,17 +415,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/http/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"http.request.method": "GET"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "http.client.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="http.client.request",
+            span_kind=SK_CLIENT,
+            attributes={"http.request.method": "GET"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -444,17 +438,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/semconv/database/database-spans/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"db.system": "Redis"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "redis.query"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="redis.query",
+            span_kind=SK_CLIENT,
+            attributes={"db.system": "Redis"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -472,18 +463,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=message_span_kind) as span:
-                span.set_attributes({"messaging.system": "Kafka"})
-                span.set_attributes({"messaging.operation": "Receive"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "kafka.receive"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="kafka.receive",
+            span_kind=message_span_kind,
+            attributes={"messaging.system": "Kafka", "messaging.operation": "Receive"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -500,18 +487,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"rpc.system": "aws-api"})
-                span.set_attributes({"rpc.service": "S3"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "aws.s3.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="aws.s3.request",
+            span_kind=SK_CLIENT,
+            attributes={"rpc.system": "aws-api", "rpc.service": "S3"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -528,17 +511,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"rpc.system": "aws-api"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "aws.client.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="aws.client.request",
+            span_kind=SK_CLIENT,
+            attributes={"rpc.system": "aws-api"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -554,17 +534,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/rpc/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"rpc.system": "GRPC"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "grpc.client.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="grpc.client.request",
+            span_kind=SK_CLIENT,
+            attributes={"rpc.system": "GRPC"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -580,17 +557,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/rpc/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"rpc.system": "GRPC"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "grpc.server.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="grpc.server.request",
+            span_kind=SK_SERVER,
+            attributes={"rpc.system": "GRPC"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -607,18 +581,14 @@ class Test_Otel_Span_Methods:
 
             https://opentelemetry.io/docs/specs/semconv/faas/faas-spans/#outgoing-invocations
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"faas.invoked_provider": "aws"})
-                span.set_attributes({"faas.invoked_name": "My-Function"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "aws.my-function.invoke"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="aws.my-function.invoke",
+            span_kind=SK_CLIENT,
+            attributes={"faas.invoked_provider": "aws", "faas.invoked_name": "My-Function"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -634,17 +604,14 @@ class Test_Otel_Span_Methods:
 
             https://opentelemetry.io/docs/specs/semconv/faas/faas-spans/#incoming-faas-span-attributes
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"faas.trigger": "Datasource"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "datasource.invoke"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="datasource.invoke",
+            span_kind=SK_SERVER,
+            attributes={"faas.trigger": "Datasource"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -660,17 +627,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/graphql/)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"graphql.operation.type": "query"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "graphql.server.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="graphql.server.request",
+            span_kind=SK_SERVER,
+            attributes={"graphql.operation.type": "query"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -686,17 +650,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/span-general/#network-attributes)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.set_attributes({"network.protocol.name": "Amqp"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "amqp.server.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="amqp.server.request",
+            span_kind=SK_SERVER,
+            attributes={"network.protocol.name": "Amqp"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -710,16 +671,14 @@ class Test_Otel_Span_Methods:
             - Span kind is set to Server
             - no other known attributes to help determine operation name
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "server.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="server.request",
+            span_kind=SK_SERVER,
+            attributes=None,
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -735,17 +694,14 @@ class Test_Otel_Span_Methods:
 
             (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/span-general/#network-attributes)
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.set_attributes({"network.protocol.name": "Amqp"})
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "amqp.client.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="amqp.client.request",
+            span_kind=SK_CLIENT,
+            attributes={"network.protocol.name": "Amqp"},
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -759,16 +715,14 @@ class Test_Otel_Span_Methods:
             - Span kind is set to Client
             - no other known attributes to help determine operation name
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CLIENT) as span:
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "client.request"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="client.request",
+            span_kind=SK_CLIENT,
+            attributes=None,
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -776,68 +730,23 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_span_kind_001(self, test_agent, test_library):
+    @pytest.mark.parametrize(
+        "span_kind,expected_name", [(SK_INTERNAL, "internal"), (SK_CONSUMER, "consumer"), (SK_PRODUCER, "producer")]
+    )
+    def test_otel_span_operation_name_span_kind(self, span_kind: int, expected_name: str, test_agent, test_library):
         """
             Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "internal") when:
             - Span kind is set to Internal
             - no other known attributes for setting the operation name
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_INTERNAL) as span:
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "internal"
-        assert span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_span_kind_002(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "producer") when:
-            - Span kind is set to Producer
-            - no other known attributes for setting the operation name
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_PRODUCER) as span:
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "producer"
-        assert span["resource"] == "otel_span_name"
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_span_kind_003(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "consumer") when:
-            - Span kind is set to Consumer
-            - no other known attributes for setting the operation name
-        """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_CONSUMER) as span:
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "consumer"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name=expected_name,
+            span_kind=span_kind,
+            attributes=None,
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -851,16 +760,14 @@ class Test_Otel_Span_Methods:
             - span.kind is not present
             - no other known attributes for setting the operation name
         """
-        with test_library:
-            with test_library.otel_start_span("otel_span_name") as span:
-                span.end_span()
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
-        assert len(trace) == 1
-
-        span = get_span(test_agent)
-        assert span["name"] == "otel_unknown"
-        assert span["resource"] == "otel_span_name"
+        run_operation_name_test(
+            name="otel_span_name",
+            expected_name="otel_unknown",
+            span_kind=None,
+            attributes=None,
+            test_library=test_library,
+            test_agent=test_agent,
+        )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -891,3 +798,16 @@ class Test_Otel_Span_Methods:
         assert span["service"] == "new.service.name"
         assert span["type"] == "new.span.type"
         assert span["metrics"].get("_dd1.sr.eausr") == "1.0"
+
+
+def run_operation_name_test(name: str, expected_name: str, span_kind: int, attributes: dict, test_library, test_agent):
+    with test_library:
+        with test_library.otel_start_span(name, span_kind=span_kind, attributes=attributes) as span:
+            span.end_span()
+    traces = test_agent.wait_for_num_traces(1)
+    trace = find_trace_by_root(traces, otel_span(name=name))
+    assert len(trace) == 1
+
+    span = get_span(test_agent)
+    assert span["name"] == expected_name
+    assert span["resource"] == name
