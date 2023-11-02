@@ -153,6 +153,19 @@ class TestedVirtualMachine:
             else:
                 main_task_dep = prepare_docker_installer
 
+            # Ok. All third party software is installed, let's create the ami to reuse it in the future
+            logger.info(f"Creating AMI with name [{self.ami_name}] from instance ")
+            main_task_dep = aws.ec2.AmiFromInstance(
+                self.ami_name,
+                source_instance_id=server.id,
+                opts=pulumi.ResourceOptions(depends_on=[main_task_dep], retain_on_delete=True),
+            )
+            Output.all(main_task_dep.id, main_task_dep.name).apply(
+                lambda args: pulumi_logger(self.provision_scenario, "vms_desc").info(f"{args[0]}:{args[1]}")
+            )
+        else:
+            logger.info("Using a previously existing AMI")
+
         # Install agent. If we are using agent autoinstall script, agent install info will be empty, due to we load the install process on auto injection node
         if "install" in self.agent_install_data:
             agent_installer = remote_install(
@@ -166,7 +179,7 @@ class TestedVirtualMachine:
                 scenario_name=self.provision_scenario,
             )
         else:
-            agent_installer = lang_variant_installer
+            agent_installer = main_task_dep
 
         # Install autoinjection
         autoinjection_installer = remote_install(
@@ -250,19 +263,29 @@ class TestedVirtualMachine:
     def _configure_ami(self):
         import pulumi_aws as aws
 
-        # Env var. Created AMI again mandatory
-        if os.getenv("AMI_UPDATE") is not None:
-            return
+        # import pulumi
 
-        ami_existing = aws.ec2.get_ami_ids(
-            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name],)], owners=["self"]
+        ami_existing = aws.ec2.get_ami(
+            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)],
+            owners=["self"],
+            most_recent=True,
         )
-        logger.info(f"We found an existing AMI with name {self.ami_name}: {ami_existing.ids}")
-        if len(ami_existing.ids) > 0:
+
+        # if len(ami_existing.ids) > 0:
+        if ami_existing is not None:
+            logger.info(f"We found an existing AMI with name {self.ami_name}: {ami_existing.id}")
             # The AMI exists. We don't need to create the AMI again
-            self.create_ami = False
-            self.ami_id = ami_existing.ids[0]
-            return False
+            self.ami_id = ami_existing.id
+            # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
+            if os.getenv("AMI_UPDATE") is not None:
+                # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
+                # aws.ec2.Ami( ami_existing.name,
+                #    name=ami_existing.name,
+                #    opts=pulumi.ResourceOptions(import_=ami_existing.id))
+                logger.info("We found an existing AMI but AMI_UPDATE is set. We are going to update the AMI")
+                self.ami_id = None
+        else:
+            logger.info(f"Not found an existing AMI with name {self.ami_name}")
 
 
 class AWSInfraConfig:
