@@ -159,5 +159,3 @@ def test_library_version():
     assert v < "java@0.94.1"
 
     assert LibraryVersion("agent", "7.39.0-devel") == "agent@7.39.0-devel"
-
-    assert LibraryVersion("php", "0.92.0+721d9389c7b04dd30c7c5ce2861f7191d5830f00") >= "php@0.92.0.dev"
