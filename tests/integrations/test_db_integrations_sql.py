@@ -58,6 +58,7 @@ class _BaseIntegrationsSqlTestClass:
     setup_span_kind = _setup
 
     # Tests methods
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_sql_traces(self, excluded_operations=()):
         """ After make the requests we check that we are producing sql traces """
         for db_operation, request in self.requests[self.db_service].items():
@@ -72,6 +73,7 @@ class _BaseIntegrationsSqlTestClass:
                 span = self._get_sql_span_for_request(request)
                 assert db_operation in span["resource"].lower()
 
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_sql_success(self, excluded_operations=()):
         """ We check all sql launched for the app work """
         for db_operation, request in self.requests[self.db_service].items():
@@ -85,6 +87,7 @@ class _BaseIntegrationsSqlTestClass:
     @irrelevant(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @irrelevant(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
     @irrelevant(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_type(self, excluded_operations=()):
         """ DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
             Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
@@ -102,6 +105,7 @@ class _BaseIntegrationsSqlTestClass:
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.name"] == db_container.db_instance, f"Test is failing for {db_operation}"
 
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_span_kind(self, excluded_operations=()):
         """ Describes the relationship between the Span, its parents, and its children in a Trace."""
         for db_operation, request in self.requests[self.db_service].items():
@@ -158,6 +162,7 @@ class _BaseIntegrationsSqlTestClass:
     @irrelevant(library="java_otel", reason="Open Telemetry uses db.name")
     @irrelevant(library="python_otel", reason="Open Telemetry uses db.name")
     @irrelevant(library="nodejs_otel", reason="Open Telemetry uses db.name")
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_instance(self, excluded_operations=()):
         """ The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
@@ -184,6 +189,7 @@ class _BaseIntegrationsSqlTestClass:
     @missing_feature(library="python", reason="not implemented yet")
     @bug(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
     @bug(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_operation(self, excluded_operations=()):
         """ The name of the operation being executed """
         for db_operation, request in self.requests[self.db_service].items():
@@ -241,6 +247,7 @@ class _BaseIntegrationsSqlTestClass:
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select"])
         assert span["meta"]["db.row_count"] > 0, "Test is failing for select"
 
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_password(self, excluded_operations=()):
         """ The database password should not show in the traces """
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
@@ -457,8 +464,44 @@ class _Base_Postgres_db_integration(_BaseIntegrationsSqlTestClass):
     @irrelevant(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
     @irrelevant(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @irrelevant(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_type(self):
         super().test_db_type()
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_password_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_password()
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_operation_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_operation()
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_instance_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_instance()
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_span_kind_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_span_kind()
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_type_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_type()
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_sql_success_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_success()
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_sql_traces_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_traces()
 
 
 @scenarios.integrations
@@ -500,80 +543,49 @@ class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
     def test_db_user(self, excluded_operations=()):
         super().test_db_user()
 
-    @irrelevant(context.library != "java")
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
     def test_db_user_partial(self):
         super().test_db_user(excluded_operations=("procedure",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_password_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_password(excluded_operations=("procedure",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_operation_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_operation(excluded_operations=("procedure",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_instance_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_instance(excluded_operations=("procedure",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_span_kind_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_span_kind(excluded_operations=("procedure",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_type_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_type(excluded_operations=("procedure",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_sql_success_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_success(excluded_operations=("procedure",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_sql_traces_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_traces(excluded_operations=("procedure",))
 
 
 @scenarios.integrations
 class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mysql_db_integration):
     """ Overwrite or add specific validation methods for mysql on tracer interface """
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_db_password(self, excluded_operations=()):
-        super().test_db_password()
-
-    @irrelevant(context.library != "java")
-    def test_db_password_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_password(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_operation(self, excluded_operations=()):
-        super().test_db_operation()
-
-    @irrelevant(context.library != "java")
-    def test_db_operation_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_operation(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_instance(self, excluded_operations=()):
-        super().test_db_instance()
-
-    @irrelevant(context.library != "java")
-    def test_db_instance_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_instance(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_span_kind(self, excluded_operations=()):
-        super().test_span_kind()
-
-    @irrelevant(context.library != "java")
-    def test_span_kind_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_span_kind(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_type(self, excluded_operations=()):
-        super().test_db_type()
-
-    @irrelevant(context.library != "java")
-    def test_db_type_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_type(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_sql_success(self, excluded_operations=()):
-        super().test_sql_success()
-
-    @irrelevant(context.library != "java")
-    def test_sql_success_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_sql_success(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_sql_traces(self, excluded_operations=()):
-        super().test_sql_traces()
-
-    @irrelevant(context.library != "java")
-    def test_sql_traces_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_sql_traces(excluded_operations=("procedure",))
 
 
 @scenarios.integrations
@@ -583,77 +595,6 @@ class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_obfuscate_query(self, excluded_operations=()):
         super().test_obfuscate_query()
-
-    @irrelevant(context.library != "java")
-    def test_obfuscate_query_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_obfuscate_query(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_db_password(self, excluded_operations=()):
-        super().test_db_password()
-
-    @irrelevant(context.library != "java")
-    def test_db_password_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_password(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_operation(self, excluded_operations=()):
-        super().test_db_operation()
-
-    @irrelevant(context.library != "java")
-    def test_db_operation_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_operation(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_instance(self, excluded_operations=()):
-        super().test_db_instance()
-
-    @irrelevant(context.library != "java")
-    def test_db_instance_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_instance(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_span_kind(self, excluded_operations=()):
-        super().test_span_kind()
-
-    @irrelevant(context.library != "java")
-    def test_span_kind_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_span_kind(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_type(self, excluded_operations=()):
-        super().test_db_type()
-
-    @irrelevant(context.library != "java")
-    def test_db_type_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_type(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_sql_success(self, excluded_operations=()):
-        super().test_sql_success()
-
-    @irrelevant(context.library != "java")
-    def test_sql_success_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_sql_success(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_sql_traces(self, excluded_operations=()):
-        super().test_sql_success()
-
-    @irrelevant(context.library != "java")
-    def test_sql_traces_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_sql_traces(excluded_operations=("procedure",))
 
 
 @scenarios.otel_integrations
@@ -704,147 +645,50 @@ class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
     def test_db_user(self):
         super().test_db_user()
 
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_password_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_password(excluded_operations=("select_error",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_operation_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_operation(excluded_operations=("select_error",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_instance_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_instance(excluded_operations=("select_error",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_span_kind_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_span_kind(excluded_operations=("select_error",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_db_type_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_type(excluded_operations=("select_error",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_sql_success_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_success(excluded_operations=("select_error",))
+
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
+    def test_sql_traces_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_traces(excluded_operations=("select_error",))
+
 
 @scenarios.integrations
 class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mssql_db_integration):
     """ Overwrite or add specific validation methods for mssql on tracer interface """
 
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_db_password(self, excluded_operations=()):
-        super().test_db_password()
-
-    @irrelevant(context.library != "java")
-    def test_db_password_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_password(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_operation(self, excluded_operations=()):
-        super().test_db_operation()
-
-    @irrelevant(context.library != "java")
-    def test_db_operation_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_operation(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_instance(self, excluded_operations=()):
-        super().test_db_instance()
-
-    @irrelevant(context.library != "java")
-    def test_db_instance_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_instance(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_span_kind(self, excluded_operations=()):
-        super().test_span_kind()
-
-    @irrelevant(context.library != "java")
-    def test_span_kind_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_span_kind(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_type(self, excluded_operations=()):
-        super().test_db_type()
-
-    @irrelevant(context.library != "java")
-    def test_db_type_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_type(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_sql_success(self, excluded_operations=()):
-        super().test_sql_success()
-
-    @irrelevant(context.library != "java")
-    def test_sql_success_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_sql_success(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_sql_traces(self, excluded_operations=()):
-        super().test_sql_success()
-
-    @irrelevant(context.library != "java")
-    def test_sql_traces_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_sql_traces(excluded_operations=("select_error",))
-
 
 @scenarios.integrations
 class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Mssql_db_integration):
     """ Overwrite or add specific validation methods for mssql on agent interface """
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_db_password(self, excluded_operations=()):
-        super().test_db_password()
-
-    @irrelevant(context.library != "java")
-    def test_db_password_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_password(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_operation(self, excluded_operations=()):
-        super().test_db_operation()
-
-    @irrelevant(context.library != "java")
-    def test_db_operation_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_operation(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_instance(self, excluded_operations=()):
-        super().test_db_instance()
-
-    @irrelevant(context.library != "java")
-    def test_db_instance_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_instance(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_span_kind(self, excluded_operations=()):
-        super().test_span_kind()
-
-    @irrelevant(context.library != "java")
-    def test_span_kind_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_span_kind(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    @missing_feature(library="python", reason="not implemented yet")
-    def test_db_type(self, excluded_operations=()):
-        super().test_db_type()
-
-    @irrelevant(context.library != "java")
-    def test_db_type_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_db_type(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_sql_success(self, excluded_operations=()):
-        super().test_sql_success()
-
-    @irrelevant(context.library != "java")
-    def test_sql_success_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_sql_success(excluded_operations=("select_error",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_sql_traces(self, excluded_operations=()):
-        super().test_sql_success()
-
-    @irrelevant(context.library != "java")
-    def test_sql_traces_partial(self):
-        """ Keep testing other operations on java"""
-        super().test_sql_traces(excluded_operations=("select_error",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_obfuscate_query(self, excluded_operations=()):
@@ -869,7 +713,7 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
                 observed_obfuscation_count == expected_obfuscation_count
             ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['sql.query']}"
 
-    @irrelevant(context.library != "java")
+    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
     def test_obfuscate_query_partial(self):
         self.test_obfuscate_query(excluded_operations=("select_error",))
 
