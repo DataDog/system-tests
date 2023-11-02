@@ -21,7 +21,6 @@ from iast import (
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
-from integrations.kafka import kafka_producer, kafka_consumer
 
 import ddtrace
 
@@ -176,53 +175,52 @@ def dbm():
     return Response(f"Integration is not supported: {integration}", 406)
 
 
-@app.route("/apm")
-def apm():
+@app.route("/kafka/produce")
+def produce_kafka_message():
     """
         The goal of this endpoint is to trigger kafka integration calls
         Usage:
         - /apm?integration=kafka&applicationtype=producer
         - /apm?integration=kafka&applicationtype=consumer
     """
-    integration = flask_request.args.get("integration")
-    application_type = flask_request.args.get("applicationtype")
+
+    producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
+    message_topic = "DistributedTracing"
+    message_content = b"Distributed Tracing Test!"
+    producer.produce(message_topic, value=message_content)
+    producer.flush()
+
+    return {"result": "ok"}
+
+
+@app.route("/kafka/consume")
+def consume_kafka_message():
     message_topic = "DistributedTracing"
 
-    request_action = {"kafka": {"consumer": kafka_consumer, "producer": kafka_producer,}}
+    consumer = Consumer(
+        {
+            "bootstrap.servers": "kafka:9092",
+            "group.id": "apm_test",
+            "enable.auto.commit": True,
+            "auto.offset.reset": "earliest",
+        }
+    )
+    consumer.subscribe([message_topic])
 
-    action = request_action[integration][application_type]
-    action(message_topic)
+    msg = None
+    current_attempts = 0
+    max_attempts = 15
+    while not msg and current_attempts < max_attempts:
+        msg = consumer.poll(1)
+        if msg is None:
+            current_attempts += 1
 
-    return Response("OK")
+    consumer.close()
 
+    if msg is None:
+        return {"error": "message not found"}, 404
 
-@app.route("/apm_run_kafka_tracing_tests")
-def apm_run_kafka_tracing_tests():
-    """
-        The goal of this endpoint is to run through different kafka calls for different languages
-        At the moment, it only tests for Python.
-        TODO: Add other languages when they are ready.
-        Usage:
-        - /apm_run_kafka_tracing_tests
-    """
-    endpoint = flask_request.args.get("endpoint") or "http://localhost:7777"
-    PRODUCER_LANGUAGES = ["python"]
-    CONSUMER_LANGUAGES = ["python"]
-    for lang in PRODUCER_LANGUAGES:
-        requests.get(endpoint + "/apm?integration=kafka&applicationtype=producer")
-
-        # TODO: The consumer calls need to be replaced with the dynamic urls for the endpoints
-        # This is a placeholder for when the other app containers are ready.
-        requests.get(endpoint + "/apm?integration=kafka&applicationtype=consumer")
-
-    for lang in CONSUMER_LANGUAGES:
-        # TODO: The producer calls need to be replaced with the dynamic urls for the endpoints
-        # This is a placeholder for when the other app containers are ready.
-        requests.get(endpoint + "/apm?integration=kafka&applicationtype=producer")
-
-        requests.get(endpoint + "/apm?integration=kafka&applicationtype=consumer")
-
-    return Response("OK")
+    return {"message": msg.value().decode("utf-8")}
 
 
 @app.route("/dsm")

@@ -284,6 +284,21 @@ jobs:
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+
+
+
+    - name: Run CROSSED_INTEGRATIONS scenario
+      if: steps.build.outcome == 'success'
+      run: |
+        ./utils/build/build_tracer_buddies.sh  # TODO: publish those images to docker hub
+        ./run.sh CROSSED_INTEGRATIONS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+
+
+
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING

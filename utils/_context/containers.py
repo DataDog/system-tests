@@ -390,6 +390,7 @@ class BuddyContainer(TestedContainer):
             image_name=f"system_tests/{name}",
             host_log_folder=host_log_folder,
             healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
+            ports={"7777/tcp": proxy_port},  # not the proxy port
             environment={
                 "DD_SERVICE": name,
                 "DD_ENV": "system-tests",
