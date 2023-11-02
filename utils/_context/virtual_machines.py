@@ -265,17 +265,16 @@ class TestedVirtualMachine:
 
         # import pulumi
 
-        ami_existing = aws.ec2.get_ami(
+        ami_existing = aws.ec2.get_ami_ids(
             filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)],
             owners=["self"],
             most_recent=True,
         )
 
-        # if len(ami_existing.ids) > 0:
-        if ami_existing is not None:
-            logger.info(f"We found an existing AMI with name {self.ami_name}: {ami_existing.id}")
+        if len(ami_existing.ids) > 0:
+            logger.info(f"We found an existing AMI with name {self.ami_name}: {ami_existing.ids}")
             # The AMI exists. We don't need to create the AMI again
-            self.ami_id = ami_existing.id
+            self.ami_id = ami_existing.ids[0]
             # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
             if os.getenv("AMI_UPDATE") is not None:
                 # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
