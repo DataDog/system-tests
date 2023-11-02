@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, context, bug, missing_feature, irrelevant, scenarios
+from utils import weblog, interfaces, context, bug, missing_feature, irrelevant, scenarios, flaky
 from utils.tools import logger
 
 
@@ -58,9 +58,11 @@ class _BaseIntegrationsSqlTestClass:
     setup_span_kind = _setup
 
     # Tests methods
-    def test_sql_traces(self):
+    def test_sql_traces(self, excluded_operations=()):
         """ After make the requests we check that we are producing sql traces """
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
             assert self._get_sql_span_for_request(request) is not None, f"Test is failing for {db_operation}"
 
     def test_resource(self):
@@ -70,9 +72,11 @@ class _BaseIntegrationsSqlTestClass:
                 span = self._get_sql_span_for_request(request)
                 assert db_operation in span["resource"].lower()
 
-    def test_sql_success(self):
+    def test_sql_success(self, excluded_operations=()):
         """ We check all sql launched for the app work """
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
             if db_operation not in ["select_error"]:
                 span = self._get_sql_span_for_request(request)
                 assert "error" not in span or span["error"] == 0
@@ -81,10 +85,12 @@ class _BaseIntegrationsSqlTestClass:
     @irrelevant(library="java_otel", reason="Open Telemetry is using the correct span: db.system")
     @irrelevant(library="python_otel", reason="Open Telemetry is using the correct span: db.system")
     @irrelevant(library="nodejs_otel", reason="Open Telemetry is using the correct span: db.system")
-    def test_db_type(self):
+    def test_db_type(self, excluded_operations=()):
         """ DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
             Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.type"] == self.db_service, f"Test is failing for {db_operation}"
 
@@ -96,9 +102,12 @@ class _BaseIntegrationsSqlTestClass:
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.name"] == db_container.db_instance, f"Test is failing for {db_operation}"
 
-    def test_span_kind(self):
+    def test_span_kind(self, excluded_operations=()):
         """ Describes the relationship between the Span, its parents, and its children in a Trace."""
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
+
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["span.kind"] == "client"
 
@@ -132,10 +141,13 @@ class _BaseIntegrationsSqlTestClass:
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.connection_string"].strip(), f"Test is failing for {db_operation}"
 
-    def test_db_user(self):
+    def test_db_user(self, excluded_operations=()):
         """ Username for accessing the database. """
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
+
             span = self._get_sql_span_for_request(request)
             assert (
                 span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
@@ -146,10 +158,13 @@ class _BaseIntegrationsSqlTestClass:
     @irrelevant(library="java_otel", reason="Open Telemetry uses db.name")
     @irrelevant(library="python_otel", reason="Open Telemetry uses db.name")
     @irrelevant(library="nodejs_otel", reason="Open Telemetry uses db.name")
-    def test_db_instance(self):
+    def test_db_instance(self, excluded_operations=()):
         """ The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
+
             span = self._get_sql_span_for_request(request)
             assert span["meta"]["db.instance"] == db_container.db_instance, f"Test is failing for {db_operation}"
 
@@ -169,9 +184,12 @@ class _BaseIntegrationsSqlTestClass:
     @missing_feature(library="python", reason="not implemented yet")
     @bug(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
     @bug(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
-    def test_db_operation(self):
+    def test_db_operation(self, excluded_operations=()):
         """ The name of the operation being executed """
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
+
             span = self._get_sql_span_for_request(request)
             if db_operation == "select_error":
                 continue
@@ -223,10 +241,13 @@ class _BaseIntegrationsSqlTestClass:
         span = self._get_sql_span_for_request(self.requests[self.db_service]["select"])
         assert span["meta"]["db.row_count"] > 0, "Test is failing for select"
 
-    def test_db_password(self):
+    def test_db_password(self, excluded_operations=()):
         """ The database password should not show in the traces """
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
+
             span = self._get_sql_span_for_request(request)
             for key in span["meta"]:
                 if key not in [
@@ -297,22 +318,28 @@ class _BaseTracerIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
             assert span["resource"].count("?") == 0, f"The query should not be obfuscated for operation {db_operation}"
 
     def _get_sql_span_for_request(self, weblog_request):
-        for data, trace, span in interfaces.library.get_spans(weblog_request):
+        for _, _, span in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
-            for trace in data["request"]["content"]:
-                for span_child in trace:
-                    if (
-                        "type" in span_child
-                        and span_child["type"] == "sql"
-                        and span_child["trace_id"] == span["trace_id"]
-                        and span_child["resource"]
-                        != "SELECT 1;"  # workaround to avoid conflicts on connection check on mssql
-                    ):
-                        logger.debug("Span type sql found!")
-                        logger.info(
-                            f"CHILD Span found with trace id: {span_child['trace_id']} and span id: {span_child['span_id']}"
-                        )
-                        return span_child
+
+            # iterate over all trace to be sure to miss nothing
+            for _, _, span_child in interfaces.library.get_spans():
+                if span_child["trace_id"] != span["trace_id"]:
+                    continue
+
+                logger.debug(f"Check if span {span_child['span_id']} could match")
+
+                if span_child["resource"] == "SELECT 1;":  # workaround to avoid conflicts on connection check on mssql
+                    logger.debug(f"Wrong resource:{span_child.get('resource')}, continue...")
+                    continue
+
+                if span_child.get("type") != "sql":
+                    logger.debug(f"Wrong type:{span_child.get('type')}, continue...")
+                    continue
+
+                logger.info(f"Span type==sql found: {span_child['span_id']}")
+                return span_child
+
+        raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
 
 class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
@@ -330,9 +357,12 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
                     db_operation in span["meta"]["sql.query"].lower()
                 ), f"sql.query span not found for operation {db_operation}"
 
-    def test_obfuscate_query(self):
+    def test_obfuscate_query(self, excluded_operations=()):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
+
             span = self._get_sql_span_for_request(request)
             # We launch all queries with two parameters (from weblog)
             # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
@@ -347,36 +377,41 @@ class _BaseAgentIntegrationsSqlTestClass(_BaseIntegrationsSqlTestClass):
 
     def _get_sql_span_for_request(self, weblog_request):
         for data, span in interfaces.agent.get_spans(weblog_request):
-            logger.info(
-                f"Agent: Span found with trace id: {span['traceID']} and span id: {span['spanID']} in file {data['log_filename']}"
-            )
-            content = data["request"]["content"]["tracerPayloads"]
-            for payload in content:
-                for chunk in payload["chunks"]:
-                    for span_child in chunk["spans"]:
-                        if (
-                            # TODO RMM Improve this
-                            "type" in span_child
-                            and span_child["type"] in ("sql", "db")
-                            and span_child["traceID"] == span["traceID"]
-                            # workaround to avoid conflicts on connection check on mssql
-                            and span_child["resource"] != "SELECT ?"
-                            # workaround to avoid conflicts on connection check on mssql + nodejs + opentelemetry (there is a bug in the sql obfuscation)
-                            and span_child["resource"] != "SELECT 1;"
-                            # workaround to avoid conflicts on postgres + nodejs + opentelemetry
-                            and span_child["name"] != "pg.connect"
-                            # workaround to avoid conflicts on mssql + nodejs + opentelemetry
-                            and (
-                                "db.statement" not in span_child["meta"]
-                                or span_child["meta"]["db.statement"] != "SELECT 1;"
-                            )
-                        ):
-                            logger.debug("Agent: Span type sql found!")
-                            logger.info(
-                                f"Agent: Span SQL found with trace id: {span_child['traceID']} and span id: {span_child['spanID']}"
-                            )
-                            logger.debug(f"Agent: Span: {span_child}")
-                            return span_child
+            logger.debug(f"Span found: trace id={span['traceID']}; span id={span['spanID']} ({data['log_filename']})")
+
+            # iterate over everything to be sure to miss nothing
+            for _, span_child in interfaces.agent.get_spans():
+                if span_child["traceID"] != span["traceID"]:
+                    continue
+
+                logger.debug(f"Checking if span {span_child['spanID']} could match")
+
+                if span_child.get("type") not in ("sql", "db"):
+                    logger.debug(f"Wrong type:{span_child.get('type')}, continue...")
+                    # no way it's the span we're looking for
+                    continue
+
+                # workaround to avoid conflicts on connection check on mssql
+                # workaround to avoid conflicts on connection check on mssql + nodejs + opentelemetry (there is a bug in the sql obfuscation)
+                if span_child["resource"] in ("SELECT ?", "SELECT 1;"):
+                    logger.debug(f"Wrong resource:{span_child.get('resource')}, continue...")
+                    continue
+
+                # workaround to avoid conflicts on postgres + nodejs + opentelemetry
+                if span_child["name"] == "pg.connect":
+                    logger.debug(f"Wrong name:{span_child.get('name')}, continue...")
+                    continue
+
+                # workaround to avoid conflicts on mssql + nodejs + opentelemetry
+                if span_child["meta"].get("db.statement") == "SELECT 1;":
+                    logger.debug(f"Wrong db.statement:{span_child.get('meta', {}).get('db.statement')}, continue...")
+                    continue
+
+                logger.info(f"Span type==sql found: spanId={span_child['spanID']}")
+
+                return span_child
+
+        raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
 
 class _BaseOtelAgentIntegrationsSqlTestClass(_BaseAgentIntegrationsSqlTestClass):
@@ -461,22 +496,158 @@ class _Base_Mysql_db_integration(_BaseIntegrationsSqlTestClass):
         super().test_db_name()
 
     @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
-    def test_db_user(self):
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_user(self, excluded_operations=()):
         super().test_db_user()
+
+    @irrelevant(context.library != "java")
+    def test_db_user_partial(self):
+        super().test_db_user(excluded_operations=("procedure",))
 
 
 @scenarios.integrations
 class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mysql_db_integration):
     """ Overwrite or add specific validation methods for mysql on tracer interface """
 
-    pass
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_password(self, excluded_operations=()):
+        super().test_db_password()
+
+    @irrelevant(context.library != "java")
+    def test_db_password_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_password(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_operation(self, excluded_operations=()):
+        super().test_db_operation()
+
+    @irrelevant(context.library != "java")
+    def test_db_operation_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_operation(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_instance(self, excluded_operations=()):
+        super().test_db_instance()
+
+    @irrelevant(context.library != "java")
+    def test_db_instance_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_instance(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_span_kind(self, excluded_operations=()):
+        super().test_span_kind()
+
+    @irrelevant(context.library != "java")
+    def test_span_kind_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_span_kind(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_type(self, excluded_operations=()):
+        super().test_db_type()
+
+    @irrelevant(context.library != "java")
+    def test_db_type_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_type(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_sql_success(self, excluded_operations=()):
+        super().test_sql_success()
+
+    @irrelevant(context.library != "java")
+    def test_sql_success_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_success(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_sql_traces(self, excluded_operations=()):
+        super().test_sql_traces()
+
+    @irrelevant(context.library != "java")
+    def test_sql_traces_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_traces(excluded_operations=("procedure",))
 
 
 @scenarios.integrations
 class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Mysql_db_integration):
     """ Overwrite or add specific validation methods for mysql on agent interface """
 
-    pass
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_obfuscate_query(self, excluded_operations=()):
+        super().test_obfuscate_query()
+
+    @irrelevant(context.library != "java")
+    def test_obfuscate_query_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_obfuscate_query(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_password(self, excluded_operations=()):
+        super().test_db_password()
+
+    @irrelevant(context.library != "java")
+    def test_db_password_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_password(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_operation(self, excluded_operations=()):
+        super().test_db_operation()
+
+    @irrelevant(context.library != "java")
+    def test_db_operation_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_operation(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_instance(self, excluded_operations=()):
+        super().test_db_instance()
+
+    @irrelevant(context.library != "java")
+    def test_db_instance_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_instance(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_span_kind(self, excluded_operations=()):
+        super().test_span_kind()
+
+    @irrelevant(context.library != "java")
+    def test_span_kind_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_span_kind(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_type(self, excluded_operations=()):
+        super().test_db_type()
+
+    @irrelevant(context.library != "java")
+    def test_db_type_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_type(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_sql_success(self, excluded_operations=()):
+        super().test_sql_success()
+
+    @irrelevant(context.library != "java")
+    def test_sql_success_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_success(excluded_operations=("procedure",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_sql_traces(self, excluded_operations=()):
+        super().test_sql_success()
+
+    @irrelevant(context.library != "java")
+    def test_sql_traces_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_traces(excluded_operations=("procedure",))
 
 
 @scenarios.otel_integrations
@@ -532,16 +703,144 @@ class _Base_Mssql_db_integration(_BaseIntegrationsSqlTestClass):
 class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Base_Mssql_db_integration):
     """ Overwrite or add specific validation methods for mssql on tracer interface """
 
-    pass
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_password(self, excluded_operations=()):
+        super().test_db_password()
+
+    @irrelevant(context.library != "java")
+    def test_db_password_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_password(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_operation(self, excluded_operations=()):
+        super().test_db_operation()
+
+    @irrelevant(context.library != "java")
+    def test_db_operation_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_operation(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_instance(self, excluded_operations=()):
+        super().test_db_instance()
+
+    @irrelevant(context.library != "java")
+    def test_db_instance_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_instance(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_span_kind(self, excluded_operations=()):
+        super().test_span_kind()
+
+    @irrelevant(context.library != "java")
+    def test_span_kind_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_span_kind(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_type(self, excluded_operations=()):
+        super().test_db_type()
+
+    @irrelevant(context.library != "java")
+    def test_db_type_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_type(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_sql_success(self, excluded_operations=()):
+        super().test_sql_success()
+
+    @irrelevant(context.library != "java")
+    def test_sql_success_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_success(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_sql_traces(self, excluded_operations=()):
+        super().test_sql_success()
+
+    @irrelevant(context.library != "java")
+    def test_sql_traces_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_traces(excluded_operations=("select_error",))
 
 
 @scenarios.integrations
 class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_Mssql_db_integration):
     """ Overwrite or add specific validation methods for mssql on agent interface """
 
-    def test_obfuscate_query(self):
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_password(self, excluded_operations=()):
+        super().test_db_password()
+
+    @irrelevant(context.library != "java")
+    def test_db_password_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_password(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_operation(self, excluded_operations=()):
+        super().test_db_operation()
+
+    @irrelevant(context.library != "java")
+    def test_db_operation_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_operation(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_instance(self, excluded_operations=()):
+        super().test_db_instance()
+
+    @irrelevant(context.library != "java")
+    def test_db_instance_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_instance(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_span_kind(self, excluded_operations=()):
+        super().test_span_kind()
+
+    @irrelevant(context.library != "java")
+    def test_span_kind_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_span_kind(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_db_type(self, excluded_operations=()):
+        super().test_db_type()
+
+    @irrelevant(context.library != "java")
+    def test_db_type_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_db_type(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_sql_success(self, excluded_operations=()):
+        super().test_sql_success()
+
+    @irrelevant(context.library != "java")
+    def test_sql_success_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_success(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_sql_traces(self, excluded_operations=()):
+        super().test_sql_success()
+
+    @irrelevant(context.library != "java")
+    def test_sql_traces_partial(self):
+        """ Keep testing other operations on java"""
+        super().test_sql_traces(excluded_operations=("select_error",))
+
+    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    def test_obfuscate_query(self, excluded_operations=()):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.requests[self.db_service].items():
+            if db_operation in excluded_operations:
+                continue
+
             span = self._get_sql_span_for_request(request)
             # We launch all queries with two parameters (from weblog)
             if db_operation == "insert":
@@ -557,6 +856,10 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
             assert (
                 observed_obfuscation_count == expected_obfuscation_count
             ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['sql.query']}"
+
+    @irrelevant(context.library != "java")
+    def test_obfuscate_query_partial(self):
+        self.test_obfuscate_query(excluded_operations=("select_error",))
 
 
 @scenarios.otel_integrations
