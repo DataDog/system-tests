@@ -384,7 +384,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "expected_operation_name,span_kind,attributes",[
+        "expected_operation_name,span_kind,attributes",
+        [
             ("http.server.request", SK_SERVER, {"http.request.method": "GET"}),
             ("http.client.request", SK_CLIENT, {"http.request.method": "GET"}),
             ("redis.query", SK_CLIENT, {"db.system": "Redis"}),
