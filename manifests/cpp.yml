@@ -5,8 +5,6 @@ tests/:
     test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
-    test_shell_execution.py:
-      Test_ShellExecution: missing_feature
     api_security/:
       test_schemas.py: irrelevant (ASM is not implemented in C++)
     iast/:
@@ -67,6 +65,7 @@ tests/:
     test_reports.py: irrelevant (ASM is not implemented in C++)
     test_request_blocking.py: irrelevant (ASM is not implemented in C++)
     test_runtime_activation.py: irrelevant (ASM is not implemented in C++)
+    test_shell_execution.py: irrelevant (ASM is not implemented in C++)
     test_traces.py: irrelevant (ASM is not implemented in C++)
     test_user_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
     test_versions.py: irrelevant (ASM is not implemented in C++)

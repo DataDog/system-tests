@@ -9,8 +9,6 @@ tests/:
         '*': missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         spring-boot:  v0.1 # real version not known
   appsec/:
-    test_shell_execution.py:
-      Test_ShellExecution: missing_feature
     api_security/:
       test_schemas.py:
         Test_Schema_Request_Body: missing_feature
@@ -713,6 +711,8 @@ tests/:
         '*': v0.115.0
         akka-http: missing_feature (No AppSec support)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0

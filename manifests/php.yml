@@ -5,8 +5,6 @@ tests/:
     test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
-    test_shell_execution.py:
-      Test_ShellExecution: missing_feature
     iast/:
       sink/:
         test_xss.py:
@@ -45,6 +43,8 @@ tests/:
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, vut was flaky
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:

@@ -5,8 +5,6 @@ tests/:
     test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
-    test_shell_execution.py:
-      Test_ShellExecution: missing_feature
     api_security/:
       test_schemas.py:
         Test_Schema_Request_Body: v1.15.0
@@ -175,6 +173,8 @@ tests/:
       Test_AppSecRequestBlocking: v1.11.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v0.54.2
       Test_AppSecObfuscator: v1.0.0
