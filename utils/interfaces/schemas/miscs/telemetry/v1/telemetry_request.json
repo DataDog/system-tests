@@ -146,7 +146,6 @@
     },
     {
       "if": {
-        "type": "object",
         "properties": {
           "request_type": {
             "const": "logs"
@@ -156,7 +155,10 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "/miscs/telemetry/common/events/logs.json"
+            "type": "array",
+            "items": {
+              "$ref": "/miscs/telemetry/common/events/logs.json"
+            }
           }
         }
       }
