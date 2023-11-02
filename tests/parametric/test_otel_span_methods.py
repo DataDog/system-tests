@@ -381,393 +381,42 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_http_server(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to "http.server.request" when:
-            - Span kind is set to Server
-            - http.request.method is set to something (e.g., GET in this example)
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/http/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="http.server.request",
-            span_kind=SK_SERVER,
-            attributes={"http.request.method": "GET"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_http_client(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to "http.client.request" when:
-            - Span kind is set to Client
-            - http.request.method is set to something (e.g., GET in this example)
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/http/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="http.client.request",
-            span_kind=SK_CLIENT,
-            attributes={"http.request.method": "GET"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_database(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `db.system + "." + "query" when:
-            - Span kind is set to Client
-            - db.system is set to some messaging system (e.g., redis in this example)
-
-            (https://opentelemetry.io/docs/specs/semconv/database/database-spans/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="redis.query",
-            span_kind=SK_CLIENT,
-            attributes={"db.system": "Redis"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    @pytest.mark.parametrize("message_span_kind", [SK_SERVER, SK_CLIENT, SK_CONSUMER, SK_PRODUCER])
-    def test_otel_span_operation_name_message(self, message_span_kind: int, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `messaging.system + "." + messaging.operation` when:
-            - Span kind is set to Client
-            - messaging.system is set to something
-            - messaging.operation is set to something
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/messaging/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="kafka.receive",
-            span_kind=message_span_kind,
-            attributes={"messaging.system": "Kafka", "messaging.operation": "Receive"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_aws_client_001(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `"aws." + `rpc.service`.lower() + ".request" :
-            - Span kind is set to Client
-            - rpc.system is set to aws-api
-            - rpc.service is set to something (e.g., "S3" in this example)
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="aws.s3.request",
-            span_kind=SK_CLIENT,
-            attributes={"rpc.system": "aws-api", "rpc.service": "S3"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_aws_client_002(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `"aws.client.request" :
-            - Span kind is set to Client
-            - rpc.system is set to aws-api
-            - rpc.service is not set
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="aws.client.request",
-            span_kind=SK_CLIENT,
-            attributes={"rpc.system": "aws-api"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_rpc_client(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to the `rpc.system + "." + span.kind + ".request"`
-            - Span kind is set to Client
-            - rpc.system is set to something
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/rpc/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="grpc.client.request",
-            span_kind=SK_CLIENT,
-            attributes={"rpc.system": "GRPC"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_rpc_server(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to the `rpc.system + "." + span.kind + ".request"`
-            - Span kind is set to Server
-            - rpc.system is set to something
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/rpc/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="grpc.server.request",
-            span_kind=SK_SERVER,
-            attributes={"rpc.system": "GRPC"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_faas_client(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `faas.invoked_provider` + "." + `faas.invoked_name` + ".invoke" when:
-            - Span kind is set to Client
-            - faas.invoked_provider is present with a value
-            - faas.invoked_name is present with a value
-
-            https://opentelemetry.io/docs/specs/semconv/faas/faas-spans/#outgoing-invocations
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="aws.my-function.invoke",
-            span_kind=SK_CLIENT,
-            attributes={"faas.invoked_provider": "aws", "faas.invoked_name": "My-Function"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_faas_server(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `faas.trigger + ".invoke"` when:
-            - Span kind is set to Server
-            - faas.trigger is present with a value
-
-            https://opentelemetry.io/docs/specs/semconv/faas/faas-spans/#incoming-faas-span-attributes
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="datasource.invoke",
-            span_kind=SK_SERVER,
-            attributes={"faas.trigger": "Datasource"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_graphql(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `"graphql.server.request"` when:
-            - Span kind is set to Server
-            - graphql.operation.type is set to something (e.g., query in this example)
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/graphql/)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="graphql.server.request",
-            span_kind=SK_SERVER,
-            attributes={"graphql.operation.type": "query"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_generic_server_001(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `network.protocol.name` + ".server.request"` when:
-            - Span kind is set to Server
-            - network.protocol.name is set to something (e.g., amqp in this example)
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/span-general/#network-attributes)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="amqp.server.request",
-            span_kind=SK_SERVER,
-            attributes={"network.protocol.name": "Amqp"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_generic_server_002(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to "server.request" when:
-            - Span kind is set to Server
-            - no other known attributes to help determine operation name
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="server.request",
-            span_kind=SK_SERVER,
-            attributes=None,
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_generic_client_001(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to `network.protocol.name + ".client.request"` when:
-            - Span kind is set to Client
-            - network.protocol.name is set to something (e.g., amqp in this example)
-
-            (https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/span-general/#network-attributes)
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="amqp.client.request",
-            span_kind=SK_CLIENT,
-            attributes={"network.protocol.name": "Amqp"},
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_generic_client_002(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to "client.request" when:
-            - Span kind is set to Client
-            - no other known attributes to help determine operation name
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="client.request",
-            span_kind=SK_CLIENT,
-            attributes=None,
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "span_kind,expected_operation_name",
-        [(SK_INTERNAL, "internal"), (SK_CONSUMER, "consumer"), (SK_PRODUCER, "producer")],
+        "expected_operation_name,span_kind,attributes",[
+            ("http.server.request", SK_SERVER, {"http.request.method": "GET"}),
+            ("http.client.request", SK_CLIENT, {"http.request.method": "GET"}),
+            ("redis.query", SK_CLIENT, {"db.system": "Redis"}),
+            ("kafka.receive", SK_CLIENT, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
+            ("kafka.receive", SK_SERVER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
+            ("kafka.receive", SK_PRODUCER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
+            ("kafka.receive", SK_CONSUMER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
+            ("aws.s3.request", SK_CLIENT, {"rpc.system": "aws-api", "rpc.service": "S3"}),
+            ("aws.client.request", SK_CLIENT, {"rpc.system": "aws-api"}),
+            ("grpc.client.request", SK_CLIENT, {"rpc.system": "GRPC"}),
+            ("grpc.server.request", SK_SERVER, {"rpc.system": "GRPC"}),
+            ("aws.my-function.invoke", SK_CLIENT, {"faas.invoked_provider": "aws", "faas.invoked_name": "My-Function"}),
+            ("datasource.invoke", SK_SERVER, {"faas.trigger": "Datasource"}),
+            ("graphql.server.request", SK_SERVER, {"graphql.operation.type": "query"}),
+            ("amqp.server.request", SK_SERVER, {"network.protocol.name": "Amqp"}),
+            ("server.request", SK_SERVER, None),
+            ("amqp.client.request", SK_CLIENT, {"network.protocol.name": "Amqp"}),
+            ("client.request", SK_CLIENT, None),
+            ("internal", SK_INTERNAL, None),
+            ("consumer", SK_CONSUMER, None),
+            ("producer", SK_PRODUCER, None),
+            ("otel_unknown", None, None),
+        ],
     )
-    def test_otel_span_operation_name_span_kind(
-        self, span_kind: int, expected_operation_name: str, test_agent, test_library
+    def test_otel_span_operation_name(
+        self, expected_operation_name: str, span_kind: int, attributes: dict, test_agent, test_library
     ):
-        """
-            Tests that the operation name will be set to `span.kind` (barring `client` and `server`) (in this case "internal") when:
-            - Span kind is set to Internal
-            - no other known attributes for setting the operation name
-        """
         run_operation_name_test(
             resource="otel_span_name",
             expected_operation_name=expected_operation_name,
             span_kind=span_kind,
-            attributes=None,
-            test_library=test_library,
-            test_agent=test_agent,
-        )
-
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    def test_otel_span_operation_name_unknown(self, test_agent, test_library):
-        """
-            Tests that the operation name will be set to "otel_unknown" when:
-            - span.kind is not present
-            - no other known attributes for setting the operation name
-        """
-        run_operation_name_test(
-            resource="otel_span_name",
-            expected_operation_name="otel_unknown",
-            span_kind=None,
-            attributes=None,
+            attributes=attributes,
             test_library=test_library,
             test_agent=test_agent,
         )
