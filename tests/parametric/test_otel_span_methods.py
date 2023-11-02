@@ -415,7 +415,6 @@ class Test_Otel_Span_Methods:
         self, expected_operation_name: str, span_kind: int, attributes: dict, test_agent, test_library
     ):
         run_operation_name_test(
-            resource="otel_span_name",
             expected_operation_name=expected_operation_name,
             span_kind=span_kind,
             attributes=attributes,
@@ -458,12 +457,12 @@ def run_operation_name_test(
     resource: str, expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent
 ):
     with test_library:
-        with test_library.otel_start_span(resource, span_kind=span_kind, attributes=attributes) as span:
+        with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
             span.end_span()
     traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, otel_span(name=resource))
+    trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
     assert len(trace) == 1
 
     span = get_span(test_agent)
     assert span["name"] == expected_operation_name
-    assert span["resource"] == resource
+    assert span["resource"] == "otel_span_name"
