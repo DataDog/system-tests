@@ -453,9 +453,7 @@ class Test_Otel_Span_Methods:
         assert span["metrics"].get("_dd1.sr.eausr") == "1.0"
 
 
-def run_operation_name_test(
-    expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent
-):
+def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
     with test_library:
         with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
             span.end_span()
