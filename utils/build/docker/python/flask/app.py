@@ -383,21 +383,23 @@ def login_endpoint():
         return Response("Unauthorized from SDK", status=401)
 
     mode = config._automatic_login_events_mode
+    user_id = None
     if request.method == "GET":
         return Response("Basic Auth not supported on flask-login by default")
     elif request.method == "POST":
         _user = get_user(flask_request.form["username"])
+        user_id = _user.id
         if _user:
             if _user.password == flask_request.form["password"]:
                 login_user(_user, remember=False)
                 return Response("OK", status=200)
             else:
                 appsec_trace_utils.track_user_login_failure_event(
-                    tracer, user_id=_user.id, exists=True, login_events_mode=mode
+                    tracer, user_id=user_id, exists=True, login_events_mode=mode
                 )
                 return Response("Wrong authentication", status=401)
 
-    appsec_trace_utils.track_user_login_failure_event(tracer, user_id=None, exists=False, login_events_mode=mode)
+    appsec_trace_utils.track_user_login_failure_event(tracer, user_id=user_id, exists=False, login_events_mode=mode)
     return Response("Unauthorized, method: %s" % str(request.method), status=401)
 
 
