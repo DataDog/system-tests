@@ -105,7 +105,7 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant
-  test_library_conf.py: irrelevant # Is this enough, or do I need to list every sub-test with `irrelevant`?
+  test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
   test_profiling.py:
     Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
