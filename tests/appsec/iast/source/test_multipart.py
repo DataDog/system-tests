@@ -13,5 +13,5 @@ class TestMultipart(BaseSourceTest):
     endpoint = "/iast/source/multipart/test"
     requests_kwargs = [{"method": "POST", "files": {"file1": ("file1", "bsldhkuqwgervf")}}]
     source_type = "http.request.multipart.parameter"
-    source_name = "Content-Disposition"
+    source_name = "name"
     source_value = None
