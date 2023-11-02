@@ -519,6 +519,7 @@ class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Bas
         super().test_db_password(excluded_operations=("procedure",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_operation(self, excluded_operations=()):
         super().test_db_operation()
 
@@ -528,6 +529,7 @@ class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Bas
         super().test_db_operation(excluded_operations=("procedure",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_instance(self, excluded_operations=()):
         super().test_db_instance()
 
@@ -546,6 +548,7 @@ class Test_Tracer_Mysql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Bas
         super().test_span_kind(excluded_operations=("procedure",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_type(self, excluded_operations=()):
         super().test_db_type()
 
@@ -596,6 +599,7 @@ class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
         super().test_db_password(excluded_operations=("procedure",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_operation(self, excluded_operations=()):
         super().test_db_operation()
 
@@ -605,6 +609,7 @@ class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
         super().test_db_operation(excluded_operations=("procedure",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_instance(self, excluded_operations=()):
         super().test_db_instance()
 
@@ -623,6 +628,7 @@ class Test_Agent_Mysql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
         super().test_span_kind(excluded_operations=("procedure",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_type(self, excluded_operations=()):
         super().test_db_type()
 
@@ -713,6 +719,7 @@ class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Bas
         super().test_db_password(excluded_operations=("select_error",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_operation(self, excluded_operations=()):
         super().test_db_operation()
 
@@ -722,6 +729,7 @@ class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Bas
         super().test_db_operation(excluded_operations=("select_error",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_instance(self, excluded_operations=()):
         super().test_db_instance()
 
@@ -740,6 +748,7 @@ class Test_Tracer_Mssql_db_integration(_BaseTracerIntegrationsSqlTestClass, _Bas
         super().test_span_kind(excluded_operations=("select_error",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_type(self, excluded_operations=()):
         super().test_db_type()
 
@@ -781,6 +790,7 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
         super().test_db_password(excluded_operations=("select_error",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_operation(self, excluded_operations=()):
         super().test_db_operation()
 
@@ -790,6 +800,7 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
         super().test_db_operation(excluded_operations=("select_error",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_instance(self, excluded_operations=()):
         super().test_db_instance()
 
@@ -808,6 +819,7 @@ class Test_Agent_Mssql_db_integration(_BaseAgentIntegrationsSqlTestClass, _Base_
         super().test_span_kind(excluded_operations=("select_error",))
 
     @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
+    @missing_feature(library="python", reason="not implemented yet")
     def test_db_type(self, excluded_operations=()):
         super().test_db_type()
 
