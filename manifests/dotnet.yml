@@ -5,6 +5,8 @@ tests/:
     test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     api_security/:
       test_schemas.py:
         Test_Schema_Request_Body: missing_feature
