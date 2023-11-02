@@ -56,7 +56,7 @@ class TestedContainer:
 
         self.image = ImageInfo(image_name)
         self.healthcheck = healthcheck
-        self.environment = environment
+        self.environment = environment or {}
         self.kwargs = kwargs
         self._container = None
         self.stdout_interface = stdout_interface
@@ -381,6 +381,26 @@ class AgentContainer(TestedContainer):
     @property
     def agent_port(self):
         return 8127
+
+
+class BuddyContainer(TestedContainer):
+    def __init__(self, name, host_log_folder, proxy_port) -> None:
+        super().__init__(
+            name=name,
+            image_name=f"system_tests/{name}",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
+            environment={
+                "DD_SERVICE": name,
+                "DD_ENV": "system-tests",
+                "DD_VERSION": "1.0.0",
+                # "DD_TRACE_DEBUG": "true",
+                "DD_AGENT_HOST": "proxy",
+                "DD_TRACE_AGENT_PORT": proxy_port,
+            },
+        )
+
+        self.interface = None
 
 
 class WeblogContainer(TestedContainer):
