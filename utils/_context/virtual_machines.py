@@ -268,7 +268,7 @@ class TestedVirtualMachine:
         ami_existing = aws.ec2.get_ami_ids(
             filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)],
             owners=["self"],
-            most_recent=True,
+          #  most_recent=True,
         )
 
         if len(ami_existing.ids) > 0:
