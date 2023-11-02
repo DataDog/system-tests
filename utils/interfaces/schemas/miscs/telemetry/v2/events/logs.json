@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "/miscs/telemetry/common/events/logs.json",
+  "$id": "/miscs/telemetry/v2/events/logs.json",
   "description": "logs schema",
   "title": "logs",
   "type": "object",
