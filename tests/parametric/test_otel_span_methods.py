@@ -454,7 +454,7 @@ class Test_Otel_Span_Methods:
 
 
 def run_operation_name_test(
-    resource: str, expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent
+    expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent
 ):
     with test_library:
         with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
