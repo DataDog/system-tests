@@ -200,7 +200,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "/miscs/telemetry/common/events/logs.json"
+            "$ref": "/miscs/telemetry/v2/events/logs.json"
           }
         }
       }
