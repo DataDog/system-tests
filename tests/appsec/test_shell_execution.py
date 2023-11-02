@@ -17,6 +17,7 @@ from utils import (
     flaky,
 )
 
+
 @coverage.basic
 class Test_ShellExecution:
     """ Test shell execution tracing """
@@ -25,7 +26,8 @@ class Test_ShellExecution:
         self.r_cmd_exec = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
-            data=json.dumps({"command": "echo", "options": { "shell": False }, "args": "foo"}))
+            data=json.dumps({"command": "echo", "options": {"shell": False}, "args": "foo"}),
+        )
 
     def test_track_cmd_exec(self):
         for _, trace in interfaces.library.get_traces(request=self.r_cmd_exec):
@@ -36,14 +38,15 @@ class Test_ShellExecution:
         assert self.r_cmd_exec.status_code == 200
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
-        assert shell_exec_span["meta"]["cmd.exec"] == "[\"echo\",\"foo\"]"
+        assert shell_exec_span["meta"]["cmd.exec"] == '["echo","foo"]'
         assert shell_exec_span["meta"]["cmd.exit_code"] == "0"
 
     def setup_track_shell_exec(self):
         self.r_cmd_exec = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
-            data=json.dumps({"command": "echo", "options": { "shell": True }, "args": "foo"}))
+            data=json.dumps({"command": "echo", "options": {"shell": True}, "args": "foo"}),
+        )
 
     def test_track_shell_exec(self):
         for _, trace in interfaces.library.get_traces(request=self.r_cmd_exec):
@@ -54,15 +57,16 @@ class Test_ShellExecution:
         assert self.r_cmd_exec.status_code == 200
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
-        assert shell_exec_span["meta"]["cmd.shell"] == "[\"echo\",\"foo\"]"
+        assert shell_exec_span["meta"]["cmd.shell"] == '["echo","foo"]'
         assert shell_exec_span["meta"]["cmd.exit_code"] == "0"
 
     def setup_truncation(self):
-        args = "foo".ljust(32000, 'o')
+        args = "foo".ljust(32000, "o")
         self.r_cmd_exec = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
-            data=json.dumps({"command": "echo", "options": { "shell": False }, "args": args}))
+            data=json.dumps({"command": "echo", "options": {"shell": False}, "args": args}),
+        )
 
     def test_truncation(self):
         for _, trace in interfaces.library.get_traces(request=self.r_cmd_exec):
@@ -74,7 +78,7 @@ class Test_ShellExecution:
         assert self.r_cmd_exec.status_code == 200
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
-        assert shell_exec_span["meta"]["cmd.exec"] == "[\"echo\",\"fo\"]"
+        assert shell_exec_span["meta"]["cmd.exec"] == '["echo","fo"]'
         assert shell_exec_span["meta"]["cmd.exit_code"] == "0"
 
     def setup_obfuscation(self):
@@ -82,7 +86,8 @@ class Test_ShellExecution:
         self.r_cmd_exec = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
-            data=json.dumps({"command": "echo", "options": { "shell": False }, "args": args}))
+            data=json.dumps({"command": "echo", "options": {"shell": False}, "args": args}),
+        )
 
     def test_obfuscation(self):
         for _, trace in interfaces.library.get_traces(request=self.r_cmd_exec):
@@ -94,5 +99,5 @@ class Test_ShellExecution:
         assert self.r_cmd_exec.status_code == 200
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
-        assert shell_exec_span["meta"]["cmd.exec"] == "[\"echo\",\"password\",\"?\"]"
+        assert shell_exec_span["meta"]["cmd.exec"] == '["echo","password","?"]'
         assert shell_exec_span["meta"]["cmd.exit_code"] == "0"
