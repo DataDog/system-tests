@@ -36,6 +36,7 @@ class Test_ShellExecution:
                     shell_exec_span = span
 
         assert self.r_cmd_exec.status_code == 200
+        assert shell_exec_span is not None, f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
         assert shell_exec_span["meta"]["cmd.exec"] == '["echo","foo"]'
@@ -55,6 +56,7 @@ class Test_ShellExecution:
                     shell_exec_span = span
 
         assert self.r_cmd_exec.status_code == 200
+        assert shell_exec_span is not None, f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
         assert shell_exec_span["meta"]["cmd.shell"] == '["echo","foo"]'
@@ -75,7 +77,7 @@ class Test_ShellExecution:
                     shell_exec_span = span
 
         assert self.r_cmd_exec.status_code == 200
-        assert self.r_cmd_exec.status_code == 200
+        assert shell_exec_span is not None, f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
         assert shell_exec_span["meta"]["cmd.exec"] == '["echo","fo"]'
@@ -96,7 +98,7 @@ class Test_ShellExecution:
                     shell_exec_span = span
 
         assert self.r_cmd_exec.status_code == 200
-        assert self.r_cmd_exec.status_code == 200
+        assert shell_exec_span is not None, f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
         assert shell_exec_span["meta"]["cmd.exec"] == '["echo","password","?"]'
