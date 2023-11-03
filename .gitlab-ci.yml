@@ -65,6 +65,7 @@ onboarding_nodejs:
     - schedules
   variables:
     TEST_LIBRARY: "nodejs"
+    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -85,6 +86,7 @@ onboarding_java:
     - schedules
   variables:
     TEST_LIBRARY: "java"
+    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -107,6 +109,7 @@ onboarding_python:
     - schedules
   variables:
     TEST_LIBRARY: "python"
+    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -127,6 +130,7 @@ onboarding_dotnet:
     - schedules
   variables:
     TEST_LIBRARY: "dotnet"
+    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -147,6 +151,7 @@ onboarding_ruby:
     - schedules
   variables:
     TEST_LIBRARY: "ruby"
+    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [prod]
