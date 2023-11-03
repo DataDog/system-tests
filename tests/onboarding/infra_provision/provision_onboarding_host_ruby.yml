@@ -8,7 +8,7 @@ ami:
   - name: amazon-linux-2023-x86
     ami_id: ami-06b09bfacae1453cb
     user: ec2-user
-    os_type: linux__
+    os_type: linux
     os_distro: rpm
 
 init-config:
