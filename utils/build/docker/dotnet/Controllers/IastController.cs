@@ -321,7 +321,34 @@ namespace weblog
         [HttpPost("sqli/test_insecure")]
         public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
         {
-            return InsecureSqli(username);
+            try
+            {
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("Insecure SQL command executed:");
+                    using var conn = Sql.GetSqliteConnection();
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM users WHERE user = '" + username + "'";
+                    using var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
+                    }
+
+                    return Content(sb.ToString());
+                }
+                else
+                {
+                    return BadRequest($"No params provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }        
         }
         
         [HttpPost("sqli/test_secure")]
@@ -357,38 +384,6 @@ namespace weblog
                 return StatusCode(500, "Error executing query.");
             }
         }
-       
-        private IActionResult InsecureSqli(string username)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(username))
-                {
-                    var sb = new System.Text.StringBuilder();
-                    sb.AppendLine("Insecure SQL command executed:");
-                    using var conn = Sql.GetSqliteConnection();
-                    conn.Open();
-                    using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT * FROM users WHERE user = '" + username + "'";
-                    using var reader = cmd.ExecuteReader();
-
-                    while (reader.Read())
-                    {
-                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
-                    }
-
-                    return Content(sb.ToString());
-                }
-                else
-                {
-                    return BadRequest($"No params provided");
-                }
-            }
-            catch
-            {
-                return StatusCode(500, "Error executing query.");
-            }        
-        }
 
         [HttpGet("weak_randomness/test_insecure")]
         public IActionResult test_insecure_weakRandomness(string user)
@@ -408,6 +403,20 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText(body.value);
+                return Content($"Executed injection");
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }               
+
+        [HttpGet("source/header/test")]
+        public IActionResult test_headerValue()
+        {
+            var headerValue = Request.Headers["table"].ToString();
+            try
+            {
+                var result = System.IO.File.ReadAllText(headerValue);
                 return Content($"Executed injection");
             }
             catch
