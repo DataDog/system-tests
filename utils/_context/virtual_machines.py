@@ -159,11 +159,11 @@ class TestedVirtualMachine:
                 # Ok. All third party software is installed, let's create the ami to reuse it in the future
                 logger.info(f"Creating AMI with name [{self.ami_name}] from instance ")
                 # Expiration date for the ami
-                expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+                # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
                 main_task_dep = aws.ec2.AmiFromInstance(
                     self.ami_name,
-                    deprecation_time=expiration_date,
+                    # deprecation_time=expiration_date,
                     source_instance_id=server.id,
                     opts=pulumi.ResourceOptions(depends_on=[main_task_dep], retain_on_delete=True),
                 )
