@@ -2,6 +2,7 @@ import os
 import json
 
 from utils.tools import logger
+from datetime import datetime, timedelta
 
 
 class TestedVirtualMachine:
@@ -153,16 +154,20 @@ class TestedVirtualMachine:
             else:
                 main_task_dep = prepare_docker_installer
 
-            # Ok. All third party software is installed, let's create the ami to reuse it in the future
-            logger.info(f"Creating AMI with name [{self.ami_name}] from instance ")
-            main_task_dep = aws.ec2.AmiFromInstance(
-                self.ami_name,
-                source_instance_id=server.id,
-                opts=pulumi.ResourceOptions(depends_on=[main_task_dep], retain_on_delete=True),
-            )
-            Output.all(main_task_dep.id, main_task_dep.name).apply(
-                lambda args: pulumi_logger(self.provision_scenario, "vms_desc").info(f"{args[0]}:{args[1]}")
-            )
+            # If the ami_name is None, we can not create the AMI (Probably because there another AMI is being generating)
+            if self.ami_name is not None:
+                # Ok. All third party software is installed, let's create the ami to reuse it in the future
+                logger.info(f"Creating AMI with name [{self.ami_name}] from instance ")
+                # Expiration date for the ami
+                expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+                main_task_dep = aws.ec2.AmiFromInstance(
+                    self.ami_name,
+                    deprecation_time=expiration_date,
+                    source_instance_id=server.id,
+                    opts=pulumi.ResourceOptions(depends_on=[main_task_dep], retain_on_delete=True),
+                )
+
         else:
             logger.info("Using a previously existing AMI")
 
@@ -265,16 +270,43 @@ class TestedVirtualMachine:
 
         # import pulumi
 
+        # Configure name
+        self.ami_name = self.name
+
+        if "install" not in self.prepare_repos_install:
+            self.ami_name = self.ami_name + "__autoinstall"
+
+        if self.prepare_docker_install["install"] is not None:
+            self.ami_name = self.ami_name + "__container"
+        else:
+            self.ami_name = self.ami_name + "__host"
+
+        # Check for existing ami
         ami_existing = aws.ec2.get_ami_ids(
-            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)],
-            owners=["self"],
-          #  most_recent=True,
+            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)], owners=["self"],
         )
 
         if len(ami_existing.ids) > 0:
-            logger.info(f"We found an existing AMI with name {self.ami_name}: {ami_existing.ids}")
+            # Latest ami details
+            ami_recent = aws.ec2.get_ami(
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)],
+                owners=["self"],
+                most_recent=True,
+            )
+            logger.info(
+                f"We found an existing AMI with name {self.ami_name}: [{ami_recent.id}] and status:[{ami_recent.state}] and expiration: [{ami_recent.deprecation_time}]"
+            )
             # The AMI exists. We don't need to create the AMI again
-            self.ami_id = ami_existing.ids[0]
+            self.ami_id = ami_recent.id
+
+            if str(ami_recent.state) != "available":
+                logger.info(
+                    f"We found an existing AMI but we can no use it because the current status is {ami_recent.state}"
+                )
+                logger.info("We are not going to create a new AMI and we are not going to use it")
+                self.ami_id = None
+                self.ami_name = None
+
             # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
             if os.getenv("AMI_UPDATE") is not None:
                 # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
@@ -283,6 +315,7 @@ class TestedVirtualMachine:
                 #    opts=pulumi.ResourceOptions(import_=ami_existing.id))
                 logger.info("We found an existing AMI but AMI_UPDATE is set. We are going to update the AMI")
                 self.ami_id = None
+
         else:
             logger.info(f"Not found an existing AMI with name {self.ami_name}")
 
