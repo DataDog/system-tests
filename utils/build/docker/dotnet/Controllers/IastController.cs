@@ -21,6 +21,12 @@ namespace weblog
         public string url{get; set;}
     };
     
+    public class BodyForIast
+    {
+        public string table { get; set; }
+        public string user { get; set; }
+    }
+
     [ApiController]
     [Route("iast")]
     public partial class IastController : Controller
@@ -315,34 +321,7 @@ namespace weblog
         [HttpPost("sqli/test_insecure")]
         public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
         {
-            try
-            {
-                if (!string.IsNullOrEmpty(username))
-                {
-                    var sb = new System.Text.StringBuilder();
-                    sb.AppendLine("Insecure SQL command executed:");
-                    using var conn = Sql.GetSqliteConnection();
-                    conn.Open();
-                    using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT * FROM users WHERE user = '" + username + "'";
-                    using var reader = cmd.ExecuteReader();
-
-                    while (reader.Read())
-                    {
-                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
-                    }
-
-                    return Content(sb.ToString());
-                }
-                else
-                {
-                    return BadRequest($"No params provided");
-                }
-            }
-            catch
-            {
-                return StatusCode(500, "Error executing query.");
-            }
+            return InsecureSqli(username);
         }
         
         [HttpPost("sqli/test_secure")]
@@ -378,6 +357,38 @@ namespace weblog
                 return StatusCode(500, "Error executing query.");
             }
         }
+       
+        private IActionResult InsecureSqli(string username)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("Insecure SQL command executed:");
+                    using var conn = Sql.GetSqliteConnection();
+                    conn.Open();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT * FROM users WHERE user = '" + username + "'";
+                    using var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
+                    }
+
+                    return Content(sb.ToString());
+                }
+                else
+                {
+                    return BadRequest($"No params provided");
+                }
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }        
+        }
 
         [HttpGet("weak_randomness/test_insecure")]
         public IActionResult test_insecure_weakRandomness(string user)
@@ -389,6 +400,12 @@ namespace weblog
         public IActionResult test_secure_weakRandomness(string user)
         {
             return Content("Secure random number: " + RandomNumberGenerator.GetInt32(100).ToString(), "text/html");
+        }
+
+        [HttpPost("source/body/test")]
+        public IActionResult test_source_body([FromForm]BodyForIast body)
+        {
+            return InsecureSqli(body.name);
         }
     }
 }
