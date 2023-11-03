@@ -101,7 +101,7 @@ tests/:
     Test_StandardTagsMethod: v0.75.0
     Test_StandardTagsRoute: missing_feature
     Test_StandardTagsStatusCode: v0.75.0
-    Test_StandardTagsUrl: bug (real version is v0.76.0, but temporary bug with appsec, to be restored october 30th EOD)
+    Test_StandardTagsUrl: v0.76.0
     Test_StandardTagsUserAgent: v0.75.0
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
