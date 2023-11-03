@@ -11,21 +11,24 @@ parametrize = pytest.mark.parametrize
 
 def enable_tracecontext() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
     }
     return parametrize("library_env", [env])
 
 
 def enable_datadog() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE": "Datadog",
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog",
     }
     return parametrize("library_env", [env])
 
 
 def enable_datadog_tracecontext() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE": "Datadog,tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,tracecontext",
     }
     return parametrize("library_env", [env])
 
