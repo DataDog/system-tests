@@ -43,6 +43,8 @@ class Test_PythonKafka:
     def get_topic_from_span(self, span):
         # argument span : a span from the tracer
         # returns the kafka topic if exists, None otherwise
+        if "kafka.topic" in span["meta"].keys():
+            return span["meta"]["kafka.topic"]
 
         return None
 
@@ -87,9 +89,8 @@ class Test_PythonKafka:
 
         # get_spans returns several tuple items
         # for data, trace in interfaces.library.get_traces(self.production_response):
-        for data, trace in self.get_traces(topic="MyUniqueTopic"):
+        for data, trace in self.get_traces(topic="DistributedTracing"):
             producer_span_from_producer, consumer_span_from_producer = self.find_producer_consumer_spans(trace)
-
             # The producer endpoint should not create any consumer spans
             assert producer_span_from_producer is not None
             assert consumer_span_from_producer is None
