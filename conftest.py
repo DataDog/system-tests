@@ -31,6 +31,7 @@ def pytest_addoption(parser):
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
     parser.addoption("--replay", "-R", action="store_true", help="Replay tests based on logs")
+    parser.addoption("--sleep", action="store_true", help="Startup scenario without launching the tests (keep running)")
     parser.addoption(
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
@@ -203,6 +204,13 @@ def pytest_collection_modifyitems(session, config, items):
 
     for item in items:
         declared_scenario = get_declared_scenario(item)
+        # If we are running scenario with the option sleep, we only select sleep test classes
+        if session.config.option.sleep:
+            if declared_scenario == "SLEEP":
+                selected.append(item)
+            else:
+                deselected.append(item)
+            continue
 
         if (
             declared_scenario == context.scenario.name
