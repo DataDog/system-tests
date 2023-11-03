@@ -574,3 +574,97 @@ class Test_Headers_Tracestate_DD:
         assert not any(item.startswith("t.dm:") for item in dd_items2)
         assert "t.usr.id:baz64~~" in dd_items2
         assert "t.url:http://localhost" in dd_items2
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
+        """
+        harness sends requests with both tracestate and traceparent.
+        all items in the input tracestate are propagated because the resulting
+        number of list-members in the tracestate is less than or equal to 32
+        """
+        with test_library:
+            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+
+            # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
+            headers1 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", other_vendors + ",dd=s:-1"],
+                ],
+            )
+
+            # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
+            headers2 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "dd=s:-1," + other_vendors],
+                ],
+            )
+
+            # 3) Input: 31 list-members without 'dd' in the tracestate string
+            headers3 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", other_vendors],
+                ],
+            )
+
+            # 4) Input: No tracestate string
+            headers4 = make_single_request_and_get_inject_headers(
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],],
+            )
+
+        # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
+        _, tracestate1 = get_tracecontext(headers1)
+        tracestate1String = str(tracestate1)
+        assert "key31=value31" in tracestate1String
+        assert tracestate1String.startswith("dd=")
+        assert len(tracestate1String.split(",")) == 32
+
+        # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
+        _, tracestate2 = get_tracecontext(headers2)
+        tracestate2String = str(tracestate2)
+        assert "key31=value31" in tracestate2String
+        assert tracestate2String.startswith("dd=")
+        assert len(tracestate1String.split(",")) == 32
+
+        # 3) Input: 31 list-members without 'dd' in the tracestate string
+        _, tracestate3 = get_tracecontext(headers3)
+        tracestate3String = str(tracestate3)
+        assert "key31=value31" in tracestate3String
+        assert tracestate3String.startswith("dd=")
+        assert len(tracestate1String.split(",")) == 32
+
+        # 4) Input: No tracestate string
+        _, tracestate4 = get_tracecontext(headers4)
+        tracestate4String = str(tracestate4)
+        assert tracestate4String.startswith("dd=")
+        assert len(tracestate1String.split(",")) == 1
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
+        """
+        harness sends a request with both tracestate and traceparent.
+        the last list-member in the input tracestate is removed from the output
+        tracestate string because the maximum number of list-members is 32.
+        """
+        with test_library:
+            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+
+            # 1) Input: 32 list-members without 'dd' in the tracestate string
+            headers1 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", other_vendors + ",key32=value32"],
+                ],
+            )
+
+        # 1) Input: 32 list-members without 'dd' in the tracestate string
+        _, tracestate1 = get_tracecontext(headers1)
+        tracestate1String = str(tracestate1)
+        assert "key32=value32" not in tracestate1String
+        assert tracestate1String.startswith("dd=")

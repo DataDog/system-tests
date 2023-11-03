@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, irrelevant, scenarios
 
 parametrize = pytest.mark.parametrize
 
@@ -518,3 +518,117 @@ class Test_Headers_Precedence:
         assert int(traceparent6.parent_id, base=16) == int(headers6["x-datadog-parent-id"])
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
+
+    @enable_datadog_tracecontext()
+    def test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(self, test_agent, test_library):
+        """
+        harness sends a request with both tracestate and traceparent
+        expects a valid traceparent from the output header with the same trace_id
+        expects the tracestate to be inherited
+        """
+        with test_library:
+            # 1) Datadog and tracecontext headers, trace-id and span-id match, tracestate is present
+            headers2 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"], # only vendor
+                    # result: ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
+                    # TODO answer: dropping
+
+                    ["x-datadog-trace-id", "1"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-sampling-priority", "1"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"]
+                ],
+            )
+
+            # 2) Scenario 1 but the x-datadog-tags mismatch somehow
+            headers2 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:1;t.tid:2222222222222222,foo=1"],
+
+                    ["x-datadog-trace-id", "3538"],  # 3538 == 0xdd2
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-sampling-priority", "1"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"]
+                ],
+            )
+
+            # 3) Datadog and tracecontext headers, trace-id is the same but span-id is different, tracestate is present
+            headers3 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
+
+                    ["x-datadog-trace-id", "2"],
+                    ["x-datadog-parent-id", "3539"],  # 3539 == 0xdd3
+                    ["x-datadog-sampling-priority", "1"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"]
+                ],
+            )
+
+            # 4) Datadog and tracecontext headers, trace-id is different, tracestate is present
+            headers4 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000004-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
+
+                    ["x-datadog-trace-id", "3540"],  # 3538 == 0xdd4
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-sampling-priority", "1"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"]
+                ],
+            )
+
+
+            # 3) Both b3multi and tracecontext headers describe the same trace, and tracestate is present
+            headers2 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["x-b3-traceid", "000000000000000000000000075bcd15"],
+                    ["x-b3-spanid", "000000003ade68b1"],
+                    ["x-b3-sampled", "1"],
+                    ["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"],
+                    ["tracestate", "foo=1"],
+                ],
+            )
+
+            # 4) All Datadog, b3multi, and tracecontext headers describe the same trace, and tracestate is present
+            headers2 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-sampling-priority", "1"],
+                    ["x-b3-traceid", "000000000000000000000000075bcd15"],
+                    ["x-b3-spanid", "000000003ade68b1"],
+                    ["x-b3-sampled", "1"],
+                    ["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"],
+                    ["tracestate", "foo=1"],
+                ],
+            )
+
+        # 1) Only tracecontext headers, and tracestate is present
+        assert "traceparent" in headers1
+        assert "tracestate" in headers1
+        traceparent1, tracestate1 = get_tracecontext(headers1)
+
+        assert traceparent1.trace_id == "000000000000000000000000075bcd15"
+        assert traceparent1.parent_id != "000000003ade68b1"
+        assert traceparent1.trace_flags == "01"
+        assert tracestate1["foo"] == "1"
+
+        # 2) Only tracecontext headers, and tracestate is present
+        assert "traceparent" in headers1
+        assert "tracestate" in headers1
+        traceparent1, tracestate1 = get_tracecontext(headers1)
+
+        assert traceparent1.trace_id == "000000000000000000000000075bcd15"
+        assert traceparent1.parent_id != "000000003ade68b1"
+        assert traceparent1.trace_flags == "01"
+        assert tracestate1["foo"] == "1"
