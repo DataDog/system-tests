@@ -178,10 +178,7 @@ def dbm():
 @app.route("/kafka/produce")
 def produce_kafka_message():
     """
-        The goal of this endpoint is to trigger kafka integration calls
-        Usage:
-        - /apm?integration=kafka&applicationtype=producer
-        - /apm?integration=kafka&applicationtype=consumer
+        The goal of this endpoint is to trigger kafka producer calls
     """
 
     producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
@@ -195,6 +192,9 @@ def produce_kafka_message():
 
 @app.route("/kafka/consume")
 def consume_kafka_message():
+    """
+        The goal of this endpoint is to trigger kafka consumer calls
+    """
     message_topic = "DistributedTracing"
 
     consumer = Consumer(

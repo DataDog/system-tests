@@ -72,7 +72,9 @@ class Test_PythonKafka:
             assert consumer_span_from_consumer is not None
 
         # TODO: Add more assertions between producer_span_from_producer and consumer_span_from_consumer
+        assert consumer_span_from_consumer["meta"]["kafka.received_message"] == "True"
         assert producer_span_from_producer["trace_id"] == consumer_span_from_consumer["trace_id"]
+        assert producer_span_from_producer["span_id"] == consumer_span_from_consumer["parent_id"]
 
     def setup_consume(self):
         """
