@@ -112,10 +112,11 @@ class Test_StandardTagsUrl:
         ]
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby", "python", "java"],
+        context.library in ["golang", "nodejs", "php", "ruby", "python"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
+    @irrelevant(context.library < "java@1.22.0", reason="java release the new version at 1.22.0")
     @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
@@ -145,10 +146,11 @@ class Test_StandardTagsUrl:
         )
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby", "python", "java"],
+        context.library in ["golang", "nodejs", "php", "ruby", "python"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
+    @irrelevant(context.library < "java@1.22.0", reason="java release the new version at 1.22.0")
     @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&<redacted>&json=%7B%20<redacted>%7D&<redacted>&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
