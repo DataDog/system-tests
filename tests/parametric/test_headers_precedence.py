@@ -152,10 +152,6 @@ class Test_Headers_Precedence:
         assert "tracestate" not in headers6
 
     @enable_tracecontext()
-    @missing_feature(
-        context.library == "ruby",
-        reason="traceparent and tracestate header not injected for DD_TRACE_PROPAGATION_STYLE=tracecontext config",
-    )
     def test_headers_precedence_propagationstyle_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
@@ -382,10 +378,6 @@ class Test_Headers_Precedence:
     @missing_feature(
         context.library == "golang",
         reason="BUG: suite #4 is failing - if context is successfully retrieved from W3C propagator, datadog propagator is NOT.run, thus not retrieving / overwriting the headers",
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="traceparent and tracestate header not injected for DD_TRACE_PROPAGATION_STYLE=tracecontext config",
     )
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
