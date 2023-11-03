@@ -49,8 +49,7 @@ tests/:
         test_weak_hash.py:
           TestWeakHash: v2.24.0
         test_weak_randomness.py:
-          TestWeakRandomness: 
-              '*': v2.39.0
+          TestWeakRandomness: v2.39.0
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature        
         test_xpath_injection.py:
