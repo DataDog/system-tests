@@ -284,7 +284,7 @@ class Test_JavaCodeInjection:
 
     def setup_java_code_injection(self):
         self.r_1 = weblog.get("/waf/", params={"value": "java.lang.runtime"})
-        self.r_2 = weblog.get("/waf/", params={"value": "processbuilder unmarshaller"})
+        self.r_2 = weblog.get("/waf/", params={"value": "unmarshaller processbuilder"})
         self.r_3 = weblog.get("/waf/", params={"value": "java.beans.xmldecode"})
 
     def test_java_code_injection(self):
