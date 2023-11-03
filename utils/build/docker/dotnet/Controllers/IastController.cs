@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+#nullable disable
 
 namespace weblog
 {
@@ -22,7 +23,7 @@ namespace weblog
     
     [ApiController]
     [Route("iast")]
-    public class IastController : Controller
+    public partial class IastController : Controller
     {
         [HttpGet("insecure_hashing/test_md5_algorithm")]
         public IActionResult test_md5_algorithm(string user)
