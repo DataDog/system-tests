@@ -122,10 +122,13 @@ class BaseDbIntegrationsTestClass:
     setup_resource = _setup
     setup_db_type = _setup
     setup_db_name = _setup
-    setupt_error_type_and_stack = _setup
+    setup_error_type_and_stack = _setup
     setup_error_message = _setup
 
-    def get_requests(self, excluded_operations=()):
+    def get_requests(self, excluded_operations=(), operations=None):
         for db_operation, request in self.requests[self.db_service].items():
+            if operations is not None and db_operation not in operations:
+                continue
+
             if db_operation not in excluded_operations:
                 yield db_operation, request

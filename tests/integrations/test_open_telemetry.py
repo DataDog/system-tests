@@ -87,7 +87,6 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             span = get_span_from_agent(request)
             assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
-    
     def test_error_message(self):
         """ A string representing the error message. """
         span = get_span_from_agent(self.requests[self.db_service]["select_error"])
