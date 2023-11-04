@@ -33,6 +33,22 @@ def enable_datadog_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
+def enable_datadog_b3multi_tracecontext() -> Any:
+    env = {
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,b3multi,tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,b3multi,tracecontext",
+    }
+    return parametrize("library_env", [env])
+
+
+def enable_tracecontext_datadog_b3multi() -> Any:
+    env = {
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog,b3multi",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog,b3multi",
+    }
+    return parametrize("library_env", [env])
+
+
 @scenarios.parametric
 class Test_Headers_Precedence:
     @missing_feature(context.library == "dotnet", reason="New 'datadog' default hasn't been implemented yet")
@@ -519,116 +535,152 @@ class Test_Headers_Precedence:
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
-    @enable_datadog_tracecontext()
-    def test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(self, test_agent, test_library):
+    @enable_datadog_b3multi_tracecontext()
+    def test_headers_precedence_propagationstyle_tracecontext_last_correctly_propagates_tracestate(
+        self, test_agent, test_library
+    ):
+        self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
+            test_agent, test_library, prefer_tracecontext=False
+        )
+
+    @enable_tracecontext_datadog_b3multi()
+    def test_headers_precedence_propagationstyle_tracecontext_first_correctly_propagates_tracestate(
+        self, test_agent, test_library
+    ):
+        self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
+            test_agent, test_library, prefer_tracecontext=True
+        )
+
+    def _test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
+        self, test_agent, test_library, prefer_tracecontext
+    ):
         """
-        harness sends a request with both tracestate and traceparent
-        expects a valid traceparent from the output header with the same trace_id
-        expects the tracestate to be inherited
+        This test asserts that ALL the propagators are executed in the specified
+        order, and the the first propagator to extract a valid trace context determines
+        the trace-id, parent-id, and supplemental information such as
+        x-datadog-sampling-priority, x-datadog-tags, tracestate, etc.
+
+        However, one exception is this: If the tracecontext propagator is configured,
+        even if it is not the first propagator to extract the trace context, the
+        tracestate will be saved in the local trace context if the traceparent
+        trace-id matches the extracted the trace-id.
         """
         with test_library:
             # 1) Datadog and tracecontext headers, trace-id and span-id match, tracestate is present
-            headers2 = make_single_request_and_get_inject_headers(
+            # Note: This is expected to be the most frequent case
+            headers1 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"], # only vendor
-                    # result: ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
-                    # TODO answer: dropping
-
+                    ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "1"],
                     ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "1"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"]
+                    ["x-datadog-sampling-priority", "2"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
 
-            # 2) Scenario 1 but the x-datadog-tags mismatch somehow
+            # 2) Scenario 1 but the x-datadog-* headers don't match the tracestate string
+            # Note: This is an exceptional case that should not happen, but we should be consistent
             headers2 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:1;t.tid:2222222222222222,foo=1"],
-
-                    ["x-datadog-trace-id", "3538"],  # 3538 == 0xdd2
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "1"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"]
-                ],
-            )
-
-            # 3) Datadog and tracecontext headers, trace-id is the same but span-id is different, tracestate is present
-            headers3 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
                     ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
-
                     ["x-datadog-trace-id", "2"],
-                    ["x-datadog-parent-id", "3539"],  # 3539 == 0xdd3
-                    ["x-datadog-sampling-priority", "1"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"]
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-sampling-priority", "2"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
 
-            # 4) Datadog and tracecontext headers, trace-id is different, tracestate is present
+            # 3) Scenario 1 but there is no dd tracestate list-member
+            # Note: This is an exceptional case that should not happen, but we should be consistent
+            headers3 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
+                    ["tracestate", "foo=1"],
+                    ["x-datadog-trace-id", "3"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-sampling-priority", "2"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                ],
+            )
+
+            # 4) Datadog and tracecontext headers, trace-id is the same but span-id is different, tracestate is present
+            # Note: This happens when a W3C Proxy / Cloud Provider continues the W3C trace
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
                     ["traceparent", "00-11111111111111110000000000000004-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
-
-                    ["x-datadog-trace-id", "3540"],  # 3538 == 0xdd4
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "1"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"]
+                    ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
+                    ["x-datadog-trace-id", "4"],
+                    ["x-datadog-parent-id", "3540"],  # 3539 == 0xdd4
+                    ["x-datadog-sampling-priority", "2"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
 
-
-            # 3) Both b3multi and tracecontext headers describe the same trace, and tracestate is present
-            headers2 = make_single_request_and_get_inject_headers(
+            # 5) Datadog and tracecontext headers, trace-id is different, tracestate is present
+            # Note: This happens when a W3C Proxy / Cloud Provider starts a new W3C trace,
+            # which would happen if the incoming request only had x-datadog-* headers
+            headers5 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    ["x-b3-traceid", "000000000000000000000000075bcd15"],
-                    ["x-b3-spanid", "000000003ade68b1"],
-                    ["x-b3-sampled", "1"],
-                    ["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"],
+                    ["traceparent", "00-11111111111111110000000000000005-000000003ade68b1-01"],
                     ["tracestate", "foo=1"],
-                ],
-            )
-
-            # 4) All Datadog, b3multi, and tracecontext headers describe the same trace, and tracestate is present
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-trace-id", "3541"],  # 3538 == 0xdd5
                     ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "1"],
-                    ["x-b3-traceid", "000000000000000000000000075bcd15"],
-                    ["x-b3-spanid", "000000003ade68b1"],
-                    ["x-b3-sampled", "1"],
-                    ["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"],
-                    ["tracestate", "foo=1"],
+                    ["x-datadog-sampling-priority", "2"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
 
-        # 1) Only tracecontext headers, and tracestate is present
-        assert "traceparent" in headers1
-        assert "tracestate" in headers1
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        traces = test_agent.wait_for_num_traces(num=1)
 
-        assert traceparent1.trace_id == "000000000000000000000000075bcd15"
-        assert traceparent1.parent_id != "000000003ade68b1"
-        assert traceparent1.trace_flags == "01"
+        # 1) Datadog and tracecontext headers, trace-id and span-id match, tracestate is present
+        # Note: This is expected to be the most frequent case
+        traceparent1, tracestate1 = get_tracecontext(headers1)
+        assert traceparent1.trace_id == "11111111111111110000000000000001"
         assert tracestate1["foo"] == "1"
 
-        # 2) Only tracecontext headers, and tracestate is present
-        assert "traceparent" in headers1
-        assert "tracestate" in headers1
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        # 2) Scenario 1 but the x-datadog-tags mismatch somehow
+        # Note: This is an exceptional case that should not happen, but we should be consistent
+        traceparent2, tracestate2 = get_tracecontext(headers2)
+        assert traceparent2.trace_id == "11111111111111110000000000000002"
+        assert tracestate2["foo"] == "1"
 
-        assert traceparent1.trace_id == "000000000000000000000000075bcd15"
-        assert traceparent1.parent_id != "000000003ade68b1"
-        assert traceparent1.trace_flags == "01"
-        assert tracestate1["foo"] == "1"
+        if prefer_tracecontext:
+            assert "s:1" in tracestate2["dd"]
+        else:
+            assert "s:2" in tracestate2["dd"]
+
+        # 3) Scenario 1 but there is no dd tracestate list-member
+        # Note: This is an exceptional case that should not happen, but we should be consistent
+        traceparent3, tracestate3 = get_tracecontext(headers3)
+        assert traceparent3.trace_id == "11111111111111110000000000000003"
+        assert tracestate3["foo"] == "1"
+
+        if prefer_tracecontext:
+            assert "s:1" in tracestate3["dd"]
+        else:
+            assert "s:2" in tracestate3["dd"]
+
+        # 4) Datadog and tracecontext headers, trace-id is the same but span-id is different, tracestate is present
+        # Note: This happens when a W3C Proxy / Cloud Provider continues the W3C trace
+        traceparent4, tracestate4 = get_tracecontext(headers4)
+        assert traceparent4.trace_id == "11111111111111110000000000000004"
+        assert tracestate4["foo"] == "1"
+
+        # 5) Datadog and tracecontext headers, trace-id is different, tracestate is present
+        # Note: This happens when a W3C Proxy / Cloud Provider starts a new W3C trace,
+        # which would happen if the incoming request only had x-datadog-* headers
+        traceparent5, tracestate5 = get_tracecontext(headers5)
+
+        if prefer_tracecontext:
+            assert traceparent5.trace_id == "11111111111111110000000000000005"
+            assert tracestate5["foo"] == "1"
+        else:
+            assert traceparent5.trace_id == "11111111111111110000000000000dd5"
+            assert "foo" not in tracestate5
