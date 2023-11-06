@@ -44,19 +44,6 @@ class TestedVirtualMachine:
         # Uninstall process after install all software requirements
         self.uninstall = uninstall
 
-        # Calculate AMI name
-        # We are using a AMI with thrid party software installed and configured Linux repositories (If this AMI doesn't exist we will create the first time)
-        self.ami_id = None
-        self.ami_name = self.name
-
-        if "install" not in self.prepare_repos_install:
-            self.ami_name = self.ami_name + "__autoinstall"
-
-        if self.prepare_docker_install["install"] is not None:
-            self.ami_name = self.ami_name + "__container"
-        else:
-            self.ami_name = self.ami_name + "__host"
-
     def configure(self):
         self.datadog_config = DataDogConfig()
         self.aws_infra_config = AWSInfraConfig()
