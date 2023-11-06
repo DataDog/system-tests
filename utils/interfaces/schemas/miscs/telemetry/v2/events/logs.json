@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/events/logs.json",
+  "description": "logs schema",
+  "title": "logs",
+  "type": "object",
+  "properties": {
+      "logs": {
+          "type": "array",
+          "items": {
+              "$ref": "/miscs/telemetry/common/objects/logs.json"
+          }
+      }
+  },
+  "required": ["logs"]
+}
