@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import json
+import time
 
 import pytest
 from pytest_jsonreport.plugin import JSONReport
@@ -63,6 +64,11 @@ def pytest_sessionstart(session):
 
     # get the terminal to allow logging directly in stdout
     setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
+
+    if session.config.option.sleep:
+        logger.terminal.write("\n ********************************************************** \n")
+        logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
+        logger.terminal.write("\n ********************************************************** \n\n")
 
     if session.config.option.collectonly:
         return
@@ -204,12 +210,9 @@ def pytest_collection_modifyitems(session, config, items):
 
     for item in items:
         declared_scenario = get_declared_scenario(item)
-        # If we are running scenario with the option sleep, we only select sleep test classes
+        # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
-            if declared_scenario == "SLEEP":
-                selected.append(item)
-            else:
-                deselected.append(item)
+            deselected.append(item)
             continue
 
         if (
@@ -228,7 +231,6 @@ def pytest_collection_modifyitems(session, config, items):
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
-
     items[:] = selected
     config.hook.pytest_deselected(items=deselected)
 
@@ -256,6 +258,16 @@ def pytest_collection_finish(session):
 
     if session.config.option.collectonly:
         return
+
+    if session.config.option.sleep:  # on this mode, we simply sleep, not running any test or setup
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:  # catching ctrl+C
+            context.scenario.close_targets()
+            return
+        except Exception as e:
+            raise e
 
     last_item_file = ""
     for item in session.items:
