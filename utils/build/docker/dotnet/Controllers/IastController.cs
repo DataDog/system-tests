@@ -23,8 +23,8 @@ namespace weblog
     
     public class BodyForIast
     {
-        public string table { get; set; }
-        public string user { get; set; }
+        public string name { get; set; }
+        public string value { get; set; }
     }
 
     [ApiController]
@@ -403,9 +403,9 @@ namespace weblog
         }
 
         [HttpPost("source/body/test")]
-        public IActionResult test_source_body([FromForm]BodyForIast body)
+        public IActionResult test_source_body([FromBody]BodyForIast body)
         {
-            return InsecureSqli(body.name);
+            return InsecureSqli(body.value);
         }
     }
 }
