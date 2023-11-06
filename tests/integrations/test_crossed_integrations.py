@@ -1,6 +1,6 @@
 import json
 
-from utils import interfaces, scenarios, coverage, weblog
+from utils import interfaces, scenarios, coverage, weblog, missing_feature
 from utils._weblog import _Weblog
 from utils.tools import logger
 
@@ -23,9 +23,8 @@ class _PythonBuddy(_Weblog):
 class Test_PythonKafka:
     """ Test kafka compatibility with datadog python tracer """
 
-    @staticmethod
-    def get_topic(test_case):
-        return f"crossed_integrations_Test_PythonKafka_{test_case}"  # TODO: use a random string rather than test_case
+    WEBLOG_TO_BUDDY_TOPIC = "Test_PythonKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_PythonKafka_buddy_to_weblog"
 
     @staticmethod
     def get_span(interface, span_kind, topic):
@@ -55,9 +54,8 @@ class Test_PythonKafka:
 
         python_buddy = _PythonBuddy()
 
-        self.topic = self.get_topic("test_produce")
-        self.production_response = weblog.get("/kafka/produce", params={"topic": self.topic})
-        self.consume_response = python_buddy.get("/kafka/consume", params={"topic": self.topic})
+        self.production_response = weblog.get("/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC})
+        self.consume_response = python_buddy.get("/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC})
 
     def test_produce(self):
         """ Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
@@ -68,8 +66,20 @@ class Test_PythonKafka:
         # The weblog is the producer, the buddy is the consumer
         # The buddy is the producer, the weblog is the consumer
         self.validate_kafka_spans(
-            producer_interface=interfaces.library, consumer_interface=interfaces.python_buddy, topic=self.topic,
+            producer_interface=interfaces.library,
+            consumer_interface=interfaces.python_buddy,
+            topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
+
+    @missing_feature(library="python")
+    def test_produce_trace_equality(self):
+        producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
+        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+
+        # Both producer and consumer spans should be part of the same trace
+        # Different tracers can handle the exact propagation differently, so for now, this test avoids
+        # asserting on direct parent/child relationships
+        assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
         """
@@ -81,9 +91,8 @@ class Test_PythonKafka:
         """
         python_buddy = _PythonBuddy()
 
-        self.topic = self.get_topic("test_consume")
-        self.production_response = python_buddy.get("/kafka/produce", params={"topic": self.topic})
-        self.consume_response = weblog.get("/kafka/consume", params={"topic": self.topic})
+        self.production_response = python_buddy.get("/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC})
+        self.consume_response = weblog.get("/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC})
 
     def test_consume(self):
         """ Check that a message by an app instrumented by a Datadog python tracer is correctly ingested """
@@ -93,8 +102,20 @@ class Test_PythonKafka:
 
         # The buddy is the producer, the weblog is the consumer
         self.validate_kafka_spans(
-            producer_interface=interfaces.python_buddy, consumer_interface=interfaces.library, topic=self.topic
+            producer_interface=interfaces.python_buddy,
+            consumer_interface=interfaces.library,
+            topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
+
+    @missing_feature(library="python")
+    def test_consume_trace_equality(self):
+        producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
+        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+
+        # Both producer and consumer spans should be part of the same trace
+        # Different tracers can handle the exact propagation differently, so for now, this test avoids
+        # asserting on direct parent/child relationships
+        assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_kafka_spans(self, producer_interface, consumer_interface, topic):
         """
@@ -116,11 +137,6 @@ class Test_PythonKafka:
         assert consumer_span is not None
 
         assert consumer_span["meta"]["kafka.received_message"] == "True"
-
-        # Both producer and consumer spans should be part of the same trace
-        # Different tracers can handle the exact propagation differently, so for now, this test avoids
-        # asserting on direct parent/child relationships
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
 
         # Assert that the consumer span is not the root
         assert "parent_id" in consumer_span, "parent_id is missing in consumer span"
