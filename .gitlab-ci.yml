@@ -4,6 +4,7 @@ stages:
   - java_tracer
   - python_tracer
   - dotnet_tracer
+  - parse_results
 
 .base_job_onboarding:
   only:
@@ -23,9 +24,6 @@ stages:
     - export PULUMI_CONFIG_PASSPHRASE=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.pulumi-config-passphrase --with-decryption --query "Parameter.Value" --out text) 
     #Install plugins for PULUMI you need connect to gh. Sometimes this problem arises: GitHub rate limit exceeded
     - export GITHUB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
-    #We need authenticate on git repository
-    - export GITHUB_USER=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-user --with-decryption --query "Parameter.Value" --out text) 
-    - export GITHUB_MAIL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-mail --with-decryption --query "Parameter.Value" --out text) 
     #Avoid dockerhub rate limits
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login --with-decryption --query "Parameter.Value" --out text) 
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
@@ -33,24 +31,15 @@ stages:
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
     - pulumi plugin install resource command 0.7.2
     - pulumi plugin install resource aws 5.41.0
-    #We need some variable for after script
-    - echo "GITHUB_USER=${GITHUB_USER}" >> .env_ci
-    - echo "GITHUB_MAIL=${GITHUB_MAIL}" >> .env_ci
-    - echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> .env_ci
   after_script:
-    - export $(cat .env_ci | egrep -v "(^#.*|^$)" | xargs) 
-    - sh utils/scripts/push_reports_dashboard.sh
+    - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
+    - REPORTS_PATH="reports/$ENV/$TEST_LIBRARY/$WEBLOG"
+    - mkdir -p "$REPORTS_PATH"
+    - cp logs_"${SCENARIO_SUFIX}"/report.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
   artifacts:
       when: always
       paths:
-        - logs_onboarding_host/
-        - logs_onboarding_container/
-        - logs_onboarding_host_auto_install/
-        - logs_onboarding_container_auto_install/
-        - logs_onboarding_host_uninstall/
-        - logs_onboarding_container_uninstall/
-        - logs_onboarding_host_auto_install_uninstall/
-        - logs_onboarding_container_auto_install_uninstall/
+        - reports/
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
@@ -157,3 +146,19 @@ onboarding_ruby:
       - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
       - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+
+onboarding_parse_results:
+  stage: parse_results
+  dependencies:
+    - ruby_tracer
+    - nodejs_tracer
+    - java_tracer
+    - python_tracer
+    - dotnet_tracer
+  before_script:
+    - export GITHUB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
+    #We need authenticate on git repository
+    - export GITHUB_USER=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-user --with-decryption --query "Parameter.Value" --out text) 
+    - export GITHUB_MAIL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-mail --with-decryption --query "Parameter.Value" --out text) 
+  script:
+      - sh utils/scripts/push_reports_dashboard.sh
