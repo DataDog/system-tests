@@ -102,6 +102,7 @@ class Test_StandardTagsUrl:
                 weblog.get("/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934"),
                 r"^.*/waf\?key1=val1&key2=val2&<redacted>$",
             ),
+            (weblog.get("/waf?key1=val1&key2=val2&application_key=123"), r"^.*/waf\?key1=val1&key2=val2&<redacted>$"),
             (
                 weblog.get(
                     "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
@@ -111,12 +112,11 @@ class Test_StandardTagsUrl:
         ]
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "ruby"],
+        context.library in ["golang", "nodejs", "php", "ruby", "python"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
-    @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
-    @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
+    @irrelevant(context.library < "java@1.22.0", reason="java release the new version at 1.22.0")
     @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
@@ -142,19 +142,18 @@ class Test_StandardTagsUrl:
 
     def setup_multiple_matching_substring(self):
         self.request_multiple_matching_substring = weblog.get(
-            "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D&ecdsa-1-1%20aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=%09test"  # pylint: disable=line-too-long
+            "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&application-key=dogkey&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D&ecdsa-1-1%20aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=%09test&json=%7B%20%22app-key%22%3A%20%22test%22%7D"  # pylint: disable=line-too-long
         )
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "ruby"],
+        context.library in ["golang", "nodejs", "php", "ruby", "python"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
-    @missing_feature(context.library < "java@1.21.0", reason="previous obfuscation regex")
-    @irrelevant(context.library < "python@1.19", reason="python released the new version at 1.19.0")
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
+    @irrelevant(context.library < "java@1.22.0", reason="java release the new version at 1.22.0")
     @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring(self):
-        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20<redacted>%7D&<redacted>$"  # pylint: disable=line-too-long
+        tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&<redacted>&json=%7B%20<redacted>%7D&<redacted>&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
             self.request_multiple_matching_substring, tags={"http.url": tag}, value_as_regular_expression=True
         )
