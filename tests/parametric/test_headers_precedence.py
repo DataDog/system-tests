@@ -637,7 +637,7 @@ class Test_Headers_Precedence:
                 ],
             )
 
-        traces = test_agent.wait_for_num_traces(num=1)
+        traces = test_agent.wait_for_num_traces(num=5)
 
         # 1) Datadog and tracecontext headers, trace-id and span-id match, tracestate is present
         # Note: This is expected to be the most frequent case

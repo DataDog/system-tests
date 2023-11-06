@@ -629,20 +629,20 @@ class Test_Headers_Tracestate_DD:
         tracestate2String = str(tracestate2)
         assert "key31=value31" in tracestate2String
         assert tracestate2String.startswith("dd=")
-        assert len(tracestate1String.split(",")) == 32
+        assert len(tracestate2String.split(",")) == 32
 
         # 3) Input: 31 list-members without 'dd' in the tracestate string
         _, tracestate3 = get_tracecontext(headers3)
         tracestate3String = str(tracestate3)
         assert "key31=value31" in tracestate3String
         assert tracestate3String.startswith("dd=")
-        assert len(tracestate1String.split(",")) == 32
+        assert len(tracestate3String.split(",")) == 32
 
         # 4) Input: No tracestate string
         _, tracestate4 = get_tracecontext(headers4)
         tracestate4String = str(tracestate4)
         assert tracestate4String.startswith("dd=")
-        assert len(tracestate1String.split(",")) == 1
+        assert len(tracestate4String.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
