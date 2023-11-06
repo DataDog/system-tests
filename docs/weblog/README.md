@@ -399,3 +399,11 @@ The following query parameters are required for each endpoint:
 should rename the trace service, creating a "fake" service
 
 The parameter `serviceName` is required and should be a string with the name for the fake service
+
+### POST /shell_execution
+This endpoint is used to spawn a new process and test that shell execution span is properly sent.
+It supports the following body fields:
+- `command`: the program or script to be executed.
+- `options`: a record with the following options:
+  - `shell`: boolean in order to instruct if the program should be executed within a shell.
+- `args`: arguments passed to the program.

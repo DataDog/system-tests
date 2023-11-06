@@ -767,6 +767,8 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0
