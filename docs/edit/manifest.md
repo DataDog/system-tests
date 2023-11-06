@@ -13,27 +13,18 @@ tests/:
       Test_FeatureB: flaky # skip a class with bug, flaky, irrelevant ...
 
       Test_FeatureC: # declare a version for a class, depending on weblog
+        '*'': missing_feature # All other weblogs: not yet available
         django: v1.2
         flask: v1.3
         uwsgi: bug (jira ticket) # For a weblog, skip it with bug, or flaky
-        "*": missing_feature # All other weblogs: not yet available
 ```
 
-## Context and legacy way
+### Implementation
 
-The legacy way to declare what will be tested or not are decorators (`@released`, `@bug`, `@missing_feature`...). This solution offers several advantages :
-
-- declarations are as close as possible to the test, making the link obvious
-- and complex condition (several components involved, complex version range...) is easy to do, as it's declared as python code
-
-Unfortunatly, it comes with a major drawback: as those declaration are in test files, among all other declaration Activating a single test can become a hell due to confilct between PRs. It also requires approval for R&P team, slowingthe process.
-
-## Implementation
-
-- Manifests files will be inside `manifests/`, one per team (each tracer, agent, ASM rules file, any php extension...), named with the argument name used in decorators (`manifests/golang.yml`, `manifest/agent.yml`...)
-- Each team have ownership of its manifest file
+- Manifests files are inside `manifests/` folder, one per team (each library, agent, ASM rules file, any php extension...): `manifests/golang.yml`, `manifest/agent.yml`...
+- Each team has ownership of its manifest file
 - Manifest file are validated using JSON schema in system tests CI
-- An error pops if a manifest file refers to a file/class that does not exists (TODO)
+- An error pops if a manifest file refers to a file/class that does not exists
 
 ## Supported features
 
@@ -49,3 +40,12 @@ Unfortunatly, it comes with a major drawback: as those declaration are in test f
 - declaring metadata (bug, flaky, irrelevant) for test methods
   - because their namings are not stable, it would lead to frequent modifications of manifest files, spaming every team
   - because conflict mostly happen at class level
+
+## Context and legacy way
+
+The legacy way to declare what will be tested or not are decorators (`@released`, `@bug`, `@missing_feature`...). This solution offers several advantages :
+
+- declarations are as close as possible to the test, making the link obvious
+- and complex condition (several components involved, complex version range...) is easy to do, as it's declared as python code
+
+Unfortunatly, it comes with a major drawback: as those declarations are in test files, among all other declarations, activating a single test can become a hell due to confilcts between PRs. It also requires approval for R&P team, slowing the process.

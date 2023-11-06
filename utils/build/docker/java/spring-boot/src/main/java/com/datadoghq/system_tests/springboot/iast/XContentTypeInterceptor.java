@@ -16,14 +16,11 @@ public class XContentTypeInterceptor implements HandlerInterceptor {
     private static final String NOSNIFF = "nosniff";
 
     @Override
-    public void postHandle(@Nonnull final HttpServletRequest request,
-                           @Nonnull final HttpServletResponse response,
-                           @Nonnull final Object handler,
-                           final ModelAndView modelAndView) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if (!isXContentTypeVulnerabilityEndpoint(request)) {
-            // XXX: Avoid triggering XCONTENTTYPE_MISSING_HEADER vulnerability.
             response.setHeader(XCONTENT_TYPE_HEADER, NOSNIFF);
         }
+        return true;
     }
 
     private boolean isXContentTypeVulnerabilityEndpoint(final HttpServletRequest request) {

@@ -455,14 +455,22 @@ class EndToEndScenario(_DockerScenario):
             logger.terminal.flush()
 
             interfaces.library.load_data_from_logs()
+            interfaces.library.check_deserialization_errors()
+
             interfaces.agent.load_data_from_logs()
+            interfaces.agent.check_deserialization_errors()
+
             interfaces.backend.load_data_from_logs()
 
         elif self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
             self.weblog_container.stop()
+            interfaces.library.check_deserialization_errors()
+
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
             self.agent_container.stop()
+            interfaces.agent.check_deserialization_errors()
+
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()
@@ -813,7 +821,7 @@ class OnBoardingScenario(_Scenario):
                 provision_vm.start()
 
         project_name = "system-tests-onboarding"
-        stack_name = "testing"
+        stack_name = "testing_v2"
 
         try:
             self.stack = auto.create_or_select_stack(
@@ -1254,11 +1262,16 @@ class scenarios:
 
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST", doc="")
-    onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER", doc="")
     onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER", doc="")
     onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL", doc="")
-    onboarding_host_container_auto_install = OnBoardingScenario("ONBOARDING_HOST_CONTAINER_AUTO_INSTALL", doc="")
     onboarding_container_auto_install = OnBoardingScenario("ONBOARDING_CONTAINER_AUTO_INSTALL", doc="")
+    # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
+    onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
+    onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
+    onboarding_host_auto_install_uninstall = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL", doc="")
+    onboarding_container_auto_install_uninstall = OnBoardingScenario(
+        "ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL", doc=""
+    )
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",

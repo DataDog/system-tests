@@ -32,6 +32,8 @@ tests/:
           TestNoHttponlyCookie: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
         test_sql_injection.py:
@@ -41,6 +43,7 @@ tests/:
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
+          TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -68,10 +71,14 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName: missing_feature
         test_parameter_value.py:
           TestParameterValue: missing_feature
+        test_path.py:
+          TestPath: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0
@@ -303,6 +310,8 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
+    test_tracer.py:
+      Test_TracerSCITagging: v1.48.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature

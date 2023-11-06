@@ -2,10 +2,9 @@ package com.datadoghq.akka_http
 
 import akka.http.javadsl.marshallers.jackson.Jackson
 import akka.http.scaladsl.marshalling.Marshaller
-import akka.http.scaladsl.model.{HttpEntity, RequestEntity, StatusCodes}
+import akka.http.scaladsl.model.{RequestEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling.Unmarshaller
 import com.datadoghq.system_tests.iast.infra.{LdapServer, SqlServer}
 import com.datadoghq.system_tests.iast.utils._
 
@@ -202,12 +201,6 @@ object IastRoutes {
           }
       }
   }
-
-  private val jsonMarshaller : Marshaller[Object, RequestEntity] =
-    Jackson.marshaller().asScala.map(_.asInstanceOf[RequestEntity] /* just downcast */)
-
-  implicit val mapJsonUnmarshaller : Unmarshaller[HttpEntity, java.util.Map[String, Object]] =
-    Jackson.unmarshaller(classOf[java.util.Map[String, Object]]).asScala
 
   private def paramOrFormField(p: String) = {
     parameter(p) | formField(p)

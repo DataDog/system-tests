@@ -264,6 +264,39 @@ def view_sqli_secure(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def view_iast_ssrf_insecure(request):
+    import requests
+
+    url = request.POST.get("url", "")
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_ssrf_secure(request):
+    from urllib.parse import urlparse
+    import requests
+
+    url = request.POST.get("url", "")
+    # Validate the URL and enforce whitelist
+    allowed_domains = ["example.com", "api.example.com"]
+    parsed_url = urlparse(url)
+
+    if parsed_url.hostname not in allowed_domains:
+        return HttpResponseBadRequest("ERROR")
+
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+
+    return HttpResponse("OK")
+
+
 def _sink_point(table="user", id="1"):
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     with connection.cursor() as cursor:
@@ -475,6 +508,8 @@ urlpatterns = [
     path("iast/weak_randomness/test_secure", view_iast_weak_randomness_secure),
     path("iast/path_traversal/test_insecure", view_iast_path_traversal_insecure),
     path("iast/path_traversal/test_secure", view_iast_path_traversal_secure),
+    path("iast/ssrf/test_insecure", view_iast_ssrf_insecure),
+    path("iast/ssrf/test_secure", view_iast_ssrf_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),

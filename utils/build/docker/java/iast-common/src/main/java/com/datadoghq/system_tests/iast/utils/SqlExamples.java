@@ -38,6 +38,16 @@ public class SqlExamples {
         }
     }
 
+    public void insecureSql(final String s) {
+        try (final Connection con = dataSource.getConnection()) {
+            final Statement statement = con.createStatement();
+            final String sql = "SELECT * FROM USER WHERE USERNAME = '" + s + "'";
+            statement.executeQuery(sql);
+        } catch (final Exception e) {
+            throw new UndeclaredThrowableException(e);
+        }
+    }
+
     public Object secureSql(final String username, final String password) {
         try (final Connection con = dataSource.getConnection()) {
             final PreparedStatement statement = con.prepareStatement(

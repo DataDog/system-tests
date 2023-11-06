@@ -15,6 +15,7 @@ tests/:
         test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
         test_no_httponly_cookie.py: irrelevant (ASM is not implemented in C++)
         test_no_samesite_cookie.py: irrelevant (ASM is not implemented in C++)
+        test_nosql_mongodb_injection.py: irrelevant (ASM is not implemented in C++)
         test_path_traversal.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
@@ -33,8 +34,10 @@ tests/:
         test_cookie_value.py: irrelevant (ASM is not implemented in C++)
         test_header_name.py: irrelevant (ASM is not implemented in C++)
         test_header_value.py: irrelevant (ASM is not implemented in C++)
+        test_multipart.py: irrelevant (ASM is not implemented in C++)
         test_parameter_name.py: irrelevant (ASM is not implemented in C++)
         test_parameter_value.py: irrelevant (ASM is not implemented in C++)
+        test_path.py: irrelevant (ASM is not implemented in C++)
     waf/:
       test_addresses.py: irrelevant (ASM is not implemented in C++)
       test_blocking.py: irrelevant (ASM is not implemented in C++)
@@ -90,6 +93,8 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
+    test_tracer.py:
+      Test_TracerSCITagging: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
