@@ -7,7 +7,6 @@ import subprocess
 import django
 import requests
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
@@ -23,7 +22,6 @@ from iast import (
 
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.settings import _config as config
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -31,9 +29,6 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
-
-# user = User.objects.create_user('test', password='1234')
-# user.save()
 
 
 def hello_world(request):

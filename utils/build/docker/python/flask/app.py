@@ -19,12 +19,12 @@ from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
 
-# JJJ sort imports
 from flask_login import LoginManager
 from flask_login import UserMixin
 from flask_login import login_user
 
-from ddtrace import Pin, tracer, config
+from ddtrace import Pin, tracer
+from ddtrace.settings.asm import config as asm_config
 from ddtrace.appsec._constants import LOGIN_EVENTS_MODE
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
@@ -382,14 +382,14 @@ def login_endpoint():
         )
         return Response("Unauthorized from SDK", status=401)
 
-    mode = config._automatic_login_events_mode
+    mode = asm_config._automatic_login_events_mode
     user_id = None
     if request.method == "GET":
         return Response("Basic Auth not supported on flask-login by default")
     elif request.method == "POST":
         _user = get_user(flask_request.form["username"])
-        user_id = _user.id
         if _user:
+            user_id = _user.id
             if _user.password == flask_request.form["password"]:
                 login_user(_user, remember=False)
                 return Response("OK", status=200)

@@ -359,7 +359,7 @@ class Test_Login_Events_Extended:
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"
-            if context.library == "ruby":
+            if context.library in ("ruby", "python"):
                 # In ruby we do not have access to the user object since it fails with invalid username
                 # For that reason we can not extract id, email or username
                 assert meta.get("appsec.events.users.login.failure.usr.id") == None
