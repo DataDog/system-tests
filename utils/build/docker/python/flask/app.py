@@ -182,7 +182,7 @@ def produce_kafka_message():
     """
 
     producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
-    message_topic = "DistributedTracing"
+    message_topic = flask_request.args.get("topic", "DistributedTracing")
     message_content = b"Distributed Tracing Test!"
     producer.produce(message_topic, value=message_content)
     producer.flush()
@@ -195,7 +195,7 @@ def consume_kafka_message():
     """
         The goal of this endpoint is to trigger kafka consumer calls
     """
-    message_topic = "DistributedTracing"
+    message_topic = flask_request.args.get("topic", "DistributedTracing")
 
     consumer = Consumer(
         {
