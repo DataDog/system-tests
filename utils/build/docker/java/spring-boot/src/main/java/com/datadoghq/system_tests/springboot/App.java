@@ -290,7 +290,7 @@ public class App {
     String kafkaProduce() {
         KafkaConnector kafka = new KafkaConnector();
         try {
-            kafka.startProducingMessage("DistributedTracing");
+            kafka.produceMessageWithoutNewThread("DistributedTracing");
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start producing message...");
             e.printStackTrace();
@@ -303,7 +303,7 @@ public class App {
     String kafkaConsume() {
         KafkaConnector kafka = new KafkaConnector();
         try {
-                kafka.startConsumingMessages();
+                kafka.consumeMessageWithoutNewThread();
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();

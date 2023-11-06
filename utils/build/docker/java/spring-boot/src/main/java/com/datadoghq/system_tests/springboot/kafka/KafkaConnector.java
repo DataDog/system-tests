@@ -77,4 +77,21 @@ public class KafkaConnector {
         thread.start();
         System.out.println("Started Kafka consumer thread");
     }
+
+    // For APM testing, produce message without starting a new thread
+    public void produceMessageWithoutNewThread(String message) throws Exception {
+        KafkaTemplate kafkaTemplate = createKafkaTemplateForProducer();
+        System.out.println(String.format("Publishing message: %s", message));
+        kafkaTemplate.send(TOPIC, message);
+    }
+
+    // For APM testing, a consume message without starting a new thread
+    public void consumeMessageWithoutNewThread() throws Exception {
+        KafkaConsumer<String, String> consumer = createKafkaConsumer();
+        consumer.subscribe(Arrays.asList(TOPIC));
+        ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
+        for (ConsumerRecord<String, String> record : records) {
+            System.out.println("got record! " + record.value() + " from " + record.topic());
+        }
+    }
 }
