@@ -347,7 +347,9 @@ class EndToEndScenario(_DockerScenario):
         if include_buddies:
             # so far, only python is supported
             self.buddies += [
-                BuddyContainer("python_buddy", self.host_log_folder, proxy_port=9001),
+                BuddyContainer(
+                    "python_buddy", "datadog/system-tests:python_buddy-v0", self.host_log_folder, proxy_port=9001
+                ),
             ]
 
             self._required_containers += self.buddies

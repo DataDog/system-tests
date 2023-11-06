@@ -384,10 +384,10 @@ class AgentContainer(TestedContainer):
 
 
 class BuddyContainer(TestedContainer):
-    def __init__(self, name, host_log_folder, proxy_port) -> None:
+    def __init__(self, name, image_name, host_log_folder, proxy_port) -> None:
         super().__init__(
             name=name,
-            image_name=f"system_tests/{name}",
+            image_name=image_name,
             host_log_folder=host_log_folder,
             healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
             ports={"7777/tcp": proxy_port},  # not the proxy port
