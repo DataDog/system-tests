@@ -44,6 +44,9 @@ class TestedVirtualMachine:
         # Uninstall process after install all software requirements
         self.uninstall = uninstall
 
+        self.ami_id = None
+        self.ami_name = None
+
     def configure(self):
         self.datadog_config = DataDogConfig()
         self.aws_infra_config = AWSInfraConfig()
