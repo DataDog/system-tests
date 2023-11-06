@@ -75,7 +75,7 @@ class User(UserMixin):
 EMPTY_USER = User(-1, "", "", "", "", False)
 
 _USERS = [
-    User("social-security-id", "test", "tester man", "testuser@ddog.com", "1234", False),
+    User("social-security-id", "test", "test", "testuser@ddog.com", "1234", False),
     User("591dc126-8431-4d0f-9509-b23318d3dce4", "testuuid", "tester uuid", "testuseruuid@ddog.com", "1234", False),
 ]
 

@@ -84,12 +84,12 @@ class Test_Login_Events:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        # for _, _, span in interfaces.library.get_spans(request=self.r_success):
-        #     meta = span.get("meta", {})
-        #     assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
-        #     assert meta["appsec.events.users.login.success.track"] == "true"
-        #     assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-        #     assert_priority(span, meta)
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+            assert_priority(span, meta)
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
@@ -285,38 +285,36 @@ class Test_Login_Events_Extended:
     BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
 
     def setup_login_success_local(self):
-        pass
-        # self.r_success = weblog.post(
-        #     "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        # )
+        self.r_success = weblog.post(
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
+        )
 
     def test_login_success_local(self):
-        pass  # JJJ
-        # assert self.r_success.status_code == 200
-        # for _, _, span in interfaces.library.get_spans(request=self.r_success):
-            # meta = span.get("meta", {})
-            # assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
-            # assert meta["appsec.events.users.login.success.track"] == "true"
-            # assert meta["usr.id"] == "social-security-id"
+        assert self.r_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "social-security-id"
 
-            # if context.library in ("dotnet", "python"):
+            if context.library in ("dotnet", "python"):
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
-                # assert meta["usr.email"] == "testuser@ddog.com"
-                # assert meta["usr.name"] == "test"
-            # elif context.library == "php":
-            #     assert meta["appsec.events.users.login.success.username"] == "test"
-            #     assert meta["appsec.events.users.login.success.email"] == "testuser@ddog.com"
-            # elif context.library == "ruby":
-            #     # theres no login field in ruby
-            #     assert meta["usr.email"] == "testuser@ddog.com"
-            #     assert meta["usr.username"] == "test"
-            # else:
-            #     assert meta["usr.email"] == "testuser@ddog.com"
-            #     assert meta["usr.username"] == "test"
-            #     assert meta["usr.login"] == "test"
+                assert meta["usr.email"] == "testuser@ddog.com"
+                assert meta["usr.name"] == "test"
+            elif context.library == "php":
+                assert meta["appsec.events.users.login.success.username"] == "test"
+                assert meta["appsec.events.users.login.success.email"] == "testuser@ddog.com"
+            elif context.library == "ruby":
+                # theres no login field in ruby
+                assert meta["usr.email"] == "testuser@ddog.com"
+                assert meta["usr.username"] == "test"
+            else:
+                assert meta["usr.email"] == "testuser@ddog.com"
+                assert meta["usr.username"] == "test"
+                assert meta["usr.login"] == "test"
 
-            # assert_priority(span, meta)
+            assert_priority(span, meta)
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
