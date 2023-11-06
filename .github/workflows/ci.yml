@@ -288,11 +288,11 @@ jobs:
 
 
 
-    - name: Run CROSSED_INTEGRATIONS scenario
+    - name: Run CROSSED_TRACING_LIBRARIES scenario
       if: steps.build.outcome == 'success'
       run: |
         ./utils/build/build_tracer_buddies.sh  # TODO: publish those images to docker hub
-        ./run.sh CROSSED_INTEGRATIONS
+        ./run.sh CROSSED_TRACING_LIBRARIES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

@@ -1014,8 +1014,8 @@ class scenarios:
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
     )
 
-    crossed_integrations = EndToEndScenario(
-        "CROSSED_INTEGRATIONS",
+    crossed_tracing_libraries = EndToEndScenario(
+        "CROSSED_TRACING_LIBRARIES",
         include_kafka=True,
         include_buddies=True,
         doc="Spawns a buddy for each supported language of APM",

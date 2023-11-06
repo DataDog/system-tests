@@ -236,7 +236,7 @@ class _RequestLogger:
 
 def start_proxy() -> None:
 
-    # the port is used to make the distinction between weblogs (See CROSSED_INTEGRATIONS scenario)
+    # the port is used to make the distinction between weblogs (See CROSSED_TRACING_LIBRARIES scenario)
     modes = [
         "regular@8126",  # base weblog
         "regular@9001",  # python_buddy

@@ -18,7 +18,7 @@ class _PythonBuddy(_Weblog):
         self.replay = False
 
 
-@scenarios.crossed_integrations
+@scenarios.crossed_tracing_libraries
 @coverage.basic
 class Test_PythonKafka:
     """ Test kafka compatibility with datadog python tracer """
