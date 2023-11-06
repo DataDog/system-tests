@@ -286,6 +286,32 @@ public class App {
         return "hi Mongo";
     }
 
+    @RequestMapping("/kafka/produce")
+    String kafkaProduce() {
+        KafkaConnector kafka = new KafkaConnector();
+        try {
+            kafka.startProducingMessage("DistributedTracing");
+        } catch (Exception e) {
+            System.out.println("[kafka] Failed to start producing message...");
+            e.printStackTrace();
+            return "failed to start producing message";
+        }
+        return "ok";
+    }
+
+    @RequestMapping("/kafka/consume")
+    String kafkaConsume() {
+        KafkaConnector kafka = new KafkaConnector();
+        try {
+                kafka.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[kafka] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+        return "ok";
+    }
+
     @RequestMapping("/dsm")
     String publishToKafka(@RequestParam(required = true, name="integration") String integration) {
         if ("kafka".equals(integration)) {
