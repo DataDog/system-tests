@@ -1,5 +1,5 @@
 tests/:
   integrations/:
-    test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_otel_integration: missing_feature
+    test_open_telemetry.py:
+      Test_MsSql: missing_feature
 
