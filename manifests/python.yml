@@ -417,22 +417,13 @@ tests/:
       Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration:
+      Test_MsSql:
         '*': missing_feature
         flask-poc: v1.18.3
-      Test_Agent_Mysql_db_integration:
+      Test_MySql:
         '*': missing_feature
         flask-poc: v1.18.3
-      Test_Agent_Postgres_db_integration:
-        '*': missing_feature
-        flask-poc: v1.18.3
-      Test_Tracer_Mssql_db_integration:
-        '*': missing_feature
-        flask-poc: v1.18.3
-      Test_Tracer_Mysql_db_integration:
-        '*': missing_feature
-        flask-poc: v1.18.3
-      Test_Tracer_Postgres_db_integration:
+      Test_Postgres:
         '*': missing_feature
         flask-poc: v1.18.3
     test_dbm.py:
