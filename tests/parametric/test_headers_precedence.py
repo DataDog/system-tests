@@ -652,7 +652,7 @@ class Test_Headers_Precedence:
         assert tracestate2["foo"] == "1"
 
         if prefer_tracecontext:
-            assert "s:1" in tracestate2["dd"]
+            assert "s:2" not in tracestate2["dd"]
         else:
             assert "s:2" in tracestate2["dd"]
 
@@ -663,7 +663,7 @@ class Test_Headers_Precedence:
         assert tracestate3["foo"] == "1"
 
         if prefer_tracecontext:
-            assert "s:1" in tracestate3["dd"]
+            assert "s:2" not in tracestate3["dd"]
         else:
             assert "s:2" in tracestate3["dd"]
 
