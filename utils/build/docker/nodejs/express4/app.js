@@ -235,6 +235,15 @@ app.post('/shell_execution', (req, res) => {
   res.send(response)
 })
 
+app.get('/createextraservice', (req, res) => {
+  const serviceName = req.query['serviceName']
+
+  const span = tracer.scope().active()
+  span.setTag('service.name', serviceName)
+
+  res.send('OK')
+})
+
 iast.initRoutes(app, tracer)
 
 require('./auth')(app, passport, tracer)

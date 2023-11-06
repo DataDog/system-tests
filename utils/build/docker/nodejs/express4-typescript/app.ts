@@ -202,6 +202,15 @@ app.post('/shell_execution', (req: Request, res: Response) => {
   res.send(response)
 })
 
+app.get('/createextraservice', (req: Request, res: Response) => {
+  const serviceName = req.query['serviceName']
+
+  const span = tracer.scope().active()
+  span.setTag('service.name', serviceName)
+
+  res.send('OK')
+})
+
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');
