@@ -1,6 +1,6 @@
 from utils import context, bug, flaky, irrelevant, missing_feature, scenarios
 from utils.tools import logger
-from .integrations_utils import BaseDbIntegrationsTestClass, get_span_from_agent
+from .sql_utils import BaseDbIntegrationsTestClass
 
 
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
@@ -16,7 +16,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, request in self.get_requests():
             logger.info(f"Validating {self.db_service}/{db_operation}")
 
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
 
             assert span is not None, f"Span is not found for {db_operation}"
 
@@ -51,14 +51,14 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_resource(self):
         """ Usually the query """
         for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
             assert db_operation in span["resource"].lower()
 
     @missing_feature(library="python_otel", reason="Open telemetry doesn't send this span for python")
     def test_db_connection_string(self):
         """ The connection string used to connect to the database. """
         for db_operation, request in self.get_requests():
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
             assert span["meta"]["db.connection_string"].strip(), f"Test is failing for {db_operation}"
 
     @bug(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
@@ -66,7 +66,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_db_operation(self):
         """ The name of the operation being executed """
         for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
 
             if db_operation == "procedure":
                 assert any(
@@ -84,17 +84,17 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_db_sql_table(self):
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
         for db_operation, request in self.get_requests(excluded_operations=["procedure"]):
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
             assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
     def test_error_message(self):
         """ A string representing the error message. """
-        span = get_span_from_agent(self.requests[self.db_service]["select_error"])
+        span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
         assert len(span["meta"]["error.msg"].strip()) != 0
 
     @missing_feature(library="nodejs_otel", reason="Open telemetry with nodejs is not generating this information.")
     def test_error_type_and_stack(self):
-        span = get_span_from_agent(self.requests[self.db_service]["select_error"])
+        span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
 
         # A string representing the type of the error
         assert span["meta"]["error.type"].strip()
@@ -107,7 +107,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
             if db_operation in ["update", "delete", "procedure", "select_error"]:
                 assert (
                     span["meta"]["db.statement"].count("?") == 2
@@ -120,13 +120,13 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_sql_success(self):
         """ We check all sql launched for the app work """
         for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
             assert "error" not in span or span["error"] == 0
 
     def test_db_statement_query(self):
         """ Usually the query """
         for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
             assert (
                 db_operation in span["meta"]["db.statement"].lower()
             ), f"{db_operation}  not found in {span['meta']['db.statement']}"
@@ -160,7 +160,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
         """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
             This value should be set only if it’s specified on the mssql connection string. """
         for db_operation, request in self.get_requests():
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
             assert span["meta"][
                 "db.mssql.instance_name"
             ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
@@ -169,7 +169,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     def test_db_operation(self):
         """ The name of the operation being executed. Mssql and Open Telemetry doesn't report this span when we call to procedure """
         for db_operation, request in self.get_requests(excluded_operations=["select_error", "procedure"]):
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
             # db.operation span is not generating by Open Telemetry when we call to procedure or we have a syntax error on the SQL
             if db_operation not in ["select_error", "procedure"]:
                 assert (
@@ -194,7 +194,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():
-            span = get_span_from_agent(request)
+            span = self.get_span_from_agent(request)
 
             if db_operation in ["insert", "select"]:
                 expected_obfuscation_count = 3
