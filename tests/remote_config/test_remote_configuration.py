@@ -299,9 +299,9 @@ class Test_RemoteConfigurationExtraServices:
 
         interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
 
-    @bug(library="dotnet", reason="APPSEC-11886")
     def test_tracer_extra_services(self):
-        """test"""
+        """Test extra services field"""
+        import itertools
 
         # filter extra services
         extra_services = []
@@ -311,8 +311,12 @@ class Test_RemoteConfigurationExtraServices:
                 if "extra_services" in client_tracer:
                     extra_services.append(client_tracer["extra_services"])
         assert self.r_outgoing.status_code == 200
-        assert len(extra_services) != 0, "extra_services not found"
-        assert any(es == ["extraVegetables"] for es in extra_services), "extraVegetables extra service not found"
+        assert extra_services, "extra_services not found"
+        extra_services = list(itertools.dropwhile(lambda es: "extraVegetables" not in es, extra_services))
+        assert extra_services, "no extra_services contains extraVegetables"
+        assert all(
+            "extraVegetables" in es for es in extra_services
+        ), "extraVegetables is not found in all requests after it was initially added"
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")

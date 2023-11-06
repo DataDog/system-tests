@@ -295,7 +295,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_integration == 'true'
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -600,7 +600,7 @@ jobs:
 
   open-telemetry-automatic:
     runs-on: ubuntu-latest
-    if: needs.scenarios.outputs.run_open_telemetry == 'true'
+    if: needs.scenarios.outputs.run_open_telemetry == 'true' || needs.scenarios.outputs.run_integration == 'true'
     needs:
     - lint
     - test_the_test

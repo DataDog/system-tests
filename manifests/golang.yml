@@ -268,6 +268,8 @@ tests/:
       Test_AppSecRequestBlocking: v1.50.0-rc.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v1.36.0
@@ -293,12 +295,9 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration: missing_feature
-      Test_Agent_Mysql_db_integration: missing_feature
-      Test_Agent_Postgres_db_integration: missing_feature
-      Test_Tracer_Mssql_db_integration: missing_feature
-      Test_Tracer_Mysql_db_integration: missing_feature
-      Test_Tracer_Postgres_db_integration: missing_feature
+      Test_MsSql: missing_feature
+      Test_MySql: missing_feature
+      Test_Postgres: missing_feature
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:

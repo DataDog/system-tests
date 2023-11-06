@@ -391,6 +391,8 @@ tests/:
         fastapi: missing_feature
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v0.58.5
       Test_AppSecObfuscator:
@@ -415,22 +417,13 @@ tests/:
       Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration:
+      Test_MsSql:
         '*': missing_feature
         flask-poc: v1.18.3
-      Test_Agent_Mysql_db_integration:
+      Test_MySql:
         '*': missing_feature
         flask-poc: v1.18.3
-      Test_Agent_Postgres_db_integration:
-        '*': missing_feature
-        flask-poc: v1.18.3
-      Test_Tracer_Mssql_db_integration:
-        '*': missing_feature
-        flask-poc: v1.18.3
-      Test_Tracer_Mysql_db_integration:
-        '*': missing_feature
-        flask-poc: v1.18.3
-      Test_Tracer_Postgres_db_integration:
+      Test_Postgres:
         '*': missing_feature
         flask-poc: v1.18.3
     test_dbm.py:

@@ -5,6 +5,7 @@
 		<GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
 		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.7.0'">
 		<DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
