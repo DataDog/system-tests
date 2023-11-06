@@ -6,15 +6,14 @@ cd "$base_path"
 
 mkdir system-tests-dashboard
 git clone https://"${GITHUB_USER}":"${GITHUB_TOKEN}"@github.com/DataDog/system-tests-dashboard.git system-tests-dashboard
+cd reports && cp -v -R --parents **/*.json ../system-tests-dashboard/reports/ && cd ..
 cd system-tests-dashboard
-#from system-tests/reports to system-tests-dashboard/reports
-cp -R ../reports/ reports/
 
-git config user.name "${GITHUB_USER}"
-git config user.email "${GITHUB_MAIL}"
+#git config user.name "${GITHUB_USER}"
+#git config user.email "${GITHUB_MAIL}"
 
-git pull #avoid problems with multiple pushes at same time 
-git add reports/
-git commit -m "add onboarding report"  
-git push
+#git pull #avoid problems with multiple pushes at same time 
+#git add reports/
+#git commit -m "add onboarding report"  
+#git push
 echo "DONE Reports commited to system-tests-dashboard!"
