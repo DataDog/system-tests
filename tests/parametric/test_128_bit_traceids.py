@@ -37,7 +37,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -65,7 +64,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -93,7 +91,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -123,7 +120,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "dotnet", reason="Optional feature not implemented")
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -181,7 +177,6 @@ class Test_128_Bit_Traceids:
         assert int(headers["x-datadog-trace-id"], 10) == trace_id
         assert dd_p_tid is None
 
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -203,7 +198,6 @@ class Test_128_Bit_Traceids:
         validate_dd_p_tid(dd_p_tid)
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -329,7 +323,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         check_64_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(
         context.library == "ruby", reason="Issue: Ruby doesn't support case-insensitive distributed headers"
     )
@@ -347,7 +340,6 @@ class Test_128_Bit_Traceids:
 
         check_64_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -364,7 +356,6 @@ class Test_128_Bit_Traceids:
 
         check_128_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -418,7 +409,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "dotnet", reason="not implemented")
     @missing_feature(context.library == "java", reason="not implemented")
-    @missing_feature(context.library == "php", reason="not implemented")
     @missing_feature(context.library == "python", reason="not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @pytest.mark.parametrize(
@@ -438,7 +428,7 @@ class Test_128_Bit_Traceids:
         child = find_span_in_traces(traces, Span(name="child", service="service"))
 
         parent_tid = parent["meta"].get("_dd.p.tid")
-        child_tid = child["meta"].get("_dd.p.tid")
+        child_tid = (child.get("meta") or {}).get("_dd.p.tid")
         propagation_error = parent["meta"].get("_dd.propagation_error")
 
         assert parent_tid is not None
@@ -446,7 +436,6 @@ class Test_128_Bit_Traceids:
         assert propagation_error is None
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -475,7 +464,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "dotnet", reason="Optional feature not implemented")
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python", reason="inconsistent_tid is not implemented for w3c")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
@@ -498,7 +486,6 @@ class Test_128_Bit_Traceids:
         assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "inconsistent_tid 640cfd8d0000ffff"
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -526,7 +513,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "dotnet", reason="Optional feature not implemented")
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python", reason="malformed_tid is not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
@@ -569,7 +555,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         check_64_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(
         context.library == "ruby", reason="Issue: Ruby doesn't support case-insensitive distributed headers"
     )
@@ -588,7 +573,6 @@ class Test_128_Bit_Traceids:
 
         check_64_bit_trace_id(fields[1], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
