@@ -17,7 +17,7 @@ class Test_HardcodedSecrets(BaseSinkTest):
     secure_endpoint = "/iast/hardcoded_secrets/test_secure"
     data = {}
     location_map = {"nodejs": "iast/index.js"}
-    detection_stage=DetectionStage.STARTUP
+    detection_stage = DetectionStage.STARTUP
 
     @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):

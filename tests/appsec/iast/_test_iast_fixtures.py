@@ -5,6 +5,7 @@ from utils.tools import logging
 
 DetectionStage = Enum("DetectionStage", ["REQUEST", "STARTUP"])
 
+
 def _get_expectation(d):
     if d is None or isinstance(d, str):
         return d
@@ -101,7 +102,7 @@ class BaseSinkTestWithoutTelemetry:
 
     def test_insecure(self):
         assert_iast_vulnerability(
-            request=self.insecure_request if self.detection_stage==DetectionStage.REQUEST else None,
+            request=self.insecure_request if self.detection_stage == DetectionStage.REQUEST else None,
             vulnerability_count=1,
             vulnerability_type=self.vulnerability_type,
             expected_location=self.expected_location,
