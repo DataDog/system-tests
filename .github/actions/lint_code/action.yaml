@@ -31,6 +31,8 @@ runs:
         then
           npm install
           npm run lint
+        else
+          echo "WARN: npm command not found. Skipping nodejs lint."
         fi
         
 
