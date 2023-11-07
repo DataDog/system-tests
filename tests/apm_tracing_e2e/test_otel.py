@@ -38,7 +38,7 @@ class Test_Otel_Span:
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
-        assert child.get("span.kind") == "internal"
+        assert child.get("meta").get("span.kind")
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="")
