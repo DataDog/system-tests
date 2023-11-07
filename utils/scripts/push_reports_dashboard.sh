@@ -16,7 +16,7 @@ ls
 echo "system test reports folder content:"
 ls reports/
 echo "Ok  copying:::"
-cd reports && cp -v -R --parents "**/*.json" ../system-tests-dashboard/reports/ && cd ..
+cd reports && cp -vR --parents "**/*.json" ../system-tests-dashboard/reports/ && cd ..
 cd system-tests-dashboard
 
 #git config user.name "${GITHUB_USER}"

@@ -7,11 +7,11 @@
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
-  os_type: linux__
+  os_type: linux
   os_distro: deb
 
 - name: amazon-linux-2023-x86
   ami_id: ami-06b09bfacae1453cb
   user: ec2-user
-  os_type: linux
+  os_type: linux__
   os_distro: rpm
