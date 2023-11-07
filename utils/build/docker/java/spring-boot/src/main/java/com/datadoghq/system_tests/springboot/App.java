@@ -304,11 +304,11 @@ public class App {
         KafkaConnector kafka = new KafkaConnector();
         try {
                 kafka.consumeMessageWithoutNewThread();
-            } catch (Exception e) {
-                System.out.println("[kafka] Failed to start consuming message...");
-                e.printStackTrace();
-                return "failed to start consuming message";
-            }
+        } catch (Exception e) {
+            System.out.println("[kafka] Failed to start consuming message...");
+            e.printStackTrace();
+            return "failed to start consuming message";
+        }
         return "ok";
     }
 
