@@ -9,7 +9,7 @@ class Test_Otel_Span:
 
     def setup_datadog_otel_span(self):
         self.req = weblog.get(
-            "/e2e_otel_span", {"shouldIndex": 1, "parentName": "parent.span.otel", "childName": "child.span.otel"},
+            "/e2e_otel_span", {"shouldIndex": 1, "parentName": "parent.span.otel", "childName": "otel-name.dd-resource"},
         )
 
     # Parent span will have the following traits :
@@ -33,10 +33,9 @@ class Test_Otel_Span:
         assert parent.get("meta").get("error.message") == "testing_end_span_options"
         assert parent["metrics"]["_dd.top_level"] == 1.0
         # Assert the child sent by the agent.
-        # child.span.otel is no longer the operation name, rather the resource name
+        # childName is no longer the operation name, rather the resource name
         # after remapping the OTel attributes to Datadog semantics
-        child = _get_span(spans, "", "child.span.otel")
-        print(child)
+        child = _get_span(spans, "", "otel-name.dd-resource")
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
