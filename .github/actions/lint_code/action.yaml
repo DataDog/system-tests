@@ -27,7 +27,7 @@ runs:
       shell: bash
       working-directory: ./utils/build/docker/nodejs/express4
       run: |
-        if command -v npm &> /dev/null
+        if command -v npmm &> /dev/null
         then
           npm install
           npm run lint
