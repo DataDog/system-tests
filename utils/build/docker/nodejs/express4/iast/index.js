@@ -33,9 +33,6 @@ function initMiddlewares (app) {
 
 function initRoutes (app, tracer) {
   app.get('/iast/insecure_hashing/deduplicate', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
-
     const supportedAlgorithms = ['md5', 'sha1']
 
     let outputHashes = ''
@@ -48,9 +45,6 @@ function initRoutes (app, tracer) {
   })
 
   app.get('/iast/insecure_hashing/multiple_hash', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
-
     const name = 'insecure'
     let outputHashes = crypto.createHash('md5').update(name).digest('hex')
     outputHashes += '--- ' + crypto.createHash('sha1').update(name).digest('hex')
@@ -59,30 +53,19 @@ function initRoutes (app, tracer) {
   })
 
   app.get('/iast/insecure_hashing/test_secure_algorithm', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
-
     res.send(crypto.createHash('sha256').update('secure').digest('hex'))
   })
 
   app.get('/iast/insecure_hashing/test_md5_algorithm', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
-
     res.send(crypto.createHash('md5').update('insecure').digest('hex'))
   })
 
   app.get('/iast/insecure_cipher/test_insecure_algorithm', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
     const cipher = crypto.createCipheriv('des-ede-cbc', '1111111111111111', 'abcdefgh')
     res.send(Buffer.concat([cipher.update('12345'), cipher.final()]))
   })
 
   app.get('/iast/insecure_cipher/test_secure_algorithm', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
-
     const key = crypto.randomBytes(32)
 
     const iv = crypto.randomBytes(16)
@@ -92,8 +75,6 @@ function initRoutes (app, tracer) {
   })
 
   app.post('/iast/sqli/test_insecure', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
     const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = \'' +
       req.body.username + '\' AND PASSWORD = \'' + req.body.password + '\''
     const client = new Client()
@@ -107,8 +88,6 @@ function initRoutes (app, tracer) {
   })
 
   app.post('/iast/sqli/test_secure', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
     const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = $1 AND PASSWORD = $2'
     const values = [req.body.username, req.body.password]
     const client = new Client()
@@ -127,8 +106,6 @@ function initRoutes (app, tracer) {
   })
 
   app.post('/iast/path_traversal/test_insecure', (req, res) => {
-    const span = tracer.scope().active()
-    span.setTag('appsec.event"', true)
     const stats = statSync(req.body.path)
     res.send(JSON.stringify(stats))
   })
