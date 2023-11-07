@@ -11,9 +11,12 @@ cd "$base_path"
 echo "New dir:  $base_path"
 mkdir system-tests-dashboard
 git clone https://"${GITHUB_USER}":"${GITHUB_TOKEN}"@github.com/DataDog/system-tests-dashboard.git system-tests-dashboard
-echo "Content of the new dir:"
+echo "Content after clone:"
 ls
-cd reports && cp -v -R --parents **/*.json ../system-tests-dashboard/reports/ && cd ..
+echo "system test reports folder content:"
+ls reports/
+echo "Ok  copying:::"
+cd reports && cp -v -R --parents "**/*.json" ../system-tests-dashboard/reports/ && cd ..
 cd system-tests-dashboard
 
 #git config user.name "${GITHUB_USER}"
