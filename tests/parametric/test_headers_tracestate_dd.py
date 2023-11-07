@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import missing_feature, context, scenarios
+from utils import bug, missing_feature, context, scenarios
 
 parametrize = pytest.mark.parametrize
 
@@ -576,6 +576,10 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
+    @bug(
+        library="php",
+        reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
+    )
     def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
         """
         harness sends requests with both tracestate and traceparent.
