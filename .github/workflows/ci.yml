@@ -63,7 +63,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/parametric.yml@main
+    uses: datadog/system-tests/.github/workflows/parametric.yml@cbeauchesne/fix-parametric
     secrets: inherit
 
   experimental:

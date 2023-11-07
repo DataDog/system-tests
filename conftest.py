@@ -50,7 +50,7 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    context.scenario.configure(config.option)
+    context.scenario.configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = _JSON_REPORT_FILE()
