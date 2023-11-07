@@ -993,11 +993,6 @@ class scenarios:
         doc="Default scenario, spwan tracer and agent, and run most of exisiting tests",
     )
 
-    sleep = EndToEndScenario(
-        "SLEEP",
-        doc="Fake scenario that spawn tracer and agentm then sleep indefinitly. Help you to manually test container",
-    )
-
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"

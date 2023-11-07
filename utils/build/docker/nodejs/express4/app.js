@@ -10,7 +10,8 @@ const axios = require('axios');
 const fs = require('fs');
 const passport = require('passport')
 
-const iast = require("./iast")
+const iast = require("./iast");
+const { spawnSync } = require('child_process');
 
 iast.initData().catch(() => {})
 
@@ -208,7 +209,6 @@ app.get('/read_file', (req, res) => {
   });
 });
 
-
 app.get('/db', async (req, res) => {
   console.log("Service: " + req.query.service)
   console.log("Operation: " + req.query.operation)
@@ -225,6 +225,24 @@ app.get('/db', async (req, res) => {
     res.send(await mssql.doOperation(req.query.operation));
   }
 });
+
+app.post('/shell_execution', (req, res) => {
+  const options = { shell: req?.body?.options?.shell ? true : false}
+  const args = req?.body?.args.split(' ')
+
+  const response = spawnSync(req?.body?.command, args, options)
+  
+  res.send(response)
+})
+
+app.get('/createextraservice', (req, res) => {
+  const serviceName = req.query['serviceName']
+
+  const span = tracer.scope().active()
+  span.setTag('service.name', serviceName)
+
+  res.send('OK')
+})
 
 iast.initRoutes(app, tracer)
 

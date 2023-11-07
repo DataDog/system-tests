@@ -244,6 +244,8 @@ tests/:
           nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: v3.9.0
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
@@ -265,22 +267,13 @@ tests/:
     test_crossed_integrations.py:
       Test_PythonKafka: missing_feature
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration:
+      Test_MsSql:
         '*': missing_feature
         express4: v1.0.0
-      Test_Agent_Mysql_db_integration:
+      Test_MySql:
         '*': missing_feature
         express4: v1.0.0
-      Test_Agent_Postgres_db_integration:
-        '*': missing_feature
-        express4: v1.0.0
-      Test_Tracer_Mssql_db_integration:
-        '*': missing_feature
-        express4: v1.0.0
-      Test_Tracer_Mysql_db_integration:
-        '*': missing_feature
-        express4: v1.0.0
-      Test_Tracer_Postgres_db_integration:
+      Test_Postgres:
         '*': missing_feature
         express4: v1.0.0
     test_dbm.py:
@@ -300,7 +293,7 @@ tests/:
       Test_TracerSCITagging: v3.21.0
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: missing_feature
+      Test_RemoteConfigurationExtraServices: v4.17.0
       Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
