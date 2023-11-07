@@ -45,7 +45,7 @@ class Test_Otel_Span:
         assert 2 == len(spans), _assert_msg(2, len(spans))
 
     def setup_distributed_otel_trace(self):
-        self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"}, )
+        self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"},)
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
