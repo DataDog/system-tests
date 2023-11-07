@@ -67,8 +67,9 @@ class _Scenario:
     def configure(self, config):
         self.replay = config.option.replay
 
-        if hasattr(config, "workerinput"):
+        if not hasattr(config, "workerinput"):
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
+            # we are in the main worker, not in a xdist sub-worker
 
             # xdist use case: with xdist subworkers, this function is called
             # * at very first command
