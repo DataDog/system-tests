@@ -41,13 +41,15 @@ class _Scenario:
         self.replay = False
         self.doc = doc
 
-    def create_log_subfolder(self, subfolder):
+    def create_log_subfolder(self, subfolder, remove_if_exists=False):
         if self.replay:
             return
 
         path = os.path.join(self.host_log_folder, subfolder)
 
-        shutil.rmtree(path, ignore_errors=True)
+        if remove_if_exists:
+            shutil.rmtree(path, ignore_errors=True)
+
         Path(path).mkdir(parents=True, exist_ok=True)
 
     def __call__(self, test_object):
@@ -62,9 +64,25 @@ class _Scenario:
 
         return test_object
 
-    def configure(self, option):
-        self.replay = option.replay
-        self.create_log_subfolder("")
+    def configure(self, config):
+        self.replay = config.option.replay
+
+        if not hasattr(config, "workerinput"):
+            # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
+            # we are in the main worker, not in a xdist sub-worker
+
+            # xdist use case: with xdist subworkers, this function is called
+            # * at very first command
+            # * then once per worker
+
+            # the issue is that create_log_subfolder() remove the folder if it exists, then create it. This scenario is then possible :
+            # 1. some worker A creates logs/
+            # 2. another worker B removes it
+            # 3. worker A want to create logs/tests.log -> boom
+
+            # to fix that, only the main worker can create the log folder
+
+            self.create_log_subfolder("", remove_if_exists=True)
 
         handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
         handler.setFormatter(get_log_formatter())
@@ -251,8 +269,8 @@ class _DockerScenario(_Scenario):
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
-    def configure(self, option):
-        super().configure(option)
+    def configure(self, config):
+        super().configure(config)
 
         for container in reversed(self._required_containers):
             container.configure(self.replay)
@@ -342,10 +360,10 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
-    def configure(self, option):
+    def configure(self, config):
         from utils import interfaces
 
-        super().configure(option)
+        super().configure(config)
 
         interfaces.agent.configure(self.replay)
         interfaces.library.configure(self.replay)
@@ -597,8 +615,8 @@ class OpenTelemetryScenario(_DockerScenario):
         self.include_intake = include_intake
         self.backend_interface_timeout = backend_interface_timeout
 
-    def configure(self, option):
-        super().configure(option)
+    def configure(self, config):
+        super().configure(config)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
@@ -743,11 +761,11 @@ class OnBoardingScenario(_Scenario):
         self.onboarding_components = {}
         self.onboarding_tests_metadata = {}
 
-    def configure(self, option):
-        super().configure(option)
-        self._library = LibraryVersion(option.obd_library, "0.0")
-        self._env = option.obd_env
-        self._weblog = option.obd_weblog
+    def configure(self, config):
+        super().configure(config)
+        self._library = LibraryVersion(config.option.obd_library, "0.0")
+        self._env = config.option.obd_env
+        self._weblog = config.option.obd_weblog
         self.provision_vms = list(
             ProvisionMatrix(
                 ProvisionFilter(self.name, language=self._library.library, env=self._env, weblog=self._weblog)
@@ -887,8 +905,8 @@ class ParametricScenario(_Scenario):
     def parametrized_tests_metadata(self):
         return self._parametric_tests_confs
 
-    def configure(self, option):
-        super().configure(option)
+    def configure(self, config):
+        super().configure(config)
         assert "TEST_LIBRARY" in os.environ
 
         # For some tracers we need a env variable present to use custom build of the tracer
