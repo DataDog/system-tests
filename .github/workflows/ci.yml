@@ -288,7 +288,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run CROSSED_TRACING_LIBRARIES scenario
-      if: steps.build.outcome == 'success'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_integration == 'true'
       run: ./run.sh CROSSED_TRACING_LIBRARIES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
