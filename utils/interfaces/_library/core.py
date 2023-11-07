@@ -23,8 +23,8 @@ from utils.interfaces._schemas_validators import SchemaValidator
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
-    def __init__(self):
-        super().__init__("library")
+    def __init__(self, name):
+        super().__init__(name)
         self.ready = threading.Event()
 
     def ingest_file(self, src_path):
