@@ -126,6 +126,8 @@ class _RequestLogger:
                 port = self.original_ports[flow.id]
                 if port == 8126:
                     interface = "library"
+                elif port == 80:  # UDS mode
+                    interface = "library"
                 elif port == 9001:
                     interface = "python_buddy"
                 else:
