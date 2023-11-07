@@ -16,7 +16,7 @@ ls
 echo "system test reports folder content:"
 ls reports/
 echo "Ok  copying:::"
-cd reports && cp -vR --parents **/*.json ../system-tests-dashboard/reports/
+cd reports && cp -vR --parents ./**/*.json ../system-tests-dashboard/reports/
 cd ..
 cd system-tests-dashboard
 
