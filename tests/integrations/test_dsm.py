@@ -52,7 +52,7 @@ class Test_DsmKafka:
                     elif stats_point["EdgeTags"][0] == "direction:out":
                         producer_stats_point = stats_point
 
-                # consumers are a direct child of a producer span
+                # consumers are a direct child of a producer
                 assert consumer_stats_point["ParentHash"] == producer_stats_point["Hash"]
 
 
