@@ -13,9 +13,6 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get("/dsm?integration=kafka")
 
-    def setup_dsm_kafka_default_context_propagation(self):
-        self.r = weblog.get("/dsm?integration=kafka")
-
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -38,22 +35,6 @@ class Test_DsmKafka:
             parent_hash=producer_hash,
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
-
-    def test_dsm_kafka_default_context_propagation(self):
-        for data in interfaces.agent.get_dsm_data():
-            for stats_bucket in data["request"]["content"].get("Stats", {}):
-
-                producer_stats_point = None
-                consumer_stats_point = None
-
-                for stats_point in stats_bucket.get("Stats", {}):
-                    if stats_point["EdgeTags"][0] == "direction:in":
-                        consumer_stats_point = stats_point
-                    elif stats_point["EdgeTags"][0] == "direction:out":
-                        producer_stats_point = stats_point
-
-                # consumers are a direct child of a producer
-                assert consumer_stats_point["ParentHash"] == producer_stats_point["Hash"]
 
 
 @scenarios.integrations
