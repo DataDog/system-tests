@@ -25,20 +25,22 @@ class Test_Otel_Span:
         assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
-        parent = _get_span(spans, "parent.span.otel")
+        parent = _get_span(spans, "parent.span.otel", "")
         assert parent.get("parentID") is None
         if parent.get("meta")["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
             assert parent.get("spanID") == "10000"
         assert parent.get("meta").get("attributes") == "values"
         assert parent.get("meta").get("error.message") == "testing_end_span_options"
         assert parent["metrics"]["_dd.top_level"] == 1.0
-
         # Assert the child sent by the agent.
-        child = _get_span(spans, "child.span.otel")
+        # child.span.otel is no longer the operation name, rather the resource name
+        # after remapping the OTel attributes to Datadog semantics
+        child = _get_span(spans, "", "child.span.otel")
+        print(child)
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
-        assert child.get("type") == "internal"
+        assert child.get("meta").get("span.kind") == "internal"
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="")
@@ -53,19 +55,20 @@ class Test_Otel_Span:
         assert 3 <= len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
-        parent = _get_span(spans, "parent.span.otel")
+        parent = _get_span(spans, "parent.span.otel", "")
         assert parent["name"] == "parent.span.otel"
         assert parent.get("parentID") is None
         assert parent["metrics"]["_dd.top_level"] == 1.0
 
         # Assert the Roundtrip child span sent by the agent, this span is created by an external OTel contrib package
-        roundtrip_span = _get_span(spans, "HTTP_GET")
-        assert roundtrip_span["name"] == "HTTP_GET"
+        roundtrip_span = _get_span(spans, "client.request", "")
+        assert roundtrip_span["name"] == "client.request"
+        assert roundtrip_span["resource"] == "HTTP GET"
         assert roundtrip_span.get("parentID") == parent.get("spanID")
 
         # Assert the Handler function child span sent by the agent.
-        handler_span = _get_span(spans, "testOperation")
-        assert handler_span["name"] == "testOperation"
+        handler_span = _get_span(spans, "server.request", "")
+        assert handler_span["resource"] == "testOperation"
         assert handler_span.get("parentID") == roundtrip_span.get("spanID")
 
         # Assert the spans received from the backend!
@@ -73,8 +76,11 @@ class Test_Otel_Span:
         assert 3 == len(spans), _assert_msg(3, len(spans))
 
 
-def _get_span(spans, span_name):
+def _get_span(spans, span_name, resource_name):
     for s in spans:
         if s["name"] == span_name:
+            return s
+    for s in spans:
+        if s["resource"] == resource_name:
             return s
     return {}
