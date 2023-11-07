@@ -34,5 +34,5 @@ runs:
       working-directory: ./utils/build/docker/nodejs/express4
       run: |
         npm install
-        npm lint
+        npm run lint
 
