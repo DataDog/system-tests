@@ -5,6 +5,7 @@
     #Disable auto updates. It could raise problems if the update proccess is launched just when we are trying to install de software 
     sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
     sudo apt-get -y remove unattended-upgrades
+    sudo apt-get -y remove update-manager
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
  
 - os_type: linux
