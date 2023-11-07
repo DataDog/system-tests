@@ -86,22 +86,22 @@ class TestedVirtualMachine:
             dial_error_limit=-1,
         )
 
+        # We apply initial configurations to the VM before starting with the installation proccess
+        prepare_init_config_installer = remote_install(
+            connection,
+            "prepare_init_config_installer_" + self.name,
+            self.prepare_init_config_install["install"],
+            server,
+            scenario_name=self.provision_scenario,
+        )
+
         # To launch remote task in dependency order
-        main_task_dep = server
+        main_task_dep = prepare_init_config_installer
 
         if self.ami_id is None:
             # Ok. The AMI doesn't exist we should create.
             # We will configure respositories, install docker and lang variant.
             # After that, we will register the new AMI to use it in the future executions
-
-            # We apply initial configurations to the VM before starting with the installation proccess
-            prepare_init_config_installer = remote_install(
-                connection,
-                "prepare_init_config_installer_" + self.name,
-                self.prepare_init_config_install["install"],
-                server,
-                scenario_name=self.provision_scenario,
-            )
 
             # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
             if "install" in self.prepare_repos_install:

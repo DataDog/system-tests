@@ -35,7 +35,7 @@ stages:
     - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
     - REPORTS_PATH="reports/$ONBOARDING_FILTER_ENV/$TEST_LIBRARY/$ONBOARDING_FILTER_WEBLOG"
     - mkdir -p "$REPORTS_PATH"
-    - cp logs_"${SCENARIO_SUFIX}"/*.log "$REPORTS_PATH"/"
+    - cp logs_"${SCENARIO_SUFIX}"/*.log $REPORTS_PATH/
     - cp logs_"${SCENARIO_SUFIX}"/report.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
   artifacts:
       when: always
