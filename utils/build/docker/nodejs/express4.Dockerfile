@@ -13,6 +13,8 @@ WORKDIR /usr/app
 
 RUN npm install
 
+RUN npm run lint
+
 EXPOSE 7777
 
 ENV PGUSER=system_tests_user
