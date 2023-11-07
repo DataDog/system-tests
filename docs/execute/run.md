@@ -33,7 +33,7 @@ If the test contains `@scenarios.SCENARIO_NAME` such as `@scenarios.integrations
 ## Spawn componenents, but do nothing
 
 ```bash
-./run.sh SLEEP
+./run.sh <SCENARIO_NAME> --sleep
 
-# play with the weblog, and look inside logs/interfaces/ what's happening
+# play with the weblog, and look inside logs_<scenario_name>/interfaces/ what's happening
 ```
