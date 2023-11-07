@@ -23,6 +23,10 @@ runs:
     - name: 'Run shellcheck'
       shell: bash
       run: ./utils/scripts/shellcheck.sh
+    - name: Install node
+      uses: setup-node@v3
+      with:
+        node-version: 20
     - name: 'Run nodejs lint'
       shell: bash
       working-directory: ./utils/build/docker/nodejs/express4
