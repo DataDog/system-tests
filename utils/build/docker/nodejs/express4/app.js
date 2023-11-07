@@ -240,6 +240,7 @@ app.post('/shell_execution', (req, res) => {
 })
 
 app.get('/createextraservice', (req, res) => {
+  // eslint-disable-next-line dot-notation
   const serviceName = req.query['serviceName']
 
   const span = tracer.scope().active()
