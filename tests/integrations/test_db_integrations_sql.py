@@ -26,7 +26,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             yield db_operation, self.get_span_from_agent(request)
 
     # Tests methods
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_sql_traces(self, excluded_operations=()):
         """ After make the requests we check that we are producing sql traces """
         for _, span in self.get_spans(excluded_operations):
@@ -38,7 +37,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, span in self.get_spans(excluded_operations=["procedure", "select_error"]):
             assert db_operation in span["resource"].lower()
 
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_sql_success(self, excluded_operations=()):
         """ We check all sql launched for the app work """
 
@@ -46,7 +44,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert "error" not in span or span["error"] == 0
 
     @irrelevant(library="python", reason="Python is using the correct span: db.system")
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_type(self, excluded_operations=()):
         """ DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
             Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
@@ -62,7 +59,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, span in self.get_spans():
             assert span["meta"]["db.name"] == db_container.db_instance, f"Test is failing for {db_operation}"
 
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_span_kind(self, excluded_operations=()):
         """ Describes the relationship between the Span, its parents, and its children in a Trace."""
 
@@ -104,7 +100,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_instance(self, excluded_operations=()):
         """ The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
@@ -123,7 +118,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="python", reason="not implemented yet")
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_operation(self, excluded_operations=()):
         """ The name of the operation being executed """
 
@@ -156,7 +150,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for _, span in self.get_spans(operations=["select"]):
             assert span["meta"]["db.row_count"] > 0, "Test is failing for select"
 
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_password(self, excluded_operations=()):
         """ The database password should not show in the traces """
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
@@ -183,7 +176,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, span in self.get_spans():
             assert span["meta"]["db.jdbc.driver_classname"].strip(), f"Test is failing for {db_operation}"
 
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_error_message(self):
         for db_operation, span in self.get_spans(operations=["select_error"]):
             # A string representing the error message.
@@ -238,22 +230,8 @@ class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
 
     @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
     @irrelevant(library="python", reason="Python is using the correct span: db.system")
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_type(self):
         super().test_db_type()
-
-    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
-    def test_partials(self):
-        """ Keep testing other operations on java"""
-        super().test_db_password()
-        super().test_db_operation()
-        super().test_db_instance()
-        super().test_span_kind()
-        super().test_db_type()
-        super().test_sql_success()
-        super().test_sql_traces()
-        super().test_db_user()
-        super().test_error_message()
 
 
 @scenarios.integrations
@@ -268,25 +246,8 @@ class Test_MySql(_BaseDatadogDbIntegrationTestClass):
         super().test_db_name()
 
     @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_user(self, excluded_operations=()):
         super().test_db_user()
-
-    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
-    def test_partials(self):
-        """ Keep testing other operations on java"""
-        super().test_db_user(excluded_operations=("procedure",))
-        super().test_db_password(excluded_operations=("procedure",))
-        super().test_db_operation(excluded_operations=("procedure",))
-        super().test_db_instance(excluded_operations=("procedure",))
-        super().test_span_kind(excluded_operations=("procedure",))
-        super().test_db_type(excluded_operations=("procedure",))
-        super().test_sql_success(excluded_operations=("procedure",))
-        super().test_sql_traces(excluded_operations=("procedure",))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
-    def test_obfuscate_query(self, excluded_operations=()):
-        super().test_obfuscate_query()
 
 
 @scenarios.integrations
@@ -319,24 +280,9 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
         super().test_db_system()
 
     @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_db_user(self):
         super().test_db_user()
 
-    @irrelevant(context.library != "java", reason="remove this test once DBMON-3088 is fixed")
-    def test_partials(self):
-        """ Keep testing other operations on java"""
-        super().test_db_user(excluded_operations=("select_error", "procedure"))
-        super().test_db_password(excluded_operations=("select_error", "procedure"))
-        super().test_db_operation(excluded_operations=("select_error", "procedure"))
-        super().test_db_instance(excluded_operations=("select_error", "procedure"))
-        super().test_span_kind(excluded_operations=("select_error", "procedure"))
-        super().test_db_type(excluded_operations=("select_error", "procedure"))
-        super().test_sql_success(excluded_operations=("select_error", "procedure"))
-        super().test_sql_traces(excluded_operations=("select_error", "procedure"))
-        self.test_obfuscate_query(excluded_operations=("select_error", "procedure"))
-
-    @flaky(context.library >= "java@1.23.0", reason="DBMON-3088")
     def test_obfuscate_query(self, excluded_operations=()):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests(excluded_operations=excluded_operations):
