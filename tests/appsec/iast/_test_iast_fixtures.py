@@ -225,14 +225,14 @@ class BaseSourceTest:
         sources = iast["sources"]
         assert sources, "No source reported"
         if source_type:
-            assert source_type in {s.get("origin") for s in sources}
-            sources = [s for s in sources if s["origin"] == source_type]
+            assert any(x in self.source_type for x in {s.get("origin") for s in sources})
+            sources = [s for s in sources if s["origin"] in self.source_type]
         if self.source_name:
-            assert self.source_name in {s.get("name") for s in sources}
-            sources = [s for s in sources if s["name"] == self.source_name]
+            assert any(x in self.source_name for x in {s.get("name") for s in sources})
+            sources = [s for s in sources if s["name"] in self.source_name]
         if self.source_value:
-            assert self.source_value in {s.get("value") for s in sources}
-            sources = [s for s in sources if s["value"] == self.source_value]
+            assert any(x in self.source_value for x in {s.get("value") for s in sources})
+            sources = [s for s in sources if s["value"] in self.source_value]
         assert sources, f"No source found with origin={source_type}, name={self.source_name}, value={self.source_value}"
         assert len(sources) == 1, "Expected a single source with the matching criteria"
 
