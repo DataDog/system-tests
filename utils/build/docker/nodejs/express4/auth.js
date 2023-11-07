@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 'use strict'
 
 const { Strategy: LocalStrategy } = require('passport-local')

@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 'use strict'
 
 const tracer = require('dd-trace').init({
@@ -186,8 +184,7 @@ app.get('/dsm', (req, res) => {
 
 app.get('/load_dependency', (req, res) => {
   console.log('Load dependency endpoint')
-  // eslint-disable-next-line no-unused-vars
-  const glob = require('glob')
+  require('glob')
   res.send('Loaded a dependency')
 })
 
@@ -240,8 +237,7 @@ app.post('/shell_execution', (req, res) => {
 })
 
 app.get('/createextraservice', (req, res) => {
-  // eslint-disable-next-line dot-notation
-  const serviceName = req.query['serviceName']
+  const serviceName = req.query.serviceName
 
   const span = tracer.scope().active()
   span.setTag('service.name', serviceName)
