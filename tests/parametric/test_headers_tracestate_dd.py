@@ -670,5 +670,6 @@ class Test_Headers_Tracestate_DD:
         # 1) Input: 32 list-members without 'dd' in the tracestate string
         _, tracestate1 = get_tracecontext(headers1)
         tracestate1String = str(tracestate1)
+        assert len(tracestate1String.split(",")) == 32
         assert "key32=value32" not in tracestate1String
         assert tracestate1String.startswith("dd=")
