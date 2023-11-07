@@ -31,12 +31,6 @@ runs:
       shell: bash
       working-directory: ./utils/build/docker/nodejs/express4
       run: |
-        if command -v npm &> /dev/null
-        then
-          npm install
-          npm run lint
-        else
-          echo "WARN: npm command not found. Skipping nodejs lint."
-        fi
-        
+        npm install
+        npm run lint
 
