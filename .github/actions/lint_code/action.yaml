@@ -23,13 +23,13 @@ runs:
     - name: 'Run shellcheck'
       shell: bash
       run: ./utils/scripts/shellcheck.sh
-    - name: Check if npm exists
-      uses: kpbode/command-exists@v1
-      id: check-npm-exists
-      with:
-        command: 'npm'
+#    - name: Check if npm exists
+#      uses: kpbode/command-exists@v1
+#      id: check-npm-exists
+#      with:
+#        command: 'npm'
     - name: 'Run nodejs lint'
-      if: steps.check-npm-exists.outputs.exists == 'true'
+#      if: steps.check-npm-exists.outputs.exists == 'true'
       shell: bash
       working-directory: ./utils/build/docker/nodejs/express4
       run: |
