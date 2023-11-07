@@ -38,14 +38,14 @@ class Test_Otel_Span:
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
-        assert child.get("meta").get("span.kind")
+        assert child.get("meta").get("span.kind") == "internal"
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="")
         assert 2 == len(spans), _assert_msg(2, len(spans))
 
     def setup_distributed_otel_trace(self):
-        self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"},)
+        self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"}, )
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
