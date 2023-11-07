@@ -536,6 +536,15 @@ class Test_Headers_Precedence:
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
     @enable_datadog_b3multi_tracecontext()
+    @missing_feature(context.library == "cpp", reason="c++ must implement new tracestate propagation")
+    @missing_feature(context.library == "dotnet", reason="dotnet must implement new tracestate propagation")
+    @missing_feature(context.library == "golang", reason="go must implement new tracestate propagation")
+    @missing_feature(context.library == "java", reason="java must implement new tracestate propagation")
+    @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
+    @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
+    @missing_feature(context.library == "python", reason="python must implement new tracestate propagation")
+    @missing_feature(context.library == "python_http", reason="python must implement new tracestate propagation")
+    @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
     def test_headers_precedence_propagationstyle_tracecontext_last_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):
