@@ -1,6 +1,6 @@
 'use strict'
 
-const { Client } = require('pg')
+const { Client } = require("pg")
 const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto')
