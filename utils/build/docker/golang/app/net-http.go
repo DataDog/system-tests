@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 	"os"
+	"github.com/Shopify/sarama"
+	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -112,6 +114,61 @@ func main() {
 			ddtracer.SetUser(span, "usr.id", ddtracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
+	})
+
+	mux.HandleFunc("/kafka/produce", func(w http.ResponseWriter, r *http.Request) {
+		var server = "kafka:9092"
+		var topic = "DistributedTracing"
+		var message = "Test"
+
+		cfg := sarama.NewConfig()
+		cfg.Producer.Return.Successes = true
+
+		producer, err := sarama.NewSyncProducer([]string{server}, cfg)
+		if err != nil {
+			panic(err)
+		}
+		defer producer.Close()
+
+		producer = saramatrace.WrapSyncProducer(cfg, producer)
+
+		msg := &sarama.ProducerMessage{
+			Topic: topic,
+			Value: sarama.StringEncoder(message),
+		}
+
+		_, _, err = producer.SendMessage(msg)
+
+		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/kafka/consume", func(w http.ResponseWriter, r *http.Request) {
+		var server = "kafka:9092"
+		var topic = "DistributedTracing"
+		cfg := sarama.NewConfig()
+
+		consumer, err := sarama.NewConsumer([]string{server}, cfg)
+		if err != nil {
+			panic(err)
+		}
+
+		defer consumer.Close()
+
+		consumer = saramatrace.WrapConsumer(consumer)
+
+		partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetNewest)
+
+		if err != nil {
+			panic(err)
+		}
+
+		defer partitionConsumer.Close()
+
+		for readMessage := range partitionConsumer.Messages() {
+			log.Printf(string(readMessage.Offset))
+		}
+
+		w.Write([]byte("OK"))
 	})
 
 	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {
