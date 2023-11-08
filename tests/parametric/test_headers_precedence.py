@@ -319,6 +319,16 @@ class Test_Headers_Precedence:
         assert "x-datadog-parent-id" not in headers6
         assert "x-datadog-sampling-priority" not in headers6
 
+    @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
+    @irrelevant(context.library == "dotnet", reason="library does not implement this default configuration")
+    @irrelevant(context.library == "golang", reason="library does not implement this default configuration")
+    @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
+    @irrelevant(context.library == "php", reason="library does not implement this default configuration")
+    @irrelevant(context.library == "python", reason="library does not implement this default configuration")
+    @irrelevant(context.library == "python_http", reason="library does not implement this default configuration")
+    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_agent, test_library):
+        self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
+
     @enable_datadog_tracecontext()
     @missing_feature(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
     @missing_feature(
