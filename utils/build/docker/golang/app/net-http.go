@@ -164,9 +164,21 @@ func main() {
 
 		defer partitionConsumer.Close()
 
-		for readMessage := range partitionConsumer.Messages() {
-			log.Printf(string(readMessage.Offset))
-		}
+		// Added a time to avoid this issue: https://github.com/IBM/sarama/issues/2116
+		timeOutTimer := time.NewTimer(time.Second)
+		defer timeOutTimer.Stop()
+
+		ConsumeMessages:
+			for {
+				timeOutTimer.Reset(time.Second)
+				select {
+				case receivedMsg := <-partitionConsumer.Messages():
+					log.Printf(string(receivedMsg.Offset))
+					continue
+				case <-timeOutTimer.C:
+					break ConsumeMessages
+				}
+			}
 
 		w.Write([]byte("OK"))
 	})
