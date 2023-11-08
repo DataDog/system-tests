@@ -306,11 +306,11 @@ WORKDIR /tmp
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
 ADD {php_reldir}/composer.lock .
-ADD {php_reldir}/server.php .
+RUN composer install
 ADD {php_reldir}/install.sh .
 COPY binaries /binaries
 RUN ./install.sh
-RUN composer install
+ADD {php_reldir}/server.php .
 """,
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
@@ -905,7 +905,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.11.0",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.14.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,
