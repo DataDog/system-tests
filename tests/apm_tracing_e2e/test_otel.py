@@ -9,7 +9,8 @@ class Test_Otel_Span:
 
     def setup_datadog_otel_span(self):
         self.req = weblog.get(
-            "/e2e_otel_span", {"shouldIndex": 1, "parentName": "parent.span.otel", "childName": "otel-name.dd-resource"},
+            "/e2e_otel_span",
+            {"shouldIndex": 1, "parentName": "parent.span.otel", "childName": "otel-name.dd-resource"},
         )
 
     # Parent span will have the following traits :
