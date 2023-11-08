@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import missing_feature, context, irrelevant, scenarios
+from utils import bug, missing_feature, context, irrelevant, scenarios
 
 parametrize = pytest.mark.parametrize
 
@@ -581,6 +581,11 @@ class Test_Headers_Precedence:
         )
 
     @enable_datadog_b3multi_tracecontext_extract_first_true()
+    @bug(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
+    @bug(
+        context.library < "golang@1.57.0",
+        reason="Legacy behaviour: tracecontext propagator would always take precedence",
+    )
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):
