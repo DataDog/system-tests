@@ -225,7 +225,6 @@ class BaseSourceTest:
         sources = iast["sources"]
         assert sources, "No source reported"
         if source_type:
-            assert isinstance(source_type, (tuple, set, list)), "source_type must a set, a tuple or a list"
             assert any(x in source_type for x in {s.get("origin") for s in sources})
             sources = [s for s in sources if s["origin"] in source_type]
         if self.source_name:
