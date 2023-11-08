@@ -27,8 +27,9 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 			pCtx = tracer.ContextWithSpan(context.Background(), parent.(ddtrace.Span))
 		}
 	}
-	var otelOpts = []otel_trace.SpanStartOption{
-		otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(args.GetSpanKind()))),
+	var otelOpts []otel_trace.SpanStartOption
+	if args.SpanKind != nil {
+		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(args.GetSpanKind()))))
 	}
 	if t := args.GetTimestamp(); t != 0 {
 		tm := time.UnixMicro(t)
