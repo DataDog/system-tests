@@ -13,4 +13,4 @@ class TestURI(BaseSourceTest):
     endpoint = "/iast/source/uri/test"
     requests_kwargs = [{"method": "GET"}]
     source_type = "http.request.uri"
-    source_value = None
+    source_value = endpoint

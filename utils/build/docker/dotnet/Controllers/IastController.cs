@@ -129,35 +129,19 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
-        
-        [HttpPost("source/parametername/test")]
-        public IActionResult parameterNameTestPost([FromForm] RequestData data)
-        {
-            try
-            {
-                System.Diagnostics.Process.Start(data.user);
-                
-                return Content("Ok");
-            }
-            catch(Exception ex)
-            {
-                return StatusCode(500, "NotOk");
-            }
-        }
 
-        [HttpGet("source/parametername/test")]
-        public IActionResult parameterNameTest(string user)
+        [HttpGet("insecure_cipher/test_insecure_algorithm")]
+        public IActionResult test_insecure_weakCipher()
         {
-            try
-            {
-                System.Diagnostics.Process.Start(Request.Query.First().Key);
-                
-                return Content("Ok");
-            }
-            catch(Exception ex)
-            {
-                return StatusCode(500, "NotOk");
-            }
+            DES.Create();
+            return StatusCode(200);
+        }
+        
+        [HttpGet("insecure_cipher/test_secure_algorithm")]
+        public IActionResult test_secure_weakCipher()
+        {
+            Aes.Create();
+            return StatusCode(200);
         }
 
         [HttpPost("cmdi/test_insecure")]
