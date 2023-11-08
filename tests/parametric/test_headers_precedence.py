@@ -33,18 +33,46 @@ def enable_datadog_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_datadog_b3multi_tracecontext() -> Any:
+def enable_datadog_b3multi_tracecontext_extract_first_false() -> Any:
+    env1 = {
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,b3multi,tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,b3multi,tracecontext",
+    }
+    env2 = {
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,b3multi,tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,b3multi,tracecontext",
+        "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "false",
+    }
+    return parametrize("library_env", [env1, env2])
+
+
+def enable_datadog_b3multi_tracecontext_extract_first_true() -> Any:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,b3multi,tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,b3multi,tracecontext",
+        "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
     }
     return parametrize("library_env", [env])
 
 
-def enable_tracecontext_datadog_b3multi() -> Any:
+def enable_tracecontext_datadog_b3multi_extract_first_false() -> Any:
+    env1 = {
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog,b3multi",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog,b3multi",
+    }
+    env2 = {
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog,b3multi",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog,b3multi",
+        "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "false",
+    }
+    return parametrize("library_env", [env1, env2])
+
+
+def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog,b3multi",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog,b3multi",
+        "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
     }
     return parametrize("library_env", [env])
 
@@ -535,7 +563,7 @@ class Test_Headers_Precedence:
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
-    @enable_datadog_b3multi_tracecontext()
+    @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library == "cpp", reason="c++ must implement new tracestate propagation")
     @missing_feature(context.library == "dotnet", reason="dotnet must implement new tracestate propagation")
     @missing_feature(context.library == "golang", reason="go must implement new tracestate propagation")
@@ -545,23 +573,39 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "python", reason="python must implement new tracestate propagation")
     @missing_feature(context.library == "python_http", reason="python must implement new tracestate propagation")
     @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
-    def test_headers_precedence_propagationstyle_tracecontext_last_correctly_propagates_tracestate(
+    def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):
         self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
-            test_agent, test_library, prefer_tracecontext=False
+            test_agent, test_library, prefer_tracecontext=False, extract_first=False
         )
 
-    @enable_tracecontext_datadog_b3multi()
-    def test_headers_precedence_propagationstyle_tracecontext_first_correctly_propagates_tracestate(
+    @enable_datadog_b3multi_tracecontext_extract_first_true()
+    def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):
         self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
-            test_agent, test_library, prefer_tracecontext=True
+            test_agent, test_library, prefer_tracecontext=False, extract_first=True
+        )
+
+    @enable_tracecontext_datadog_b3multi_extract_first_false()
+    def test_headers_precedence_propagationstyle_tracecontext_first_extract_first_false_correctly_propagates_tracestate(
+        self, test_agent, test_library
+    ):
+        self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
+            test_agent, test_library, prefer_tracecontext=True, extract_first=False
+        )
+
+    @enable_tracecontext_datadog_b3multi_extract_first_true()
+    def test_headers_precedence_propagationstyle_tracecontext_first_extract_first_true_correctly_propagates_tracestate(
+        self, test_agent, test_library
+    ):
+        self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
+            test_agent, test_library, prefer_tracecontext=True, extract_first=True
         )
 
     def _test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
-        self, test_agent, test_library, prefer_tracecontext
+        self, test_agent, test_library, prefer_tracecontext, extract_first
     ):
         """
         This test asserts that ALL the propagators are executed in the specified
@@ -652,13 +696,19 @@ class Test_Headers_Precedence:
         # Note: This is expected to be the most frequent case
         traceparent1, tracestate1 = get_tracecontext(headers1)
         assert traceparent1.trace_id == "11111111111111110000000000000001"
-        assert tracestate1["foo"] == "1"
+        if extract_first and not prefer_tracecontext:
+            assert "foo" not in tracestate1
+        else:
+            assert tracestate1["foo"] == "1"
 
         # 2) Scenario 1 but the x-datadog-tags mismatch somehow
         # Note: This is an exceptional case that should not happen, but we should be consistent
         traceparent2, tracestate2 = get_tracecontext(headers2)
         assert traceparent2.trace_id == "11111111111111110000000000000002"
-        assert tracestate2["foo"] == "1"
+        if extract_first and not prefer_tracecontext:
+            assert "foo" not in tracestate2
+        else:
+            assert tracestate2["foo"] == "1"
 
         if prefer_tracecontext:
             assert "s:2" not in tracestate2["dd"]
@@ -669,7 +719,10 @@ class Test_Headers_Precedence:
         # Note: This is an exceptional case that should not happen, but we should be consistent
         traceparent3, tracestate3 = get_tracecontext(headers3)
         assert traceparent3.trace_id == "11111111111111110000000000000003"
-        assert tracestate3["foo"] == "1"
+        if extract_first and not prefer_tracecontext:
+            assert "foo" not in tracestate3
+        else:
+            assert tracestate3["foo"] == "1"
 
         if prefer_tracecontext:
             assert "s:2" not in tracestate3["dd"]
@@ -680,7 +733,10 @@ class Test_Headers_Precedence:
         # Note: This happens when a W3C Proxy / Cloud Provider continues the W3C trace
         traceparent4, tracestate4 = get_tracecontext(headers4)
         assert traceparent4.trace_id == "11111111111111110000000000000004"
-        assert tracestate4["foo"] == "1"
+        if extract_first and not prefer_tracecontext:
+            assert "foo" not in tracestate4
+        else:
+            assert tracestate4["foo"] == "1"
 
         # 5) Datadog and tracecontext headers, trace-id is different, tracestate is present
         # Note: This happens when a W3C Proxy / Cloud Provider starts a new W3C trace,
