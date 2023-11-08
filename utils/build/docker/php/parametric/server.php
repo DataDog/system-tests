@@ -55,6 +55,23 @@ function arg($req, $arg) {
     return ($buffer[$req] ??= json_decode($req->getBody()->buffer(), true))[$arg] ?? null;
 }
 
+function remappedSpanKind($spanKind) {
+    switch ($spanKind) {
+        case 1: // SK_INTERNAL
+            return SpanKind::KIND_INTERNAL;
+        case 2: // SK_SERVER
+            return SpanKind::KIND_SERVER;
+        case 3: // SK_CLIENT
+            return SpanKind::KIND_CLIENT;
+        case 4: // SK_PRODUCER
+            return SpanKind::KIND_PRODUCER;
+        case 5: // SK_CONSUMER
+            return SpanKind::KIND_CONSUMER;
+        default:
+            return null;
+    }
+}
+
 $closed_spans = $spans = [];
 /** @var ScopeInterface[] $scopes */
 $scopes = [];
@@ -179,16 +196,9 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         $spanBuilder->setParent($contextWithParentSpan);
     }
 
-    if ($spanKind && in_array($spanKind - 1, [
-            SpanKind::KIND_INTERNAL,
-            SpanKind::KIND_CLIENT,
-            SpanKind::KIND_SERVER,
-            SpanKind::KIND_PRODUCER,
-            SpanKind::KIND_CONSUMER
-        ])) {
-        // otel_trace.py SK_.* ranges from 0 to 5, with 0 being SK_UNSPECIFIED, which doesn't exist in
-        // OpenTelemetry\API\Trace\SpanKind
-        $spanBuilder->setSpanKind($spanKind - 1);
+    $spanKind = remappedSpanKind($spanKind);
+    if ($spanKind) {
+        $spanBuilder->setSpanKind($spanKind);
     }
 
     if ($timestamp) {
