@@ -191,6 +191,10 @@ The endpoint executes a unique operation of String hashing with given algorithm 
 
 The endpoint executes a unique operation of String hashing with unsecure MD5 algorithm
 
+### GET /iast/hardcoded_secrets/test_insecure
+
+Parameterless endpoint. This endpoint contains a hardcoded secret. The declaration of the hardcoded secret should be sufficient to trigger the vulnerability, so returning it in the response is optional.
+
 ### \[GET, POST\] /iast/source/*
 
 This group of endpoints should trigger vulnerabilities detected by IAST with untrusted data coming from certain sources. The used vulnerability is irrelevant. It could be a command injection, SQL injection, or something else.
