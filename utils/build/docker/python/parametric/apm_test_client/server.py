@@ -161,7 +161,9 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
 
         ctx = otel_span.get_span_context()
         self._otel_spans[ctx.span_id] = otel_span
-        return apm_test_client_pb2.OtelStartSpanReturn(span_id=ctx.span_id, trace_id=_get_64_lowest_order_bits_as_int(ctx.trace_id))
+        return apm_test_client_pb2.OtelStartSpanReturn(
+            span_id=ctx.span_id, trace_id=_get_64_lowest_order_bits_as_int(ctx.trace_id)
+        )
 
     def OtelEndSpan(self, request, context):
         span = self._otel_spans.get(request.id)
