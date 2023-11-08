@@ -22,7 +22,7 @@ class TestParameterValue(BaseSourceTest):
         if context.library.library == "nodejs" or context.library.library == "dotnet"
         else "http.request.parameter"
     )
-    source_name = "table"
+    source_names = ["table"]
 
     def test_source_reported(self):
         # overwrite the base test, to handle the source_type spcial use case in node
