@@ -1,6 +1,9 @@
+from enum import Enum
 import json
 from utils import weblog, interfaces, context
 from utils.tools import logging
+
+DetectionStage = Enum("DetectionStage", ["REQUEST", "STARTUP"])
 
 
 def _get_expectation(d):
@@ -73,6 +76,8 @@ class BaseSinkTestWithoutTelemetry:
     insecure_request = None
     secure_request = None
 
+    detection_stage = DetectionStage.REQUEST
+
     @property
     def expected_location(self):
         return _get_expectation(self.location_map)
@@ -97,7 +102,7 @@ class BaseSinkTestWithoutTelemetry:
 
     def test_insecure(self):
         assert_iast_vulnerability(
-            request=self.insecure_request,
+            request=self.insecure_request if self.detection_stage == DetectionStage.REQUEST else None,
             vulnerability_count=1,
             vulnerability_type=self.vulnerability_type,
             expected_location=self.expected_location,
