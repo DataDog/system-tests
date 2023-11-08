@@ -225,7 +225,7 @@ class BaseSourceTest:
         sources = iast["sources"]
         assert sources, "No source reported"
         if source_type:
-            assert any(x in self.source_type for x in {s.get("origin") for s in sources})
+            assert any(x in source_type for x in {s.get("origin") for s in sources})
             sources = [s for s in sources if s["origin"] in self.source_type]
         if self.source_name:
             assert any(x in self.source_name for x in {s.get("name") for s in sources})
