@@ -195,6 +195,7 @@ class Test_128_Bit_Traceids:
 
         assert trace_id < POWER_2_64
         assert int(headers["x-datadog-trace-id"], 10) == trace_id
+        assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
         validate_dd_p_tid(dd_p_tid)
 
     @missing_feature(context.library == "cpp", reason="not implemented")
@@ -221,6 +222,7 @@ class Test_128_Bit_Traceids:
 
         assert trace_id < POWER_2_64
         assert int(headers["x-datadog-trace-id"], 10) == trace_id
+        assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
         validate_dd_p_tid(dd_p_tid)
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
