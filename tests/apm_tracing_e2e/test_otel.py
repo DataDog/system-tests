@@ -10,7 +10,7 @@ class Test_Otel_Span:
     def setup_datadog_otel_span(self):
         self.req = weblog.get(
             "/e2e_otel_span",
-            {"shouldIndex": 1, "parentName": "parent.span.otel", "childName": "otel-name.dd-resource"},
+            {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource", "childName": "otel-name.dd-resource"},
         )
 
     # Parent span will have the following traits :
@@ -27,7 +27,7 @@ class Test_Otel_Span:
         assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
-        parent = _get_span(spans, "parent.span.otel", "")
+        parent = _get_span(spans, "", "root-otel-name.dd-resource")
         assert parent.get("parentID") is None
         if parent.get("meta")["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
             assert parent.get("spanID") == "10000"
@@ -48,7 +48,8 @@ class Test_Otel_Span:
         assert 2 == len(spans), _assert_msg(2, len(spans))
 
     def setup_distributed_otel_trace(self):
-        self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"},)
+        self.req = weblog.get("/e2e_otel_span/mixed_contrib",
+                              {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"}, )
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
@@ -56,8 +57,8 @@ class Test_Otel_Span:
         assert 3 <= len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
-        parent = _get_span(spans, "parent.span.otel", "")
-        assert parent["name"] == "parent.span.otel"
+        parent = _get_span(spans, "", "root-otel-name.dd-resource")
+        assert parent["name"] == "otel_unknown"
         assert parent.get("parentID") is None
         assert parent["metrics"]["_dd.top_level"] == 1.0
 
