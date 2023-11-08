@@ -31,6 +31,8 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature            
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
@@ -826,6 +828,8 @@ tests/:
   integrations/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
+    test_crossed_integrations.py:
+      Test_PythonKafka: missing_feature
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
