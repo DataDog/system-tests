@@ -86,6 +86,10 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python_http", reason="New 'datadog' default hasn't been implemented yet")
     def test_headers_precedence_propagationstyle_default(self, test_agent, test_library):
+        self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
+
+    @enable_datadog()
+    def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
             headers1 = make_single_request_and_get_inject_headers(test_library, [])
@@ -314,108 +318,6 @@ class Test_Headers_Precedence:
         assert "x-datadog-trace-id" not in headers6
         assert "x-datadog-parent-id" not in headers6
         assert "x-datadog-sampling-priority" not in headers6
-
-    @enable_datadog()
-    def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
-        with test_library:
-            # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
-
-            # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
-            )
-
-            # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
-            )
-
-            # 4) Both tracecontext and Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
-                ],
-            )
-
-            # 5) Only Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
-                ],
-            )
-
-            # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
-                ],
-            )
-
-        # 1) No headers
-        # Result: new Datadog span context
-        assert "traceparent" not in headers1
-        assert "tracestate" not in headers1
-        assert "x-datadog-trace-id" in headers1
-        assert "x-datadog-parent-id" in headers1
-        assert "x-datadog-sampling-priority" in headers1
-
-        # 2) Only tracecontext headers
-        # Result: new Datadog span context
-        assert "traceparent" not in headers2
-        assert "tracestate" not in headers2
-        assert "x-datadog-trace-id" in headers2
-        assert "x-datadog-parent-id" in headers2
-        assert "x-datadog-sampling-priority" in headers2
-
-        # 3) Only tracecontext headers, includes existing tracestate
-        # Result: new Datadog span context
-        assert "traceparent" not in headers3
-        assert "tracestate" not in headers3
-        assert "x-datadog-trace-id" in headers3
-        assert "x-datadog-parent-id" in headers3
-        assert "x-datadog-sampling-priority" in headers3
-
-        # 4) Both tracecontext and Datadog headers
-        # Result: Datadog used
-        assert "traceparent" not in headers4
-        assert "tracestate" not in headers4
-        assert headers4["x-datadog-trace-id"] == "123456789"
-        assert "x-datadog-parent-id" in headers4
-        assert headers4["x-datadog-parent-id"] != "987654321"
-        assert headers4["x-datadog-sampling-priority"] == "-2"
-
-        # 5) Only Datadog headers
-        # Result: Datadog used
-        assert "traceparent" not in headers5
-        assert "tracestate" not in headers5
-        assert headers5["x-datadog-trace-id"] == "123456789"
-        assert "x-datadog-parent-id" in headers5
-        assert headers5["x-datadog-parent-id"] != "987654321"
-        assert headers5["x-datadog-sampling-priority"] == "-2"
-
-        # 6) Invalid tracecontext, valid Datadog headers
-        # Result: Datadog used
-        assert "traceparent" not in headers6
-        assert "tracestate" not in headers6
-        assert headers6["x-datadog-trace-id"] == "123456789"
-        assert "x-datadog-parent-id" in headers6
-        assert headers6["x-datadog-parent-id"] != "987654321"
-        assert headers6["x-datadog-sampling-priority"] == "-2"
 
     @enable_datadog_tracecontext()
     @missing_feature(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
