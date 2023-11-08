@@ -6,10 +6,6 @@
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
 
         command: |
-          echo "Usando apt:::"
+          echo "Who is using apt >>:"
           sudo ps aux | grep -i apt
-          echo "Usando apt-get:::"
-          sudo ps aux | grep -i apt-get
-          echo "Quien tiene bloqueado el archivo:::"
-          sudo lsof /var/lib/dpkg/lock-frontend
           cat docker-compose-agent-prod.yml

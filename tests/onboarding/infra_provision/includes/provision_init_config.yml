@@ -6,6 +6,8 @@
     sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
     sudo apt-get -y remove unattended-upgrades
     sudo apt-get -y remove update-manager
+    sudo systemctl stop apt-daily.service
+    sudo systemctl kill --kill-who=all apt-daily.service
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
  
 - os_type: linux
