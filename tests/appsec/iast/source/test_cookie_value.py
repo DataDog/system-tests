@@ -13,7 +13,7 @@ class TestCookieValue(BaseSourceTest):
     endpoint = "/iast/source/cookievalue/test"
     requests_kwargs = [{"method": "GET", "cookies": {"table": "user"}}]
     source_type = "http.request.cookie.value"
-    source_name = "table"
+    source_names = ["table"]
     source_value = "user"
 
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
