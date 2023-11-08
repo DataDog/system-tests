@@ -234,7 +234,9 @@ class BaseSourceTest:
         if self.source_value:
             assert self.source_value in {s.get("value") for s in sources}
             sources = [s for s in sources if s["value"] == self.source_value]
-        assert sources, f"No source found with origin={source_type}, name={self.source_names}, value={self.source_value}"
+        assert (
+            sources
+        ), f"No source found with origin={source_type}, name={self.source_names}, value={self.source_value}"
         assert len(sources) == 1, "Expected a single source with the matching criteria"
 
     setup_telemetry_metric_instrumented_source = setup_source_reported
