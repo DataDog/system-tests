@@ -197,6 +197,32 @@ class Test_128_Bit_Traceids:
         assert int(headers["x-datadog-trace-id"], 10) == trace_id
         validate_dd_p_tid(dd_p_tid)
 
+    @missing_feature(context.library == "cpp", reason="not implemented")
+    @missing_feature(context.library == "dotnet", reason="not implemented")
+    @missing_feature(context.library == "golang", reason="not implemented")
+    @missing_feature(context.library == "java", reason="not implemented")
+    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "php", reason="not implemented")
+    @missing_feature(context.library == "python", reason="not implemented")
+    @missing_feature(context.library == "python_http", reason="not implemented")
+    @missing_feature(context.library == "ruby", reason="not implemented")
+    @pytest.mark.parametrize(
+        "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog"}],
+    )
+    def test_datadog_128_bit_generation_enabled_by_default(self, test_agent, test_library):
+        """Ensure that 128-bit TraceIds are properly generated, propagated in
+        datadog headers, and populated in trace data.
+        """
+        with test_library:
+            headers = make_single_request_and_get_inject_headers(test_library, [])
+        span = get_span(test_agent)
+        trace_id = span.get("trace_id")
+        dd_p_tid = span["meta"].get("_dd.p.tid")
+
+        assert trace_id < POWER_2_64
+        assert int(headers["x-datadog-trace-id"], 10) == trace_id
+        validate_dd_p_tid(dd_p_tid)
+
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
