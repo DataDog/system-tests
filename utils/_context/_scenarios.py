@@ -27,7 +27,8 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
-    SqlDbTestedContainer,
+    # SqlDbTestedContainer,
+    BuddyContainer,
 )
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
@@ -324,6 +325,7 @@ class EndToEndScenario(_DockerScenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_buddies=False,
     ) -> None:
         super().__init__(
             name,
@@ -356,6 +358,20 @@ class EndToEndScenario(_DockerScenario):
         self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
 
+        # buddies are a set of weblog app that are not directly the test target
+        # but are used only to test feature that invlove another app with a datadog tracer
+        self.buddies: list[BuddyContainer] = []
+
+        if include_buddies:
+            # so far, only python is supported
+            self.buddies += [
+                BuddyContainer(
+                    "python_buddy", "datadog/system-tests:python_buddy-v0", self.host_log_folder, proxy_port=9001
+                ),
+            ]
+
+            self._required_containers += self.buddies
+
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
@@ -369,6 +385,11 @@ class EndToEndScenario(_DockerScenario):
         interfaces.library.configure(self.replay)
         interfaces.backend.configure(self.replay)
         interfaces.library_dotnet_managed.configure(self.replay)
+
+        for container in self.buddies:
+            # a little bit of python wizzardry to solve circular import
+            container.interface = getattr(interfaces, container.name)
+            container.interface.configure(self.replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -414,6 +435,9 @@ class EndToEndScenario(_DockerScenario):
         for interface in ("agent", "library", "backend"):
             self.create_log_subfolder(f"interfaces/{interface}")
 
+        for container in self.buddies:
+            self.create_log_subfolder(f"interfaces/{container.interface.name}")
+
     def _start_interface_watchdog(self):
         from utils import interfaces
 
@@ -438,6 +462,9 @@ class EndToEndScenario(_DockerScenario):
         observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library")
         observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
 
+        for container in self.buddies:
+            observer.schedule(Event(container.interface), path=container.interface._log_folder)
+
         observer.start()
 
     def _get_warmups(self):
@@ -460,6 +487,12 @@ class EndToEndScenario(_DockerScenario):
 
             logger.debug("Library ready")
 
+            for container in self.buddies:
+                if not container.interface.ready.wait(5):
+                    raise ValueError(f"{container.name} not ready")
+
+                logger.debug(f"{container.name} ready")
+
             if not interfaces.agent.ready.wait(40):
                 raise Exception("Datadog agent not ready")
             logger.debug("Agent ready")
@@ -475,6 +508,10 @@ class EndToEndScenario(_DockerScenario):
             interfaces.library.load_data_from_logs()
             interfaces.library.check_deserialization_errors()
 
+            for container in self.buddies:
+                container.interface.load_data_from_logs()
+                container.interface.check_deserialization_errors()
+
             interfaces.agent.load_data_from_logs()
             interfaces.agent.check_deserialization_errors()
 
@@ -484,6 +521,12 @@ class EndToEndScenario(_DockerScenario):
             self._wait_interface(interfaces.library, self.library_interface_timeout)
             self.weblog_container.stop()
             interfaces.library.check_deserialization_errors()
+
+            for container in self.buddies:
+                # we already have waited for self.library_interface_timeout, so let's timeout=0
+                self._wait_interface(container.interface, 0)
+                container.stop()
+                container.interface.check_deserialization_errors()
 
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
             self.agent_container.stop()
@@ -984,6 +1027,13 @@ class scenarios:
         include_mysql_db=True,
         include_sqlserver=True,
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
+    )
+
+    crossed_tracing_libraries = EndToEndScenario(
+        "CROSSED_TRACING_LIBRARIES",
+        include_kafka=True,
+        include_buddies=True,
+        doc="Spawns a buddy for each supported language of APM",
     )
 
     otel_integrations = OpenTelemetryScenario(
