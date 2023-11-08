@@ -12,9 +12,11 @@
     sudo systemctl stop apt-daily.service
     sudo systemctl kill --kill-who=all apt-daily.service
     # wait until `apt-get updated` has been killed
+    start=$EPOCHSECONDS
     while ! (systemctl list-units --all apt-daily.service | egrep -q '(dead|failed)')
     do
       sleep 1;
+      if (( EPOCHSECONDS-start > 60 )); then break; fi
     done
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
  
