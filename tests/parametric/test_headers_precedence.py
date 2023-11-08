@@ -207,6 +207,8 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
+    @bug(context.library == "cpp", reason="Issue: traceparent not being injected")
+    @bug(context.library == "nodejs", reason="Issue: headers4 is incorrectly using the x-datadog-trace-id by default")
     @missing_feature(
         context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration"
     )
@@ -477,6 +479,8 @@ class Test_Headers_Precedence:
         assert "x-datadog-parent-id" not in headers6
         assert "x-datadog-sampling-priority" not in headers6
 
+    @missing_feature(context.library == "ruby", reason="library does not yet implement this default configuration")
+    @missing_feature(context.library == "java", reason="library does not yet implement this default configuration")
     @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
     @irrelevant(context.library == "dotnet", reason="library does not implement this default configuration")
     @irrelevant(context.library == "golang", reason="library does not implement this default configuration")
