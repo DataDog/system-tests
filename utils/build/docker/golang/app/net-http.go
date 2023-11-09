@@ -118,7 +118,6 @@ func main() {
 
 	mux.HandleFunc("/kafka/produce", func(w http.ResponseWriter, r *http.Request) {
 		var server = "kafka:9092"
-		var topic = "DistributedTracing"
 		var message = "Test"
 
 		cfg := sarama.NewConfig()
@@ -133,18 +132,20 @@ func main() {
 		producer = saramatrace.WrapSyncProducer(cfg, producer)
 
 		msg := &sarama.ProducerMessage{
-			Topic: topic,
+			Topic: "DistributedTracing",
+			Partition: 0,
 			Value: sarama.StringEncoder(message),
 		}
 
-		_, _, err = producer.SendMessage(msg)
+		partition, offset, err := producer.SendMessage(msg)
+
+		log.Printf("PRODUCER SENT MESSAGE TO (partition offset): ", partition, " ", offset)
 
 		w.Write([]byte("OK"))
 	})
 
 	mux.HandleFunc("/kafka/consume", func(w http.ResponseWriter, r *http.Request) {
 		var server = "kafka:9092"
-		var topic = "DistributedTracing"
 		cfg := sarama.NewConfig()
 
 		consumer, err := sarama.NewConsumer([]string{server}, cfg)
@@ -156,7 +157,7 @@ func main() {
 
 		consumer = saramatrace.WrapConsumer(consumer)
 
-		partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetNewest)
+		partitionConsumer, err := consumer.ConsumePartition("DistributedTracing", 0, sarama.OffsetOldest)
 
 		if err != nil {
 			panic(err)
@@ -165,15 +166,15 @@ func main() {
 		defer partitionConsumer.Close()
 
 		// Added a time to avoid this issue: https://github.com/IBM/sarama/issues/2116
-		timeOutTimer := time.NewTimer(time.Second)
+		timeOutTimer := time.NewTimer(time.Second * 20)
 		defer timeOutTimer.Stop()
-
+		log.Printf("CONSUMING MESSAGES...")
 		ConsumeMessages:
 			for {
-				timeOutTimer.Reset(time.Second)
+				timeOutTimer.Reset(time.Second * 20)
 				select {
 				case receivedMsg := <-partitionConsumer.Messages():
-					log.Printf(string(receivedMsg.Offset))
+					log.Printf("THE MESSAGE: ", string(receivedMsg.Offset), " - ", string(receivedMsg.Value))
 					continue
 				case <-timeOutTimer.C:
 					break ConsumeMessages
