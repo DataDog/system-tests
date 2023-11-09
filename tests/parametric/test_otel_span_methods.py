@@ -110,7 +110,7 @@ class Test_Otel_Span_Methods:
 
         assert root_span["meta"]["str_val"] == "val"
         assert root_span["meta"]["str_val_empty"] == ""
-        if root_span["meta"]["language"] == "go":
+        if "language" in root_span["meta"] and root_span["meta"]["language"] == "go":
             # in line with the standard Datadog tracing library tags
             assert root_span["meta"]["bool_val"] == "true"
             assert root_span["meta"]["d_bool_val"] == "false"
@@ -118,14 +118,14 @@ class Test_Otel_Span_Methods:
             assert root_span["meta"]["array_val_str"] == "[val1 val2]"
             assert root_span["meta"]["array_val_int"] == "[10 20]"
             assert root_span["meta"]["array_val_double"] == "[10.1 20.2]"
-        elif root_span["meta"]["language"] == "jvm":
+        elif "language" in root_span["meta"] and root_span["meta"]["language"] == "jvm":
             assert root_span["meta"]["bool_val"] == "true"
             assert root_span["meta"]["array_val_bool"] == "[true, false]"
             assert root_span["meta"]["array_val_str"] == "[val1, val2]"
             assert root_span["meta"]["d_bool_val"] == "false"
             assert root_span["meta"]["array_val_int"] == "[10, 20]"
             assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
-        elif root_span["meta"]["language"] == "dotnet":
+        elif "language" in root_span["meta"] and root_span["meta"]["language"] == "dotnet":
             assert root_span["meta"]["bool_val"] == "true"
             assert root_span["meta"]["array_val_bool"] == "[true,false]"
             assert root_span["meta"]["array_val_str"] == '["val1","val2"]'
