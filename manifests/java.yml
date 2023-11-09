@@ -843,6 +843,7 @@ tests/:
         spring-boot-wildfly: missing_feature (Endpoint not implemented)        
         vertx3: missing_feature (Endpoint not implemented)
         vertx4: missing_feature (Endpoint not implemented)
+        spring-boot-3-native: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
