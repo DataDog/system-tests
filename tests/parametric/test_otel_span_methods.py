@@ -104,7 +104,6 @@ class Test_Otel_Span_Methods:
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
-        print(root_span["meta"])
 
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
