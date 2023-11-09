@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import coverage, weblog, interfaces, scenarios
-from utils._context.header_tag_vars import Header_Value, Config, Tag, Header_Name, Header_Value
+from utils._context.header_tag_vars import *
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @coverage.basic
@@ -24,14 +24,15 @@ class Test_HeaderTags_Short:
     """Validates that the short, header name only, format for specifying headers correctly tags spans"""
 
     def setup_trace_header_tags(self):
-        self.name = self.__class__.__name__  # Test_HeaderTags_Short
-        self.headers = {Header_Name(self.name): Header_Value(self.name)}
+        self.headers = {HEADER_NAME_SHORT: HEADER_VAL_BASIC}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tags = {Tag(self.name): Header_Value(self.name)}
+        tags = {TAG_SHORT: HEADER_VAL_BASIC}
 
-        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            for tag in tags:
+                assert tag in span["meta"]
 
 
 @coverage.basic
@@ -40,14 +41,15 @@ class Test_HeaderTags_Long:
     """Validates that input in `<header>:<tag_name>` format correctly tags spans"""
 
     def setup_trace_header_tags(self):
-        self.name = self.__class__.__name__  # Test_HeaderTags_Long
-        self.headers = {Header_Name(self.name): Header_Value(self.name)}
+        self.headers = {HEADER_NAME_LONG: HEADER_VAL_BASIC}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tags = {Tag(self.name): Header_Value(self.name)}
+        tags = {TAG_LONG: HEADER_VAL_BASIC}
 
-        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            for tag in tags:
+                assert tag in span["meta"]
 
 
 @coverage.basic
@@ -57,14 +59,15 @@ class Test_HeaderTags_Whitespace_Header:
     e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header' """
 
     def setup_trace_header_tags(self):
-        self.name = self.__class__.__name__  # Test_HeaderTags_Whitespace_Header
-        self.headers = {Header_Name(self.name): Header_Value(self.name)}
+        self.headers = {HEADER_NAME_WHITESPACE_HEADER: HEADER_VAL_BASIC}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tags = {Tag(self.name).strip(): Header_Value(self.name)}
+        tags = {TAG_WHITESPACE_HEADER: HEADER_VAL_BASIC}
 
-        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            for tag in tags:
+                assert tag in span["meta"]
 
 
 @coverage.basic
@@ -74,14 +77,15 @@ class Test_HeaderTags_Whitespace_Tag:
     trimmed on mapping parts, but whitespaces in between non-whitespace chars are left in-tact."""
 
     def setup_trace_header_tags(self):
-        self.name = self.__class__.__name__  # Test_HeaderTags_Whitespace_Tag
-        self.headers = {Header_Name(self.name): Header_Value(self.name)}
+        self.headers = {HEADER_NAME_WHITESPACE_TAG: HEADER_VAL_BASIC}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tags = {Tag(self.name).strip(): Header_Value(self.name)}
+        tags = {TAG_WHITESPACE_TAG : HEADER_VAL_BASIC}
 
-        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            for tag in tags:
+                assert tag in span["meta"]
 
 
 @coverage.basic
@@ -91,14 +95,15 @@ class Test_HeaderTags_Whitespace_Val_Short:
     but leading/trailing whitespace is stripped, using short form input"""
 
     def setup_trace_header_tags(self):
-        self.name = self.__class__.__name__  # Test_HeaderTags_Whitespace_Val_Short
-        self.headers = {Header_Name(self.name): Header_Value(self.name)}
+        self.headers = {HEADER_NAME_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tags = {Tag(self.name): Header_Value(self.name).strip()}
+        tags = {TAG_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT.strip()}
 
-        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            for tag in tags:
+                assert tag in span["meta"]
 
 
 @coverage.basic
@@ -108,14 +113,15 @@ class Test_HeaderTags_Whitespace_Val_Long:
     but leading/trailing whitespace is stripped, using long form input"""
 
     def setup_trace_header_tags(self):
-        self.name = self.__class__.__name__  # Test_HeaderTags_Whitespace_Val_Long
-        self.headers = {Header_Name(self.name): Header_Value(self.name)}
+        self.headers = {HEADER_NAME_WHITESPACE_VAL_LONG: HEADER_VAL_WHITESPACE_VAL_LONG}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tags = {Tag(self.name): Header_Value(self.name).strip()}
+        tags = {TAG_WHITESPACE_VAL_LONG: HEADER_VAL_WHITESPACE_VAL_LONG.strip()}
 
-        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            for tag in tags:
+                assert tag in span["meta"]
 
 
 @coverage.basic
@@ -124,20 +130,20 @@ class Test_HeaderTags_Colon_Leading:
     """ Validates that Input to DD_TRACE_HEADER_TAGS with leading colon results in 0 additional span tags """
 
     def setup_trace_header_tags(self):
-        self.name = self.__class__.__name__  # Test_HeaderTags_Colon_Leading
-        self.headers = {Header_Name(self.name): Header_Value(self.name)}
+        self.headers = {HEADER_NAME_COLON_LEADING: HEADER_VAL_BASIC}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
         nottags = [
-            Header_Name(self.name),
-            Tag(self.name),
-            Config(self.name).split(":")[0],
-            Config(self.name).split(":")[1],
+            HEADER_NAME_COLON_LEADING,
+            TAG_COLON_LEADING,
+            CONFIG_COLON_LEADING.split(":")[0],
+            CONFIG_COLON_LEADING.split(":")[1],
         ]
 
-        interfaces.library.add_not_span_tag_validation(request=self.r, nottags=nottags)
-
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            for tag in nottags:
+                assert tag not in span["meta"]
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
@@ -145,16 +151,17 @@ class Test_HeaderTags_Colon_Trailing:
     """ Validates that Input to DD_TRACE_HEADER_TAGS with trailing colon results in 0 additional span tags """
 
     def setup_trace_header_tags(self):
-        self.name = self.__class__.__name__  # Test_HeaderTags_Colon_Trailing
-        self.headers = {Header_Name(self.name): Header_Value(self.name)}
+        self.headers = {HEADER_NAME_COLON_TRAILING: HEADER_VAL_BASIC}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
         nottags = [
-            Header_Name(self.name),
-            Tag(self.name),
-            Config(self.name).split(":")[0],
-            Config(self.name).split(":")[1],
+            HEADER_NAME_COLON_TRAILING,
+            TAG_COLON_TRAILING,
+            CONFIG_COLON_TRAILING.split(":")[0],
+            CONFIG_COLON_TRAILING.split(":")[1],
         ]
 
-        interfaces.library.add_not_span_tag_validation(request=self.r, nottags=nottags)
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            for tag in nottags:
+                assert tag not in span["meta"]

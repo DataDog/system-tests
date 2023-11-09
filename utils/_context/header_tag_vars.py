@@ -1,51 +1,40 @@
-prefix = "http.request.headers."
+PREFIX = "http.request.headers."
 
+HEADER_VAL_BASIC = "val"
 
-class TestData:
-    def __init__(self, header, value, config, tag):
-        self.header = header
-        self.value = value
-        self.config = config
-        self.tag = tag
+HEADER_NAME_SHORT = "header1"
+CONFIG_SHORT = "header1"
+TAG_SHORT = "http.request.headers.header1"
 
+HEADER_NAME_LONG = "header2"
+CONFIG_LONG = "header2:mapped-header"
+TAG_LONG = "mapped-header"
 
-header_tag_tests = {
-    "Test_HeaderTags_Short": TestData(header="header1", value="val", config="header1", tag=prefix + "header1"),
-    "Test_HeaderTags_Long": TestData(
-        header="header2", value="val", config="header2:mapped-header", tag="mapped-header"
-    ),
-    "Test_HeaderTags_Whitespace_Header": TestData(
-        header="header3", value="val", config=" header3 ", tag=prefix + "header3"
-    ),
-    "Test_HeaderTags_Whitespace_Tag": TestData(header="header4", value="val", config="header4: t a g ", tag="t a g"),
-    "Test_HeaderTags_Whitespace_Val_Short": TestData(
-        header="header5", value=" v a l ", config="header5", tag=prefix + "header5"
-    ),
-    "Test_HeaderTags_Whitespace_Val_Long": TestData(header="header6", value=" v a l ", config="header6:tag", tag="tag"),
-    "Test_HeaderTags_Colon_Leading": TestData(header="header7", value="val", config=":header7", tag=None),
-    "Test_HeaderTags_Colon_Trailing": TestData(header="header8", value="val", config="header8:", tag=None),
-}
+HEADER_NAME_WHITESPACE_HEADER = "header3"
+CONFIG_WHITESPACE_HEADER = " header3 "
+TAG_WHITESPACE_HEADER = "http.request.headers.header3"
 
-# I'm unclear on the "Python way" to do getters, LMK.
-# I see using decorators? - https://stackoverflow.com/questions/2627002/whats-the-pythonic-way-to-use-getters-and-setters
-def Header_Name(test_name):
-    return header_tag_tests[test_name].header
+HEADER_NAME_WHITESPACE_TAG = "header4"
+CONFIG_WHITESPACE_TAG = "header4: t a g "
+TAG_WHITESPACE_TAG = "t a g"
 
+HEADER_NAME_WHITESPACE_VAL_SHORT = "header5"
+CONFIG_WHITESPACE_VAL_SHORT = "header5"
+TAG_WHITESPACE_VAL_SHORT = "http.request.headers.header5"
+HEADER_VAL_WHITESPACE_VAL_SHORT = " v a l "
 
-def Header_Value(test_name):
-    return header_tag_tests[test_name].value
+HEADER_NAME_WHITESPACE_VAL_LONG = "header6"
+CONFIG_WHITESPACE_VAL_LONG = "header6:tag"
+TAG_WHITESPACE_VAL_LONG = "tag"
+HEADER_VAL_WHITESPACE_VAL_LONG = " v a l "
 
+HEADER_NAME_COLON_LEADING = "header7"
+CONFIG_COLON_LEADING = ":header7"
+TAG_COLON_LEADING = None
 
-def Config(test_name):
-    return header_tag_tests[test_name].config
-
-
-def Tag(test_name):
-    return header_tag_tests[test_name].tag
-
+HEADER_NAME_COLON_TRAILING = "header8"
+CONFIG_COLON_TRAILING = "header8:"
+TAG_COLON_TRAILING = None 
 
 def All_Configs():
-    configs = []
-    for k in header_tag_tests.keys():
-        configs.append(header_tag_tests[k].config)
-    return configs
+    return [CONFIG_SHORT, CONFIG_LONG, CONFIG_WHITESPACE_HEADER, CONFIG_WHITESPACE_TAG, CONFIG_WHITESPACE_VAL_SHORT, CONFIG_WHITESPACE_VAL_LONG, CONFIG_COLON_LEADING, CONFIG_COLON_TRAILING]

@@ -10,7 +10,7 @@ from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
-from utils.interfaces._library.miscs import _SpanTagValidator, _NotSpanTagValidator
+from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
@@ -291,15 +291,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
         validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
-        success = False
-        for _, _, span in self.get_spans(request=request):
-            success = success or validator(span)
-
-        if not success:
-            raise ValueError("Can't find anything to validate this test")
-
-    def add_not_span_tag_validation(self, request=None, nottags=None):
-        validator = _NotSpanTagValidator(nottags=nottags)
         success = False
         for _, _, span in self.get_spans(request=request):
             success = success or validator(span)

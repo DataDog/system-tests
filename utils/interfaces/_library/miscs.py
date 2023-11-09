@@ -32,19 +32,3 @@ class _SpanTagValidator:
                     raise ValueError(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
 
         return True
-
-
-class _NotSpanTagValidator:
-    """ Validates that values in the `nottags` list do not exist as span tags """
-
-    path_filters = ["/v0.4/traces", "/v0.5/traces"]
-
-    def __init__(self, nottags):
-        self.nottags = [] if nottags is None else nottags
-
-    def __call__(self, span):
-        for tagKey in self.nottags:
-            if tagKey in span["meta"]:
-                raise ValueError(f"{tagKey} tag found in span's meta")
-
-        return True
