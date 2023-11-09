@@ -66,7 +66,7 @@ class Test_Otel_Span_Methods:
         assert root_span["resource"] == "parent_span"
         assert root_span["service"] == "new_service"
 
-    @missing_feature(
+    @irrelevant(
         context.library == "java",
         reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
     )
@@ -439,7 +439,7 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
+    @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
