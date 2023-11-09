@@ -36,7 +36,8 @@ class Test_PythonKafka:
                 if span_kind != span["meta"].get("span.kind"):
                     continue
 
-                if topic != span["meta"].get("kafka.topic"):
+                # dd-trace-java does not add kafka.topic to its kafka.produce spans
+                if "java" not in span["meta"]["component"] and topic != span["meta"].get("kafka.topic"):
                     continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
@@ -131,7 +132,6 @@ class Test_PythonKafka:
 
         producer_span = self.get_span(producer_interface, span_kind="producer", topic=topic)
         consumer_span = self.get_span(consumer_interface, span_kind="consumer", topic=topic)
-
         # check that both consumer and producer spans exists
         assert producer_span is not None
         assert consumer_span is not None
