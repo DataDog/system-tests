@@ -829,7 +829,15 @@ tests/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_crossed_integrations.py:
-      Test_PythonKafka: v0.1 # real version not known
+      Test_PythonKafka:
+        '*': v0.1 # real version not known
+        akka-http: missing_feature (Endpoint not implemented)
+        jersey-grizzly2: missing_feature (Endpoint not implemented)
+        play: missing_feature (Endpoint not implemented)
+        ratpack: missing_feature (Endpoint not implemented)
+        resteasy-netty3: missing_feature (Endpoint not implemented)
+        vertx3: missing_feature (Endpoint not implemented)
+        vertx4: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
