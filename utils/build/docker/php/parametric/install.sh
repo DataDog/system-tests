@@ -19,8 +19,7 @@ if [ "$PKG" == "" ]; then
   else
     ARCH=x86_64
   fi
-  curl -LO https://output.circle-artifacts.com/output/job/18f81205-82db-4718-9471-f48fa3f7359a/artifacts/0/datadog-setup.php
-#  curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
+  curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
   SETUP=datadog-setup.php
   unset PKG
 fi
