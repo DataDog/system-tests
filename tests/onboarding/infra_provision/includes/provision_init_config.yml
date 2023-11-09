@@ -5,8 +5,7 @@
     #Disable auto updates. It could raise problems if the update proccess is launched just when we are trying to install de software 
     sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
     sudo sed -i 's/1/0/g'  /etc/apt/apt.conf.d/10periodic || true
-    sudo apt-get -y remove unattended-upgrades || true
-    sudo apt-get -y remove update-manager || true
+ 
     sudo rm -rf /etc/cron.daily/update-notifier-common || true
     sudo rm -rf /etc/cron.weekly/update-notifier-common || true
     sudo systemctl disable --now apt-daily.service
@@ -22,6 +21,9 @@
       sleep 1;
       if (( EPOCHSECONDS-start > 60 )); then break; fi
     done
+
+    sudo apt-get -y remove unattended-upgrades || true
+    sudo apt-get -y remove update-manager || true
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
  
 - os_type: linux

@@ -123,14 +123,6 @@ class TestedVirtualMachine:
                 prepare_repos_installer,
                 scenario_name=self.provision_scenario,
             )
-            if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
-                prepare_docker_installer = remote_docker_login(
-                    "docker-login_" + self.name,
-                    self.datadog_config.docker_login,
-                    self.datadog_config.docker_login_pass,
-                    connection,
-                    prepare_docker_installer,
-                )
 
             # Install language variants (not mandatory)
             if "install" in self.language_variant_install_data:
@@ -160,6 +152,16 @@ class TestedVirtualMachine:
 
         else:
             logger.info("Using a previously existing AMI")
+
+        # Docker login if we need (avoid too many requests)
+        if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
+            prepare_docker_installer = remote_docker_login(
+                "docker-login_" + self.name,
+                self.datadog_config.docker_login,
+                self.datadog_config.docker_login_pass,
+                connection,
+                prepare_docker_installer,
+            )
 
         # Install agent. If we are using agent autoinstall script, agent install info will be empty, due to we load the install process on auto injection node
         if "install" in self.agent_install_data:
