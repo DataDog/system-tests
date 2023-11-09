@@ -13,7 +13,7 @@ from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 
 # from utils._context.header_tag_vars import Header_Tags
-from utils._context.header_tag_vars import All_Configs
+from utils._context.header_tag_vars import ALL_CONFIGS
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
@@ -1319,7 +1319,7 @@ class scenarios:
 
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
-        additional_trace_header_tags=(All_Configs()),
+        additional_trace_header_tags=(ALL_CONFIGS),
         doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")

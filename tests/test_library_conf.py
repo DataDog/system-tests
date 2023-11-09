@@ -81,7 +81,7 @@ class Test_HeaderTags_Whitespace_Tag:
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tags = {TAG_WHITESPACE_TAG : HEADER_VAL_BASIC}
+        tags = {TAG_WHITESPACE_TAG: HEADER_VAL_BASIC}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
@@ -144,6 +144,7 @@ class Test_HeaderTags_Colon_Leading:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             for tag in nottags:
                 assert tag not in span["meta"]
+
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
