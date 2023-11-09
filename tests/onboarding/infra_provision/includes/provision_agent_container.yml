@@ -5,7 +5,4 @@
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
 
-        command: |
-          echo "Who is using apt >>:"
-          sudo ps aux | grep -i apt
-          cat docker-compose-agent-prod.yml
+        command: cat docker-compose-agent-prod.yml

@@ -155,12 +155,12 @@ class TestedVirtualMachine:
 
         # Docker login if we need (avoid too many requests)
         if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
-            prepare_docker_installer = remote_docker_login(
+            main_task_dep = remote_docker_login(
                 "docker-login_" + self.name,
                 self.datadog_config.docker_login,
                 self.datadog_config.docker_login_pass,
                 connection,
-                prepare_docker_installer,
+                main_task_dep,
             )
 
         # Install agent. If we are using agent autoinstall script, agent install info will be empty, due to we load the install process on auto injection node
