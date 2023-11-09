@@ -104,6 +104,7 @@ class Test_Otel_Span_Methods:
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
+        print(root_span["meta"])
 
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
@@ -132,6 +133,13 @@ class Test_Otel_Span_Methods:
             assert root_span["meta"]["d_bool_val"] == "false"
             assert root_span["meta"]["array_val_int"] == "[10,20]"
             assert root_span["meta"]["array_val_double"] == "[10.1,20.2]"
+        elif context.library == "php":
+            assert root_span["meta"]["bool_val"] == "true"
+            assert root_span["meta"]["array_val_bool"] == "[true,false]"
+            assert root_span["meta"]["array_val_str"] == '["val1", "val2"]'
+            assert root_span["meta"]["d_bool_val"] == "false"
+            assert root_span["meta"]["array_val_int"] == "[10, 20]"
+            assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
         else:
             assert root_span["meta"]["bool_val"] == "True"
             assert root_span["meta"]["array_val_bool"] == "[True, False]"
