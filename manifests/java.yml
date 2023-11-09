@@ -3,11 +3,11 @@ tests/:
     test_otel.py:
       Test_Otel_Span:
         '*': missing_feature (/e2e_otel_span endpoint is only implemented in Java Spring Boot at the moment)
-        spring-boot: v0.1 # real version not known
+        spring-boot:  v0.1 # real version not known
     test_single_span.py:
       Test_SingleSpan:
         '*': missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
-        spring-boot: v0.1 # real version not known
+        spring-boot:  v0.1 # real version not known
   appsec/:
     api_security/:
       test_schemas.py:
@@ -32,7 +32,7 @@ tests/:
             vertx3: v1.12.0
             vertx4: v1.12.0
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature
+          Test_HardcodedSecrets: missing_feature            
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
@@ -74,7 +74,7 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection: missing_feature            
         test_path_traversal.py:
           TestPathTraversal:
             '*': v1.1.0
@@ -106,7 +106,7 @@ tests/:
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
-          TestUnvalidatedHeader:
+          TestUnvalidatedHeader: 
             '*': v1.16.0
             akka-http: missing_feature
             play: missing_feature
@@ -149,12 +149,12 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
-            '*': 'missing_feature'
-            sping-boot-undertow: 'bug (APPSEC-11353)'
-            spring-boot: 'bug (APPSEC-11353)'
-            spring-boot-jetty: 'bug (APPSEC-11353)'
-            spring-boot-wildfly: 'bug (APPSEC-11353)'
-            uds-spring-boot: 'bug (APPSEC-11353)'
+            "*": "missing_feature"
+            sping-boot-undertow: "bug (APPSEC-11353)"
+            spring-boot: "bug (APPSEC-11353)"
+            spring-boot-jetty: "bug (APPSEC-11353)"
+            spring-boot-wildfly: "bug (APPSEC-11353)"
+            uds-spring-boot: "bug (APPSEC-11353)"
         test_xpath_injection.py:
           TestXPathInjection:
             '*': v1.18.0
@@ -276,8 +276,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (No AppSec support)
           vertx3: v0.99.0
-          vertx4:
-            bug (Capability to read body content is incomplete after vert.x
+          vertx4: bug (Capability to read body content is incomplete after vert.x
             4.0.0)
         Test_BodyRaw:
           '*': missing_feature
@@ -302,8 +301,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (No AppSec support)
           vertx3: missing_feature
-          vertx4:
-            bug (Capability to read body content is incomplete after vert.x
+          vertx4: bug (Capability to read body content is incomplete after vert.x
             4.0.0)
         Test_ClientIP: missing_feature
         Test_Cookies:
@@ -356,7 +354,7 @@ tests/:
           play: irrelevant
           ratpack: irrelevant
           resteasy-netty3: irrelevant
-          spring-boot: v0.109.0 # APPSEC-5426
+          spring-boot: v0.109.0  # APPSEC-5426
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (No AppSec support)
           vertx3: irrelevant
@@ -508,7 +506,7 @@ tests/:
         play: v1.22.0
         ratpack: v1.6.0
         resteasy-netty3: v1.7.0
-        spring-boot: v0.111.0 # initially v0.110.0, but was bugged
+        spring-boot: v0.111.0  # initially v0.110.0, but was bugged
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0
@@ -535,7 +533,7 @@ tests/:
         spring-boot: v0.110.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
-        spring-boot-openliberty: v0.115.0 # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
         spring-boot-payara: missing_feature (Missing support)
         spring-boot-undertow: v0.111.0
         vertx3: v1.7.0
@@ -550,7 +548,7 @@ tests/:
         spring-boot: v0.110.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
-        spring-boot-openliberty: v0.115.0 # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
         spring-boot-payara: missing_feature (Missing support)
         spring-boot-undertow: v0.111.0
         vertx3: v1.7.0
@@ -565,7 +563,7 @@ tests/:
         spring-boot: v0.110.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
-        spring-boot-openliberty: v0.115.0 # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
         spring-boot-undertow: v0.111.0
         vertx3: v1.7.0
         vertx4: v1.7.0
@@ -585,7 +583,7 @@ tests/:
         spring-boot: v0.110.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
-        spring-boot-openliberty: v0.115.0 # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
         spring-boot-payara: missing_feature (Missing support)
         spring-boot-undertow: v0.111.0
         vertx3: v1.7.0
@@ -600,7 +598,7 @@ tests/:
         spring-boot: v0.110.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
-        spring-boot-openliberty: v0.115.0 # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
         spring-boot-undertow: v0.111.0
         vertx3: v1.7.0
         vertx4: v1.7.0
@@ -703,8 +701,7 @@ tests/:
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist:
-        bug (RC payload limit)
+      Test_AppSecIPBlockingFullDenylist: bug (RC payload limit)
         # '*': missing_feature
         # jersey-grizzly2: v1.7.0
         # ratpack: v1.7.0
@@ -729,7 +726,7 @@ tests/:
       Test_AttackTimestamp:
         akka-http: v1.22.0
         spring-boot-payara: missing_feature (No AppSec support)
-      Test_ExtraTagsFromRule: v1.22.0 # Supported since v1.22.0
+      Test_ExtraTagsFromRule: v1.22.0    # Supported since v1.22.0
       Test_HttpClientIP:
         '*': v0.98.1
         akka-http: v1.22.0
@@ -798,8 +795,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (No AppSec support)
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist:
-        bug (RC payload limit)
+      Test_UserBlocking_FullDenylist: bug (RC payload limit)
         # '*': missing_feature
         # jersey-grizzly2: v1.7.0
         # ratpack: v1.7.0
@@ -815,20 +811,20 @@ tests/:
     test_debugger.py:
       Test_Debugger_Line_Probe_Snaphots:
         '*': missing_feature
-        spring-boot: v0.1 # real version not known
-        uds-spring-boot: v0.1 # real version not known
+        spring-boot: v0.1  # real version not known
+        uds-spring-boot: v0.1  # real version not known
       Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
-        spring-boot: v0.1 # real version not known
-        uds-spring-boot: v0.1 # real version not known
+        spring-boot: v0.1  # real version not known
+        uds-spring-boot: v0.1  # real version not known
       Test_Debugger_Mix_Log_Probe:
         '*': missing_feature
-        spring-boot: v0.1 # real version not known
-        uds-spring-boot: v0.1 # real version not known
+        spring-boot: v0.1  # real version not known
+        uds-spring-boot: v0.1  # real version not known
       Test_Debugger_Probe_Statuses:
         '*': missing_feature
-        spring-boot: v0.1 # real version not known
-        uds-spring-boot: v0.1 # real version not known
+        spring-boot: v0.1  # real version not known
+        uds-spring-boot: v0.1  # real version not known
   integrations/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)

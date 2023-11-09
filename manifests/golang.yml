@@ -3,11 +3,11 @@ tests/:
     test_otel.py:
       Test_Otel_Span:
         '*': missing_feature (missing /e2e_otel_span endpoint on weblog)
-        net-http: v0.1 # real version not known
+        net-http: v0.1  # real version not known
     test_single_span.py:
       Test_SingleSpan:
         '*': missing_feature (missing /e2e_otel_span endpoint on weblog)
-        chi: v0.1 # real version not known
+        chi: v0.1  # real version not known
   appsec/:
     api_security/:
       test_schemas.py:
@@ -23,8 +23,8 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature
-        test_hsts_missing_header.py:
+          Test_HardcodedSecrets: missing_feature          
+        test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
@@ -56,7 +56,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature
+          Test_XContentSniffing: missing_feature        
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:

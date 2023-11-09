@@ -19,8 +19,8 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: v2.28.0
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature
-        test_hsts_missing_header.py:
+          Test_HardcodedSecrets: missing_feature             
+        test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
@@ -35,8 +35,8 @@ tests/:
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
         test_sql_injection.py:
-          TestSqlInjection:
-            '*': v2.23.0
+          TestSqlInjection: 
+             '*': v2.23.0
         test_ssrf.py:
           TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
@@ -53,7 +53,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: v2.39.0
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature
+          Test_XContentSniffing: missing_feature        
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
