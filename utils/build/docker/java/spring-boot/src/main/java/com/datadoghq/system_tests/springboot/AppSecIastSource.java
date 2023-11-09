@@ -103,14 +103,14 @@ public class AppSecIastSource {
         StringBuffer url = request.getRequestURL();
         String urlString = url.toString();
         String param = urlString.substring(url.lastIndexOf("/") +1 , url.length());
+        try {
         sql.insecureSql(param, (statement, sql) -> {
-            try {
                 statement.executeQuery(sql);
-            } catch (Exception ex) {
-                // Using table that does not exist, ignore error.
-            }
-            return null;
+                return null;
         });
+        } catch (Exception ex) {
+            // Using table that does not exist, ignore error.
+        }
         return "OK";
     }
 
