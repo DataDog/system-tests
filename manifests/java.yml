@@ -274,12 +274,8 @@ tests/:
             spring-boot-openliberty: v1.22.0
             spring-boot-payara: v1.22.0
             spring-boot-undertow: v1.22.0
-<<<<<<< HEAD
             spring-boot-wildfly: v1.22.0
-            uds-spring-boot: v1.22.0              
-=======
-            uds-spring-boot: v1.22.0            
->>>>>>> 114e7175 (rebase)
+            uds-spring-boot: v1.22.0
     waf/:
       test_addresses.py:
         Test_BodyJson:
