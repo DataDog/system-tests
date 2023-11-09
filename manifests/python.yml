@@ -49,6 +49,8 @@ tests/:
             '*': v2.2.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature            
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -416,6 +418,12 @@ tests/:
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
+    test_crossed_integrations.py:
+      Test_PythonKafka:
+        '*': v0.1 # real version unknown
+        django-poc: missing_feature (missing endpoint on weblog)
+        fastapi: missing_feature (missing endpoint on weblog)
+        python3.12: missing_feature (missing endpoint on weblog)
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature

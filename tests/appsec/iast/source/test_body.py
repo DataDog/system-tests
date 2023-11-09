@@ -13,7 +13,7 @@ class TestRequestBody(BaseSourceTest):
     endpoint = "/iast/source/body/test"
     requests_kwargs = [{"method": "POST", "json": {"name": "table", "value": "user"}}]
     source_type = "http.request.body"
-    source_name = None
+    source_names = None
     source_value = None
 
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")

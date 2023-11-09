@@ -267,6 +267,16 @@ function initRoutes (app, tracer) {
     searchLdap(filter, req, res)
   })
 
+  app.get('/iast/hardcoded_secrets/test_insecure', (req, res) => {
+    const secret = 'A3TMAWZUKIWR6O0OGR7B'
+    res.send(`OK:${secret}`)
+  })
+
+  app.get('/iast/hardcoded_secrets/test_secure', (req, res) => {
+    const secret = 'unknown_secret'
+    res.send(`OK:${secret}`)
+  })
+
   require('./sources')(app, tracer)
 }
 

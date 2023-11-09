@@ -12,6 +12,6 @@ class TestPath(BaseSourceTest):
 
     endpoint = "/iast/source/path/test"
     source_type = "http.request.path"
-    source_name = None
+    source_names = None
     source_value = "/iast/source/path/test"
     requests_kwargs = [{"method": "GET"}]
