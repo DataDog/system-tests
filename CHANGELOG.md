@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### October 2023 (100 PR merged)
+
+* 2023-10-09 [New python/FastAPI variant](https://github.com/DataDog/system-tests/pull/1663) by @christophe-papazian
+* 2023-10-27 [New NodeJS/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
+* 2023-10-01 [New scenario for testing debugger probes](https://github.com/DataDog/system-tests/pull/1632) by @shurivich
+
 ### September 2023 (84 PR merged)
 
 * 2023-09-25 [New weblog variant: testing new Python version 3.12](https://github.com/DataDog/system-tests/pull/1617)

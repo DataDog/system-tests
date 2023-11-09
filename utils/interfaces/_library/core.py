@@ -23,13 +23,26 @@ from utils.interfaces._schemas_validators import SchemaValidator
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
-    def __init__(self):
-        super().__init__("library")
+    def __init__(self, name):
+        super().__init__(name)
         self.ready = threading.Event()
 
     def ingest_file(self, src_path):
         self.ready.set()
         return super().ingest_file(src_path)
+
+    ################################################################
+    def wait_for_remote_config_request(self, timeout=30):
+        """ Used in setup functions, wait for a request oremote config endpoint with a non-empty client_config """
+
+        def wait_function(data):
+            if data["path"] == "/v0.7/config":
+                if "client_configs" in data.get("response", {}).get("content", {}):
+                    return True
+
+            return False
+
+        self.wait_for(wait_function, timeout)
 
     ############################################################
     def get_traces(self, request=None):

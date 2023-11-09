@@ -22,6 +22,8 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -43,6 +45,7 @@ tests/:
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
+          TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -70,10 +73,14 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName: missing_feature
         test_parameter_value.py:
           TestParameterValue: missing_feature
+        test_path.py:
+          TestPath: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0
@@ -263,6 +270,8 @@ tests/:
       Test_AppSecRequestBlocking: v1.50.0-rc.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v1.36.0
@@ -287,13 +296,12 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
+    test_crossed_integrations.py:
+      Test_PythonKafka: missing_feature
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration: missing_feature
-      Test_Agent_Mysql_db_integration: missing_feature
-      Test_Agent_Postgres_db_integration: missing_feature
-      Test_Tracer_Mssql_db_integration: missing_feature
-      Test_Tracer_Mysql_db_integration: missing_feature
-      Test_Tracer_Postgres_db_integration: missing_feature
+      Test_MsSql: missing_feature
+      Test_MySql: missing_feature
+      Test_Postgres: missing_feature
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:

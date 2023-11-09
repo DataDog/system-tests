@@ -119,6 +119,7 @@ class _Weblog:
         params=None,
         data=None,
         headers=None,
+        cookies=None,
         stream=None,
         domain=None,
         port=None,
@@ -134,7 +135,7 @@ class _Weblog:
             return self.get_request_from_logs()
 
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
-        headers = headers or {}
+        headers = {**headers} if headers else {}  # get our own copy of headers, as we'll modify them
 
         user_agent_key = "User-Agent"
         for k in headers:
@@ -162,7 +163,7 @@ class _Weblog:
 
         timeout = kwargs.pop("timeout", 5)
         try:
-            req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
+            req = requests.Request(method, url, params=params, data=data, headers=headers, cookies=cookies, **kwargs)
             r = req.prepare()
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")

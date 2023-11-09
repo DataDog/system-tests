@@ -7,17 +7,21 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_Headers: missing_feature
-        Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Request_Body: v1.15.0
+        Test_Schema_Request_Cookies: v1.15.0
+        Test_Schema_Request_Headers: v1.15.0
+        Test_Schema_Request_Path_Parameters:
+          '*': v1.15.0
+          rack: missing_feature (rack does not have path parameters support)
+        Test_Schema_Request_Query_Parameters: v1.15.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Headers: v1.15.0
     iast/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -39,6 +43,7 @@ tests/:
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
+          TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -65,10 +70,14 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName: missing_feature
         test_parameter_value.py:
           TestParameterValue: missing_feature
+        test_path.py:
+          TestPath: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.8.0
@@ -166,6 +175,8 @@ tests/:
       Test_AppSecRequestBlocking: v1.11.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v0.54.2
       Test_AppSecObfuscator: v1.0.0
@@ -182,13 +193,12 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
+    test_crossed_integrations.py:
+      Test_PythonKafka: missing_feature
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration: missing_feature
-      Test_Agent_Mysql_db_integration: missing_feature
-      Test_Agent_Postgres_db_integration: missing_feature
-      Test_Tracer_Mssql_db_integration: missing_feature
-      Test_Tracer_Mysql_db_integration: missing_feature
-      Test_Tracer_Postgres_db_integration: missing_feature
+      Test_MsSql: missing_feature
+      Test_MySql: missing_feature
+      Test_Postgres: missing_feature
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
@@ -200,6 +210,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.13.0
+    test_otel_span_methods.py: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
   remote_config/:
@@ -249,7 +260,7 @@ tests/:
     Test_StandardTagsUserAgent: v1.8.0
   test_telemetry.py:
     Test_DependencyEnable: v1.4.0
-    Test_Log_Generation: v1.4.0
+    Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: v1.4.0
     Test_Metric_Generation_Enabled: missing_feature

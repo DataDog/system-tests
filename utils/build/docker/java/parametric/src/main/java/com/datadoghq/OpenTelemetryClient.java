@@ -130,6 +130,8 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
             case 3:
                 return SpanKind.CLIENT;
             case 4:
+                return SpanKind.PRODUCER;
+            case 5:
                 return SpanKind.CONSUMER;
             case 0:
             default:
