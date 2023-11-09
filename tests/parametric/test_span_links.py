@@ -9,16 +9,12 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import bug, context, missing_feature, scenarios
+from utils import bug, context, scenarios
 from utils.parametric._library_client import Link
 
 
 @scenarios.parametric
 class Test_Span_Links:
-    @missing_feature(
-        context.library in ["java", "dotnet", "ruby", "nodejs", "python", "cpp", "python_http", "php"],
-        reason="Not implemented yet",
-    )
     def test_span_started_with_link(self, test_agent, test_library):
         """Test adding a span link created from another span.
         This tests the functionality of "create a direct link between two spans
@@ -55,10 +51,6 @@ class Test_Span_Links:
         assert link["attributes"].get("array.2") == "c"
         assert (link.get("flags") or 0) == 0
 
-    @missing_feature(
-        context.library in ["java", "dotnet", "ruby", "nodejs", "python", "cpp", "python_http", "php"],
-        reason="Not implemented yet",
-    )
     def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links.
         Testing the conversion of x-datadog-* headers to tracestate for
@@ -108,10 +100,6 @@ class Test_Span_Links:
         assert link["attributes"].get("foo") == "bar"
         assert link["attributes"].get("_dd.p.dm") == "-4"
 
-    @missing_feature(
-        context.library in ["java", "dotnet", "ruby", "nodejs", "python", "cpp", "python_http", "php"],
-        reason="Not implemented yet",
-    )
     def test_span_link_from_distributed_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
@@ -155,10 +143,6 @@ class Test_Span_Links:
         assert len(link.get("attributes")) == 1
         assert link["attributes"].get("_dd.p.dm") == "-4"
 
-    @missing_feature(
-        context.library in ["java", "dotnet", "ruby", "nodejs", "python", "cpp", "python_http", "php"],
-        reason="Not implemented yet",
-    )
     def test_span_with_attached_links(self, test_agent, test_library):
         """Test adding a span link from a span to another span.
         """
