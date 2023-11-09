@@ -199,7 +199,7 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
     print("Pre $spanKind");
     $spanKind = remappedSpanKind($spanKind);
     print("Post $spanKind");
-    if ($spanKind) {
+    if ($spanKind !==  null) {
         $spanBuilder->setSpanKind($spanKind);
     }
 
