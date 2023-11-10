@@ -10,6 +10,7 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
         test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
         test_insecure_cookie.py: irrelevant (ASM is not implemented in C++)
         test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
@@ -65,6 +66,7 @@ tests/:
     test_reports.py: irrelevant (ASM is not implemented in C++)
     test_request_blocking.py: irrelevant (ASM is not implemented in C++)
     test_runtime_activation.py: irrelevant (ASM is not implemented in C++)
+    test_shell_execution.py: irrelevant (ASM is not implemented in C++)
     test_traces.py: irrelevant (ASM is not implemented in C++)
     test_user_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
     test_versions.py: irrelevant (ASM is not implemented in C++)
@@ -75,13 +77,12 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
+    test_crossed_integrations.py:
+      Test_PythonKafka: missing_feature
     test_db_integrations_sql.py: 
-      Test_Agent_Mssql_db_integration: missing_feature
-      Test_Agent_Mysql_db_integration: missing_feature
-      Test_Agent_Postgres_db_integration: missing_feature
-      Test_Tracer_Mssql_db_integration: missing_feature
-      Test_Tracer_Mysql_db_integration: missing_feature
-      Test_Tracer_Postgres_db_integration: missing_feature
+      Test_MsSql: missing_feature
+      Test_MySql: missing_feature
+      Test_Postgres: missing_feature
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
@@ -93,6 +94,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
+    test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
   remote_config/:

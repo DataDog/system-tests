@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+#nullable disable
 
 namespace weblog
 {
@@ -22,7 +23,7 @@ namespace weblog
     
     [ApiController]
     [Route("iast")]
-    public class IastController : Controller
+    public partial class IastController : Controller
     {
         [HttpGet("insecure_hashing/test_md5_algorithm")]
         public IActionResult test_md5_algorithm(string user)
@@ -376,6 +377,18 @@ namespace weblog
             {
                 return StatusCode(500, "Error executing query.");
             }
+        }
+
+        [HttpGet("weak_randomness/test_insecure")]
+        public IActionResult test_insecure_weakRandomness(string user)
+        {
+            return Content("Weak random number: " + (new Random()).Next().ToString(), "text/html");
+        }
+
+        [HttpGet("weak_randomness/test_secure")]
+        public IActionResult test_secure_weakRandomness(string user)
+        {
+            return Content("Secure random number: " + RandomNumberGenerator.GetInt32(100).ToString(), "text/html");
         }
     }
 }

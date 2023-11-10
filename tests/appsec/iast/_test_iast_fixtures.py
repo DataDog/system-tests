@@ -1,6 +1,9 @@
+from enum import Enum
 import json
 from utils import weblog, interfaces, context
 from utils.tools import logging
+
+DetectionStage = Enum("DetectionStage", ["REQUEST", "STARTUP"])
 
 
 def _get_expectation(d):
@@ -73,6 +76,8 @@ class BaseSinkTestWithoutTelemetry:
     insecure_request = None
     secure_request = None
 
+    detection_stage = DetectionStage.REQUEST
+
     @property
     def expected_location(self):
         return _get_expectation(self.location_map)
@@ -97,7 +102,7 @@ class BaseSinkTestWithoutTelemetry:
 
     def test_insecure(self):
         assert_iast_vulnerability(
-            request=self.insecure_request,
+            request=self.insecure_request if self.detection_stage == DetectionStage.REQUEST else None,
             vulnerability_count=1,
             vulnerability_type=self.vulnerability_type,
             expected_location=self.expected_location,
@@ -194,7 +199,7 @@ class BaseSourceTest:
     endpoint = None
     requests_kwargs = None
     source_type = None
-    source_name = None
+    source_names = None
     source_value = None
     requests: dict = None
 
@@ -227,13 +232,16 @@ class BaseSourceTest:
         if source_type:
             assert source_type in {s.get("origin") for s in sources}
             sources = [s for s in sources if s["origin"] == source_type]
-        if self.source_name:
-            assert self.source_name in {s.get("name") for s in sources}
-            sources = [s for s in sources if s["name"] == self.source_name]
+        if self.source_names:
+            assert isinstance(self.source_names, list)
+            assert any(x in self.source_names for x in {s.get("name") for s in sources})
+            sources = [s for s in sources if s["name"] in self.source_names]
         if self.source_value:
             assert self.source_value in {s.get("value") for s in sources}
             sources = [s for s in sources if s["value"] == self.source_value]
-        assert sources, f"No source found with origin={source_type}, name={self.source_name}, value={self.source_value}"
+        assert (
+            sources
+        ), f"No source found with origin={source_type}, name={self.source_names}, value={self.source_value}"
         assert len(sources) == 1, "Expected a single source with the matching criteria"
 
     setup_telemetry_metric_instrumented_source = setup_source_reported

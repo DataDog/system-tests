@@ -16,7 +16,7 @@ class TestParameterName(BaseSourceTest):
         {"method": "POST", "data": {"user": "unused"}},
     ]
     source_type = "http.request.parameter.name"
-    source_name = "user"
+    source_names = ["user"]
     source_value = None
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported

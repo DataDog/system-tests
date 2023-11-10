@@ -18,6 +18,8 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: v2.28.0
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature             
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -49,7 +51,7 @@ tests/:
         test_weak_hash.py:
           TestWeakHash: v2.24.0
         test_weak_randomness.py:
-          TestWeakRandomness: missing_feature
+          TestWeakRandomness: v2.39.0
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature        
         test_xpath_injection.py:
@@ -167,6 +169,8 @@ tests/:
       Test_AppSecRequestBlocking: v2.25.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.16.0
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v1.29.0
       Test_AppSecObfuscator: v2.7.0
@@ -181,13 +185,12 @@ tests/:
       Test_Debugger_Mix_Log_Probe: v2.33.0
       Test_Debugger_Probe_Statuses: v2.33.0
   integrations/:
+    test_crossed_integrations.py:
+      Test_PythonKafka: missing_feature
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration: missing_feature
-      Test_Agent_Mysql_db_integration: missing_feature
-      Test_Agent_Postgres_db_integration: missing_feature
-      Test_Tracer_Mssql_db_integration: missing_feature
-      Test_Tracer_Mysql_db_integration: missing_feature
-      Test_Tracer_Postgres_db_integration: missing_feature
+      Test_MsSql: missing_feature
+      Test_MySql: missing_feature
+      Test_Postgres: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0

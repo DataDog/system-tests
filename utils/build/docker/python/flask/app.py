@@ -175,6 +175,54 @@ def dbm():
     return Response(f"Integration is not supported: {integration}", 406)
 
 
+@app.route("/kafka/produce")
+def produce_kafka_message():
+    """
+        The goal of this endpoint is to trigger kafka producer calls
+    """
+
+    producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
+    message_topic = flask_request.args.get("topic", "DistributedTracing")
+    message_content = b"Distributed Tracing Test!"
+    producer.produce(message_topic, value=message_content)
+    producer.flush()
+
+    return {"result": "ok"}
+
+
+@app.route("/kafka/consume")
+def consume_kafka_message():
+    """
+        The goal of this endpoint is to trigger kafka consumer calls
+    """
+    message_topic = flask_request.args.get("topic", "DistributedTracing")
+
+    consumer = Consumer(
+        {
+            "bootstrap.servers": "kafka:9092",
+            "group.id": "apm_test",
+            "enable.auto.commit": True,
+            "auto.offset.reset": "earliest",
+        }
+    )
+    consumer.subscribe([message_topic])
+
+    msg = None
+    current_attempts = 0
+    max_attempts = 15
+    while not msg and current_attempts < max_attempts:
+        msg = consumer.poll(1)
+        if msg is None:
+            current_attempts += 1
+
+    consumer.close()
+
+    if msg is None:
+        return {"error": "message not found"}, 404
+
+    return {"message": msg.value().decode("utf-8")}
+
+
 @app.route("/dsm")
 def dsm():
     logging.basicConfig(
