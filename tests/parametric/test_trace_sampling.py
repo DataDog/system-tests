@@ -3,6 +3,7 @@ from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
 import json
 from utils import coverage, rfc, scenarios
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, SAMPLING_LIMIT_PRIORITY_RATE
 
 
 @scenarios.parametric
@@ -44,7 +45,9 @@ class Test_Trace_Sampling_Basic:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
-        assert span["metrics"].get("_sampling_priority_v1") == 2
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
+        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) == 100
 
     @pytest.mark.parametrize(
         "library_env",
@@ -66,7 +69,9 @@ class Test_Trace_Sampling_Basic:
             test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
         )
 
-        assert span["metrics"].get("_sampling_priority_v1") == -1
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) is None
 
 
 @scenarios.parametric
@@ -106,7 +111,9 @@ class Test_Trace_Sampling_Globs:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
-        assert span["metrics"].get("_sampling_priority_v1") == 2
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
+        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) == 100
 
     @pytest.mark.parametrize(
         "library_env",
@@ -126,7 +133,9 @@ class Test_Trace_Sampling_Globs:
             test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
         )
 
-        assert span["metrics"].get("_sampling_priority_v1") == -1
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) is None
 
 
 @scenarios.parametric
@@ -198,7 +207,9 @@ class Test_Trace_Sampling_Resource:
             test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
         )
 
-        assert span["metrics"].get("_sampling_priority_v1") == 2
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
+        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) == 100
 
     @pytest.mark.parametrize(
         "library_env",
@@ -220,7 +231,9 @@ class Test_Trace_Sampling_Resource:
             test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
         )
 
-        assert span["metrics"].get("_sampling_priority_v1") == -1
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) is None
 
 
 @coverage.not_implemented
