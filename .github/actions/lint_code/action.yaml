@@ -31,9 +31,6 @@ runs:
       shell: bash
       working-directory: ./utils/build/docker/nodejs/express4
       run: |
-        cp package.json package-back.json
-        node -pe "const pack = require('./package.json');delete pack.dependencies;require('fs').writeFileSync('./package.json',JSON.stringify(pack))"
-        npm install --no-package-lock
-        mv package-back.json package.json
+        npm install
         npm run lint
 
