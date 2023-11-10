@@ -211,6 +211,12 @@ class TestedVirtualMachine:
             dd_api_key=self.datadog_config.dd_api_key,
             dd_site=self.datadog_config.dd_site,
             scenario_name=self.provision_scenario,
+            docker_user=self.datadog_config.docker_login
+            if self.prepare_docker_install["install"] is not None
+            else None,
+            docker_pass=self.datadog_config.docker_login_pass
+            if self.prepare_docker_install["install"] is not None
+            else None,
         )
 
         # Uninstall process (stop app, uninstall autoinjection and rerun the app)
@@ -240,6 +246,12 @@ class TestedVirtualMachine:
                 dd_api_key=self.datadog_config.dd_api_key,
                 dd_site=self.datadog_config.dd_site,
                 scenario_name=self.provision_scenario,
+                docker_user=self.datadog_config.docker_login
+                if self.prepare_docker_install["install"] is not None
+                else None,
+                docker_pass=self.datadog_config.docker_login_pass
+                if self.prepare_docker_install["install"] is not None
+                else None,
             )
 
     def set_ip(self, instance_ip):
