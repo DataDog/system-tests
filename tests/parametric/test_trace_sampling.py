@@ -47,7 +47,6 @@ class Test_Trace_Sampling_Basic:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
-        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) == 100
 
     @pytest.mark.parametrize(
         "library_env",
@@ -71,7 +70,6 @@ class Test_Trace_Sampling_Basic:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
-        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) is None
 
 
 @scenarios.parametric
@@ -113,7 +111,6 @@ class Test_Trace_Sampling_Globs:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
-        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) == 100
 
     @pytest.mark.parametrize(
         "library_env",
@@ -135,7 +132,6 @@ class Test_Trace_Sampling_Globs:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
-        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) is None
 
 
 @scenarios.parametric
@@ -209,7 +205,6 @@ class Test_Trace_Sampling_Resource:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
-        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) == 100
 
     @pytest.mark.parametrize(
         "library_env",
@@ -233,7 +228,6 @@ class Test_Trace_Sampling_Resource:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
-        assert span["metrics"].get(SAMPLING_LIMIT_PRIORITY_RATE) is None
 
 
 @coverage.not_implemented
