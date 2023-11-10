@@ -865,6 +865,11 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.17.0
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version that supports server/name trace sampling rules
+      Test_Trace_Sampling_Globs: v1.20.0 # TODO v1.24.0? https://github.com/DataDog/dd-trace-java/pull/5900
+      Test_Trace_Sampling_Resource: v1.20.0 # TODO v1.24.0? https://github.com/DataDog/dd-trace-java/pull/5900
+      Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
   remote_config/:
