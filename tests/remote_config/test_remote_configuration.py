@@ -297,7 +297,7 @@ class Test_RemoteConfigurationExtraServices:
 
                 return False
 
-        interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=300)
+        interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
 
     def test_tracer_extra_services(self):
         """Test extra services field"""
@@ -309,7 +309,7 @@ class Test_RemoteConfigurationExtraServices:
             if data["path"] == "/v0.7/config":
                 client_tracer = data["request"]["content"]["client"]["client_tracer"]
                 if "extra_services" in client_tracer:
-                    extra_services.append(client_tracer["extra_services"])
+                    extra_services.append(client_tracer["extra_services"] or [])
         assert self.r_outgoing.status_code == 200
         assert extra_services, "extra_services not found"
         extra_services = list(itertools.dropwhile(lambda es: "extraVegetables" not in es, extra_services))
