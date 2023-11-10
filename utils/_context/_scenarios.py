@@ -1028,7 +1028,33 @@ class scenarios:
         include_sqlserver=True,
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
     )
+    
+    integrations_v3 = EndToEndScenario(
+        "INTEGRATIONS_V3",
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
+        include_postgres_db=True,
+        include_cassandra_db=False,
+        include_mongo_db=False,
+        include_kafka=False,
+        include_rabbitmq=False,
+        include_mysql_db=True,
+        include_sqlserver=True,
+        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
+    )
 
+    integrations_v4 = EndToEndScenario(
+        "INTEGRATIONS_V4",
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
+        include_postgres_db=True,
+        include_cassandra_db=False,
+        include_mongo_db=False,
+        include_kafka=False,
+        include_rabbitmq=False,
+        include_mysql_db=True,
+        include_sqlserver=True,
+        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
+    )
+    
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
         include_kafka=True,
