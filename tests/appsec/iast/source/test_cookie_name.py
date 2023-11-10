@@ -13,7 +13,7 @@ class TestCookieName(BaseSourceTest):
     endpoint = "/iast/source/cookiename/test"
     requests_kwargs = [{"method": "GET", "cookies": {"user": "unused"}}]
     source_type = "http.request.cookie.name"
-    source_name = "user"
+    source_names = ["user"]
     source_value = "user"
 
     @bug(library="java", reason="Not working as expected")

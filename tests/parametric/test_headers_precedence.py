@@ -444,7 +444,7 @@ class Test_Headers_Precedence:
         traceparent1, tracestate1 = get_tracecontext(headers1)
         tracestate1Arr = str(tracestate1).split(",")
         assert "traceparent" in headers1
-        assert int(traceparent1.trace_id, base=16) == int(headers1["x-datadog-trace-id"])
+        assert int(traceparent1.trace_id[-16:], base=16) == int(headers1["x-datadog-trace-id"])
         assert int(traceparent1.parent_id, base=16) == int(headers1["x-datadog-parent-id"])
         assert "tracestate" in headers1
         assert len(tracestate1Arr) == 1 and tracestate1Arr[0].startswith("dd=")
