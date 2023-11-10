@@ -211,6 +211,11 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.13.0
     test_otel_span_methods.py: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Resource: missing_feature
+      Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
   remote_config/:
