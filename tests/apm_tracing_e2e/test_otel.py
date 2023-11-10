@@ -1,5 +1,5 @@
 from tests.apm_tracing_e2e.test_single_span import _get_spans_submitted, _assert_msg
-from utils import context, weblog, scenarios, interfaces, irrelevant
+from utils import context, weblog, scenarios, interfaces, irrelevant, bug
 
 
 @scenarios.apm_tracing_e2e_otel
@@ -20,6 +20,7 @@ class Test_Otel_Span:
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
     # - span kind of SpanKind - Internal
+    @bug(context.library == "java", reason="Span.kind is not set to internal, have type instead")
     def test_datadog_otel_span(self):
         spans = _get_spans_submitted(self.req)
         assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
@@ -38,7 +39,8 @@ class Test_Otel_Span:
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
-        assert child.get("type") == "internal"
+        assert child.get("meta").get("span.kind") == "internal"
+        assert child.get("type") != "internal"
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="")

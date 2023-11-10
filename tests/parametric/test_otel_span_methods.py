@@ -21,7 +21,7 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
@@ -49,7 +49,7 @@ class Test_Otel_Span_Methods:
         assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
 
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
@@ -69,9 +69,9 @@ class Test_Otel_Span_Methods:
         assert root_span["service"] == "new_service"
 
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
-    @missing_feature(
+    @irrelevant(
         context.library == "java",
-        reason="New operation name mapping not yet implemented - note 1.22.0 uses new array encoding too",
+        reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
     )
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
@@ -147,8 +147,8 @@ class Test_Otel_Span_Methods:
         context.library == "golang", reason="New operation name mapping & array encoding not yet implemented"
     )
     @missing_feature(
-        context.library == "java",
-        reason="New operation name mapping & array encoding not yet implemented - < 1.22.0 doesn't have new array encoding",
+        context.library < "java@1.24.0",
+        reason="New array encoding implemented in 1.22.0 and new operation name mapping in 1.24.0",
     )
     @missing_feature(
         context.library == "nodejs", reason="New operation name mapping & array encoding not yet implemented"
@@ -232,7 +232,7 @@ class Test_Otel_Span_Methods:
                 assert not parent.is_recording()
 
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "dotnet",
@@ -261,7 +261,7 @@ class Test_Otel_Span_Methods:
         assert s.get("duration") == duration * 1_000
 
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
@@ -298,7 +298,7 @@ class Test_Otel_Span_Methods:
         assert child["parent_id"] == parent_span["span_id"]
 
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "dotnet",
@@ -327,7 +327,7 @@ class Test_Otel_Span_Methods:
         assert s.get("resource") == "error_span"
 
     @missing_feature(context.library == "golang", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "java", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "dotnet",
@@ -379,6 +379,32 @@ class Test_Otel_Span_Methods:
                     assert context.get("trace_flags") == "01"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "python_http", reason="Not implemented")
+    def test_otel_set_attributes_separately(self, test_agent, test_library):
+        """
+            This test verifies retrieving the span context of a span
+            accordingly to the Otel API spec
+            (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
+        """
+        with test_library:
+            with test_library.otel_start_span(name="operation", span_kind=SK_CLIENT) as span:
+                span.set_attributes({"messaging.system": "Kafka"})
+                span.set_attributes({"messaging.operation": "Receive"})
+                span.end_span()
+
+            traces = test_agent.wait_for_num_traces(1)
+            trace = find_trace_by_root(traces, otel_span(name="operation"))
+            assert len(trace) == 1
+
+            span = get_span(test_agent)
+            assert span["name"] == "kafka.receive"
+            assert span["resource"] == "operation"
+
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -423,7 +449,7 @@ class Test_Otel_Span_Methods:
         )
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
