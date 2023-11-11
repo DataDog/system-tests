@@ -62,11 +62,9 @@ class Test_Trace_Sampling_Basic:
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
         """Test that a trace is dropped by the matching defined trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver", resource="/bar"):
+            with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
@@ -124,11 +122,9 @@ class Test_Trace_Sampling_Globs:
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
         """Test that a trace is dropped by the matching defined trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver", resource="/bar"):
+            with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
