@@ -586,6 +586,12 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
+    def tracerflares(self, **kwargs):
+        resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
+        json = resp.json()
+        self._write_log("tracerflares", json)
+        return json
+
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
@@ -722,6 +728,23 @@ class _TestAgentAPI:
                             return cfg_state
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+
+    def wait_for_tracer_flare(self, case_id: str, clear: bool = False, wait_loops: int = 100):
+        """Wait for the tracer-flare to be received by the test agent."""
+        for i in range(wait_loops):
+            try:
+                tracer_flares = self.tracerflares()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for the given case_id in the tracer-flares.
+                for tracer_flare in tracer_flares:
+                    if tracer_flare["case_id"] == case_id:
+                        if clear:
+                            self.clear()
+                        return tracer_flare
+            time.sleep(0.01)
+        raise AssertionError("No tracer-flare received")
 
 
 @contextlib.contextmanager
