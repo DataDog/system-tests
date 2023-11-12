@@ -5,30 +5,45 @@ from utils import context, bug, missing_feature, irrelevant, scenarios, flaky
 from utils.tools import logger
 import pytest
 
-# Define the data for test case generation
-test_data = [
-        ((1, 2), 3),   # Input: (1, 2) | Expected Output: 3
-        ((0, 0), 0),   # Input: (0, 0) | Expected Output: 0
-        ((-1, 1), 0),  # Input: (-1, 1) | Expected Output: 0
-        ((-1, 1), 0),  # Input: (-1, 1) | Expected Output: 0
-]
-    
-# Define the pytest_generate_tests hook to generate test cases
+all_params = {
+    "test_addnums": {
+        "params": ["num1", "num2", "output"],
+        "values":
+            [
+                [2, 2, 4],
+                [3, 7, 10],
+                [48, 52, 100]
+            ]
+ 
+    },
+    "test_foobar":
+        {
+            "params": ["foo", "bar"],
+            "values": [
+                [1, 2],
+                ["moo", "mar"],
+                [0.5, 3.14]
+            ]
+        }
+}
+
+
 def pytest_generate_tests(metafunc):
-    if 'test_input' in metafunc.fixturenames:
-        # Generate test cases based on the test_data list
-         metafunc.parametrize('test_input,expected_output', test_data)
+    fct_name = metafunc.function.__name__
+    if fct_name in all_params:
+        params = all_params[fct_name]
+        metafunc.parametrize(params["params"], params["values"], ids=["id4", "id5", "id6"])
+
+
             
 @scenarios.integrations_v4
 class Test_Dos():
     #db_service, operation, spans
     
-    """ MsSql integration with Datadog tracer+agent """
-    def test_v3(self):
-        logger.debug("MY FIRST TESTS")
-        assert True
 
-    # Define the actual test function
-    def test_addition(self, test_input, expected_output):
-        logger.debug("Parametrizedd!!")
-        assert True     
+    def test_addnums(self, num1, num2, output):
+        assert num1 + num2 == output
+
+
+    def test_foobar(self, foo, bar):
+        assert type(foo) == type(bar) 

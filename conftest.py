@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 import time
+import re
 
 import pytest
 from pytest_jsonreport.plugin import JSONReport
@@ -366,8 +367,10 @@ def pytest_json_modifyreport(json_report):
                 json_report["release_versions"] = json_report["release_versions"] | test["metadata"]["release_versions"]
                 json_report["rfcs"] = json_report["rfcs"] | test["metadata"]["rfcs"]
                 json_report["coverages"] = json_report["coverages"] | test["metadata"]["coverages"]
-
-            for k in ("setup", "call", "teardown", "keywords", "lineno", "metadata"):
+            if "call" in test and "longrepr" in test["call"]:
+                matches = re.findall(r"'Skipped: (.*?)'", test["call"]["longrepr"], re.DOTALL)
+                test["skip_reason"]=matches[-1] if matches else None
+            for k in ("setup","call", "teardown", "keywords", "lineno", "metadata"):
                 if k in test:
                     del test[k]
 

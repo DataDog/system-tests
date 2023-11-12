@@ -125,8 +125,8 @@ class _Weblog:
         **kwargs,
     ):
 
-        if self.current_nodeid is None:
-            raise ValueError("Weblog calls can only be done during setup")
+    #    if self.current_nodeid is None:
+    #        raise ValueError("Weblog calls can only be done during setup")
 
         if self.replay:
             return self.get_request_from_logs()
