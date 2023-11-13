@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, bug
+from utils import context, coverage, bug, missing_feature
 from .._test_iast_fixtures import BaseSourceTest
 
 
@@ -19,7 +19,8 @@ class TestCookieValue(BaseSourceTest):
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     def test_source_reported(self):
         super().test_source_reported()
-
+        
+    @missing_feature(library="dotnet", reason="Not implemented")
     @bug(library="java", reason="Not working as expected")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
