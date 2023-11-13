@@ -69,6 +69,8 @@ tests/:
           TestParameterValue: missing_feature
         test_path.py:
           TestPath: missing_feature
+        test_uri.py:
+          TestURI: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyRaw: v0.1.0
