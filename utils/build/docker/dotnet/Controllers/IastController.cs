@@ -349,11 +349,18 @@ namespace weblog
         {
             return Content("Secure random number: " + RandomNumberGenerator.GetInt32(100).ToString(), "text/html");
         }
+        
         [HttpGet("source/cookievalue/test")]
         public IActionResult test_cookie_value()
         {
             return StartProcess(Request.Cookies["table"]);
         }
+        
+        [HttpGet("source/cookiename/test")]
+        public IActionResult test_cookie_name()
+        {
+            return StartProcess(Request.Cookies.Keys.First());
+        }        
         
         private IActionResult StartProcess(string process)
         {
