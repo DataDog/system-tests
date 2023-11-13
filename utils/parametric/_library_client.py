@@ -306,12 +306,12 @@ class APMLibraryClientGRPC:
         for key, value in http_headers:
             distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
-        pb_links = pb.SpanLinks()
+        pb_links = []
         for link in links:
             pb_link = pb.SpanLink()
-            pb_link.parent_id = link.parent_id
-            pb_link.attributes = convert_to_proto(link.attributes)
-            pb_links.links.append(pb_link)
+            pb_link.parent_id = link["parent_id"]
+            pb_link.attributes = convert_to_proto(link["attributes"])
+            pb_links.append(pb_link)
 
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
@@ -322,7 +322,7 @@ class APMLibraryClientGRPC:
                 type=typestr,
                 origin=origin,
                 http_headers=distributed_message,
-                links=pb_links,
+                span_links=pb_links,
             )
         )
         return {

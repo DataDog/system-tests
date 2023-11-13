@@ -38,15 +38,11 @@ message StartSpanArgs {
   optional string type = 5;
   optional string origin = 6;
   optional DistributedHTTPHeaders http_headers = 7;
-  repeated SpanLinks span_links = 8;
+  repeated SpanLink span_links = 8;
 }
 
 message DistributedHTTPHeaders {
   repeated HeaderTuple http_headers = 9;
-}
-
-message SpanLinks {
-  repeated SpanLink links = 1;
 }
 
 message SpanLink {
