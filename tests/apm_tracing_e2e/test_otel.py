@@ -27,7 +27,7 @@ class Test_Otel_Span:
         assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
-        parent = _get_span(spans, "", "root-otel-name.dd-resource")
+        parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
         assert parent.get("parentID") is None
         if parent.get("meta")["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
             assert parent.get("spanID") == "10000"
@@ -37,7 +37,7 @@ class Test_Otel_Span:
         # Assert the child sent by the agent.
         # childName is no longer the operation name, rather the resource name
         # after remapping the OTel attributes to Datadog semantics
-        child = _get_span(spans, "", "otel-name.dd-resource")
+        child = _get_span_by_resource(spans, "otel-name.dd-resource")
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
@@ -58,19 +58,19 @@ class Test_Otel_Span:
         assert 3 <= len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
-        parent = _get_span(spans, "", "root-otel-name.dd-resource")
-        assert parent["name"] == "otel_unknown"
+        parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
+        assert parent["name"] == "internal"
         assert parent.get("parentID") is None
         assert parent["metrics"]["_dd.top_level"] == 1.0
 
         # Assert the Roundtrip child span sent by the agent, this span is created by an external OTel contrib package
-        roundtrip_span = _get_span(spans, "client.request", "")
+        roundtrip_span = _get_span_by_name(spans, "client.request")
         assert roundtrip_span["name"] == "client.request"
         assert roundtrip_span["resource"] == "HTTP GET"
         assert roundtrip_span.get("parentID") == parent.get("spanID")
 
         # Assert the Handler function child span sent by the agent.
-        handler_span = _get_span(spans, "server.request", "")
+        handler_span = _get_span_by_name(spans, "server.request")
         assert handler_span["resource"] == "testOperation"
         assert handler_span.get("parentID") == roundtrip_span.get("spanID")
 
@@ -79,10 +79,14 @@ class Test_Otel_Span:
         assert 3 == len(spans), _assert_msg(3, len(spans))
 
 
-def _get_span(spans, span_name, resource_name):
+def _get_span_by_name(spans, span_name):
     for s in spans:
         if s["name"] == span_name:
             return s
+    return {}
+
+
+def _get_span_by_resource(spans, resource_name):
     for s in spans:
         if s["resource"] == resource_name:
             return s

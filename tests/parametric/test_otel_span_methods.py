@@ -425,7 +425,7 @@ class Test_Otel_Span_Methods:
             ("internal", SK_INTERNAL, None),
             ("consumer", SK_CONSUMER, None),
             ("producer", SK_PRODUCER, None),
-            ("otel_unknown", None, None),
+            ("internal", None, None),
         ],
     )
     def test_otel_span_operation_name(

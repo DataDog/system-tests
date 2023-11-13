@@ -37,7 +37,7 @@ class Test_Otel_Span_With_W3c:
         duration_ns = int(duration_us * 1_000)  # OTEL durations are microseconds, must convert to ns for dd
 
         root_span = get_span(test_agent)
-        assert root_span["name"] == "operation"
+        assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration_ns
