@@ -74,8 +74,8 @@ class Test_Span_Links:
         assert span.get("trace_id") != 1234567890
         assert span_has_no_parent(span)
         assert span["meta"].get(ORIGIN) is None
-        assert span["meta"].get("_dd.p.dm") != "-4"
-        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
+        assert span["meta"].get("_dd.p.dm") == "-4"
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
         assert span.get("span_links") is not None
 
@@ -96,9 +96,8 @@ class Test_Span_Links:
         assert "t.dm:-4" in tracestateDD
 
         assert (link.get("flags") or 0) == 0
-        assert len(link.get("attributes")) == 2
+        assert len(link.get("attributes")) == 1
         assert link["attributes"].get("foo") == "bar"
-        assert link["attributes"].get("_dd.p.dm") == "-4"
 
     def test_span_link_from_distributed_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
@@ -118,8 +117,8 @@ class Test_Span_Links:
         span = get_span(test_agent)
         assert span.get("trace_id") != 1234567890
         assert span_has_no_parent(span)
-        assert span["meta"].get("_dd.p.dm") != "-4"
-        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
+        assert span["meta"].get("_dd.p.dm") == "-4"
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
         assert span.get("span_links") is not None
 
@@ -140,8 +139,7 @@ class Test_Span_Links:
         assert "t.dm:-4" in tracestateDD
 
         assert link.get("flags") == 1 | -2147483648
-        assert len(link.get("attributes")) == 1
-        assert link["attributes"].get("_dd.p.dm") == "-4"
+        assert len(link.get("attributes") or {}) == 0
 
     def test_span_with_attached_links(self, test_agent, test_library):
         """Test adding a span link from a span to another span.

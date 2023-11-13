@@ -77,6 +77,9 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
             if (isset($link_from_headers["attributes"])) {
                 $headers_link->attributes += $link_from_headers["attributes"];
             }
+            var_dump($headers_link->samplingPriority);
+            \DDTrace\set_priority_sampling($headers_link->samplingPriority);
+            $span->meta += $headers_link->extractedAttributes;
         } else {
             \DDTrace\consume_distributed_tracing_headers($callback);
         }
