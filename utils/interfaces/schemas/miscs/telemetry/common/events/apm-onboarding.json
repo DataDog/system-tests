@@ -9,6 +9,7 @@
       "enum": [
         "agent.startup.errors",
         "agent.startup.success",
+        "agent.first_trace.sent",
         "agent.trace.success"
       ]
     },
