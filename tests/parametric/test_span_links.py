@@ -109,7 +109,7 @@ class Test_Span_Links:
                 links=[Link(parent_id=0)],
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=t.dm:-4;s:2"],
+                    ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
                 ],
             ):
                 pass
@@ -131,9 +131,12 @@ class Test_Span_Links:
 
         assert link.get("tracestate") is not None
         tracestateArr = link["tracestate"].split(",")
-        assert len(tracestateArr) == 2 and tracestateArr[0].startswith("dd=")
-        assert tracestateArr[1] == "foo=1"
-        tracestateDD = tracestateArr[0][3:].split(";")
+        assert len(tracestateArr) == 3
+        dd_num = 0 if tracestateArr[0].startswith("dd=") else 1
+        other_num = 0 if dd_num == 1 else 1
+        assert tracestateArr[other_num] == "foo=1"
+        assert tracestateArr[2] == "bar=baz"
+        tracestateDD = tracestateArr[dd_num][3:].split(";")
         assert len(tracestateDD) == 2
         assert "s:2" in tracestateDD
         assert "t.dm:-4" in tracestateDD

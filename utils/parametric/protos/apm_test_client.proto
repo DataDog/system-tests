@@ -46,7 +46,7 @@ message DistributedHTTPHeaders {
 }
 
 message SpanLink {
-  optional uint64 parent_id = 1;
+  optional uint64 parent_id = 1; // Consume HTTP headers if 0 or not set
   Attributes attributes = 2;
 }
 
