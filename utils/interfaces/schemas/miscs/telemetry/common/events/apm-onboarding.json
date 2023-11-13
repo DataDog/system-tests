@@ -45,6 +45,15 @@
         },
         "script_version": {
           "type": "string"
+        },
+        "install_id": {
+          "type": "string"
+        },
+        "install_type": {
+          "type": "string"
+        },
+        "install_time": {
+          "type": "integer"
         }
       }
     },
