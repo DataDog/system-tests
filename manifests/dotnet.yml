@@ -78,7 +78,7 @@ tests/:
         test_path.py:
           TestPath: missing_feature
         test_uri.py:
-          TestURI: missing_feature (Not applicable to netcore apps)        
+          TestURI: irrelevant     
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
