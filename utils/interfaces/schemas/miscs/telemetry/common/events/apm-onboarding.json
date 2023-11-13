@@ -55,7 +55,10 @@
         "install_time": {
           "type": "integer"
         }
-      }
+      },
+      "$comment": "TODO: add install_id, install_type, install_time to required properties once the next agent is released",
+      "required": ["agent_version", "agent_hostname", "env"],
+      "additionalProperties": false
     },
     "error": {
       "type": "object",
