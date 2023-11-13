@@ -70,7 +70,7 @@ language-variants:
     install: 
       - os_type: linux
         os_distro: deb
-        command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless 
+        command: sudo apt-get -y install openjdk-11-jdk-headless 
 
       - os_type: linux
         os_distro: rpm

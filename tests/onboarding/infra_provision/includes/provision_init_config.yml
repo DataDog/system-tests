@@ -6,6 +6,11 @@
     sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
     sudo sed -i 's/1/0/g'  /etc/apt/apt.conf.d/10periodic || true
  
+    echo "On VM boot the Apt service status::::"
+    sudo ps -fea|grep apt
+    echo "On VM boot the System service apt-daily.service  status"
+    sudo systemctl list-units --all apt-daily.service 
+
     sudo rm -rf /etc/cron.daily/update-notifier-common || true
     sudo rm -rf /etc/cron.weekly/update-notifier-common || true
     sudo systemctl disable --now apt-daily.service
@@ -13,17 +18,17 @@
     sudo systemctl disable --now apt-daily-upgrade.timer
     sudo systemctl disable --now apt-daily-upgrade.service
 
-    sudo systemctl kill --kill-who=all apt-daily.service
-    # wait until `apt-get updated` has been killed
-    start=$EPOCHSECONDS
-    while ! (systemctl list-units --all apt-daily.service | egrep -q '(dead|failed)')
-    do
-      sleep 1;
-      if (( EPOCHSECONDS-start > 60 )); then break; fi
-    done
+    echo "After stop updates. Apt service status::::"
+    sudo ps -fea|grep apt
+    echo "After stop updates. System service apt-daily.service  status"
+    sudo systemctl list-units --all apt-daily.service 
 
-    sudo apt-get -y remove unattended-upgrades || true
-    sudo apt-get -y remove update-manager || true
+    sudo apt-get -y update
+
+    echo "After update the Apt service status::::"
+    sudo ps -fea|grep apt
+
+    #Create a datadog user if it doesn't exists
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
  
 - os_type: linux
