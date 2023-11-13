@@ -405,7 +405,15 @@ namespace weblog
         [HttpPost("source/body/test")]
         public IActionResult test_source_body([FromBody]BodyForIast body)
         {
-            return InsecureSqli(body.value);
+            try
+            {
+                var result = System.IO.File.ReadAllText(body.value);
+                return Content($"Executed injection");
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }               
         }
     }
 }
