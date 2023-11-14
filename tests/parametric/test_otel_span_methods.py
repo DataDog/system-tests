@@ -143,9 +143,6 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["d_double_val"] == 3.14
 
     @missing_feature(
-        context.library == "golang", reason="New operation name mapping & array encoding not yet implemented"
-    )
-    @missing_feature(
         context.library < "java@1.24.0",
         reason="New array encoding implemented in 1.22.0 and new operation name mapping in 1.24.0",
     )
