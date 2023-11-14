@@ -60,7 +60,7 @@ tests/:
           TestXSS: missing_feature
       source/:
         test_body.py:
-          TestRequestBody: missing_feature
+          TestRequestBody: v2.39.0
         test_cookie_name.py:
           TestCookieName: missing_feature
         test_cookie_value.py:
