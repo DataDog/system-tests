@@ -1,4 +1,3 @@
-
 const path = require('path')
 const os = require('os')
 const crypto = require('crypto')
@@ -20,27 +19,27 @@ let listening = false
 let server
 const socketPath = getSock()
 
-async function getServer() {
+async function getServer () {
   return new Promise((resolve, reject) => {
     if (listening) return resolve(server)
 
     server = ldap.createServer()
 
     server.bind(SUFFIX, (req, res, next) => {
-      res.end();
+      res.end()
       return next()
-    });
+    })
 
-    server.search(SUFFIX, function(req, res, next) {
+    server.search(SUFFIX, function (req, res, next) {
       const obj = {
         dn: req.dn.toString(),
         attributes: {
           uid: 'ssam',
           password: 'sammy'
         }
-      };
+      }
 
-      if (req.filter.matches(obj.attributes)){
+      if (req.filter.matches(obj.attributes)) {
         res.send(obj)
       }
 
@@ -57,18 +56,18 @@ async function getServer() {
   })
 }
 
-async function connect() {
+async function connect () {
   return getServer().then(() => {
     return new Promise((resolve, reject) => {
       const client = ldap.createClient({
         connectTimeout: 0,
         socketPath
       })
-  
+
       client.on('error', (err) => reject(err))
       client.on('connect', () => resolve(client))
     })
-  })  
+  })
 }
 
 module.exports = {
