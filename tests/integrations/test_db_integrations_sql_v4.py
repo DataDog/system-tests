@@ -28,7 +28,7 @@ all_params = {
 }
 
 
-def pytest_generate_tests(metafunc):
+def _pytest_generate_tests(metafunc):
     fct_name = metafunc.function.__name__
     if fct_name in all_params:
         params = all_params[fct_name]

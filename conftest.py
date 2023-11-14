@@ -369,11 +369,17 @@ def pytest_json_modifyreport(json_report):
                 json_report["coverages"] = json_report["coverages"] | test["metadata"]["coverages"]
             if "call" in test and "longrepr" in test["call"]:
                 matches = re.findall(r"'Skipped: (.*?)'", test["call"]["longrepr"], re.DOTALL)
-                test["skip_reason"]=matches[-1] if matches else None
-            for k in ("setup","call", "teardown", "keywords", "lineno", "metadata"):
+                if matches: test["skip_reason"]=matches[-1]
+            if "call" in test and test["outcome"] == "xfailed" and test["skip_reason"] == None:
+                for log_json in test["call"]["log"]:
+                    if log_json["msg"].startswith("ADDING MARK REASON:"):
+                        test["skip_reason"]=log_json["msg"].lstrip("ADDING MARK REASON:")
+                        break
+
+            for k in ("setup", "call", "teardown", "keywords", "lineno", "metadata"):
                 if k in test:
                     del test[k]
-
+                    
         logger.debug("Modifying JSON report finished")
 
     except:
