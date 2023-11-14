@@ -644,8 +644,6 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "java", reason="java must implement new tracestate propagation")
     @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
     @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
-    @missing_feature(context.library == "python", reason="python must implement new tracestate propagation")
-    @missing_feature(context.library == "python_http", reason="python must implement new tracestate propagation")
     @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent, test_library
