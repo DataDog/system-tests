@@ -59,6 +59,10 @@ class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "python_http", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     def test_otel_force_flush(self, test_agent, test_library):
         """
             Verify that force flush flushed the spans
