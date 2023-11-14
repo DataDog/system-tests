@@ -409,7 +409,8 @@ namespace weblog
             {
                 return StatusCode(500, "Error executing query.");
             }               
-
+        }
+        
         [HttpGet("source/header/test")]
         public IActionResult test_headerValue()
         {
