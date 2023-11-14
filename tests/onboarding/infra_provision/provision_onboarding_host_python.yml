@@ -64,7 +64,7 @@ language-variants:
         copy_files:
           - name: copy-auto-install-script
             local_path: tests/onboarding/autoinjection/lang/python_install.sh 
-        command: sudo sh python_install.sh deb 3.8.15
+        command: sudo apt-get -y update && sudo sh python_install.sh deb 3.8.15
 
       - os_type: linux
         os_distro: rpm
