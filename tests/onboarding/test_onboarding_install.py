@@ -84,6 +84,5 @@ class TestOnboardingUninstallHostAutoInstall(_OnboardingUninstallBaseTest):
 
 @scenarios.onboarding_container_auto_install_uninstall
 class TestOnboardingUninstallContainerAutoInstall(_OnboardingUninstallBaseTest):
-    @bug(context.library == "python", reason="AIT-8581")
     def test_no_traces_after_uninstall(self, onboardig_vm):
         super().test_no_traces_after_uninstall(onboardig_vm)
