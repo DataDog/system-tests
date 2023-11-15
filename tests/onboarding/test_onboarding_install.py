@@ -1,6 +1,6 @@
 import os
 
-from utils import scenarios, context, bug, irrelevant
+from utils import scenarios, context
 from utils.tools import logger
 
 from utils.onboarding.weblog_interface import make_get_request
@@ -68,7 +68,6 @@ class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
 
 @scenarios.onboarding_container_uninstall
 class TestOnboardingUninstallContainer(_OnboardingUninstallBaseTest):
-    @bug(context.library == "python", reason="AIT-8581")
     def test_no_traces_after_uninstall(self, onboardig_vm):
         super().test_no_traces_after_uninstall(onboardig_vm)
 
