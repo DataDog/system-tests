@@ -24,7 +24,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_start_span(self, test_agent, test_library):
         """
@@ -43,7 +42,9 @@ class Test_Otel_Span_Methods:
                 parent.end_span(timestamp=start_time + duration)
 
         root_span = get_span(test_agent)
-        assert root_span["name"] == "producer"
+        if root_span["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
@@ -51,7 +52,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
         """
@@ -63,7 +63,9 @@ class Test_Otel_Span_Methods:
                 parent.end_span()
 
         root_span = get_span(test_agent)
-        assert root_span["name"] == "internal"
+        if root_span["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert root_span["name"] == "internal"
         assert root_span["resource"] == "parent_span"
         assert root_span["service"] == "new_service"
 
@@ -73,7 +75,6 @@ class Test_Otel_Span_Methods:
     )
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_attributes_different_types(self, test_agent, test_library):
         """
@@ -100,7 +101,9 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "producer"
+        if root_span["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
 
         assert root_span["meta"]["str_val"] == "val"
@@ -185,7 +188,9 @@ class Test_Otel_Span_Methods:
 
         root_span = get_span(test_agent)
 
-        assert root_span["name"] == "producer"
+        if root_span["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
 
         assert root_span["meta"]["str_val"] == "val"
@@ -252,7 +257,9 @@ class Test_Otel_Span_Methods:
                 s.end_span(timestamp=start_time + duration * 2)
 
         s = get_span(test_agent)
-        assert s.get("name") == "internal"
+        if s["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert s.get("name") == "internal"
         assert s.get("resource") == "operation"
         assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
         assert s.get("duration") == duration * 1_000
@@ -284,12 +291,16 @@ class Test_Otel_Span_Methods:
         assert len(trace) == 2
 
         parent_span = find_span(trace, otel_span(name="parent"))
-        assert parent_span["name"] == "producer"
+        if parent_span["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert parent_span["name"] == "producer"
         assert parent_span["resource"] == "parent"
         assert parent_span["meta"].get("after_finish") is None
 
         child = find_span(trace, otel_span(name="child"))
-        assert child["name"] == "consumer"
+        if child["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert child["name"] == "consumer"
         assert child["resource"] == "child"
         assert child["parent_id"] == parent_span["span_id"]
 
@@ -318,7 +329,9 @@ class Test_Otel_Span_Methods:
                 s.end_span()
         s = get_span(test_agent)
         assert s.get("meta").get("error.message") == "error_desc"
-        assert s.get("name") == "internal"
+        if s["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert s.get("name") == "internal"
         assert s.get("resource") == "error_span"
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
@@ -353,7 +366,9 @@ class Test_Otel_Span_Methods:
 
         span = get_span(test_agent)
         assert span.get("meta").get("error.message") is None
-        assert span.get("name") == "internal"
+        if span["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert span.get("name") == "internal"
         assert span.get("resource") == "ok_span"
 
     def test_otel_get_span_context(self, test_agent, test_library):
@@ -394,7 +409,9 @@ class Test_Otel_Span_Methods:
             assert len(trace) == 1
 
             span = get_span(test_agent)
-            assert span["name"] == "kafka.receive"
+            if span["meta"]["language"] != "python":
+                # operation name mapping not supported in Python
+                assert span["name"] == "kafka.receive"
             assert span["resource"] == "operation"
 
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -463,7 +480,9 @@ class Test_Otel_Span_Methods:
         assert len(trace) == 1
 
         span = get_span(test_agent)
-        assert span["name"] == "overriden.name"
+        if span["meta"]["language"] != "python":
+            # operation name mapping not supported in Python
+            assert span["name"] == "overriden.name"
         assert span["meta"]["span.kind"] == "server"
         assert span["resource"] == "new.name"
         assert span["service"] == "new.service.name"
@@ -518,7 +537,9 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
     assert len(trace) == 1
 
     span = get_span(test_agent)
-    assert span["name"] == expected_operation_name
+    if span["meta"]["language"] != "python":
+        # operation name mapping not supported in Python
+        assert span["name"] == expected_operation_name
     assert span["resource"] == "otel_span_name"
 
 
