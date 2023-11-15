@@ -36,7 +36,7 @@ Without providing a scenario argument, only the tests without any `@scenario` de
 
 ```bash
 ./run.sh <SCENARIO_NAME>
-# e.g, "LIBRARY_CONF_CUSTOM_HEADERS_LONG" to run the library_conf_custom_headers_long scenario
+# e.g, "LIBRARY_CONF_CUSTOM_HEADER_TAGS" to run the LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
 ```
 
 ## Spawn componenents, but do nothing
