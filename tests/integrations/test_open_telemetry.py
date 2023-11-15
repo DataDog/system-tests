@@ -28,7 +28,7 @@ def pytest_generate_tests(metafunc):
     if (
         "otel_sql_service"
         and "otel_sql_operation" in metafunc.fixturenames
-        and context.scenario == scenarios.otel_integrations_v3
+        and context.scenario == scenarios.otel_integrations
     ):
         class_name = metafunc.cls.__name__.split("_")[1]
         if class_name not in testdata_cache:
@@ -53,7 +53,7 @@ def pytest_generate_tests(metafunc):
         )
 
 
-@scenarios.otel_integrations_v3
+@scenarios.otel_integrations
 class Test_OtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     """ Verify basic DB operations over different databases.

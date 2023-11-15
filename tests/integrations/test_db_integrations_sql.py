@@ -31,7 +31,7 @@ def pytest_generate_tests(metafunc):
     if (
         "test_sql_service"
         and "test_sql_operation" in metafunc.fixturenames
-        and context.scenario == scenarios.integrations_v3
+        and context.scenario == scenarios.integrations
     ):
         class_name = metafunc.cls.__name__.split("_")[1]
         if class_name not in testdata_cache:
@@ -56,7 +56,7 @@ def pytest_generate_tests(metafunc):
         )
 
 
-@scenarios.integrations_v3
+@scenarios.integrations
 class Test_DatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     """ Verify basic DB operations over different databases.
         Check integration spans status: https://docs.google.com/spreadsheets/d/1qm3B0tJ-gG11j_MHoEd9iMXf4_DvWAGCLwmBhWCxbA8/edit#gid=623219645 """
