@@ -1081,6 +1081,24 @@ class scenarios:
         doc="We use the open telemetry library to automatically instrument the weblogs instead of using the DD library. This scenario represents this case in the integration with different external systems, for example the interaction with sql database.",
     )
 
+    otel_integrations_v3 = OpenTelemetryScenario(
+        "OTEL_INTEGRATIONS_V3",
+        weblog_env={
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:8126",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        include_intake=False,
+        include_collector=False,
+        include_postgres_db=True,
+        include_cassandra_db=False,
+        include_mongo_db=False,
+        include_kafka=False,
+        include_rabbitmq=False,
+        include_mysql_db=True,
+        include_sqlserver=True,
+        doc="We use the open telemetry library to automatically instrument the weblogs instead of using the DD library. This scenario represents this case in the integration with different external systems, for example the interaction with sql database.",
+    )
     profiling = EndToEndScenario(
         "PROFILING",
         library_interface_timeout=160,

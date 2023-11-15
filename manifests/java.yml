@@ -831,13 +831,7 @@ tests/:
     test_crossed_integrations.py:
       Test_PythonKafka: missing_feature
     test_db_integrations_sql.py:
-      Test_MsSql:
-        '*': missing_feature
-        spring-boot: v1.12.0
-      Test_MySql:
-        '*': missing_feature
-        spring-boot: v1.12.0
-      Test_Postgres:
+      Test_DatadogDbIntegrationTestClass:
         '*': missing_feature
         spring-boot: v1.12.0
     test_dbm.py:

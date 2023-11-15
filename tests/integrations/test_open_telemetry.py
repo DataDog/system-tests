@@ -1,100 +1,183 @@
-from utils import context, bug, flaky, irrelevant, missing_feature, scenarios
+import pytest
 from utils.tools import logger
 from .sql_utils import BaseDbIntegrationsTestClass
+from utils import weblog, interfaces
+from utils import (
+    context,
+    sql_bug,
+    missing_sql_feature,
+    sql_irrelevant,
+    manage_sql_decorators,
+    bug,
+    missing_feature,
+    irrelevant,
+    scenarios,
+    flaky,
+)
+
+testdata_cache = {}
+
+# Define the data for test case generation
+otel_sql_operations = ["select", "insert", "update", "delete", "procedure", "select_error"]
+otel_sql_services = ["mysql", "postgresql", "mssql"]
 
 
-class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
+def pytest_generate_tests(metafunc):
+    """ Generate parametrized tests for given sql_operations (basic sql operations; ie select,insert...) over sql_services (db services ie mysql,mssql...)"""
+
+    if (
+        "otel_sql_service"
+        and "otel_sql_operation" in metafunc.fixturenames
+        and context.scenario == scenarios.otel_integrations_v3
+    ):
+        class_name = metafunc.cls.__name__.split("_")[1]
+        if class_name not in testdata_cache:
+            test_parameters = []
+            test_ids = []
+            for test_sql_service in otel_sql_services:
+                weblog.get("/db", params={"service": test_sql_service, "operation": "init"}, timeout=20)
+
+                for test_sql_operation in otel_sql_operations:
+                    weblog_request = weblog.get(
+                        "/db", params={"service": test_sql_service, "operation": test_sql_operation}
+                    )
+                    test_parameters.append((test_sql_service, test_sql_operation, weblog_request))
+                    test_ids.append("db:" + test_sql_service + ",op:" + test_sql_operation)
+            testdata_cache[class_name] = test_parameters
+            testdata_cache[class_name + ".id"] = test_ids
+
+        metafunc.parametrize(
+            "otel_sql_service,otel_sql_operation,weblog_request",
+            testdata_cache[class_name],
+            ids=testdata_cache[class_name + ".id"],
+        )
+
+
+@scenarios.otel_integrations_v3
+class Test_OtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     """ Verify basic DB operations over different databases.
         Check integration spans status: https://docs.google.com/spreadsheets/d/1qm3B0tJ-gG11j_MHoEd9iMXf4_DvWAGCLwmBhWCxbA8/edit#gid=623219645 """
 
-    def test_properties(self):
+    @missing_sql_feature(
+        library="python_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="Python OpenTel doesn't support mssql",
+    )
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_properties(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ generic check on all operations """
 
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.scenario.get_container_by_dd_integration_name(otel_sql_service)
 
-        for db_operation, request in self.get_requests():
-            logger.info(f"Validating {self.db_service}/{db_operation}")
+        span = self.get_span_from_agent(weblog_request)
 
-            span = self.get_span_from_agent(request)
+        assert span is not None, f"Span is not found for {otel_sql_operation}"
 
-            assert span is not None, f"Span is not found for {db_operation}"
+        # DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name.
+        assert span["meta"]["db.name"] == db_container.db_instance
 
-            # DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name.
-            assert span["meta"]["db.name"] == db_container.db_instance
+        # Describes the relationship between the Span, its parents, and its children in a Trace.
+        assert span["meta"]["span.kind"] == "client"
 
-            # Describes the relationship between the Span, its parents, and its children in a Trace.
-            assert span["meta"]["span.kind"] == "client"
+        # An identifier for the database management system (DBMS) product being used. Formerly db.type
+        # Must be one of the available values:
+        # https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system
+        assert span["meta"]["db.system"] == otel_sql_service
 
-            # An identifier for the database management system (DBMS) product being used. Formerly db.type
-            # Must be one of the available values:
-            # https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system
-            assert span["meta"]["db.system"] == self.db_service
+        # Username for accessing the database.
+        assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
 
-            # Username for accessing the database.
-            assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
+        # The database password should not show in the traces
+        for key in span["meta"]:
+            if key not in [
+                "peer.hostname",
+                "db.user",
+                "env",
+                "db.instance",
+                "out.host",
+                "db.name",
+                "peer.service",
+                "net.peer.name",
+            ]:  # These fields hostname, user... are the same as password
+                assert span["meta"][key] != db_container.db_password, f"Test is failing for {otel_sql_operation}"
 
-            # The database password should not show in the traces
-            for key in span["meta"]:
-                if key not in [
-                    "peer.hostname",
-                    "db.user",
-                    "env",
-                    "db.instance",
-                    "out.host",
-                    "db.name",
-                    "peer.service",
-                    "net.peer.name",
-                ]:  # These fields hostname, user... are the same as password
-                    assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
-
-    def test_resource(self):
+    @bug(
+        library="nodejs_otel",
+        reason="Resource span is not generating correctly. We find resource value: execsql master",
+    )
+    @missing_sql_feature(
+        library="python_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="Python OpenTel doesn't support mssql",
+    )
+    @sql_irrelevant(condition=lambda otel_sql_operation: otel_sql_operation in ["procedure", "select_error"])
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_resource(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ Usually the query """
-        for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
-            span = self.get_span_from_agent(request)
-            assert db_operation in span["resource"].lower()
+        span = self.get_span_from_agent(weblog_request)
+        assert otel_sql_operation in span["resource"].lower()
 
     @missing_feature(library="python_otel", reason="Open telemetry doesn't send this span for python")
-    def test_db_connection_string(self):
+    def test_db_connection_string(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ The connection string used to connect to the database. """
-        for db_operation, request in self.get_requests():
-            span = self.get_span_from_agent(request)
-            assert span["meta"]["db.connection_string"].strip(), f"Test is failing for {db_operation}"
+        span = self.get_span_from_agent(weblog_request)
+        assert span["meta"]["db.connection_string"].strip()
 
     @bug(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
     @bug(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
-    def test_db_operation(self):
+    @sql_bug(
+        library="java_otel",
+        condition=lambda otel_sql_operation, otel_sql_service: otel_sql_service == "mssql"
+        and otel_sql_operation == "procedure",
+    )
+    @sql_irrelevant(condition=lambda otel_sql_operation: otel_sql_operation == "select_error")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_operation(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ The name of the operation being executed """
-        for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
-            span = self.get_span_from_agent(request)
+        span = self.get_span_from_agent(weblog_request)
 
-            if db_operation == "procedure":
-                assert any(
-                    substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
-                ), "db.operation span not found for procedure operation"
-            else:
-                assert (
-                    db_operation.lower() in span["meta"]["db.operation"].lower()
-                ), f"Test is failing for {db_operation}"
+        if otel_sql_operation == "procedure":
+            assert any(
+                substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
+            ), "db.operation span not found for procedure operation"
+        else:
+            assert (
+                otel_sql_operation.lower() in span["meta"]["db.operation"].lower()
+            ), f"Test is failing for {otel_sql_operation}"
 
     @missing_feature(
         context.library in ("python_otel", "nodejs_otel"),
         reason="Open Telemetry doesn't send this span for python. But according to the OTEL specification it would be recommended ",
     )
-    def test_db_sql_table(self):
+    @sql_irrelevant(condition=lambda otel_sql_operation: otel_sql_operation == "procedure")
+    def test_db_sql_table(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
-        for db_operation, request in self.get_requests(excluded_operations=["procedure"]):
-            span = self.get_span_from_agent(request)
-            assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
+        span = self.get_span_from_agent(weblog_request)
+        assert span["meta"]["db.sql.table"].strip()
 
-    def test_error_message(self):
+    @missing_sql_feature(
+        library="python_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="Python OpenTel doesn't support mssql",
+    )
+    @sql_irrelevant(condition=lambda otel_sql_operation: otel_sql_operation != "select_error")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_error_message(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ A string representing the error message. """
-        span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
+        span = self.get_span_from_agent(weblog_request)
         assert len(span["meta"]["error.msg"].strip()) != 0
 
     @missing_feature(library="nodejs_otel", reason="Open telemetry with nodejs is not generating this information.")
-    def test_error_type_and_stack(self):
-        span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
+    @missing_sql_feature(
+        library="python_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="Python OpenTel doesn't support mssql",
+    )
+    @sql_irrelevant(condition=lambda otel_sql_operation: otel_sql_operation != "select_error")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_error_type_and_stack(self, otel_sql_service, otel_sql_operation, weblog_request):
+        span = self.get_span_from_agent(weblog_request)
 
         # A string representing the type of the error
         assert span["meta"]["error.type"].strip()
@@ -104,66 +187,67 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     @bug(library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
     @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
-    def test_obfuscate_query(self):
+    @missing_sql_feature(
+        library="python_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="Python OpenTel doesn't support mssql",
+    )
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_obfuscate_query(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ All queries come out obfuscated from agent """
-        for db_operation, request in self.get_requests():
-            span = self.get_span_from_agent(request)
-            if db_operation in ["update", "delete", "procedure", "select_error"]:
-                assert (
-                    span["meta"]["db.statement"].count("?") == 2
-                ), f"The query is not properly obfuscated for operation {db_operation}"
-            else:
-                assert (
-                    span["meta"]["db.statement"].count("?") == 3
-                ), f"The query is not properly obfuscated for operation {db_operation}"
+        span = self.get_span_from_agent(weblog_request)
 
-    def test_sql_success(self):
-        """ We check all sql launched for the app work """
-        for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
-            span = self.get_span_from_agent(request)
-            assert "error" not in span or span["error"] == 0
-
-    def test_db_statement_query(self):
-        """ Usually the query """
-        for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
-            span = self.get_span_from_agent(request)
+        if otel_sql_operation in ["update", "delete", "procedure", "select_error"]:
             assert (
-                db_operation in span["meta"]["db.statement"].lower()
-            ), f"{db_operation}  not found in {span['meta']['db.statement']}"
+                span["meta"]["db.statement"].count("?") == 2
+            ), f"The query is not properly obfuscated for operation {otel_sql_operation}"
+        else:
+            assert (
+                span["meta"]["db.statement"].count("?") == 3
+            ), f"The query is not properly obfuscated for operation {otel_sql_operation}"
+
+    @missing_sql_feature(
+        library="python_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="Python OpenTel doesn't support mssql",
+    )
+    @sql_irrelevant(condition=lambda otel_sql_operation: otel_sql_operation == "select_error")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_sql_success(self, otel_sql_service, otel_sql_operation, weblog_request):
+        """ We check all sql launched for the app work """
+        span = self.get_span_from_agent(weblog_request)
+        assert "error" not in span or span["error"] == 0
+
+    @missing_sql_feature(
+        library="python_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="Python OpenTel doesn't support mssql",
+    )
+    @sql_irrelevant(condition=lambda otel_sql_operation: otel_sql_operation in ["select_error", "procedure"])
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_statement_query(self, otel_sql_service, otel_sql_operation, weblog_request):
+        """ Usually the query """
+        span = self.get_span_from_agent(weblog_request)
+        assert (
+            otel_sql_operation in span["meta"]["db.statement"].lower()
+        ), f"{otel_sql_operation}  not found in {span['meta']['db.statement']}"
+
+    @irrelevant(
+        context.library in ("java_otel", "nodejs_otel", "python_otel"),
+        reason="Open Telemetry doesn't generate this span. It's recomended but not mandatory",
+    )
+    def test_db_mssql_instance_name(self, otel_sql_service, otel_sql_operation, weblog_request):
+        """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
+            This value should be set only if it’s specified on the mssql connection string. """
+
+        span = self.get_span_from_agent(weblog_request)
+        assert span["meta"]["db.mssql.instance_name"].strip()
 
 
-@scenarios.otel_integrations
-class Test_Postgres(_BaseOtelDbIntegrationTestClass):
-    """ OpenTelemetry/Postgres integration """
-
-    db_service = "postgresql"
-
-
-@scenarios.otel_integrations
-class Test_MySql(_BaseOtelDbIntegrationTestClass):
-    """ OpenTelemetry/MySql integration """
-
-    db_service = "mysql"
-
-
-@scenarios.otel_integrations
-class Test_MsSql(_BaseOtelDbIntegrationTestClass):
+class Test_MsSql:
     """ OpenTelemetry/MsSql integration """
 
     db_service = "mssql"
-
-    @irrelevant(
-        context.library in ("java_otel", "nodejs_otel"),
-        reason="Open Telemetry doesn't generate this span. It's recomended but not mandatory",
-    )
-    def test_db_mssql_instance_name(self):
-        """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
-            This value should be set only if it’s specified on the mssql connection string. """
-        for db_operation, request in self.get_requests():
-            span = self.get_span_from_agent(request)
-            assert span["meta"][
-                "db.mssql.instance_name"
-            ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
 
     @bug(library="nodejs_otel", reason="We are not generating this span")
     def test_db_operation(self):
@@ -175,13 +259,6 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
                 assert (
                     db_operation.lower() in span["meta"]["db.operation"].lower()
                 ), f"Test is failing for {db_operation}"
-
-    @bug(
-        library="nodejs_otel",
-        reason="Resource span is not generating correctly. We find resource value: execsql master",
-    )
-    def test_resource(self):
-        super().test_resource()
 
     @irrelevant(
         library="nodejs_otel",

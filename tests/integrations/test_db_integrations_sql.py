@@ -21,23 +21,23 @@ from .sql_utils import BaseDbIntegrationsTestClass
 # Define the data for test case generation
 test_sql_operations = ["select", "insert", "update", "delete", "procedure", "select_error"]
 test_sql_services = ["mysql", "postgresql", "mssql"]
+
 testdata_cache = {}
 
 
 def pytest_generate_tests(metafunc):
     """ Generate parametrized tests for given sql_operations (basic sql operations; ie select,insert...) over sql_services (db services ie mysql,mssql...)"""
+
     if (
         "test_sql_service"
         and "test_sql_operation" in metafunc.fixturenames
         and context.scenario == scenarios.integrations_v3
     ):
         class_name = metafunc.cls.__name__.split("_")[1]
-        logger.info(f"pytest_generate_tests")
         if class_name not in testdata_cache:
             test_parameters = []
             test_ids = []
             for test_sql_service in test_sql_services:
-                logger.info("Initializing DB RMM...")
                 weblog.get("/db", params={"service": test_sql_service, "operation": "init"}, timeout=20)
 
                 for test_sql_operation in test_sql_operations:
@@ -72,11 +72,6 @@ class Test_DatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         yield self.get_span_from_agent(request)
 
     # Tests methods
-    def test_sql_traces2(self, test_sql_service, test_sql_operation, weblog_request):
-        """ After make the requests we check that we are producing sql traces """
-        span_tracer, span_agent = self.get_spans(weblog_request)
-        assert None not in [span_tracer, span_agent]
-
     def test_sql_traces(self, test_sql_service, test_sql_operation, weblog_request):
         """ After make the requests we check that we are producing sql traces """
         span_tracer, span_agent = self.get_spans(weblog_request)
@@ -114,115 +109,141 @@ class Test_DatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """ DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
             Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
         span_tracer, span_agent = self.get_spans(weblog_request)
-        assert all(
-            test_sql_service in span_db_type
-            for span_db_type in [span_tracer["meta"]["db.type"], span_agent["meta"]["db.type"]]
-        ), f"Expected db.type [{test_sql_service}] but found tracer[{span_tracer['meta']['db.type']}] and agent[{span_agent['meta']['db.type']}] "
+        self._assert_span_meta(span_tracer, span_agent, "db.type", test_sql_service)
 
+    @missing_sql_feature(
+        library="python",
+        condition=lambda test_sql_service: test_sql_service == "mssql",
+        reason="Partial support for python and mssql",
+    )
     @irrelevant(library="java", reason="Java is using the correct span: db.instance")
-    def test_db_name(self):
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_name(self, test_sql_service, test_sql_operation, weblog_request):
         """ DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name."""
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.scenario.get_container_by_dd_integration_name(test_sql_service)
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        self._assert_span_meta(span_tracer, span_agent, "db.name", db_container.db_instance)
 
-        for db_operation, span in self.get_spans():
-            assert span["meta"]["db.name"] == db_container.db_instance, f"Test is failing for {db_operation}"
-
-    def _TODO_test_span_kind(self, excluded_operations=()):
+    def test_span_kind(self, test_sql_service, test_sql_operation, weblog_request):
         """ Describes the relationship between the Span, its parents, and its children in a Trace."""
-
-        for _, span in self.get_spans(excluded_operations):
-            assert span["meta"]["span.kind"] == "client"
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        self._assert_span_meta(span_tracer, span_agent, "span.kind", "client")
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
-    def _TODO_test_runtime_id(self):
+    def test_runtime_id(self, test_sql_service, test_sql_operation, weblog_request):
         """ Unique identifier for the current process."""
-
-        for db_operation, span in self.get_spans():
-            assert span["meta"]["runtime-id"].strip(), f"Test is failing for {db_operation}"
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        assert span_tracer["meta"]["runtime-id"].strip()
+        assert span_agent["meta"]["runtime-id"].strip()
 
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
-    def _TODO_test_db_system(self):
+    @missing_sql_feature(
+        library="python",
+        condition=lambda test_sql_service: test_sql_service == "mssql",
+        reason="Partial support for python and mssql",
+    )
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_system(self, test_sql_service, test_sql_operation, weblog_request):
         """ An identifier for the database management system (DBMS) product being used. Formerly db.type
                 Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system """
-
-        for db_operation, span in self.get_spans():
-            assert span["meta"]["db.system"] == self.db_service, f"Test is failing for {db_operation}"
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        self._assert_span_meta(span_tracer, span_agent, "db.system", test_sql_service)
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
-    def _TODO_test_db_connection_string(self):
+    def test_db_connection_string(self, test_sql_service, test_sql_operation, weblog_request):
         """ The connection string used to connect to the database. """
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        assert span_tracer["meta"]["db.connection_string"].strip()
+        assert span_agent["meta"]["db.connection_string"].strip()
 
-        for db_operation, span in self.get_spans():
-            assert span["meta"]["db.connection_string"].strip(), f"Test is failing for {db_operation}"
-
-    def _TODO_test_db_user(self, excluded_operations=()):
+    @missing_sql_feature(
+        library="python",
+        condition=lambda test_sql_service: test_sql_service == "mssql",
+        reason="Partial support for python and mssql",
+    )
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_user(self, test_sql_service, test_sql_operation, weblog_request):
         """ Username for accessing the database. """
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
-
-        for db_operation, span in self.get_spans(excluded_operations=excluded_operations):
-            assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
+        db_container = context.scenario.get_container_by_dd_integration_name(test_sql_service)
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        self._assert_span_meta(span_tracer, span_agent, "db.user", db_container.db_user.casefold())
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
-    def _TODO_test_db_instance(self, excluded_operations=()):
+    def test_db_instance(self, test_sql_service, test_sql_operation, weblog_request):
         """ The name of the database being connected to. Database instance name. Formerly db.name"""
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
-
-        for db_operation, span in self.get_spans(excluded_operations=excluded_operations):
-            assert span["meta"]["db.instance"] == db_container.db_instance
+        db_container = context.scenario.get_container_by_dd_integration_name(test_sql_service)
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        self._assert_span_meta(span_tracer, span_agent, "db.instance", db_container.db_instance)
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
-    def _TODO_test_db_statement_query(self):
+    @sql_irrelevant(condition=lambda test_sql_operation: test_sql_operation in ["select_error", "procedure"])
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_statement_query(self, test_sql_service, test_sql_operation, weblog_request):
         """ Usually the query """
-
-        for db_operation, span in self.get_spans(excluded_operations=["procedure", "select_error"]):
-            assert db_operation in span["meta"]["db.statement"].lower()
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        self._assert_span_meta(span_tracer, span_agent, "db.statement", test_sql_operation.upper())
 
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="python", reason="not implemented yet")
-    def _TODO_test_db_operation(self, excluded_operations=()):
+    @sql_irrelevant(condition=lambda test_sql_operation: test_sql_operation in ["select_error", "procedure"])
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_operation(self, test_sql_service, test_sql_operation, weblog_request):
         """ The name of the operation being executed """
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        assert all(
+            test_sql_operation.lower() in span_db
+            for span_db in [span_tracer["meta"]["db.operation"].lower(), span_agent["meta"]["db.operation"].lower()]
+        ), f"Expected db.instance [{test_sql_operation.lower()}] but found tracer[{span_tracer['meta']['db.operation']}] and agent[{span_agent['meta']['db.operation']}] "
 
-        for db_operation, span in self.get_spans(excluded_operations=excluded_operations + ("select_error",)):
-            if db_operation == "procedure":
-                assert any(
-                    substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
-                ), "db.operation span not found for procedure operation"
-            else:
-                assert (
-                    db_operation.lower() in span["meta"]["db.operation"].lower()
-                ), f"Test is failing for {db_operation}"
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="python", reason="not implemented yet")
+    @sql_irrelevant(condition=lambda test_sql_operation: test_sql_operation != "procedure")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_operation_for_procedure(self, test_sql_service, test_sql_operation, weblog_request):
+        """ The name of the operation being executed """
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        assert any(
+            substring in span_tracer["meta"]["db.operation"].lower() for substring in ["call", "exec"]
+        ), "db.operation span not found for procedure operation"
+        assert any(
+            substring in span_agent["meta"]["db.operation"].lower() for substring in ["call", "exec"]
+        ), "db.operation span not found for procedure operation"
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
-    def _TODO_test_db_sql_table(self):
+    @sql_irrelevant(condition=lambda test_sql_operation: test_sql_operation == "procedure")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def db_sql_table(self, test_sql_service, test_sql_operation, weblog_request):
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
-
-        for db_operation, span in self.get_spans(excluded_operations=["procedure"]):
-            assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        assert span_tracer["meta"]["db.sql.table"].strip()
+        assert span_agent["meta"]["db.sql.table"].strip()
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
-    def _TODO_test_db_row_count(self):
+    @sql_irrelevant(condition=lambda test_sql_operation: test_sql_operation != "select")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_db_row_count(self, test_sql_service, test_sql_operation, weblog_request):
         """ The number of rows/results from the query or operation. For caches and other datastores. 
         This tag should only set for operations that retrieve stored data, such as GET operations and queries, excluding SET and other commands not returning data.  """
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        assert span_tracer["meta"]["db.row_count"] > 0
+        assert span_agent["meta"]["db.row_count"] > 0
 
-        for _, span in self.get_spans(operations=["select"]):
-            assert span["meta"]["db.row_count"] > 0, "Test is failing for select"
-
-    def _TODO_test_db_password(self, excluded_operations=()):
+    def test_db_password(self, test_sql_service, test_sql_operation, weblog_request):
         """ The database password should not show in the traces """
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
-
-        for db_operation, span in self.get_spans(excluded_operations=excluded_operations):
+        db_container = context.scenario.get_container_by_dd_integration_name(test_sql_service)
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        for span in [span_tracer, span_agent]:
             for key in span["meta"]:
                 if key not in [
                     "peer.hostname",
@@ -234,18 +255,20 @@ class Test_DatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     "peer.service",
                     "net.peer.name",
                 ]:  # These fields hostname, user... are the same as password
-                    assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
+                    assert span["meta"][key] != db_container.db_password
 
     @missing_feature(condition=context.library != "java", reason="Apply only java")
     @missing_feature(library="java", reason="Not implemented yet")
-    def _TODO_test_db_jdbc_drive_classname(self):
+    def test_db_jdbc_drive_classname(self, test_sql_service, test_sql_operation, weblog_request):
         """ The fully-qualified class name of the Java Database Connectivity (JDBC) driver used to connect. """
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        assert span_tracer["meta"]["db.jdbc.driver_classname"].strip()
+        assert span_agent["meta"]["db.jdbc.driver_classname"].strip()
 
-        for db_operation, span in self.get_spans():
-            assert span["meta"]["db.jdbc.driver_classname"].strip(), f"Test is failing for {db_operation}"
-
-    def _TODO_test_error_message(self):
-        for db_operation, span in self.get_spans(operations=["select_error"]):
+    @sql_irrelevant(condition=lambda test_sql_operation: test_sql_operation != "select_error")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_error_message(self, test_sql_service, test_sql_operation, weblog_request):
+        for span in self.get_spans(weblog_request):
             # A string representing the error message.
             assert span["meta"]["error.message"].strip()
 
@@ -255,118 +278,76 @@ class Test_DatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             # A human readable version of the stack trace.
             assert span["meta"]["error.stack"].strip()
 
-    @missing_feature(
+    @irrelevant(
         library="java",
         reason="The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality",
     )
-    def _TODO_test_NOT_obfuscate_query(self):
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_tracer_NOT_obfuscate_query(self, test_sql_service, test_sql_operation, weblog_request):
         """ All queries come out without obfuscation from tracer library """
-        for db_operation, request in self.get_requests():
-            span = self.get_span_from_tracer(request)
-            assert span["resource"].count("?") == 0, f"The query should not be obfuscated for operation {db_operation}"
+        span_tracer = self.get_span_from_tracer(weblog_request)
+        assert span_tracer["resource"].count("?") == 0
 
-    def _TODO_test_sql_query(self):
+    @sql_irrelevant(condition=lambda test_sql_operation: test_sql_operation in ["select_error", "procedure"])
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_sql_query(self, test_sql_service, test_sql_operation, weblog_request):
         """ Usually the query """
-        for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
-            span = self.get_span_from_agent(request)
-            assert (
-                db_operation in span["meta"]["sql.query"].lower()
-            ), f"sql.query span not found for operation {db_operation}"
+        span_agent = self.get_span_from_agent(weblog_request)
+        assert (
+            test_sql_operation in span_agent["meta"]["sql.query"].lower()
+        ), f"sql.query span not found for operation {test_sql_operation}"
 
-    def _TODO_test_obfuscate_query(self, excluded_operations=()):
+    @sql_irrelevant(condition=lambda test_sql_service: test_sql_service == "mssql")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_obfuscate_query(self, test_sql_service, test_sql_operation, weblog_request):
         """ All queries come out obfuscated from agent """
-        for db_operation, request in self.get_requests(excluded_operations=excluded_operations):
+        span_agent = self.get_span_from_agent(weblog_request)
 
-            span = self.get_span_from_agent(request)
-            # We launch all queries with two parameters (from weblog)
+        # We launch all queries with two parameters (from weblog)
+        # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
+        if test_sql_operation in ["insert", "procedure"]:
+            assert (
+                span_agent["meta"]["sql.query"].count("?") == 1
+            ), f"The query is not properly obfuscated for operation {test_sql_operation}"
+        else:
+            assert (
+                span_agent["meta"]["sql.query"].count("?") == 2
+            ), f"The query is not properly obfuscated for operation {test_sql_operation}"
+
+    @sql_irrelevant(condition=lambda test_sql_service: test_sql_service != "mssql")
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_obfuscate_mmsql_query(self, test_sql_service, test_sql_operation, weblog_request):
+        """ All queries come out obfuscated from agent """
+        span_agent = self.get_span_from_agent(weblog_request)
+
+        # We launch all queries with two parameters (from weblog)
+        if test_sql_operation == "insert":
+            expected_obfuscation_count = 1
+        elif test_sql_operation == "procedure":
             # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-            if db_operation in ["insert", "procedure"]:
-                assert (
-                    span["meta"]["sql.query"].count("?") == 1
-                ), f"The query is not properly obfuscated for operation {db_operation}"
-            else:
-                assert (
-                    span["meta"]["sql.query"].count("?") == 2
-                ), f"The query is not properly obfuscated for operation {db_operation}"
+            # Nodejs: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
+            expected_obfuscation_count = 0 if context.library.library == "nodejs" else 2
+        else:
+            expected_obfuscation_count = 2
 
-
-@scenarios.integrations_v4
-class Test_Postgres:
-    """ Postgres integration with Datadog tracer+agent """
-
-    db_service = "postgresql"
-
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
-    @irrelevant(library="python", reason="Python is using the correct span: db.system")
-    def test_db_type(self):
-        super().test_db_type()
-
-
-@scenarios.integrations_v4
-class Test_MySql:
-    """ MySql integration with Datadog tracer+agent """
-
-    db_service = "mysql"
-
-    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
-    @bug(library="python", reason="the value of this span should be 'world' instead of  'b'world'' ")
-    def test_db_name(self):
-        super().test_db_name()
-
-    @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
-    def test_db_user(self, excluded_operations=()):
-        super().test_db_user()
-
-
-@scenarios.integrations_v4
-class Test_MsSql:
-    """ MsSql integration with Datadog tracer+agent """
-
-    db_service = "mssql"
+        observed_obfuscation_count = span_agent["meta"]["sql.query"].count("?")
+        assert (
+            observed_obfuscation_count == expected_obfuscation_count
+        ), f"The mssql query fails. Expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span_agent['meta']['sql.query']}"
 
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
-    def test_db_mssql_instance_name(self):
+    def test_db_mssql_instance_name(self, test_sql_service, test_sql_operation, weblog_request):
         """ The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. 
             This value should be set only if it’s specified on the mssql connection string. """
 
-        for db_operation, span in self.get_spans():
-            assert span["meta"][
-                "db.mssql.instance_name"
-            ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
+        span_tracer, span_agent = self.get_spans(weblog_request)
+        assert span_tracer["meta"]["db.mssql.instance_name"].strip()
+        assert span_agent["meta"]["db.mssql.instance_name"].strip()
 
-    @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
-    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
-    def test_db_name(self):
-        super().test_db_name()
-
-    @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
-    @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
-    def test_db_system(self):
-        super().test_db_system()
-
-    @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
-    def test_db_user(self):
-        super().test_db_user()
-
-    def test_obfuscate_query(self, excluded_operations=()):
-        """ All queries come out obfuscated from agent """
-        for db_operation, request in self.get_requests(excluded_operations=excluded_operations):
-
-            span = self.get_span_from_agent(request)
-            # We launch all queries with two parameters (from weblog)
-            if db_operation == "insert":
-                expected_obfuscation_count = 1
-            elif db_operation == "procedure":
-                # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-                # Nodejs: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
-                expected_obfuscation_count = 0 if context.library.library == "nodejs" else 2
-            else:
-                expected_obfuscation_count = 2
-
-            observed_obfuscation_count = span["meta"]["sql.query"].count("?")
-            assert (
-                observed_obfuscation_count == expected_obfuscation_count
-            ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['sql.query']}"
+    def _assert_span_meta(self, span_tracer, span_agent, meta_tag, expected_value):
+        assert all(
+            expected_value.casefold() in span_db
+            for span_db in [span_tracer["meta"][meta_tag].casefold(), span_agent["meta"][meta_tag].casefold()]
+        ), f"Expected db.instance [{expected_value}] but found tracer[{span_tracer['meta'][meta_tag]}] and agent[{span_agent['meta'][meta_tag]}] "

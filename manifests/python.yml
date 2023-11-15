@@ -425,13 +425,7 @@ tests/:
         fastapi: missing_feature (missing endpoint on weblog)
         python3.12: missing_feature (missing endpoint on weblog)
     test_db_integrations_sql.py:
-      Test_MsSql:
-        '*': missing_feature
-        flask-poc: v1.18.3
-      Test_MySql:
-        '*': missing_feature
-        flask-poc: v1.18.3
-      Test_Postgres:
+      Test_DatadogDbIntegrationTestClass:
         '*': missing_feature
         flask-poc: v1.18.3
     test_dbm.py:

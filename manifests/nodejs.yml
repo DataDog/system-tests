@@ -271,13 +271,7 @@ tests/:
     test_crossed_integrations.py:
       Test_PythonKafka: missing_feature
     test_db_integrations_sql.py:
-      Test_MsSql:
-        '*': missing_feature
-        express4: v1.0.0
-      Test_MySql:
-        '*': missing_feature
-        express4: v1.0.0
-      Test_Postgres:
+      Test_DatadogDbIntegrationTestClass:
         '*': missing_feature
         express4: v1.0.0
     test_dbm.py:
