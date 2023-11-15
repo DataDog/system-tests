@@ -785,7 +785,9 @@ def docker_run(
 def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
-    r = subprocess.run(["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    r = subprocess.run(
+        ["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=default_subprocess_run_timeout
+    )
     if r.returncode != 0:
         pytest.fail(
             "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again."
@@ -815,7 +817,7 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stderr=docker_network_log_file)
+    r = subprocess.run(cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
             "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
@@ -831,7 +833,9 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
         ]
         docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
         docker_network_log_file.flush()
-        r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+        r = subprocess.run(
+            cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+        )
         if r.returncode != 0:
             pytest.fail(
                 "Could not create docker network %r, see the log file %r"
@@ -847,7 +851,9 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+    r = subprocess.run(
+        cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+    )
     if r.returncode != 0:
         pytest.fail(
             "Failed to remove docker network %r, see the log file %r"
