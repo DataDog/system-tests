@@ -309,7 +309,11 @@ class APMLibraryClientGRPC:
         pb_links = []
         for link in links:
             pb_link = pb.SpanLink()
-            pb_link.parent_id = link["parent_id"]
+            if (link.get("parent_id") or 0) == 0:
+                pb_link.parent_id = link["parent_id"]
+            else:
+                pb_link.http_headers = distributed_message
+                distributed_message = pb.DistributedHTTPHeaders()
             pb_link.attributes = convert_to_proto(link["attributes"])
             pb_links.append(pb_link)
 

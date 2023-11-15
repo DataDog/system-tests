@@ -46,8 +46,11 @@ message DistributedHTTPHeaders {
 }
 
 message SpanLink {
-  optional uint64 parent_id = 1; // Consume HTTP headers if 0 or not set
-  Attributes attributes = 2;
+  oneof from {
+    uint64 parent_id = 1;
+    DistributedHTTPHeaders http_headers = 2;
+  }
+  Attributes attributes = 3;
 }
 
 message HeaderTuple {
