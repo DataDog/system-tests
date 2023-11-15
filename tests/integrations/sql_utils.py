@@ -3,7 +3,6 @@ from utils.tools import logger
 
 
 class BaseDbIntegrationsTestClass:
-
     @staticmethod
     def get_span_from_tracer(weblog_request):
         for _, _, span in interfaces.library.get_spans(weblog_request):
