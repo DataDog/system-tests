@@ -28,6 +28,9 @@ import json
 
 from filelock import FileLock
 
+# Max timeout in seconds to keep a container running
+default_subprocess_run_timeout = 300
+
 
 @pytest.fixture
 def test_id():
@@ -458,6 +461,7 @@ def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer
         stdout=log_file,
         stderr=log_file,
         env=env,
+        timeout=default_subprocess_run_timeout,
     )
 
     failure_text: str = None
@@ -751,7 +755,7 @@ def docker_run(
     docker = shutil.which("docker")
 
     # Run the docker container
-    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
+    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout)
     if r.returncode != 0:
         log_file.flush()
         pytest.fail(
@@ -774,9 +778,7 @@ def docker_run(
         _cmd = [docker, "kill", name]
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
-        subprocess.run(
-            _cmd, stdout=log_file, stderr=log_file, check=True,
-        )
+        subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
 
 
 @pytest.fixture(scope="session")
