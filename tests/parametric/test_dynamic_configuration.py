@@ -10,7 +10,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 
-from utils.parametric.spec.trace import Span
+from utils.parametric.spec.trace import Span, assert_trace_has_tags
 from utils import context, missing_feature, rfc, scenarios
 
 import pytest
@@ -338,3 +338,47 @@ class TestDynamicConfigV1:
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
         assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
         assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+
+
+@rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
+@scenarios.parametric
+class TestDynamicConfigV2:
+
+    @parametrize(
+        "library_env",
+        [
+            { **DEFAULT_ENVVARS },
+            { **DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2" },
+        ],
+    )
+    def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
+        expected_local_tags = {}
+        if "DD_TAGS" in library_env:
+            expected_local_tags = dict([p.split(":") for p in library_env["DD_TAGS"].split(",")])
+
+        # Ensure tags are applied from the env
+        with test_library:
+            with test_library.start_span("test") as span:
+                with test_library.start_span("test2", parent_id=span.span_id):
+                    pass
+        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert_trace_has_tags(traces[0], expected_local_tags)
+
+        # Ensure local tags are overridden and RC tags applied.
+        set_and_wait_rc(test_agent, config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]})
+        with test_library:
+            with test_library.start_span("test") as span:
+                with test_library.start_span("test2", parent_id=span.span_id):
+                    pass
+        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert_trace_has_tags(traces[0], expected_local_tags)
+        assert traces[0][0]["meta"]["rc_key1"] == "val1"
+        assert traces[0][0]["meta"]["rc_key2"] == "val2"
+
+        # Ensure previous tags are restored.
+        set_and_wait_rc(test_agent, config_overrides={"tracing_tags": None})
+        with test_library:
+            with test_library.start_span("test") as span:
+                with test_library.start_span("test2", parent_id=span.span_id):
+                    pass
+        assert_trace_has_tags(traces[0], expected_local_tags)
