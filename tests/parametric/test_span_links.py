@@ -44,7 +44,8 @@ class Test_Span_Links:
         link = span_links[0]
         assert link.get("span_id") == root.get("span_id")
         assert link.get("trace_id") == root.get("trace_id")
-        assert (link.get("trace_id_high") or 0) == 0
+        root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
+        assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
         assert link["attributes"].get("foo") == "bar"
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
@@ -154,13 +155,15 @@ class Test_Span_Links:
                 with test_library.start_span(
                     "second", parent_id=parent.span_id, links=[Link(parent_id=parent.span_id)]
                 ) as second:
-                    second.add_link(first.span_id, attributes={"test": "success", "nested": ["a", "be"]})
+                    second.add_link(first.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, Span(name="root"))
         assert len(trace) == 3
 
         root = root_span(trace)
+        root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
+
         first = find_span(trace, Span(name="first"))
         span = find_span(trace, Span(name="second"))
 
@@ -173,7 +176,7 @@ class Test_Span_Links:
         link = span_links[0]
         assert link.get("span_id") == root.get("span_id")
         assert link.get("trace_id") == root.get("trace_id")
-        assert (link.get("trace_id_high") or 0) == 0
+        assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
         assert len(link.get("attributes") or {}) == 0
         assert (link.get("tracestate") or "") == ""
         assert (link.get("flags") or 0) == 0
@@ -181,10 +184,11 @@ class Test_Span_Links:
         link = span_links[1]
         assert link.get("span_id") == first.get("span_id")
         assert link.get("trace_id") == first.get("trace_id")
-        assert (link.get("trace_id_high") or 0) == 0
-        assert len(link.get("attributes")) == 3
-        assert link["attributes"].get("test") == "success"
-        assert link["attributes"].get("nested.0") == "a"
-        assert link["attributes"].get("nested.1") == "be"
+        assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
+        assert len(link.get("attributes")) == 4
+        assert link["attributes"].get("bools.0") == "true"
+        assert link["attributes"].get("bools.1") == "false"
+        assert link["attributes"].get("nested.0") == "1"
+        assert link["attributes"].get("nested.1") == "2"
         assert (link.get("tracestate") or "") == ""
         assert (link.get("flags") or 0) == 0
