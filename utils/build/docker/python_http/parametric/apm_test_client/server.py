@@ -76,6 +76,7 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
     if len(args.http_headers) > 0:
         headers = {k: v for k, v in args.http_headers}
         import os
+
         print("here are envars")
         print(os.environ)
         print(f"zach this is headers: {headers}")
