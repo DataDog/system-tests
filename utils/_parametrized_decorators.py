@@ -1,7 +1,6 @@
 import inspect
-import pytest
 import functools
-import inspect
+import pytest
 from utils._context.core import context
 from utils.tools import logger
 
@@ -42,7 +41,8 @@ def sql_bug(func=None, condition=None, library=None, reason=None):
 
 
 def eval_codition(func, condition, condition_type, library, reason, *args, **kwargs):
-    """We allway evaluate the condition in same way, but if condition evaluation is true, we mark the tests as xfail or skip"""
+    """We allway evaluate the condition in same way, but if condition evaluation is true, 
+       we mark the tests as xfail or skip"""
     # Library evaluation
     eval_library = True
     if library is not None and context.library != library:
@@ -53,7 +53,7 @@ def eval_codition(func, condition, condition_type, library, reason, *args, **kwa
         codition_param_values = {}
         for param_name in inspect.signature(condition).parameters:
             codition_param_values[param_name] = kwargs.get(param_name)
-        eval_condition = False if not condition(**codition_param_values) else True
+        eval_condition = condition(**codition_param_values)
 
     # Full evaluation and set skip/xpass if needed
     if eval_library and eval_condition:
