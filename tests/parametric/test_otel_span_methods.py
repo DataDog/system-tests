@@ -23,7 +23,7 @@ pytestmark = pytest.mark.parametrize(
 class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="New operation name in v2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_start_span(self, test_agent, test_library):
@@ -50,7 +50,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="New operation name in v2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
@@ -72,7 +72,7 @@ class Test_Otel_Span_Methods:
         reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
     )
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="New operation name in v2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_attributes_different_types(self, test_agent, test_library):
@@ -152,7 +152,8 @@ class Test_Otel_Span_Methods:
         context.library == "nodejs", reason="New operation name mapping & array encoding not yet implemented"
     )
     @missing_feature(
-        context.library == "dotnet", reason="New operation name mapping & array encoding not yet implemented"
+        context.library == "dotnet",
+        reason="Array encoding not yet implemented - new operaiton name mapping in v2.42.0",
     )
     @missing_feature(
         context.library == "python", reason="New operation name mapping & array encoding not yet implemented"
@@ -259,7 +260,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="New operation name in v2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_span_end(self, test_agent, test_library):
@@ -374,7 +375,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="New operation name in v2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_set_attributes_separately(self, test_agent, test_library):
@@ -399,7 +400,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="New operation name in v2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
@@ -442,7 +443,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Operation name wasn't lowercased until v2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @bug(context.library == "java", reason="span.kind not set")
