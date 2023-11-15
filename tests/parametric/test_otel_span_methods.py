@@ -452,7 +452,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
                 span.set_attributes({"http.request.method": "GET"})
                 span.set_attributes({"resource.name": "new.name"})
-                span.set_attributes({"operation.name": "Overriden.name"})
+                span.set_attributes({"operation.name": "overriden.name"})
                 span.set_attributes({"service.name": "new.service.name"})
                 span.set_attributes({"span.type": "new.span.type"})
                 span.set_attributes({"analytics.event": "true"})
