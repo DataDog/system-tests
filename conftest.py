@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import json
+import time
 
 import pytest
 from pytest_jsonreport.plugin import JSONReport
@@ -31,6 +32,7 @@ def pytest_addoption(parser):
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
     parser.addoption("--replay", "-R", action="store_true", help="Replay tests based on logs")
+    parser.addoption("--sleep", action="store_true", help="Startup scenario without launching the tests (keep running)")
     parser.addoption(
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
@@ -50,7 +52,7 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    context.scenario.configure(config.option)
+    context.scenario.configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = _JSON_REPORT_FILE()
@@ -62,6 +64,11 @@ def pytest_sessionstart(session):
 
     # get the terminal to allow logging directly in stdout
     setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
+
+    if session.config.option.sleep:
+        logger.terminal.write("\n ********************************************************** \n")
+        logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
+        logger.terminal.write("\n ********************************************************** \n\n")
 
     if session.config.option.collectonly:
         return
@@ -203,6 +210,10 @@ def pytest_collection_modifyitems(session, config, items):
 
     for item in items:
         declared_scenario = get_declared_scenario(item)
+        # If we are running scenario with the option sleep, we deselect all
+        if session.config.option.sleep:
+            deselected.append(item)
+            continue
 
         if (
             declared_scenario == context.scenario.name
@@ -220,7 +231,6 @@ def pytest_collection_modifyitems(session, config, items):
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
-
     items[:] = selected
     config.hook.pytest_deselected(items=deselected)
 
@@ -249,7 +259,17 @@ def pytest_collection_finish(session):
     if session.config.option.collectonly:
         return
 
-    last_file = ""
+    if session.config.option.sleep:  # on this mode, we simply sleep, not running any test or setup
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:  # catching ctrl+C
+            context.scenario.close_targets()
+            return
+        except Exception as e:
+            raise e
+
+    last_item_file = ""
     for item in session.items:
 
         if _item_is_skipped(item):
@@ -266,12 +286,13 @@ def pytest_collection_finish(session):
         if not hasattr(item.instance, setup_method_name):
             continue
 
-        if last_file != item.location[0]:
-            if len(last_file) == 0:
+        item_file = item.nodeid.split(":", 1)[0]
+        if last_item_file != item_file:
+            if len(last_item_file) == 0:
                 logger.terminal.write_sep("-", "tests setup", bold=True)
 
-            logger.terminal.write(f"\n{item.location[0]} ")
-            last_file = item.location[0]
+            logger.terminal.write(f"\n{item_file} ")
+            last_item_file = item_file
 
         setup_method = getattr(item.instance, setup_method_name)
         logger.debug(f"Call {setup_method} for {item}")

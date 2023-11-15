@@ -61,7 +61,6 @@ class Test_UrlQuery:
         interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
 
 
-@missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
     """ PII in url field is removed on client HTTP calls """

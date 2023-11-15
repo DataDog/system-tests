@@ -7,14 +7,32 @@
     "properties": {
         "namespace": {
             "type": "string"
-        },
-        "series": {
-            "type": "array",
-            "items": {
-                "$ref": "/miscs/telemetry/common/objects/metric.json"
-            },
-            "minItems": 1
         }
     },
-    "required": ["namespace", "series"]
+    "if": {
+        "properties": { "namespace": { "type": "string" } }
+    },
+    "then": {
+        "properties": {
+            "series": {
+                "type": "array",
+                "items": {
+                    "$ref": "/miscs/telemetry/common/objects/metric.json"
+                },
+                "minItems": 1
+            }
+        }
+    },
+    "else": {
+        "properties": {
+            "series": {
+                "type": "array",
+                "items": {
+                    "$ref": "/miscs/telemetry/common/objects/metric_with_namespace.json"
+                },
+                "minItems": 1
+            }
+        }
+    },
+    "required": ["series"]
 }

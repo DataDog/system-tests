@@ -1,15 +1,38 @@
-## OSError: source code not available
+## `docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))`
 
-When an interface test fails, source code that trigger the fail is logged. If `OSError: source code not available` 
-is printed, it means that you have previously ran tests outside docker, and python took the source from cached version.
+Your docker engine is not started or not ready. start it, and wait.
+It also happens when you do not allow the default socket to be used (see Advanced options in docker desktop).
 
-=> Remove any `__pycache__` folder
+## On Mac/Parametric tests, fix "allow incoming internet connection" popup 
 
-## `run.sh` fails at the very beginning, saying `runner` is unhealthy
+The popup should disappear, don't worry
 
-You may have python errors, try `docker-compose up runner` to directly see them
+## Errors on build.sh
 
-## `run.sh` fails at the very beginning, saying `agent` is unhealthy
+When running `build.sh`, you have this error : 
 
-Internet connection issue?
+### `failed to solve: system_tests/weblog`
 
+```
+ERROR: failed to solve: system_tests/weblog: pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed
+```
+
+It says it try to get `system_tests/weblog` image from docker hub because it does not exists loccaly. But a `docker images ls -a | grep weblog` says this image exists. You may not using the `default` docker buildx, try : 
+
+```bash
+docker buildx use default
+```
+
+### `open /Users/<username>/.docker/buildx/current: permission denied`
+
+```
+Build weblog
+ERROR: open /Users/<username>/.docker/buildx/current: permission denied
+Build step failed after 1 attempts
+```
+
+File permission on your `.docker` are not the good ones : 
+
+```bash
+sudo chown -R $(whoami) ~/.docker
+```

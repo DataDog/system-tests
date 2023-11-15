@@ -7,12 +7,10 @@ database_mysql_loaded = 0
 
 
 def executeMysqlOperation(operation,):
-    global database_mysql_loaded
-    if database_mysql_loaded == 0:
-        createDatabae()
-    database_mysql_loaded = 1
     print(f"Executing postgres {operation} operation")
-    if operation == "select":
+    if operation == "init":
+        createDatabase()
+    elif operation == "select":
         select()
     elif operation == "select_error":
         select_error()
@@ -40,13 +38,13 @@ def connect_db():
     )
 
 
-def createDatabae():
+def createDatabase():
     print("CREATING MYSQL DATABASE")
     sql_table = " CREATE TABLE demo(id INT NOT NULL, name VARCHAR (20) NOT NULL, age INT NOT NULL, PRIMARY KEY (ID));"
     sql_insert_1 = "insert into demo (id,name,age) values(1,'test',16);"
     sql_insert_2 = "insert into demo (id,name,age) values(2,'test2',17);"
 
-    procedure = """CREATE PROCEDURE test_procedure(IN test_id INT) 
+    procedure = """CREATE PROCEDURE test_procedure(IN test_id INT,IN other VARCHAR(20)) 
            BEGIN 
            SELECT demo.id, demo.name,demo.age 
            FROM demo 
@@ -63,13 +61,13 @@ def createDatabae():
 
 
 def select():
-    sql = "SELECT * from demo;"
+    sql = "SELECT * from demo where id=1 or id IN (3, 4);"
     _executeQuery(sql)
     return "OK"
 
 
 def select_error():
-    sql = "SELECT * from demosssss;"
+    sql = "SELECT * from demosssss where id=1 or id=233333;"
     _executeQuery(sql)
     return "OK"
 
@@ -81,7 +79,7 @@ def update():
 
 
 def delete():
-    sql = "delete from demo where id=2;"
+    sql = "delete from demo where id=2 or id=11111111;"
     _executeQuery(sql)
     return "OK"
 
@@ -93,7 +91,7 @@ def insert():
 
 
 def procedure():
-    _executeQuery("call test_procedure(1)")
+    _executeQuery("call test_procedure(1,'test')")
     return "OK"
 
 

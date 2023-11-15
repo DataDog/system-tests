@@ -9,6 +9,7 @@ const axios = require('axios');
 const fs = require('fs');
 const passport = require('passport')
 const { Kafka } = require("kafkajs")
+const { spawnSync } = require('child_process');
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
@@ -191,6 +192,24 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
 
   res.status(parseInt(req.params.status) || 200).send('Value tagged');
 });
+
+app.post('/shell_execution', (req: Request, res: Response) => {
+  const options = { shell: req?.body?.options?.shell ? true : false}
+  const args = req?.body?.args.split(' ')
+
+  const response = spawnSync(req?.body?.command, args, options)
+  
+  res.send(response)
+})
+
+app.get('/createextraservice', (req: Request, res: Response) => {
+  const serviceName = req.query['serviceName']
+
+  const span = tracer.scope().active()
+  span.setTag('service.name', serviceName)
+
+  res.send('OK')
+})
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});

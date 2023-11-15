@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, coverage, missing_feature
+from utils import context, weblog, interfaces, bug, coverage, missing_feature, scenarios
 from .utils import rules
 
 
@@ -28,18 +28,17 @@ class Test_404:
         )
 
 
+@scenarios.appsec_custom_rules
 @coverage.basic
 class Test_MultipleHighlight:
     """Appsec reports multiple attacks on same request"""
 
     def setup_multiple_hightlight(self):
-        self.r = weblog.get("/waf", params={"value": "processbuilder unmarshaller"})
+        self.r = weblog.get("/waf", params={"value": "highlight1 highlight2"})
 
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
-        interfaces.library.assert_waf_attack(
-            self.r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
-        )
+        interfaces.library.assert_waf_attack(self.r, "multiple_highlight_rule", patterns=["highlight1", "highlight2"])
 
 
 @coverage.good
@@ -73,7 +72,6 @@ class Test_MultipleAttacks:
         interfaces.library.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
 
 
-@bug(context.library < "nodejs@3.19.0", reason="fixed in a waf update")
 @coverage.good
 class Test_CorrectOptionProcessing:
     """Check that the case sensitive option is properly processed"""

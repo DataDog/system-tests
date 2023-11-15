@@ -15,13 +15,6 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 @irrelevant(
     context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
-@missing_feature(
-    library="python", reason="Python supported denylists of 2500 entries but it fails to block this those 15000"
-)
-@missing_feature(
-    library="ruby", reason="Ruby supported denylists of 2500 entries but it fails to block this those 15000"
-)
-@bug(context.weblog_variant == "uds-echo")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
@@ -30,7 +23,6 @@ class Test_AppSecIPBlockingFullDenylist:
 
     request_number = 0
     python_request_number = 0
-    remote_config_is_sent = False
 
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_rc_protocol(self):
@@ -63,16 +55,8 @@ class Test_AppSecIPBlockingFullDenylist:
         # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
         BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(100) for b in range(125)]
 
-        def remote_config_asm_payload(data):
-            if data["path"] == "/v0.7/config":
-                if "client_configs" in data.get("response", {}).get("content", {}):
-                    self.remote_config_is_sent = True
-                    return True
-
-            return False
-
         def remote_config_is_applied(data):
-            if data["path"] == "/v0.7/config" and self.remote_config_is_sent:
+            if data["path"] == "/v0.7/config":
                 if "config_states" in data.get("request", {}).get("content", {}).get("client", {}).get("state", {}):
                     config_states = data["request"]["content"]["client"]["state"]["config_states"]
 
@@ -82,7 +66,7 @@ class Test_AppSecIPBlockingFullDenylist:
 
             return False
 
-        interfaces.library.wait_for(remote_config_asm_payload, timeout=30)
+        interfaces.library.wait_for_remote_config_request()
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})

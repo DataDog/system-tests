@@ -11,7 +11,7 @@ insert into demo (id,name,age) values(1,'test',16);
 insert into demo (id,name,age) values(2,'test2',17);
 
 
-CREATE OR REPLACE PROCEDURE helloworld() LANGUAGE plpgsql 
+CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10)) LANGUAGE plpgsql 
  AS 
  $$ 
  BEGIN 
