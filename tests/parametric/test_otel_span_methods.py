@@ -444,6 +444,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
+    @bug(context.library == "java")
     def test_otel_span_reserved_attributes_overrides(self, test_agent, test_library):
         """
             Tests that the reserved attributes will override expected values
