@@ -216,14 +216,11 @@ class Test_OtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                 span["meta"]["db.statement"].count("?") == 3
             ), f"The query is not properly obfuscated for operation {otel_sql_operation}"
 
-    @irrelevant(context.library != "nodejs_otel")
-    @sql_bug(
-        library="nodejs_otel",
-        condition=lambda otel_sql_service: otel_sql_service == "mssql",
-        reason="https://datadoghq.atlassian.net/browse/OTEL-940",
-    )
+    @bug(library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
+    @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
+    @sql_irrelevant(condition=lambda otel_sql_service: otel_sql_service != "mssql")
     @pytest.mark.usefixtures("manage_sql_decorators")
-    def test_obfuscate_query_nodejs(self, otel_sql_service, otel_sql_operation, weblog_request):
+    def test_obfuscate_query_mssql(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ All queries come out obfuscated from agent """
         span = self.get_span_from_agent(weblog_request)
 
