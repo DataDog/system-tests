@@ -112,6 +112,8 @@ tests/:
             express4: v3.19.0
         test_path.py:
           TestPath: missing_feature
+        test_uri.py:
+          TestURI: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: 

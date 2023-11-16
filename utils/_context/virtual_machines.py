@@ -2,6 +2,7 @@ import os
 import json
 
 from utils.tools import logger
+from datetime import datetime, timedelta
 
 
 class TestedVirtualMachine:
@@ -43,9 +44,13 @@ class TestedVirtualMachine:
         # Uninstall process after install all software requirements
         self.uninstall = uninstall
 
+        self.ami_id = None
+        self.ami_name = None
+
     def configure(self):
         self.datadog_config = DataDogConfig()
         self.aws_infra_config = AWSInfraConfig()
+        self._configure_ami()
 
     def start(self):
         import pulumi
@@ -63,7 +68,7 @@ class TestedVirtualMachine:
             vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
             subnet_id=self.aws_infra_config.subnet_id,
             key_name=PulumiSSH.keypair_name,
-            ami=self.ec2_data["ami_id"],
+            ami=self.ec2_data["ami_id"] if self.ami_id is None else self.ami_id,
             tags={"Name": self.name,},
             opts=PulumiSSH.aws_key_resource,
         )
@@ -80,6 +85,7 @@ class TestedVirtualMachine:
             private_key=PulumiSSH.private_key_pem,
             dial_error_limit=-1,
         )
+
         # We apply initial configurations to the VM before starting with the installation proccess
         prepare_init_config_installer = remote_install(
             connection,
@@ -89,33 +95,72 @@ class TestedVirtualMachine:
             scenario_name=self.provision_scenario,
         )
 
-        # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
-        if "install" in self.prepare_repos_install:
-            prepare_repos_installer = remote_install(
+        # To launch remote task in dependency order
+        main_task_dep = prepare_init_config_installer
+
+        if self.ami_id is None:
+            # Ok. The AMI doesn't exist we should create.
+            # We will configure respositories, install docker and lang variant.
+            # After that, we will register the new AMI to use it in the future executions
+
+            # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
+            if "install" in self.prepare_repos_install:
+                prepare_repos_installer = remote_install(
+                    connection,
+                    "prepare-repos-installer_" + self.name,
+                    self.prepare_repos_install["install"],
+                    prepare_init_config_installer,
+                    scenario_name=self.provision_scenario,
+                )
+            else:
+                prepare_repos_installer = prepare_init_config_installer
+
+            # Prepare docker installation if we need
+            prepare_docker_installer = remote_install(
                 connection,
-                "prepare-repos-installer_" + self.name,
-                self.prepare_repos_install["install"],
-                prepare_init_config_installer,
+                "prepare-docker-installer_" + self.name,
+                self.prepare_docker_install["install"],
+                prepare_repos_installer,
                 scenario_name=self.provision_scenario,
             )
-        else:
-            prepare_repos_installer = prepare_init_config_installer
 
-        # Prepare docker installation if we need
-        prepare_docker_installer = remote_install(
-            connection,
-            "prepare-docker-installer_" + self.name,
-            self.prepare_docker_install["install"],
-            prepare_repos_installer,
-            scenario_name=self.provision_scenario,
-        )
+            # Install language variants (not mandatory)
+            if "install" in self.language_variant_install_data:
+                main_task_dep = remote_install(
+                    connection,
+                    "lang-variant-installer_" + self.name,
+                    self.language_variant_install_data["install"],
+                    prepare_docker_installer,
+                    scenario_name=self.provision_scenario,
+                )
+            else:
+                main_task_dep = prepare_docker_installer
+
+            # If the ami_name is None, we can not create the AMI (Probably because there another AMI is being generating)
+            if self.ami_name is not None:
+                # Ok. All third party software is installed, let's create the ami to reuse it in the future
+                logger.info(f"Creating AMI with name [{self.ami_name}] from instance ")
+                # Expiration date for the ami
+                # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+                main_task_dep = aws.ec2.AmiFromInstance(
+                    self.ami_name,
+                    # deprecation_time=expiration_date,
+                    source_instance_id=server.id,
+                    opts=pulumi.ResourceOptions(depends_on=[main_task_dep], retain_on_delete=True),
+                )
+
+        else:
+            logger.info("Using a previously existing AMI")
+
+        # Docker login if we need (avoid too many requests)
         if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
-            prepare_docker_installer = remote_docker_login(
+            main_task_dep = remote_docker_login(
                 "docker-login_" + self.name,
                 self.datadog_config.docker_login,
                 self.datadog_config.docker_login_pass,
                 connection,
-                prepare_docker_installer,
+                main_task_dep,
             )
 
         # Install agent. If we are using agent autoinstall script, agent install info will be empty, due to we load the install process on auto injection node
@@ -124,14 +169,14 @@ class TestedVirtualMachine:
                 connection,
                 "agent-installer_" + self.name,
                 self.agent_install_data["install"],
-                prepare_docker_installer,
+                main_task_dep,
                 add_dd_keys=True,
                 dd_api_key=self.datadog_config.dd_api_key,
                 dd_site=self.datadog_config.dd_site,
                 scenario_name=self.provision_scenario,
             )
         else:
-            agent_installer = prepare_docker_installer
+            agent_installer = main_task_dep
 
         # Install autoinjection
         autoinjection_installer = remote_install(
@@ -156,28 +201,22 @@ class TestedVirtualMachine:
             output_callback=lambda command_output: self.set_components(command_output),
         )
 
-        # Install language variants (not mandatory)
-        if "install" in self.language_variant_install_data:
-            lang_variant_installer = remote_install(
-                connection,
-                "lang-variant-installer_" + self.name,
-                self.language_variant_install_data["install"],
-                autoinjection_installer,
-                scenario_name=self.provision_scenario,
-            )
-        else:
-            lang_variant_installer = autoinjection_installer
-
         # Build weblog app
         weblog_runner = remote_install(
             connection,
             "run-weblog_" + self.name,
             self.weblog_install_data["install"],
-            lang_variant_installer,
+            autoinjection_installer,
             add_dd_keys=True,
             dd_api_key=self.datadog_config.dd_api_key,
             dd_site=self.datadog_config.dd_site,
             scenario_name=self.provision_scenario,
+            docker_user=self.datadog_config.docker_login
+            if self.prepare_docker_install["install"] is not None
+            else None,
+            docker_pass=self.datadog_config.docker_login_pass
+            if self.prepare_docker_install["install"] is not None
+            else None,
         )
 
         # Uninstall process (stop app, uninstall autoinjection and rerun the app)
@@ -207,6 +246,12 @@ class TestedVirtualMachine:
                 dd_api_key=self.datadog_config.dd_api_key,
                 dd_site=self.datadog_config.dd_site,
                 scenario_name=self.provision_scenario,
+                docker_user=self.datadog_config.docker_login
+                if self.prepare_docker_install["install"] is not None
+                else None,
+                docker_pass=self.datadog_config.docker_login_pass
+                if self.prepare_docker_install["install"] is not None
+                else None,
             )
 
     def set_ip(self, instance_ip):
@@ -223,6 +268,60 @@ class TestedVirtualMachine:
         if ":" in raw_version:
             raw_version = raw_version.split(":")[1]
         return raw_version.strip()
+
+    def _configure_ami(self):
+        import pulumi_aws as aws
+
+        # import pulumi
+
+        # Configure name
+        self.ami_name = self.name
+
+        if "install" not in self.prepare_repos_install:
+            self.ami_name = self.ami_name + "__autoinstall"
+
+        if self.prepare_docker_install["install"] is not None:
+            self.ami_name = self.ami_name + "__container"
+        else:
+            self.ami_name = self.ami_name + "__host"
+
+        # Check for existing ami
+        ami_existing = aws.ec2.get_ami_ids(
+            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)], owners=["self"],
+        )
+
+        if len(ami_existing.ids) > 0:
+            # Latest ami details
+            ami_recent = aws.ec2.get_ami(
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)],
+                owners=["self"],
+                most_recent=True,
+            )
+            logger.info(
+                f"We found an existing AMI with name {self.ami_name}: [{ami_recent.id}] and status:[{ami_recent.state}] and expiration: [{ami_recent.deprecation_time}]"
+            )
+            # The AMI exists. We don't need to create the AMI again
+            self.ami_id = ami_recent.id
+
+            if str(ami_recent.state) != "available":
+                logger.info(
+                    f"We found an existing AMI but we can no use it because the current status is {ami_recent.state}"
+                )
+                logger.info("We are not going to create a new AMI and we are not going to use it")
+                self.ami_id = None
+                self.ami_name = None
+
+            # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
+            if os.getenv("AMI_UPDATE") is not None:
+                # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
+                # aws.ec2.Ami( ami_existing.name,
+                #    name=ami_existing.name,
+                #    opts=pulumi.ResourceOptions(import_=ami_existing.id))
+                logger.info("We found an existing AMI but AMI_UPDATE is set. We are going to update the AMI")
+                self.ami_id = None
+
+        else:
+            logger.info(f"Not found an existing AMI with name {self.ami_name}")
 
 
 class AWSInfraConfig:

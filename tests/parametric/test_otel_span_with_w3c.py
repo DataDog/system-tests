@@ -20,6 +20,11 @@ class Test_Otel_Span_With_W3c:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "python_http", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
     def test_otel_start_span_with_w3c(self, test_agent, test_library):
         """
             - Start/end a span with start and end options
@@ -37,7 +42,7 @@ class Test_Otel_Span_With_W3c:
         duration_ns = int(duration_us * 1_000)  # OTEL durations are microseconds, must convert to ns for dd
 
         root_span = get_span(test_agent)
-        assert root_span["name"] == "operation"
+        assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration_ns

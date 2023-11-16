@@ -1,12 +1,12 @@
 'use strict'
 
-const  { graphqlHTTP } = require('express-graphql')
+const { graphqlHTTP } = require('express-graphql')
 const { buildSchema } = require('graphql')
 
 const users = [
   {
     id: 1,
-    name: 'foo',
+    name: 'foo'
   },
   {
     id: 2,
@@ -28,10 +28,10 @@ const schema = buildSchema(`
         id: Int
         name: String
       }
-`);
+`)
 
 function getuser (args) {
- return users.find((item) => args.id === item.id)
+  return users.find((item) => args.id === item.id)
 }
 
 function getUserByName (args) {

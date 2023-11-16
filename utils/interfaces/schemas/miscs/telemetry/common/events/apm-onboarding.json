@@ -9,6 +9,7 @@
       "enum": [
         "agent.startup.errors",
         "agent.startup.success",
+        "agent.first_trace.sent",
         "agent.trace.success"
       ]
     },
@@ -44,8 +45,20 @@
         },
         "script_version": {
           "type": "string"
+        },
+        "install_id": {
+          "type": "string"
+        },
+        "install_type": {
+          "type": "string"
+        },
+        "install_time": {
+          "type": "integer"
         }
-      }
+      },
+      "$comment": "TODO: add install_id, install_type, install_time to required properties once the next agent is released",
+      "required": ["agent_version", "agent_hostname", "env"],
+      "additionalProperties": false
     },
     "error": {
       "type": "object",
