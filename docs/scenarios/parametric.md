@@ -127,7 +127,7 @@ To run the Python tests "locally" push your code to a branch and then specify ``
 
 
 ```sh
-PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@1.x ./run.sh ...
+TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@2.x ./run.sh PARAMETRIC [-k ...]
 ```
 
 #### NodeJS

@@ -13,7 +13,7 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
 else
     echo "Installing production dd-trace-version"
     # TODO(darccio): remove @$ref on v2 release
-    ref=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/dario.castane/AIT-3705/remove-gopkgin | jq --raw-output '.commit.sha')
+    ref=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/v2-dev | jq --raw-output '.commit.sha')
     go get -v -d -u github.com/DataDog/dd-trace-go/v2@$ref
 fi
 
@@ -21,17 +21,22 @@ fi
 go mod tidy
 
 # Read the library version out of the version.go file
-mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/dd-trace-go/v2)
-version=$(sed -nrE 's#.*"v(.*)".*#\1#p' $mod_dir/internal/version/version.go) # Parse the version string content "v.*"
+lib_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/dd-trace-go/v2)
+version=$(sed -nrE 's#.*"v(.*)".*#\1#p' $lib_mod_dir/internal/version/version.go) # Parse the version string content "v.*"
 echo $version > SYSTEM_TESTS_LIBRARY_VERSION
 
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
+rules_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/appsec-internal-go)
+
 # Read the rule file version
-if [[ -f $mod_dir/internal/appsec/rules.json ]]; then
-    # Parse the appsec rules version string out of the inlined rules json
-    rules_version=$(jq -r .metadata.rules_version $mod_dir/internal/appsec/rules.json)
-elif [[ $(cat $mod_dir/internal/appsec/rule.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
+if [[ -f $lib_mod_dir/internal/appsec/rules.json ]]; then
+    # Look for the ruleset in dd-trace-go
+    rules_version=$(jq -r .metadata.rules_version $lib_mod_dir/internal/appsec/rules.json)
+elif [[ -f $rules_mod_dir/appsec/rules.json ]]; then
+    # Look for the ruleset in appsec-internal-go
+    rules_version=$(jq -r .metadata.rules_version $rules_mod_dir/appsec/rules.json)
+elif [[ $(cat $rules_mod_dir/appsec/rules.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
     # Parse the appsec rules version string out of the inlined rules json
     rules_version="${BASH_REMATCH[1]}"
 else

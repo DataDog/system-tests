@@ -1,18 +1,17 @@
 [Unit]
-Description=Wildfly Weblog App Service
+Description=Ruby Weblog App Service
 After=syslog.target network.target
 
 [Service]
 SuccessExitStatus=143
 
-User=MY_USER
-Group=MY_USER
+User=datadog
 
 Type=simple
 
 Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
-WorkingDirectory=/home/MY_USER/wildfly-27.0.1.Final/bin
-ExecStart=/bin/bash -c './standalone.sh -b 0.0.0.0 -Djboss.http.port=5985'
+WorkingDirectory=/home/datadog
+ExecStart=/bin/bash -c 'rails server -b 0.0.0.0 -p 5985'
 ExecStop=/bin/kill -15 $MAINPID
 
 [Install]

@@ -13,7 +13,7 @@ class TestRequestBody(BaseSourceTest):
     endpoint = "/iast/source/body/test"
     requests_kwargs = [{"method": "POST", "json": {"name": "table", "value": "user"}}]
     source_type = "http.request.body"
-    source_name = None
+    source_names = None
     source_value = None
 
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
@@ -22,9 +22,11 @@ class TestRequestBody(BaseSourceTest):
         super().test_source_reported()
 
     @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
     @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

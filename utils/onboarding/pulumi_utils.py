@@ -2,6 +2,7 @@ import os
 import logging
 import logging.config
 import pathlib
+import uuid
 
 import pulumi
 from pulumi import Output
@@ -29,6 +30,8 @@ def remote_install(
     dd_site=None,
     scenario_name=None,
     output_callback=None,
+    docker_user=None,
+    docker_pass=None,
 ):
     # List to store the latest commands in order to manage dependecy between commands
     # (wait for one command finished before launch next command)
@@ -37,10 +40,16 @@ def remote_install(
     # Do we need to add env variables?
     if install_info is None:
         return depends_on
+
+    # DD API KEYS IN THE COMMAND
     if add_dd_keys:
         command_exec = "DD_API_KEY=" + dd_api_key + " DD_SITE=" + dd_site + " " + install_info["command"]
     else:
         command_exec = install_info["command"]
+
+    # Docker login if we need (avoid too many request on CI)
+    if docker_user is not None:
+        command_exec = f"sudo docker login --username={docker_user} --password={docker_pass} || true && {command_exec}"
 
     local_command = None
     # Execute local command if we need
@@ -133,7 +142,7 @@ def remote_copy_folders(source_folder, destination_folder, command_id, connectio
             quee_depends_on.insert(
                 0,
                 command.remote.CopyFile(
-                    file_name + "-" + command_id,
+                    source + "-" + command_id,
                     connection=connection,
                     local_path=source,
                     remote_path=destination,
@@ -150,7 +159,7 @@ def remote_copy_folders(source_folder, destination_folder, command_id, connectio
             quee_depends_on.insert(
                 0,
                 command.remote.Command(
-                    "mkdir-" + file_name + "-" + command_id,
+                    "mkdir-" + destination + "-" + str(uuid.uuid4()) + "-" + command_id,
                     connection=connection,
                     create=f"mkdir -p {destination}",
                     opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),

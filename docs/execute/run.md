@@ -30,10 +30,10 @@ If the test contains `@scenarios.SCENARIO_NAME` such as `@scenarios.integrations
 ./run.sh tests/test_waf.py::Test_WAFAddresses::test_post_json_value
 ```
 
-## Spawn componenents, but do nothing
+## Spawn components, but do nothing
 
 ```bash
-./run.sh SLEEP
+./run.sh <SCENARIO_NAME> --sleep
 
-# play with the weblog, and look inside logs/interfaces/ what's happening
+# play with the weblog, and look inside logs_<scenario_name>/interfaces/ what's happening
 ```

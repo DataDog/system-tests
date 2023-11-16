@@ -116,6 +116,7 @@ class _Weblog:
         params=None,
         data=None,
         headers=None,
+        cookies=None,
         stream=None,
         domain=None,
         port=None,
@@ -159,7 +160,7 @@ class _Weblog:
 
         timeout = kwargs.pop("timeout", 5)
         try:
-            req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
+            req = requests.Request(method, url, params=params, data=data, headers=headers, cookies=cookies, **kwargs)
             r = req.prepare()
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")

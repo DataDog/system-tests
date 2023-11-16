@@ -13,6 +13,8 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature          
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -67,6 +69,8 @@ tests/:
           TestParameterValue: missing_feature
         test_path.py:
           TestPath: missing_feature
+        test_uri.py:
+          TestURI: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyRaw: v0.1.0
@@ -146,6 +150,8 @@ tests/:
       Test_AppSecRequestBlocking: v0.7.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v0.7.0
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v0.1.0
       Test_AppSecObfuscator: v0.3.0
