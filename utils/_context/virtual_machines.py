@@ -64,7 +64,7 @@ class TestedVirtualMachine:
         # Startup VM and prepare connection
         server = aws.ec2.Instance(
             self.name,
-            instance_type=self.aws_infra_config.instance_type,
+            instance_type=self.ec2_data["instance_type"],
             vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
             subnet_id=self.aws_infra_config.subnet_id,
             key_name=PulumiSSH.keypair_name,
@@ -330,7 +330,6 @@ class AWSInfraConfig:
         # Mandatory parameters
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
-        self.instance_type = os.getenv("ONBOARDING_AWS_INFRA_INSTANCE_TYPE", "t2.medium")
 
         if None in (self.subnet_id, self.vpc_security_group_ids):
             logger.warn("AWS infastructure is not configured correctly for auto-injection testing")

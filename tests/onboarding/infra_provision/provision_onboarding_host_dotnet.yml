@@ -1,6 +1,7 @@
 ami: 
   - name: amazon-linux-dotnet
     ami_id: ami-005b11f8b84489615
+    instance_type: t2.medium
     user: ec2-user
     os_type: linux
     os_distro: rpm
