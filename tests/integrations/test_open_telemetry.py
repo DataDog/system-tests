@@ -119,6 +119,11 @@ class Test_OtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         assert otel_sql_operation in span["resource"].lower()
 
     @missing_feature(library="python_otel", reason="Open telemetry doesn't send this span for python")
+    @sql_irrelevant(
+        library="nodejs_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="Open telemetry doesn't send this span for nodejs and mssql. It's recomended but not mandatory",
+    )
     def test_db_connection_string(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ The connection string used to connect to the database. """
         span = self.get_span_from_agent(weblog_request)
@@ -132,6 +137,11 @@ class Test_OtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         and otel_sql_operation == "procedure",
     )
     @sql_irrelevant(condition=lambda otel_sql_operation: otel_sql_operation == "select_error")
+    @sql_bug(
+        library="nodejs_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="We are not generating this span",
+    )
     @pytest.mark.usefixtures("manage_sql_decorators")
     def test_db_operation(self, otel_sql_service, otel_sql_operation, weblog_request):
         """ The name of the operation being executed """
@@ -206,6 +216,27 @@ class Test_OtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                 span["meta"]["db.statement"].count("?") == 3
             ), f"The query is not properly obfuscated for operation {otel_sql_operation}"
 
+    @irrelevant(context.library != "nodejs_otel")
+    @sql_bug(
+        library="nodejs_otel",
+        condition=lambda otel_sql_service: otel_sql_service == "mssql",
+        reason="https://datadoghq.atlassian.net/browse/OTEL-940",
+    )
+    @pytest.mark.usefixtures("manage_sql_decorators")
+    def test_obfuscate_query_nodejs(self, otel_sql_service, otel_sql_operation, weblog_request):
+        """ All queries come out obfuscated from agent """
+        span = self.get_span_from_agent(weblog_request)
+
+        if otel_sql_operation in ["insert", "select"]:
+            expected_obfuscation_count = 3
+        else:
+            expected_obfuscation_count = 2
+
+        observed_obfuscation_count = span["meta"]["db.statement"].count("?")
+        assert (
+            observed_obfuscation_count == expected_obfuscation_count
+        ), f"The query is not properly obfuscated for operation {otel_sql_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['db.statement']}"
+
     @missing_sql_feature(
         library="python_otel",
         condition=lambda otel_sql_service: otel_sql_service == "mssql",
@@ -242,43 +273,3 @@ class Test_OtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
         span = self.get_span_from_agent(weblog_request)
         assert span["meta"]["db.mssql.instance_name"].strip()
-
-
-class Test_MsSql:
-    """ OpenTelemetry/MsSql integration """
-
-    db_service = "mssql"
-
-    @bug(library="nodejs_otel", reason="We are not generating this span")
-    def test_db_operation(self):
-        """ The name of the operation being executed. Mssql and Open Telemetry doesn't report this span when we call to procedure """
-        for db_operation, request in self.get_requests(excluded_operations=["select_error", "procedure"]):
-            span = self.get_span_from_agent(request)
-            # db.operation span is not generating by Open Telemetry when we call to procedure or we have a syntax error on the SQL
-            if db_operation not in ["select_error", "procedure"]:
-                assert (
-                    db_operation.lower() in span["meta"]["db.operation"].lower()
-                ), f"Test is failing for {db_operation}"
-
-    @irrelevant(
-        library="nodejs_otel",
-        reason="Open telemetry doesn't send this span for nodejs and mssql. It's recomended but not mandatory",
-    )
-    def test_db_connection_string(self):
-        super().test_db_connection_string()
-
-    @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
-    def test_obfuscate_query(self):
-        """ All queries come out obfuscated from agent """
-        for db_operation, request in self.get_requests():
-            span = self.get_span_from_agent(request)
-
-            if db_operation in ["insert", "select"]:
-                expected_obfuscation_count = 3
-            else:
-                expected_obfuscation_count = 2
-
-            observed_obfuscation_count = span["meta"]["db.statement"].count("?")
-            assert (
-                observed_obfuscation_count == expected_obfuscation_count
-            ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['db.statement']}"
