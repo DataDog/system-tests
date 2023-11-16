@@ -136,3 +136,21 @@ class TestTracerFlareV1:
         _clear_log_level(test_agent, "debug")
 
         assert_valid_zip(tracer_flare["flare_file"])
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
+        task_config = {
+            "args": {"case_id": "12345", "hostname": "my.hostname", "user_handle": "its.me@datadoghq.com"},
+            "task_type": "flare",  # this task_type is used to trigger the agent's own flare
+        }
+
+        task_id = _add_task(test_agent, task_config)
+
+        try:
+            tracer_flare = test_agent.wait_for_tracer_flare(clear=True)
+            pytest.fail(f"Expected no tracer flare but got {tracer_flare}")
+        except AssertionError as e:
+            if str(e) != "No tracer-flare received":
+                raise
+        finally:
+            _clear_task(test_agent, task_id)

@@ -729,7 +729,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
-    def wait_for_tracer_flare(self, case_id: str, clear: bool = False, wait_loops: int = 100):
+    def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -739,7 +739,7 @@ class _TestAgentAPI:
             else:
                 # Look for the given case_id in the tracer-flares.
                 for tracer_flare in tracer_flares:
-                    if tracer_flare["case_id"] == case_id:
+                    if case_id is None or tracer_flare["case_id"] == case_id:
                         if clear:
                             self.clear()
                         return tracer_flare
