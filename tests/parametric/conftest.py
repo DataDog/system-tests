@@ -586,7 +586,7 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
-    def tracerflares(self, **kwargs):
+    def get_tracer_flares(self, **kwargs):
         resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
         json = resp.json()
         self._write_log("tracerflares", json)
@@ -733,7 +733,7 @@ class _TestAgentAPI:
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
-                tracer_flares = self.tracerflares()
+                tracer_flares = self.get_tracer_flares()
             except requests.exceptions.RequestException:
                 pass
             else:
