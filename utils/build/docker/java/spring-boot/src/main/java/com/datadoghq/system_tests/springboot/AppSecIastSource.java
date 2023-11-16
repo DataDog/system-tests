@@ -98,6 +98,22 @@ public class AppSecIastSource {
         return String.format("@RequestBody to Test bean -> value:%s", value);
     }
 
+    @GetMapping("/uri/test")
+    String uriTest(HttpServletRequest request) {
+        StringBuffer url = request.getRequestURL();
+        String urlString = url.toString();
+        String param = urlString.substring(url.lastIndexOf("/") +1 , url.length());
+        try {
+        sql.insecureSql(param, (statement, sql) -> {
+                statement.executeQuery(sql);
+                return null;
+        });
+        } catch (Exception ex) {
+            // Using table that does not exist, ignore error.
+        }
+        return "OK";
+    }
+
     @PostMapping("/multipart/test")
     public String handleFileUpload(@RequestParam("file1") MultipartFile file) {
         String fileName = file.getName();
