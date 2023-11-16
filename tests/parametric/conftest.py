@@ -28,6 +28,9 @@ import json
 
 from filelock import FileLock
 
+# Max timeout in seconds to keep a container running
+default_subprocess_run_timeout = 300
+
 
 @pytest.fixture
 def test_id():
@@ -306,11 +309,11 @@ WORKDIR /tmp
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
 ADD {php_reldir}/composer.lock .
-ADD {php_reldir}/server.php .
+RUN composer install
 ADD {php_reldir}/install.sh .
 COPY binaries /binaries
 RUN ./install.sh
-RUN composer install
+ADD {php_reldir}/server.php .
 """,
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
@@ -458,6 +461,7 @@ def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer
         stdout=log_file,
         stderr=log_file,
         env=env,
+        timeout=default_subprocess_run_timeout,
     )
 
     failure_text: str = None
@@ -751,7 +755,7 @@ def docker_run(
     docker = shutil.which("docker")
 
     # Run the docker container
-    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
+    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout)
     if r.returncode != 0:
         log_file.flush()
         pytest.fail(
@@ -774,16 +778,16 @@ def docker_run(
         _cmd = [docker, "kill", name]
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
-        subprocess.run(
-            _cmd, stdout=log_file, stderr=log_file, check=True,
-        )
+        subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
 
 
 @pytest.fixture(scope="session")
 def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
-    r = subprocess.run(["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    r = subprocess.run(
+        ["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=default_subprocess_run_timeout
+    )
     if r.returncode != 0:
         pytest.fail(
             "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again."
@@ -813,7 +817,7 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stderr=docker_network_log_file)
+    r = subprocess.run(cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
             "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
@@ -829,7 +833,9 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
         ]
         docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
         docker_network_log_file.flush()
-        r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+        r = subprocess.run(
+            cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+        )
         if r.returncode != 0:
             pytest.fail(
                 "Could not create docker network %r, see the log file %r"
@@ -845,7 +851,9 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+    r = subprocess.run(
+        cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+    )
     if r.returncode != 0:
         pytest.fail(
             "Failed to remove docker network %r, see the log file %r"
@@ -905,7 +913,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.11.0",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.14.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,
