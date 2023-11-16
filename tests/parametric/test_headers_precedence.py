@@ -494,10 +494,6 @@ class Test_Headers_Precedence:
 
     @enable_datadog_tracecontext()
     @missing_feature(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
-    @missing_feature(
-        context.library == "golang",
-        reason="BUG: suite #4 is failing - if context is successfully retrieved from W3C propagator, datadog propagator is NOT.run, thus not retrieving / overwriting the headers",
-    )
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
@@ -641,7 +637,6 @@ class Test_Headers_Precedence:
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library == "cpp", reason="c++ must implement new tracestate propagation")
     @missing_feature(context.library == "dotnet", reason="dotnet must implement new tracestate propagation")
-    @missing_feature(context.library == "golang", reason="go must implement new tracestate propagation")
     @missing_feature(context.library == "java", reason="java must implement new tracestate propagation")
     @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
     @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")

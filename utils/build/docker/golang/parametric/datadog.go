@@ -36,7 +36,7 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 			}
 		}
 
-		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
+		sctx, err := tracer.Extract(tracer.TextMapCarrier(headers))
 		if err != nil {
 			fmt.Println("failed in StartSpan", err, headers)
 		} else {
