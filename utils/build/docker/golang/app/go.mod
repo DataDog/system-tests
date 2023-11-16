@@ -3,7 +3,7 @@ module weblog
 go 1.20
 
 require (
-	github.com/DataDog/dd-trace-go/v2 v2.0.0-20231116135642-f8af743e00bf
+	github.com/DataDog/dd-trace-go/v2 v2.0.0-20231116165003-29939d23230c
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/labstack/echo/v4 v4.11.1
