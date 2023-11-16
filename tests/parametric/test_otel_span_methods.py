@@ -8,7 +8,7 @@ from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, irrelevant, context, scenarios
+from utils import bug, missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -451,7 +451,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @bug(context.library == "java")
+    @bug(context.library == "java", reason="span.kind not set")
     def test_otel_span_reserved_attributes_overrides(self, test_agent, test_library):
         """
             Tests that the reserved attributes will override expected values
