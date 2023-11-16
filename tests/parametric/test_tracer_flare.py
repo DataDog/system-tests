@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 
-from utils import context, missing_feature, rfc, scenarios
+from utils import rfc, scenarios
 
 parametrize = pytest.mark.parametrize
 
@@ -106,15 +106,6 @@ def assert_valid_zip(content):
     assert flare_file.namelist(), "tracer_file zip must contain at least one entry"
 
 
-@missing_feature(context.library == "cpp", reason="Not implemented")
-@missing_feature(context.library == "dotnet", reason="Not implemented")
-@missing_feature(context.library == "golang", reason="Not implemented")
-@missing_feature(context.library == "java", reason="Not implemented")
-@missing_feature(context.library == "nodejs", reason="Not implemented")
-@missing_feature(context.library == "php", reason="Not implemented")
-@missing_feature(context.library == "python", reason="Not implemented")
-@missing_feature(context.library == "python_http", reason="Not implemented")
-@missing_feature(context.library == "ruby", reason="Not implemented")
 @rfc("https://docs.google.com/document/d/1U9aaYM401mJPTM8YMVvym1zaBxFtS4TjbdpZxhX3c3E")
 @scenarios.parametric
 class TestTracerFlareV1:
