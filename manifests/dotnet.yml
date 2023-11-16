@@ -203,6 +203,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v2.33.0
+    test_span_links.py: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: bug (Both env vars are not independent; injected tags are duplicated in all spans)
   remote_config/:

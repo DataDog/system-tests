@@ -40,6 +40,11 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
                 )
+        self.SpanAddLink = channel.unary_unary(
+                '/APMClient/SpanAddLink',
+                request_serializer=protos_dot_apm__test__client__pb2.SpanAddLinkArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.SpanAddLinkReturn.FromString,
+                )
         self.HTTPClientRequest = channel.unary_unary(
                 '/APMClient/HTTPClientRequest',
                 request_serializer=protos_dot_apm__test__client__pb2.HTTPRequestArgs.SerializeToString,
@@ -146,6 +151,12 @@ class APMClientServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def SpanSetError(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SpanAddLink(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -268,6 +279,11 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.SpanSetError,
                     request_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.SerializeToString,
+            ),
+            'SpanAddLink': grpc.unary_unary_rpc_method_handler(
+                    servicer.SpanAddLink,
+                    request_deserializer=protos_dot_apm__test__client__pb2.SpanAddLinkArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.SpanAddLinkReturn.SerializeToString,
             ),
             'HTTPClientRequest': grpc.unary_unary_rpc_method_handler(
                     servicer.HTTPClientRequest,
@@ -437,6 +453,23 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetError',
             protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SpanAddLink(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/SpanAddLink',
+            protos_dot_apm__test__client__pb2.SpanAddLinkArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.SpanAddLinkReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
