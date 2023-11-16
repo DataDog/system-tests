@@ -215,6 +215,7 @@ class Test_Headers_Precedence:
     @missing_feature(
         context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration"
     )
+    @irrelevant(context.library == "golang", reason="library does not implement this default configuration")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
@@ -483,7 +484,6 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "java", reason="library does not yet implement this default configuration")
     @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
     @irrelevant(context.library == "dotnet", reason="library does not implement this default configuration")
-    @irrelevant(context.library == "golang", reason="library does not implement this default configuration")
     @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
     @irrelevant(context.library == "php", reason="library does not implement this default configuration")
     @irrelevant(context.library == "python", reason="library does not implement this default configuration")
