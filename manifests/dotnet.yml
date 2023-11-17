@@ -203,6 +203,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v2.33.0
+    test_span_links.py: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
