@@ -713,6 +713,8 @@ class _TestAgentAPI:
             else:
                 # Look for the given apply state in the requests.
                 for req in rc_reqs:
+                    if req["body"]["client"]["state"].get("config_states") is None:
+                        continue
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
                         if cfg_state["product"] == product and cfg_state["apply_state"] == state:
                             if clear:
