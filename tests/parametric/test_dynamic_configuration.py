@@ -255,7 +255,7 @@ class TestDynamicConfigV1:
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @missing_feature(context.library in ["golang"], reason="The Go tracer doesn't support automatic logs injection")
+    @missing_feature(library="golang", reason="The Go tracer doesn't support automatic logs injection")
     @parametrize(
         "library_env",
         [
