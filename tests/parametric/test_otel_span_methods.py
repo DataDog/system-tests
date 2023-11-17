@@ -398,9 +398,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_set_attributes_separately(self, test_agent, test_library):
         """
-            This test verifies retrieving the span context of a span
-            accordingly to the Otel API spec
-            (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
+            This test verifies that setting attributes separately
+            behaves accordingly to the naming conventions
         """
         with test_library:
             with test_library.otel_start_span(name="operation", span_kind=SK_CLIENT) as span:
@@ -408,13 +407,13 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"messaging.operation": "Receive"})
                 span.end_span()
 
-            traces = test_agent.wait_for_num_traces(1)
-            trace = find_trace_by_root(traces, otel_span(name="operation"))
-            assert len(trace) == 1
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, otel_span(name="operation"))
+        assert len(trace) == 1
 
-            span = get_span(test_agent)
-            assert span["name"] == "kafka.receive"
-            assert span["resource"] == "operation"
+        span = get_span(test_agent)
+        assert span["name"] == "kafka.receive"
+        assert span["resource"] == "operation"
 
     @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
