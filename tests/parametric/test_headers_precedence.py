@@ -93,7 +93,7 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python_http", reason="New 'datadog' default hasn't been implemented yet")
-    @bug(context.library == "java", reason="Does not inject traceparent")
+    @irrelevant(context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator")
     def test_headers_precedence_propagationstyle_default(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
