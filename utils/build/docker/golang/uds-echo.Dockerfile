@@ -10,6 +10,8 @@ RUN apt-get update && apt-get -y install jq socat
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app
 WORKDIR /app
+# Force default value for GOPROXY since the custom DD value proxy does not work for some old modules used here
+ENV GOPROXY=https://proxy.golang.org,direct 
 RUN go mod download && go mod verify
 
 # copy the app code

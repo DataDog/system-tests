@@ -226,9 +226,15 @@ tests/:
       Test_Blocking_request_uri:
         '*': v1.51.0
         net-http: irrelevant
-      Test_Blocking_response_headers: missing_feature
-      Test_Blocking_response_status: missing_feature
-      Test_Suspicious_Request_Blocking: missing_feature
+      Test_Blocking_response_headers:
+        '*': v1.59.0
+        net-http: irrelevant
+      Test_Blocking_response_status:
+        '*': v1.59.0
+        net-http: irrelevant
+      Test_Suspicious_Request_Blocking:
+        '*': v1.59.0
+        net-http: irrelevant
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_conf.py:
