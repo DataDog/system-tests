@@ -7,7 +7,6 @@ require __DIR__ . "/vendor/autoload.php";
 
 use Amp\ByteStream;
 use Amp\Http\Server\DefaultErrorHandler;
-use Amp\Http\Server\Driver\SocketClientFactory;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\Response;
@@ -15,12 +14,8 @@ use Amp\Http\Server\Router;
 use Amp\Http\Server\SocketHttpServer;
 use Amp\Log\ConsoleFormatter;
 use Amp\Log\StreamHandler;
-use Amp\Socket\ResourceServerSocketFactory;
-use DDTrace\OpenTelemetry\API\Trace\SpanContext;
-use League\Uri\Components\Query;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
-use OpenTelemetry\API\Trace\NonRecordingSpan;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -36,10 +31,7 @@ $logHandler->setFormatter(new ConsoleFormatter);
 $logger = new Logger('server');
 $logger->pushHandler($logHandler);
 
-$serverSocketFactory = new ResourceServerSocketFactory();
-$clientFactory = new SocketClientFactory($logger);
-
-$server = new SocketHttpServer($logger, $serverSocketFactory, $clientFactory);
+$server = SocketHttpServer::createForDirectAccess($logger);
 
 $port = getenv('APM_TEST_CLIENT_SERVER_PORT');
 $server->expose("0.0.0.0:" . $port);
