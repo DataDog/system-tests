@@ -89,11 +89,12 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 class Test_Headers_Precedence:
     @missing_feature(context.library == "dotnet", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
+    @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
     @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python_http", reason="New 'datadog' default hasn't been implemented yet")
-    @bug(context.library == "java", reason="Does not inject traceparent")
+    @irrelevant(context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator")
     def test_headers_precedence_propagationstyle_default(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
@@ -480,8 +481,8 @@ class Test_Headers_Precedence:
         assert "x-datadog-parent-id" not in headers6
         assert "x-datadog-sampling-priority" not in headers6
 
+    @missing_feature(context.library < "java@1.24.0", reason="Implemented from 1.24.0")
     @missing_feature(context.library == "ruby", reason="library does not yet implement this default configuration")
-    @missing_feature(context.library == "java", reason="library does not yet implement this default configuration")
     @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
     @irrelevant(context.library == "dotnet", reason="library does not implement this default configuration")
     @irrelevant(context.library == "golang", reason="library does not implement this default configuration")
@@ -637,11 +638,11 @@ class Test_Headers_Precedence:
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library == "cpp", reason="c++ must implement new tracestate propagation")
     @missing_feature(context.library == "dotnet", reason="dotnet must implement new tracestate propagation")
-    @missing_feature(context.library == "java", reason="java must implement new tracestate propagation")
     @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
     @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
     @missing_feature(context.library == "python", reason="python must implement new tracestate propagation")
     @missing_feature(context.library == "python_http", reason="python must implement new tracestate propagation")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent, test_library
