@@ -19,11 +19,10 @@ import (
 
 type apmClientServer struct {
 	UnimplementedAPMClientServer
-	spans         map[uint64]tracer.Span
-	otelSpans     map[uint64]spanContext
-	tp            *ddotel.TracerProvider
-	tracer        otel_trace.Tracer
-	tracerStarted bool
+	spans     map[uint64]tracer.Span
+	otelSpans map[uint64]spanContext
+	tp        *ddotel.TracerProvider
+	tracer    otel_trace.Tracer
 }
 
 type spanContext struct {
