@@ -38,7 +38,7 @@ tests/:
             '*': missing_feature
             spring-boot: v1.20.0
             spring-boot-jetty: v1.20.0
-            spring-boot-openliberty: v1.20.0
+            spring-boot-openliberty: bug (not working as expected)
             spring-boot-payara: v1.20.0
             spring-boot-undertow: v1.20.0
             spring-boot-wildfly: v1.20.0
@@ -155,7 +155,7 @@ tests/:
             "*": "missing_feature"
             spring-boot: v1.22.0
             spring-boot-jetty: v1.22.0
-            spring-boot-openliberty: v1.22.0
+            spring-boot-openliberty: bug (not working as expected)
             spring-boot-payara: v1.22.0
             spring-boot-undertow: v1.22.0
             spring-boot-wildfly: v1.22.0

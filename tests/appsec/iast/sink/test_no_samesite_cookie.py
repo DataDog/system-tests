@@ -34,5 +34,6 @@ class TestNoSamesiteCookie(BaseSinkTest):
         super().test_telemetry_metric_instrumented_sink()
 
     @missing_feature(context.library <= "java@1.22.0", reason="Metrics not implemented")
+    @missing_feature(weblog_variant="vertx4", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
