@@ -20,7 +20,7 @@ agent_auto_install:
   - env: prod
     install:
     - os_type: linux
-      command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=java DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+      command: DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=java DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
 autoinjection:
 #Copy tests/onboarding/autoinjection/host_config.yaml to /etc/datadog-agent/inject/host_config.yaml to enable debug (Disabled for timing reasons)
@@ -70,7 +70,7 @@ language-variants:
     install: 
       - os_type: linux
         os_distro: deb
-        command: sudo apt-get -y install openjdk-11-jdk-headless 
+        command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless 
 
       - os_type: linux
         os_distro: rpm
