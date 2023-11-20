@@ -74,7 +74,7 @@ language-variants:
 
       - os_type: linux
         os_distro: rpm
-        command: sudo amazon-linux-extras install java-openjdk11
+        command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel
 
 weblogs:
   - name: test-app-java
