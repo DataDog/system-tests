@@ -4,13 +4,8 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-import pytest
-
-from utils import context, weblog, interfaces, released, bug, missing_feature, irrelevant, flaky, coverage
+from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, coverage
 from .utils import rules
-
-if context.weblog_variant in ("akka-http", "spring-boot-payara"):
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 @coverage.good
@@ -84,6 +79,9 @@ class Test_LFI:
     @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     @irrelevant(library="python", weblog_variant="django-poc")
     @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
+    @irrelevant(
+        context.weblog_variant in ("akka-http", "play") and context.library == "java", reason="path is normalized to /"
+    )
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
@@ -103,7 +101,6 @@ class Test_RFI:
         interfaces.library.assert_waf_attack(self.r_2, rules.rfi.crs_931_120)
 
 
-@flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_CommandInjection:
     """ Appsec WAF tests on Command injection rules """
@@ -205,7 +202,6 @@ class Test_XSS:
         interfaces.library.assert_waf_attack(self.r_xss2, rules.xss)
 
 
-@flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_SQLI:
     """ Appsec WAF tests on SQLI rules """
@@ -254,7 +250,6 @@ class Test_SQLI:
         interfaces.library.assert_waf_attack(self.r_6, "crs-942-140")
 
 
-@flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_NoSqli:
     """ Appsec WAF tests on NoSQLi rules """
@@ -289,7 +284,7 @@ class Test_JavaCodeInjection:
 
     def setup_java_code_injection(self):
         self.r_1 = weblog.get("/waf/", params={"value": "java.lang.runtime"})
-        self.r_2 = weblog.get("/waf/", params={"value": "processbuilder unmarshaller"})
+        self.r_2 = weblog.get("/waf/", params={"value": "unmarshaller processbuilder"})
         self.r_3 = weblog.get("/waf/", params={"value": "java.beans.xmldecode"})
 
     def test_java_code_injection(self):
@@ -317,7 +312,7 @@ class Test_DiscoveryScan:
     """AppSec WAF Tests on Discovery Scan rules"""
 
     def setup_security_scan(self):
-        self.r1 = weblog.get("/etc/")
+        self.r1 = weblog.get("/etc/something")
         self.r2 = weblog.get("/mysql")
         self.r3 = weblog.get("/myadmin")
         self.r4 = weblog.get("/readme.md")

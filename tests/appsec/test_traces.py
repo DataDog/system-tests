@@ -10,7 +10,6 @@ from utils import (
     coverage,
     interfaces,
     irrelevant,
-    released,
     rfc,
     missing_feature,
     scenarios,

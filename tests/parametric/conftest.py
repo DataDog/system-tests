@@ -28,6 +28,9 @@ import json
 
 from filelock import FileLock
 
+# Max timeout in seconds to keep a container running
+default_subprocess_run_timeout = 300
+
 
 @pytest.fixture
 def test_id():
@@ -193,7 +196,7 @@ def golang_library_factory():
         container_name="go-test-library",
         container_tag="go118-test-library",
         container_img=f"""
-FROM golang:1.18
+FROM golang:1.20
 WORKDIR /client
 COPY ./go.mod /client
 COPY ./go.sum /client
@@ -306,11 +309,11 @@ WORKDIR /tmp
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
 ADD {php_reldir}/composer.lock .
-ADD {php_reldir}/server.php .
+RUN composer install
 ADD {php_reldir}/install.sh .
 COPY binaries /binaries
 RUN ./install.sh
-RUN composer install
+ADD {php_reldir}/server.php .
 """,
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
@@ -458,6 +461,7 @@ def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer
         stdout=log_file,
         stderr=log_file,
         env=env,
+        timeout=default_subprocess_run_timeout,
     )
 
     failure_text: str = None
@@ -505,6 +509,8 @@ def apm_test_server_image(
 def apm_test_server(request, library_env, test_id, apm_test_server_image):
     """Request level definition of the library test server with the session Docker image built"""
     new_env = dict(library_env)
+    context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
+
     new_env.update(apm_test_server_image.env)
     yield dataclasses.replace(
         apm_test_server_image,
@@ -548,31 +554,7 @@ class _TestAgentAPI:
             log.write(f"\n{type}>>>>\n")
             log.write(json.dumps(json_trace))
 
-    def _version_check(self, reqs=None):
-        """Check if the version of the library is compatible with the test case based on the library version reported
-        in requests.
-
-        A better way to do with check would be to have APMLibraryTestServer declare the version of the library
-        to be installed and used so that the version reported by the library can be verified against a source of
-        truth. Right now we assume that the library version reported is correct.
-        """
-        if not hasattr(self._pytest_request.instance, "__released__"):
-            return
-
-        released_version = packaging.version.parse(self._pytest_request.instance.__released__[context.library.library])
-        for r in reqs or self.requests():
-            if "Datadog-Meta-Tracer-Version" in r["headers"]:
-                library_version = r["headers"]["Datadog-Meta-Tracer-Version"]
-                reported_tracer_version = packaging.version.parse(library_version)
-                if reported_tracer_version < released_version:
-                    pytest.skip(
-                        "Tested library version %s is older than the released version %s"
-                        % (reported_tracer_version, released_version)
-                    )
-                break
-
     def traces(self, clear=False, **kwargs):
-        self._version_check()
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
@@ -593,7 +575,6 @@ class _TestAgentAPI:
         return resp.json()
 
     def tracestats(self, **kwargs):
-        self._version_check()
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
         json = resp.json()
         self._write_log("tracestats", json)
@@ -602,12 +583,16 @@ class _TestAgentAPI:
     def requests(self, **kwargs) -> List[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
         json = resp.json()
-        self._version_check(reqs=json)
         self._write_log("requests", json)
         return json
 
+    def get_tracer_flares(self, **kwargs):
+        resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
+        json = resp.json()
+        self._write_log("tracerflares", json)
+        return json
+
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
-        self._version_check()
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
         for raw in raw_requests:
@@ -649,7 +634,7 @@ class _TestAgentAPI:
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
-    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
+    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -671,7 +656,7 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
 
-    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
+    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` spans to be received from the test agent.
 
         Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
@@ -734,6 +719,8 @@ class _TestAgentAPI:
             else:
                 # Look for the given apply state in the requests.
                 for req in rc_reqs:
+                    if req["body"]["client"]["state"].get("config_states") is None:
+                        continue
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
                         if cfg_state["product"] == product and cfg_state["apply_state"] == state:
                             if clear:
@@ -741,6 +728,23 @@ class _TestAgentAPI:
                             return cfg_state
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+
+    def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
+        """Wait for the tracer-flare to be received by the test agent."""
+        for i in range(wait_loops):
+            try:
+                tracer_flares = self.get_tracer_flares()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for the given case_id in the tracer-flares.
+                for tracer_flare in tracer_flares:
+                    if case_id is None or tracer_flare["case_id"] == case_id:
+                        if clear:
+                            self.clear()
+                        return tracer_flare
+            time.sleep(0.01)
+        raise AssertionError("No tracer-flare received")
 
 
 @contextlib.contextmanager
@@ -776,7 +780,7 @@ def docker_run(
     docker = shutil.which("docker")
 
     # Run the docker container
-    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
+    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout)
     if r.returncode != 0:
         log_file.flush()
         pytest.fail(
@@ -799,16 +803,16 @@ def docker_run(
         _cmd = [docker, "kill", name]
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
-        subprocess.run(
-            _cmd, stdout=log_file, stderr=log_file, check=True,
-        )
+        subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
 
 
 @pytest.fixture(scope="session")
 def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
-    r = subprocess.run(["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    r = subprocess.run(
+        ["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=default_subprocess_run_timeout
+    )
     if r.returncode != 0:
         pytest.fail(
             "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again."
@@ -838,7 +842,7 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stderr=docker_network_log_file)
+    r = subprocess.run(cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
             "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
@@ -854,7 +858,9 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
         ]
         docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
         docker_network_log_file.flush()
-        r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+        r = subprocess.run(
+            cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+        )
         if r.returncode != 0:
             pytest.fail(
                 "Could not create docker network %r, see the log file %r"
@@ -870,7 +876,9 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+    r = subprocess.run(
+        cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+    )
     if r.returncode != 0:
         pytest.fail(
             "Failed to remove docker network %r, see the log file %r"
@@ -930,7 +938,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.11.0",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.15.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,

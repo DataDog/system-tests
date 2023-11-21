@@ -1,113 +1,85 @@
-"use strict";
+'use strict'
 
 const { join } = require('path')
-const { Client, Pool } = require('pg')
-const { readFileSync, statSync } = require('fs')
+const { Client } = require('pg')
+const { readFileSync } = require('fs')
 
-
-function initData() {
-    console.log("loading sql data")
-    const query = readFileSync(join(__dirname, 'resources', 'postgres.sql')).toString()
-    const client = new Client()
-    return client.connect().then(() => {
-        return client.query(query)
-    })
-}
-
-function select() {
-    const sql = 'SELECT * FROM demo '
+async function launchQuery (query) {
+  return new Promise(function (resolve, reject) {
     const client = new Client()
     client.connect().then(() => {
-        return client.query(sql).then((queryResult) => {
-            console.log(queryResult)
-        })
-    }).catch((err) => {
+      client.query(query).then((queryResult) => {
+        console.log('Postgres query result:' + queryResult)
+        resolve('Postgres query done!')
+      }).catch((err) => {
         console.log(err)
+        resolve('Error on postgres query')
+      })
+    }).catch((err) => {
+      console.log(err)
+      reject(err)
     })
+  })
 }
 
-function update() {
-    const sql = 'update demo set age=22 where id=1 '
-    const client = new Client()
-    client.connect().then(() => {
-        return client.query(sql);
-    }).catch((err) => {
-        console.log(err)
-    })
+async function initData () {
+  console.log('loading sql data')
+  const query = readFileSync(join(__dirname, 'resources', 'postgres.sql')).toString()
+  return await launchQuery(query)
 }
 
-function insert() {
-    const sql = "insert into demo (id,name,age) values(3,'test3',163) "
-    const client = new Client()
-    client.connect().then(() => {
-        return client.query(sql);
-    }).catch((err) => {
-        console.log(err)
-    })
+async function select () {
+  const sql = 'SELECT * FROM demo where id=1 or id IN (3, 4)'
+  return await launchQuery(sql)
 }
 
-function deleteSQL() {
-    const sql = 'delete from demo where id=2 '
-    const client = new Client()
-    client.connect().then(() => {
-        return client.query(sql);
-    }).catch((err) => {
-        console.log(err)
-    })
+async function update () {
+  const sql = "update demo set age=22 where name like '%tes%' "
+  return await launchQuery(sql)
 }
 
-function callProcedure() {
-    const sql = 'call helloworld() '
-    const client = new Client()
-    client.connect().then(() => {
-        return client.query(sql);
-    }).catch((err) => {
-        console.log(err)
-    })
+async function insert () {
+  const sql = "insert into demo (id,name,age) values(3,'test3',163) "
+  return await launchQuery(sql)
 }
 
-function selectError() {
-    const sql = 'SELECT * FROM demossssss'
-    const client = new Client()
-    client.connect().then(() => {
-        return client.query(sql).then((queryResult) => {
-            console.log(queryResult)
-        })
-    }).catch((err) => {
-        console.log(err)
-    })
+async function deleteSQL () {
+  const sql = 'delete from demo where id=2 or id=11111111'
+  return await launchQuery(sql)
 }
-function doOperation(operation) {
-    console.log("Selecting operation");
-    switch (operation) {
-        case "select":
-            select();
-            break;
-        case "select_error":
-            selectError();
-            break;
-        case "insert":
-            insert();
-            break;
-        case "delete":
-            deleteSQL();
-            break;
-        case "update":
-            update();
-            break;
-        case "procedure":
-            callProcedure();
-            break;
-        default:
-            console.log("Operation " + crudOp + " not allowed");
 
-    }
+async function callProcedure () {
+  const sql = "call helloworld(1,'test') "
+  return await launchQuery(sql)
 }
-function init(app) {
-    console.log("Initializing nodejs module");
-    initData();
-};
+
+async function selectError () {
+  const sql = 'SELECT * FROM demossssss where id=1 or id=233333'
+  return await launchQuery(sql)
+}
+
+async function doOperation (operation) {
+  console.log('Selecting operation')
+  switch (operation) {
+    case 'init':
+      return await initData()
+    case 'select':
+      return await select()
+    case 'select_error':
+      return await selectError()
+    case 'insert':
+      return await insert()
+    case 'delete':
+      return await deleteSQL()
+    case 'update':
+      return await update()
+    case 'procedure':
+      return await callProcedure()
+    default:
+      console.log('Operation ' + operation + ' not allowed')
+  }
+}
+
 module.exports = {
-    init: init,
-    doOperation: doOperation
-};
+  doOperation
+}

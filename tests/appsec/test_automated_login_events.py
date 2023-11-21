@@ -255,15 +255,7 @@ class Test_Login_Events:
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @scenarios.appsec_auto_events_extended
-@missing_feature(
-    context.library == "ruby" and context.weblog_variant in ("rails32", "rails40", "rails41"),
-    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String",
-)
-@missing_feature(
-    context.library == "ruby"
-    and context.weblog_variant in ("rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
-    reason="We do not support authentication framework for sinatra or rack",
-)
+@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 

@@ -1,134 +1,123 @@
-"use strict";
+'use strict'
 
 const { join } = require('path')
 
-const { readFileSync, statSync } = require('fs')
+const { readFileSync } = require('fs')
 
-var config = {
-    user: 'sa',
-    password: 'yourStrong(!)Password',
-    server: 'mssql',
-    database: 'master',
-    multipleStatements: true,
-    options: {
-        trustServerCertificate: true // change to true for local dev / self-signed certs
-    }
-};
+const config = {
+  user: 'sa',
+  password: 'yourStrong(!)Password',
+  server: 'mssql',
+  database: 'master',
+  multipleStatements: true,
+  options: {
+    trustServerCertificate: true // change to true for local dev / self-signed certs
+  }
+}
 
-function initData() {
-    var mssql = require("mssql");
-    console.log("loading mssql data")
-    const query = readFileSync(join(__dirname, 'resources', 'mssql.sql')).toString()
-    console.log("initData query: " + query)
+async function initData () {
+  const queryProcedure = 'CREATE PROCEDURE helloworld ' +
+    ' @Name VARCHAR(100),@Test VARCHAR(100) ' +
+    ' AS ' +
+    ' BEGIN ' +
+    ' SET NOCOUNT ON ' +
+
+    ' SELECT id from demo where id=1' +
+    ' END '
+
+  const query = readFileSync(join(__dirname, 'resources', 'mssql.sql')).toString()
+  await launchQuery(query)
+  return await launchQuery(queryProcedure)
+}
+
+async function launchQuery (query) {
+  const mssql = require('mssql')
+  return new Promise(function (resolve, reject) {
     mssql.connect(config, function (err) {
-        if (err) console.log(err);
-        var request = new mssql.Request();
-        request.query(query, function (err, recordset) {
-            if (err) console.log(err)
+      if (err) {
+        console.log('Error connecting mssql database:' + err)
+        return reject(new Error('Error on database connection'))
+      }
+      const request = new mssql.Request()
+      request.query(query, function (err, recordset) {
+        if (err) {
+          console.log('Error launching mssql query:' + err)
+          return resolve('Error on mssql query')
+        }
 
-            console.log(recordset);
+        console.log('mssql query result:' + recordset)
+        // mssql.close();
+        return resolve('Mssql query done!')
+      })
+    })
+  })
+}
 
-        });
-    });
-    console.log("Creating mssql procedure")
-    const query_procedure = "CREATE PROCEDURE helloworld "
-        + " AS "
-        + " BEGIN "
-        + " SET NOCOUNT ON "
+async function select () {
+  return await launchQuery('SELECT * FROM demo where id=1 or id IN (3, 4)')
+}
 
-        + " SELECT id from demo where id=1"
-        + " END "
+async function update () {
+  return await launchQuery('update demo set age=22 where id=1 ')
+}
+
+async function insert () {
+  return await launchQuery("insert into demo (id,name,age) values(3,'test3',163) ")
+}
+
+async function deleteSQL () {
+  return await launchQuery('delete from demo where id=2 or id=11111111')
+}
+
+async function callProcedure () {
+  const mssql = require('mssql')
+  return new Promise(function (resolve, reject) {
     mssql.connect(config, function (err) {
-        if (err) console.log(err);
-        var request = new mssql.Request();
-        request.query(query_procedure, function (err, recordset) {
-            if (err) console.log(err)
+      if (err) {
+        console.log('Error connecting mssql database:' + err)
+        return reject(new Error('Error on database connection'))
+      }
+      const request = new mssql.Request()
+      request.input('Name', 'MyParam').input('Test', 'MyTestParam').execute('helloworld', function (err, recordset) {
+        if (err) {
+          console.log('Error launching mssql query:' + err)
+          return resolve('Error on mssql query')
+        }
 
-            console.log(recordset);
-
-        });
-    });
+        console.log('mssql query result:' + recordset)
+        // mssql.close();
+        return resolve('Mssql query done!')
+      })
+    })
+  })
 }
 
-function launchQuery(query) {
-    var mssql = require("mssql");
-    mssql.connect(config, function (err) {
-        if (err) console.log(err);
-        var request = new mssql.Request();
-        request.query(query, function (err, recordset) {
-            if (err) console.log(err)
-
-            console.log(recordset);
-            mssql.close();
-
-        });
-    });
+async function selectError () {
+  return await launchQuery('SELECT * FROM demossssss where id=1 or id=233333')
 }
 
-function select() {
-    launchQuery('SELECT * FROM demo ')
+async function doOperation (operation) {
+  console.log('Selecting operation')
+  switch (operation) {
+    case 'init':
+      return await initData()
+    case 'select':
+      return await select()
+    case 'select_error':
+      return await selectError()
+    case 'insert':
+      return await insert()
+    case 'delete':
+      return await deleteSQL()
+    case 'update':
+      return await update()
+    case 'procedure':
+      return await callProcedure()
+    default:
+      console.log('Operation ' + operation + ' not allowed')
+  }
 }
 
-function update() {
-    launchQuery('update demo set age=22 where id=1 ')
-}
-
-function insert() {
-    launchQuery("insert into demo (id,name,age) values(3,'test3',163) ")
-}
-
-function deleteSQL() {
-    launchQuery('delete from demo where id=2 ')
-}
-
-function callProcedure() {
-    var mssql = require("mssql");
-    mssql.connect(config, function (err) {
-        if (err) console.log(err);
-        var request = new mssql.Request();
-        request.execute("helloworld", function (err, recordset) {
-            if (err) console.log(err)
-
-            console.log(recordset);
-
-        });
-    });
-}
-
-function selectError() {
-    launchQuery('SELECT * FROM demossssss')
-}
-function doOperation(operation) {
-    console.log("Selecting operation");
-    switch (operation) {
-        case "select":
-            select();
-            break;
-        case "select_error":
-            selectError();
-            break;
-        case "insert":
-            insert();
-            break;
-        case "delete":
-            deleteSQL();
-            break;
-        case "update":
-            update();
-            break;
-        case "procedure":
-            callProcedure();
-            break;
-        default:
-            console.log("Operation " + crudOp + " not allowed");
-
-    }
-}
-function init(app) {
-    console.log("Initializing mssql module");
-    initData();
-};
 module.exports = {
-    init: init,
-    doOperation: doOperation
-};
+  doOperation
+}

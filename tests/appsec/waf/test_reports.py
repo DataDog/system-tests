@@ -4,12 +4,7 @@
 import re
 import json
 
-import pytest
-
-from utils import weblog, context, interfaces, released, irrelevant, coverage, scenarios, missing_feature
-
-if context.weblog_variant in ("akka-http", "spring-boot-payara"):
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
+from utils import weblog, context, interfaces, irrelevant, coverage, scenarios
 
 
 @coverage.good

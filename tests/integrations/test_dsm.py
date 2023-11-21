@@ -21,18 +21,18 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            consumer_hash = 2931833227331067675
-            producer_hash = 271115008390912609
+            producer_hash = 2931833227331067675
+            consumer_hash = 271115008390912609
         else:
-            consumer_hash = 4463699290244539355
-            producer_hash = 3735318893869752335
+            producer_hash = 4463699290244539355
+            consumer_hash = 3735318893869752335
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash,
-            parent_hash=consumer_hash,
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
@@ -173,6 +173,15 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 class DsmHelper:
     @staticmethod
+    def is_tags_included(actual_tags, expected_tags):
+        assert isinstance(actual_tags, tuple)
+        assert isinstance(expected_tags, tuple)
+        for expected_tag in expected_tags:
+            if expected_tag not in actual_tags:
+                return False
+        return True
+
+    @staticmethod
     def assert_checkpoint_presence(hash_, parent_hash, tags):
 
         assert isinstance(tags, tuple)
@@ -180,14 +189,20 @@ class DsmHelper:
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
 
         for data in interfaces.agent.get_dsm_data():
-            for stats_bucket in data["request"]["content"]["Stats"]:
-                for stats_point in stats_bucket["Stats"]:
+            # some tracers may send separate payloads with stats
+            # or backlogs so "Stats" may be empty
+            for stats_bucket in data["request"]["content"].get("Stats", {}):
+                for stats_point in stats_bucket.get("Stats", {}):
                     observed_hash = stats_point["Hash"]
                     observed_parent_hash = stats_point["ParentHash"]
                     observed_tags = tuple(stats_point["EdgeTags"])
 
                     logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
-                    if observed_hash == hash_ and observed_parent_hash == parent_hash and observed_tags == tags:
+                    if (
+                        observed_hash == hash_
+                        and observed_parent_hash == parent_hash
+                        and DsmHelper.is_tags_included(observed_tags, tags)
+                    ):
                         logger.info("checkpoint found ✅")
                         return
 

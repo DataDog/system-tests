@@ -79,23 +79,17 @@ def _decode_v_0_5_traces(content):
                 "type": strings[int(span[11])],
             }
 
-            meta = decoded_span["meta"]
-
-            for key in list(meta):
-                if key.startswith("_dd.appsec.s."):
-                    meta[key] = deserialize_dd_appsec_s_meta(key, meta[key])
-
             decoded_spans.append(decoded_span)
 
     return result
 
 
-def deserialize_dd_appsec_s_meta(key, payload):
+def deserialize_dd_appsec_s_meta(payload):
     """ meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings """
 
     try:
         return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
-    except Exception as e:
+    except Exception:
         # b64/gzip is optional
         return json.loads(payload)
 
@@ -190,26 +184,31 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
 
 
 def _deserialized_nested_json_from_trace_payloads(content, interface):
-    """ trace payload from agent contains strings that are json """
-
-    keys = ("_dd.appsec.json", "_dd.iast.json")
+    """ trace payload from agent and library contains strings that are json """
 
     if interface == "agent":
         for tracer_payload in content.get("tracerPayloads", []):
             for chunk in tracer_payload.get("chunks", []):
                 for span in chunk.get("spans", []):
-                    meta = span.get("meta", {})
-                    for key in keys:
-                        if key in meta:
-                            meta[key] = json.loads(meta[key])
+                    _deserialize_meta(span)
 
     elif interface == "library":
         for traces in content:
             for span in traces:
-                meta = span.get("meta", {})
-                for key in keys:
-                    if key in meta:
-                        meta[key] = json.loads(meta[key])
+                _deserialize_meta(span)
+
+
+def _deserialize_meta(span):
+
+    meta = span.get("meta", {})
+
+    keys = ("_dd.appsec.json", "_dd.iast.json")
+
+    for key in list(meta):
+        if key.startswith("_dd.appsec.s."):
+            meta[key] = deserialize_dd_appsec_s_meta(meta[key])
+        elif key in keys:
+            meta[key] = json.loads(meta[key])
 
 
 def _convert_bytes_values(item):

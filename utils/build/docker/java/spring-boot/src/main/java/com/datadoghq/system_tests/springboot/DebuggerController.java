@@ -1,19 +1,19 @@
 package com.datadoghq.system_tests.springboot;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+// Dummy line
+// Dummy line
+// Dummy line
+// Dummy line
+// Dummy line
+// Dummy line
+// Dummy line
+// Dummy line
 
 @RestController
 @RequestMapping("/debugger")
 public class DebuggerController {
-// Dummy line
-// Dummy line
-// Dummy line
-// Dummy line
-// Dummy line
     @GetMapping("/log")
     public @ResponseBody String logProbe() {
         return "Log probe";
@@ -21,25 +21,34 @@ public class DebuggerController {
 
 // Dummy line
 // Dummy line
-    @GetMapping("/metric")
-    public @ResponseBody String metricProbe() {
-        int id = 0;
+    @GetMapping("/metric/{id}")
+    public String metricProbe(@PathVariable int id) {
+        id++;
         return "Metric Probe " + id;
     }
 
 // Dummy line
 // Dummy line
     @GetMapping("/span")
-    public @ResponseBody String spanProbe() {
-        String span = "some";
-        return "Span Probe " + span;
+    public String spanProbe() {
+        return "Span probe";
     }
 
 // Dummy line
 // Dummy line
+    private int intLocal = 0;
     @GetMapping("/span-decoration/{arg}/{intArg}")
-    public @ResponseBody String spanDecorationProbe(@PathVariable String arg, @PathVariable int intArg) {
-        int intLocal = arg.length() * 2;
+    public String spanDecorationProbe(@PathVariable String arg, @PathVariable int intArg) {
+        intLocal = intArg * arg.length();
         return "Span Decoration Probe " + intLocal;
+    }
+    
+// Dummy line
+// Dummy line
+    private int intMixLocal = 0;
+    @GetMapping("/mix/{arg}/{intArg}")
+    public String mixProbe(@PathVariable String arg, @PathVariable int intArg) {
+        intMixLocal = intArg * arg.length();
+        return "Span Decoration Probe " + intMixLocal;
     }
 }

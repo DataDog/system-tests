@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, released, missing_feature
+from utils import context, interfaces, bug, missing_feature
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -21,11 +21,14 @@ if value is dict, the weblog variant has multiple spans each with a different ex
 VARIANT_COMPONENT_MAP = {
     "chi": ["go-chi/chi", "go-chi/chi.v5"],
     "flask-poc": "flask",
+    "fastapi": "fastapi",
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
+    "nextjs": "next",
     "uwsgi-poc": "flask",
     "django-poc": "django",
+    "python3.12": "django",
     "gin": "gin-gonic/gin",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
@@ -226,6 +229,7 @@ class Test_Meta:
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
     @bug(library="java", reason="language tag implemented but not for all spans")
+    @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
@@ -292,10 +296,6 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
-@bug(
-    context.library in ("cpp", "python", "ruby"),
-    reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
-)
 class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 

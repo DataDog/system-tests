@@ -2,12 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios
+from utils import weblog, interfaces, context, scenarios
 
 
-@missing_feature(
-    context.library in ["python"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
-)
 @scenarios.integrations
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
@@ -26,6 +23,12 @@ class Test_Dbm:
                 weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
                 weblog.get("/dbm", params={"integration": "mysql"}),
                 weblog.get("/dbm", params={"integration": "sqlclient"}),
+            ]
+        elif self.library_name == "php":
+            self.requests = [
+                weblog.get("/dbm", params={"integration": "pdo-mysql"}),
+                weblog.get("/dbm", params={"integration": "pdo-pgsql"}),
+                weblog.get("/dbm", params={"integration": "mysqli"}),
             ]
 
     def test_trace_payload(self):

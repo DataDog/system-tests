@@ -30,6 +30,8 @@ readonly DEFAULT_ruby=rails70
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
 readonly DEFAULT_java_otel=spring-boot-native
+readonly DEFAULT_python_otel=flask-poc-otel
+readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
@@ -184,14 +186,6 @@ build() {
                 $EXTRA_DOCKER_ARGS \
                 .
 
-            SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
-
-            docker buildx build \
-                --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
-                -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
-                -t system_tests/agent \
-                .
-
         elif [[ $IMAGE_NAME == weblog ]]; then
             clean-binaries() {
                 find . -mindepth 1 -type d -exec rm -rf {} +
@@ -280,7 +274,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|java_otel|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
+        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;

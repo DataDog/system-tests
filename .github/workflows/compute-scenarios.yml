@@ -25,6 +25,12 @@ on:
       run_debugger:
         description: "Shall we run debugger scenarios"
         value: ${{ jobs.main.outputs.run_debugger }}
+      run_appsec:
+        description: "Shall we run AppSec scenarios"
+        value: ${{ jobs.main.outputs.run_appsec }}
+      run_integration:
+        description: "Shall we run Integrations scenarios"
+        value: ${{ jobs.main.outputs.run_integration }}
 
 jobs:
   main:
@@ -38,6 +44,8 @@ jobs:
       run_parametric: ${{ steps.compute_parametric.outputs.result }}
       run_libinjection: ${{ steps.compute_libinjection.outputs.result }}
       run_debugger: ${{ steps.compute_debugger.outputs.result }}
+      run_appsec: ${{ steps.compute_appsec.outputs.result }}
+      run_integration: ${{ steps.compute_integration.outputs.result }}
     steps:
       - name: Compute run_all
         id: compute_run_all
@@ -147,6 +155,40 @@ jobs:
 
           echo "Result: $GITHUB_OUTPUT"
 
+      - name: Compute run_appsec
+        id: compute_appsec
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-appsec-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_integration
+        id: compute_integration
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ steps.compute_run_appsec.outputs.result }}" == "true" ]; then
+            # Some AppSec tests are in integrations scenario
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-integration-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
       - name: Print results
         run: |
           echo "Run all: -> ${{ steps.compute_run_all.outputs.result }}"
@@ -156,3 +198,5 @@ jobs:
           echo "Run parametric: -> ${{ steps.compute_parametric.outputs.result }}"
           echo "Run lib-injection: -> ${{ steps.compute_libinjection.outputs.result }}"
           echo "Run debugger: -> ${{ steps.compute_debugger.outputs.result }}"
+          echo "Run appsec: -> ${{ steps.compute_appsec.outputs.result }}"
+          echo "Run integration: -> ${{ steps.compute_integration.outputs.result }}"

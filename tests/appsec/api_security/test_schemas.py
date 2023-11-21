@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, missing_feature, released, rfc, scenarios, weblog
+from utils import context, coverage, interfaces, missing_feature, rfc, scenarios, weblog
 
 
 def get_schema(request, address):
@@ -15,8 +15,8 @@ def get_schema(request, address):
     return
 
 
-def equal_without_meta(t1, t2):
-    """compare two schema types, ignoring any metadata"""
+def contains(t1, t2):
+    """validate that schema t1 contains all keys and values from t2 """
     if t1 is None or t2 is None:
         return False
     return equal_value(t1[0], t2[0])
@@ -25,9 +25,9 @@ def equal_without_meta(t1, t2):
 def equal_value(t1, t2):
     """compare two schema type values, ignoring any metadata"""
     if isinstance(t1, list) and isinstance(t2, list):
-        return len(t1) == len(t2) and all(equal_without_meta(a, b) for a, b in zip(t1, t2))
+        return all(contains(a, b) for a, b in zip(t1, t2))
     if isinstance(t1, dict) and isinstance(t2, dict):
-        return len(t1) == len(t2) and all(equal_without_meta(t1[k], t2.get(k)) for k in t1)
+        return all(contains(t1[k], t2.get(k)) for k in t2)
     if isinstance(t1, int) and isinstance(t2, int):
         return t1 == t2
     return False
@@ -48,7 +48,9 @@ class Test_Schema_Request_Headers:
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert equal_without_meta(schema, [{"accept-encoding": [8], "host": [8], "user-agent": [8]}])
+        for parameter_name in ("accept-encoding", "host", "user-agent"):
+            assert parameter_name in schema[0]
+            assert isinstance(schema[0][parameter_name], list)
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -59,7 +61,7 @@ class Test_Schema_Request_Cookies:
 
     def setup_request_method(self):
         self.request = weblog.get(
-            "/tag_value/api_match_AS001/200", cookies={"secret": "any value", "cache": "any other value"}
+            "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
@@ -69,7 +71,9 @@ class Test_Schema_Request_Cookies:
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert equal_without_meta(schema, [{"secret": [8], "cache": [8]}])
+        for parameter_name in ("secret", "cache"):
+            assert parameter_name in schema[0]
+            assert isinstance(schema[0][parameter_name], list)
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -107,11 +111,10 @@ class Test_Schema_Request_Path_Parameters:
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        # There should have two parameters here, one for api_match_AS003, the other for 200
-        assert len(schema[0]) == 2
-        assert all(isinstance(v, list) for v in schema[0].values())
-        assert all(1 <= len(v) <= 2 for v in schema[0].values())
-        assert all(isinstance(v[0], int) for v in schema[0].values())
+
+        for route_parameter in ("tag_value", "status_code"):
+            parameter = schema[0][route_parameter]
+            assert isinstance(parameter[0], int)
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -128,7 +131,7 @@ class Test_Schema_Request_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert equal_without_meta(schema, [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}])
+        assert contains(schema, [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}])
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -147,8 +150,7 @@ class Test_Schema_Response_Headers:
         assert isinstance(schema, list)
         assert len(schema) == 1
         assert isinstance(schema[0], dict)
-        for key in ("content-length", "content-type", "x-option"):
-            assert key in schema[0]
+        assert "x-option" in schema[0]
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -172,5 +174,5 @@ class Test_Schema_Response_Body:
         for key in ("payload",):
             assert key in schema[0]
         payload_schema = schema[0]["payload"][0]
-        for key in ("test_bool", "test_int", "test_str"):
+        for key in ("test_bool", "test_int", "test_str", "test_float"):
             assert key in payload_schema

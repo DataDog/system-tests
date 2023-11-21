@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+### October 2023 (100 PR merged)
+
+* 2023-10-09 [New python/FastAPI variant](https://github.com/DataDog/system-tests/pull/1663) by @christophe-papazian
+* 2023-10-27 [New NodeJS/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
+* 2023-10-01 [New scenario for testing debugger probes](https://github.com/DataDog/system-tests/pull/1632) by @shurivich
+
+### September 2023 (84 PR merged)
+
+* 2023-09-25 [New weblog variant: testing new Python version 3.12](https://github.com/DataDog/system-tests/pull/1617)
+* 2023-09-22 [DB Integrations scenario: validate DB query reporting](https://github.com/DataDog/system-tests/pull/1601)
+* 2023-09-20 [Parametric tests can use version in decorator/manifest file](https://github.com/DataDog/system-tests/pull/1589)
+* 2023-09-08 [Agent version can be used in decorators and manifest file](https://github.com/DataDog/system-tests/pull/1577)
+* 2023-09-08 [DB Integrations scenario: validate DB query reporting](https://github.com/DataDog/system-tests/pull/1410)
+* All the month: lot of PR to migrate all `released` decorators to manifest files :tada:
+
 ### August 2023 (71 PR merged)
 
 * 2023-08-31 [Deserilize appsec tags in deserializer](https://github.com/DataDog/system-tests/pull/1543) ASM data are visible as plain JSON in logs

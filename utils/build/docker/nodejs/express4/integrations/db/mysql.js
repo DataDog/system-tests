@@ -1,116 +1,109 @@
-"use strict";
+'use strict'
 
 const { join } = require('path')
-var mysql = require('mysql2');
-const { readFileSync, statSync } = require('fs')
+const mysql = require('mysql2')
+const { readFileSync } = require('fs')
 
-function getConnection() {
-    var con = mysql.createConnection({
-        host: "mysqldb",
-        user: "mysqldb",
-        password: "mysqldb",
-        database: "world",
-        multipleStatements: true
-    });
+function getConnection () {
+  const con = mysql.createConnection({
+    host: 'mysqldb',
+    user: 'mysqldb',
+    password: 'mysqldb',
+    database: 'world',
+    multipleStatements: true
+  })
 
-    con.connect(function (err) {
-        if (err) throw err;
-        console.log("Connected!");
-    });
-    return con;
+  con.connect(function (err) {
+    if (err) throw err
+    console.log('Connected!')
+  })
+  return con
 }
-
-function initData() {
-    console.log("loading mysql data")
-    const query = readFileSync(join(__dirname, 'resources', 'mysql.sql')).toString()
-    console.log("Create query: " + query)
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
-}
-
-function select() {
-    const query = 'SELECT * FROM demo '
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
-}
-
-function update() {
-    const query = 'update demo set age=22 where id=1 '
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
-}
-
-function insert() {
-    const query = "insert into demo (id,name,age) values(3,'test3',163) "
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
-}
-
-function deleteSQL() {
-    const query = 'delete from demo where id=2 '
-    getConnection().query(query, function (err, result) {
-        if (err) throw err;
-        console.log("Result: " + result);
-    });
-}
-
-function callProcedure() {
-    const query = 'call test_procedure(?)'
-
-    getConnection().query(query, 1, (error, results, fields) => {
-        if (error) {
-            return console.error(error.message);
+async function launchQuery (query) {
+  return new Promise(function (resolve, reject) {
+    // simple query
+    getConnection().query(
+      query,
+      function (err, results, fields) {
+        if (err) {
+          console.log('Error launching mysql query:' + err)
+          return resolve('Error on mysql query')
         }
-        console.log(results[0]);
-    });
+        console.log('mysql query result:' + results)
+        resolve('Mysql query done!')
+      }
+    )
+  })
+}
+async function initData () {
+  console.log('loading mysql data')
+  const query = readFileSync(join(__dirname, 'resources', 'mysql.sql')).toString()
+  console.log('Create query: ' + query)
+  return await launchQuery(query)
 }
 
-function selectError() {
-    const query = 'SELECT * FROM demossssss'
-    getConnection().query(query, function (err, result) {
-        if (err) console.log(err);
-        console.log("Result: " + result);
-    });
+async function select () {
+  const query = 'SELECT * FROM demo where id=1 or id IN (3, 4)'
+  return await launchQuery(query)
 }
-function doOperation(operation) {
-    console.log("Selecting operation");
-    switch (operation) {
-        case "select":
-            select();
-            break;
-        case "select_error":
-            selectError();
-            break;
-        case "insert":
-            insert();
-            break;
-        case "delete":
-            deleteSQL();
-            break;
-        case "update":
-            update();
-            break;
-        case "procedure":
-            callProcedure();
-            break;
-        default:
-            console.log("Operation " + crudOp + " not allowed");
 
-    }
+async function update () {
+  const query = 'update demo set age=22 where id=1 '
+  return await launchQuery(query)
 }
-function init(app) {
-    console.log("Initializing nodejs module");
-    initData();
-};
+
+async function insert () {
+  const query = "insert into demo (id,name,age) values(3,'test3',163) "
+  return await launchQuery(query)
+}
+
+async function deleteSQL () {
+  const query = 'delete from demo where id=2 or id=11111111'
+  return await launchQuery(query)
+}
+
+async function callProcedure () {
+  const query = 'call test_procedure(?,?)'
+  console.log('Calling procedure....')
+  return new Promise(function (resolve, reject) {
+    getConnection().query(query, [1, 'test'], (error, results, fields) => {
+      if (error) {
+        console.log('Error calling procedure:' + error.message)
+        return resolve('Error on mysql procedure')
+      }
+      console.log('Ok. Procedure executed!')
+      resolve('mysql procedure done')
+    })
+  })
+}
+
+async function selectError () {
+  const query = 'SELECT * FROM demossssss where id=1 or id=233333'
+  return await launchQuery(query)
+}
+async function doOperation (operation) {
+  console.log('Selecting operation:')
+  switch (operation) {
+    case 'init':
+      return await initData()
+    case 'select':
+      return await select()
+    case 'select_error':
+      return await selectError()
+    case 'insert':
+      return await insert()
+    case 'delete':
+      return await deleteSQL()
+    case 'update':
+      return await update()
+    case 'procedure':
+      console.log('Executing ' + operation + ' db operation')
+      return await callProcedure()
+    default:
+      console.log('Operation ' + operation + ' not allowed')
+  }
+}
+
 module.exports = {
-    init: init,
-    doOperation: doOperation
-};
+  doOperation
+}

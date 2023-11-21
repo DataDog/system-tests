@@ -5,7 +5,7 @@
 import socket
 
 
-from utils import weblog, context, coverage, interfaces, bug, missing_feature, flaky, rfc
+from utils import weblog, context, coverage, interfaces, bug, missing_feature, rfc
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
@@ -14,7 +14,7 @@ class Test_StatusCode:
     """Appsec reports good status code"""
 
     def setup_basic(self):
-        self.r = weblog.get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
+        self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
     @bug(
         library="java",
@@ -75,7 +75,6 @@ class Test_HttpClientIP:
         interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
 
 
-@flaky(context.library <= "php@0.68.2")
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @coverage.good
 class Test_Info:
@@ -165,7 +164,6 @@ class Test_TagsFromRule:
 
 
 @coverage.basic
-@bug(context.library >= "java@1.14.0", reason="APPSEC-11111")  # released at 1.14.0, but bugged
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 

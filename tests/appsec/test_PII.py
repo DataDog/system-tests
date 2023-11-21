@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, released, coverage
+from utils import coverage
 
 
 @coverage.not_implemented
