@@ -221,6 +221,8 @@ tests/:
       Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
+    test_tracer_flare.py:
+      TestTracerFlareV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
