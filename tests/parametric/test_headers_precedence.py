@@ -89,11 +89,13 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 class Test_Headers_Precedence:
     @missing_feature(context.library == "dotnet", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
+    @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
     @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python_http", reason="New 'datadog' default hasn't been implemented yet")
+    @irrelevant(context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator")
     def test_headers_precedence_propagationstyle_default(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
@@ -635,7 +637,7 @@ class Test_Headers_Precedence:
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
-    @missing_feature(context.library == "cpp", reason="c++ must implement new tracestate propagation")
+    @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
     @missing_feature(context.library == "dotnet", reason="dotnet must implement new tracestate propagation")
     @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
     @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
@@ -651,6 +653,7 @@ class Test_Headers_Precedence:
         )
 
     @enable_datadog_b3multi_tracecontext_extract_first_true()
+    @bug(context.library == "cpp", reason="Legacy behaviour")
     @bug(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
     @bug(
         context.library < "golang@1.57.0",

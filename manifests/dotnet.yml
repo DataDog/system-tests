@@ -206,6 +206,8 @@ tests/:
     test_span_links.py: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: bug (Both env vars are not independent; injected tags are duplicated in all spans)
+    test_tracer_flare.py:
+      TestTracerFlareV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.36.0
