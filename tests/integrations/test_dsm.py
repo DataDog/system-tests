@@ -21,18 +21,18 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            consumer_hash = 2931833227331067675
-            producer_hash = 271115008390912609
+            producer_hash = 2931833227331067675
+            consumer_hash = 271115008390912609
         else:
-            consumer_hash = 4463699290244539355
-            producer_hash = 3735318893869752335
+            producer_hash = 4463699290244539355
+            consumer_hash = 3735318893869752335
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash,
-            parent_hash=consumer_hash,
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 

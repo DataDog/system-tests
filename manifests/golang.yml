@@ -314,7 +314,7 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigV1: missing_feature
+      TestDynamicConfigV1: v1.58.0-dev
     test_span_links.py: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
