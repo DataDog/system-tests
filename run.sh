@@ -303,11 +303,11 @@ function main() {
     pytest_args+=( '-p' 'no:warnings' )
 
     # evaluate max pytest number of process
-#    for scenario in "${scenarios[@]}"; do
-#        if [[ "${scenario}" != "PARAMETRIC" ]]; then
-    pytest_numprocesses=1
-#        fi
-#    done
+    for scenario in "${scenarios[@]}"; do
+        if [[ "${scenario}" != "PARAMETRIC" ]]; then
+            pytest_numprocesses=1
+        fi
+    done
 
     if [[ "${#libraries[@]}" -gt 0 ]]; then
       for library in "${libraries[@]}"; do
