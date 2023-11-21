@@ -312,7 +312,7 @@ function main() {
     if [[ "${#libraries[@]}" -gt 0 ]]; then
       for library in "${libraries[@]}"; do
           case "${library}" in
-              dotnet|go|python_http|ruby)
+              dotnet|go|python_http)
                   pytest_numprocesses=1
                   ;;
           esac
