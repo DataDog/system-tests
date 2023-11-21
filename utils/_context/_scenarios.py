@@ -1,15 +1,17 @@
-import glob
-import json
-import os
-import shutil
-import subprocess
-import time
 from logging import FileHandler
+import os
 from pathlib import Path
+import shutil
+import time
+import subprocess
+import json
+import glob
 
 import pytest
-from watchdog.events import FileSystemEventHandler
 from watchdog.observers.polling import PollingObserver
+from watchdog.events import FileSystemEventHandler
+from utils._context.library_version import LibraryVersion, Version
+from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
     WeblogContainer,
@@ -28,8 +30,7 @@ from utils._context.containers import (
     # SqlDbTestedContainer,
     BuddyContainer,
 )
-from utils._context.library_version import LibraryVersion, Version
-from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
+
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 update_environ_with_local_env()
