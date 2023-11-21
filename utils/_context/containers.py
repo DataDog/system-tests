@@ -51,6 +51,7 @@ class TestedContainer:
     ) -> None:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
+        # self.library_commit_hash = os.environ.get("SYSTEM_TESTS_LIBRARY_COMMIT_HASH")
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 

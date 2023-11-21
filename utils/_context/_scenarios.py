@@ -1,17 +1,15 @@
-from logging import FileHandler
-import os
-from pathlib import Path
-import shutil
-import time
-import subprocess
-import json
 import glob
+import json
+import os
+import shutil
+import subprocess
+import time
+from logging import FileHandler
+from pathlib import Path
 
 import pytest
-from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
-from utils._context.library_version import LibraryVersion, Version
-from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
+from watchdog.observers.polling import PollingObserver
 
 from utils._context.containers import (
     WeblogContainer,
@@ -30,7 +28,8 @@ from utils._context.containers import (
     # SqlDbTestedContainer,
     BuddyContainer,
 )
-
+from utils._context.library_version import LibraryVersion, Version
+from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 update_environ_with_local_env()
@@ -119,6 +118,8 @@ class _Scenario:
     def print_test_context(self):
         logger.terminal.write_sep("=", "test context", bold=True)
         logger.stdout(f"Scenario: {self.name}")
+        logger.stdout(f"Library version: {self.library}")
+        logger.stdout(f"Library commit hash: {self.library_info}")
         logger.stdout(f"Logs folder: ./{self.host_log_folder}")
 
     def _get_warmups(self):
@@ -142,6 +143,10 @@ class _Scenario:
     @property
     def library(self):
         return LibraryVersion("undefined")
+
+    @property
+    def library_info(self):
+        return ""
 
     @property
     def agent_version(self):
@@ -224,18 +229,18 @@ class _DockerScenario(_Scenario):
     """ Scenario that tests docker containers """
 
     def __init__(
-        self,
-        name,
-        doc,
-        use_proxy=True,
-        proxy_state=None,
-        include_postgres_db=False,
-        include_cassandra_db=False,
-        include_mongo_db=False,
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_mysql_db=False,
-        include_sqlserver=False,
+            self,
+            name,
+            doc,
+            use_proxy=True,
+            proxy_state=None,
+            include_postgres_db=False,
+            include_cassandra_db=False,
+            include_mongo_db=False,
+            include_kafka=False,
+            include_rabbitmq=False,
+            include_mysql_db=False,
+            include_sqlserver=False,
     ) -> None:
         super().__init__(name, doc=doc)
 
@@ -305,27 +310,27 @@ class EndToEndScenario(_DockerScenario):
     """ Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent """
 
     def __init__(
-        self,
-        name,
-        doc,
-        weblog_env=None,
-        tracer_sampling_rate=None,
-        appsec_rules=None,
-        appsec_enabled=True,
-        additional_trace_header_tags=(),
-        library_interface_timeout=None,
-        agent_interface_timeout=5,
-        use_proxy=True,
-        proxy_state=None,
-        backend_interface_timeout=0,
-        include_postgres_db=False,
-        include_cassandra_db=False,
-        include_mongo_db=False,
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_mysql_db=False,
-        include_sqlserver=False,
-        include_buddies=False,
+            self,
+            name,
+            doc,
+            weblog_env=None,
+            tracer_sampling_rate=None,
+            appsec_rules=None,
+            appsec_enabled=True,
+            additional_trace_header_tags=(),
+            library_interface_timeout=None,
+            agent_interface_timeout=5,
+            use_proxy=True,
+            proxy_state=None,
+            backend_interface_timeout=0,
+            include_postgres_db=False,
+            include_cassandra_db=False,
+            include_mongo_db=False,
+            include_kafka=False,
+            include_rabbitmq=False,
+            include_mysql_db=False,
+            include_sqlserver=False,
+            include_buddies=False,
     ) -> None:
         super().__init__(
             name,
@@ -617,21 +622,21 @@ class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
     def __init__(
-        self,
-        name,
-        doc,
-        weblog_env=None,
-        include_agent=True,
-        include_collector=True,
-        include_intake=True,
-        include_postgres_db=False,
-        include_cassandra_db=False,
-        include_mongo_db=False,
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_mysql_db=False,
-        include_sqlserver=False,
-        backend_interface_timeout=20,
+            self,
+            name,
+            doc,
+            weblog_env=None,
+            include_agent=True,
+            include_collector=True,
+            include_intake=True,
+            include_postgres_db=False,
+            include_cassandra_db=False,
+            include_mongo_db=False,
+            include_kafka=False,
+            include_rabbitmq=False,
+            include_mysql_db=False,
+            include_sqlserver=False,
+            backend_interface_timeout=20,
     ) -> None:
         super().__init__(
             name,
@@ -962,6 +967,7 @@ class ParametricScenario(_Scenario):
 
         # get tracer version info building and executing the ddtracer-version.docker file
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
+        library_hash = os.getenv("LIBRARY_HASH")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
         if os.path.isfile(tracer_version_dockerfile):
             try:
@@ -976,6 +982,8 @@ class ParametricScenario(_Scenario):
                         f"{tracer_version_dockerfile}",
                         "--build-arg",
                         f"BUILD_MODULE={build_param}",
+                        "--build-arg",
+                        f"LIBRARY_HASH={library_hash}"
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,
@@ -987,7 +995,12 @@ class ParametricScenario(_Scenario):
                     stdout=subprocess.PIPE,
                     check=False,
                 )
-                self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
+                info = result.stdout.decode("utf-8").split(",")
+                self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), info[0])
+                if len(info) > 1:
+                    if info[1] != "":
+                        x = info[1].split("-")
+                        self.library_hash = x[len(x) - 1]
             except subprocess.CalledProcessError as e:
                 logger.error(f"{e}")
                 raise RuntimeError(e)
@@ -997,6 +1010,12 @@ class ParametricScenario(_Scenario):
 
     @property
     def library(self):
+        return self._library
+
+    @property
+    def library_info(self):
+        if self._library == "golang":
+            return self.library_hash
         return self._library
 
 

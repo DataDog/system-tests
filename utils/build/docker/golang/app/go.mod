@@ -11,15 +11,15 @@ require (
 	go.opentelemetry.io/otel/trace v1.20.0
 	google.golang.org/grpc v1.57.1
 	google.golang.org/protobuf v1.30.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20231113195931-5d0b85b141f5
+	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20231117171239-1eca47a1ddce
 )
 
 require (
-	github.com/DataDog/appsec-internal-go v1.0.1 // indirect
+	github.com/DataDog/appsec-internal-go v1.0.2 // indirect
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.48.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.48.1 // indirect
 	github.com/DataDog/datadog-go/v5 v5.3.0 // indirect
-	github.com/DataDog/go-libddwaf v1.5.0 // indirect
+	github.com/DataDog/go-libddwaf/v2 v2.1.0 // indirect
 	github.com/DataDog/go-tuf v1.0.2-0.5.2 // indirect
 	github.com/DataDog/sketches-go v1.4.2 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
@@ -28,7 +28,7 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.5.0-alpha.1 // indirect
+	github.com/ebitengine/purego v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -66,7 +66,7 @@ require (
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.12.1-0.20230815132531-74c255bcf846 // indirect
