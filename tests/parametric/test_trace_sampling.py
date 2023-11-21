@@ -2,8 +2,8 @@ import pytest
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
 import json
-from utils import coverage, rfc, scenarios
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, SAMPLING_LIMIT_PRIORITY_RATE
+from utils import rfc, scenarios
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
 
 
 @scenarios.parametric
@@ -209,13 +209,18 @@ class Test_Trace_Sampling_Resource:
             {
                 "DD_TRACE_SAMPLE_RATE": 1,
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "web.request", "resource": "/bar", "sample_rate": 0}]
+                    [
+                        {"service": "non-matching", "sample_rate": 1},
+                        {"name": "non-matching", "sample_rate": 1},
+                        {"resource": "non-matching", "sample_rate": 1},
+                        {"service": "webserver", "name": "web.request", "resource": "/bar", "sample_rate": 0},
+                    ]
                 ),
             }
         ],
     )
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
-        """Test that a trace is dropped by the matching defined trace sampling rule"""
+        """Test that a trace is dropped by the matching trace sampling rule"""
         with test_library:
             with test_library.start_span(name="web.request", service="webserver", resource="/bar"):
                 pass
@@ -227,7 +232,92 @@ class Test_Trace_Sampling_Resource:
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
 
 
-@coverage.not_implemented
+@scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Tags:
-    pass
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [{"tags": {"tag1": "non-matching"}, "sample_rate": 0}, {"tags": {"tag1": "val1"}, "sample_rate": 1}]
+                ),
+            },
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [
+                        {"tags": {"tag1": "non-matching"}, "sample_rate": 0},
+                        {"tags": {"tag2": "non-matching"}, "sample_rate": 0},
+                        {"tags": {"tag1": "non-matching", "tag2": "val2"}, "sample_rate": 0},
+                        {"tags": {"tag1": "val1", "tag2": "non-matching"}, "sample_rate": 0},
+                        {"tags": {"tag1": "val1", "tag2": "val2"}, "sample_rate": 1},
+                    ]
+                ),
+            },
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [{"tags": {"tag1": "v?r*"}, "sample_rate": 0}, {"tags": {"tag1": "val?"}, "sample_rate": 1}]
+                ),
+            },
+            {
+                "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [
+                        {"service": "webs?rver", "sample_rate": 0},
+                        {"name": "web.request", "sample_rate": 0},
+                        {"resource": "/ba*", "sample_rate": 0},
+                        {"tags": {"tag1": "v?l1", "tag2": "val*"}, "sample_rate": 0},
+                        {
+                            "service": "webs?rver",
+                            "name": "web.request",
+                            "resource": "/ba*",
+                            "tags": {"tag1": "v?l1", "tag2": "val*"},
+                            "sample_rate": 1,
+                        },
+                    ]
+                ),
+            },
+        ],
+    )
+    def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent, test_library):
+        """Test that a trace is sampled by the matching trace sampling rule"""
+        with test_library:
+            with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
+                span.set_meta("tag1", "val1")
+                span.set_meta("tag2", "val2")
+        span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
+        )
+
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [
+                        {"tags": {"tag1": "v?l1", "tag2": "val*"}, "sample_rate": 1},
+                        {"tags": {"tag1": "v?l1", "tag2": "val*"}, "sample_rate": 0,},
+                    ]
+                ),
+            },
+        ],
+    )
+    def test_trace_dropped_by_trace_sampling_rule_tags(self, test_agent, test_library):
+        """Test that a trace is dropped by the matching trace sampling rule"""
+        with test_library:
+            with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
+                span.set_meta("tag1", "val1")
+                span.set_meta("tag2", "val2")
+        span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
+        )
+
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
