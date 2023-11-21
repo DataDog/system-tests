@@ -2,13 +2,14 @@ import time
 
 import pytest
 
+from typing import Union
 from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
 from utils.parametric.spec.otel_trace import OtelSpan, otel_span
 from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, irrelevant, context, scenarios
+from utils import bug, missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -66,7 +67,7 @@ class Test_Otel_Span_Methods:
         assert root_span["resource"] == "parent_span"
         assert root_span["service"] == "new_service"
 
-    @missing_feature(
+    @irrelevant(
         context.library == "java",
         reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
     )
@@ -439,11 +440,12 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
+    @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
+    @bug(context.library == "java", reason="span.kind not set")
     def test_otel_span_reserved_attributes_overrides(self, test_agent, test_library):
         """
             Tests that the reserved attributes will override expected values
@@ -452,7 +454,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
                 span.set_attributes({"http.request.method": "GET"})
                 span.set_attributes({"resource.name": "new.name"})
-                span.set_attributes({"operation.name": "Overriden.name"})
+                span.set_attributes({"operation.name": "overriden.name"})
                 span.set_attributes({"service.name": "new.service.name"})
                 span.set_attributes({"span.type": "new.span.type"})
                 span.set_attributes({"analytics.event": "true"})
@@ -469,6 +471,44 @@ class Test_Otel_Span_Methods:
         assert span["type"] == "new.span.type"
         assert span["metrics"].get("_dd1.sr.eausr") == 1
 
+        assert "resource.name" not in span["meta"]
+        assert "operation.name" not in span["meta"]
+        assert "service.name" not in span["meta"]
+        assert "span.type" not in span["meta"]
+        assert "analytics.event" not in span["meta"]
+
+    @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "python_http", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "analytics_event_value,expected_metric_value",
+        [
+            ("true", 1),
+            ("TRUE", 1),
+            ("True", 1),
+            ("false", 0),
+            ("False", 0),
+            ("FALSE", 0),
+            ("something-else", 0),
+            (True, 1),
+            (False, 0),
+        ],
+    )
+    def test_otel_span_reserved_attributes_overrides_analytics_event(
+        self, analytics_event_value: Union[bool, str], expected_metric_value: int, test_agent, test_library
+    ):
+        """
+            Tests that the analytics.event reserved attribute override
+        """
+        run_otel_span_reserved_attributes_overrides_analytics_event(
+            analytics_event_value=analytics_event_value,
+            expected_metric_value=expected_metric_value,
+            test_library=test_library,
+            test_agent=test_agent,
+        )
+
 
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
     with test_library:
@@ -481,3 +521,19 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
     span = get_span(test_agent)
     assert span["name"] == expected_operation_name
     assert span["resource"] == "otel_span_name"
+
+
+def run_otel_span_reserved_attributes_overrides_analytics_event(
+    analytics_event_value: Union[bool, str], expected_metric_value: int, test_agent, test_library
+):
+    with test_library:
+        with test_library.otel_start_span("operation", span_kind=SK_SERVER) as span:
+            span.set_attributes({"analytics.event": analytics_event_value})
+            span.end_span()
+    traces = test_agent.wait_for_num_traces(1)
+    trace = find_trace_by_root(traces, otel_span(name="operation"))
+    assert len(trace) == 1
+
+    span = get_span(test_agent)
+    assert span["metrics"].get("_dd1.sr.eausr") == expected_metric_value
+    assert "analytics.event" not in span["meta"]

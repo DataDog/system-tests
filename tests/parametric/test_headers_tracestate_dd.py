@@ -651,7 +651,7 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @bug(library="cpp", reason="c++ is not dropping the 33rd (last) list-member")
     @bug(library="dotnet", reason="dotnet is not dropping the 33rd (last) list-member")
-    @bug(library="java", reason="java is not dropping the 33rd (last) list-member")
+    @bug(context.library < "java@1.24.0", reason="java is not dropping the 33rd (last) list-member")
     @bug(library="nodejs", reason="NodeJS is not dropping the 33rd (last) list-member")
     @bug(library="python", reason="python is not dropping the 33rd (last) list-member")
     @bug(library="python_http", reason="python is not dropping the 33rd (last) list-member")
