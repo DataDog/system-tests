@@ -17,7 +17,6 @@ Datadog.configure do |c|
   c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
   c.tracing.instrument :http # Used for `http_client_request`
-  c.tracing.distributed_tracing.propagation_extract_style = ['Datadog', 'tracecontext']
 end
 
 if Datadog::Core::Remote.active_remote
@@ -161,7 +160,6 @@ class ServerImpl < APMClient::Service
   }
 
   def otel_start_span(otel_start_span_args, _call)
-    STDOUT.puts "otel_start_span!!!"
     headers = header_hash(otel_start_span_args.http_headers)
     if !headers.empty?
       parent_context = OpenTelemetry.propagation.extract(headers)
@@ -177,9 +175,6 @@ class ServerImpl < APMClient::Service
       start_timestamp: otel_correct_time(otel_start_span_args.timestamp),
       kind: OTEL_SPAN_KIND[otel_start_span_args.span_kind]
     )
-
-    STDOUT.puts "span: #{span.inspect}"
-    STDOUT.flush
 
     context = span.context
 
