@@ -131,7 +131,7 @@ class TestDynamicConfigV1:
         This signal, along with the telemetry event, is used to determine when the
         configuration has been applied by the tracer.
         """
-        set_and_wait_rc(test_agent, {})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2)
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
@@ -255,6 +255,7 @@ class TestDynamicConfigV1:
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
+    @missing_feature(library="golang", reason="The Go tracer doesn't support automatic logs injection")
     @parametrize(
         "library_env",
         [
@@ -271,7 +272,7 @@ class TestDynamicConfigV1:
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
-    @missing_feature(context.library in ["java", "dotnet", "python_http"], reason="RPC not implemented yet")
+    @missing_feature(context.library in ["java", "dotnet", "python_http", "golang"], reason="RPC not implemented yet")
     @parametrize(
         "library_env",
         [
