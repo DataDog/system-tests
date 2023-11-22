@@ -10,6 +10,7 @@ def _expected_location():
     if context.library.library == "nodejs":
         return "iast/index.js"
 
+
 @coverage.basic
 class TestHeaderInjection(BaseSinkTest):
     """Verify Header injection detection"""
