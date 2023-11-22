@@ -36,9 +36,11 @@ tests/:
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
-            sping-boot-undertow: v1.20.0
             spring-boot: v1.20.0
             spring-boot-jetty: v1.20.0
+            spring-boot-openliberty: bug (not working as expected)
+            spring-boot-payara: v1.20.0
+            spring-boot-undertow: v1.20.0
             spring-boot-wildfly: v1.20.0
             uds-spring-boot: v1.20.0
         test_insecure_cookie.py:
@@ -104,7 +106,8 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx4: missing_feature (No endpoint implemented)
         test_trust_boundary_violation.py:
-          Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation:
+            "*": "bug (APPSEC-12201)"
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: 
             '*': v1.16.0
@@ -150,11 +153,13 @@ tests/:
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
             "*": "missing_feature"
-            sping-boot-undertow: "bug (APPSEC-11353)"
-            spring-boot: "bug (APPSEC-11353)"
-            spring-boot-jetty: "bug (APPSEC-11353)"
-            spring-boot-wildfly: "bug (APPSEC-11353)"
-            uds-spring-boot: "bug (APPSEC-11353)"
+            spring-boot: v1.22.0
+            spring-boot-jetty: v1.22.0
+            spring-boot-openliberty: bug (not working as expected)
+            spring-boot-payara: v1.22.0
+            spring-boot-undertow: v1.22.0
+            spring-boot-wildfly: v1.22.0
+            uds-spring-boot: v1.22.0
         test_xpath_injection.py:
           TestXPathInjection:
             '*': v1.18.0
@@ -879,7 +884,7 @@ tests/:
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
     test_tracer_flare.py:
-      TestTracerFlareV1: missing_feature
+      TestTracerFlareV1: v1.25.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
