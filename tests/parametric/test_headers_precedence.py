@@ -710,8 +710,6 @@ class Test_Headers_Precedence:
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
-            print(f"zach here is headers1: {headers1}")
-
             # 2) Scenario 1 but the x-datadog-* headers don't match the tracestate string
             # Note: This is an exceptional case that should not happen, but we should be consistent
             headers2 = make_single_request_and_get_inject_headers(
@@ -775,7 +773,6 @@ class Test_Headers_Precedence:
         # Note: This is expected to be the most frequent case
         traceparent1, tracestate1 = get_tracecontext(headers1)
         assert traceparent1.trace_id == "11111111111111110000000000000001"
-        print(f"zach tracestate: {tracestate1.to_string()}")
         if extract_first and not prefer_tracecontext:
             assert "foo" not in tracestate1
         else:

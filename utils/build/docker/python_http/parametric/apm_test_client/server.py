@@ -75,13 +75,7 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
 
     if len(args.http_headers) > 0:
         headers = {k: v for k, v in args.http_headers}
-        import os
-
-        print("here are envars")
-        print(os.environ)
-        print(f"zach this is headers: {headers}")
         parent = HTTPPropagator.extract(headers)
-        print(f"zach this is parent: {parent} here the meta: {parent._meta}")
 
     span = ddtrace.tracer.start_span(
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
