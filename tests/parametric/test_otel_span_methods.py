@@ -480,7 +480,10 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(
+        context.library <= "dotnet",
+        reason=".NET does not honor 'something-else' as a 'false' value that would set 'analytics.event' as that would differ from the OTLP implementation.",
+    )
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
