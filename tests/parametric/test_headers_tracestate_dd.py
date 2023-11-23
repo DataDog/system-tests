@@ -159,11 +159,12 @@ class Test_Headers_Tracestate_DD:
 
         traceparent6, tracestate6 = get_tracecontext(headers6)
         sampled6 = str(traceparent6).split("-")[3]
-        dd_items6 = tracestate6["dd"].split(";")
         assert "traceparent" in headers6
         assert sampled6 == "00"
         assert "tracestate" in headers6
-        assert "s:0" in dd_items6 or not any(item.startswith("s:") for item in dd_items6)
+        if "dd" in tracestate6:
+            dd_items6 = tracestate6["dd"].split(";")
+            assert "s:0" in dd_items6 or not any(item.startswith("s:") for item in dd_items6)
 
         # 7) Sampled = 0, tracestate[dd][s] <= 0
         # Result: SamplingPriority = incoming sampling priority
