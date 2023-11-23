@@ -279,12 +279,12 @@ function initRoutes (app, tracer) {
 
   app.post('/iast/header_injection/test_insecure', (req, res) => {
     res.setHeader('testheader', req.body.test)
-    res.send(`OK`)
+    res.send('OK')
   })
 
   app.post('/iast/header_injection/test_secure', (req, res) => {
     res.setHeader('testheader', 'not_tainted_string')
-    res.send(`OK`)
+    res.send('OK')
   })
 
   require('./sources')(app, tracer)
