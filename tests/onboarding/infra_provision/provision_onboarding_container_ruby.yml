@@ -20,24 +20,28 @@ agent_auto_install:
             local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
           - name: copy-docker-config
             local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+          - name: copy-tracer-debug-config
+            local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
           - name: copy-agent-docker-compose
             local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
       command: |
         bash execute_install_script_dev.sh ruby --inject-mode docker --install-agent false
         sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
-
+        sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
   - env: prod
     install:
     - os_type: linux
       copy_files:
           - name: copy-docker-config
             local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+          - name: copy-tracer-debug-config
+            local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
           - name: copy-agent-docker-compose
             local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
       command: |
         DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=ruby DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
         sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
-        
+        sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml    
 autoinjection: 
   - env: prod
     install: 
@@ -46,22 +50,25 @@ autoinjection:
         copy_files:
           - name: copy-docker-config
             local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
-
+          - name: copy-tracer-debug-config
+            local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
         command: |
           sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-ruby
           dd-container-install
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
-      
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
       - os_type: linux
         os_distro: rpm
         copy_files:
           - name: copy-docker-config
             local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
-
+          - name: copy-tracer-debug-config
+            local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
         command: |
           sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-ruby
           dd-container-install
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
     uninstall: 
       - os_type: linux 
         command: dd-container-install --uninstall && sudo systemctl restart docker
@@ -73,22 +80,26 @@ autoinjection:
         copy_files:
           - name: copy-docker-config
             local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
-
+          - name: copy-tracer-debug-config
+            local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
         command: |
           sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-ruby
           dd-container-install
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
       
       - os_type: linux
         os_distro: rpm
         copy_files:
           - name: copy-docker-config
             local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
-
+          - name: copy-tracer-debug-config
+            local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
         command: |
           sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject  datadog-apm-library-ruby
           dd-container-install
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
     uninstall: 
       - os_type: linux 
         command: dd-container-install --uninstall && sudo systemctl restart docker

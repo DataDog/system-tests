@@ -870,6 +870,14 @@ class OnBoardingScenario(_Scenario):
             logger.error("Error filling the context components")
             logger.exception(ex)
 
+    def extract_debug_info_before_close(self):
+        """ Extract debug info for each machine before shutdown. We connect to machines using ssh"""
+        from utils.onboarding.debug_ssh import debug_info_ssh
+        from utils.onboarding.pulumi_ssh import PulumiSSH
+
+        for provision_vm in self.provision_vms:
+            debug_info_ssh(provision_vm.ip, provision_vm.ec2_data["user"], PulumiSSH.pem_file, self.host_log_folder)
+
     def _start_pulumi(self):
         from pulumi import automation as auto
         from utils.onboarding.pulumi_ssh import PulumiSSH
@@ -890,9 +898,9 @@ class OnBoardingScenario(_Scenario):
             )
             self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
-        except:
-            self.close_targets()
-            raise
+        except Exception as pulumi_exception:  #
+            logger.error("Exception launching onboarding provision infraestructure")
+            logger.exception(pulumi_exception)
 
     def _get_warmups(self):
         return [self._start_pulumi]
@@ -903,6 +911,7 @@ class OnBoardingScenario(_Scenario):
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
+        self.extract_debug_info_before_close()
         self.close_targets()
 
     def close_targets(self):

@@ -106,10 +106,16 @@ def remote_install(
         command_identifier,
         connection=connection,
         create=command_exec,
+        delete=install_info["debug_command"] if "debug_command" in install_info else None,
         opts=pulumi.ResourceOptions(
             depends_on=[quee_depends_on.pop()]
         ),  # Here the quee should contain only one element
     )
+    # Execute debug command on delete
+    if "debug_command" in install_info:
+        command.remote.Command(
+            command_identifier + "_debug", connection=connection, delete=install_info["debug_command"]
+        )
 
     if logger_name:
         cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, logger_name).info(outputlog))

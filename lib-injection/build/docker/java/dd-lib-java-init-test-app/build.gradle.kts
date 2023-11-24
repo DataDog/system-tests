@@ -32,5 +32,9 @@ val dockerImageRepo: String? by project
 val resolvedDockerImageRepo: String = dockerImageRepo ?: "docker.io/" + System.getenv("DOCKER_USERNAME") + "/dd-lib-java-init-test-app"
 val dockerImageTag: String by project
 tasks.named<BootBuildImage>("bootBuildImage") {
+    val arch = System.getProperty("os.arch")
     imageName = "${resolvedDockerImageRepo}:${dockerImageTag}"
+    if (arch == "aarch64"){
+       builder = "dashaun/builder:tiny"
+    }
 }

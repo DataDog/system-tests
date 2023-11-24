@@ -34,4 +34,6 @@
 - os_type: linux
   os_distro: rpm
   command: |
-    sudo id -u datadog &>/dev/null || sudo useradd -m datadog 
+    sudo id -u datadog &>/dev/null || sudo useradd -m datadog
+    sudo yum clean expire-cache
+    sudo yum -y update

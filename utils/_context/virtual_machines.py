@@ -201,6 +201,7 @@ class TestedVirtualMachine:
             output_callback=lambda command_output: self.set_components(command_output),
         )
 
+        # self.weblog_install_data["install"]["debug_command"]="sudo docker-compose logs"
         # Build weblog app
         weblog_runner = remote_install(
             connection,
