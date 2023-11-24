@@ -35,14 +35,14 @@ def debug_info_ssh(ip, user, pem_file, log_folder):
 
 def _print_env_variables(sshClient, file_to_write):
     """Echo VM env"""
-    stdin, stdout, stderr = sshClient.exec_command("env")
+    _, stdout, _ = sshClient.exec_command("env")
     with open(file_to_write, "w") as stdout_file:
         stdout_file.writelines(stdout.readlines())
 
 
 def _print_running_processes(sshClient, file_to_write):
     """ Processes running on the machine """
-    stdin, stdout, stderr = sshClient.exec_command("ps -fea")
+    _, stdout, _ = sshClient.exec_command("ps -fea")
     with open(file_to_write, "w") as stdout_file:
         stdout_file.writelines(stdout.readlines())
 
@@ -53,14 +53,14 @@ def _print_directories_permissions(sshClient, file_to_write):
                 echo ".:: ***************** FOLDER: $dir ******************::."
                 sudo ls -la $dir
             done"""
-    stdin, stdout, stderr = sshClient.exec_command(permissions_command)
+    _, stdout, _ = sshClient.exec_command(permissions_command)
     with open(file_to_write, "w") as stdout_file:
         stdout_file.writelines(stdout.readlines())
 
 
 def _print_agent_install(sshClient, file_to_write):
     """Cat agent installation script"""
-    stdin, stdout, stderr = sshClient.exec_command("cat $(pwd)/ddagent-install.log")
+    _, stdout, _ = sshClient.exec_command("cat $(pwd)/ddagent-install.log")
     with open(file_to_write, "w") as stdout_file:
         stdout_file.writelines(stdout.readlines())
 
@@ -76,27 +76,27 @@ def _print_agent_host_logs(sshClient, file_to_write):
                   echo ".:: ************ /var/log/datadog/trace-agent.log ************* ::."
                   sudo cat /var/log/datadog/trace-agent.log
                     """
-    stdin, stdout, stderr = sshClient.exec_command(command)
+    _, stdout, _ = sshClient.exec_command(command)
     with open(file_to_write, "w") as stdout_file:
         stdout_file.writelines(stdout.readlines())
 
 
 def _print_app_tracer_host_logs(sshClient, file_to_write):
     """App tracer logs"""
-    stdin, stdout, stderr = sshClient.exec_command("sudo systemctl status test-app.service")
+    _, stdout, _ = sshClient.exec_command("sudo systemctl status test-app.service")
     with open(file_to_write, "w") as stdout_file:
         stdout_file.writelines(stdout.readlines())
 
 
 def _print_app_tracer_container_logs(sshClient, file_to_write):
     """App container logs"""
-    stdin, stdout, stderr = sshClient.exec_command("sudo docker-compose logs")
+    _, stdout, _ = sshClient.exec_command("sudo docker-compose logs")
     with open(file_to_write, "w") as stdout_file:
         stdout_file.writelines(stdout.readlines())
 
 
 def _print_agent_container_logs(sshClient, file_to_write):
     """Agent container logs"""
-    stdin, stdout, stderr = sshClient.exec_command("sudo docker-compose -f docker-compose-agent-prod.yml logs datadog")
+    _, stdout, _ = sshClient.exec_command("sudo docker-compose -f docker-compose-agent-prod.yml logs datadog")
     with open(file_to_write, "w") as stdout_file:
         stdout_file.writelines(stdout.readlines())

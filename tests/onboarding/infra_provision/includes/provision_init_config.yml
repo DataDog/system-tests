@@ -36,4 +36,4 @@
   command: |
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
     sudo yum clean expire-cache
-    sudo yum -y update
+    #sudo yum -y update
