@@ -3,6 +3,8 @@ module weblog
 go 1.20
 
 require (
+	github.com/DataDog/dd-trace-go/v2 v2.0.0-20231124092032-204743f1001d
+	github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin v0.0.0-20231124114615-fb82a56b1377
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/labstack/echo/v4 v4.11.1
@@ -11,7 +13,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.20.0
 	google.golang.org/grpc v1.57.1
 	google.golang.org/protobuf v1.30.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20231116112237-6ae85ecdec00
 )
 
 require (
@@ -19,7 +20,7 @@ require (
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.48.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.48.1 // indirect
 	github.com/DataDog/datadog-go/v5 v5.3.0 // indirect
-	github.com/DataDog/go-libddwaf/v2 v2.1.0 // indirect
+	github.com/DataDog/go-libddwaf/v2 v2.2.0 // indirect
 	github.com/DataDog/go-tuf v1.0.2-0.5.2 // indirect
 	github.com/DataDog/sketches-go v1.4.2 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
@@ -40,6 +41,8 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.3.1 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
