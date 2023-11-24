@@ -33,9 +33,7 @@ class Test_ShellExecution:
         )
 
     @irrelevant(
-        context.library == "php"
-        and context.weblog_variant.contains("-7.")
-        and not context.weblog_variant.contains("7.4"),
+        context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
     def test_track_cmd_exec(self):
@@ -50,71 +48,29 @@ class Test_ShellExecution:
             data=json.dumps({"command": "echo", "options": {"shell": True}, "args": "foo"}),
         )
 
-    # This test is wrong. cmd.shell should not be in array notation. Citing the RFC:
-    # > As an example, subprocess.run(["ls", "-l"], shell=True) will produce
-    # > "cmd.shell": "ls -a" [sic]
-    @irrelevant(library="php", reason="The test is wrong")
+    @irrelevant(library="java", reason="No method for shell execution in Java")
     def test_track_shell_exec(self):
         shell_exec_span = self.fetch_command_execution_span(self.r_shell_exec)
-
-        assert shell_exec_span["meta"]["cmd.shell"] == '["echo","foo"]'
-        assert shell_exec_span["meta"]["cmd.exit_code"] == "0"
-
-    def setup_track_shell_exec_correct(self):
-        self.r_shell_exec_correct = weblog.post(
-            "/shell_execution",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"command": "echo", "options": {"shell": True}, "args": "foo"}),
-        )
-
-    @bug(
-        context.library != "php" and context.library != "java",
-        reason="Possible reliance on wrong test. See " "test_track_shell_exec",
-    )
-    @irrelevant(library="java", reason="No method for shell execution in Java")
-    def test_track_shell_exec_correct(self):
-        shell_exec_span = self.fetch_command_execution_span(self.r_shell_exec_correct)
 
         assert shell_exec_span["meta"]["cmd.shell"] == "echo foo"
         assert shell_exec_span["meta"]["cmd.exit_code"] == "0"
 
-    def setup_truncation(self):
-        args = "foo".ljust(32000, "o")
+    def setup_truncated(self):
+        args = ["a" * 4096, "arg"]
         self.r_truncation = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
             data=json.dumps({"command": "echo", "options": {"shell": False}, "args": args}),
         )
 
-    # The RFC never says the argument should be truncated to 2 characters. It says
-    # the argument should be truncated **by** 2 characters (the length of "ls"
-    # in the example in the RFC).
-    @irrelevant(library="php", reason="The test is wrong")
-    def test_truncation(self):
-        shell_exec_span = self.fetch_command_execution_span(self.r_truncation)
-
-        assert shell_exec_span["meta"]["cmd.exec"] == '["echo","fo"]'
-        assert shell_exec_span["meta"]["cmd.exit_code"] == "0"
-
-    def setup_truncated_correct(self):
-        args = ["a" * 4096, "arg"]
-        self.r_truncation_correct = weblog.post(
-            "/shell_execution",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"command": "echo", "options": {"shell": False}, "args": args}),
-        )
-
-    @bug(context.library != "php", reason="Possible reliance on wrong test. See comment in test_truncation")
     @irrelevant(
-        context.library == "php"
-        and context.weblog_variant.contains("-7.")
-        and not context.weblog_variant.contains("7.4"),
+        context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    def test_truncated_correct(self):
-        shell_exec_span = self.fetch_command_execution_span(self.r_truncation_correct)
-
+    def test_truncated(self):
+        shell_exec_span = self.fetch_command_execution_span(self.r_truncation)
         assert shell_exec_span["meta"]["cmd.exec"] == '["echo","' + "a" * 4092 + '",""]'
+        assert shell_exec_span["meta"]["cmd.truncated"] == "true"
         assert shell_exec_span["meta"]["cmd.exit_code"] == "0"
 
     def setup_obfuscation(self):
@@ -125,6 +81,10 @@ class Test_ShellExecution:
             data=json.dumps({"command": "echo", "options": {"shell": False}, "args": args}),
         )
 
+    @irrelevant(
+        context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
+        reason="For PHP 7.4+",
+    )
     def test_obfuscation(self):
         shell_exec_span = self.fetch_command_execution_span(self.r_obfuscation)
 
