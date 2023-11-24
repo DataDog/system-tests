@@ -5,7 +5,6 @@ from random import randint
 import pulumi
 import pulumi_aws as aws
 import pulumi_tls as tls
-from pulumi import Output
 
 from utils.tools import logger
 
@@ -45,7 +44,7 @@ class PulumiSSH:
 
             # Create temporary file to use the pem file in other ssh connections (outside of Pulumi context)
             logger.info("Creating temporary pem file")
-            tmp_pem_file, pem_file_path = tempfile.mkstemp()
+            _, pem_file_path = tempfile.mkstemp()
             pem_file = open(pem_file_path, "w")
             ssh_key.private_key_pem.apply(lambda out: PulumiSSH._write_pem_file(pem_file, out))
             PulumiSSH.pem_file = pem_file_path

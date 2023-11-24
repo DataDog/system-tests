@@ -1,8 +1,8 @@
 stages:
   - ruby_tracer
-  #- nodejs_tracer
-  #- java_tracer
-  #- python_tracer
+  - nodejs_tracer
+  - java_tracer
+  - python_tracer
   - dotnet_tracer
   #- parse_results
 
@@ -47,7 +47,7 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
     
-.onboarding_nodejs:
+onboarding_nodejs:
   extends: .base_job_onboarding
   stage: nodejs_tracer
   allow_failure: true
@@ -66,7 +66,7 @@ variables:
       - ./build.sh -i runner
       - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
       
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding
   stage: java_tracer
   allow_failure: true
@@ -88,7 +88,7 @@ variables:
       - ./build.sh -i runner
       - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding
   stage: python_tracer
   allow_failure: true
