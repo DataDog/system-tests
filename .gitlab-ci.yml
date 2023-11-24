@@ -1,5 +1,5 @@
 stages:
-  #- ruby_tracer
+  - ruby_tracer
   #- nodejs_tracer
   #- java_tracer
   #- python_tracer
@@ -126,7 +126,7 @@ onboarding_dotnet:
       - ./build.sh -i runner
       - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
-.onboarding_ruby:
+onboarding_ruby:
   extends: .base_job_onboarding
   stage: ruby_tracer
   allow_failure: true
