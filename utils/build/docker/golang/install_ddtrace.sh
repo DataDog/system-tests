@@ -14,7 +14,8 @@ else
     echo "Installing production dd-trace-version"
     # TODO(darccio): remove @$ref on v2 release
     # Temporary fix to pass the tests isolating gin
-    go get -v -d -u github.com/DataDog/dd-trace-go/v2@dario.castane/AIT-8717/isolate-contribs-batch-2
+    ref=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/dario.castane/AIT-8717/isolate-contribs-batch-2 | jq --raw-output '.commit.sha')
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2@$ref
 fi
 
 # Downloading a newer version of the tracer may require to resolve again all dependencies
