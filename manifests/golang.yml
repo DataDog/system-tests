@@ -12,10 +12,18 @@ tests/:
     api_security/:
       test_schemas.py:
         Test_Schema_Request_Body: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_Headers: missing_feature
-        Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Request_Cookies:
+          '*': v1.58.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)
+        Test_Schema_Request_Headers:
+          '*': v1.58.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)
+        Test_Schema_Request_Path_Parameters:
+          '*': v1.58.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)
+        Test_Schema_Request_Query_Parameters:
+          '*': v1.58.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Headers: missing_feature
     iast/:
