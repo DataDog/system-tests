@@ -314,10 +314,12 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigV1: missing_feature
+      TestDynamicConfigV1: v1.58.0-dev
     test_span_links.py: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v1.48.0
+    test_tracer_flare.py:
+      TestTracerFlareV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature

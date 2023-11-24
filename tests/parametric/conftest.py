@@ -586,6 +586,12 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
+    def get_tracer_flares(self, **kwargs):
+        resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
+        json = resp.json()
+        self._write_log("tracerflares", json)
+        return json
+
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
@@ -713,6 +719,8 @@ class _TestAgentAPI:
             else:
                 # Look for the given apply state in the requests.
                 for req in rc_reqs:
+                    if req["body"]["client"]["state"].get("config_states") is None:
+                        continue
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
                         if cfg_state["product"] == product and cfg_state["apply_state"] == state:
                             if clear:
@@ -720,6 +728,23 @@ class _TestAgentAPI:
                             return cfg_state
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+
+    def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
+        """Wait for the tracer-flare to be received by the test agent."""
+        for i in range(wait_loops):
+            try:
+                tracer_flares = self.get_tracer_flares()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for the given case_id in the tracer-flares.
+                for tracer_flare in tracer_flares:
+                    if case_id is None or tracer_flare["case_id"] == case_id:
+                        if clear:
+                            self.clear()
+                        return tracer_flare
+            time.sleep(0.01)
+        raise AssertionError("No tracer-flare received")
 
 
 @contextlib.contextmanager
@@ -913,7 +938,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.14.0",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.15.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,
