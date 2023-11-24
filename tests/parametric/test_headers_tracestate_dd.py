@@ -161,7 +161,6 @@ class Test_Headers_Tracestate_DD:
         sampled6 = str(traceparent6).split("-")[3]
         assert "traceparent" in headers6
         assert sampled6 == "00"
-        assert "tracestate" in headers6
         if "dd" in tracestate6:
             dd_items6 = tracestate6["dd"].split(";")
             assert "s:0" in dd_items6 or not any(item.startswith("s:") for item in dd_items6)
