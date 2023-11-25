@@ -28,13 +28,21 @@ public class KafkaConnector {
     public static final String BOOTSTRAP_SERVERS = "kafka:9092";
     public static final String CONSUMER_GROUP = "testgroup1";
     public static final String TOPIC = "dsm-system-tests-queue";
-    private KafkaTemplate kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
+    private KafkaConsumer<String, String> consumer;
+
+    public KafkaConnector() {
+        kafkaTemplate = createKafkaTemplateForProducer();
+        consumer = createKafkaConsumer();
+    }
 
     private static KafkaTemplate<String, String> createKafkaTemplateForProducer() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        // Refreshes metadata every 1 second
+        props.put(ProducerConfig.METADATA_MAX_AGE_CONFIG, 1000);
         ProducerFactory<String, String> producerFactory = new DefaultKafkaProducerFactory<>(props);
         return new KafkaTemplate<String, String>(producerFactory);
     }
@@ -53,11 +61,12 @@ public class KafkaConnector {
     public void startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("KafkaProduce") {
             public void run() {
-                KafkaTemplate kafkaTemplate = createKafkaTemplateForProducer();
                 System.out.println(String.format("Publishing message: %s", message));
                 kafkaTemplate.send(TOPIC, message);
             }
         };
+        kafkaTemplate.flush();
+        Thread.sleep(1500);
         thread.start();
     }
 
@@ -66,7 +75,6 @@ public class KafkaConnector {
     public void startConsumingMessages() throws Exception {
         Thread thread = new Thread("KafkaConsume") {
             public void run() {
-                KafkaConsumer<String, String> consumer = createKafkaConsumer();
                 consumer.subscribe(Arrays.asList(TOPIC));
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
                 for (ConsumerRecord<String, String> record : records) {
@@ -74,6 +82,7 @@ public class KafkaConnector {
                 }
             }
         };
+        Thread.sleep(1500);
         thread.start();
         System.out.println("Started Kafka consumer thread");
     }
