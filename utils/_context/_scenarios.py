@@ -520,6 +520,18 @@ class EndToEndScenario(_DockerScenario):
 
         elif self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
+
+            if self.library in ("nodejs",):
+                # for weblogs who supports it, call the flush endpoint
+                try:
+                    r = self.weblog_container.request("GET", "/flush", timeout=5)
+                    assert r.status_code == 200
+                except Exception as e:
+                    self.weblog_container.collect_logs()
+                    raise Exception(
+                        f"Failed to flush weblog, please check {self.host_log_folder}/docker/weblog/stdout.log"
+                    ) from e
+
             self.weblog_container.stop()
             interfaces.library.check_deserialization_errors()
 
