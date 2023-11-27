@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-sha = '7ddd68a8cd772de30d4810231446d27e338aa893'
+sha = ENV['RUBY_DDTRACE_SHA']
 if sha && !sha.empty?
   gem 'ddtrace', git: 'https://github.com/Datadog/dd-trace-rb.git', ref: sha
 else
