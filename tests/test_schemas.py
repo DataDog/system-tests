@@ -4,7 +4,12 @@
 
 """Test format specifications"""
 
+import requests
+
+from jsonschema import ValidationError, validate
 from utils import weblog, interfaces, bug, context
+
+SCHEMA_URL = "https://raw.githubusercontent.com/DataDog/schema/main/semantic-core/v1/schema.json"
 
 
 class Test_Library:
@@ -107,3 +112,13 @@ class Test_Agent:
             )
 
         interfaces.agent.assert_schemas(allowed_errors=allowed_errors)
+
+    def test_semantic_core(self):
+        # raise BaseException('test_semantic_core')
+
+        resp = requests.get(SCHEMA_URL)
+        resp.raise_for_status()
+        schema = resp.json()
+
+        for data in interfaces.agent.get_data():
+            validate(instance=data, schema=schema)
