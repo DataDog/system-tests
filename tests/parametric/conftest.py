@@ -654,7 +654,9 @@ class _TestAgentAPI:
                         self.clear()
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
-        raise ValueError("Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces))
+        raise ValueError(
+            "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
+        )
 
     def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` spans to be received from the test agent.

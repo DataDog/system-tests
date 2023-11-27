@@ -343,13 +343,8 @@ class TestDynamicConfigV1:
 @rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
 @scenarios.parametric
 class TestDynamicConfigV2:
-
     @parametrize(
-        "library_env",
-        [
-            { **DEFAULT_ENVVARS },
-            { **DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2" },
-        ],
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
     )
     def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
         expected_local_tags = {}
@@ -371,9 +366,7 @@ class TestDynamicConfigV2:
                 with test_library.start_span("test2", parent_id=span.span_id):
                     pass
         traces = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert_trace_has_tags(traces[0], expected_local_tags)
-        assert traces[0][0]["meta"]["rc_key1"] == "val1"
-        assert traces[0][0]["meta"]["rc_key2"] == "val2"
+        assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
 
         # Ensure previous tags are restored.
         set_and_wait_rc(test_agent, config_overrides={"tracing_tags": None})
@@ -381,4 +374,5 @@ class TestDynamicConfigV2:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
                     pass
+        traces = test_agent.wait_for_num_traces(num=1, clear=True)
         assert_trace_has_tags(traces[0], expected_local_tags)

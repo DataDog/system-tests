@@ -262,8 +262,8 @@ def span_has_no_parent(span: Span) -> bool:
 def assert_span_has_tags(span: Span, tags: Dict[str, Union[int, str, float, bool]]):
     """Assert that the span has the given tags."""
     for key, value in tags.items():
-        assert key in span, f"Span missing expected tag {key}={value}"
-        assert span.get(key) == value, f"Span incorrect tag value for {key}={value}"
+        assert key in span.get("meta", {}), f"Span missing expected tag {key}={value}"
+        assert span.get("meta", {}).get(key) == value, f"Span incorrect tag value for {key}={value}"
 
 
 def assert_trace_has_tags(trace: Trace, tags: Dict[str, Union[int, str, float, bool]]):
