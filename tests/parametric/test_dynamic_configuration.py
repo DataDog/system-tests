@@ -5,6 +5,7 @@ TODO:
  - test case for new version of config, ensure it doesn't break libraries
  - test no config change = no telemetry event
 """
+import base64
 import json
 from typing import Any
 from typing import Dict
@@ -95,6 +96,12 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
     """
     # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
     assert trace[0]["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
+
+
+def assert_has_capability(b64_capabilities: str, capability: int):
+    """Asserts that the given RC capability is present."""
+    int_capabilities = int.from_bytes(base64.b64decode(b64_capabilities), byteorder="big")
+    assert (int_capabilities >> capability) & 1 == 1
 
 
 ENV_SAMPLING_RULE_RATE = 0.55
@@ -376,3 +383,32 @@ class TestDynamicConfigV2:
                     pass
         traces = test_agent.wait_for_num_traces(num=1, clear=True)
         assert_trace_has_tags(traces[0], expected_local_tags)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_sample_rate(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the trace sampling rate capability.
+        """
+        capabilities = test_agent.wait_for_rc_capabilities()
+        assert_has_capability(capabilities, 12)
+
+    @missing_feature(library="golang", reason="The Go tracer doesn't support automatic logs injection")
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_logs_injection(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the logs injection capability.
+        """
+        capabilities = test_agent.wait_for_rc_capabilities()
+        assert_has_capability(capabilities, 13)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_http_header_tags(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the http header tags capability.
+        """
+        capabilities = test_agent.wait_for_rc_capabilities()
+        assert_has_capability(capabilities, 14)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_custom_tags(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the custom tags capability.
+        """
+        capabilities = test_agent.wait_for_rc_capabilities()
+        assert_has_capability(capabilities, 15)

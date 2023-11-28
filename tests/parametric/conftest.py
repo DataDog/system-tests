@@ -586,6 +586,13 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
+    def rc_requests(self):
+        reqs = self.requests()
+        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        for r in rc_reqs:
+            r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+        return rc_reqs
+
     def get_tracer_flares(self, **kwargs):
         resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
         json = resp.json()
@@ -711,11 +718,7 @@ class _TestAgentAPI:
         rc_reqs = []
         for i in range(wait_loops):
             try:
-                reqs = self.requests()
-                # Get all remoteconfig requests.
-                rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
-                for r in rc_reqs:
-                    r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+                rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:
                 pass
             else:
@@ -730,6 +733,23 @@ class _TestAgentAPI:
                             return cfg_state
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+
+    def wait_for_rc_capabilities(self, wait_loops: int = 100):
+        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        rc_reqs = []
+        for i in range(wait_loops):
+            try:
+                rc_reqs = self.rc_requests()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for capabilities in the requests.
+                for req in rc_reqs:
+                    capa = req["body"]["client"].get("capabilities")
+                    if capa:
+                        return capa
+            time.sleep(0.01)
+        raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
 
     def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
