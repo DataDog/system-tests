@@ -42,7 +42,7 @@ app.get('/flush', (req, res) => {
   Promise.all([
     profiler?._collect?.('on_shutdown'),
     new Promise(tracerFlush),
-    new Promise(openaiLoggerFlush),
+    new Promise(openaiLoggerFlush)
   ]).then(() => {
     res.send('OK')
   })
