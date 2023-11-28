@@ -10,6 +10,25 @@ from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
+class _OnboardingIssueManagement:
+    def check_container_issues(onboardig_vm):
+        if (
+            "os_arch" in onboardig_vm.ec2_data
+            and onboardig_vm.ec2_data["os_arch"] == "arm"
+            and "buildpack" in context.weblog_variant
+        ):
+            logger.warn(f" WEBLOG: {context.weblog_variant} doesn't support ARM architecture")
+            pytest.xfail("missing_feature: Buildpack is not supported for ARM")
+
+        if (
+            "os_arch" in onboardig_vm.ec2_data
+            and onboardig_vm.ec2_data["os_arch"] == "arm"
+            and "alpine" in context.weblog_variant
+        ):
+            logger.warn(f"[bug][WEBLOG:  {context.weblog_variant}] doesn't support ARM architecture")
+            pytest.xfail("bug: Error loading shared library ld-linux-aarch64.so")
+
+
 class _OnboardingInstallBaseTest:
     def test_for_traces(self, onboardig_vm):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
@@ -44,15 +63,9 @@ class _OnboardingUninstallBaseTest:
 
 
 @scenarios.onboarding_container
-class TestOnboardingInstallContainer(_OnboardingInstallBaseTest):
+class TestOnboardingInstallContainer(_OnboardingInstallBaseTest, _OnboardingIssueManagement):
     def test_for_traces(self, onboardig_vm):
-        if (
-            "os_arch" in onboardig_vm.ec2_data
-            and onboardig_vm.ec2_data["os_arch"] == "arm"
-            and "buildpack" in context.weblog_variant
-        ):
-            logger.warn(f" WEBLOG: {context.weblog_variant} doesn't support ARM architecture")
-            pytest.xfail("missing_feature: Buildpack is not supported for ARM")
+        super().check_container_issues(onboardig_vm)
         super().test_for_traces(onboardig_vm)
 
 
@@ -67,15 +80,9 @@ class TestOnboardingInstallHostAutoInstall(_OnboardingInstallBaseTest):
 
 
 @scenarios.onboarding_container_auto_install
-class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
+class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest, _OnboardingIssueManagement):
     def test_for_traces(self, onboardig_vm):
-        if (
-            "os_arch" in onboardig_vm.ec2_data
-            and onboardig_vm.ec2_data["os_arch"] == "arm"
-            and "buildpack" in context.weblog_variant
-        ):
-            # Buildpack is not supported for ARM
-            pytest.xfail("missing_feature: Buildpack is not supported for ARM")
+        super().check_container_issues(onboardig_vm)
         super().test_for_traces(onboardig_vm)
 
 
@@ -85,8 +92,9 @@ class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
 
 
 @scenarios.onboarding_container_uninstall
-class TestOnboardingUninstallContainer(_OnboardingUninstallBaseTest):
+class TestOnboardingUninstallContainer(_OnboardingUninstallBaseTest, _OnboardingIssueManagement):
     def test_no_traces_after_uninstall(self, onboardig_vm):
+        super().check_container_issues(onboardig_vm)
         super().test_no_traces_after_uninstall(onboardig_vm)
 
 
@@ -101,6 +109,7 @@ class TestOnboardingUninstallHostAutoInstall(_OnboardingUninstallBaseTest):
 
 
 @scenarios.onboarding_container_auto_install_uninstall
-class TestOnboardingUninstallContainerAutoInstall(_OnboardingUninstallBaseTest):
+class TestOnboardingUninstallContainerAutoInstall(_OnboardingUninstallBaseTest, _OnboardingIssueManagement):
     def test_no_traces_after_uninstall(self, onboardig_vm):
+        super().check_container_issues(onboardig_vm)
         super().test_no_traces_after_uninstall(onboardig_vm)
