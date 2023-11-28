@@ -126,4 +126,25 @@ weblogs:
       - os_type: linux
         command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down
 
+  - name: test-app-nodejs-alpine
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-run-weblog-script
+            local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/test-app-nodejs_docker_compose_run.sh
+
+          - name: copy-docker-compose-file
+            local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/docker-compose.yml
+
+          - name: copy-nodejs-app
+            local_path: lib-injection/build/docker/nodejs/sample-app
+
+          - name: copy-nodejs-app-dockerfile
+            local_path: tests/onboarding/weblog/nodejs/test-app-nodejs-alpine/Dockerfile
+
+        command: sh test-app-nodejs_docker_compose_run.sh
+    uninstall: 
+      - os_type: linux
+        command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down
+
 installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml

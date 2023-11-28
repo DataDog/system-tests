@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from utils import scenarios, context
 from utils.tools import logger
 
@@ -43,7 +45,15 @@ class _OnboardingUninstallBaseTest:
 
 @scenarios.onboarding_container
 class TestOnboardingInstallContainer(_OnboardingInstallBaseTest):
-    pass
+    def test_for_traces(self, onboardig_vm):
+        if (
+            "os_arch" in onboardig_vm.ec2_data
+            and onboardig_vm.ec2_data["os_arch"] == "arm"
+            and "buildpack" in context.weblog_variant
+        ):
+            logger.warn(f" WEBLOG: {context.weblog_variant} doesn't support ARM architecture")
+            pytest.xfail("missing_feature: Buildpack is not supported for ARM")
+        super().test_for_traces(onboardig_vm)
 
 
 @scenarios.onboarding_host
@@ -58,7 +68,15 @@ class TestOnboardingInstallHostAutoInstall(_OnboardingInstallBaseTest):
 
 @scenarios.onboarding_container_auto_install
 class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
-    pass
+    def test_for_traces(self, onboardig_vm):
+        if (
+            "os_arch" in onboardig_vm.ec2_data
+            and onboardig_vm.ec2_data["os_arch"] == "arm"
+            and "buildpack" in context.weblog_variant
+        ):
+            # Buildpack is not supported for ARM
+            pytest.xfail("missing_feature: Buildpack is not supported for ARM")
+        super().test_for_traces(onboardig_vm)
 
 
 #########################

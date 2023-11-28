@@ -26,6 +26,7 @@
   user: ubuntu
   os_type: linux
   os_distro: deb
+  os_arch: arm
 
 - name: amazon-linux-2023-arm64
   ami_id: ami-04c97e62cb19d53f1
@@ -33,3 +34,4 @@
   user: ec2-user
   os_type: linux
   os_distro: rpm
+  os_arch: arm
