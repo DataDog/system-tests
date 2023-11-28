@@ -61,8 +61,29 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             child_of=parent,
             activate=True,
         )
+        print(f"ben here is request {type(request)}")
+        print(f"{dir(request)}")
+        if hasattr(request, "span_links"):
+            print("it has the links")
+            for link in request.span_links:
+                attributes = self._get_attributes_from_request(link.attributes)
+                if link.http_headers:
+                    headers = {h.key: h.value for h in link.http_headers}
+                    context = HTTPPropagator.extract(headers)
+                    span.link_span(context, attributes=attributes)
+                else:  # we have a parent_id to create link instead
+                    span._set_span_link(span.trace_id, span_id=request.span_link.parent_id, attributes=attributes)
+
         self._spans[span.span_id] = span
         return apm_test_client_pb2.StartSpanReturn(span_id=span.span_id,)
+
+    #     message SpanLink {
+    #   oneof from {
+    #     uint64 parent_id = 1;
+    #     DistributedHTTPHeaders http_headers = 2;
+    #   }
+    #   Attributes attributes = 3;
+    # }
 
     def InjectHeaders(self, request, context):
         ctx = self._spans[request.span_id].context
@@ -73,6 +94,19 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             distrib_headers.http_headers.append(apm_test_client_pb2.HeaderTuple(key=k, value=v))
 
         return apm_test_client_pb2.InjectHeadersReturn(http_headers=distrib_headers,)
+
+    def SpanAddLink(self, request, context):
+        span = self._spans[request.span_id]
+        attributes = self._get_attributes_from_request(request.headers.attributes)
+        if request.http_headers:
+            headers = {h.key: h.value for h in request.headers.http_headers}
+            context = HTTPPropagator.extract(headers)
+            span.link_span(context, attributes=attributes)
+        else:  # we have a parent_id to create link instead
+            span._set_span_link(span.trace_id, span_id=request.parent_id, attributes=attributes)
+        # this test tag doesn't appear on my span for some reason.
+        span.set_tag("boo", "moo")
+        return apm_test_client_pb2.SpanAddLinkReturn()
 
     def SpanSetMeta(self, request, context):
         span = self._spans[request.span_id]
