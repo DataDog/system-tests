@@ -45,7 +45,7 @@ class PulumiSSH:
             # Create temporary file to use the pem file in other ssh connections (outside of Pulumi context)
             logger.info("Creating temporary pem file")
             _, pem_file_path = tempfile.mkstemp()
-            pem_file = open(pem_file_path, "w")
+            pem_file = open(pem_file_path, "w", encoding="utf-8")
             ssh_key.private_key_pem.apply(lambda out: PulumiSSH._write_pem_file(pem_file, out))
             PulumiSSH.pem_file = pem_file_path
 
