@@ -21,6 +21,33 @@ app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
 iast.initMiddlewares(app)
 
+// try to flush as much stuff as possible from the library
+app.get('/flush', (req, res) => {
+  // doesn't have a callback :(
+  tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
+  tracer.dogstatsd?.flush?.()
+  tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+
+  // does have a callback :)
+  const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+
+  const tracerFlush = tracer._tracer?._exporter?._writer?.flush
+    ? (cb) => tracer._tracer._exporter._writer.flush(cb)
+    : (cb) => cb()
+
+  const openaiLoggerFlush = tracer._pluginManager?._pluginsByName?.openai?.logger?.flush
+    ? (cb) => tracer._pluginManager._pluginsByName.openai.logger.flush(cb)
+    : (cb) => cb()
+
+  Promise.all([
+    profiler?._collect?.('on_shutdown'),
+    new Promise(tracerFlush),
+    new Promise(openaiLoggerFlush),
+  ]).then(() => {
+    res.send('OK')
+  })
+})
+
 app.get('/', (req, res) => {
   console.log('Received a request')
   res.send('Hello\n')
@@ -251,6 +278,6 @@ require('./auth')(app, passport, tracer)
 require('./graphql')(app)
 
 app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => { })
+  tracer.trace('init.service', () => {})
   console.log('listening')
 })
