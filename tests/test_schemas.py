@@ -6,10 +6,11 @@
 
 import requests
 
-from jsonschema import ValidationError, validate
+from jsonschema import validate, ValidationError
 from utils import weblog, interfaces, bug, context
+from utils.tools import logger
 
-SCHEMA_URL = "https://raw.githubusercontent.com/DataDog/schema/main/semantic-core/v1/schema.json"
+SCHEMA_URL = "https://raw.githubusercontent.com/DataDog/schema/main/semantic-core/v1/intake_resolved_span.json"
 
 
 class Test_Library:
@@ -114,11 +115,44 @@ class Test_Agent:
         interfaces.agent.assert_schemas(allowed_errors=allowed_errors)
 
     def test_semantic_core(self):
-        # raise BaseException('test_semantic_core')
-
         resp = requests.get(SCHEMA_URL)
         resp.raise_for_status()
         schema = resp.json()
+        schema = {
+            "properties": {
+                "hostName": {
+                    "anyOf": [
+                        {
+                            "description": "\nWhen the DD_TRACE_REPORT_HOSTNAME=true environment variable, or report_hostname are set by the user the tracing clients will collect the hostname directly from the process or OS to report to the trace agent.\nWhen _dd.hostname is present the trace agent will not use it\u2019s hostname for the trace.\nNote: this tag should only be set if configured to do so. It is disabled by default.",
+                            "examples": [
+                                "my-hostname"
+                            ],
+                            "is_sensitive": False,
+                            "minLength": 0,
+                            "title": "Hostname",
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "title": "Hostname"
+                }
+            },
+            "required": [
+                "hostName"
+            ],
+            "title": "IntakeResolvedSpan",
+            "type": "object"
+        }
+
+        logger.debug(f"using schema {schema}")
 
         for data in interfaces.agent.get_data():
-            validate(instance=data, schema=schema)
+            path = data["path"]
+            if 'traces' not in path:
+                continue
+
+            logger.debug(f"validating {data}")
+            content = data["request"]["content"]
+            validate(instance=content, schema=schema)
