@@ -391,14 +391,15 @@ class EndToEndScenario(_DockerScenario):
             container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.replay)
 
-        if self.library_interface_timeout is None:
+        # to override scenarii timeouts like profiling
+        if self.weblog_container.library.library == "nodejs":
+            self.library_interface_timeout = 0
+            self.agent_interface_timeout = 0
+        elif self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
                 self.library_interface_timeout = 25
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs",):
-                self.library_interface_timeout = 0
-                self.agent_interface_timeout = 0
             elif self.weblog_container.library.library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
@@ -524,7 +525,7 @@ class EndToEndScenario(_DockerScenario):
             if self.library in ("nodejs",):
                 # for weblogs who supports it, call the flush endpoint
                 try:
-                    r = self.weblog_container.request("GET", "/flush", timeout=5)
+                    r = self.weblog_container.request("GET", "/flush", timeout=10)
                     assert r.status_code == 200
                 except Exception as e:
                     self.weblog_container.collect_logs()
@@ -532,7 +533,7 @@ class EndToEndScenario(_DockerScenario):
                         f"Failed to flush weblog, please check {self.host_log_folder}/docker/weblog/stdout.log"
                     ) from e
 
-            self.weblog_container.stop()
+            #self.weblog_container.stop()
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
