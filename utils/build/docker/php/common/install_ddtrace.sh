@@ -21,7 +21,7 @@ if [[ -f "datadog-setup.php" ]]; then
 
     export DD_APPSEC_ENABLED=0
     if [[ $IS_APACHE -eq 0 ]]; then
-      php datadog-setup --php-bin all "${INSTALLER_ARGS[@]}"
+      php datadog-setup.php --php-bin all "${INSTALLER_ARGS[@]}"
     else
       PHP_INI_SCAN_DIR="/etc/php" php datadog-setup.php --php-bin all "${INSTALLER_ARGS[@]}"
     fi
