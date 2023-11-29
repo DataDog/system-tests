@@ -177,7 +177,7 @@ def remote_copy_folders(source_folder, destination_folder, command_id, connectio
 
 def pulumi_logger(scenario_name, log_name, level=logging.INFO):
     formatter = logging.Formatter("%(message)s")
-    handler = logging.FileHandler(f"logs_{scenario_name}/{log_name}.log")
+    handler = logging.FileHandler(f"logs_{scenario_name.lower()}/{log_name}.log")
     handler.setFormatter(formatter)
     specified_logger = logging.getLogger(log_name)
     specified_logger.setLevel(level)
