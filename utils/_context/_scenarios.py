@@ -533,7 +533,7 @@ class EndToEndScenario(_DockerScenario):
                         f"Failed to flush weblog, please check {self.host_log_folder}/docker/weblog/stdout.log"
                     ) from e
 
-            #self.weblog_container.stop()
+            # self.weblog_container.stop()
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
