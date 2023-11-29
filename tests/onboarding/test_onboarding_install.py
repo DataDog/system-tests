@@ -34,6 +34,9 @@ class _OnboardingInstallBaseTest:
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
+        if onboardig_vm.pytestmark:
+            logger.warn(f"Skipping test for VM {onboardig_vm.name}")
+            pytest.xfail(onboardig_vm.pytestmark)
         logger.info(f"Launching test for : [{onboardig_vm.ip}]")
         logger.info(f"Waiting for weblog available [{onboardig_vm.ip}]")
         # TODO move this wait command to the scenario warmup. How to do this? Pulumi is working in parallel and async, in the scenario warmup we don't have the server IP
@@ -47,6 +50,9 @@ class _OnboardingInstallBaseTest:
 
 class _OnboardingUninstallBaseTest:
     def test_no_traces_after_uninstall(self, onboardig_vm):
+        if onboardig_vm.pytestmark:
+            logger.warn(f"Skipping test for VM {onboardig_vm.name}")
+            pytest.xfail(onboardig_vm.pytestmark)
         logger.info(f"Launching uninstallation test for : [{onboardig_vm.ip}]")
         logger.info(f"Waiting for weblog available [{onboardig_vm.ip}]")
         # We uninstalled the autoinjection software, but the application should work

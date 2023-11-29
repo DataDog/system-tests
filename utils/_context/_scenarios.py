@@ -843,18 +843,19 @@ class OnBoardingScenario(_Scenario):
 
         try:
             for provision_vm in self.provision_vms:
-                # Manage common dd software components for the scenario
-                for dd_package_name in dd_package_names:
-                    # All the tested machines should have the same version of the DD components
-                    if dd_package_name in self.onboarding_components and self.onboarding_components[
-                        dd_package_name
-                    ] != provision_vm.get_component(dd_package_name):
-                        self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
-                        raise ValueError(
-                            f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
-                        )
+                # Manage common dd software components for the scenario if it's not a skipped test
+                if provision_vm.pytestmark is None:
+                    for dd_package_name in dd_package_names:
+                        # All the tested machines should have the same version of the DD components
+                        if dd_package_name in self.onboarding_components and self.onboarding_components[
+                            dd_package_name
+                        ] != provision_vm.get_component(dd_package_name):
+                            self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
+                            raise ValueError(
+                                f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
+                            )
 
-                    self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
+                        self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
                 # Manage specific information for each parametrized test
                 test_metadata = {
                     "vm": provision_vm.ec2_data["name"],
@@ -872,11 +873,19 @@ class OnBoardingScenario(_Scenario):
 
     def extract_debug_info_before_close(self):
         """ Extract debug info for each machine before shutdown. We connect to machines using ssh"""
-        from utils.onboarding.debug_ssh import debug_info_ssh
+        from utils.onboarding.debug_vm import debug_info_ssh, extract_vm_log
         from utils.onboarding.pulumi_ssh import PulumiSSH
 
         for provision_vm in self.provision_vms:
-            debug_info_ssh(provision_vm.ip, provision_vm.ec2_data["user"], PulumiSSH.pem_file, self.host_log_folder)
+            if provision_vm.pytestmark is None:
+                debug_info_ssh(
+                    provision_vm.name,
+                    provision_vm.ip,
+                    provision_vm.ec2_data["user"],
+                    PulumiSSH.pem_file,
+                    self.host_log_folder,
+                )
+                extract_vm_log(self.name, provision_vm.name, self.host_log_folder)
 
     def _start_pulumi(self):
         from pulumi import automation as auto
@@ -886,8 +895,11 @@ class OnBoardingScenario(_Scenario):
             # Static loading of keypairs for ec2 machines
             PulumiSSH.load()
             for provision_vm in self.provision_vms:
-                logger.info(f"Executing warmup {provision_vm.name}")
-                provision_vm.start()
+                if provision_vm.pytestmark is None:
+                    logger.info(f"Executing warmup {provision_vm.name}")
+                    provision_vm.start()
+                else:
+                    logger.warn(f"Skipping warmup for {provision_vm.name} due has mark {provision_vm.pytestmark}")
 
         project_name = "system-tests-onboarding"
         stack_name = "testing_v2"

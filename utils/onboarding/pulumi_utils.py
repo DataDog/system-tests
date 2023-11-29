@@ -119,12 +119,7 @@ def remote_install(
 
     if logger_name:
         cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, logger_name).info(outputlog))
-    else:
-        # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
-        # same remote machine in the same log file
-        Output.all(connection.host, cmd_exec_install.stdout).apply(
-            lambda args: pulumi_logger(scenario_name, args[0]).info(args[1])
-        )
+
     if output_callback:
         cmd_exec_install.stdout.apply(output_callback)
 
