@@ -212,6 +212,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.13.0
+      TestDynamicConfigV2: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
     test_otel_span_with_w3c.py:
