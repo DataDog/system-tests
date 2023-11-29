@@ -5,7 +5,6 @@ import pathlib
 import uuid
 
 import pulumi
-from pulumi import Output
 import pulumi_command as command
 from utils.tools import logger
 
