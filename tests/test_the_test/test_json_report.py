@@ -24,7 +24,7 @@ class Test_Json_Report:
         for test in self.report_json["tests"]:
             if test["nodeid"] == "tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature":
                 assert test["outcome"] == "xfailed"
-                assert test["skip_reason"] == "missing_feature: missing feature"
+                assert test["skip_reason"] == "missing_feature: not yet done"
                 return
         pytest.fail("Test method not found")
 
@@ -125,7 +125,7 @@ class Test_Mock:
         """Mock test doc"""
         assert 1 == 1
 
-    @missing_feature(True, reason="missing feature")
+    @missing_feature(True, reason="not yet done")
     def test_missing_feature(self):
         raise Exception("Should not be executed")
 

@@ -47,7 +47,7 @@ autoinjection:
             local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
 
         command: |
-          sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
+          sudo apt-get install -y -t beta datadog-apm-inject datadog-apm-library-java
           dd-container-install
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 
