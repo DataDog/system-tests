@@ -8,7 +8,7 @@ from typing import List
 
 from utils.parametric.spec.remoteconfig import Capabilities
 from utils.parametric.spec.trace import Span, assert_trace_has_tags
-from utils import context, missing_feature, rfc, scenarios
+from utils import context, missing_feature, irrelevant, rfc, scenarios
 
 import pytest
 
@@ -380,7 +380,7 @@ class TestDynamicConfigV2:
         """
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RATE])
 
-    @missing_feature(library="golang", reason="The Go tracer doesn't support automatic logs injection")
+    @irrelevant(library="golang", reason="The Go tracer doesn't support automatic logs injection")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_logs_injection(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the logs injection capability.
