@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+import logging
 from utils import (
     bug,
     context,
@@ -660,9 +661,38 @@ class Test_BlockingGraphqlResolvers:
             meta = span.get("meta", {})
             assert meta["appsec.event"] == "true"
             assert "_dd.appsec.json" in meta
-            rule_triggered = json.loads(meta["_dd.appsec.json"])["triggers"][0]
+            rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
             assert rule_triggered["rule"]["id"] == "monitor-resolvers"
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
-            assert parameters["address"] == "graphql.server.all_resolvers"
+            assert parameters["address"] == "graphql.server.all_resolvers" or parameters["address"] == "graphql.server.resolver"
             assert parameters["key_path"] == ["userByName", "0", "name"]
             assert parameters["value"] == "testattack"
+
+
+    def setup_request_block_attack(self):
+        """ Currently only monitoring is implemented"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "testblockresolver"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_block_attack(self):
+        assert self.r_attack.status_code == 403
+        for _, span in interfaces.library.get_root_spans(request=self.r_attack):
+            meta = span.get("meta", {})
+            assert meta["appsec.event"] == "true"
+            assert "_dd.appsec.json" in meta
+            rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
+            assert rule_triggered["rule"]["id"] == "block-resolvers"
+            parameters = rule_triggered["rule_matches"][0]["parameters"][0]
+            assert parameters["address"] == "graphql.server.all_resolvers" or parameters["address"] == "graphql.server.resolver"
+            assert parameters["key_path"] == ["userByName", "0", "name"]
+            assert parameters["value"] == "testblockresolver"

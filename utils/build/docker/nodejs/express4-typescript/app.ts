@@ -17,7 +17,6 @@ app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
 
 require('./auth')(app, passport, tracer)
-require('./graphql')(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
@@ -211,7 +210,9 @@ app.get('/createextraservice', (req: Request, res: Response) => {
   res.send('OK')
 })
 
-app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => {});
-  console.log('listening');
-});
+require('./graphql')(app).then(() => {
+  app.listen(7777, '0.0.0.0', () => {
+    tracer.trace('init.service', () => { })
+    console.log('listening')
+  })
+})

@@ -507,6 +507,35 @@
             "inputs": [
               {
                 "address": "graphql.server.all_resolvers"
+              },
+              {
+                "address": "graphql.server.resolver"
+              }
+            ],
+            "data": "monitor_resolvers"
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": []
+    },
+    {
+      "id": "block-resolvers",
+      "name": "Block Resolvers",
+      "tags": {
+        "type": "block_resolver",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "graphql.server.all_resolvers"
+              },
+              {
+                "address": "graphql.server.resolver"
               }
             ],
             "data": "blocked_resolvers"
@@ -515,7 +544,9 @@
         }
       ],
       "transformers": [],
-      "on_match": []
+      "on_match": [
+        "block"
+      ]
     }
   ],
   "actions": [
@@ -574,11 +605,21 @@
       ]
     },
     {
-      "id": "blocked_resolvers",
+      "id": "monitor_resolvers",
       "type": "data_with_expiration",
       "data": [
         {
           "value": "testattack",
+          "expiration": 0
+        }
+      ]
+    },
+    {
+      "id": "blocked_resolvers",
+      "type": "data_with_expiration",
+      "data": [
+        {
+          "value": "testblockresolver",
           "expiration": 0
         }
       ]

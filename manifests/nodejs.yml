@@ -190,7 +190,9 @@ tests/:
         nextjs: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v3.19.0
-      Test_BlockingGraphqlResolvers: missing_feature
+      Test_BlockingGraphqlResolvers:
+          '*': v4.16.0
+          nextjs: irrelevant # nextjs is not related with graphql
       Test_Blocking_request_body:
         '*': v3.19.0
         nextjs: missing_feature
