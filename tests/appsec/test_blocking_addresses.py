@@ -664,10 +664,12 @@ class Test_BlockingGraphqlResolvers:
             rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
             assert rule_triggered["rule"]["id"] == "monitor-resolvers"
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
-            assert parameters["address"] == "graphql.server.all_resolvers" or parameters["address"] == "graphql.server.resolver"
+            assert (
+                parameters["address"] == "graphql.server.all_resolvers"
+                or parameters["address"] == "graphql.server.resolver"
+            )
             assert parameters["key_path"] == ["userByName", "0", "name"]
             assert parameters["value"] == "testattack"
-
 
     def setup_request_block_attack(self):
         """ Currently only monitoring is implemented"""
@@ -694,6 +696,9 @@ class Test_BlockingGraphqlResolvers:
             rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
             assert rule_triggered["rule"]["id"] == "block-resolvers"
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
-            assert parameters["address"] == "graphql.server.all_resolvers" or parameters["address"] == "graphql.server.resolver"
+            assert (
+                parameters["address"] == "graphql.server.all_resolvers"
+                or parameters["address"] == "graphql.server.resolver"
+            )
             assert parameters["key_path"] == ["userByName", "0", "name"]
             assert parameters["value"] == "testblockresolver"
