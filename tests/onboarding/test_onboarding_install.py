@@ -11,7 +11,7 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
 class _OnboardingIssueManagement:
-    def check_container_issues(onboardig_vm):
+    def check_container_issues(self, onboardig_vm):
         if (
             "os_arch" in onboardig_vm.ec2_data
             and onboardig_vm.ec2_data["os_arch"] == "arm"
