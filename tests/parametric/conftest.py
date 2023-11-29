@@ -11,7 +11,6 @@ from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, Type
 import urllib.parse
 
 import requests
-import packaging.version
 import pytest
 
 from utils.parametric.spec.trace import V06StatsPayload
@@ -734,7 +733,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
-    def wait_for_rc_capabilities(self, wait_loops: int = 100):
+    def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         for i in range(wait_loops):
@@ -745,9 +744,11 @@ class _TestAgentAPI:
             else:
                 # Look for capabilities in the requests.
                 for req in rc_reqs:
-                    capa = req["body"]["client"].get("capabilities")
-                    if capa:
-                        return capa
+                    raw_caps = req["body"]["client"].get("capabilities")
+                    if raw_caps:
+                        int_capabilities = int.from_bytes(base64.b64decode(raw_caps), byteorder="big")
+                        if all((int_capabilities >> c) & 1 for c in capabilities):
+                            return int_capabilities
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
 

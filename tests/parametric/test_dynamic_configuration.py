@@ -1,16 +1,12 @@
 """
 Test the dynamic configuration via Remote Config (RC) feature of the APM libraries.
-
-TODO:
- - test case for new version of config, ensure it doesn't break libraries
- - test no config change = no telemetry event
 """
-import base64
 import json
 from typing import Any
 from typing import Dict
 from typing import List
 
+from utils.parametric.spec.remoteconfig import Capabilities
 from utils.parametric.spec.trace import Span, assert_trace_has_tags
 from utils import context, missing_feature, rfc, scenarios
 
@@ -96,12 +92,6 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
     """
     # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
     assert trace[0]["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
-
-
-def assert_has_capability(b64_capabilities: str, capability: int):
-    """Asserts that the given RC capability is present."""
-    int_capabilities = int.from_bytes(base64.b64decode(b64_capabilities), byteorder="big")
-    assert (int_capabilities >> capability) & 1 == 1
 
 
 ENV_SAMPLING_RULE_RATE = 0.55
@@ -388,27 +378,23 @@ class TestDynamicConfigV2:
     def test_capability_tracing_sample_rate(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the trace sampling rate capability.
         """
-        capabilities = test_agent.wait_for_rc_capabilities()
-        assert_has_capability(capabilities, 12)
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RATE])
 
     @missing_feature(library="golang", reason="The Go tracer doesn't support automatic logs injection")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_logs_injection(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the logs injection capability.
         """
-        capabilities = test_agent.wait_for_rc_capabilities()
-        assert_has_capability(capabilities, 13)
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_LOGS_INJECTION])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_http_header_tags(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the http header tags capability.
         """
-        capabilities = test_agent.wait_for_rc_capabilities()
-        assert_has_capability(capabilities, 14)
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_HTTP_HEADER_TAGS])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_custom_tags(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the custom tags capability.
         """
-        capabilities = test_agent.wait_for_rc_capabilities()
-        assert_has_capability(capabilities, 15)
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_CUSTOM_TAGS])
