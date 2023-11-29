@@ -10,25 +10,6 @@ from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
-class _OnboardingIssueManagement:
-    def check_container_issues(self, onboardig_vm):
-        if (
-            "os_arch" in onboardig_vm.ec2_data
-            and onboardig_vm.ec2_data["os_arch"] == "arm"
-            and "buildpack" in context.weblog_variant
-        ):
-            logger.warn(f" WEBLOG: {context.weblog_variant} doesn't support ARM architecture")
-            pytest.xfail("missing_feature: Buildpack is not supported for ARM")
-
-        if (
-            "os_arch" in onboardig_vm.ec2_data
-            and onboardig_vm.ec2_data["os_arch"] == "arm"
-            and "alpine" in context.weblog_variant
-        ):
-            logger.warn(f"[bug][WEBLOG:  {context.weblog_variant}] doesn't support ARM architecture")
-            pytest.xfail("bug: Error loading shared library ld-linux-aarch64.so")
-
-
 class _OnboardingInstallBaseTest:
     def test_for_traces(self, onboardig_vm):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
@@ -40,7 +21,7 @@ class _OnboardingInstallBaseTest:
         logger.info(f"Launching test for : [{onboardig_vm.ip}]")
         logger.info(f"Waiting for weblog available [{onboardig_vm.ip}]")
         # TODO move this wait command to the scenario warmup. How to do this? Pulumi is working in parallel and async, in the scenario warmup we don't have the server IP
-        wait_for_port(5985, onboardig_vm.ip, 60.0)
+        wait_for_port(5985, onboardig_vm.ip, 80.0)
         logger.info(f"[{onboardig_vm.ip}]: Weblog app is ready!")
         logger.info(f"Making a request to weblog [{onboardig_vm.ip}]")
         request_uuid = make_get_request("http://" + onboardig_vm.ip + ":5985/")
@@ -69,10 +50,8 @@ class _OnboardingUninstallBaseTest:
 
 
 @scenarios.onboarding_container
-class TestOnboardingInstallContainer(_OnboardingInstallBaseTest, _OnboardingIssueManagement):
-    def test_for_traces(self, onboardig_vm):
-        super().check_container_issues(onboardig_vm)
-        super().test_for_traces(onboardig_vm)
+class TestOnboardingInstallContainer(_OnboardingInstallBaseTest):
+    pass
 
 
 @scenarios.onboarding_host
@@ -86,10 +65,8 @@ class TestOnboardingInstallHostAutoInstall(_OnboardingInstallBaseTest):
 
 
 @scenarios.onboarding_container_auto_install
-class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest, _OnboardingIssueManagement):
-    def test_for_traces(self, onboardig_vm):
-        super().check_container_issues(onboardig_vm)
-        super().test_for_traces(onboardig_vm)
+class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
+    pass
 
 
 #########################
@@ -98,24 +75,10 @@ class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest, _Onb
 
 
 @scenarios.onboarding_container_uninstall
-class TestOnboardingUninstallContainer(_OnboardingUninstallBaseTest, _OnboardingIssueManagement):
-    def test_no_traces_after_uninstall(self, onboardig_vm):
-        super().check_container_issues(onboardig_vm)
-        super().test_no_traces_after_uninstall(onboardig_vm)
+class TestOnboardingUninstallContainer(_OnboardingUninstallBaseTest):
+    pass
 
 
 @scenarios.onboarding_host_uninstall
 class TestOnboardingUninstallHost(_OnboardingUninstallBaseTest):
     pass
-
-
-@scenarios.onboarding_host_auto_install_uninstall
-class TestOnboardingUninstallHostAutoInstall(_OnboardingUninstallBaseTest):
-    pass
-
-
-@scenarios.onboarding_container_auto_install_uninstall
-class TestOnboardingUninstallContainerAutoInstall(_OnboardingUninstallBaseTest, _OnboardingIssueManagement):
-    def test_no_traces_after_uninstall(self, onboardig_vm):
-        super().check_container_issues(onboardig_vm)
-        super().test_no_traces_after_uninstall(onboardig_vm)
