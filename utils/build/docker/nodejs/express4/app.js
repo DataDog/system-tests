@@ -29,22 +29,41 @@ app.get('/flush', (req, res) => {
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
 
   // does have a callback :)
+  const promises = []
+
   const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+  if (profiler?._collect) {
+    promises.push(profiler._collect('on_shutdown'))
+  }
 
-  const tracerFlush = tracer._tracer?._exporter?._writer?.flush
-    ? (cb) => tracer._tracer._exporter._writer.flush(cb)
-    : (cb) => cb()
+  if (tracer._tracer?._exporter?._writer?.flush) {
+    promises.push(new Promise((resolve, reject) => {
+      tracer._tracer._exporter._writer.flush(err => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      })
+    }))
+  }
 
-  const openaiLoggerFlush = tracer._pluginManager?._pluginsByName?.openai?.logger?.flush
-    ? (cb) => tracer._pluginManager._pluginsByName.openai.logger.flush(cb)
-    : (cb) => cb()
+  if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
+    promises.push(new Promise((resolve, reject) => {
+      tracer._pluginManager._pluginsByName.openai.logger.flush((err) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      })
+    }))
+  }
 
-  Promise.all([
-    profiler?._collect?.('on_shutdown'),
-    new Promise(tracerFlush),
-    new Promise(openaiLoggerFlush)
-  ]).then(() => {
+  Promise.all(promises).then(() => {
     res.send('OK')
+  }).catch((err) => {
+    res.status(500).send(err)
   })
 })
 
