@@ -37,7 +37,6 @@ stages:
     - mkdir -p "$REPORTS_PATH"
     - cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/
     - cp logs_"${SCENARIO_SUFIX}"/report.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
-    - rm -rf "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
   artifacts:
       when: always
       paths:
