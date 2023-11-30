@@ -287,7 +287,7 @@ public class App {
     }
 
     @RequestMapping("/kafka/produce")
-    String kafkaProduce(@RequestParam(required = false) String topic) {
+    String kafkaProduce(@RequestParam(required = true) String topic) {
         KafkaConnector kafka = new KafkaConnector(topic);
         try {
             kafka.produceMessageWithoutNewThread("DistributedTracing");
@@ -300,20 +300,21 @@ public class App {
     }
 
     @RequestMapping("/kafka/consume")
-    String kafkaConsume(@RequestParam(required = false) String topic) {
+    String kafkaConsume(@RequestParam(required = true) String topic, @RequestParam(required = false) Integer timeout) {
         KafkaConnector kafka = new KafkaConnector(topic);
+        if (timeout == null) timeout = Integer.MAX_VALUE;
         try {
-                kafka.consumeMessageWithoutNewThread();
+            boolean consumed = kafka.consumeMessageWithoutNewThread(timeout);
+            return consumed ? "ok" : "timed out";
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start consuming message...");
             e.printStackTrace();
             return "failed to start consuming message";
         }
-        return "ok";
     }
 
     @RequestMapping("/dsm")
-    String publishToKafka(@RequestParam(required = true, name="integration") String integration) {
+    String publishToKafka(@RequestParam(required = true, name = "integration") String integration) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector();
             try {
