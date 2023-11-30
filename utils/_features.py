@@ -13,6 +13,8 @@ def _feature(feature_id: int):
 class features:
     """https://dd-feature-parity.azurewebsites.net/Import/Features"""
 
+    add_metadata_globally_to_all_spans_dd_tags = _feature(1)
+    change_agent_hostname_dd_agent_host = _feature(2)
     add_metadata_to_spans_via_tags_dd_trace_analytics_enabled = _feature(3)
     trace_search_automatic_config = _feature(4)
     manual_trace_id_injection_into_logs = _feature(5)
