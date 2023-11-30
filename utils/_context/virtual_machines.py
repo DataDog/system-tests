@@ -289,7 +289,6 @@ class TestedVirtualMachine:
         self.components = json.loads(components_json.replace("'", '"'))
 
     def get_component(self, component_name):
-
         if component_name is None or self.components is None or not component_name in self.components:
             return None
 
