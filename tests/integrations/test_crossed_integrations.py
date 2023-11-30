@@ -66,7 +66,6 @@ class Test_PythonKafka:
         # assert self.consume_response.status_code == 200
 
         # The weblog is the producer, the buddy is the consumer
-        # The buddy is the producer, the weblog is the consumer
         self.validate_kafka_spans(
             producer_interface=interfaces.library,
             consumer_interface=interfaces.python_buddy,
@@ -74,9 +73,11 @@ class Test_PythonKafka:
         )
 
     @missing_feature(library="python")
+    @missing_feature(library="java")
     def test_produce_trace_equality(self):
+        """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
-        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -110,9 +111,11 @@ class Test_PythonKafka:
         )
 
     @missing_feature(library="python")
+    @missing_feature(library="java")
     def test_consume_trace_equality(self):
-        producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
-        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        """This test relies on the setup for consume, it currently cannot be run on its own"""
+        producer_span = self.get_span(interfaces.python_buddy, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        consumer_span = self.get_span(interfaces.library, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
