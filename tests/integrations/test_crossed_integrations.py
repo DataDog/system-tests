@@ -37,21 +37,14 @@ class Test_PythonKafka:
                     continue
 
                 is_java_tracer = "java" in span["meta"]["component"]
-
                 # dd-trace-java does not add kafka.topic to its kafka.produce spans
                 if not is_java_tracer and topic != span["meta"].get("kafka.topic"):
                     continue
-
                 # instead, we rely on resource
                 if is_java_tracer and not span["resource"].endswith(topic):
                     continue
-                if ("java" not in span["meta"]["component"] and topic != span["meta"].get("kafka.topic")) or (
-                    "java" in span["meta"]["component"] and not span["resource"].endswith(topic)
-                ):
-                    continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
-
                 return span
 
         logger.debug("No span found")
