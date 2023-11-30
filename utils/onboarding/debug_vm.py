@@ -48,33 +48,34 @@ def debug_info_ssh(vm_name, ip, user, pem_file, log_folder):
 def _print_env_variables(sshClient, file_to_write):
     """Echo VM env"""
     _, stdout, _ = sshClient.exec_command("env")
-    with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
-        stdout_file.writelines(stdout.readlines())
+    _write_to_debug_file(stdout, file_to_write)
 
 
 def _print_running_processes(sshClient, file_to_write):
     """ Processes running on the machine """
     _, stdout, _ = sshClient.exec_command("ps -fea")
-    with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
-        stdout_file.writelines(stdout.readlines())
+    _write_to_debug_file(stdout, file_to_write)
 
 
 def _print_directories_permissions(sshClient, file_to_write):
     """ List datadog directories permission """
     permissions_command = """for dir in ` sudo find / -name "*datadog*" -type d -maxdepth 3`; do
-                echo ".:: ***************** FOLDER: $dir ******************::."
+                echo ".:: Folder: $dir ::."
                 sudo ls -la $dir
-            done"""
+            done
+            echo ".:: Folder: /opt/datadog/apm/inject/ ::."
+            sudo ls -ls /opt/datadog/apm/inject/
+            echo ".:: Folder: /opt/datadog/apm/inject/run/ ::."
+            sudo ls -ls /opt/datadog/apm/inject/run/
+            """
     _, stdout, _ = sshClient.exec_command(permissions_command)
-    with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
-        stdout_file.writelines(stdout.readlines())
+    _write_to_debug_file(stdout, file_to_write)
 
 
 def _print_agent_install(sshClient, file_to_write):
     """Cat agent installation script"""
     _, stdout, _ = sshClient.exec_command("cat $(pwd)/ddagent-install.log")
-    with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
-        stdout_file.writelines(stdout.readlines())
+    _write_to_debug_file(stdout, file_to_write)
 
 
 def _print_agent_host_logs(sshClient, file_to_write):
@@ -89,26 +90,38 @@ def _print_agent_host_logs(sshClient, file_to_write):
                   sudo cat /var/log/datadog/trace-agent.log
                     """
     _, stdout, _ = sshClient.exec_command(command)
-    with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
-        stdout_file.writelines(stdout.readlines())
+    _write_to_debug_file(stdout, file_to_write)
 
 
 def _print_app_tracer_host_logs(sshClient, file_to_write):
     """App tracer logs"""
     _, stdout, _ = sshClient.exec_command("sudo systemctl status test-app.service")
-    with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
-        stdout_file.writelines(stdout.readlines())
+    _write_to_debug_file(stdout, file_to_write)
+
+    _print_app_tracer_host_dotnet_logs(sshClient, file_to_write)
+
+
+def _print_app_tracer_host_dotnet_logs(sshClient, file_to_write):
+    """App tracer logs for dotnet (dotnet tracer doesn't write debug tracer in stdout)"""
+    file_to_write_dotnet = os.path.splitext(file_to_write)[0] + "_dotnet.log"
+    _, stdout_dotnet, _ = sshClient.exec_command("sudo find /var/log/datadog/dotnet/ -type f | xargs tail -n +1")
+    _write_to_debug_file(stdout_dotnet, file_to_write_dotnet)
 
 
 def _print_app_tracer_container_logs(sshClient, file_to_write):
     """App container logs"""
     _, stdout, _ = sshClient.exec_command("sudo docker-compose logs")
-    with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
-        stdout_file.writelines(stdout.readlines())
+    _write_to_debug_file(stdout, file_to_write)
 
 
 def _print_agent_container_logs(sshClient, file_to_write):
     """Agent container logs"""
     _, stdout, _ = sshClient.exec_command("sudo docker-compose -f docker-compose-agent-prod.yml logs datadog")
-    with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
-        stdout_file.writelines(stdout.readlines())
+    _write_to_debug_file(stdout, file_to_write)
+
+
+def _write_to_debug_file(stdout, file_to_write):
+    full_output = stdout.readlines()
+    if full_output:
+        with open(file_to_write, mode="w", encoding="utf-8") as stdout_file:
+            stdout_file.writelines(full_output)
