@@ -263,13 +263,13 @@ class Test_Trace_Sampling_Tags:
                 ),
             },
             {
-                "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
-                        {"service": "webs?rver", "sample_rate": 0},
-                        {"name": "web.request", "sample_rate": 0},
-                        {"resource": "/ba*", "sample_rate": 0},
-                        {"tags": {"tag1": "v?l1", "tag2": "val*"}, "sample_rate": 0},
+                        {"service": "webs?rver.non-matching", "sample_rate": 0},
+                        {"name": "web.request.non-matching", "sample_rate": 0},
+                        {"resource": "/ba*.non-matching", "sample_rate": 0},
+                        {"tags": {"tag1": "v?l1", "tag2": "va*.non-matching"}, "sample_rate": 0},
                         {
                             "service": "webs?rver",
                             "name": "web.request",
