@@ -52,4 +52,7 @@ sed -i s/80/7777/ /etc/apache2/ports.conf
 /install_ddtrace.sh 1
 
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
-grep datadog.trace.request_init_hook /etc/php/98-ddtrace.ini >> /etc/php/php.ini
+
+if [[ -f "/etc/php/98-ddtrace.ini" ]]; then
+    grep datadog.trace.request_init_hook /etc/php/98-ddtrace.ini >> /etc/php/php.ini
+fi

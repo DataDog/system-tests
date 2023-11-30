@@ -451,6 +451,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
+      TestDynamicConfigV2: missing_feature
     test_span_links.py: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # TODO what is the earliest version?
