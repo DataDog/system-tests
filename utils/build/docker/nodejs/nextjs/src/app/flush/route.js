@@ -3,15 +3,16 @@ import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-// try to flush as much stuff as possible from the library
 export async function GET (request) {
   await flush()
 
   return NextResponse.json({ message: 'OK' })
 }
 
+// try to flush as much stuff as possible from the library
 function flush () {
   const tracer = global._ddtrace
+  if (!tracer) return
 
   // doesn't have a callback :(
   tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
