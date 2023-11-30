@@ -288,7 +288,7 @@ public class App {
 
     @RequestMapping("/kafka/produce")
     String kafkaProduce(@RequestParam(required = false) String topic) {
-        KafkaConnector kafka = new KafkaConnector();
+        KafkaConnector kafka = new KafkaConnector(topic);
         try {
             kafka.produceMessageWithoutNewThread("DistributedTracing");
         } catch (Exception e) {
@@ -301,7 +301,7 @@ public class App {
 
     @RequestMapping("/kafka/consume")
     String kafkaConsume(@RequestParam(required = false) String topic) {
-        KafkaConnector kafka = new KafkaConnector();
+        KafkaConnector kafka = new KafkaConnector(topic);
         try {
                 kafka.consumeMessageWithoutNewThread();
         } catch (Exception e) {
