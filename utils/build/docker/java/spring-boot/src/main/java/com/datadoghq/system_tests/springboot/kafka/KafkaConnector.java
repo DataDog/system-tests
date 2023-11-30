@@ -18,7 +18,7 @@ import java.util.Properties;
 public class KafkaConnector {
     public static final String BOOTSTRAP_SERVERS = "kafka:9092";
     public static final String CONSUMER_GROUP = "testgroup1";
-    public static final String DEFAULT_TOPIC = "DistributedTracing";
+    public static final String DEFAULT_TOPIC = "dsm-system-tests-queue";
     public final String topic;
 
     public KafkaConnector(){
