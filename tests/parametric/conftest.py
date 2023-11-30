@@ -11,7 +11,6 @@ from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, Type
 import urllib.parse
 
 import requests
-import packaging.version
 import pytest
 
 from utils.parametric.spec.trace import V06StatsPayload
@@ -586,6 +585,13 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
+    def rc_requests(self):
+        reqs = self.requests()
+        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        for r in rc_reqs:
+            r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+        return rc_reqs
+
     def get_tracer_flares(self, **kwargs):
         resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
         json = resp.json()
@@ -654,7 +660,9 @@ class _TestAgentAPI:
                         self.clear()
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
-        raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+        raise ValueError(
+            "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
+        )
 
     def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` spans to be received from the test agent.
@@ -709,11 +717,7 @@ class _TestAgentAPI:
         rc_reqs = []
         for i in range(wait_loops):
             try:
-                reqs = self.requests()
-                # Get all remoteconfig requests.
-                rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
-                for r in rc_reqs:
-                    r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+                rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:
                 pass
             else:
@@ -728,6 +732,25 @@ class _TestAgentAPI:
                             return cfg_state
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+
+    def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
+        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        rc_reqs = []
+        for i in range(wait_loops):
+            try:
+                rc_reqs = self.rc_requests()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for capabilities in the requests.
+                for req in rc_reqs:
+                    raw_caps = req["body"]["client"].get("capabilities")
+                    if raw_caps:
+                        int_capabilities = int.from_bytes(base64.b64decode(raw_caps), byteorder="big")
+                        if all((int_capabilities >> c) & 1 for c in capabilities):
+                            return int_capabilities
+            time.sleep(0.01)
+        raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
 
     def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
