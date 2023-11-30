@@ -64,9 +64,11 @@ def _print_directories_permissions(sshClient, file_to_write):
                 sudo ls -la $dir
             done
             echo ".:: Folder: /opt/datadog/apm/inject/ ::."
-            sudo ls -ls /opt/datadog/apm/inject/
+            sudo ls -la /opt/datadog/apm/inject/
             echo ".:: Folder: /opt/datadog/apm/inject/run/ ::."
-            sudo ls -ls /opt/datadog/apm/inject/run/
+            sudo ls -la /opt/datadog/apm/inject/run/
+            echo ".:: Folder /etc/datadog-agent/inject/ ::."
+            sudo ls -la /etc/datadog-agent/inject/
             """
     _, stdout, _ = sshClient.exec_command(permissions_command)
     _write_to_debug_file(stdout, file_to_write)
