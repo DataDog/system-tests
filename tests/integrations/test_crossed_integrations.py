@@ -29,7 +29,7 @@ class Test_PythonKafka:
     @staticmethod
     def get_span(interface, span_kind, topic):
 
-        logger.debug(f"Try to found traces with span kind: {span_kind} and topic: {topic} in {interface}")
+        logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
             for span in trace:
@@ -37,7 +37,8 @@ class Test_PythonKafka:
                     continue
 
                 # dd-trace-java does not add kafka.topic to its kafka.produce spans
-                if "java" not in span["meta"]["component"] and topic != span["meta"].get("kafka.topic"):
+                if ("java" not in span["meta"]["component"] and topic != span["meta"].get("kafka.topic"))\
+                        or ("java" in span["meta"]["component"] and not span["resource"].endswith(topic)):
                     continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
@@ -120,8 +121,8 @@ class Test_PythonKafka:
 
     def validate_kafka_spans(self, producer_interface, consumer_interface, topic):
         """
-            Validates production/comsuption of kafka message.
-            It work the same for both test_produce and test_consume
+            Validates production/consumption of kafka message.
+            It works the same for both test_produce and test_consume
         """
 
         # Check that the producer did not created any consumer span
@@ -136,7 +137,9 @@ class Test_PythonKafka:
         assert producer_span is not None
         assert consumer_span is not None
 
-        assert consumer_span["meta"]["kafka.received_message"] == "True"
+        # java doesn't give us much to assert on
+        if "java" not in consumer_span["meta"]["component"]:
+            assert consumer_span["meta"]["kafka.received_message"] == "True"
 
         # Assert that the consumer span is not the root
         assert "parent_id" in consumer_span, "parent_id is missing in consumer span"
