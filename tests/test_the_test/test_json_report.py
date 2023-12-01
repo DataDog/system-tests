@@ -1,9 +1,9 @@
-import pytest
-from utils.tools import logger
 import os
 import json
+import pytest
+from utils.tools import logger
 
-from utils import missing_feature, irrelevant, coverage, scenarios, rfc
+from utils import missing_feature, irrelevant, coverage, scenarios, rfc, features
 
 
 @scenarios.test_the_test
@@ -18,15 +18,20 @@ class Test_Json_Report:
         cls.report_json = json.load(f)
         f.close()
 
+    def get_test(self, nodeid):
+        for test in self.report_json["tests"]:
+            if test["nodeid"] == nodeid:
+                return test
+
+        raise ValueError(f"Test not found: {nodeid}")
+
     def test_missing_feature(self):
         """Report is generated with correct outcome and skip reason nodes for missing features decorators"""
 
-        for test in self.report_json["tests"]:
-            if test["nodeid"] == "tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature":
-                assert test["outcome"] == "xfailed"
-                assert test["skip_reason"] == "missing_feature: not yet done"
-                return
-        pytest.fail("Test method not found")
+        test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature")
+
+        assert test["outcome"] == "xfailed"
+        assert test["skip_reason"] == "missing_feature: not yet done"
 
     def test_irrelevant(self):
         """Report is generated with correct outcome and skip reason nodes for irrelevant decorators"""
@@ -52,7 +57,7 @@ class Test_Json_Report:
         """We are no adding more information that we need for each test"""
 
         for test in self.report_json["tests"]:
-            assert len(test) == 3  # nodeid, outcome and skip_reason
+            assert len(test) == 5  # nodeid, lineno, outcome, metadata and skip_reason
 
     def test_docs(self):
         """Docs node is generating"""
@@ -116,19 +121,29 @@ class Test_Json_Report:
             ]
         )
 
+    def test_feature_id(self):
+        test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock::test_mock")
+        assert test["metadata"]["features"] == [74, 13]
+
+        test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature")
+        assert test["metadata"]["features"] == [74, 13, 75]
+
 
 @scenarios.mock_the_test
 @rfc("https://mock")
 @coverage.good
+@features.api_v2_implemented
+@features.b3_headers_injection_and_extraction
 class Test_Mock:
     def test_mock(self):
         """Mock test doc"""
         assert 1 == 1
 
     @missing_feature(True, reason="not yet done")
+    @features.app_client_configuration_change_event
     def test_missing_feature(self):
-        raise Exception("Should not be executed")
+        raise ValueError("Should not be executed")
 
     @irrelevant(True, reason="irrelevant")
     def test_irrelevant(self):
-        raise Exception("Should not be executed")
+        raise ValueError("Should not be executed")
