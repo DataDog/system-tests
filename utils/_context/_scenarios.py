@@ -530,9 +530,8 @@ class EndToEndScenario(_DockerScenario):
                     raise Exception(
                         f"Failed to flush weblog, please check {self.host_log_folder}/docker/weblog/stdout.log"
                     ) from e
-            else:  # TODO: REMOVE ME BEFORE MERGING, THIS IS TO TEST FOR FLAKINESS ONLY
-                self.weblog_container.stop()
 
+            self.weblog_container.stop()
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
