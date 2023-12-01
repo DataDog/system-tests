@@ -12,6 +12,7 @@ ami:
     user: ec2-user
     os_type: linux
     os_distro: rpm
+    os_arch: arm
 
 init-config:
   install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml
