@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/Shopify/sarama"
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"log"
@@ -149,6 +150,7 @@ func main() {
 		log.Printf("PRODUCER SENT MESSAGE TO (partition offset): ", partition, " ", offset)
 
 		w.Write([]byte("OK"))
+		w.WriteHeader(200)
 	})
 
 	mux.HandleFunc("/kafka/consume", func(w http.ResponseWriter, r *http.Request) {
@@ -183,20 +185,26 @@ func main() {
 		// Added a time to avoid this issue: https://github.com/IBM/sarama/issues/2116
 		timeOutTimer := time.NewTimer(time.Second * 20)
 		defer timeOutTimer.Stop()
-		log.Printf("CONSUMING MESSAGES...")
+		log.Printf("CONSUMING MESSAGES from topic: %s", topic)
 	ConsumeMessages:
 		for {
-			timeOutTimer.Reset(time.Second * 20)
 			select {
 			case receivedMsg := <-partitionConsumer.Messages():
-				log.Printf("THE MESSAGE: ", string(receivedMsg.Offset), " - ", string(receivedMsg.Value))
-				continue
+				responseOutput := fmt.Sprintf("Consumed message.\n\tOffset: %s\n\tMessage: %s\n", fmt.Sprint(receivedMsg.Offset), string(receivedMsg.Value))
+				log.Print(responseOutput)
+				w.Write([]byte(responseOutput))
+				w.WriteHeader(200)
+				return // consume only one message. Works for now.
+				// if we want to consume more, we need to handle the return code differently in timeout,
+				// whether messages were consumed or not
 			case <-timeOutTimer.C:
+				timedOutMessage := "TimeOut"
+				log.Print(timedOutMessage)
+				w.Write([]byte(timedOutMessage))
+				w.WriteHeader(408)
 				break ConsumeMessages
 			}
 		}
-
-		w.Write([]byte("OK"))
 	})
 
 	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {
