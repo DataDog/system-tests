@@ -5,9 +5,10 @@ import pathlib
 import uuid
 
 import pulumi
-import pulumi_command as command
-from utils.tools import logger
 from pulumi import Output
+import pulumi_command as command
+
+from utils.tools import logger
 
 
 def remote_docker_login(command_id, user, password, connection, depends_on):

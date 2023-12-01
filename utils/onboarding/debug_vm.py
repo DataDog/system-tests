@@ -1,7 +1,6 @@
 import os
 import paramiko
 from utils.tools import logger
-from utils.onboarding.pulumi_utils import pulumi_logger
 
 
 def debug_info_ssh(vm_name, ip, user, pem_file, log_folder):
