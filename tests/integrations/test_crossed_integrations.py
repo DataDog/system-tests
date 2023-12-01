@@ -154,9 +154,9 @@ class Test_PythonKafka:
         assert producer_span is not None
         assert consumer_span is not None
 
-        # java doesn't give us much to assert on
-        if "java" not in consumer_span["meta"]["component"]:
-            assert consumer_span["meta"]["kafka.received_message"] == "True"
+        consumed = consumer_span["meta"].get("kafka.received_message")
+        if consumed is not None:  # available only for python spans
+            assert consumed == "True"
 
         # Assert that the consumer span is not the root
         assert "parent_id" in consumer_span, "parent_id is missing in consumer span"
