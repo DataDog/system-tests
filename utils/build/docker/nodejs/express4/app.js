@@ -254,7 +254,7 @@ require('./graphql')(app)
 // try to flush as much stuff as possible from the library
 app.get('/flush', (req, res) => {
   // doesn't have a callback :(
-  tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
+  // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
 
