@@ -4,16 +4,6 @@ from utils.tools import logger
 from utils.onboarding.pulumi_utils import pulumi_logger
 
 
-def extract_vm_log(scenario_name, provision_vm_name, host_log_folder):
-    """ Group lines from general log file (tests.log) to specific log for VM"""
-    vm_logger = pulumi_logger(scenario_name, provision_vm_name)
-
-    with open(f"{host_log_folder}/tests.log", mode="r", encoding="utf-8") as fp:
-        for _, line in enumerate(fp):
-            if provision_vm_name in line:
-                vm_logger.info(line.strip())
-
-
 def debug_info_ssh(vm_name, ip, user, pem_file, log_folder):
     """ Using SSH connects to VM and extract VM status information """
 

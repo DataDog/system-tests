@@ -7,6 +7,7 @@ import uuid
 import pulumi
 import pulumi_command as command
 from utils.tools import logger
+from pulumi import Output
 
 
 def remote_docker_login(command_id, user, password, connection, depends_on):
@@ -93,6 +94,9 @@ def remote_install(
                 )
 
             else:
+                # The best option would be zip folder on local system and copy to remote machine
+                # There is a weird behaviour synchronizing local command and remote command
+                # Uggly workaround: Copy files and folder one by one :-( )
                 quee_depends_on.insert(
                     0,
                     remote_copy_folders(
@@ -118,7 +122,14 @@ def remote_install(
 
     if logger_name:
         cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, logger_name).info(outputlog))
-
+    else:
+        # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
+        # same remote machine in the same log file
+        Output.all(connection.host, install_info["command"], cmd_exec_install.stdout).apply(
+            lambda args: pulumi_logger(scenario_name, args[0]).info(
+                f"COMMAND: \n {args[1]} \n\n ******** COMMAND OUTPUT ******** \n\n {args[2]}"
+            )
+        )
     if output_callback:
         cmd_exec_install.stdout.apply(output_callback)
 
@@ -175,10 +186,12 @@ def remote_copy_folders(source_folder, destination_folder, command_id, connectio
 
 
 def pulumi_logger(scenario_name, log_name, level=logging.INFO):
-    formatter = logging.Formatter("%(message)s")
-    handler = logging.FileHandler(f"logs_{scenario_name.lower()}/{log_name}.log")
-    handler.setFormatter(formatter)
     specified_logger = logging.getLogger(log_name)
-    specified_logger.setLevel(level)
-    specified_logger.addHandler(handler)
+    if len(specified_logger.handlers) == 0:
+        formatter = logging.Formatter("%(message)s")
+        handler = logging.FileHandler(f"logs_{scenario_name.lower()}/{log_name}.log")
+        handler.setFormatter(formatter)
+        specified_logger.setLevel(level)
+        specified_logger.addHandler(handler)
+
     return specified_logger

@@ -86,6 +86,10 @@ class TestedVirtualMachine:
         from utils.onboarding.pulumi_ssh import PulumiSSH
         from utils.onboarding.pulumi_utils import remote_install, pulumi_logger, remote_docker_login
 
+        if self.pytestmark is not None:
+            logger.warn(f"Skipping warmup for {self.name} due has mark {self.pytestmark}")
+            return
+
         self.configure()
         # Startup VM and prepare connection
         server = aws.ec2.Instance(
