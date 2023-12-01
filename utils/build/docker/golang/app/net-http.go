@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/Shopify/sarama"
+	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"time"
-	"os"
-	"github.com/Shopify/sarama"
-	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -120,6 +120,13 @@ func main() {
 		var server = "kafka:9092"
 		var message = "Test"
 
+		topic := r.URL.Query().Get("topic")
+		if len(topic) == 0 {
+			w.Write([]byte("missing param 'topic'"))
+			w.WriteHeader(422)
+			return
+		}
+
 		cfg := sarama.NewConfig()
 		cfg.Producer.Return.Successes = true
 
@@ -132,9 +139,9 @@ func main() {
 		producer = saramatrace.WrapSyncProducer(cfg, producer)
 
 		msg := &sarama.ProducerMessage{
-			Topic: "DistributedTracing",
+			Topic:     topic,
 			Partition: 0,
-			Value: sarama.StringEncoder(message),
+			Value:     sarama.StringEncoder(message),
 		}
 
 		partition, offset, err := producer.SendMessage(msg)
@@ -146,6 +153,14 @@ func main() {
 
 	mux.HandleFunc("/kafka/consume", func(w http.ResponseWriter, r *http.Request) {
 		var server = "kafka:9092"
+
+		topic := r.URL.Query().Get("topic")
+		if len(topic) == 0 {
+			w.Write([]byte("missing param 'topic'"))
+			w.WriteHeader(422)
+			return
+		}
+
 		cfg := sarama.NewConfig()
 
 		consumer, err := sarama.NewConsumer([]string{server}, cfg)
@@ -157,7 +172,7 @@ func main() {
 
 		consumer = saramatrace.WrapConsumer(consumer)
 
-		partitionConsumer, err := consumer.ConsumePartition("DistributedTracing", 0, sarama.OffsetOldest)
+		partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
 
 		if err != nil {
 			panic(err)
@@ -169,17 +184,17 @@ func main() {
 		timeOutTimer := time.NewTimer(time.Second * 20)
 		defer timeOutTimer.Stop()
 		log.Printf("CONSUMING MESSAGES...")
-		ConsumeMessages:
-			for {
-				timeOutTimer.Reset(time.Second * 20)
-				select {
-				case receivedMsg := <-partitionConsumer.Messages():
-					log.Printf("THE MESSAGE: ", string(receivedMsg.Offset), " - ", string(receivedMsg.Value))
-					continue
-				case <-timeOutTimer.C:
-					break ConsumeMessages
-				}
+	ConsumeMessages:
+		for {
+			timeOutTimer.Reset(time.Second * 20)
+			select {
+			case receivedMsg := <-partitionConsumer.Messages():
+				log.Printf("THE MESSAGE: ", string(receivedMsg.Offset), " - ", string(receivedMsg.Value))
+				continue
+			case <-timeOutTimer.C:
+				break ConsumeMessages
 			}
+		}
 
 		w.Write([]byte("OK"))
 	})
