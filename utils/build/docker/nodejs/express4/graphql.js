@@ -18,6 +18,8 @@ const users = [
 ]
 
 const typeDefs = gql`
+      directive @case(format: String) on FIELD
+
       type Query {
         user(id: Int!): User
         userByName(name: String): [User]
