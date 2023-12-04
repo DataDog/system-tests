@@ -612,6 +612,16 @@ class EndToEndScenario(_DockerScenario):
 
         return result
 
+    @property
+    def components(self):
+        return {
+            "agent": self.agent_version,
+            "library": self.library.version,
+            "php_appsec": self.php_appsec,
+            "libddwaf": self.weblog_container.libddwaf_version,
+            "appsec_rules": self.appsec_rules_version,
+        }
+
 
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
