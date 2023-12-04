@@ -375,14 +375,6 @@ def pytest_json_modifyreport(json_report):
                 del test["metadata"]["release_versions"]
                 del test["metadata"]["docs"]
 
-            if test["outcome"] == "xfailed" and test["skip_reason"] == None and "call" in test:
-                full_reason_message = test["call"]["crash"]["message"] if "crash" in test["call"] else None
-                test["skip_reason"] = (
-                    full_reason_message.replace("_pytest.outcomes.XFailed:", "").strip()
-                    if full_reason_message
-                    else None
-                )
-
             for k in ("setup", "call", "teardown", "keywords", "coverages"):
                 if k in test:
                     del test[k]
