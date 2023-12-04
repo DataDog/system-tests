@@ -453,9 +453,9 @@ def convert_test_to_feature_parity_model(test):
         result["testDeclaration"] = None
     elif result["details"].startswith("irrelevant"):
         result["testDeclaration"] = "irrelevant"
-    elif result["details"].startswith("known bug (flaky)"):
+    elif result["details"].startswith("flaky"):
         result["testDeclaration"] = "flaky"
-    elif result["details"].startswith("known bug"):
+    elif result["details"].startswith("bug"):
         result["testDeclaration"] = "bug"
     elif result["details"].startswith("missing_feature"):
         result["testDeclaration"] = "notImplemented"
