@@ -637,6 +637,13 @@ class Test_Headers_Precedence:
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
+    @missing_feature(context.library == "java", reason="not_implemented yet")
+    @missing_feature(context.library == "ruby", reason="not_implemented yet")
+    @missing_feature(context.library == "cpp", reason="not_implemented yet")
+    @missing_feature(context.library == "dotnet", reason="not_implemented yet")
+    @missing_feature(context.library == "golang", reason="not_implemented yet")
+    @missing_feature(context.library == "nodejs", reason="not_implemented yet")
+    @missing_feature(context.library == "php", reason="not_implemented yet")
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     def test_headers_precedence_propagationstyle_resolves_conflicting_contexts(self, test_agent, test_library):
         """
