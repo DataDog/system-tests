@@ -7,10 +7,10 @@ sudo DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
 sudo cp -R * /home/datadog
 sudo chmod -R 755 /home/datadog
 sudo chown -R datadog:datadog /home/datadog
-sudo cp test-app-ruby.service /etc/systemd/system/test-app-ruby.service
+sudo cp test-app.service /etc/systemd/system/test-app.service
 sudo systemctl daemon-reload
-sudo systemctl enable test-app-ruby.service
-sudo systemctl start test-app-ruby.service
-sudo systemctl status test-app-ruby.service
+sudo systemctl enable test-app.service
+sudo systemctl start test-app.service
+sudo systemctl status test-app.service
 
 echo "RUN DONE"

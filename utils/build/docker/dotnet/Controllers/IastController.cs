@@ -21,6 +21,12 @@ namespace weblog
         public string url{get; set;}
     };
     
+    public class BodyForIast
+    {
+        public string name { get; set; }
+        public string value { get; set; }
+    }
+
     [ApiController]
     [Route("iast")]
     public partial class IastController : Controller
@@ -301,7 +307,7 @@ namespace weblog
             catch
             {
                 return StatusCode(500, "Error executing query.");
-            }
+            }        
         }
         
         [HttpPost("sqli/test_secure")]
@@ -381,5 +387,34 @@ namespace weblog
                 return StatusCode(500, "Error launching process.");
             }
         }        
+
+        [HttpPost("source/body/test")]
+        public IActionResult test_source_body([FromBody]BodyForIast body)
+        {
+            try
+            {
+                var result = System.IO.File.ReadAllText(body.value);
+                return Content($"Executed injection");
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }               
+        }
+        
+        [HttpGet("source/header/test")]
+        public IActionResult test_headerValue()
+        {
+            var headerValue = Request.Headers["table"].ToString();
+            try
+            {
+                var result = System.IO.File.ReadAllText(headerValue);
+                return Content($"Executed injection");
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }               
+        }
     }
 }

@@ -4,9 +4,11 @@ Tracing constants, data structures and helper methods.
 These are used to specify, test and work with trace data and protocols.
 """
 import math
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import TypedDict
+from typing import Union
 
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
@@ -255,3 +257,16 @@ def _assert_span_match(span: Span, similar: Span) -> Span:
 def span_has_no_parent(span: Span) -> bool:
     """Return if a span has a parent by checking the presence and value of the `parent_id`."""
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None
+
+
+def assert_span_has_tags(span: Span, tags: Dict[str, Union[int, str, float, bool]]):
+    """Assert that the span has the given tags."""
+    for key, value in tags.items():
+        assert key in span.get("meta", {}), f"Span missing expected tag {key}={value}"
+        assert span.get("meta", {}).get(key) == value, f"Span incorrect tag value for {key}={value}"
+
+
+def assert_trace_has_tags(trace: Trace, tags: Dict[str, Union[int, str, float, bool]]):
+    """Assert that the trace has the given tags."""
+    for span in trace:
+        assert_span_has_tags(span, tags)

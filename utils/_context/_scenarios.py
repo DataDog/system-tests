@@ -843,18 +843,19 @@ class OnBoardingScenario(_Scenario):
 
         try:
             for provision_vm in self.provision_vms:
-                # Manage common dd software components for the scenario
-                for dd_package_name in dd_package_names:
-                    # All the tested machines should have the same version of the DD components
-                    if dd_package_name in self.onboarding_components and self.onboarding_components[
-                        dd_package_name
-                    ] != provision_vm.get_component(dd_package_name):
-                        self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
-                        raise ValueError(
-                            f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
-                        )
+                # Manage common dd software components for the scenario if it's not a skipped test
+                if provision_vm.pytestmark is None:
+                    for dd_package_name in dd_package_names:
+                        # All the tested machines should have the same version of the DD components
+                        if dd_package_name in self.onboarding_components and self.onboarding_components[
+                            dd_package_name
+                        ] != provision_vm.get_component(dd_package_name):
+                            self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
+                            raise ValueError(
+                                f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
+                            )
 
-                    self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
+                        self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
                 # Manage specific information for each parametrized test
                 test_metadata = {
                     "vm": provision_vm.ec2_data["name"],
@@ -869,6 +870,21 @@ class OnBoardingScenario(_Scenario):
         except Exception as ex:
             logger.error("Error filling the context components")
             logger.exception(ex)
+
+    def extract_debug_info_before_close(self):
+        """ Extract debug info for each machine before shutdown. We connect to machines using ssh"""
+        from utils.onboarding.debug_vm import debug_info_ssh
+        from utils.onboarding.pulumi_ssh import PulumiSSH
+
+        for provision_vm in self.provision_vms:
+            if provision_vm.pytestmark is None:
+                debug_info_ssh(
+                    provision_vm.name,
+                    provision_vm.ip,
+                    provision_vm.ec2_data["user"],
+                    PulumiSSH.pem_file,
+                    self.host_log_folder,
+                )
 
     def _start_pulumi(self):
         from pulumi import automation as auto
@@ -890,9 +906,9 @@ class OnBoardingScenario(_Scenario):
             )
             self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
-        except:
-            self.close_targets()
-            raise
+        except Exception as pulumi_exception:  #
+            logger.error("Exception launching onboarding provision infraestructure")
+            logger.exception(pulumi_exception)
 
     def _get_warmups(self):
         return [self._start_pulumi]
@@ -903,6 +919,7 @@ class OnBoardingScenario(_Scenario):
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
+        self.extract_debug_info_before_close()
         self.close_targets()
 
     def close_targets(self):
@@ -1332,10 +1349,6 @@ class scenarios:
     # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
     onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
     onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
-    onboarding_host_auto_install_uninstall = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL", doc="")
-    onboarding_container_auto_install_uninstall = OnBoardingScenario(
-        "ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL", doc=""
-    )
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
