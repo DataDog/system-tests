@@ -5,7 +5,7 @@ set -e
 sudo chmod -R 755 *
 
 sudo cp django_app.py /home/datadog/
-sudo /home/datadog/.pyenv/shims/pip3 install django
+sudo /home/datadog/.pyenv/shims/pip3 install django gunicorn
 echo "Testing weblog with python version:"
 sudo /home/datadog/.pyenv/shims/python --version
 sudo cp test-app.service /etc/systemd/system/test-app.service
