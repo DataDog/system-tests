@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+#nullable disable
 
 namespace weblog
 {
@@ -20,9 +21,15 @@ namespace weblog
         public string url{get; set;}
     };
     
+    public class BodyForIast
+    {
+        public string name { get; set; }
+        public string value { get; set; }
+    }
+
     [ApiController]
     [Route("iast")]
-    public class IastController : Controller
+    public partial class IastController : Controller
     {
         [HttpGet("insecure_hashing/test_md5_algorithm")]
         public IActionResult test_md5_algorithm(string user)
@@ -75,7 +82,7 @@ namespace weblog
             try
             {
                 System.Diagnostics.Process.Start(data.table);
-                
+
                 return Content("Ok");
             }
             catch
@@ -90,7 +97,7 @@ namespace weblog
             try
             {
                 System.Diagnostics.Process.Start(table);
-                
+
                 return Content("Ok");
             }
             catch
@@ -341,7 +348,7 @@ namespace weblog
             catch
             {
                 return StatusCode(500, "Error executing query.");
-            }
+            }        
         }
         
         [HttpPost("sqli/test_secure")]
@@ -376,6 +383,77 @@ namespace weblog
             {
                 return StatusCode(500, "Error executing query.");
             }
+        }
+
+        [HttpGet("weak_randomness/test_insecure")]
+        public IActionResult test_insecure_weakRandomness(string user)
+        {
+            return Content("Weak random number: " + (new Random()).Next().ToString(), "text/html");
+        }
+
+        [HttpGet("weak_randomness/test_secure")]
+        public IActionResult test_secure_weakRandomness(string user)
+        {
+            return Content("Secure random number: " + RandomNumberGenerator.GetInt32(100).ToString(), "text/html");
+        }
+        
+        [HttpGet("source/cookievalue/test")]
+        public IActionResult test_cookie_value()
+        {
+            var process = Request.Cookies["table"];
+            try
+            {
+                System.Diagnostics.Process.Start(process);                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+        
+        [HttpGet("source/cookiename/test")]
+        public IActionResult test_cookie_name()
+        {
+            var process = Request.Cookies.Keys.First();
+            try
+            {
+                System.Diagnostics.Process.Start(process);                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }                
+
+        [HttpPost("source/body/test")]
+        public IActionResult test_source_body([FromBody]BodyForIast body)
+        {
+            try
+            {
+                var result = System.IO.File.ReadAllText(body.value);
+                return Content($"Executed injection");
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }               
+        }
+        
+        [HttpGet("source/header/test")]
+        public IActionResult test_headerValue()
+        {
+            var headerValue = Request.Headers["table"].ToString();
+            try
+            {
+                var result = System.IO.File.ReadAllText(headerValue);
+                return Content($"Executed injection");
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing query.");
+            }               
         }
     }
 }

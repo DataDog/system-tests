@@ -191,6 +191,10 @@ The endpoint executes a unique operation of String hashing with given algorithm 
 
 The endpoint executes a unique operation of String hashing with unsecure MD5 algorithm
 
+### GET /iast/hardcoded_secrets/test_insecure
+
+Parameterless endpoint. This endpoint contains a hardcoded secret. The declaration of the hardcoded secret should be sufficient to trigger the vulnerability, so returning it in the response is optional.
+
 ### \[GET, POST\] /iast/source/*
 
 This group of endpoints should trigger vulnerabilities detected by IAST with untrusted data coming from certain sources. The used vulnerability is irrelevant. It could be a command injection, SQL injection, or something else.
@@ -403,3 +407,11 @@ The following query parameters are required for each endpoint:
 should rename the trace service, creating a "fake" service
 
 The parameter `serviceName` is required and should be a string with the name for the fake service
+
+### POST /shell_execution
+This endpoint is used to spawn a new process and test that shell execution span is properly sent.
+It supports the following body fields:
+- `command`: the program or script to be executed.
+- `options`: a record with the following options:
+  - `shell`: boolean in order to instruct if the program should be executed within a shell.
+- `args`: arguments passed to the program.

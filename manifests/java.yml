@@ -31,12 +31,16 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature            
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
-            sping-boot-undertow: v1.20.0
             spring-boot: v1.20.0
             spring-boot-jetty: v1.20.0
+            spring-boot-openliberty: bug (not working as expected)
+            spring-boot-payara: v1.20.0
+            spring-boot-undertow: v1.20.0
             spring-boot-wildfly: v1.20.0
             uds-spring-boot: v1.20.0
         test_insecure_cookie.py:
@@ -102,7 +106,8 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx4: missing_feature (No endpoint implemented)
         test_trust_boundary_violation.py:
-          Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation:
+            "*": "bug (APPSEC-12201)"
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: 
             '*': v1.16.0
@@ -148,11 +153,13 @@ tests/:
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
             "*": "missing_feature"
-            sping-boot-undertow: "bug (APPSEC-11353)"
-            spring-boot: "bug (APPSEC-11353)"
-            spring-boot-jetty: "bug (APPSEC-11353)"
-            spring-boot-wildfly: "bug (APPSEC-11353)"
-            uds-spring-boot: "bug (APPSEC-11353)"
+            spring-boot: v1.22.0
+            spring-boot-jetty: v1.22.0
+            spring-boot-openliberty: bug (not working as expected)
+            spring-boot-payara: v1.22.0
+            spring-boot-undertow: v1.22.0
+            spring-boot-wildfly: v1.22.0
+            uds-spring-boot: v1.22.0
         test_xpath_injection.py:
           TestXPathInjection:
             '*': v1.18.0
@@ -256,6 +263,16 @@ tests/:
             vertx4: v1.12.0
         test_path.py:
           TestPath:
+            '*': missing_feature
+            spring-boot: v1.22.0
+            spring-boot-jetty: v1.22.0
+            spring-boot-openliberty: v1.22.0
+            spring-boot-payara: v1.22.0
+            spring-boot-undertow: v1.22.0
+            spring-boot-wildfly: v1.22.0
+            uds-spring-boot: v1.22.0
+        test_uri.py:
+          TestURI:
             '*': missing_feature
             spring-boot: v1.22.0
             spring-boot-jetty: v1.22.0
@@ -767,6 +784,8 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0
@@ -824,23 +843,31 @@ tests/:
   integrations/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
+    test_crossed_integrations.py:
+      Test_PythonKafka:
+        '*': v0.1 # real version not known
+        akka-http: missing_feature (Endpoint not implemented)
+        jersey-grizzly2: missing_feature (Endpoint not implemented)
+        play: missing_feature (Endpoint not implemented)
+        ratpack: missing_feature (Endpoint not implemented)
+        resteasy-netty3: missing_feature (Endpoint not implemented)
+        spring-boot-3-native: missing_feature (Endpoint not implemented)
+        spring-boot-jetty: missing_feature (Endpoint not implemented)
+        spring-boot-openliberty: missing_feature (Endpoint not implemented)
+        spring-boot-payara: missing_feature (Endpoint not implemented)
+        spring-boot-undertow: missing_feature (Endpoint not implemented)
+        spring-boot-wildfly: missing_feature (Endpoint not implemented)
+        uds-spring-boot: missing_feature (Endpoint not implemented)
+        vertx3: missing_feature (Endpoint not implemented)
+        vertx4: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration:
+      Test_MsSql:
         '*': missing_feature
         spring-boot: v1.12.0
-      Test_Agent_Mysql_db_integration:
+      Test_MySql:
         '*': missing_feature
         spring-boot: v1.12.0
-      Test_Agent_Postgres_db_integration:
-        '*': missing_feature
-        spring-boot: v1.12.0
-      Test_Tracer_Mssql_db_integration:
-        '*': missing_feature
-        spring-boot: v1.12.0
-      Test_Tracer_Mysql_db_integration:
-        '*': missing_feature
-        spring-boot: v1.12.0
-      Test_Tracer_Postgres_db_integration:
+      Test_Postgres:
         '*': missing_feature
         spring-boot: v1.12.0
     test_dbm.py:
@@ -868,8 +895,17 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.17.0
+      TestDynamicConfigV2: missing_feature
+    test_span_links.py: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: v0.111.0
+      Test_Trace_Sampling_Globs: v1.25.0
+      Test_Trace_Sampling_Resource: v1.25.0
+      Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
+    test_tracer_flare.py:
+      TestTracerFlareV1: v1.25.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
@@ -938,7 +974,9 @@ tests/:
   test_telemetry.py:
     Test_DependencyEnable: v1.7.0
     Test_Log_Generation: missing_feature
-    Test_MessageBatch: missing_feature
+    Test_MessageBatch:
+      '*': v1.23.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled:
@@ -947,4 +985,4 @@ tests/:
     Test_Telemetry:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    Test_TelemetryV2: missing_feature
+    Test_TelemetryV2: v1.23.0

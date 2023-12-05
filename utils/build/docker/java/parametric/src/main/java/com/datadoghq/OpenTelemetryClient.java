@@ -22,6 +22,8 @@ import com.datadoghq.client.ApmTestClient.OtelSetStatusArgs;
 import com.datadoghq.client.ApmTestClient.OtelSetStatusReturn;
 import com.datadoghq.client.ApmTestClient.OtelSpanContextArgs;
 import com.datadoghq.client.ApmTestClient.OtelSpanContextReturn;
+import com.datadoghq.client.ApmTestClient.OtelStartSpanArgs;
+import com.datadoghq.client.ApmTestClient.OtelStartSpanReturn;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTraceId;
 import io.grpc.stub.StreamObserver;
@@ -130,6 +132,8 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
             case 3:
                 return SpanKind.CLIENT;
             case 4:
+                return SpanKind.PRODUCER;
+            case 5:
                 return SpanKind.CONSUMER;
             case 0:
             default:
@@ -138,7 +142,7 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
     }
 
     @Override
-    public void otelStartSpan(ApmTestClient.OtelStartSpanArgs request, StreamObserver<ApmTestClient.OtelStartSpanReturn> responseObserver) {
+    public void otelStartSpan(OtelStartSpanArgs request, StreamObserver<OtelStartSpanReturn> responseObserver) {
         LOGGER.info("Starting OTel span: {}", request);
         try {
             // Build span from request
@@ -189,7 +193,7 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
             long traceId = DDTraceId.fromHex(span.getSpanContext().getTraceId()).toLong();
             this.spans.put(spanId, span);
             // Complete request
-            responseObserver.onNext(ApmTestClient.OtelStartSpanReturn.newBuilder()
+            responseObserver.onNext(OtelStartSpanReturn.newBuilder()
                     .setSpanId(spanId)
                     .setTraceId(traceId)
                     .build());

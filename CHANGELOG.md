@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+### November 2023 (78 PR merged)
+
+* 2023-11-23 [[PHP] Support unified package](https://github.com/DataDog/system-tests/pull/1862) by @Anilm3
+* 2023-11-07 [Sleep mode for all scenarios](https://github.com/DataDog/system-tests/pull/1794) by @robertomonteromiguel
+* 2023-11-07 [[Tracing] Add endpoints to Python Weblog application related to Kafka Producer and Consumer calls](https://github.com/DataDog/system-tests/pull/1783) by @wantsui
+
+### October 2023 (100 PR merged)
+
+* 2023-10-09 [New python/FastAPI variant](https://github.com/DataDog/system-tests/pull/1663) by @christophe-papazian
+* 2023-10-27 [New NodeJS/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
+* 2023-10-01 [New scenario for testing debugger probes](https://github.com/DataDog/system-tests/pull/1632) by @shurivich
+
 ### September 2023 (84 PR merged)
 
 * 2023-09-25 [New weblog variant: testing new Python version 3.12](https://github.com/DataDog/system-tests/pull/1617)

@@ -216,14 +216,18 @@ def _validate_headers(headers, request_type):
     # a set means "any of"
     expected_headers = {
         "Content-Type": {"application/json", "application/json; charset=utf-8"},
-        "DD-Telemetry-API-Version": "v1",
         "DD-Telemetry-Request-Type": request_type,
         "DD-Client-Library-Language": expected_language,
         "DD-Client-Library-Version": "",
     }
 
-    # APM Python migrates Telemetry to V2
-    expected_headers["DD-Telemetry-API-Version"] = "v2" if expected_language == "python" else "v1"
+    if context.library == "python":
+        # APM Python migrates Telemetry to V2
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    elif context.library >= "java@1.23.0":
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    else:
+        expected_headers["DD-Telemetry-API-Version"] = "v1"
 
     expected_headers = {k.lower(): v for k, v in expected_headers.items()}
 

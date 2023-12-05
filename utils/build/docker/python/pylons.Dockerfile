@@ -11,6 +11,7 @@ COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_
 RUN /binaries/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 
 # docker startup
 RUN echo '#!/bin/bash \n\
