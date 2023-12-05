@@ -30,13 +30,23 @@ class Test_Dbm:
                 weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
             ]
             if self.scenario_name == "INTEGRATIONS":
-                self.requests.extend([ weblog.get("/dbm", params={"integration": "mysql"}), weblog.get("/dbm", params={"integration": "sqlclient"}) ]),
+                self.requests.extend(
+                    [
+                        weblog.get("/dbm", params={"integration": "mysql"}), 
+                        weblog.get("/dbm", params={"integration": "sqlclient"}),
+                    ]
+                ),
         elif self.library_name == "php":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "pdo-pgsql"}),
             ]
             if self.scenario_name == "INTEGRATIONS":
-                self.requests.extend([ weblog.get("/dbm", params={"integration": "mysqli"}), weblog.get("/dbm", params={"integration": "pdo-mysql"}) ]),
+                self.requests.extend(
+                    [
+                        weblog.get("/dbm", params={"integration": "mysqli"}),
+                        weblog.get("/dbm", params={"integration": "pdo-mysql"})
+                    ]
+                ),
 
     def _get_db_span(self, response):
         assert response.status_code == 200, f"Request: {self.scenario} wasn't successful."
