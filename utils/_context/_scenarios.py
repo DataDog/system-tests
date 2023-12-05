@@ -12,7 +12,6 @@ from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 
-# from utils._context.header_tag_vars import Header_Tags
 from utils._context.header_tag_vars import ALL_CONFIGS
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
