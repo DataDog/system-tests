@@ -44,7 +44,7 @@ class Test_Dbm:
                 self.requests.extend(
                     [
                         weblog.get("/dbm", params={"integration": "mysqli"}),
-                        weblog.get("/dbm", params={"integration": "pdo-mysql"})
+                        weblog.get("/dbm", params={"integration": "pdo-mysql"}),
                     ]
                 ),
 
