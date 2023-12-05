@@ -32,7 +32,7 @@ class Test_Dbm:
             if self.scenario_name == "INTEGRATIONS":
                 self.requests.extend(
                     [
-                        weblog.get("/dbm", params={"integration": "mysql"}), 
+                        weblog.get("/dbm", params={"integration": "mysql"}),
                         weblog.get("/dbm", params={"integration": "sqlclient"}),
                     ]
                 ),
