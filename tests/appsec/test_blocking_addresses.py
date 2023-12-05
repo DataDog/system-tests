@@ -63,12 +63,11 @@ class Test_BlockingAddresses:
         self.pp_req = weblog.get("/params/AiKfOeRcvG45")
 
     @missing_feature(
-        context.library < "java@1.15.0",
-        reason="When supported, path parameter detection happens on subsequent WAF run",
+        context.library < "java@1.15.0", reason="When supported, path parameter detection happens on subsequent WAF run"
     )
     @missing_feature(library="nodejs", reason="Not supported yet")
     @missing_feature(
-        context.library == "java" and context.weblog_variant == "akka-http", reason="path parameters not supported",
+        context.library == "java" and context.weblog_variant == "akka-http", reason="path parameters not supported"
     )
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -129,9 +128,7 @@ class Test_BlockingAddresses:
         ),
         reason="Blocking on multipart not supported yet",
     )
-    @bug(
-        context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body",
-    )
+    @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
@@ -283,7 +280,7 @@ class Test_Blocking_request_uri:
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
-            assert response.status_code == 403, response.request.url
+            assert response.status_code == 403
             interfaces.library.assert_waf_attack(response, rule="tst-037-002")
 
     def setup_non_blocking(self):
@@ -510,7 +507,7 @@ class Test_Blocking_request_body:
     def setup_non_blocking(self):
         # raw body are never parsed
         self.rm_req_nonblock1 = weblog.post(
-            "/waf", data=b'\x00{"value3": "bsldhkuqwgervf"}\xFF', headers={"content-type": "application/octet-stream"},
+            "/waf", data=b'\x00{"value3": "bsldhkuqwgervf"}\xFF', headers={"content-type": "application/octet-stream"}
         )
         self.rm_req_nonblock2 = weblog.post("/waf", data={"good": "value"})
 
@@ -521,7 +518,7 @@ class Test_Blocking_request_body:
 
     def setup_non_blocking_plain_text(self):
         self.rm_req_nonblock_plain_text = weblog.post(
-            "/waf", data=b'{"value4": "bsldhkuqwgervf"}', headers={"content-type": "text/plain"},
+            "/waf", data=b'{"value4": "bsldhkuqwgervf"}', headers={"content-type": "text/plain"}
         )
 
     @irrelevant(
@@ -580,8 +577,8 @@ class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.get("/tag_value/anything/200?content-language=en-us")
-        self.rm_req_block2 = weblog.get("/tag_value/anything/200?content-language=krypton")
+        self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=en-us")
+        self.rm_req_block2 = weblog.get(f"/tag_value/anything/200?content-language=krypton")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -590,8 +587,8 @@ class Test_Blocking_response_headers:
             interfaces.library.assert_waf_attack(response, rule="tst-037-009")
 
     def setup_non_blocking(self):
-        self.rm_req_nonblock1 = weblog.get("/tag_value/anything/200?content-color=en-us")
-        self.rm_req_nonblock2 = weblog.get("/tag_value/anything/200?content-language=fr")
+        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=en-us")
+        self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
@@ -643,7 +640,7 @@ class Test_BlockingGraphqlResolvers:
             assert "_dd.appsec.json" not in meta
 
     def setup_request_monitor_attack(self):
-        """Currently only monitoring is implemented"""
+        """ Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",

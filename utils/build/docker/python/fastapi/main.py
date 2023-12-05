@@ -21,7 +21,6 @@ from iast import (
 )
 from pydantic import BaseModel
 
-# logging.basicConfig(level=logging.DEBUG)
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
 
@@ -62,15 +61,7 @@ async def sample_rate(i):
 @app.get("/waf/", response_class=PlainTextResponse)
 @app.post("/waf/", response_class=PlainTextResponse)
 @app.options("/waf/", response_class=PlainTextResponse)
-async def waf(request: Request):
-    logger.error(
-        "request on /waf:\n%s\n%s\n%s\n%s\n%s\n",
-        request.method,
-        request.headers,
-        request.query_params,
-        request.path_params,
-        request.client,
-    )
+async def waf():
     return "Hello, World!\n"
 
 
@@ -88,7 +79,7 @@ async def waf_params(path):
 @app.options("/tag_value/{tag_value}/{status_code}", response_class=PlainTextResponse)
 async def tag_value(tag_value: str, status_code: int, request: Request):
     appsec_trace_utils.track_custom_event(
-        tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value},
+        tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
     )
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
 
@@ -96,11 +87,11 @@ async def tag_value(tag_value: str, status_code: int, request: Request):
 @app.post("/tag_value/{tag_value}/{status_code}")
 async def tag_value_post(tag_value: str, status_code: int, request: Request):
     appsec_trace_utils.track_custom_event(
-        tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value},
+        tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
     )
     if tag_value.startswith("payload_in_response_body"):
         json_body = await request.json()
-        return JSONResponse({"payload": json_body}, status_code=status_code, headers=request.query_params,)
+        return JSONResponse({"payload": json_body}, status_code=status_code, headers=request.query_params)
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
 
 
