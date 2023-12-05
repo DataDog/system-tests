@@ -17,7 +17,7 @@ DEFAULT_ENVVARS = {
 
 @rfc("https://docs.google.com/document/d/14vsrCbnAKnXmJAkacX9I6jKPGKmxsq0PKUb3dfiZpWE/edit")
 @scenarios.parametric
-class TestFirstTraceTelemetry:
+class Test_First_Trace_Telemetry:
     """
     Test the time-to-first-trace telemetry that should be emitted from the library.
 
