@@ -68,15 +68,6 @@
             "justMyCode": true
         },
         {
-            "name": "Replay INTEGRATIONS_SERVICE scenario",
-            "type": "python",
-            "request": "launch",
-            "module": "pytest",
-            "args": ["-S", "INTEGRATIONS_SERVICE", "-p", "no:warnings", "--replay"],
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
             "name": "Replay SAMPLING scenario",
             "type": "python",
             "request": "launch",

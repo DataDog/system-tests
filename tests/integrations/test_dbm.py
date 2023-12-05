@@ -17,6 +17,7 @@ class Test_Dbm:
     # Helper Methods
     def weblog_trace_payload(self):
         self.library_name = context.library
+        self.scenario_name = context.scenario.name
         self.requests = []
 
         if self.library_name == "python":
@@ -27,18 +28,18 @@ class Test_Dbm:
         elif self.library_name == "dotnet":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
-                weblog.get("/dbm", params={"integration": "mysql"}),
-                weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
+            if self.scenario_name == "INTEGRATIONS":
+                self.requests.extend([ weblog.get("/dbm", params={"integration": "mysql"}), weblog.get("/dbm", params={"integration": "sqlclient"}) ]),
         elif self.library_name == "php":
             self.requests = [
-                weblog.get("/dbm", params={"integration": "pdo-mysql"}),
                 weblog.get("/dbm", params={"integration": "pdo-pgsql"}),
-                weblog.get("/dbm", params={"integration": "mysqli"}),
             ]
+            if self.scenario_name == "INTEGRATIONS":
+                self.requests.extend([ weblog.get("/dbm", params={"integration": "mysqli"}), weblog.get("/dbm", params={"integration": "pdo-mysql"}) ]),
 
     def _get_db_span(self, response):
-        assert response.status_code == 200, f"Request: {response.request.url} wasn't successful."
+        assert response.status_code == 200, f"Request: {self.scenario} wasn't successful."
 
         spans = []
         # we do not use get_spans: the span we look for is not directly the span that carry the request information
@@ -80,12 +81,13 @@ class Test_Dbm:
     setup_trace_payload_disabled = weblog_trace_payload
 
     # Test Methods
+    @scenarios.appsec_disabled
     def test_trace_payload_disabled(self):
         self._assert_spans_are_untagged()
 
     setup_trace_payload_service = weblog_trace_payload
 
-    @scenarios.integrations_service
+    @scenarios.default
     def test_trace_payload_service(self):
         self._assert_spans_are_untagged()
 
