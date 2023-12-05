@@ -110,7 +110,7 @@ class Test_Otel_Span_Methods:
 
         assert root_span["meta"]["str_val"] == "val"
         assert root_span["meta"]["str_val_empty"] == ""
-        if "language" in root_span["meta"] and root_span["meta"]["language"] == "go":
+        if root_span["meta"]["language"] == "go":
             # in line with the standard Datadog tracing library tags
             assert root_span["meta"]["bool_val"] == "true"
             assert root_span["meta"]["d_bool_val"] == "false"
@@ -118,31 +118,20 @@ class Test_Otel_Span_Methods:
             assert root_span["meta"]["array_val_str"] == "[val1 val2]"
             assert root_span["meta"]["array_val_int"] == "[10 20]"
             assert root_span["meta"]["array_val_double"] == "[10.1 20.2]"
-        elif "language" in root_span["meta"] and root_span["meta"]["language"] == "jvm":
+        elif root_span["meta"]["language"] == "jvm":
             assert root_span["meta"]["bool_val"] == "true"
             assert root_span["meta"]["array_val_bool"] == "[true, false]"
             assert root_span["meta"]["array_val_str"] == "[val1, val2]"
             assert root_span["meta"]["d_bool_val"] == "false"
             assert root_span["meta"]["array_val_int"] == "[10, 20]"
             assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
-        elif "language" in root_span["meta"] and root_span["meta"]["language"] == "dotnet":
+        elif root_span["meta"]["language"] == "dotnet":
             assert root_span["meta"]["bool_val"] == "true"
             assert root_span["meta"]["array_val_bool"] == "[true,false]"
             assert root_span["meta"]["array_val_str"] == '["val1","val2"]'
             assert root_span["meta"]["d_bool_val"] == "false"
             assert root_span["meta"]["array_val_int"] == "[10,20]"
             assert root_span["meta"]["array_val_double"] == "[10.1,20.2]"
-        elif context.library == "php":
-            assert root_span["meta"]["bool_val"] == "true"
-            assert root_span["meta"]["array_val_bool.0"] == "true"
-            assert root_span["meta"]["array_val_bool.1"] == "false"
-            assert root_span["meta"]["array_val_str.0"] == "val1"
-            assert root_span["meta"]["array_val_str.1"] == "val2"
-            assert root_span["meta"]["d_bool_val"] == "false"
-            assert root_span["metrics"]["array_val_int.0"] == 10
-            assert root_span["metrics"]["array_val_int.1"] == 20
-            assert root_span["metrics"]["array_val_double.0"] == 10.1
-            assert root_span["metrics"]["array_val_double.1"] == 20.2
         else:
             assert root_span["meta"]["bool_val"] == "True"
             assert root_span["meta"]["array_val_bool"] == "[True, False]"

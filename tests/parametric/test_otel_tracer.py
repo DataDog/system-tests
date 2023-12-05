@@ -10,7 +10,7 @@ from utils import missing_feature, irrelevant, context, scenarios
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1", "OTEL_PHP_FIBERS_ENABLED": "1"}],
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
 )
 
 
