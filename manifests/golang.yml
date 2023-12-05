@@ -304,7 +304,6 @@ tests/:
         chi: missing_feature (Endpoint not implemented)
         echo: missing_feature (Endpoint not implemented)
         gin: missing_feature (Endpoint not implemented)
-        grpc: missing_feature (Endpoint not implemented)
         uds-echo: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
