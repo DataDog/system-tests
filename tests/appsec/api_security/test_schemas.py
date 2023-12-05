@@ -156,7 +156,16 @@ class Test_Schema_Request_FormUrlEncoded_Body:
     """Test API Security - Request Body and list length"""
 
     def setup_request_method(self):
-        self.request = weblog.post("/tag_value/api_match_AS004/200", data={'main[0][key]': 'id001','main[0][value]': 1345,'main[1][key]': 'id002','main[1][value]': 1567, "nullable": None})
+        self.request = weblog.post(
+            "/tag_value/api_match_AS004/200",
+            data={
+                "main[0][key]": "id001",
+                "main[0][value]": 1345,
+                "main[1][key]": "id002",
+                "main[1][value]": 1567,
+                "nullable": None,
+            },
+        )
 
     def test_request_method(self):
         """can provide request request body schema"""
