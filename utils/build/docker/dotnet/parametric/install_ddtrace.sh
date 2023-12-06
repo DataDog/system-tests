@@ -33,7 +33,7 @@ else
 fi
 
 apt-get install -y binutils #we need 'strings' command to extract assembly version which is part of binutils package
-version=$(strings /opt/datadog/netstandard2.0/Datadog.Trace.dll | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
+version=$(strings /opt/datadog/netstandard2.0/Datadog.Trace.dll | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
 echo "${version:0:-2}" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 echo "dd-trace version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
