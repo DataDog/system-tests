@@ -219,7 +219,7 @@ app.post('/trace/otel/set_attributes', (req, res) => {
   res.json({});
 });
 
-const port = 3000;
+const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
