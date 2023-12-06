@@ -26,10 +26,10 @@ else
         fi      
 
         echo "Using artifact ${artifact}"
-        curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
+        curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v"${DDTRACE_VERSION}"/"${artifact}" --output "${artifact}"
     fi
 
-    tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
+    tar xzf "$(ls datadog-dotnet-apm*.tar.gz)" -C /opt/datadog
 fi
 
 apt-get install -y binutils #we need 'strings' command to extract assembly version which is part of binutils package
