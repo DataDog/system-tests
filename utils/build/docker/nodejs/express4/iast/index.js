@@ -5,8 +5,8 @@ const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto')
 const { execSync } = require('child_process')
-const https = require('https');
-const { MongoClient } = require('mongodb');
+const https = require('https')
+const { MongoClient } = require('mongodb')
 const mongoSanitize = require('express-mongo-sanitize')
 const ldap = require('../integrations/ldap')
 
@@ -31,85 +31,64 @@ function initMiddlewares (app) {
   })
 }
 
-function initRoutes (app, tracer) { 
+function initRoutes (app, tracer) {
   app.get('/iast/insecure_hashing/deduplicate', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
-  
-    var supportedAlgorithms = [ 'md5', 'sha1' ];
-  
-    var outputHashes = "";
+    const supportedAlgorithms = ['md5', 'sha1']
+
+    let outputHashes = ''
     supportedAlgorithms.forEach(algorithm => {
-      var hash = crypto.createHash(algorithm).update('insecure').digest('hex')
+      const hash = crypto.createHash(algorithm).update('insecure').digest('hex')
       outputHashes += `--- ${algorithm}:${hash} ---`
-    });
-  
-    res.send(outputHashes);
-  });
-  
+    })
+
+    res.send(outputHashes)
+  })
+
   app.get('/iast/insecure_hashing/multiple_hash', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
-  
-    const name = 'insecure';
-    var outputHashes = crypto.createHash('md5').update(name).digest('hex');
-    outputHashes += `--- ` + crypto.createHash('sha1').update(name).digest('hex')
-  
-    res.send(outputHashes);
-  });
-  
+    const name = 'insecure'
+    let outputHashes = crypto.createHash('md5').update(name).digest('hex')
+    outputHashes += '--- ' + crypto.createHash('sha1').update(name).digest('hex')
+
+    res.send(outputHashes)
+  })
+
   app.get('/iast/insecure_hashing/test_secure_algorithm', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
-  
-    res.send(crypto.createHash('sha256').update('secure').digest('hex'));
-  });
-  
-  
+    res.send(crypto.createHash('sha256').update('secure').digest('hex'))
+  })
+
   app.get('/iast/insecure_hashing/test_md5_algorithm', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
-  
-    res.send(crypto.createHash('md5').update('insecure').digest('hex'));
-  });
-  
+    res.send(crypto.createHash('md5').update('insecure').digest('hex'))
+  })
+
   app.get('/iast/insecure_cipher/test_insecure_algorithm', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
     const cipher = crypto.createCipheriv('des-ede-cbc', '1111111111111111', 'abcdefgh')
     res.send(Buffer.concat([cipher.update('12345'), cipher.final()]))
-  });
-  
+  })
+
   app.get('/iast/insecure_cipher/test_secure_algorithm', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
- 
-    const key = crypto.randomBytes(32);
- 
-    const iv = crypto.randomBytes(16);
- 
-    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+    const key = crypto.randomBytes(32)
+
+    const iv = crypto.randomBytes(16)
+
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv)
     res.send(Buffer.concat([cipher.update('12345'), cipher.final()]))
-  });
-  
+  })
+
   app.post('/iast/sqli/test_insecure', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
-    const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = \'' + req.body.username + '\' AND PASSWORD = \'' + req.body.password + '\''  
+    const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = \'' +
+      req.body.username + '\' AND PASSWORD = \'' + req.body.password + '\''
     const client = new Client()
     client.connect().then(() => {
       return client.query(sql).then((queryResult) => {
         res.json(queryResult)
       })
     }).catch((err) => {
-      res.status(500).json({message: 'Error on request'})
+      res.status(500).json({ message: 'Error on request ' + err })
     })
-  });
-  
+  })
+
   app.post('/iast/sqli/test_secure', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
-    const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = $1 AND PASSWORD = $2'  
+    const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = $1 AND PASSWORD = $2'
     const values = [req.body.username, req.body.password]
     const client = new Client()
     client.connect().then(() => {
@@ -117,21 +96,19 @@ function initRoutes (app, tracer) {
         res.json(queryResult)
       })
     }).catch((err) => {
-      res.status(500).json({message: 'Error on request'})
+      res.status(500).json({ message: 'Error on request' + err })
     })
-  });
+  })
 
   app.post('/iast/cmdi/test_insecure', (req, res) => {
     const result = execSync(req.body.cmd)
     res.send(result.toString())
-  });
+  })
 
   app.post('/iast/path_traversal/test_insecure', (req, res) => {
-    const span = tracer.scope().active();
-    span.setTag('appsec.event"', true);
     const stats = statSync(req.body.path)
     res.send(JSON.stringify(stats))
-  });
+  })
 
   app.post('/iast/ssrf/test_insecure', (req, res) => {
     https.get(req.body.url, (clientResponse) => {
@@ -140,81 +117,79 @@ function initRoutes (app, tracer) {
         res.send('OK')
       })
     })
-  });
-
+  })
 
   app.get('/iast/insecure-cookie/test_insecure', (req, res) => {
     res.cookie('insecure', 'cookie')
     res.send('OK')
-  });
+  })
 
   app.get('/iast/insecure-cookie/test_secure', (req, res) => {
     res.setHeader('set-cookie', 'secure=cookie; Secure; HttpOnly; SameSite=Strict')
     res.cookie('secure2', 'value', { secure: true, httpOnly: true, sameSite: true })
     res.send('OK')
-  });
+  })
 
   app.get('/iast/insecure-cookie/test_empty_cookie', (req, res) => {
     res.clearCookie('insecure')
     res.setHeader('set-cookie', 'empty=')
     res.cookie('secure3', '')
     res.send('OK')
-  });
+  })
 
   app.get('/iast/no-httponly-cookie/test_insecure', (req, res) => {
     res.cookie('no-httponly', 'cookie')
     res.send('OK')
-  });
+  })
 
   app.get('/iast/no-httponly-cookie/test_secure', (req, res) => {
     res.setHeader('set-cookie', 'httponly=cookie; Secure;HttpOnly;SameSite=Strict;')
     res.cookie('httponly2', 'value', { secure: true, httpOnly: true, sameSite: true })
     res.send('OK')
-  });
+  })
 
   app.get('/iast/no-httponly-cookie/test_empty_cookie', (req, res) => {
     res.clearCookie('insecure')
     res.setHeader('set-cookie', 'httponlyempty=')
     res.cookie('httponlyempty2', '')
     res.send('OK')
-  });
-
+  })
 
   app.get('/iast/no-samesite-cookie/test_insecure', (req, res) => {
     res.cookie('nosamesite', 'cookie')
     res.send('OK')
-  });
+  })
 
   app.get('/iast/no-samesite-cookie/test_secure', (req, res) => {
     res.setHeader('set-cookie', 'samesite=cookie; Secure; HttpOnly; SameSite=Strict')
     res.cookie('samesite2', 'value', { secure: true, httpOnly: true, sameSite: true })
     res.send('OK')
-  });
+  })
 
   app.get('/iast/no-samesite-cookie/test_empty_cookie', (req, res) => {
     res.clearCookie('insecure')
     res.setHeader('set-cookie', 'samesiteempty=')
     res.cookie('samesiteempty2', '')
     res.send('OK')
-  });
+  })
 
   app.post('/iast/unvalidated_redirect/test_secure_header', (req, res) => {
     res.setHeader('location', 'http://dummy.location.com')
     res.send('OK')
-  });
+  })
 
   app.post('/iast/unvalidated_redirect/test_insecure_header', (req, res) => {
     res.setHeader('location', req.body.location)
     res.send('OK')
-  });
+  })
 
   app.post('/iast/unvalidated_redirect/test_secure_redirect', (req, res) => {
     res.redirect('http://dummy.location.com')
-  });
+  })
 
   app.post('/iast/unvalidated_redirect/test_insecure_redirect', (req, res) => {
     res.redirect(req.body.location)
-  });
+  })
 
   app.get('/iast/hstsmissing/test_insecure', (req, res) => {
     res.setHeader('Content-Type', 'text/html')
@@ -230,7 +205,7 @@ function initRoutes (app, tracer) {
   app.get('/iast/xcontent-missing-header/test_insecure', (req, res) => {
     res.setHeader('Content-Type', 'text/html')
     res.end('<html><body><h1>Test</h1></html>')
-  });
+  })
 
   app.get('/iast/xcontent-missing-header/test_secure', (req, res) => {
     res.setHeader('Content-Type', 'text/html')
@@ -240,7 +215,7 @@ function initRoutes (app, tracer) {
   app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
   app.post('/iast/mongodb-nosql-injection/test_secure', async function (req, res) {
     const url = 'mongodb://mongodb:27017/'
-    const client = new MongoClient(url);
+    const client = new MongoClient(url)
     await client.connect()
     const db = client.db('mydb')
     const collection = db.collection('test')
@@ -254,7 +229,7 @@ function initRoutes (app, tracer) {
   // DO NOT extract to one method, we should force different line numbers
   app.post('/iast/mongodb-nosql-injection/test_insecure', async function (req, res) {
     const url = 'mongodb://mongodb:27017/'
-    const client = new MongoClient(url);
+    const client = new MongoClient(url)
     await client.connect()
     const db = client.db('mydb')
     const collection = db.collection('test')
@@ -264,12 +239,12 @@ function initRoutes (app, tracer) {
     res.send('OK')
   })
 
-  function searchLdap(filter, req, res) {
-    const sendError = (err) => res.status(500).send(`Error: ${err}`) 
+  function searchLdap (filter, req, res) {
+    const sendError = (err) => res.status(500).send(`Error: ${err}`)
 
     ldap.connect()
       .catch(sendError)
-      .then(client => 
+      .then(client =>
         client.search('ou=people', filter, (err, searchRes) => {
           if (err) return sendError(err)
 
@@ -303,7 +278,6 @@ function initRoutes (app, tracer) {
   })
 
   require('./sources')(app, tracer)
-
 }
 
 module.exports = { initRoutes, initData, initMiddlewares }

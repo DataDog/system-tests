@@ -127,7 +127,7 @@ To run the Python tests "locally" push your code to a branch and then specify ``
 
 
 ```sh
-PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@1.x ./run.sh ...
+TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@2.x ./run.sh PARAMETRIC [-k ...]
 ```
 
 #### NodeJS
@@ -271,10 +271,10 @@ service APMClient {
 An HTTP interface can be used instead of the GRPC. To view the interface run
 
 ```
-PORT=8000 ./run_reference_http.sh
+PORT=8000 ./utils/scripts/parametric/run_reference_http.sh
 ```
 
-and navigate to http://localhost:8000. The OpenAPI schema can be downloaded at
+and navigate to http://localhost:8000/docs. The OpenAPI schema can be downloaded at
 http://localhost:8000/openapi.json. The schema can be imported
 into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
 other tooling to assist in development.
