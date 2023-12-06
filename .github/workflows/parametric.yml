@@ -18,6 +18,7 @@ jobs:
           - golang
           - java
           - nodejs
+          - nodejs_http
           - ruby
           - cpp
       fail-fast: false

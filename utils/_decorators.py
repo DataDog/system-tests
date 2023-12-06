@@ -47,6 +47,7 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
             "golang",
             "java",
             "nodejs",
+            "nodejs_http",
             "python",
             "php",
             "ruby",

@@ -184,6 +184,40 @@ RUN npm install {node_module}
     )
 
 
+def node_http_library_factory() -> APMLibraryTestServer:
+
+    nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
+    nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
+    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
+    return APMLibraryTestServer(
+        lang="nodejs",
+        protocol="http",
+        container_name="node-test-client-http",
+        container_tag="node-test-client",
+        container_img=f"""
+FROM node:18.10-slim
+WORKDIR /client
+COPY ./package.json /client/
+COPY ./package-lock.json /client/
+COPY ./*.js /client/
+COPY ./npm/* /client/
+RUN npm install
+RUN npm install {node_module}
+""",
+        container_cmd=["node", "server.js"],
+        container_build_dir=nodejs_absolute_appdir,
+        container_build_context=nodejs_absolute_appdir,
+        volumes=[
+            (
+                os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
+                "/client/apm_test_client.proto",
+            ),
+        ],
+        env={},
+        port="",
+    )
+
+
 def golang_library_factory():
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
@@ -399,6 +433,7 @@ _libs: Dict[str, ClientLibraryServerFactory] = {
     "golang": golang_library_factory,
     "java": java_library_factory,
     "nodejs": node_library_factory,
+    "nodejs_http": node_http_library_factory,
     "php": php_library_factory,
     "python": python_library_factory,
     "python_http": python_http_library_factory,
