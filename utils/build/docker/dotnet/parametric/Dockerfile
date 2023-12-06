@@ -1,9 +1,15 @@
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0
+RUN apt-get update && apt-get install dos2unix
 WORKDIR /client
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# ensure that the Datadog.Trace.dlls are installed from /binaries
+COPY /install_ddtrace.sh /binaries/
+RUN dos2unix /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
 COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
