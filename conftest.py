@@ -150,6 +150,9 @@ def pytest_pycollect_makemodule(module_path, parent):
 
     if context.scenario.library.library == "python_http":
         library = "python"
+    elif context.scenario.library.library == "nodejs_http":
+        library = "nodejs"
+        
     else:
         library = context.scenario.library.library
 

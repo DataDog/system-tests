@@ -186,7 +186,7 @@ RUN npm install {node_module}
 
 def node_http_library_factory() -> APMLibraryTestServer:
 
-    nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
+    nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs_http", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
