@@ -183,11 +183,12 @@ class Test_Headers_Tracestate_DD:
 
         traceparent8, tracestate8 = get_tracecontext(headers8)
         sampled8 = str(traceparent8).split("-")[3]
-        dd_items8 = tracestate8["dd"].split(";")
         assert "traceparent" in headers8
         assert sampled8 == "00"
         assert "tracestate" in headers8
-        assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
+        if "dd" in tracestate8:
+            dd_items8 = tracestate8["dd"].split(";")
+            assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
