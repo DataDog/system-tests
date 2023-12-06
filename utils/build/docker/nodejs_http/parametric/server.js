@@ -85,8 +85,8 @@ app.post('/trace/span/start', (req, res) => {
           service: request.service
       }
   })
-
-  this.spans[span.context().toSpanId()] = span
+  
+  spans[span.context().toSpanId()] = span
   res.json({ span_id: span.spanId, trace_id: span.traceId });
 });
 
