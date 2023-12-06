@@ -55,7 +55,7 @@ app.post('/trace/span/start', (req, res) => {
   const request = req.body;
   let parent
 
-  if (request.parent_id) parent = this.spans[request.parent_id]
+  if (request.parent_id) parent = spans[request.parent_id]
 
   if (request.origin) {
       const traceId = parent?.traceId
@@ -92,9 +92,9 @@ app.post('/trace/span/start', (req, res) => {
 
 app.post('/trace/span/finish', (req, res) => {
   const id = req.body.span_id
-  const span = this.spans[id]
+  const span = spans[id]
   span.finish()
-  delete this.spans[id]
+  delete spans[id]
   res.json({});
 });
 
