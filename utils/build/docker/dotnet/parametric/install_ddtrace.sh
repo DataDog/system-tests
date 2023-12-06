@@ -9,11 +9,11 @@ get_latest_release() {
 
 mkdir -p /opt/datadog
 
-if [ "$(ls /binaries/Datadog.Trace.ClrProfiler.Native.so | wc -l)" = 1 ]; then
+if [ "$(find . -maxdepth 1 -name '/binaries/Datadog.Trace.ClrProfiler.Native.so' -print | wc -l)" = 1 ]; then
     echo "Install from local folder"
     cp -r /binaries/* /opt/datadog/
 else
-    if [ "$(ls datadog-dotnet-apm*.tar.gz | wc -l)" = 1 ]; then
+    if [ "$(find . -maxdepth 1 -name 'datadog-dotnet-apm*.tar.gz' -print | wc -l)" = 1 ]; then
         echo "Install ddtrace from $(ls datadog-dotnet-apm*.tar.gz)"
     else
         echo "Install ddtrace from github releases"
