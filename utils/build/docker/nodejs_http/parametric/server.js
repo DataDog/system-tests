@@ -15,7 +15,7 @@ tracerProvider.register()
 const express = require('express');
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 function buildAttrs (attributes) {
   const attrs = {}
