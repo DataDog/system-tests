@@ -1,27 +1,45 @@
+'use strict'
+
+const tracer = require('dd-trace').init()
+tracer.use('dns', false)
+
+const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
+const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
+
+const { trace, ROOT_CONTEXT } = require('@opentelemetry/api')
+
+const { TracerProvider } = tracer
+const tracerProvider = new TracerProvider()
+tracerProvider.register()
+
 const express = require('express');
-const bodyParser = require('body-parser');
-const { NodeTracerProvider } = require('@opentelemetry/node');
-const { BatchSpanProcessor } = require('@opentelemetry/tracing');
-const { ZipkinExporter } = require('@opentelemetry/exporter-zipkin');
-const { diag, context, trace } = require('@opentelemetry/api');
-const { SimpleSpanProcessor } = require('@opentelemetry/tracing');
-const { HttpTraceContext } = require('@opentelemetry/core');
-const { NodeSDK } = require('dd-trace');
-const sdk = new NodeSDK({
-  tracer: new NodeTracerProvider({
-    plugins: {
-      express: { enabled: true, path: '@opentelemetry/plugin-express' },
-      http: { enabled: true, path: '@opentelemetry/plugin-http' },
-    },
-  }).getTracer('opentelemetry-plugin', '0.1'),
-});
-sdk.start();
 
 const app = express();
 app.use(bodyParser.json());
 
-const spans = {};
-const otelSpans = {};
+function buildAttrs (attributes) {
+  const attrs = {}
+  for (const [key, value] of Object.entries(attributes.key_vals)) {
+      attrs[key] = value.val[0][value.val[0].val]
+  }
+  return attrs
+}
+
+function nanoLongToHrTime ({ high = 0, low = 0 } = {}) {
+  return [
+      high * 1e3 + Math.floor(low / 1e6),
+      (low % 1e6) * 1e3,
+  ]
+}
+
+const otelStatusCodes = {
+  'UNSET': 0,
+  'OK': 1,
+  'ERROR': 2
+}
+
+const spans = {}
+const otelSpans = {}
 
 // Endpoint /trace/span/inject_headers
 app.post('/trace/span/inject_headers', (req, res) => {
@@ -34,56 +52,57 @@ app.post('/trace/span/inject_headers', (req, res) => {
 
 // Additional Endpoints
 app.post('/trace/span/start', (req, res) => {
-  const args = req.body;
-  let parent;
-  if (args.parent_id) {
-    parent = spans[args.parent_id];
-  } else {
-    parent = null;
+  const request = req.body;
+  let parent
+
+  if (request.parent_id) parent = this.spans[request.parent_id]
+
+  if (request.origin) {
+      const traceId = parent?.traceId
+      const parentId = parent?.parentId
+
+      parent = new SpanContext({
+          traceId,
+          parentId
+      })
+      parent.origin = request.origin
   }
 
-  if (args.origin !== '') {
-    const traceId = parent ? parent.traceId : null;
-    const parentId = parent ? parent.spanId : null;
-    parent = new diag.Context({ traceId, spanId: parentId, dd_origin: args.origin });
+  const http_headers = request.http_headers.http_headers || []
+  // Node.js HTTP headers are automatically lower-cased, simulate that here.
+  const convertedHeaders = {}
+  for (const { key, value } of http_headers) {
+      convertedHeaders[key.toLowerCase()] = value
   }
+  const extracted = tracer.extract('http_headers', convertedHeaders)
+  if (extracted !== null) parent = extracted
 
-  if (args.http_headers.length > 0) {
-    const headers = Object.fromEntries(args.http_headers);
-    parent = HttpTraceContext.extract(headers);
-  }
-
-  const span = sdk.trace.startSpan(args.name, {
-    childOf: parent,
-    attributes: { service: args.service, type: args.type, resource: args.resource },
-  });
-
-  for (const link of args.links) {
-    const linkParentId = link.parent_id;
-    const linkAttributes = link.attributes;
-    for (const [k, v] of Object.entries(linkAttributes)) {
-      if (typeof v === 'string' && (v.startsWith('[') || v.startsWith('{'))) {
-        linkAttributes[k] = eval(v);
+  const span = tracer.startSpan(request.name, {
+      type: request.type,
+      resource: request.resource,
+      childOf: parent,
+      tags: {
+          service: request.service
       }
-    }
+  })
 
-    if (linkParentId !== 0) {
-      const linkParent = spans[linkParentId];
-      span.setSpanContext(linkParent.spanContext());
-    } else {
-      const ctx = HttpTraceContext.extract(headers);
-      span.addLink({ context: ctx, attributes: linkAttributes });
-    }
-  }
-
-  spans[span.spanId] = span;
+  this.spans[span.context().toSpanId()] = span
   res.json({ span_id: span.spanId, trace_id: span.traceId });
 });
 
 app.post('/trace/span/finish', (req, res) => {
-  const spanId = req.body.span_id;
-  spans[spanId].end();
+  const id = req.body.span_id
+  const span = this.spans[id]
+  span.finish()
+  delete this.spans[id]
   res.json({});
+});
+
+app.post('/trace/span/flush', (req, res) => {
+  const { _tracer: { _exporter: { _writer } } } = tracer
+  _writer.flush(() => {
+    res.json({});
+  })
 });
 
 app.post('/trace/span/set_meta', (req, res) => {
@@ -105,7 +124,7 @@ app.post('/trace/span/set_metric', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  sdk.trace.flush();
+  // TODO: implement once available in NodeJS Tracer
   res.json({});
 });
 
@@ -123,99 +142,108 @@ app.post('/trace/span/error', (req, res) => {
 });
 
 app.post('/trace/otel/start_span', (req, res) => {
-  const args = req.body;
-  const otelTracer = trace.getTracer('otel-plugin');
-  let parentSpan;
-  if (args.parent_id) {
-    parentSpan = otelSpans[args.parent_id];
-  } else if (args.http_headers.length > 0) {
-    const headers = Object.fromEntries(args.http_headers);
-    const ddContext = HttpTraceContext.extract(headers);
-    parentSpan = new OtelNonRecordingSpan({
-      traceId: ddContext.traceId,
-      spanId: ddContext.spanId,
-      sampled: true,
-      traceFlags: ddContext.samplingPriority && ddContext.samplingPriority > 0 ? TraceFlags.SAMPLED : TraceFlags.DEFAULT,
-      traceState: TraceState.fromHeader(ddContext._tracestate),
-    });
-  } else {
-    parentSpan = null;
+  const request = req.body;
+  const otelTracer = tracerProvider.getTracer()
+
+  const makeSpan = (parentContext) => {
+    const span = otelTracer.startSpan(request.name, {
+        type: request.type,
+        kind: request.kind,
+        attributes: buildAttrs(request.attributes),
+        startTime: nanoLongToHrTime(request.timestamp)
+    }, parentContext)
+
+    const ctx = span._ddSpan.context()
+    const span_id = ctx._spanId.toString(10)
+    const trace_id = ctx._traceId.toString(10)
+
+    this.otelSpans[span_id] = span
+
+    res.json({ span_id, trace_id });
   }
 
-  const otelSpan = otelTracer.startSpan(args.name, {
-    parent: parentSpan,
-    kind: args.span_kind,
-    attributes: args.attributes,
-    links: null,
-    startTime: args.timestamp * 1e3 || undefined,
-    recordException: true,
-    setStatusOnException: true,
-  });
+  if (request.parent_id && !request.parent_id.isZero()) {
+      const parentSpan = this.otelSpans[request.parent_id]
+      const parentContext = trace.setSpan(ROOT_CONTEXT, parentSpan)
+      return makeSpan(parentContext)
+  }
 
-  const ctx = otelSpan.getSpanContext();
-  otelSpans[ctx.spanId] = otelSpan;
-  res.json({ span_id: ctx.spanId, trace_id: ctx.traceId });
+  if (request.http_headers) {
+      const http_headers = request.http_headers.http_headers || []
+      // Node.js HTTP headers are automatically lower-cased, simulate that here.
+      const convertedHeaders = {}
+      for (const { key, value } of http_headers) {
+          convertedHeaders[key.toLowerCase()] = value
+      }
+      const extracted = tracer.extract('http_headers', convertedHeaders)
+      if (extracted) {
+          const parentSpan = trace.wrapSpanContext(new OtelSpanContext(extracted))
+          const parentContext = trace.setSpan(ROOT_CONTEXT, parentSpan)
+          return makeSpan(parentContext)
+      }
+  }
+
+  makeSpan()
 });
 
 app.post('/trace/otel/end_span', (req, res) => {
-  const args = req.body;
-  const span = otelSpans[args.id];
-  const timestamp = args.timestamp;
-  if (timestamp !== undefined) {
-    span.end(timestamp * 1e3);
-  } else {
-    span.end();
-  }
+  const { id, timestamp } = req.body;
+  const span_id = `${id}`
+  const span = this.otelSpans[span_id]
+  span.end(nanoLongToHrTime(timestamp))
   res.json({});
 });
 
-app.post('/trace/otel/flush', (req, res) => {
-  sdk.trace.flush();
+app.post('/trace/otel/flush', async (req, res) => {
+  await tracerProvider.forceFlush()
   spans = {};
   otelSpans = {};
   res.json({ success: true });
 });
 
 app.post('/trace/otel/is_recording', (req, res) => {
-  const args = req.body;
-  const span = otelSpans[args.span_id];
+  const { span_id } = req.body;
+  const span = this.otelSpans[span_id]
   res.json({ is_recording: span.isRecording() });
 });
 
 app.post('/trace/otel/span_context', (req, res) => {
-  const args = req.body;
-  const span = otelSpans[args.span_id];
-  const ctx = span.getSpanContext();
+  const { span_id } = req.body;
+  const span = this.otelSpans[span_id]
+  const ctx = span.spanContext()
   res.json({
-    span_id: ctx.spanId.toString(16).padStart(16, '0'),
-    trace_id: ctx.traceId.toString(16).padStart(32, '0'),
-    trace_flags: ctx.traceFlags.toString(16).padStart(2, '0'),
-    trace_state: ctx.traceState.toHeader(),
-    remote: ctx.isRemote,
+    span_id: ctx.spanId,
+    trace_id: ctx.traceId,
+    // Node.js official OTel API uses a number, not a string
+    trace_flags: `0${ctx.traceFlags}`,
+    trace_state: ctx.traceState.serialize(),
+
+    // TODO: What is this and where is it supposed to come from? 🤔
+    remote: ctx.is_remote,
   });
 });
 
 app.post('/trace/otel/set_status', (req, res) => {
-  const args = req.body;
-  const span = otelSpans[args.span_id];
-  const statusCode = args.code.toUpperCase();
-  const status = StatusCode[statusCode];
-  const description = args.description;
-  span.setStatus({ code: status, message: description });
+  const { span_id, code, description } = req.body;
+  const span = this.otelSpans[span_id]
+    span.setStatus({
+        code: otelStatusCodes[code],
+        message: description
+    })
   res.json({});
 });
 
 app.post('/trace/otel/set_name', (req, res) => {
-  const args = req.body;
-  const span = otelSpans[args.span_id];
-  span.updateName(args.name);
+  const { span_id, name } = req.body;
+  const span = this.otelSpans[span_id]
+  span.updateName(name)
   res.json({});
 });
 
 app.post('/trace/otel/set_attributes', (req, res) => {
-  const args = req.body;
-  const span = otelSpans[args.span_id];
-  span.setAttributes(args.attributes);
+  const { span_id, attributes } = req.body;
+  const span = this.otelSpans[span_id]
+  span.setAttributes(buildAttrs(attributes))
   res.json({});
 });
 
