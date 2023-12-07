@@ -1,6 +1,8 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
+tracer.use('express', false)
+tracer.use('http', false)
 tracer.use('dns', false)
 
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
@@ -85,9 +87,8 @@ app.post('/trace/span/start', (req, res) => {
           service: request.service
       }
   })
-  
   spans[span.context().toSpanId()] = span
-  res.json({ span_id: span.spanId, trace_id: span.traceId });
+  res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
 });
 
 app.post('/trace/span/finish', (req, res) => {
@@ -157,13 +158,13 @@ app.post('/trace/otel/start_span', (req, res) => {
     const span_id = ctx._spanId.toString(10)
     const trace_id = ctx._traceId.toString(10)
 
-    this.otelSpans[span_id] = span
+    otelSpans[span_id] = span
 
     res.json({ span_id, trace_id });
   }
 
   if (request.parent_id && !request.parent_id.isZero()) {
-      const parentSpan = this.otelSpans[request.parent_id]
+      const parentSpan = otelSpans[request.parent_id]
       const parentContext = trace.setSpan(ROOT_CONTEXT, parentSpan)
       return makeSpan(parentContext)
   }
@@ -189,7 +190,7 @@ app.post('/trace/otel/start_span', (req, res) => {
 app.post('/trace/otel/end_span', (req, res) => {
   const { id, timestamp } = req.body;
   const span_id = `${id}`
-  const span = this.otelSpans[span_id]
+  const span = otelSpans[span_id]
   span.end(nanoLongToHrTime(timestamp))
   res.json({});
 });
@@ -203,13 +204,13 @@ app.post('/trace/otel/flush', async (req, res) => {
 
 app.post('/trace/otel/is_recording', (req, res) => {
   const { span_id } = req.body;
-  const span = this.otelSpans[span_id]
+  const span = otelSpans[span_id]
   res.json({ is_recording: span.isRecording() });
 });
 
 app.post('/trace/otel/span_context', (req, res) => {
   const { span_id } = req.body;
-  const span = this.otelSpans[span_id]
+  const span = otelSpans[span_id]
   const ctx = span.spanContext()
   res.json({
     span_id: ctx.spanId,
@@ -225,7 +226,7 @@ app.post('/trace/otel/span_context', (req, res) => {
 
 app.post('/trace/otel/set_status', (req, res) => {
   const { span_id, code, description } = req.body;
-  const span = this.otelSpans[span_id]
+  const span = otelSpans[span_id]
     span.setStatus({
         code: otelStatusCodes[code],
         message: description
@@ -235,14 +236,14 @@ app.post('/trace/otel/set_status', (req, res) => {
 
 app.post('/trace/otel/set_name', (req, res) => {
   const { span_id, name } = req.body;
-  const span = this.otelSpans[span_id]
+  const span = otelSpans[span_id]
   span.updateName(name)
   res.json({});
 });
 
 app.post('/trace/otel/set_attributes', (req, res) => {
   const { span_id, attributes } = req.body;
-  const span = this.otelSpans[span_id]
+  const span = otelSpans[span_id]
   span.setAttributes(buildAttrs(attributes))
   res.json({});
 });
