@@ -45,11 +45,17 @@ const otelSpans = {}
 
 // Endpoint /trace/span/inject_headers
 app.post('/trace/span/inject_headers', (req, res) => {
-  const spanId = req.body.span_id;
-  const ctx = spans[spanId].context();
-  const headers = {};
-  HttpTraceContext.inject(context.active(), headers);
-  res.json({ http_headers: Object.entries(headers) });
+  const request = req.body;
+  const span = this.spans[request.span_id]
+  const http_headersDict = {}
+  const http_headers = []
+
+  tracer.inject(span, 'http_headers', http_headersDict)
+  for (const [key, value] of Object.entries(http_headersDict)) {
+      http_headers.push({key: key, value: value})
+  }
+
+  res.json({ http_headers: { http_headers } });
 });
 
 // Additional Endpoints
@@ -111,7 +117,8 @@ app.post('/trace/span/set_meta', (req, res) => {
   const spanId = args.span_id;
   const key = args.key;
   const value = args.value;
-  spans[spanId].setTag(key, value);
+  const span = spans[spanId]
+  span.setTag(key, value)
   res.json({});
 });
 
@@ -130,15 +137,13 @@ app.post('/trace/stats/flush', (req, res) => {
 });
 
 app.post('/trace/span/error', (req, res) => {
-  const args = req.body;
-  const spanId = args.span_id;
-  const type = args.type;
-  const message = args.message;
-  const stack = args.stack;
-  spans[spanId].setTag(ERROR_MSG, message);
-  spans[spanId].setTag(ERROR_TYPE, type);
-  spans[spanId].setTag(ERROR_STACK, stack);
-  spans[spanId].setTag('error', 1);
+  const request = req.body;
+  const span = spans[request.span_id]
+  span.addTags({
+      'error.msg': request.message,
+      'error.type': request.type,
+      'error.stack': request.stack
+  })
   res.json({});
 });
 
@@ -227,10 +232,10 @@ app.post('/trace/otel/span_context', (req, res) => {
 app.post('/trace/otel/set_status', (req, res) => {
   const { span_id, code, description } = req.body;
   const span = otelSpans[span_id]
-    span.setStatus({
-        code: otelStatusCodes[code],
-        message: description
-    })
+  span.setStatus({
+      code: otelStatusCodes[code],
+      message: description
+  })
   res.json({});
 });
 
