@@ -46,7 +46,7 @@ const otelSpans = {}
 // Endpoint /trace/span/inject_headers
 app.post('/trace/span/inject_headers', (req, res) => {
   const request = req.body;
-  const span = this.spans[request.span_id]
+  const span = spans[request.span_id]
   const http_headersDict = {}
   const http_headers = []
 
