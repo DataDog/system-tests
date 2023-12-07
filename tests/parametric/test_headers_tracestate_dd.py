@@ -509,7 +509,6 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @missing_feature(context.library == "cpp", reason="_dd.p.dm does not change when a sampling priority was extracted")
     @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
-    @missing_feature(context.library == "nodejs_http", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "python_http", reason="Issue: Does not reset dm to DEFAULT")

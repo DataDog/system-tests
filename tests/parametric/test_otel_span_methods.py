@@ -23,7 +23,6 @@ pytestmark = pytest.mark.parametrize(
 class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "nodejs_http", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
@@ -51,7 +50,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "nodejs_http", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
@@ -76,7 +74,6 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library < "golang@v1.59.0", reason="Old array encoding no longer supported")
     @irrelevant(context.library == "ruby", reason="Old array encoding no longer supported")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "nodejs_http", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
@@ -233,7 +230,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "nodejs_http", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
@@ -262,7 +258,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "nodejs_http", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
@@ -299,7 +294,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "nodejs_http", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
@@ -328,7 +322,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "nodejs_http", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
@@ -379,8 +372,7 @@ class Test_Otel_Span_Methods:
                     assert context.get("trace_flags") == "01"
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "nodejs_http", reason="not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
@@ -405,8 +397,7 @@ class Test_Otel_Span_Methods:
             assert span["resource"] == "operation"
 
     @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
-    @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "nodejs_http", reason="not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
@@ -449,8 +440,7 @@ class Test_Otel_Span_Methods:
         )
 
     @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
-    @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "nodejs_http", reason="not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
@@ -486,8 +476,7 @@ class Test_Otel_Span_Methods:
         assert "analytics.event" not in span["meta"]
 
     @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
-    @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "nodejs_http", reason="not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")

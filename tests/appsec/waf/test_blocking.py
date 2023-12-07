@@ -123,7 +123,6 @@ class Test_Blocking:
     @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
     @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
-    @missing_feature(context.library == "nodejs_http", reason="Support for partial html not implemented")
     @missing_feature(context.library == "python", reason="Support for partial html not implemented")
     @missing_feature(context.library == "ruby", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
@@ -161,7 +160,6 @@ class Test_Blocking:
     @missing_feature(context.library == "php", reason="Support for quality not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
-    @missing_feature(context.library == "nodejs_http", reason="Support for quality not implemented")
     @missing_feature(context.library == "ruby", reason="Support for quality not implemented")
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_html(self):
