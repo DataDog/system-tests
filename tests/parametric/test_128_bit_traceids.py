@@ -38,6 +38,7 @@ class Test_128_Bit_Traceids:
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -66,6 +67,7 @@ class Test_128_Bit_Traceids:
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -94,6 +96,7 @@ class Test_128_Bit_Traceids:
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -124,6 +127,7 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "dotnet", reason="Optional feature not implemented")
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -209,6 +213,7 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "golang", reason="not implemented")
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "php", reason="not implemented")
     @missing_feature(context.library == "python", reason="not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
@@ -441,6 +446,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "ruby", reason="not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "dotnet", reason="not implemented")
     @missing_feature(context.library == "java", reason="not implemented")
     @missing_feature(context.library == "python", reason="not implemented")
@@ -470,6 +476,7 @@ class Test_128_Bit_Traceids:
         assert propagation_error is None
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -498,6 +505,7 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "dotnet", reason="Optional feature not implemented")
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "python", reason="inconsistent_tid is not implemented for w3c")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
@@ -520,6 +528,7 @@ class Test_128_Bit_Traceids:
         assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "inconsistent_tid 640cfd8d0000ffff"
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -547,6 +556,7 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "dotnet", reason="Optional feature not implemented")
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "python", reason="malformed_tid is not implemented")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")

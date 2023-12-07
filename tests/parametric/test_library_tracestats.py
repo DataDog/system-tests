@@ -45,6 +45,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "golang", reason="go sends an empty stats aggregation")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     def test_metrics_msgpack_serialization_TS001(self, library_env, test_agent, test_library):
@@ -100,6 +101,7 @@ class Test_Library_Tracestats:
     @enable_tracestats()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     def test_distinct_aggregationkeys_TS003(self, library_env, test_agent, test_library, test_server):
@@ -180,6 +182,7 @@ class Test_Library_Tracestats:
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
@@ -222,6 +225,7 @@ class Test_Library_Tracestats:
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
@@ -272,6 +276,7 @@ class Test_Library_Tracestats:
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
@@ -328,6 +333,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "java", reason="FIXME: Undefined behavior according the java tracer core team")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats(sample_rate=0.0)
@@ -394,6 +400,7 @@ class Test_Library_Tracestats:
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
@@ -449,6 +456,7 @@ class Test_Library_Tracestats:
         assert stats[0]["Synthetics"] is True
 
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @parametrize("library_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
     def test_metrics_computed_after_span_finish_TS010(self, library_env, test_agent, test_library):

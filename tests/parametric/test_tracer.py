@@ -18,6 +18,7 @@ parametrize = pytest.mark.parametrize
 class Test_Tracer:
     @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
     @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs overrides the manually set service name")
     def test_tracer_span_top_level_attributes(self, test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
         """Do a simple trace to ensure that the test client is working properly."""
         with test_library:
@@ -129,6 +130,7 @@ class Test_TracerSCITagging:
     )
     @missing_feature(context.library == "golang", reason="golang does not strip credentials yet")
     @missing_feature(context.library == "nodejs", reason="nodejs does not strip credentials yet")
+    @missing_feature(context.library == "nodejs_http", reason="nodejs does not strip credentials yet")
     @missing_feature(context.library == "python", reason="python does not strip credentials yet")
     @missing_feature(context.library == "python_http", reason="python does not strip credentials yet")
     def test_tracer_repository_url_strip_credentials(

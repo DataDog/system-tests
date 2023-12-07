@@ -560,7 +560,8 @@ class Test_Span_Sampling:
 
     @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(context.library == "python_http", reason="RPC issue causing test to hang")
@@ -618,7 +619,8 @@ class Test_Span_Sampling:
 
     @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(context.library == "python_http", reason="RPC issue causing test to hang")
@@ -677,7 +679,8 @@ class Test_Span_Sampling:
 
     @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "nodejs_http", reason="not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(context.library == "python_http", reason="RPC issue causing test to hang")

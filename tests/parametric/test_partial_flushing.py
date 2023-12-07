@@ -59,6 +59,7 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
     @missing_feature(context.library == "nodejs", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
+    @missing_feature(context.library == "nodejs_http", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
     def test_partial_flushing_disabled(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure
