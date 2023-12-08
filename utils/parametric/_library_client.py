@@ -175,6 +175,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
+        # todo: translate json into list within list
+        # so server.xx do not have to
         return resp.json()["http_headers"]
 
     def trace_flush(self) -> None:
@@ -201,6 +203,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "attributes": attributes or {},
             },
         ).json()
+        span_id = resp["span_id"]
+        print(f"span_id is in start_span is {span_id}")
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
@@ -223,6 +227,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def otel_get_span_context(self, span_id: int):
         resp = self._session.post(self._url("/trace/otel/span_context"), json={"span_id": span_id}).json()
+        print(f"res is{resp}")
         return OtelSpanContext(
             trace_id=resp["trace_id"],
             span_id=resp["span_id"],
