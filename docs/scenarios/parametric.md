@@ -114,7 +114,8 @@ TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sa
 
 ##### To run with a custom build
 
-- Download `datadog-setup.php` in `build packages/package extension` job on CI
+- Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-aarch64-linux-gnu.tar.gz` (or the `x86_64` if you're not on ARM) in `/binaries` folder
+  - You can download those from the `build_packages/package extension` job artifacts, from a CI run of your branch.
 - Copy it in the binaries folder
 
 ##### Then run the tests
