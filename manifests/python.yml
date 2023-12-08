@@ -216,16 +216,16 @@ tests/:
         Test_Blocking:
           '*': v1.16.1
           django-poc: v1.10
-          fastapi: missing_feature
+          fastapi: v2.4.0.dev1
           flask-poc: v1.10
         Test_CustomBlockingResponse:
           '*': v1.20.0.dev
-          fastapi: missing_feature
+          fastapi: v2.4.0.dev1
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.16.1
           django-poc: v1.12
-          fastapi: missing_feature
+          fastapi: v2.4.0.dev1
           flask-poc: v1.12
       test_exclusions.py:
         Test_Exclusions:
@@ -306,53 +306,53 @@ tests/:
       Test_BlockingAddresses:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Blocking_request_cookies:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Blocking_request_headers:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Blocking_request_method:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Blocking_request_path_params:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.13
       Test_Blocking_request_query:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Blocking_request_uri:
         '*': v1.16.1
         django-poc: v1.15
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.15
       Test_Blocking_response_headers:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Blocking_response_status:
         '*': v1.16.1
         django-poc: v1.10
-        fastapi: missing_feature
+        fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Suspicious_Request_Blocking: v1.20.0
     test_client_ip.py:
