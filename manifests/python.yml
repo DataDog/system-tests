@@ -238,17 +238,17 @@ tests/:
         Test_404: v1.1.0rc2.dev
         Test_CorrectOptionProcessing:
           '*': v1.1.0
-          fastapi: missing_feature
+          fastapi: v2.4.0.dev1
         Test_MultipleAttacks:
           '*': v1.2.1
-          fastapi: missing_feature
+          fastapi: v2.4.0.dev1
         Test_MultipleHighlight:
           '*': v1.2.1
-          fastapi: missing_feature
+          fastapi: v2.4.0.dev1
       test_reports.py:
         Test_Monitoring:
           '*': v1.5.0rc1.dev
-          fastapi: missing_feature
+          fastapi: v2.4.0.dev1
       test_rules.py:
         Test_CommandInjection:
           '*': v1.2.1
