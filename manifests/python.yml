@@ -252,7 +252,7 @@ tests/:
       test_rules.py:
         Test_CommandInjection:
           '*': v1.2.1
-          ffastapi: v2.4.0.dev1
+          fastapi: v2.4.0.dev1
         Test_DiscoveryScan:
           '*': v0.58.5
           fastapi: v2.4.0.dev1
