@@ -36,9 +36,9 @@ class Test_First_Trace_Telemetry:
             },
         ],
     )
-    def test_first_trace_telemetry(self, library_env, test_agent, test_library):
+    def test_first_trace_telemetry_propagated(self, library_env, test_agent, test_library):
         """
-        When a trace is emitted
+        When instrumentation data is propagated to the library
             The first trace should contain telemetry for calculating how long it took to emit the first trace.
         """
         with test_library.start_span("first_span"):
@@ -75,6 +75,33 @@ class Test_First_Trace_Telemetry:
             install_id == library_env["DD_INSTRUMENTATION_INSTALL_ID"]
         ), "Install id should be the propagated value, got {}".format(install_id)
 
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_first_trace_telemetry_not_propagated(self, library_env, test_agent, test_library):
+        """
+        When instrumentation data is not propagated to the library
+            The first trace should not contain telemetry as the Agent will add it when not present.
+        """
+        with test_library.start_span("first_span"):
+            pass
+
+        traces = test_agent.wait_for_num_traces(num=1)
+
+        assert (
+            "_dd.install.time" not in traces[0][0]["meta"]
+        ), "The installation time should not be included in the first span of the first trace, got {}".format(
+            traces[0][0]["meta"]["_dd.install.time"]
+        )
+        assert (
+            "_dd.install.type" not in traces[0][0]["meta"]
+        ), "The installation type should not be included in the first span of the first trace, got {}".format(
+            traces[0][0]["meta"]["_dd.install.type"]
+        )
+        assert (
+            "_dd.install.id" not in traces[0][0]["meta"]
+        ), "The installation id should not be included in the first span of the first trace, got {}".format(
+            traces[0][0]["meta"]
+        )
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -86,7 +113,7 @@ class Test_First_Trace_Telemetry:
             },
         ],
     )
-    def test_telemetry_event(self, library_env, test_agent, test_library):
+    def test_telemetry_event_propagated(self, library_env, test_agent, test_library):
         """Ensure the installation ID is included in the app-started telemetry event.
 
         The installation ID is generated as soon as possible in the APM installation process. It is propagated
@@ -126,3 +153,28 @@ class Test_First_Trace_Telemetry:
             ), "The install time should be included in all telemetry events, got {}".format(
                 req["headers"]["DD-Agent-Install-Time"]
             )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_telemetry_event_not_propagated(self, library_env, test_agent, test_library):
+        """
+        When instrumentation data is not propagated to the library
+            The telemetry event should not contain telemetry as the Agent will add it when not present.
+        """
+
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_event("app-started")
+        requests = test_agent.raw_telemetry(clear=True)
+        assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
+        for req in requests:
+            assert (
+                "DD-Agent-Install-Id" not in req["headers"]
+            ), "The install id should not be included when not propagated, got headers {}".format(req["headers"])
+            assert (
+                "DD-Agent-Install-Type" not in req["headers"]
+            ), "The install type should not be included when not propagated, got headers {}".format(req["headers"])
+            assert (
+                "DD-Agent-Install-Time" not in req["headers"]
+            ), "The install time should not be included when not propagated, got headers {}".format(req["headers"])
