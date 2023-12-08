@@ -112,7 +112,19 @@ TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sa
 
 #### PHP
 
-If you are seeing DNS resolution issues when running the tests locally, add the following config to the Docker daemon:
+##### To run with a custom build
+
+- Download `datadog-setup.php` in `build packages/package extension` job on CI
+- Copy it in the binaries folder
+
+##### Then run the tests
+
+From the repo root folder:
+
+- `./build.sh -i runner`
+- `TEST_LIBRARY=php ./run.sh PARAMETRIC` or `TEST_LIBRARY=php ./run.sh PARAMETRIC -k <my_test>`
+
+> :warning: **If you are seeing DNS resolution issues when running the tests locally**, add the following config to the Docker daemon:
 
 ```json
   "dns-opts": [
