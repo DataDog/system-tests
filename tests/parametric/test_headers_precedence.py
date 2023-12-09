@@ -87,19 +87,6 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 
 @scenarios.parametric
 class Test_Headers_Precedence:
-    @missing_feature(context.library == "dotnet", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
-    @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
-    @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
-    @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "python_http", reason="New 'datadog' default hasn't been implemented yet")
-    @irrelevant(context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator")
-    @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
-    def test_headers_precedence_propagationstyle_legacy(self, test_agent, test_library):
-        self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
-
     @enable_datadog()
     def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
         with test_library:
@@ -211,14 +198,12 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
-    @bug(context.library == "cpp", reason="Issue: traceparent not being injected")
-    @bug(context.library == "nodejs", reason="Issue: headers4 is incorrectly using the x-datadog-trace-id by default")
-    @missing_feature(
-        context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration"
+    @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
+    @irrelevant(
+        context.library == "nodejs", reason="Issue: tracecontext,Datadog is no longer the default configuration"
     )
-    @missing_feature(
-        context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration"
-    )
+    @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
+    @irrelevant(context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
@@ -484,11 +469,11 @@ class Test_Headers_Precedence:
         assert "x-datadog-sampling-priority" not in headers6
 
     @missing_feature(context.library < "java@1.24.0", reason="Implemented from 1.24.0")
-    @missing_feature(context.library == "ruby", reason="library does not yet implement this default configuration")
-    @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
+    @missing_feature(context.library < "ruby@1.17.0", reason="Implemented from 1.17.0")
+    @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
+    @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
     @irrelevant(context.library == "dotnet", reason="library does not implement this default configuration")
     @irrelevant(context.library == "golang", reason="library does not implement this default configuration")
-    @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
     @irrelevant(context.library == "php", reason="library does not implement this default configuration")
     @irrelevant(context.library == "python", reason="library does not implement this default configuration")
     @irrelevant(context.library == "python_http", reason="library does not implement this default configuration")
@@ -640,12 +625,12 @@ class Test_Headers_Precedence:
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
     @missing_feature(context.library == "dotnet", reason="dotnet must implement new tracestate propagation")
-    @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
-    @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
-    @missing_feature(context.library < "python@2.3.3", reason="python must implement new tracestate propagation")
-    @missing_feature(context.library < "python_http@2.3.3", reason="python must implement new tracestate propagation")
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
+    @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
+    @missing_feature(context.library < "php@0.94.0", reason="Implemented in 0.94.0")
+    @missing_feature(context.library < "python@2.3.3", reason="Implemented in 2.3.3")
+    @missing_feature(context.library < "python_http@2.3.3", reason="Implemented in 2.3.3")
+    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
+    @missing_feature(context.library < "ruby@1.17.0", reason="Implemented in 1.17.0")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):
@@ -655,7 +640,7 @@ class Test_Headers_Precedence:
 
     @enable_datadog_b3multi_tracecontext_extract_first_true()
     @bug(context.library == "cpp", reason="Legacy behaviour")
-    @bug(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
+    @bug(context.library < "php@0.94.0", reason="Legacy behaviour: Fixed order instead of order of definition")
     @bug(
         context.library < "golang@1.57.0",
         reason="Legacy behaviour: tracecontext propagator would always take precedence",
