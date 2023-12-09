@@ -245,10 +245,14 @@ def otel_start_span(args: OtelStartSpanArgs):
     else:
         parent_span = None
 
+    # Python SpanKind enum starts at 0 whereas the proto spec used here starts at 1
+    # skin_kind = 0 is used for UNSPECIFIED in test library, we handle it as INTERNAL
+    span_kind = args.span_kind - 1 if args.span_kind > 0 else 0
+
     otel_span = otel_tracer.start_span(
         args.name,
         context=set_span_in_context(parent_span),
-        kind=SpanKind(args.span_kind),
+        kind=SpanKind(span_kind),
         attributes=args.attributes,
         links=None,
         # parametric tests expect timestamps to be set in microseconds (required by go)

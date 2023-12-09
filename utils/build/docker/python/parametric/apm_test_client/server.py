@@ -145,11 +145,15 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
                 )
             )
 
+        # Python SpanKind enum starts at 0 whereas the proto spec used here starts at 1
+        # skin_kind = 0 is used for UNSPECIFIED in test library, we handle it as INTERNAL
+        span_kind = request.span_kind - 1 if request.span_kind > 0 else 0
+
         otel_tracer = opentelemetry.trace.get_tracer(__name__)
         otel_span = otel_tracer.start_span(
             request.name,  # type: str
             context=set_span_in_context(parent_span),
-            kind=SpanKind(request.span_kind),
+            kind=SpanKind(span_kind),
             attributes=self._get_attributes_from_request(request),
             links=None,
             # parametric tests expect timestamps to be set in microseconds (required by go)

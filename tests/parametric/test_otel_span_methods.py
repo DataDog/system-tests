@@ -24,7 +24,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_start_span(self, test_agent, test_library):
         """
@@ -51,7 +50,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
         """
@@ -75,7 +73,6 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "ruby", reason="Old array encoding no longer supported")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_attributes_different_types(self, test_agent, test_library):
         """
