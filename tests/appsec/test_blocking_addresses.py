@@ -711,7 +711,7 @@ class Test_BlockingGraphqlResolvers:
             headers={"Content-Type": "application/json"},
             data=json.dumps(
                 {
-                    "query": "query getUserByName($name: String) { userByName(name: $name) @case(format: \"testblockresolver\") { id name }}",
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testblockresolver") { id name }}',
                     "variables": {"name": "test"},
                     "operationName": "getUserByName",
                 }
