@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage
+from utils import coverage, features
 
 
 @coverage.not_testable
@@ -11,6 +11,7 @@ class Test_InstallationInstructions:
 
 
 @coverage.not_testable
+@features.procedure_to_debug_install
 class Test_InstallationDebugProcedure:
     """Procedure to debug install"""
 

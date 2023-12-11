@@ -2,9 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces
+from utils import context, weblog, interfaces, features
 
 
+@features.unix_domain_sockets_support_for_traces
 class Test_Backend:
     """Misc test around agent/backend communication"""
 
@@ -13,6 +14,7 @@ class Test_Backend:
         interfaces.agent.assert_use_domain(context.dd_site)
 
 
+@features.unix_domain_sockets_support_for_traces
 class Test_Library:
     """Misc test around library/agent communication"""
 
