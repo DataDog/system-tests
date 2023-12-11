@@ -662,11 +662,15 @@ class Test_BlockingGraphqlResolvers:
             assert meta["appsec.event"] == "true"
             assert "_dd.appsec.json" in meta
             rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
-            assert rule_triggered["rule"]["id"] == "monitor-resolvers"
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
             assert (
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
+            )
+            assert (
+                rule_triggered["rule"]["id"] == "monitor-resolvers"
+                if parameters["address"] == "graphql.server.resolver"
+                else "monitor-all-resolvers"
             )
             assert (
                 parameters["key_path"] == ["userByName", "name"]
@@ -698,11 +702,15 @@ class Test_BlockingGraphqlResolvers:
             assert meta["appsec.event"] == "true"
             assert "_dd.appsec.json" in meta
             rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
-            assert rule_triggered["rule"]["id"] == "block-resolvers"
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
             assert (
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
+            )
+            assert (
+                rule_triggered["rule"]["id"] == "block-resolvers"
+                if parameters["address"] == "graphql.server.resolver"
+                else "block-all-resolvers"
             )
             assert (
                 parameters["key_path"] == ["userByName", "name"]
