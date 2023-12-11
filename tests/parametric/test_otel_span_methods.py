@@ -71,7 +71,7 @@ class Test_Otel_Span_Methods:
         context.library == "java",
         reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
     )
-    @irrelevant(context.library < "golang@v1.59.0", reason="Old array encoding no longer supported")
+    @irrelevant(context.library >= "golang@v1.59.0", reason="New span naming introduced in v1.59.0")
     @irrelevant(context.library == "ruby", reason="Old array encoding no longer supported")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
@@ -146,6 +146,10 @@ class Test_Otel_Span_Methods:
     @missing_feature(
         context.library < "java@1.24.0",
         reason="New array encoding implemented in 1.22.0 and new operation name mapping in 1.24.0",
+    )
+    @missing_feature(
+        context.library < "golang@1.59.0",
+        reason="New naming breaks old tests, so only run old tests on previous versions.",
     )
     @missing_feature(
         context.library == "nodejs", reason="New operation name mapping & array encoding not yet implemented"
