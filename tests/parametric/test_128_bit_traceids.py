@@ -487,6 +487,7 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "python", reason="inconsistent_tid is not implemented for w3c")
+    @missing_feature(context.library == "python_http", reason="inconsistent_tid is not implemented for w3c")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -534,6 +535,7 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "python", reason="malformed_tid is not implemented")
+    @missing_feature(context.library == "python_http", reason="malformed_tid is not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
