@@ -612,6 +612,16 @@ class EndToEndScenario(_DockerScenario):
 
         return result
 
+    @property
+    def components(self):
+        return {
+            "agent": self.agent_version,
+            "library": self.library.version,
+            "php_appsec": self.php_appsec,
+            "libddwaf": self.weblog_container.libddwaf_version,
+            "appsec_rules": self.appsec_rules_version,
+        }
+
 
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
@@ -1024,8 +1034,9 @@ class scenarios:
 
     default = EndToEndScenario(
         "DEFAULT",
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
         include_postgres_db=True,
-        doc="Default scenario, spwan tracer and agent, and run most of exisiting tests",
+        doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
     )
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
@@ -1043,7 +1054,7 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
-        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
+        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
     )
 
     crossed_tracing_libraries = EndToEndScenario(
@@ -1151,7 +1162,11 @@ class scenarios:
         doc="Appsec rule file with some errors",
     )
     appsec_disabled = EndToEndScenario(
-        "APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"}, appsec_enabled=False, doc="Disable appsec"
+        "APPSEC_DISABLED",
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
+        appsec_enabled=False,
+        include_postgres_db=True,
+        doc="Disable appsec and test DBM setting integration outcome when disabled",
     )
     appsec_low_waf_timeout = EndToEndScenario(
         "APPSEC_LOW_WAF_TIMEOUT", weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"}, doc="Appsec with a very low WAF timeout"

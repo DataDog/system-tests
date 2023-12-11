@@ -120,7 +120,8 @@ app.post('/trace/span/set_metric', (req, res) => {
   const spanId = args.span_id;
   const key = args.key;
   const value = args.value;
-  spans[spanId].setMetric(key, value);
+  const span = spans[spanId];
+  span.setTag(key, value);
   res.json({});
 });
 

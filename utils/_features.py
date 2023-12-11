@@ -121,7 +121,7 @@ class features:
     onboarding = _feature(154)
     deactivate_rules_using_rc = _feature(157)
     shell_execution_tracing = _feature(158)
-    userid_blocking = _feature(160)
+    appsec_userid_blocking = _feature(160)
     custom_business_logic_events = _feature(161)
     graphql_threats_detection = _feature(162)
     iast_sink_sql_injection = _feature(165)
