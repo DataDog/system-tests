@@ -1,6 +1,5 @@
 import os
 import json
-
 from utils.tools import logger
 from datetime import datetime, timedelta
 
@@ -22,6 +21,7 @@ class TestedVirtualMachine:
         installation_check_data,
         provision_scenario,
         uninstall,
+        env,
     ) -> None:
         self.ec2_data = ec2_data
         self.agent_install_data = agent_install_data
@@ -43,9 +43,35 @@ class TestedVirtualMachine:
         self.components = None
         # Uninstall process after install all software requirements
         self.uninstall = uninstall
-
+        self.env = env
         self.ami_id = None
         self.ami_name = None
+        self.pytestmark = self._configure_pytest_mark()
+
+    def _configure_pytest_mark(self):
+        """ Mark test as skip. We won't create this ec2 instance """
+        # Skip arm platform for production
+        if self.env == "prod" and "os_arch" in self.ec2_data and self.ec2_data["os_arch"] == "arm":
+            logger.warn(f" Support for ARM architecture has not been released yet")
+            return "missing_feature: ARM features haven't released yet"
+
+        if (
+            "os_arch" in self.ec2_data
+            and self.ec2_data["os_arch"] == "arm"
+            and "buildpack" in self.weblog_install_data["name"]
+        ):
+            logger.warn(f" WEBLOG: {self.weblog_install_data['name']} doesn't support ARM architecture")
+            return "missing_feature: Buildpack is not supported for ARM"
+
+        if (
+            "os_arch" in self.ec2_data
+            and self.ec2_data["os_arch"] == "arm"
+            and "alpine" in self.weblog_install_data["name"]
+        ):
+            logger.warn(f"[bug][WEBLOG:  {self.weblog_install_data['name']}] doesn't support ARM architecture")
+            return "bug: Error loading shared library ld-linux-aarch64.so"
+
+        return None
 
     def configure(self):
         self.datadog_config = DataDogConfig()
@@ -60,11 +86,15 @@ class TestedVirtualMachine:
         from utils.onboarding.pulumi_ssh import PulumiSSH
         from utils.onboarding.pulumi_utils import remote_install, pulumi_logger, remote_docker_login
 
+        if self.pytestmark is not None:
+            logger.warn(f"Skipping warmup for {self.name} due has mark {self.pytestmark}")
+            return
+
         self.configure()
         # Startup VM and prepare connection
         server = aws.ec2.Instance(
             self.name,
-            instance_type=self.aws_infra_config.instance_type,
+            instance_type=self.ec2_data["instance_type"],
             vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
             subnet_id=self.aws_infra_config.subnet_id,
             key_name=PulumiSSH.keypair_name,
@@ -201,6 +231,7 @@ class TestedVirtualMachine:
             output_callback=lambda command_output: self.set_components(command_output),
         )
 
+        # self.weblog_install_data["install"]["debug_command"]="sudo docker-compose logs"
         # Build weblog app
         weblog_runner = remote_install(
             connection,
@@ -262,6 +293,9 @@ class TestedVirtualMachine:
         self.components = json.loads(components_json.replace("'", '"'))
 
     def get_component(self, component_name):
+        if component_name is None or self.components is None or not component_name in self.components:
+            return None
+
         raw_version = self.components[component_name]
         # Workaround clean "Epoch" from debian packages.
         # The format is: [epoch:]upstream_version[-debian_revision]
@@ -271,8 +305,6 @@ class TestedVirtualMachine:
 
     def _configure_ami(self):
         import pulumi_aws as aws
-
-        # import pulumi
 
         # Configure name
         self.ami_name = self.name
@@ -330,7 +362,6 @@ class AWSInfraConfig:
         # Mandatory parameters
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
-        self.instance_type = os.getenv("ONBOARDING_AWS_INFRA_INSTANCE_TYPE", "t2.medium")
 
         if None in (self.subnet_id, self.vpc_security_group_ids):
             logger.warn("AWS infastructure is not configured correctly for auto-injection testing")

@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/dd-trace-rb/ruby:2.4.10-dd
+FROM ghcr.io/datadog/dd-trace-rb/ruby:2.7.6-dd
 
 RUN mkdir -p /app
 WORKDIR /app

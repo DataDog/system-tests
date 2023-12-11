@@ -132,11 +132,11 @@ class Test_Skips:
         assert f"{BASE_PATH}::Test_Class::test_irrelevant_method => irrelevant => skipped\n" in logs
 
     def test_flaky(self):
-        assert is_skipped(Test_FlakyClass, "known bug (flaky)")
-        assert is_skipped(Test_Class.test_flaky_method, "known bug (flaky)")
+        assert is_skipped(Test_FlakyClass, "flaky")
+        assert is_skipped(Test_Class.test_flaky_method, "flaky")
 
-        assert f"{BASE_PATH}::Test_FlakyClass::test_method => known bug (flaky) => skipped\n" in logs
-        assert f"{BASE_PATH}::Test_Class::test_flaky_method => known bug (flaky) => skipped\n" in logs
+        assert f"{BASE_PATH}::Test_FlakyClass::test_method => flaky => skipped\n" in logs
+        assert f"{BASE_PATH}::Test_Class::test_flaky_method => flaky => skipped\n" in logs
 
     def test_regular(self):
         assert is_not_skipped(Test_Class)
@@ -150,7 +150,7 @@ class Test_Skips:
         assert is_skipped(Test_Class.test_skipping_prio2, "missing_feature: not yet done")
 
     def test_bug(self):
-        assert is_skipped(Test_BugClass, "known bug")
+        assert is_skipped(Test_BugClass, "bug")
         assert Test_BugClass.executed, "Bug decorator execute the test"
 
     def test_not_released(self):

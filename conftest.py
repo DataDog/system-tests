@@ -41,6 +41,18 @@ def pytest_addoption(parser):
     parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
     parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
 
+    # report data to feature parity dashboard
+    parser.addoption(
+        "--report-run-url",
+        type=str,
+        action="store",
+        default="https://github.com/DataDog/system-tests",
+        help="URI of the run who produced the report",
+    )
+    parser.addoption(
+        "--report-environment", type=str, action="store", default="local", help="The environment the test is run under",
+    )
+
 
 def pytest_configure(config):
     # First of all, we must get the current scenario
@@ -402,3 +414,52 @@ def pytest_sessionfinish(session, exitstatus):
         junit_modifyreport(
             _JSON_REPORT_FILE(), _XML_REPORT_FILE(), junit_properties=context.scenario.get_junit_properties(),
         )
+
+        export_feature_parity_dashbaord(session)
+
+
+def export_feature_parity_dashbaord(session):
+    data = session.config._json_report.report  # pylint: disable=protected-access
+
+    result = {
+        "runUrl": session.config.option.report_run_url,
+        "runDate": data["created"],
+        "environment": session.config.option.report_environment,
+        "testSource": "systemtests",
+        "language": context.scenario.library.library,
+        "variant": context.scenario.weblog_variant,
+        "testedDependencies": [
+            {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
+        ],
+        "scenario": context.scenario.name,
+        "tests": [convert_test_to_feature_parity_model(test) for test in data["tests"]],
+    }
+
+    with open(f"{context.scenario.host_log_folder}/feature_parity.json", "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2)
+
+
+def convert_test_to_feature_parity_model(test):
+    result = {
+        "path": test["nodeid"],
+        "lineNumber": test["lineno"],
+        "outcome": test["outcome"],
+        "testDeclaration": None,
+        "details": test["skip_reason"],
+        "features": test["metadata"]["features"],
+    }
+
+    if result["details"] is None:
+        result["testDeclaration"] = None
+    elif result["details"].startswith("irrelevant"):
+        result["testDeclaration"] = "irrelevant"
+    elif result["details"].startswith("flaky"):
+        result["testDeclaration"] = "flaky"
+    elif result["details"].startswith("bug"):
+        result["testDeclaration"] = "bug"
+    elif result["details"].startswith("missing_feature"):
+        result["testDeclaration"] = "notImplemented"
+    else:
+        raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
+
+    return result
