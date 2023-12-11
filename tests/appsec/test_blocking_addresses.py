@@ -716,6 +716,7 @@ class Test_MonitoringGraphqlResolvers:
     # IMPORTANT -- When adding new test cases here, be sure to also add blocking assertions in
     # Test_BlockingGraphqlResolvers below (unless the new test case is not relevant for blocking at all).
 
+
 @scenarios.appsec_blocking
 @coverage.good
 class Test_BlockingGraphqlResolvers(Test_MonitoringGraphqlResolvers):
