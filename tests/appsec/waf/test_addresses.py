@@ -432,10 +432,7 @@ class Test_GraphQL:
     def test_request_monitor_attack(self):
         """Verify that the request triggered a resolver attack event"""
         interfaces.library.assert_waf_attack(
-            self.r_attack,
-            rule="monitor-resolvers",
-            key_path=["userByName", "name"],
-            value="testattack",
+            self.r_attack, rule="monitor-resolvers", key_path=["userByName", "name"], value="testattack",
         )
 
     def setup_request_monitor_attack_directive(self):
@@ -457,10 +454,7 @@ class Test_GraphQL:
     def test_request_monitor_attack_directive(self):
         """Verify that the request triggered a directive attack event"""
         interfaces.library.assert_waf_attack(
-            self.r_attack,
-            rule="block-resolvers",
-            key_path=["userByName", "case", "format"],
-            value="testblockresolver",
+            self.r_attack, rule="block-resolvers", key_path=["userByName", "case", "format"], value="testblockresolver",
         )
 
 
