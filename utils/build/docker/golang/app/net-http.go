@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"time"
-	"os"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -266,6 +266,8 @@ func main() {
 		}
 		w.Write([]byte(content))
 	})
+
+	mux.Handle("/graphql", NewGraphQLHandler())
 
 	initDatadog()
 	go listenAndServeGRPC()

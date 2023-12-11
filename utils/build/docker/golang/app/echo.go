@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 
@@ -149,6 +149,12 @@ func main() {
 		}
 
 		return ctx.String(http.StatusOK, string(content))
+	})
+
+	gql := NewGraphQLHandler()
+	r.POST("/graphql", func(ctx echo.Context) error {
+		gql.ServeHTTP(ctx.Response(), ctx.Request())
+		return nil
 	})
 
 	initDatadog()

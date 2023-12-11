@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -143,6 +143,11 @@ func main() {
 			ctx.Writer.WriteHeader(500)
 		}
 		ctx.Writer.Write(content)
+	})
+
+	gql := NewGraphQLHandler()
+	r.POST("/graphql", func(ctx *gin.Context) {
+		gql.ServeHTTP(ctx.Writer, ctx.Request)
 	})
 
 	initDatadog()

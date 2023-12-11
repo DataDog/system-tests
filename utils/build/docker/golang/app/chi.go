@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 
@@ -190,6 +190,8 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
+
+	mux.Handle("/graphql", NewGraphQLHandler())
 
 	initDatadog()
 	go listenAndServeGRPC()
