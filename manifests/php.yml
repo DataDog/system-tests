@@ -15,7 +15,7 @@ tests/:
         Test_BodyJson: missing_feature
         Test_BodyXml: missing_feature
         Test_ClientIP: missing_feature
-        Test_Headers: v0.68.3  # probably sooner, but was flaky 
+        Test_Headers: v0.68.3  # probably sooner, but was flaky
         Test_Method: missing_feature
         Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
       test_rules.py:
@@ -30,6 +30,7 @@ tests/:
       Test_Login_Events: v0.89.0
       Test_Login_Events_Extended: v0.89.0
     test_blocking_addresses.py:
+      Test_MonitoringGraphqlResolvers: missing_feature
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
       Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)

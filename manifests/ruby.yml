@@ -21,7 +21,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature          
+          Test_HardcodedSecrets: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -137,6 +137,7 @@ tests/:
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.0.0
+      Test_MonitoringGraphqlResolvers: missing_feature
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_cookies: v1.0.0

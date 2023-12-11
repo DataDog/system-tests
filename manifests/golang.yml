@@ -23,8 +23,8 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature          
-        test_hsts_missing_header.py: 
+          Test_HardcodedSecrets: missing_feature
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
@@ -56,7 +56,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -205,8 +205,12 @@ tests/:
       Test_Login_Events_Extended: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
+      Test_MonitoringGraphqlResolvers:
+        '*': missing_feature
+        net-http: irrelevant
       Test_BlockingGraphqlResolvers:
         '*': missing_feature
+        net-http: irrelevant
       Test_Blocking_request_body: missing_feature
       Test_Blocking_request_cookies:
         '*': v1.51.0
