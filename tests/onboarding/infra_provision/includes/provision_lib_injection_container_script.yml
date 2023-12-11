@@ -1,4 +1,4 @@
-#nstallation for lib-injeciton packages
+#installation for lib-injection packages, using install script
 - os_type: linux
   copy_files:
       - name: copy-auto-install-script

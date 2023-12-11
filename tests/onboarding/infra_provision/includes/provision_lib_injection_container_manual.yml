@@ -1,4 +1,4 @@
-#Manual installation for lib-injeciton packages
+#Manual installation for lib-injection packages
 - os_type: linux
   os_distro: deb
   copy_files:
