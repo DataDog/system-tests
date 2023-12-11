@@ -5,6 +5,7 @@ import (
 
 	graphql "github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
+	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/graph-gophers/graphql-go"
 )
 
 const schema = `
@@ -22,7 +23,7 @@ type User {
 `
 
 func NewGraphQLHandler() http.Handler {
-	schema := graphql.MustParseSchema(schema, &query{})
+	schema := graphql.MustParseSchema(schema, &query{}, graphql.Tracer(graphqltrace.NewTracer()))
 
 	return &relay.Handler{Schema: schema}
 }
