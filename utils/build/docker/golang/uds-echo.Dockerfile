@@ -22,7 +22,7 @@ COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 
-RUN go build -v -tags appsec -o weblog ./echo.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
+RUN go build -v -tags appsec -o weblog ./echo.go ./common.go ./graphql.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
 
 ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
 ENV UDS_WEBLOG=1

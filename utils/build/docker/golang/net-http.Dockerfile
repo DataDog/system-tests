@@ -20,7 +20,7 @@ COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 
-RUN go build -v -tags appsec -o weblog ./net-http.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
+RUN go build -v -tags appsec -o weblog ./net-http.go ./common.go ./graphql.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
 
 RUN echo "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh
