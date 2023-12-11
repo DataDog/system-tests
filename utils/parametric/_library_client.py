@@ -203,7 +203,6 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "attributes": attributes or {},
             },
         ).json()
-        span_id = resp["span_id"]
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
