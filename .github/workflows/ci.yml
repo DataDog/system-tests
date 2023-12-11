@@ -33,9 +33,9 @@ jobs:
         fetch-depth: 0
     - name: (CI) Dependencies update check
       run: |
-        current_commit=`git log -n 1 --pretty=format:%H`
+        current_commit='git log -n 1 --pretty=format:%H'
         echo $current_commit
-        last_deps_mod_commit=`git log -n 1 --pretty=format:%H -- composer.json`
+        last_deps_mod_commit='git log -n 1 --pretty=format:%H -- composer.json'
         echo $last_deps_mod_commit
         if [ $current_commit == $last_deps_mod_commit ]; then echo USE_LOCK=0 > ci.conf; else echo USE_LOCK=1 > ci.conf; fi
 
