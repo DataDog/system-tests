@@ -33,6 +33,34 @@ jobs:
     - name: Run lints
       uses: ./.github/actions/lint_code
 
+  lint-fix:
+    if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: [lint]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # So we can update the PR
+    # This runs on failure, and only if the PR is not from a fork
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        persist-credentials: true # So we can `git push` once done...
+        ref: ${{ github.head_ref }}
+    - name: Install Runner
+      uses: ./.github/actions/install_runner
+    - name: Run format.sh
+      run: ./format.sh
+    - name: Configure git identity
+      run: |-
+        git config --global user.name "GitHub[bot] on behald of ${{ github.actor }}"
+        git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+    - name: Commit changes
+      run: |-
+        git add .
+        git commit -m "Automatically apply lint fixes"
+    - name: Update PR
+      run: git push origin HEAD:${{ github.head_ref }}
+
   test_the_test:
     strategy:
       matrix:
@@ -231,7 +259,7 @@ jobs:
         version:
         - prod
         - dev
-            
+
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
@@ -623,7 +651,7 @@ jobs:
         - library: nodejs_otel
           weblog: express4-otel
         version:
-        - prod        
+        - prod
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
@@ -642,7 +670,7 @@ jobs:
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} -i agent
 
     - name: Build weblog opentelemetry autoinstrumentation
-      if: always() 
+      if: always()
       id: build_otel
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} --weblog-variant ${{ matrix.variant.weblog }}
     - name: Run OTEL_INTEGRATIONS scenario
