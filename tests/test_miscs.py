@@ -2,9 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces
+from utils import weblog, interfaces, features
 
 
+@features.unix_domain_sockets_support_for_traces
 class Test_Basic:
     """ Make sure the spans endpoint is successful """
 
