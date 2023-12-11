@@ -404,7 +404,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
                 logs = data["response"]["content"]["data"]
                 # Log search can sometimes return wrong results. Retry if expected log is not present.
                 for log in logs:
-                    if rid in log["attributes"]["message"]:
+                    if log["attributes"].get("message") == f"Handle request with user agent: system_tests rid/{rid}":
                         return log
 
             time.sleep(sleep_interval_s)

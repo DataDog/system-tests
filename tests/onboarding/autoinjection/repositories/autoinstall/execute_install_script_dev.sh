@@ -6,7 +6,7 @@ INSTALL_AGENT="true"
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        dotnet|java|js|python) LIBRARY_LANG="$1";;
+        dotnet|java|js|python|ruby) LIBRARY_LANG="$1";;
         -l|--inject-mode) DD_APM_INSTRUMENTATION_ENABLED="$2"; shift ;;
         -w|--install-agent) INSTALL_AGENT="$2"; shift ;;
         *) echo "Invalid argument: ${1:-}"; exit 1 ;;

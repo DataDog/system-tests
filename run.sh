@@ -333,6 +333,17 @@ function main() {
         run_mode='docker'
     else
         run_mode='direct'
+
+        # if $DOCKER_HOST is not set, check if a non-default docker context is
+        # in use, and set DOCKER_HOST to its endpoint, so that the runner can
+        # appropriately use it without having to foray into the `docker context`
+        # stuff.
+        if [[ "${DOCKER_HOST:-}" == "" ]]; then
+            docker_context=$(docker context show)
+            if [[ "${docker_context}" != "default" ]]; then
+                export DOCKER_HOST=$(docker context inspect ${docker_context} -f '{{ .Endpoints.docker.Host }}')
+            fi
+        fi
     fi
 
     if [[ "${verbosity}" -gt 0 ]]; then
