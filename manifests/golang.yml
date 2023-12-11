@@ -96,7 +96,8 @@ tests/:
           echo: v1.36.0
           gin: v1.37.0
         Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
+        Test_GraphQL:
+          '*': v1.58.0 # TODO - This is actually still WIP
         Test_Headers:
           '*': v1.34.0
           chi: v1.36.0

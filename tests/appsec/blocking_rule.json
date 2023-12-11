@@ -498,7 +498,30 @@
       "id": "monitor-resolvers",
       "name": "Monitor Resolvers",
       "tags": {
-        "type": "monitor_resolver",
+        "type": "monitor_single_resolver",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "graphql.server.resolver"
+              }
+            ],
+            "data": "monitor_resolvers"
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": []
+    },
+    {
+      "id": "monitor-all-resolvers",
+      "name": "Monitor All Resolvers",
+      "tags": {
+        "type": "monitor_all_resolvers",
         "category": "attack_attempt"
       },
       "conditions": [
@@ -507,9 +530,6 @@
             "inputs": [
               {
                 "address": "graphql.server.all_resolvers"
-              },
-              {
-                "address": "graphql.server.resolver"
               }
             ],
             "data": "monitor_resolvers"

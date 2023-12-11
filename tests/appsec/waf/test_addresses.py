@@ -1,6 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from exceptiongroup import ExceptionGroup
 import json
 from utils import (
     weblog,
@@ -431,9 +432,26 @@ class Test_GraphQL:
 
     def test_request_monitor_attack(self):
         """Verify that the request triggered a resolver attack event"""
-        interfaces.library.assert_waf_attack(
-            self.r_attack, rule="monitor-resolvers", key_path=["userByName", "name"], value="testattack",
-        )
+        failures = []
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack, rule="monitor-resolvers", key_path=["userByName", "name"], value="testattack",
+            )
+        except Exception as e:
+            failures.append(e)
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack, rule="monitor-all-resolvers", key_path=["userByName", "0", "name"], value="testattack",
+            )
+        except Exception as e:
+            failures.append(e)
+
+        # At least one of the two assertions should have passed...
+        if len(failures) >= 2:
+            raise ExceptionGroup("At least one rule should have triggered", failures)
+
 
     def setup_request_monitor_attack_directive(self):
         """Set up a request with a directive-targeted attack"""
@@ -443,7 +461,7 @@ class Test_GraphQL:
             headers={"Content-Type": "application/json"},
             data=json.dumps(
                 {
-                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testblockresolver") { id name }}',
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testresolver") { id name }}',
                     "variables": {"name": "test"},
                     "operationName": "getUserByName",
                 }
@@ -453,9 +471,26 @@ class Test_GraphQL:
     @missing_feature()
     def test_request_monitor_attack_directive(self):
         """Verify that the request triggered a directive attack event"""
-        interfaces.library.assert_waf_attack(
-            self.r_attack, rule="block-resolvers", key_path=["userByName", "case", "format"], value="testblockresolver",
-        )
+        failures = []
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack, rule="monitor-resolvers", key_path=["userByName", "case", "format"], value="testresolver",
+            )
+        except Exception as e:
+            failures.append(e)
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack, rule="monitor-all-resolvers", key_path=["userByName", "0", "case", "format"], value="testresolver",
+            )
+        except Exception as e:
+            failures.append(e)
+
+        # At least one of the two assertions should have passed...
+        if len(failures) >= 2:
+            raise ExceptionGroup("At least one rule should have triggered", failures)
+
 
 
 @coverage.not_implemented

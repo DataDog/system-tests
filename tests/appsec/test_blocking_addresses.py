@@ -668,7 +668,7 @@ class Test_BlockingGraphqlResolvers:
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
             )
-            assert parameters["key_path"] == ["userByName", "name"]
+            assert parameters["key_path"] == ["userByName", "name"] if parameters["address"] == "graphql.server.resolver" else ["userByName", "0", "name"]
             assert parameters["value"] == "testattack"
 
     def setup_request_block_attack(self):
@@ -700,7 +700,7 @@ class Test_BlockingGraphqlResolvers:
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
             )
-            assert parameters["key_path"] == ["userByName", "name"]
+            assert parameters["key_path"] == ["userByName", "name"] if parameters["address"] == "graphql.server.resolver" else ["userByName", "0", "name"]
             assert parameters["value"] == "testblockresolver"
 
     def setup_request_block_attack_directive(self):
@@ -732,5 +732,5 @@ class Test_BlockingGraphqlResolvers:
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
             )
-            assert parameters["key_path"] == ["userByName", "case", "format"]
+            assert parameters["key_path"] == ["userByName", "case", "format"] if parameters["address"] == "graphql.server.resolver" else ["userByName", "0", "case", "format"]
             assert parameters["value"] == "testblockresolver"
