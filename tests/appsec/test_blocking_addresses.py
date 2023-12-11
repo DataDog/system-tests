@@ -667,13 +667,11 @@ class Test_BlockingGraphqlResolvers:
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
             )
-            assert (
-                rule_triggered["rule"]["id"] == "monitor-resolvers"
-                if parameters["address"] == "graphql.server.resolver"
-                else "monitor-all-resolvers"
+            assert rule_triggered["rule"]["id"] == (
+                "monitor-resolvers" if parameters["address"] == "graphql.server.resolver" else "monitor-all-resolvers"
             )
-            assert (
-                parameters["key_path"] == ["userByName", "name"]
+            assert parameters["key_path"] == (
+                ["userByName", "name"]
                 if parameters["address"] == "graphql.server.resolver"
                 else ["userByName", "0", "name"]
             )
@@ -707,13 +705,11 @@ class Test_BlockingGraphqlResolvers:
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
             )
-            assert (
-                rule_triggered["rule"]["id"] == "block-resolvers"
-                if parameters["address"] == "graphql.server.resolver"
-                else "block-all-resolvers"
+            assert rule_triggered["rule"]["id"] == (
+                "block-resolvers" if parameters["address"] == "graphql.server.resolver" else "block-all-resolvers"
             )
-            assert (
-                parameters["key_path"] == ["userByName", "name"]
+            assert parameters["key_path"] == (
+                ["userByName", "name"]
                 if parameters["address"] == "graphql.server.resolver"
                 else ["userByName", "0", "name"]
             )
