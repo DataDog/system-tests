@@ -339,9 +339,14 @@ function main() {
         # appropriately use it without having to foray into the `docker context`
         # stuff.
         if [[ "${DOCKER_HOST:-}" == "" ]]; then
-            docker_context=$(docker context show)
+            # The Docker CLI may be absent, or it may not support
+            # `docker context`, so in case of an error we assume the default
+            # context is in use and we should not do anything further.
+            docker_context=$(docker context show || echo 'default')
+
             if [[ "${docker_context}" != "default" ]]; then
-                export DOCKER_HOST=$(docker context inspect ${docker_context} -f '{{ .Endpoints.docker.Host }}')
+                DOCKER_HOST=$(docker context inspect "${docker_context}" -f '{{ .Endpoints.docker.Host }}')
+                export DOCKER_HOST
             fi
         fi
     fi
