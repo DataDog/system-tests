@@ -2,7 +2,6 @@ import os
 import yaml
 from yamlinclude import YamlIncludeConstructor
 from utils._context.virtual_machines import TestedVirtualMachine
-from utils.tools import logger
 
 
 class ProvisionMatrix:
@@ -100,8 +99,8 @@ class ProvisionParser:
     def ec2_autoinjection_install_data(self):
         if self.is_auto_install:
             return self._filter_install_data(self.config_data["autoinjection_install_script"])[0]
-        else:
-            return self._filter_install_data(self.config_data["autoinjection_install_manual"])[0]
+
+        return self._filter_install_data(self.config_data["autoinjection_install_manual"])[0]
 
     def ec2_autoinjection_uninstall_data(self):
         return self._filter_install_data(self.config_data["autoinjection_install_manual"], operation="uninstall")
