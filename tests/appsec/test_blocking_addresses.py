@@ -717,8 +717,6 @@ class Test_MonitoringGraphqlResolvers:
     # Test_BlockingGraphqlResolvers below (unless the new test case is not relevant for blocking at all).
 
 
-@scenarios.appsec_blocking
-@coverage.good
 class Test_BlockingGraphqlResolvers(Test_MonitoringGraphqlResolvers):
     """Test if blocking is supported on graphql.server.all_resolvers / graphql.server.resolver addresses
 
