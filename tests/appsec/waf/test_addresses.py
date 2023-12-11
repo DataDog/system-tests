@@ -452,7 +452,6 @@ class Test_GraphQL:
         if len(failures) >= 2:
             raise ExceptionGroup("At least one rule should have triggered", failures)
 
-
     def setup_request_monitor_attack_directive(self):
         """Set up a request with a directive-targeted attack"""
 
@@ -475,14 +474,20 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack, rule="monitor-resolvers", key_path=["userByName", "case", "format"], value="testresolver",
+                self.r_attack,
+                rule="monitor-resolvers",
+                key_path=["userByName", "case", "format"],
+                value="testresolver",
             )
         except Exception as e:
             failures.append(e)
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack, rule="monitor-all-resolvers", key_path=["userByName", "0", "case", "format"], value="testresolver",
+                self.r_attack,
+                rule="monitor-all-resolvers",
+                key_path=["userByName", "0", "case", "format"],
+                value="testresolver",
             )
         except Exception as e:
             failures.append(e)
@@ -490,7 +495,6 @@ class Test_GraphQL:
         # At least one of the two assertions should have passed...
         if len(failures) >= 2:
             raise ExceptionGroup("At least one rule should have triggered", failures)
-
 
 
 @coverage.not_implemented
