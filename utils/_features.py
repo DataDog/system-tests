@@ -72,7 +72,7 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=6
         """
 
-        from utils import context
+        from utils._context.core import context
 
         if "uds" in context.weblog_variant:
             pytest.mark.features(feature_id=6)(test_object)
