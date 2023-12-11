@@ -617,16 +617,10 @@ class Test_Suspicious_Request_Blocking:
 
 @scenarios.appsec_blocking
 @coverage.good
-class Test_MonitoringGraphqlResolvers:
-    """Test if monitoring is supported on graphql.server.all_resolvers / graphql.server.resolver addresses.
+class Test_BlockingGraphqlResolvers:
+    """Test if blocking is supported on graphql.server.all_resolvers address"""
 
-    When adding new test cases to this class, be sure to also add blocking assertions in Test_BlockingGraphqlResolvers
-    below (unless the new test case is not relevant for blocking at all).
-    """
-
-    def setup_request_no_attack(self):
-        """Set up a request with no attacks, which should not trigger any event"""
-
+    def setup_request_non_blocking(self):
         self.r_no_attack = weblog.post(
             "/graphql",
             headers={"Content-Type": "application/json"},
@@ -639,16 +633,15 @@ class Test_MonitoringGraphqlResolvers:
             ),
         )
 
-    def test_request_no_attack(self):
-        """Verify that a request with no attack does not trigger any event"""
-
+    def test_request_non_blocking(self):
+        assert self.r_no_attack.status_code == 200
         for _, span in interfaces.library.get_root_spans(request=self.r_no_attack):
             meta = span.get("meta", {})
             assert "_dd.appsec.event" not in meta
             assert "_dd.appsec.json" not in meta
 
     def setup_request_monitor_attack(self):
-        """Set up a request with an resolver-targeted attack"""
+        """ Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",
@@ -663,8 +656,6 @@ class Test_MonitoringGraphqlResolvers:
         )
 
     def test_request_monitor_attack(self):
-        """Verify that the request triggered a resolver attack event"""
-
         assert self.r_attack.status_code == 200
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
@@ -680,8 +671,40 @@ class Test_MonitoringGraphqlResolvers:
             assert parameters["key_path"] == ["userByName", "name"]
             assert parameters["value"] == "testattack"
 
-    def setup_request_monitor_attack_directive(self):
-        """Set up a request with a directive-targeted attack"""
+    def setup_request_block_attack(self):
+        """ Currently only monitoring is implemented"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "testblockresolver"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    @missing_feature()
+    def test_request_block_attack(self):
+        assert self.r_attack.status_code == 403
+        for _, span in interfaces.library.get_root_spans(request=self.r_attack):
+            meta = span.get("meta", {})
+            assert meta["appsec.event"] == "true"
+            assert "_dd.appsec.json" in meta
+            rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
+            assert rule_triggered["rule"]["id"] == "block-resolvers"
+            parameters = rule_triggered["rule_matches"][0]["parameters"][0]
+            assert (
+                parameters["address"] == "graphql.server.all_resolvers"
+                or parameters["address"] == "graphql.server.resolver"
+            )
+            assert parameters["key_path"] == ["userByName", "name"]
+            assert parameters["value"] == "testblockresolver"
+
+    def setup_request_block_attack_directive(self):
+        """ Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",
@@ -696,9 +719,8 @@ class Test_MonitoringGraphqlResolvers:
         )
 
     @missing_feature()
-    def test_request_monitor_attack_directive(self):
-        """Verify that the request triggered a directive attack event"""
-
+    def test_request_block_attack_directive(self):
+        assert self.r_attack.status_code == 403
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             assert meta["appsec.event"] == "true"
@@ -712,27 +734,3 @@ class Test_MonitoringGraphqlResolvers:
             )
             assert parameters["key_path"] == ["userByName", "case", "format"]
             assert parameters["value"] == "testblockresolver"
-
-    # IMPORTANT -- When adding new test cases here, be sure to also add blocking assertions in
-    # Test_BlockingGraphqlResolvers below (unless the new test case is not relevant for blocking at all).
-
-
-class Test_BlockingGraphqlResolvers(Test_MonitoringGraphqlResolvers):
-    """Test if blocking is supported on graphql.server.all_resolvers / graphql.server.resolver addresses
-
-    This works by augmenting Test_MonitoringGraphqlResolvers with status code assertions.
-    """
-
-    def test_request_monitor_attack(self):
-        assert self.r_attack.status_code == 200
-        super().test_request_monitor_attack()
-
-    @missing_feature()
-    def test_request_block_attack(self):
-        assert self.r_attack.status_code == 403
-        super().test_request_block_attack()
-
-    @missing_feature()
-    def test_request_block_attack_directive(self):
-        assert self.r_attack.status_code == 403
-        super().test_request_block_attack_directive()

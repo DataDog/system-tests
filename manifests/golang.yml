@@ -205,9 +205,6 @@ tests/:
       Test_Login_Events_Extended: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
-      Test_MonitoringGraphqlResolvers:
-        '*': missing_feature
-        net-http: irrelevant
       Test_BlockingGraphqlResolvers:
         '*': missing_feature
         net-http: irrelevant

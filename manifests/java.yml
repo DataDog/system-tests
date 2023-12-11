@@ -531,7 +531,6 @@ tests/:
         uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
-      Test_MonitoringGraphqlResolvers: missing_feature
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
         '*': v1.15.0

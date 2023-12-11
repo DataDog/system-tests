@@ -1,6 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+import json
 from utils import (
     weblog,
     bug,
@@ -408,9 +409,59 @@ class Test_FullGrpc:
     """Full gRPC support"""
 
 
-@coverage.not_implemented
+@coverage.good
+@scenarios.appsec_blocking
 class Test_GraphQL:
     """GraphQL support"""
+
+    def setup_request_monitor_attack(self):
+        """Set up a request with a resolver-targeted attack"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "testattack"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_monitor_attack(self):
+        """Verify that the request triggered a resolver attack event"""
+        interfaces.library.assert_waf_attack(
+            self.r_attack,
+            rule="monitor-resolvers",
+            key_path=["userByName", "name"],
+            value="testattack",
+        )
+
+    def setup_request_monitor_attack_directive(self):
+        """Set up a request with a directive-targeted attack"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testblockresolver") { id name }}',
+                    "variables": {"name": "test"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    @missing_feature()
+    def test_request_monitor_attack_directive(self):
+        """Verify that the request triggered a directive attack event"""
+        interfaces.library.assert_waf_attack(
+            self.r_attack,
+            rule="block-resolvers",
+            key_path=["userByName", "case", "format"],
+            value="testblockresolver",
+        )
 
 
 @coverage.not_implemented
