@@ -341,7 +341,8 @@ function main() {
         if [[ "${DOCKER_HOST:-}" == "" ]]; then
             docker_context=$(docker context show)
             if [[ "${docker_context}" != "default" ]]; then
-                export DOCKER_HOST=$(docker context inspect ${docker_context} -f '{{ .Endpoints.docker.Host }}')
+                DOCKER_HOST=$(docker context inspect "${docker_context}" -f '{{ .Endpoints.docker.Host }}')
+                export DOCKER_HOST
             fi
         fi
     fi
