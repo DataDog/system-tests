@@ -1022,6 +1022,11 @@ class ParametricScenario(_Scenario):
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
         logger.stdout(f"Library: {self.library}")
 
+    def print_test_context(self):
+        super().print_test_context()
+
+        logger.stdout(f"Library: {self.library}")
+
     @property
     def library(self):
         return self._library
