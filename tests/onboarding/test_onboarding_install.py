@@ -44,23 +44,23 @@ class _OnboardingUninstallBaseTest:
             pass
 
 
-@scenarios.onboarding_container
-class TestOnboardingInstallContainer(_OnboardingInstallBaseTest):
+@scenarios.onboarding_container_install_manual
+class TestOnboardingInstallManualContainer(_OnboardingInstallBaseTest):
     pass
 
 
-@scenarios.onboarding_host
-class TestOnboardingInstallHost(_OnboardingInstallBaseTest):
+@scenarios.onboarding_host_install_manual
+class TestOnboardingInstallManualHost(_OnboardingInstallBaseTest):
     pass
 
 
-@scenarios.onboarding_host_auto_install
-class TestOnboardingInstallHostAutoInstall(_OnboardingInstallBaseTest):
+@scenarios.onboarding_host_install_script
+class TestOnboardingInstallScriptHost(_OnboardingInstallBaseTest):
     pass
 
 
-@scenarios.onboarding_container_auto_install
-class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
+@scenarios.onboarding_container_install_script
+class TestOnboardingInstallScriptContainer(_OnboardingInstallBaseTest):
     pass
 
 
