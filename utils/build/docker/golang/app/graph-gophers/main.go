@@ -37,6 +37,7 @@ func main() {
 	mux.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
 		// Store the user-agent in context so we can add it to spans later on...
 		r = r.WithContext(context.WithValue(r.Context(), userAgent{}, r.UserAgent()))
+
 		handler.ServeHTTP(w, r)
 	})
 
@@ -54,7 +55,7 @@ func main() {
 
 	common.InitDatadog()
 
-	http.ListenAndServe(":7777", mux)
+	panic(http.ListenAndServe(":7777", mux))
 }
 
 type userAgent struct{}

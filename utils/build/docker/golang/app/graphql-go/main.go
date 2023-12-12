@@ -74,7 +74,7 @@ func main() {
 
 	common.InitDatadog()
 
-	http.ListenAndServe(":7777", mux)
+	panic(http.ListenAndServe(":7777", mux))
 }
 
 type user struct {
