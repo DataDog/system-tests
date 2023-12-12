@@ -402,7 +402,7 @@ tests/:
       Test_AppSecEventSpanTags: v0.58.5
       Test_AppSecObfuscator:
         '*': v1.5.0rc1.dev
-        fastapi: v2.4.0.dev1
+        fastapi: bug (overwrite of waf reports, will be fixed with nested events)
       Test_CollectRespondHeaders:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
