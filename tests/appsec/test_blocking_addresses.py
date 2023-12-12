@@ -620,63 +620,6 @@ class Test_Suspicious_Request_Blocking:
 class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 
-    def setup_request_non_blocking(self):
-        self.r_no_attack = weblog.post(
-            "/graphql",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {
-                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
-                    "variables": {"name": "foo"},
-                    "operationName": "getUserByName",
-                }
-            ),
-        )
-
-    def test_request_non_blocking(self):
-        assert self.r_no_attack.status_code == 200
-        for _, span in interfaces.library.get_root_spans(request=self.r_no_attack):
-            meta = span.get("meta", {})
-            assert "_dd.appsec.event" not in meta
-            assert "_dd.appsec.json" not in meta
-
-    def setup_request_monitor_attack(self):
-        """ Currently only monitoring is implemented"""
-
-        self.r_attack = weblog.post(
-            "/graphql",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {
-                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
-                    "variables": {"name": "testattack"},
-                    "operationName": "getUserByName",
-                }
-            ),
-        )
-
-    def test_request_monitor_attack(self):
-        assert self.r_attack.status_code == 200
-        for _, span in interfaces.library.get_root_spans(request=self.r_attack):
-            meta = span.get("meta", {})
-            assert meta["appsec.event"] == "true"
-            assert "_dd.appsec.json" in meta
-            rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
-            parameters = rule_triggered["rule_matches"][0]["parameters"][0]
-            assert (
-                parameters["address"] == "graphql.server.all_resolvers"
-                or parameters["address"] == "graphql.server.resolver"
-            )
-            assert rule_triggered["rule"]["id"] == (
-                "monitor-resolvers" if parameters["address"] == "graphql.server.resolver" else "monitor-all-resolvers"
-            )
-            assert parameters["key_path"] == (
-                ["userByName", "name"]
-                if parameters["address"] == "graphql.server.resolver"
-                else ["userByName", "0", "name"]
-            )
-            assert parameters["value"] == "testattack"
-
     def setup_request_block_attack(self):
         """ Currently only monitoring is implemented"""
 

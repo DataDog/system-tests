@@ -417,6 +417,29 @@ class Test_FullGrpc:
 class Test_GraphQL:
     """GraphQL support"""
 
+    def setup_request_no_attack(self):
+        """Set up an innofensive request with no attacks"""
+
+        self.r_no_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "foo"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_no_attack(self):
+        """Verify that no AppSec event was reported"""
+
+        assert self.r_no_attack.status_code == 200  # There is no attack here!
+        interfaces.library.assert_no_appsec_event(
+            None  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
+        )
+
     def setup_request_monitor_attack(self):
         """Set up a request with a resolver-targeted attack"""
 
@@ -434,6 +457,9 @@ class Test_GraphQL:
 
     def test_request_monitor_attack(self):
         """Verify that the request triggered a resolver attack event"""
+
+        assert self.r_attack.status_code == 200  # This attack is never blocking
+
         failures = []
 
         try:
@@ -478,6 +504,9 @@ class Test_GraphQL:
     @missing_feature()
     def test_request_monitor_attack_directive(self):
         """Verify that the request triggered a directive attack event"""
+
+        assert self.r_attack.status_code == 200  # This attack is never blocking
+
         failures = []
 
         try:
