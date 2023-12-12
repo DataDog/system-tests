@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"weblog/gqlgen/graph"
 	"weblog/internal/common"
@@ -21,7 +22,11 @@ func main() {
 	srv.Use(graphqltrace.NewTracer())
 
 	mux := http.NewServeMux()
-	mux.Handle("/graphql", srv)
+	mux.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
+		// Store the user-agent in context so we can add it to spans later on...
+		r = r.WithContext(context.WithValue(r.Context(), graph.UserAgent{}, r.UserAgent()))
+		srv.ServeHTTP(w, r)
+	})
 
 	// The / endpoint is used as a weblog heartbeat
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"weblog/internal/common"
 
@@ -33,7 +34,11 @@ func main() {
 	handler := &relay.Handler{Schema: schema}
 
 	mux := http.NewServeMux()
-	mux.Handle("/graphql", handler)
+	mux.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
+		// Store the user-agent in context so we can add it to spans later on...
+		r = r.WithContext(context.WithValue(r.Context(), userAgent{}, r.UserAgent()))
+		handler.ServeHTTP(w, r)
+	})
 
 	// The / endpoint is used as a weblog heartbeat
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -52,16 +57,28 @@ func main() {
 	http.ListenAndServe(":7777", mux)
 }
 
+type userAgent struct{}
+
 type query struct{}
 
-func (query) User(args struct{ ID int32 }) *user {
+func (query) User(ctx context.Context, args struct{ ID int32 }) *user {
+	if span, found := tracer.SpanFromContext(ctx); found {
+		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
+		span.SetTag("http.request.headers.user-agent", ctx.Value(userAgent{}))
+	}
+
 	if name, found := users[args.ID]; found {
 		return &user{id: args.ID, name: name}
 	}
 	return nil
 }
 
-func (query) UserByName(args struct{ Name *string }) []*user {
+func (query) UserByName(ctx context.Context, args struct{ Name *string }) []*user {
+	if span, found := tracer.SpanFromContext(ctx); found {
+		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
+		span.SetTag("http.request.headers.user-agent", ctx.Value(userAgent{}))
+	}
+
 	if args.Name == nil {
 		args.Name = new(string)
 	}

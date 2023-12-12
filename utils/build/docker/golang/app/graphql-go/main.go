@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"weblog/internal/common"
 
@@ -54,7 +55,7 @@ func main() {
 		panic(err)
 	}
 
-	handler := handler.New(&handler.Config{Schema: &schema, Pretty: true})
+	handler := handler.New(&handler.Config{Schema: &schema, Pretty: true, GraphiQL: true, RootObjectFn: makeRootObject})
 
 	mux := http.NewServeMux()
 	mux.Handle("/graphql", handler)
@@ -88,6 +89,11 @@ var users = map[int]string{
 }
 
 func resolveUser(p graphql.ResolveParams) (any, error) {
+	if span, found := tracer.SpanFromContext(p.Context); found {
+		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
+		span.SetTag("http.request.headers.user-agent", p.Info.RootValue.(map[string]any)["user-agent"])
+	}
+
 	id := p.Args["id"].(int)
 	if name, found := users[id]; found {
 		return &user{ID: id, Name: name}, nil
@@ -96,6 +102,11 @@ func resolveUser(p graphql.ResolveParams) (any, error) {
 }
 
 func resolveUserByName(p graphql.ResolveParams) (any, error) {
+	if span, found := tracer.SpanFromContext(p.Context); found {
+		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
+		span.SetTag("http.request.headers.user-agent", p.Info.RootValue.(map[string]any)["user-agent"])
+	}
+
 	name := p.Args["name"]
 	if name == nil {
 		name = ""
@@ -111,4 +122,8 @@ func resolveUserByName(p graphql.ResolveParams) (any, error) {
 	}
 
 	return result, nil
+}
+
+func makeRootObject(ctx context.Context, r *http.Request) map[string]any {
+	return map[string]any{"user-agent": r.UserAgent()}
 }

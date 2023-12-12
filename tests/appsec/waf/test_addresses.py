@@ -436,9 +436,7 @@ class Test_GraphQL:
         """Verify that no AppSec event was reported"""
 
         assert self.r_no_attack.status_code == 200  # There is no attack here!
-        interfaces.library.assert_no_appsec_event(
-            None  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
-        )
+        interfaces.library.assert_no_appsec_event(self.r_no_attack)
 
     def setup_request_monitor_attack(self):
         """Set up a request with a resolver-targeted attack"""
@@ -464,20 +462,14 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                None,  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
-                rule="monitor-resolvers",
-                key_path=["userByName", "name"],
-                value="testattack",
+                self.r_attack, rule="monitor-resolvers", key_path=["userByName", "name"], value="testattack",
             )
         except ValueError as e:
             failures.append(e)
 
         try:
             interfaces.library.assert_waf_attack(
-                None,  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
-                rule="monitor-all-resolvers",
-                key_path=["userByName", "0", "name"],
-                value="testattack",
+                self.r_attack, rule="monitor-all-resolvers", key_path=["userByName", "0", "name"], value="testattack",
             )
         except ValueError as e:
             failures.append(e)
@@ -511,7 +503,7 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                None,  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
+                self.r_attack,
                 rule="monitor-resolvers",
                 key_path=["userByName", "case", "format"],
                 value="testresolver",
@@ -521,7 +513,7 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                None,  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
+                self.r_attack,
                 rule="monitor-all-resolvers",
                 key_path=["userByName", "0", "case", "format"],
                 value="testresolver",
