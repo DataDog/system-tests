@@ -1000,7 +1000,7 @@ class features:
         return test_object
 
     @staticmethod
-    def rate_limiter(test_object):
+    def appsec_rate_limiter(test_object):
         """
         Rate limiter
 
