@@ -38,7 +38,6 @@ class Test_128_Bit_Traceids:
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    #
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
