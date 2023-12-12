@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Test format specifications"""
+import json
 
 import requests
 
@@ -10,7 +11,7 @@ from jsonschema import validate, ValidationError
 from utils import weblog, interfaces, bug, context
 from utils.tools import logger
 
-SCHEMA_URL = "https://raw.githubusercontent.com/DataDog/schema/main/semantic-core/v1/agent_payload.json"
+SCHEMA_URL = "https://github.com/DataDog/schema/blob/fpaulo/SMTC-38_agent-payload-defs/semantic-core/v1/agent_payload.json"
 
 
 class Test_Library:
@@ -119,13 +120,17 @@ class Test_Agent:
         resp.raise_for_status()
         schema = resp.json()
 
-        logger.debug(f"using schema {schema}")
+        with open('/Users/rodrigo.arguello/go/src/github.com/DataDog/schema/semantic-core/v1/agent_payload.json') as json_file:
+            schema = json.load(json_file)
+
+        logger.debug(f"using schema {json.dumps(schema)}")
 
         for data in interfaces.agent.get_data():
             path = data["path"]
             if "traces" not in path:
                 continue
 
-            logger.debug(f"validating {data}")
+            logger.debug(f"validating {json.dumps(data)}")
             content = data["request"]["content"]
             validate(instance=content, schema=schema)
+            # raise Exception("just a test")
