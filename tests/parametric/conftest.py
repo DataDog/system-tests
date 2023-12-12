@@ -344,30 +344,21 @@ def ruby_library_factory() -> APMLibraryTestServer:
 
 
 def cpp_library_factory() -> APMLibraryTestServer:
-    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
+    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric", "http")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
+    dockerfile_content = ""
 
-    shutil.copyfile(
-        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-        os.path.join(cpp_absolute_appdir, "apm_test_client.proto"),
-    )
+    with open(os.path.join(cpp_appdir, "Dockerfile"), "r") as f:
+        dockerfile_content = f.read()
+
+    assert dockerfile_content
+
     return APMLibraryTestServer(
         lang="cpp",
-        protocol="grpc",
+        protocol="http",
         container_name="cpp-test-client",
         container_tag="cpp-test-client",
-        container_img=f"""
-FROM datadog/docker-library:dd-trace-cpp-ci AS build
-RUN apt-get update && apt-get -y install pkg-config protobuf-compiler-grpc libgrpc++-dev libabsl-dev
-WORKDIR /cpp-parametric-test
-ADD CMakeLists.txt developer_noise.cpp developer_noise.h distributed_headers_dicts.h main.cpp scheduler.h tracing_service.cpp tracing_service.h /cpp-parametric-test/
-ADD apm_test_client.proto /cpp-parametric-test/test_proto3_optional/
-RUN mkdir .build && cd .build && cmake .. && cmake --build . -j $(nproc) && cmake --install .
-
-FROM ubuntu:22.04
-RUN apt-get update && apt-get -y install libgrpc++1 libprotobuf23
-COPY --from=build /usr/local/bin/cpp-parametric-test /usr/local/bin/cpp-parametric-test
-            """,
+        container_img=dockerfile_content,
         container_cmd=["cpp-parametric-test"],
         container_build_dir=cpp_absolute_appdir,
         container_build_context=cpp_absolute_appdir,
