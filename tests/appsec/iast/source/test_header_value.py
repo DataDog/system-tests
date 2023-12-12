@@ -24,15 +24,19 @@ class TestHeaderValue(BaseSourceTest):
     def test_source_reported(self):
         super().test_source_reported()
 
+    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(
-        context.library < "java@1.13.0"
-        or (context.library.library == "java" and not context.weblog_variant.startswith("spring-boot")),
-        reason="Not implemented",
+        context.library.library == "java" and "spring-boot" not in context.weblog_variant,
+        reason="Metrics not implemented",
     )
     @missing_feature(library="dotnet", reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @bug(library="java", reason="Not working as expected")
+    @missing_feature(context.library < "java@1.16.0", reason="Metrics not implemented")
+    @missing_feature(
+        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
+        reason="Metrics not implemented",
+    )
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

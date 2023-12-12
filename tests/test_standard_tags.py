@@ -280,6 +280,10 @@ class Test_StandardTagsClientIp:
         self._setup_with_attack()
 
     @bug(library="python", reason="cf-connecting-ipv6 seems to have higher precedence than it should")
+    @bug(
+        context.library < "java@1.11.0",
+        reason="X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878",
+    )
     def test_client_ip(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled"""
         meta = self._get_root_span_meta(self.request_with_attack)
@@ -292,6 +296,9 @@ class Test_StandardTagsClientIp:
         self._setup_without_attack()
 
     @bug(library="golang", reason="missing cf-connecting-ipv6")
+    @bug(
+        context.library < "java@1.11.0", reason="not supported, see https://github.com/DataDog/dd-trace-java/pull/4878"
+    )
     def test_client_ip_vendor(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled when using vendor headers"""
         self._test_client_ip(self.FORWARD_HEADERS_VENDOR)

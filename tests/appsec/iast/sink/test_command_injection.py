@@ -26,13 +26,13 @@ class TestCommandInjection(BaseSinkTest):
     def test_secure(self):
         super().test_secure()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()

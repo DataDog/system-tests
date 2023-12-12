@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, missing_feature, features
+from utils import bug, context, coverage, missing_feature, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
@@ -21,6 +21,10 @@ class TestSSRF(BaseSinkTest):
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
+
+    @bug(context.library < "java@1.14.0", reason="https://github.com/DataDog/dd-trace-java/pull/5172")
+    def test_insecure(self):
+        super().test_insecure()
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
     def test_secure(self):
