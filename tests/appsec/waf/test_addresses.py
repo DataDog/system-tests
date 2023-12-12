@@ -13,6 +13,7 @@ from utils import (
     missing_feature,
     rfc,
     scenarios,
+    features,
 )
 
 
@@ -411,7 +412,8 @@ class Test_FullGrpc:
 
 
 @coverage.good
-@scenarios.appsec_blocking
+@scenarios.graphql_appsec
+@features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""
 
@@ -436,21 +438,27 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack, rule="monitor-resolvers", key_path=["userByName", "name"], value="testattack",
+                None,  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
+                rule="monitor-resolvers",
+                key_path=["userByName", "name"],
+                value="testattack",
             )
-        except Exception as e:
+        except ValueError as e:
             failures.append(e)
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack, rule="monitor-all-resolvers", key_path=["userByName", "0", "name"], value="testattack",
+                None,  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
+                rule="monitor-all-resolvers",
+                key_path=["userByName", "0", "name"],
+                value="testattack",
             )
-        except Exception as e:
+        except ValueError as e:
             failures.append(e)
 
         # At least one of the two assertions should have passed...
         if len(failures) >= 2:
-            raise ExceptionGroup("At least one rule should have triggered", failures)
+            raise ExceptionGroup(f"At least one rule should have triggered\n- {failures[0]}\n- {failures[1]}", failures)
 
     def setup_request_monitor_attack_directive(self):
         """Set up a request with a directive-targeted attack"""
@@ -474,27 +482,27 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack,
+                None,  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
                 rule="monitor-resolvers",
                 key_path=["userByName", "case", "format"],
                 value="testresolver",
             )
-        except Exception as e:
+        except ValueError as e:
             failures.append(e)
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack,
+                None,  # The RID is tagged via user-agent, which isn't visible on GraphQL trace spans
                 rule="monitor-all-resolvers",
                 key_path=["userByName", "0", "case", "format"],
                 value="testresolver",
             )
-        except Exception as e:
+        except ValueError as e:
             failures.append(e)
 
         # At least one of the two assertions should have passed...
         if len(failures) >= 2:
-            raise ExceptionGroup("At least one rule should have triggered", failures)
+            raise ExceptionGroup(f"At least one rule should have triggered\n- {failures[0]}\n- {failures[1]}", failures)
 
 
 @coverage.not_implemented

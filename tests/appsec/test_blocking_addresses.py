@@ -615,8 +615,8 @@ class Test_Suspicious_Request_Blocking:
         # TODO
 
 
-@scenarios.appsec_blocking
 @coverage.good
+@scenarios.graphql_appsec
 class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 

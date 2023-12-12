@@ -2,10 +2,13 @@ package main
 
 import (
 	"net/http"
+	"weblog/internal/common"
+
+	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/graph-gophers/graphql-go"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	graphql "github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
-	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/graph-gophers/graphql-go"
 )
 
 const schema = `
@@ -22,10 +25,31 @@ type User {
 }
 `
 
-func NewGraphQLHandler() http.Handler {
-	schema := graphql.MustParseSchema(schema, &query{}, graphql.Tracer(graphqltrace.NewTracer()))
+func main() {
+	tracer.Start()
+	defer tracer.Stop()
 
-	return &relay.Handler{Schema: schema}
+	schema := graphql.MustParseSchema(schema, &query{}, graphql.Tracer(graphqltrace.NewTracer()))
+	handler := &relay.Handler{Schema: schema}
+
+	mux := http.NewServeMux()
+	mux.Handle("/graphql", handler)
+
+	// The / endpoint is used as a weblog heartbeat
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// "/" is the default route when the others don't match
+		// cf. documentation at https://pkg.go.dev/net/http#ServeMux
+		// Therefore, we need to check the URL path to only handle the `/` case
+		if r.URL.Path != "/" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+
+	common.InitDatadog()
+
+	http.ListenAndServe(":7777", mux)
 }
 
 type query struct{}

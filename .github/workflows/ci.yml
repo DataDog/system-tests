@@ -33,34 +33,6 @@ jobs:
     - name: Run lints
       uses: ./.github/actions/lint_code
 
-  lint-fix:
-    if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    needs: [lint]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # So we can update the PR
-    # This runs on failure, and only if the PR is not from a fork
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        persist-credentials: true # So we can `git push` once done...
-        ref: ${{ github.head_ref }}
-    - name: Install Runner
-      uses: ./.github/actions/install_runner
-    - name: Run format.sh
-      run: ./format.sh
-    - name: Configure git identity
-      run: |-
-        git config --global user.name "GitHub[bot] on behald of ${{ github.actor }}"
-        git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-    - name: Commit changes
-      run: |-
-        git add .
-        git commit -m "Automatically apply lint fixes"
-    - name: Update PR
-      run: git push origin HEAD:${{ github.head_ref }}
-
   test_the_test:
     strategy:
       matrix:
@@ -83,7 +55,7 @@ jobs:
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
-    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
+    uses: ./.github/workflows/compute-scenarios.yml
 
   parametric:
     if: needs.scenarios.outputs.run_parametric == 'true'
@@ -92,6 +64,15 @@ jobs:
     - test_the_test
     - scenarios
     uses: datadog/system-tests/.github/workflows/parametric.yml@main
+    secrets: inherit
+
+  graphql:
+    if: needs.scenarios.outputs.run_graphql == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: ./.github/workflows/graphql.yml
     secrets: inherit
 
   experimental:

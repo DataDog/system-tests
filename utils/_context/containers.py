@@ -137,8 +137,8 @@ class TestedContainer:
             self.execute_command(**self.healthcheck)
 
     def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
-        """ 
-            Execute a command inside a container. Usefull for healthcheck and warmups. 
+        """
+            Execute a command inside a container. Usefull for healthcheck and warmups.
             test is a command to be executed, interval, timeout and start_period are in us (microseconds)
         """
 

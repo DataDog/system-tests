@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"weblog/internal/common"
+	"weblog/internal/grpc"
 
 	"github.com/labstack/echo/v4"
 
@@ -151,14 +153,8 @@ func main() {
 		return ctx.String(http.StatusOK, string(content))
 	})
 
-	gql := NewGraphQLHandler()
-	r.POST("/graphql", func(ctx echo.Context) error {
-		gql.ServeHTTP(ctx.Response(), ctx.Request())
-		return nil
-	})
-
-	initDatadog()
-	go listenAndServeGRPC()
+	common.InitDatadog()
+	go grpc.ListenAndServe()
 	r.Start(":7777")
 }
 
@@ -173,7 +169,7 @@ func headers(c echo.Context) error {
 
 func waf(c echo.Context) error {
 	req := c.Request()
-	body, err := parseBody(req)
+	body, err := common.ParseBody(req)
 	if err == nil {
 		appsec.MonitorParsedHTTPBody(req.Context(), body)
 	}
