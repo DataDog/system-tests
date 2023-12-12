@@ -65,7 +65,7 @@ type query struct{}
 func (query) User(ctx context.Context, args struct{ ID int32 }) *user {
 	if span, found := tracer.SpanFromContext(ctx); found {
 		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.request.headers.user-agent", ctx.Value(userAgent{}))
+		span.SetTag("http.user_agent", ctx.Value(userAgent{}))
 	}
 
 	if name, found := users[args.ID]; found {
@@ -77,7 +77,7 @@ func (query) User(ctx context.Context, args struct{ ID int32 }) *user {
 func (query) UserByName(ctx context.Context, args struct{ Name *string }) []*user {
 	if span, found := tracer.SpanFromContext(ctx); found {
 		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.request.headers.user-agent", ctx.Value(userAgent{}))
+		span.SetTag("http.user_agent", ctx.Value(userAgent{}))
 	}
 
 	if args.Name == nil {

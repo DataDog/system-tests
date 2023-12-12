@@ -91,7 +91,7 @@ var users = map[int]string{
 func resolveUser(p graphql.ResolveParams) (any, error) {
 	if span, found := tracer.SpanFromContext(p.Context); found {
 		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.request.headers.user-agent", p.Info.RootValue.(map[string]any)["user-agent"])
+		span.SetTag("http.user_agent", p.Info.RootValue.(map[string]any)["user-agent"])
 	}
 
 	id := p.Args["id"].(int)
@@ -104,7 +104,7 @@ func resolveUser(p graphql.ResolveParams) (any, error) {
 func resolveUserByName(p graphql.ResolveParams) (any, error) {
 	if span, found := tracer.SpanFromContext(p.Context); found {
 		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.request.headers.user-agent", p.Info.RootValue.(map[string]any)["user-agent"])
+		span.SetTag("http.user_agent", p.Info.RootValue.(map[string]any)["user-agent"])
 	}
 
 	name := p.Args["name"]

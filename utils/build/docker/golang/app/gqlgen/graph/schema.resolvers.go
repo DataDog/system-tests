@@ -15,7 +15,7 @@ import (
 func (r *queryResolver) User(ctx context.Context, id int) (*model.User, error) {
 	if span, found := tracer.SpanFromContext(ctx); found {
 		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.request.headers.user-agent", ctx.Value(UserAgent{}))
+		span.SetTag("http.user_agent", ctx.Value(UserAgent{}))
 	}
 
 	if name, found := users[id]; found {
@@ -28,7 +28,7 @@ func (r *queryResolver) User(ctx context.Context, id int) (*model.User, error) {
 func (r *queryResolver) UserByName(ctx context.Context, name *string) ([]*model.User, error) {
 	if span, found := tracer.SpanFromContext(ctx); found {
 		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.request.headers.user-agent", ctx.Value(UserAgent{}))
+		span.SetTag("http.user_agent", ctx.Value(UserAgent{}))
 	}
 
 	if name == nil {

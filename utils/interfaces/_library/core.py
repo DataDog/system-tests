@@ -51,7 +51,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         rid = get_rid_from_request(request)
 
         if rid:
-            logger.debug(f"Try to found traces related to request {rid}")
+            logger.debug(f"Try to find traces related to request {rid}")
 
         for data in self.get_data(path_filters=paths):
             traces = data["request"]["content"]
@@ -72,7 +72,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         rid = get_rid_from_request(request)
 
         if rid:
-            logger.debug(f"Try to found spans related to request {rid}")
+            logger.debug(f"Try to find spans related to request {rid}")
 
         for data, trace in self.get_traces(request=request):
             for span in trace:
