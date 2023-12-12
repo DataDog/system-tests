@@ -428,6 +428,7 @@ class Test_Telemetry:
     @irrelevant(library="python")
     @irrelevant(library="php")
     @irrelevant(library="java")
+    @irrelevant(library="nodejs")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
