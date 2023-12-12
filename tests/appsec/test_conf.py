@@ -25,7 +25,7 @@ class Test_StaticRuleSet:
     @missing_feature(library="php", reason="Rules file is not parsed")
     @missing_feature(library="nodejs", reason="Rules file is not parsed")
     def test_basic_hardcoded_ruleset(self):
-        """Library has loaded a hardcoded AppSec ruleset"""
+        """ Library has loaded a hardcoded AppSec ruleset"""
         stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
@@ -33,7 +33,7 @@ class Test_StaticRuleSet:
 @coverage.basic
 @features.threats_configuration
 class Test_RuleSet_1_2_4:
-    """AppSec uses rule set 1.2.4 or higher"""
+    """ AppSec uses rule set 1.2.4 or higher """
 
     def test_main(self):
         assert context.appsec_rules_version >= "1.2.4"
@@ -42,7 +42,7 @@ class Test_RuleSet_1_2_4:
 @coverage.basic
 @features.threats_configuration
 class Test_RuleSet_1_2_5:
-    """AppSec uses rule set 1.2.5 or higher"""
+    """ AppSec uses rule set 1.2.5 or higher """
 
     def test_main(self):
         assert context.appsec_rules_version >= "1.2.5"
@@ -51,10 +51,10 @@ class Test_RuleSet_1_2_5:
 @coverage.good
 @features.threats_configuration
 class Test_RuleSet_1_3_1:
-    """AppSec uses rule set 1.3.1 or higher"""
+    """ AppSec uses rule set 1.3.1 or higher """
 
     def test_main(self):
-        """Test rule set version number"""
+        """ Test rule set version number"""
         assert context.appsec_rules_version >= "1.3.1"
 
     def setup_nosqli_keys(self):
@@ -67,12 +67,8 @@ class Test_RuleSet_1_3_1:
     def setup_nosqli_keys_with_brackets(self):
         self.r_keys2 = weblog.get("/waf/", params={"[$ne]": "value"})
 
-    @irrelevant(
-        library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed",
-    )
-    @irrelevant(
-        library="nodejs", reason="Node interprets brackets as arrays, so they're truncated",
-    )
+    @irrelevant(library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed")
+    @irrelevant(library="nodejs", reason="Node interprets brackets as arrays, so they're truncated")
     def test_nosqli_keys_with_brackets(self):
         """Test a rule defined on this rules version: nosql on keys with brackets"""
         interfaces.library.assert_waf_attack(self.r_keys2, rules.nosql_injection.crs_942_290)
@@ -82,7 +78,7 @@ class Test_RuleSet_1_3_1:
 @coverage.basic
 @features.threats_configuration
 class Test_ConfigurationVariables:
-    """Configuration environment variables"""
+    """ Configuration environment variables """
 
     SECRET = "This-value-is-secret"
 
@@ -93,22 +89,20 @@ class Test_ConfigurationVariables:
         self.r_enabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_enabled(self):
-        """test DD_APPSEC_ENABLED = true"""
+        """ test DD_APPSEC_ENABLED = true """
         interfaces.library.assert_waf_attack(self.r_enabled)
 
     def setup_disabled(self):
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @irrelevant(
-        library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack",
-    )
+    @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
     @missing_feature(
         context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21", "uds-sinatra"],
         reason="Conf is done in weblog instead of library",
     )
     @scenarios.appsec_disabled
     def test_disabled(self):
-        """test DD_APPSEC_ENABLED = false"""
+        """ test DD_APPSEC_ENABLED = false """
         interfaces.library.assert_no_appsec_event(self.r_disabled)
 
     def setup_appsec_rules(self):
@@ -116,7 +110,7 @@ class Test_ConfigurationVariables:
 
     @scenarios.appsec_custom_rules
     def test_appsec_rules(self):
-        """test DD_APPSEC_RULES = custom rules file"""
+        """ test DD_APPSEC_RULES = custom rules file """
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
@@ -128,7 +122,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
-        """test DD_APPSEC_WAF_TIMEOUT = low value"""
+        """ test DD_APPSEC_WAF_TIMEOUT = low value """
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_obfuscation_parameter_key(self):
@@ -138,7 +132,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_key(self):
-        """test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
+        """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             assert not nested_lookup(
@@ -156,7 +150,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_value(self):
-        """test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
+        """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             assert not nested_lookup(

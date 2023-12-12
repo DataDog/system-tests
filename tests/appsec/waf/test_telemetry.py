@@ -1,13 +1,4 @@
-from utils import (
-    interfaces,
-    rfc,
-    weblog,
-    scenarios,
-    context,
-    bug,
-    missing_feature,
-    flaky,
-)
+from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -26,7 +17,7 @@ def _setup(self):
     r_triggered = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
     r_blocked = weblog.get(
         "/",
-        headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block",},
+        headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
         # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
         rid_in_user_agent=False,
     )
@@ -34,7 +25,7 @@ def _setup(self):
 
 
 class Test_TelemetryResponses:
-    """Test response from backend/agent"""
+    """ Test response from backend/agent """
 
     setup_all_telemetry_requests_are_successful = _setup
 
@@ -77,10 +68,7 @@ class Test_TelemetryMetrics:
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
-        if context.library == "python" and context.weblog_variant not in [
-            "fastapi",
-            "uwsgi-poc",
-        ]:
+        if context.library == "python" and context.weblog_variant not in ("fastapi", "uwsgi-poc"):
             assert len(series) == 2
         else:
             assert len(series) == 1
@@ -92,7 +80,7 @@ class Test_TelemetryMetrics:
 
         full_tags = set(s["tags"])
         self._assert_valid_tags(
-            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes,
+            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
         )
 
         assert len(s["points"]) == 1
@@ -126,7 +114,7 @@ class Test_TelemetryMetrics:
 
         full_tags = set(s["tags"])
         self._assert_valid_tags(
-            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes,
+            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
         )
 
         assert len(s["points"]) == 1
@@ -174,7 +162,7 @@ class Test_TelemetryMetrics:
 
             full_tags = set(s["tags"])
             self._assert_valid_tags(
-                full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes,
+                full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
             )
 
             if len(full_tags & {"request_blocked:false", "rule_triggered:false"}) == 2:
