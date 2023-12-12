@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, bug
+from utils import coverage, bug, missing_feature, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
 @coverage.basic
+@features.iast_source_cookie_name
 class TestCookieName(BaseSourceTest):
     """Verify that request cookies are tainted"""
 
@@ -16,6 +17,7 @@ class TestCookieName(BaseSourceTest):
     source_names = ["user"]
     source_value = "user"
 
+    @missing_feature(library="dotnet", reason="Not implemented")
     @bug(library="java", reason="Not working as expected")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()

@@ -11,6 +11,9 @@ Type=simple
 
 Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
 Environment=ASPNETCORE_URLS=http://+:5985
+Environment=DOTNET_DbgEnableMiniDump=1
+Environment=DOTNET_DbgMiniDumpType=4
+
 WorkingDirectory=/home/datadog/publish
 ExecStart=/bin/bash -c 'dotnet MinimalWebApp.dll'
 ExecStop=/bin/kill -15 $MAINPID
