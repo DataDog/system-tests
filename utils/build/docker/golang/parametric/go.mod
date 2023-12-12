@@ -52,4 +52,4 @@ require (
 	inet.af/netaddr v0.0.0-20230525184311-b8eac61e914a // indirect
 )
 
-// replace gopkg.in/DataDog/dd-trace-go.v1 => ./dd-trace-go
+// replace github.com/DataDog/dd-trace-go/v2 => ./dd-trace-go
