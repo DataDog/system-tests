@@ -77,9 +77,11 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
-    def test_otel_set_attributes_different_types(self, test_agent, test_library):
+    def test_otel_set_attributes_different_types_legacy(self, test_agent, test_library):
         """
             - Set attributes of multiple types for an otel span
+            This tests legacy behavior. The new behavior is tested in
+            test_otel_set_attributes_different_types_with_array_encoding
         """
         start_time = int(time.time())
         with test_library:
