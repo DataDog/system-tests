@@ -31,6 +31,7 @@ class Test_404:
 
 @scenarios.appsec_custom_rules
 @coverage.basic
+@features.http_threats_management
 class Test_MultipleHighlight:
     """Appsec reports multiple attacks on same request"""
 
