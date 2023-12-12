@@ -210,7 +210,7 @@ elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
 
     # TODO(darccio): remove @$ref on v2 release
-    COMMIT_ID=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/dario.castane/AIT-8717/isolate-contribs-batch-5 | jq --raw-output '.commit.sha')
+    COMMIT_ID=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/v2-dev | jq --raw-output '.commit.sha')
 
     echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
     echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get
