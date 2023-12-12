@@ -181,7 +181,7 @@ tests/:
         Test_ClientIP: v1.5.0rc1.dev
         Test_Cookies:
           django-poc: v1.1.0rc2.dev
-          fastapi: missing_feature
+          fastapi: v2.4.0.dev1
           flask-poc: v1.4.0rc1.dev
           pylons: v1.1.0rc2.dev
           python3.12: v1.1.0rc2.dev
