@@ -221,8 +221,11 @@ def _validate_headers(headers, request_type):
         "DD-Client-Library-Version": "",
     }
 
-    if context.library == "python" or context.library == "nodejs":
-        # APM Python and Node.js migrate Telemetry to V2
+    if context.library == "python":
+        # APM Python migrates Telemetry to V2
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    elif context.library == "nodejs":
+        # APM Node.js migrates Telemetry to V2
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     elif context.library >= "java@1.23.0":
         expected_headers["DD-Telemetry-API-Version"] = "v2"
