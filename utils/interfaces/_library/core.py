@@ -65,10 +65,12 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                             break
 
     def get_spans(self, request=None, full_trace=False):
-        """
-        Iterate over all spans reported by the tracer to the agent.
-        If request is not None and full_trace is False, only span trigered by this request will be returned.
-        If request is not None and full_trace is True, all spans from a trace triggered by this request will be returned.
+        """Iterate over all spans reported by the tracer to the agent.
+
+        If request is not None and full_trace is False, only span trigered by that request will be
+        returned.
+        If request is not None and full_trace is True, all spans from a trace triggered by that
+        request will be returned.
         """
         rid = get_rid_from_request(request)
 
