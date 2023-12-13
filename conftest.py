@@ -122,7 +122,10 @@ def _collect_item_metadata(item):
     if hasattr(item.obj, "__rfc__"):
         result["rfcs"][item.nodeid] = getattr(item.obj, "__rfc__")
 
-    for marker in item.iter_markers():
+    # get the reason form skip before xfail
+    markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
+
+    for marker in markers:
         result["skip_reason"] = _get_skip_reason_from_marker(marker)
         if result["skip_reason"]:
             logger.debug(f"{item.nodeid} => {result['skip_reason']} => skipped")
@@ -232,21 +235,7 @@ def pytest_deselected(items):
 
 
 def _item_is_skipped(item):
-    for marker in item.own_markers:
-        if marker.name in ("skip",):
-            return True
-
-    for marker in item.parent.own_markers:
-        if marker.name in ("skip",):
-            return True
-
-    # for test methods in classes, item.parent.parent is the module
-    if item.parent.parent:
-        for marker in item.parent.parent.own_markers:
-            if marker.name in ("skip",):
-                return True
-
-    return False
+    return any(item.iter_markers("skip"))
 
 
 def pytest_collection_finish(session):
