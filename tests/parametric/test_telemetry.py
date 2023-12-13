@@ -1,6 +1,6 @@
 import pytest
 
-from utils import rfc, scenarios
+from utils import context, rfc, scenarios
 
 
 @scenarios.parametric
@@ -33,6 +33,9 @@ class Test_Defaults:
             ("appsec_enabled", "false"),
             ("data_streams_enabled", "false"),
         ]:
+            # The Go tracer does not support logs injection.
+            if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
+                continue
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
@@ -76,6 +79,9 @@ class Test_Environment:
             ("appsec_enabled", "false"),
             ("data_streams_enabled", "false"),
         ]:
+            # The Go tracer does not support logs injection.
+            if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
+                continue
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(apm_telemetry_name)
