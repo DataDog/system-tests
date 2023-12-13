@@ -500,14 +500,14 @@ class Test_Otel_Span_Methods:
             ("something-else", None),
             (True, 1),
             (False, 0),
-            ('t', 1),
-            ('T', 1),
-            ('f', 0),
-            ('F', 0),
-            ('1', 1),
-            ('0', 0),
+            ("t", 1),
+            ("T", 1),
+            ("f", 0),
+            ("F", 0),
+            ("1", 1),
+            ("0", 0),
             ("fAlse", None),
-            ("trUe", None)
+            ("trUe", None),
         ],
     )
     def test_otel_span_reserved_attributes_overrides_analytics_event(
