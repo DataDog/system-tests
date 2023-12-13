@@ -462,14 +462,22 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack, rule="monitor-resolvers", key_path=["userByName", "name"], value="testattack",
+                self.r_attack,
+                rule="monitor-resolvers",
+                key_path=["userByName", "name"],
+                value="testattack",
+                full_trace=True,
             )
         except ValueError as e:
             failures.append(e)
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack, rule="monitor-all-resolvers", key_path=["userByName", "0", "name"], value="testattack",
+                self.r_attack,
+                rule="monitor-all-resolvers",
+                key_path=["userByName", "0", "name"],
+                value="testattack",
+                full_trace=True,
             )
         except ValueError as e:
             failures.append(e)
@@ -507,6 +515,7 @@ class Test_GraphQL:
                 rule="monitor-resolvers",
                 key_path=["userByName", "case", "format"],
                 value="testresolver",
+                full_trace=True,
             )
         except ValueError as e:
             failures.append(e)
@@ -517,6 +526,7 @@ class Test_GraphQL:
                 rule="monitor-all-resolvers",
                 key_path=["userByName", "0", "case", "format"],
                 value="testresolver",
+                full_trace=True,
             )
         except ValueError as e:
             failures.append(e)

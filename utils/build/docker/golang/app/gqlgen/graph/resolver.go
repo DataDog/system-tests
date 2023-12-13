@@ -6,8 +6,6 @@ package graph
 
 type Resolver struct{}
 
-type UserAgent struct{}
-
 var users = map[int]string{
 	1: "foo",
 	2: "bar",

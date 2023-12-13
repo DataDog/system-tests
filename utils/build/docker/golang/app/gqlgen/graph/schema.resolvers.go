@@ -7,17 +7,10 @@ package graph
 import (
 	"context"
 	"weblog/gqlgen/graph/model"
-
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id int) (*model.User, error) {
-	if span, found := tracer.SpanFromContext(ctx); found {
-		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.user_agent", ctx.Value(UserAgent{}))
-	}
-
 	if name, found := users[id]; found {
 		return &model.User{ID: id, Name: name}, nil
 	}
@@ -26,11 +19,6 @@ func (r *queryResolver) User(ctx context.Context, id int) (*model.User, error) {
 
 // UserByName is the resolver for the userByName field.
 func (r *queryResolver) UserByName(ctx context.Context, name *string) ([]*model.User, error) {
-	if span, found := tracer.SpanFromContext(ctx); found {
-		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.user_agent", ctx.Value(UserAgent{}))
-	}
-
 	if name == nil {
 		name = new(string)
 	}

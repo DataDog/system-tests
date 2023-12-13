@@ -1,11 +1,11 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"weblog/internal/common"
 
 	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/graphql-go/graphql"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/graphql-go/graphql"
@@ -55,9 +55,9 @@ func main() {
 		panic(err)
 	}
 
-	handler := handler.New(&handler.Config{Schema: &schema, Pretty: true, GraphiQL: true, RootObjectFn: makeRootObject})
+	handler := handler.New(&handler.Config{Schema: &schema, Pretty: true, GraphiQL: true})
 
-	mux := http.NewServeMux()
+	mux := httptrace.NewServeMux()
 	mux.Handle("/graphql", handler)
 
 	// The / endpoint is used as a weblog heartbeat
@@ -89,11 +89,6 @@ var users = map[int]string{
 }
 
 func resolveUser(p graphql.ResolveParams) (any, error) {
-	if span, found := tracer.SpanFromContext(p.Context); found {
-		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.user_agent", p.Info.RootValue.(map[string]any)["user-agent"])
-	}
-
 	id := p.Args["id"].(int)
 	if name, found := users[id]; found {
 		return &user{ID: id, Name: name}, nil
@@ -102,11 +97,6 @@ func resolveUser(p graphql.ResolveParams) (any, error) {
 }
 
 func resolveUserByName(p graphql.ResolveParams) (any, error) {
-	if span, found := tracer.SpanFromContext(p.Context); found {
-		// Hack: the System-Tests rely on user-agent to filter spans for a given request... so we slap it on the span here.
-		span.SetTag("http.user_agent", p.Info.RootValue.(map[string]any)["user-agent"])
-	}
-
 	name := p.Args["name"]
 	if name == nil {
 		name = ""
@@ -122,8 +112,4 @@ func resolveUserByName(p graphql.ResolveParams) (any, error) {
 	}
 
 	return result, nil
-}
-
-func makeRootObject(ctx context.Context, r *http.Request) map[string]any {
-	return map[string]any{"user-agent": r.UserAgent()}
 }
