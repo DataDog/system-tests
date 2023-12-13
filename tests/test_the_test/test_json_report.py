@@ -3,7 +3,9 @@ import json
 import pytest
 from utils.tools import logger
 
-from utils import missing_feature, irrelevant, coverage, scenarios, rfc, features
+from utils import missing_feature, irrelevant, coverage, scenarios, rfc, features, bug
+
+pytestmark = pytest.mark.features(feature_id=666)
 
 
 @scenarios.test_the_test
@@ -123,10 +125,15 @@ class Test_Json_Report:
 
     def test_feature_id(self):
         test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock::test_mock")
-        assert test["metadata"]["features"] == [74, 13]
+        assert test["metadata"]["features"] == [13, 74, 666]
 
         test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature")
-        assert test["metadata"]["features"] == [74, 13, 75]
+        assert test["metadata"]["features"] == [75, 13, 74, 666]
+
+    def test_skip_reason(self):
+        """ the skip reason must be the closest to the test method"""
+        test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock2::test_skipped")
+        assert test["metadata"]["skip_reason"] == "bug: local reason"
 
 
 @scenarios.mock_the_test
@@ -146,4 +153,12 @@ class Test_Mock:
 
     @irrelevant(True, reason="irrelevant")
     def test_irrelevant(self):
+        raise ValueError("Should not be executed")
+
+
+@scenarios.mock_the_test
+@bug(True, reason="global reason")
+class Test_Mock2:
+    @bug(True, reason="local reason")
+    def test_skipped(self):
         raise ValueError("Should not be executed")
