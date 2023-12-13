@@ -497,16 +497,24 @@ class Test_Otel_Span_Methods:
             ("false", 0),
             ("False", 0),
             ("FALSE", 0),
-            ("something-else", 0),
+            ("something-else", None),
             (True, 1),
             (False, 0),
+            ('t', 1),
+            ('T', 1),
+            ('f', 0),
+            ('F', 0),
+            ('1', 1),
+            ('0', 0),
+            ("fAlse", None),
+            ("trUe", None)
         ],
     )
     def test_otel_span_reserved_attributes_overrides_analytics_event(
         self, analytics_event_value: Union[bool, str], expected_metric_value: int, test_agent, test_library
     ):
         """
-            Tests that the analytics.event reserved attribute override
+            Tests that the analytics.event reserved attribute override with respect to Go's strconv.ParseBool
         """
         run_otel_span_reserved_attributes_overrides_analytics_event(
             analytics_event_value=analytics_event_value,
@@ -530,7 +538,7 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
 
 
 def run_otel_span_reserved_attributes_overrides_analytics_event(
-    analytics_event_value: Union[bool, str], expected_metric_value: int, test_agent, test_library
+    analytics_event_value: Union[bool, str], expected_metric_value: Union[str, None], test_agent, test_library
 ):
     with test_library:
         with test_library.otel_start_span("operation", span_kind=SK_SERVER) as span:
@@ -541,5 +549,8 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
     assert len(trace) == 1
 
     span = get_span(test_agent)
-    assert span["metrics"].get("_dd1.sr.eausr") == expected_metric_value
+    if expected_metric_value is not None:
+        assert span["metrics"].get("_dd1.sr.eausr") == expected_metric_value
+    else:
+        assert "_dd1.sr.eausr" not in span["metrics"]
     assert "analytics.event" not in span["meta"]
