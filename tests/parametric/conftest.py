@@ -151,13 +151,12 @@ RUN python3.9 -m pip install %s
 
 
 def node_library_factory() -> APMLibraryTestServer:
-
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
-        protocol="grpc",
+        protocol="http",
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
@@ -173,12 +172,6 @@ RUN npm install {node_module}
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_absolute_appdir,
         container_build_context=nodejs_absolute_appdir,
-        volumes=[
-            (
-                os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-                "/client/apm_test_client.proto",
-            ),
-        ],
         env={},
         port="",
     )
