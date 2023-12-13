@@ -5,10 +5,8 @@ from utils import coverage
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
-
 class Test_NotTestable:
     def test_main(self):
-
         @coverage.not_testable
         class Test_NotTestableSample:
             pass
@@ -20,7 +18,6 @@ class Test_NotTestable:
 
 class Test_NotImplemented:
     def test_main(self):
-
         @coverage.not_implemented
         class Test_NotImplementedSample:
             pass

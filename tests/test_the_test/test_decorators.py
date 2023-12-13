@@ -51,8 +51,6 @@ handler = logging.StreamHandler(stream=logs)
 logger.addHandler(handler)
 
 
-
-
 class Test_Class:
     @irrelevant(condition=False)
     @flaky(condition=False)
