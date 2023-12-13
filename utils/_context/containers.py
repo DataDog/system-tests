@@ -28,13 +28,17 @@ def _get_client():
         # better luck with docker contexts...
         try:
             ctx_name = run(["docker", "context", "show"], capture_output=True, check=True, text=True).stdout.strip()
-            endpoint = run(["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"], capture_output=True, check=True, text=True).stdout.strip()
+            endpoint = run(
+                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
+                capture_output=True,
+                check=True,
+                text=True,
+            ).stdout.strip()
             return docker.DockerClient(base_url=endpoint)
         except:
             pass
 
         raise e
-
 
 
 _NETWORK_NAME = "system-tests_default"
