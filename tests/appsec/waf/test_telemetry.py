@@ -223,7 +223,7 @@ def _validate_headers(headers, request_type):
 
     if context.library == "python":
         # APM Python migrates Telemetry to V2
-        # test
+        # test again
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     elif context.library >= "java@1.23.0":
         expected_headers["DD-Telemetry-API-Version"] = "v2"
