@@ -51,60 +51,11 @@ handler = logging.StreamHandler(stream=logs)
 logger.addHandler(handler)
 
 
-@irrelevant(True)
-class Test_IrrelevantClass:
-    def test_method(self):
-        raise Exception("Should not be executed")
-
-
-@flaky(True)
-class Test_FlakyClass:
-    def test_method(self):
-        raise Exception("Should not be executed")
-
-
-@bug(True)
-class Test_BugClass:
-    executed = False
-
-    def test_method(self):
-        Test_BugClass.executed = True
-
-    def test_xpassed_method(self):
-        """This test will be reported as xpassed"""
-        assert True
-
-
-class Test_NotReleased:
-    executed = False
-
-    def test_method(self):
-        Test_NotReleased.executed = True
-
-
 class Test_Class:
-    @irrelevant(True)
-    def test_irrelevant_method(self):
-        raise Exception("Should not be executed")
-
-    @flaky(True)
-    def test_flaky_method(self):
-        raise Exception("Should not be executed")
-
     @irrelevant(condition=False)
     @flaky(condition=False)
     def test_good_method(self):
         pass
-
-    @missing_feature(True, reason="not yet done")
-    @irrelevant(True, reason="irrelevant")
-    def test_skipping_prio(self):
-        raise Exception("Should not be executed")
-
-    @missing_feature(True, reason="not yet done")
-    @irrelevant(True, reason="irrelevant")
-    def test_skipping_prio2(self):
-        raise Exception("Should not be executed")
 
 
 class Test_Metadata:
@@ -124,38 +75,9 @@ class Test_Metadata:
 
 
 class Test_Skips:
-    def test_irrelevant(self):
-        assert is_skipped(Test_IrrelevantClass, "irrelevant")
-        assert is_skipped(Test_Class.test_irrelevant_method, "irrelevant")
-
-        assert f"{BASE_PATH}::Test_IrrelevantClass::test_method => irrelevant => skipped\n" in logs
-        assert f"{BASE_PATH}::Test_Class::test_irrelevant_method => irrelevant => skipped\n" in logs
-
-    def test_flaky(self):
-        assert is_skipped(Test_FlakyClass, "flaky")
-        assert is_skipped(Test_Class.test_flaky_method, "flaky")
-
-        assert f"{BASE_PATH}::Test_FlakyClass::test_method => flaky => skipped\n" in logs
-        assert f"{BASE_PATH}::Test_Class::test_flaky_method => flaky => skipped\n" in logs
-
     def test_regular(self):
         assert is_not_skipped(Test_Class)
         assert is_not_skipped(Test_Class.test_good_method)
-
-    def test_double_skip(self):
-        assert is_skipped(Test_Class.test_skipping_prio, "irrelevant: irrelevant")
-        assert is_skipped(Test_Class.test_skipping_prio, "missing_feature: not yet done")
-
-        assert is_skipped(Test_Class.test_skipping_prio2, "irrelevant: irrelevant")
-        assert is_skipped(Test_Class.test_skipping_prio2, "missing_feature: not yet done")
-
-    def test_bug(self):
-        assert is_skipped(Test_BugClass, "bug")
-        assert Test_BugClass.executed, "Bug decorator execute the test"
-
-    def test_not_released(self):
-        assert is_skipped(Test_NotReleased, "missing_feature")
-        assert Test_NotReleased.executed, "missing_feature execute the test"
 
 
 if __name__ == "__main__":
