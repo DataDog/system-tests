@@ -125,7 +125,7 @@ class Test_HeaderTags_Whitespace_Val_Long:
 
 
 @coverage.basic
-@scenarios.library_conf_custom_header_tags
+@scenarios.library_conf_custom_header_tags_invalid
 class Test_HeaderTags_Colon_Leading:
     """ Validates that Input to DD_TRACE_HEADER_TAGS with leading colon results in 0 additional span tags """
 
@@ -147,9 +147,9 @@ class Test_HeaderTags_Colon_Leading:
 
 
 @coverage.basic
-@scenarios.library_conf_custom_header_tags
+@scenarios.library_conf_custom_header_tags_invalid
 class Test_HeaderTags_Colon_Trailing:
-    """ Validates that Input to DD_TRACE_HEADER_TAGS with trailing colon results in 0 additional span tags """
+    """ Validates that DD_TRACE_HEADER_TAGS input that contains a leading or trailing colon results in 0 additional span tags """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_COLON_TRAILING: HEADER_VAL_BASIC}
