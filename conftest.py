@@ -18,6 +18,9 @@ from utils._decorators import released
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
 
+# pytest does not keep a trace of deselected items, so we keep it in a global variable
+_deselected_items = []
+
 
 def _JSON_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/report.json"
@@ -40,6 +43,18 @@ def pytest_addoption(parser):
     parser.addoption("--obd-weblog", type=str, action="store", help="Set onboarding weblog")
     parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
     parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
+
+    # report data to feature parity dashboard
+    parser.addoption(
+        "--report-run-url",
+        type=str,
+        action="store",
+        default="https://github.com/DataDog/system-tests",
+        help="URI of the run who produced the report",
+    )
+    parser.addoption(
+        "--report-environment", type=str, action="store", default="local", help="The environment the test is run under",
+    )
 
 
 def pytest_configure(config):
@@ -79,50 +94,47 @@ def pytest_sessionstart(session):
 # called when each test item is collected
 def _collect_item_metadata(item):
 
-    _docs = {}
-    _skip_reasons = {}
-    _release_versions = {}
-    _coverages = {}
-    _rfcs = {}
+    result = {
+        "docs": {},
+        "skip_reason": None,
+        "release_versions": {},
+        "coverages": {},
+        "rfcs": {},
+        "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
+    }
 
-    _docs[item.nodeid] = item.obj.__doc__
-    _docs[item.parent.nodeid] = item.parent.obj.__doc__
-
-    _release_versions[item.parent.nodeid] = getattr(item.parent.obj, "__released__", None)
-
-    if hasattr(item.parent.obj, "__coverage__"):
-        _coverages[item.parent.nodeid] = getattr(item.parent.obj, "__coverage__")
-
-    if hasattr(item.parent.obj, "__rfc__"):
-        _rfcs[item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
-    if hasattr(item.obj, "__rfc__"):
-        _rfcs[item.nodeid] = getattr(item.obj, "__rfc__")
+    result["docs"][item.nodeid] = item.obj.__doc__
+    result["docs"][item.parent.nodeid] = item.parent.obj.__doc__
 
     if hasattr(item.parent.parent, "obj"):
-        _docs[item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
+        result["docs"][item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
     else:
-        _docs[item.parent.parent.nodeid] = "Unexpected structure"
+        result["docs"][item.parent.parent.nodeid] = "Unexpected structure"
 
-    markers = item.own_markers
+    if released_declaration := getattr(item.parent.obj, "__released__", None):
+        result["release_versions"][item.parent.nodeid] = released_declaration
 
-    parent = item.parent
-    while parent is not None:
-        markers += parent.own_markers
-        parent = parent.parent
+    if hasattr(item.parent.obj, "__coverage__"):
+        result["coverages"][item.parent.nodeid] = getattr(item.parent.obj, "__coverage__")
 
-    for marker in reversed(markers):
-        skip_reason = _get_skip_reason_from_marker(marker)
-        if skip_reason:
-            logger.debug(f"{item.nodeid} => {skip_reason} => skipped")
-            _skip_reasons[item.nodeid] = skip_reason
+    if hasattr(item.parent.obj, "__rfc__"):
+        result["rfcs"][item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
+    if hasattr(item.obj, "__rfc__"):
+        result["rfcs"][item.nodeid] = getattr(item.obj, "__rfc__")
+
+    # get the reason form skip before xfail
+    markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
+
+    for marker in markers:
+        result["skip_reason"] = _get_skip_reason_from_marker(marker)
+        if result["skip_reason"]:
+            logger.debug(f"{item.nodeid} => {result['skip_reason']} => skipped")
             break
-    return {
-        "docs": _docs,
-        "skip_reasons": _skip_reasons,
-        "release_versions": _release_versions,
-        "coverages": _coverages,
-        "rfcs": _rfcs,
-    }
+
+    # small cleanups
+    result["docs"] = {k: v for k, v in result["docs"].items() if v is not None}
+
+    return result
 
 
 def _get_skip_reason_from_marker(marker):
@@ -190,36 +202,19 @@ def pytest_collection_modifyitems(session, config, items):
 
     logger.debug("pytest_collection_modifyitems")
 
-    def get_declared_scenario(item):
-        for marker in item.own_markers:
-            if marker.name == "scenario":
-                return marker.args[0]
-
-        for marker in item.parent.own_markers:
-            if marker.name == "scenario":
-                return marker.args[0]
-
-        for marker in item.parent.parent.own_markers:
-            if marker.name == "scenario":
-                return marker.args[0]
-
-        return None
-
     selected = []
     deselected = []
 
     for item in items:
-        declared_scenario = get_declared_scenario(item)
+        scenario_markers = list(item.iter_markers("scenario"))
+        declared_scenario = scenario_markers[0].args[0] if len(scenario_markers) != 0 else "DEFAULT"
+
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
             deselected.append(item)
             continue
 
-        if (
-            declared_scenario == context.scenario.name
-            or declared_scenario is None
-            and context.scenario.name == "DEFAULT"
-        ):
+        if declared_scenario == context.scenario.name:
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
@@ -235,22 +230,12 @@ def pytest_collection_modifyitems(session, config, items):
     config.hook.pytest_deselected(items=deselected)
 
 
+def pytest_deselected(items):
+    _deselected_items.extend(items)
+
+
 def _item_is_skipped(item):
-    for marker in item.own_markers:
-        if marker.name in ("skip",):
-            return True
-
-    for marker in item.parent.own_markers:
-        if marker.name in ("skip",):
-            return True
-
-    # for test methods in classes, item.parent.parent is the module
-    if item.parent.parent:
-        for marker in item.parent.parent.own_markers:
-            if marker.name in ("skip",):
-                return True
-
-    return False
+    return any(item.iter_markers("skip"))
 
 
 def pytest_collection_finish(session):
@@ -344,11 +329,8 @@ def pytest_json_modifyreport(json_report):
         # populate and adjust some data
         for test in json_report["tests"]:
             if "metadata" in test:
-                test["skip_reason"] = (
-                    test["metadata"]["skip_reasons"][test["nodeid"]]
-                    if test["nodeid"] in test["metadata"]["skip_reasons"]
-                    else None
-                )
+                # legacy
+                test["skip_reason"] = test["metadata"]["skip_reason"]
 
         # add usefull data for reporting
         json_report["docs"] = {}
@@ -360,6 +342,7 @@ def pytest_json_modifyreport(json_report):
         # clean useless and volumetric data
         json_report.pop("collectors", None)
 
+        # collect metadataa
         for test in json_report["tests"]:
             if "metadata" in test:
                 json_report["docs"] = json_report["docs"] | test["metadata"]["docs"]
@@ -367,7 +350,12 @@ def pytest_json_modifyreport(json_report):
                 json_report["rfcs"] = json_report["rfcs"] | test["metadata"]["rfcs"]
                 json_report["coverages"] = json_report["coverages"] | test["metadata"]["coverages"]
 
-            for k in ("setup", "call", "teardown", "keywords", "lineno", "metadata"):
+                del test["metadata"]["coverages"]
+                del test["metadata"]["rfcs"]
+                del test["metadata"]["release_versions"]
+                del test["metadata"]["docs"]
+
+            for k in ("setup", "call", "teardown", "keywords", "coverages"):
                 if k in test:
                     del test[k]
 
@@ -383,14 +371,74 @@ def pytest_sessionfinish(session, exitstatus):
     if session.config.option.collectonly or session.config.option.replay:
         return
 
-    # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute, it will run in the master thread after all other processes have finished testing
+    # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
+    # it will run in the master thread after all other processes have finished testing
     if not hasattr(session.config, "workerinput"):
-        json.dump(
-            {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
-            open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
-            indent=2,
-        )
+        with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
+            json.dump(
+                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
+            )
 
         junit_modifyreport(
             _JSON_REPORT_FILE(), _XML_REPORT_FILE(), junit_properties=context.scenario.get_junit_properties(),
         )
+
+        export_feature_parity_dashbaord(session)
+
+
+def export_feature_parity_dashbaord(session):
+    data = session.config._json_report.report  # pylint: disable=protected-access
+
+    result = {
+        "runUrl": session.config.option.report_run_url,
+        "runDate": data["created"],
+        "environment": session.config.option.report_environment,
+        "testSource": "systemtests",
+        "language": context.scenario.library.library,
+        "variant": context.scenario.weblog_variant,
+        "testedDependencies": [
+            {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
+        ],
+        "scenario": context.scenario.name,
+        "tests": [convert_test_to_feature_parity_model(test) for test in data["tests"]],
+    }
+
+    with open(f"{context.scenario.host_log_folder}/feature_parity.json", "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2)
+
+
+def convert_test_to_feature_parity_model(test):
+    result = {
+        "path": test["nodeid"],
+        "lineNumber": test["lineno"],
+        "outcome": test["outcome"],
+        "testDeclaration": None,
+        "details": test["skip_reason"],
+        "features": test["metadata"]["features"],
+    }
+
+    if result["details"] is None:
+        result["testDeclaration"] = None
+    elif result["details"].startswith("irrelevant"):
+        result["testDeclaration"] = "irrelevant"
+    elif result["details"].startswith("flaky"):
+        result["testDeclaration"] = "flaky"
+    elif result["details"].startswith("bug"):
+        result["testDeclaration"] = "bug"
+    elif result["details"].startswith("missing_feature"):
+        result["testDeclaration"] = "notImplemented"
+    else:
+        raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
+
+    return result
+
+
+## Fixtures corners
+@pytest.fixture(scope="session", name="session")
+def fixture_session(request):
+    return request.session
+
+
+@pytest.fixture(scope="session", name="deselected_items")
+def fixture_deselected_items():
+    return _deselected_items

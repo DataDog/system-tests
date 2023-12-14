@@ -1,0 +1,26 @@
+#Manual installation for lib-injection packages
+- os_type: linux
+  os_distro: deb
+  copy_files:
+    - name: copy-docker-config
+      local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+    - name: copy-tracer-debug-config
+      local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
+  command: |
+    sudo apt-get install -y -t $DD_deb_repo_name datadog-apm-inject datadog-apm-library-$DD_LANG
+    dd-container-install
+    sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+    sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+
+- os_type: linux
+  os_distro: rpm
+  copy_files:
+    - name: copy-docker-config
+      local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+    - name: copy-tracer-debug-config
+      local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
+  command: |    
+    sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject datadog-apm-library-$DD_LANG
+    dd-container-install
+    sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+    sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml

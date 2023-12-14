@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, rfc, weblog
+from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, rfc, weblog, features
 
 
 @coverage.good
+@features.security_events_metadata
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
 
@@ -32,6 +33,7 @@ class Test_StandardTagsMethod:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
+@features.security_events_metadata
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
 
@@ -160,6 +162,7 @@ class Test_StandardTagsUrl:
 
 
 @coverage.basic
+@features.security_events_metadata
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
 
@@ -173,6 +176,7 @@ class Test_StandardTagsUserAgent:
 
 
 @coverage.good
+@features.security_events_metadata
 class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
 
@@ -186,6 +190,7 @@ class Test_StandardTagsStatusCode:
 
 
 @coverage.basic
+@features.security_events_metadata
 class Test_StandardTagsRoute:
     """Tests to verify that libraries annotate spans with correct http.route tags"""
 
@@ -217,6 +222,7 @@ class Test_StandardTagsRoute:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @coverage.basic
+@features.security_events_metadata
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 

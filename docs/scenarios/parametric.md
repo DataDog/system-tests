@@ -112,7 +112,20 @@ TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sa
 
 #### PHP
 
-If you are seeing DNS resolution issues when running the tests locally, add the following config to the Docker daemon:
+##### To run with a custom build
+
+- Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-aarch64-linux-gnu.tar.gz` (or the `x86_64` if you're not on ARM) in `/binaries` folder
+  - You can download those from the `build_packages/package extension` job artifacts, from a CI run of your branch.
+- Copy it in the binaries folder
+
+##### Then run the tests
+
+From the repo root folder:
+
+- `./build.sh -i runner`
+- `TEST_LIBRARY=php ./run.sh PARAMETRIC` or `TEST_LIBRARY=php ./run.sh PARAMETRIC -k <my_test>`
+
+> :warning: **If you are seeing DNS resolution issues when running the tests locally**, add the following config to the Docker daemon:
 
 ```json
   "dns-opts": [
@@ -271,10 +284,10 @@ service APMClient {
 An HTTP interface can be used instead of the GRPC. To view the interface run
 
 ```
-PORT=8000 ./run_reference_http.sh
+PORT=8000 ./utils/scripts/parametric/run_reference_http.sh
 ```
 
-and navigate to http://localhost:8000. The OpenAPI schema can be downloaded at
+and navigate to http://localhost:8000/docs. The OpenAPI schema can be downloaded at
 http://localhost:8000/openapi.json. The schema can be imported
 into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
 other tooling to assist in development.
