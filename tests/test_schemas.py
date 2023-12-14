@@ -120,8 +120,8 @@ class Test_Agent:
         resp.raise_for_status()
         schema = resp.json()
 
-        with open('/Users/rodrigo.arguello/go/src/github.com/DataDog/schema/semantic-core/v1/agent_payload.json') as json_file:
-            schema = json.load(json_file)
+        # with open('/Users/rodrigo.arguello/go/src/github.com/DataDog/schema/semantic-core/v1/agent_payload.json') as json_file:
+        #     schema = json.load(json_file)
 
         logger.debug(f"using schema {json.dumps(schema)}")
 
@@ -133,4 +133,3 @@ class Test_Agent:
             logger.debug(f"validating {json.dumps(data)}")
             content = data["request"]["content"]
             validate(instance=content, schema=schema)
-            # raise Exception("just a test")
