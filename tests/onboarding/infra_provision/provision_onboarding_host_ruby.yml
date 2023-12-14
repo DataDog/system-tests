@@ -1,15 +1,34 @@
 ami: 
   - name: ubuntu-x86-22.04
     ami_id: ami-007855ac798b5175e
+    instance_type: t2.medium
     user: ubuntu
     os_type: linux
     os_distro: deb
 
   - name: amazon-linux-2023-x86
     ami_id: ami-06b09bfacae1453cb
+    instance_type: t2.medium
     user: ec2-user
     os_type: linux
     os_distro: rpm
+
+  #ARM BASED EC2 INSTANCES
+  - name: ubuntu-arm64-22.04
+    ami_id: ami-016485166ec7fa705
+    instance_type: t4g.small
+    user: ubuntu
+    os_type: linux
+    os_distro: deb
+    os_arch: arm
+
+  - name: amazon-linux-2023-arm64
+    ami_id: ami-04c97e62cb19d53f1
+    instance_type: t4g.small
+    user: ec2-user
+    os_type: linux
+    os_distro: rpm
+    os_arch: arm
 
 init-config:
   install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml
@@ -20,26 +39,73 @@ prepare-repos:
 agent: !include tests/onboarding/infra_provision/includes/provision_agent.yml
 
 agent_auto_install:
+  - env: dev
+    install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-tracer-debug-config
+              local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
+        command: |
+          bash execute_install_script_dev.sh ruby --inject-mode host
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
   - env: prod
     install:
     - os_type: linux
-      command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=ruby DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-
+      copy_files:
+          - name: copy-tracer-debug-config
+            local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
+      command: |
+        DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=ruby DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+        sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+        
 autoinjection:
 #Copy tests/onboarding/autoinjection/host_config.yaml to /etc/datadog-agent/inject/host_config.yaml to enable debug (Disabled for timing reasons)
+  - env: dev
+    install: 
+      - os_type: linux
+        os_distro: deb
+        copy_files:
+            - name: copy-tracer-debug-config
+              local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
+        command: |
+          sudo apt-get install -y -t beta datadog-apm-inject datadog-apm-library-ruby
+          dd-host-install
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+      - os_type: linux
+        os_distro: rpm
+        copy_files:
+            - name: copy-tracer-debug-config
+              local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
+        command: |
+          sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject  datadog-apm-library-ruby
+          dd-host-install
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+    uninstall: 
+      - os_type: linux 
+        command: dd-host-install --uninstall
+
   - env: prod
     install: 
       - os_type: linux
         os_distro: deb
+        copy_files:
+            - name: copy-tracer-debug-config
+              local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
         command: |
           sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-ruby
           dd-host-install
-
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
       - os_type: linux
         os_distro: rpm
+        copy_files:
+            - name: copy-tracer-debug-config
+              local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
         command: |
           sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-ruby
           dd-host-install
+          sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
     uninstall: 
       - os_type: linux 
         command: dd-host-install --uninstall
@@ -52,6 +118,7 @@ language-variants:
       - os_type: linux
         os_distro: deb
         command: |
+          sudo apt-get -y update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev nodejs yarn
           sudo DEBIAN_FRONTEND=noninteractive apt-get -y install rbenv ruby-build ruby-dev
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
@@ -76,13 +143,13 @@ weblogs:
           - name: copy-ruby-app
             local_path: lib-injection/build/docker/ruby/lib_injection_rails_app  
           - name: copy-service
-            local_path: tests/onboarding/weblog/ruby/test-app-ruby/test-app-ruby.service
+            local_path: tests/onboarding/weblog/ruby/test-app-ruby/test-app.service
 
           - name: copy-run-weblog-script-ruby
             local_path: tests/onboarding/weblog/ruby/test-app-ruby/test-app-ruby_run.sh
         command: sh test-app-ruby_run.sh
     uninstall: 
       - os_type: linux
-        command: sudo systemctl stop test-app-ruby.service
+        command: sudo systemctl stop test-app.service
 
 installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml

@@ -11,7 +11,6 @@ from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, Type
 import urllib.parse
 
 import requests
-import packaging.version
 import pytest
 
 from utils.parametric.spec.trace import V06StatsPayload
@@ -27,6 +26,9 @@ from utils.tools import logger
 import json
 
 from filelock import FileLock
+
+# Max timeout in seconds to keep a container running
+default_subprocess_run_timeout = 300
 
 
 @pytest.fixture
@@ -306,11 +308,11 @@ WORKDIR /tmp
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
 ADD {php_reldir}/composer.lock .
-ADD {php_reldir}/server.php .
+RUN composer install
 ADD {php_reldir}/install.sh .
 COPY binaries /binaries
 RUN ./install.sh
-RUN composer install
+ADD {php_reldir}/server.php .
 """,
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
@@ -458,6 +460,7 @@ def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer
         stdout=log_file,
         stderr=log_file,
         env=env,
+        timeout=default_subprocess_run_timeout,
     )
 
     failure_text: str = None
@@ -582,6 +585,19 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
+    def rc_requests(self):
+        reqs = self.requests()
+        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        for r in rc_reqs:
+            r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+        return rc_reqs
+
+    def get_tracer_flares(self, **kwargs):
+        resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
+        json = resp.json()
+        self._write_log("tracerflares", json)
+        return json
+
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
@@ -644,7 +660,9 @@ class _TestAgentAPI:
                         self.clear()
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
-        raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+        raise ValueError(
+            "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
+        )
 
     def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` spans to be received from the test agent.
@@ -699,16 +717,14 @@ class _TestAgentAPI:
         rc_reqs = []
         for i in range(wait_loops):
             try:
-                reqs = self.requests()
-                # Get all remoteconfig requests.
-                rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
-                for r in rc_reqs:
-                    r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+                rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:
                 pass
             else:
                 # Look for the given apply state in the requests.
                 for req in rc_reqs:
+                    if req["body"]["client"]["state"].get("config_states") is None:
+                        continue
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
                         if cfg_state["product"] == product and cfg_state["apply_state"] == state:
                             if clear:
@@ -716,6 +732,42 @@ class _TestAgentAPI:
                             return cfg_state
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+
+    def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
+        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        rc_reqs = []
+        for i in range(wait_loops):
+            try:
+                rc_reqs = self.rc_requests()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for capabilities in the requests.
+                for req in rc_reqs:
+                    raw_caps = req["body"]["client"].get("capabilities")
+                    if raw_caps:
+                        int_capabilities = int.from_bytes(base64.b64decode(raw_caps), byteorder="big")
+                        if all((int_capabilities >> c) & 1 for c in capabilities):
+                            return int_capabilities
+            time.sleep(0.01)
+        raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
+
+    def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
+        """Wait for the tracer-flare to be received by the test agent."""
+        for i in range(wait_loops):
+            try:
+                tracer_flares = self.get_tracer_flares()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for the given case_id in the tracer-flares.
+                for tracer_flare in tracer_flares:
+                    if case_id is None or tracer_flare["case_id"] == case_id:
+                        if clear:
+                            self.clear()
+                        return tracer_flare
+            time.sleep(0.01)
+        raise AssertionError("No tracer-flare received")
 
 
 @contextlib.contextmanager
@@ -751,7 +803,7 @@ def docker_run(
     docker = shutil.which("docker")
 
     # Run the docker container
-    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
+    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout)
     if r.returncode != 0:
         log_file.flush()
         pytest.fail(
@@ -774,16 +826,16 @@ def docker_run(
         _cmd = [docker, "kill", name]
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
-        subprocess.run(
-            _cmd, stdout=log_file, stderr=log_file, check=True,
-        )
+        subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
 
 
 @pytest.fixture(scope="session")
 def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
-    r = subprocess.run(["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    r = subprocess.run(
+        ["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=default_subprocess_run_timeout
+    )
     if r.returncode != 0:
         pytest.fail(
             "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again."
@@ -813,7 +865,7 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stderr=docker_network_log_file)
+    r = subprocess.run(cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
             "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
@@ -829,7 +881,9 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
         ]
         docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
         docker_network_log_file.flush()
-        r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+        r = subprocess.run(
+            cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+        )
         if r.returncode != 0:
             pytest.fail(
                 "Could not create docker network %r, see the log file %r"
@@ -845,7 +899,9 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+    r = subprocess.run(
+        cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+    )
     if r.returncode != 0:
         pytest.fail(
             "Failed to remove docker network %r, see the log file %r"
@@ -905,7 +961,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.11.0",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.15.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,

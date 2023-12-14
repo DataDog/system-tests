@@ -41,7 +41,7 @@ function arg($req, $arg) {
     return ($buffer[$req] ??= json_decode($req->getBody()->buffer(), true))[$arg] ?? null;
 }
 
-$spans = [];
+$closed_spans = $spans = [];
 
 $router = new Router($server, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans) {
@@ -52,11 +52,37 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
     } else {
         $span = \DDTrace\start_trace_span();
     }
+    $link_from_headers = null;
+    $links = [];
+    if ($span_links = arg($req, 'links')) {
+        foreach ($span_links as $span_link) {
+            if ($parent = $span_link["parent_id"]) {
+                $links[] = $link = $spans[$parent]->getLink();
+                if (isset($span_link["attributes"])) {
+                    $link->attributes += $span_link["attributes"];
+                }
+            } else {
+                $link_from_headers = $span_link;
+                $headers_link = &$links[];
+            }
+        }
+    }
     if ($headers = arg($req, 'http_headers')) {
         $headers = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $headers));
-        \DDTrace\consume_distributed_tracing_headers(function ($headername) use ($headers) {
+        $callback = function ($headername) use ($headers) {
             return $headers[$headername] ?? null;
-        });
+        };
+        if ($link_from_headers) {
+            $headers_link = \DDTrace\SpanLink::fromHeaders($callback);
+            if (isset($link_from_headers["attributes"])) {
+                $headers_link->attributes += $link_from_headers["attributes"];
+            }
+            var_dump($headers_link->samplingPriority);
+            \DDTrace\set_priority_sampling($headers_link->samplingPriority);
+            $span->meta += $headers_link->extractedAttributes;
+        } else {
+            \DDTrace\consume_distributed_tracing_headers($callback);
+        }
     }
     if ($origin = arg($req, 'origin')) {
         $context = \DDTrace\current_context();
@@ -66,6 +92,7 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
     $span->service = arg($req, 'service');
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
+    $span->links = $links;
     $spans[$span->id] = $span;
     return jsonResponse([
         "span_id" => $span->id,
@@ -95,10 +122,18 @@ $router->addRoute('POST', '/trace/span/error', new ClosureRequestHandler(functio
     $span->meta['error.stack'] = arg($req, 'stack');
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $parent_id = arg($req, 'parent_id');
+    $span->links[] = $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
+    $link->attributes += arg($req, "attributes") ?? [];
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
     $span_id = arg($req, 'span_id');
     \DDTrace\switch_stack($spans[$span_id]);
     \DDTrace\close_span();
+    $closed_spans[$span_id] = $spans[$span_id];
     unset($spans[$span_id]);
     return jsonResponse([]);
 }));

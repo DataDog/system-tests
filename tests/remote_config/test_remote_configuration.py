@@ -292,14 +292,13 @@ class Test_RemoteConfigurationExtraServices:
                 if "extra_services" in client_tracer:
                     extra_services = client_tracer["extra_services"]
 
-                    if extra_services is not None and len(extra_services) > 0:
+                    if extra_services is not None and "extraVegetables" in extra_services:
                         return True
 
                 return False
 
         interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
 
-    @bug(library="dotnet", reason="dotNet is not complying with the RFC specifications.")
     def test_tracer_extra_services(self):
         """Test extra services field"""
         import itertools
@@ -310,7 +309,7 @@ class Test_RemoteConfigurationExtraServices:
             if data["path"] == "/v0.7/config":
                 client_tracer = data["request"]["content"]["client"]["client_tracer"]
                 if "extra_services" in client_tracer:
-                    extra_services.append(client_tracer["extra_services"])
+                    extra_services.append(client_tracer["extra_services"] or [])
         assert self.r_outgoing.status_code == 200
         assert extra_services, "extra_services not found"
         extra_services = list(itertools.dropwhile(lambda es: "extraVegetables" not in es, extra_services))
