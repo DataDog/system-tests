@@ -5,7 +5,7 @@
 import datetime
 import time
 
-from utils import weblog, context, coverage, interfaces, rfc, bug, scenarios, flaky
+from utils import weblog, context, coverage, interfaces, rfc, bug, scenarios, flaky, features
 from utils.tools import logger
 
 
@@ -16,6 +16,7 @@ from utils.tools import logger
 @bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 @coverage.basic
 @scenarios.appsec_rate_limiter
+@features.appsec_rate_limiter
 class Test_Main:
     """Basic tests for rate limiter"""
 

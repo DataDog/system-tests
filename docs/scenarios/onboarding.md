@@ -59,7 +59,7 @@ We have also auxiliary YML files with common parts used by any languages and any
 - **provision_ami_container.yml:**  List of AMI to be tested on container scenarios.
 - **provision_agent_container.yml:** Installation process for agent deployed on docker container.
 - **provision_agent.yml:** Installation process for agent deployed on host.
-- **provision_init_config.yml:** Proccess to be executed when the EC2 machine starts. For example, add linux users.
+- **provision_init_vm_config.yml:** Proccess to be executed when the EC2 machine starts. For example, add linux users.
 - **provision_installation_checks.yml:** Extract versions of the software that has been installed.
 - **provision_prepare_docker.yml:** Docker installation process.
 - **provision_prepare_repos.yml:** Prepare Datadog Linux repositories to download and install DD packages.

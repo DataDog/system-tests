@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, weblog, interfaces, scenarios
-from utils._context.header_tag_vars import *
+from utils import coverage, weblog, interfaces, scenarios, features
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @coverage.basic
+@features.security_events_metadata
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
 

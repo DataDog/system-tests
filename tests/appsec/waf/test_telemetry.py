@@ -68,7 +68,7 @@ class Test_TelemetryMetrics:
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
-        if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+        if context.library == "python" and context.weblog_variant not in ("fastapi", "uwsgi-poc"):
             assert len(series) == 2
         else:
             assert len(series) == 1
