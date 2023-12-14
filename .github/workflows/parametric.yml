@@ -12,16 +12,16 @@ jobs:
       matrix:
         client:
         #  - php
-        ##  - python
-        ##  - python_http
+          - python
+          - python_http
           - dotnet
         #  - golang
-        ##  - java
-        ##  - nodejs
+          - java
+          - nodejs
         #  - ruby
         #  - cpp
         version:
-         # - prod
+          - prod
           - dev
       fail-fast: false
     env:
