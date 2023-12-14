@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 
-from utils import interfaces, scenarios, coverage, weblog, missing_feature
+from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
 from utils._weblog import _Weblog
 from utils.tools import logger
 
@@ -20,14 +22,15 @@ class _PythonBuddy(_Weblog):
 
 @scenarios.crossed_tracing_libraries
 @coverage.basic
+@features.kafkaspan_creationcontext_propagation_with_dd_trace_py
 class Test_PythonKafka:
     """ Test kafka compatibility with datadog python tracer """
 
     WEBLOG_TO_BUDDY_TOPIC = "Test_PythonKafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_PythonKafka_buddy_to_weblog"
 
-    @staticmethod
-    def get_span(interface, span_kind, topic):
+    @classmethod
+    def get_span(cls, interface, span_kind, topic):
 
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
@@ -36,12 +39,7 @@ class Test_PythonKafka:
                 if span_kind != span["meta"].get("span.kind"):
                     continue
 
-                is_java_tracer = "java" in span["meta"]["component"]
-                # dd-trace-java does not add kafka.topic to its kafka.produce spans
-                if not is_java_tracer and topic != span["meta"].get("kafka.topic"):
-                    continue
-                # instead, we rely on resource
-                if is_java_tracer and not span["resource"].endswith(topic):
+                if topic != cls.get_topic(span):
                     continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
@@ -49,6 +47,19 @@ class Test_PythonKafka:
 
         logger.debug("No span found")
         return None
+
+    @staticmethod
+    def get_topic(span) -> str | None:
+        """ Extracts the topic from a span by trying various fields """
+        topic = span["meta"].get("kafka.topic")  # this is in python
+        if topic is None:
+            if "Topic" in span["resource"]:
+                # in go and java, the topic is the last "word" of the resource name
+                topic = span["resource"].split(" ")[-1]
+
+        if topic is None:
+            logger.error(f"could not extract topic from this span:\n{span}")
+        return topic
 
     def setup_produce(self):
         """
@@ -76,6 +87,7 @@ class Test_PythonKafka:
 
     @missing_feature(library="python")
     @missing_feature(library="java")
+    @missing_feature(library="golang")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
@@ -114,6 +126,7 @@ class Test_PythonKafka:
 
     @missing_feature(library="python")
     @missing_feature(library="java")
+    @missing_feature(library="golang")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.python_buddy, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
@@ -142,9 +155,9 @@ class Test_PythonKafka:
         assert producer_span is not None
         assert consumer_span is not None
 
-        # java doesn't give us much to assert on
-        if "java" not in consumer_span["meta"]["component"]:
-            assert consumer_span["meta"]["kafka.received_message"] == "True"
+        consumed = consumer_span["meta"].get("kafka.received_message")
+        if consumed is not None:  # available only for python spans
+            assert consumed == "True"
 
         # Assert that the consumer span is not the root
         assert "parent_id" in consumer_span, "parent_id is missing in consumer span"
