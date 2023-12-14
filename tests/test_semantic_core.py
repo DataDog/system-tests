@@ -40,4 +40,3 @@ class Test_Schemas:
             logger.debug(f"validating {json.dumps(data)}")
             content = data["request"]["content"]
             validate(instance=content, schema=schema)
-            raise Exception('testing failure')
