@@ -2,7 +2,7 @@ version: '3'
 services:
   datadog:
     container_name: dd-agent
-    image: datadog/agent:7
+    image: gcr.io/datadoghq/agent:7
     environment:
       - DD_API_KEY=${DD_API_KEY}
       - DD_APM_ENABLED=true
