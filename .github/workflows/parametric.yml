@@ -12,7 +12,7 @@ jobs:
       matrix:
         client:
         #  - php
-        #  - python
+          - python
         #  - python_http
         #  - dotnet
         #  - golang
