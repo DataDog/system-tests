@@ -17,7 +17,7 @@ jobs:
         #  - dotnet
         #  - golang
           - java
-        #  - nodejs
+          - nodejs
         #  - ruby
         #  - cpp
         version:

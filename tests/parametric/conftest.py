@@ -7,6 +7,8 @@ import socket
 import subprocess
 import tempfile
 import time
+import uuid
+
 from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, TypedDict, Union
 import urllib.parse
 
@@ -154,7 +156,8 @@ def node_library_factory() -> APMLibraryTestServer:
 
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
-    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
+    nodejs_reldir = nodejs_appdir.replace("\\", "/")
+
     return APMLibraryTestServer(
         lang="nodejs",
         protocol="grpc",
@@ -162,21 +165,26 @@ def node_library_factory() -> APMLibraryTestServer:
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
-WORKDIR /client
-COPY ./package.json /client/
-COPY ./package-lock.json /client/
-COPY ./*.js /client/
-COPY ./npm/* /client/
+RUN apt-get update && apt-get install -y jq git
+WORKDIR /usr/app
+COPY {nodejs_reldir}/package.json /usr/app/
+COPY {nodejs_reldir}/package-lock.json /usr/app/
+COPY {nodejs_reldir}/*.js /usr/app/
+COPY {nodejs_reldir}/npm/* /usr/app/
+
 RUN npm install
-RUN npm install {node_module}
+
+COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 """,
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_absolute_appdir,
-        container_build_context=nodejs_absolute_appdir,
+        container_build_context=_get_base_directory(),
         volumes=[
             (
                 os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-                "/client/apm_test_client.proto",
+                "/usr/app/apm_test_client.proto",
             ),
         ],
         env={},
