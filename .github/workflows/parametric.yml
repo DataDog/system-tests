@@ -13,7 +13,7 @@ jobs:
         client:
         #  - php
           - python
-        #  - python_http
+          - python_http
         #  - dotnet
         #  - golang
           - java
