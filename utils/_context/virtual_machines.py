@@ -3,6 +3,8 @@ import json
 from utils.tools import logger
 from datetime import datetime, timedelta
 
+from utils.onboarding.pulumi_utils import remote_install
+
 
 class TestedVirtualMachine:
     def __init__(
@@ -20,8 +22,12 @@ class TestedVirtualMachine:
         prepare_docker_install,
         installation_check_data,
         provision_scenario,
-        uninstall,
+        is_uninstall,
         env,
+        weblog_name,
+        dd_config_distro,
+        is_auto_install,
+        is_container,
     ) -> None:
         self.ec2_data = ec2_data
         self.agent_install_data = agent_install_data
@@ -42,11 +48,18 @@ class TestedVirtualMachine:
         self.name = self.ec2_data["name"] + "__lang-variant-" + self.language_variant_install_data["name"]
         self.components = None
         # Uninstall process after install all software requirements
-        self.uninstall = uninstall
+        self.is_uninstall = is_uninstall
         self.env = env
+        self.weblog_name = weblog_name
         self.ami_id = None
         self.ami_name = None
         self.pytestmark = self._configure_pytest_mark()
+        self.dd_config_distro = dd_config_distro
+        self.is_auto_install = is_auto_install
+        self.is_container = is_container
+
+        self.ec2_server = None
+        self.ec2_server_connection = None
 
     def _configure_pytest_mark(self):
         """ Mark test as skip. We won't create this ec2 instance """
@@ -55,20 +68,12 @@ class TestedVirtualMachine:
             logger.warn(f" Support for ARM architecture has not been released yet")
             return "missing_feature: ARM features haven't released yet"
 
-        if (
-            "os_arch" in self.ec2_data
-            and self.ec2_data["os_arch"] == "arm"
-            and "buildpack" in self.weblog_install_data["name"]
-        ):
-            logger.warn(f" WEBLOG: {self.weblog_install_data['name']} doesn't support ARM architecture")
+        if "os_arch" in self.ec2_data and self.ec2_data["os_arch"] == "arm" and "buildpack" in self.weblog_name:
+            logger.warn(f" WEBLOG: {self.weblog_name} doesn't support ARM architecture")
             return "missing_feature: Buildpack is not supported for ARM"
 
-        if (
-            "os_arch" in self.ec2_data
-            and self.ec2_data["os_arch"] == "arm"
-            and "alpine" in self.weblog_install_data["name"]
-        ):
-            logger.warn(f"[bug][WEBLOG:  {self.weblog_install_data['name']}] doesn't support ARM architecture")
+        if "os_arch" in self.ec2_data and self.ec2_data["os_arch"] == "arm" and "alpine" in self.weblog_name:
+            logger.warn(f"[bug][WEBLOG:  {self.weblog_name}] doesn't support ARM architecture")
             return "bug: Error loading shared library ld-linux-aarch64.so"
 
         return None
@@ -84,15 +89,18 @@ class TestedVirtualMachine:
         from pulumi import Output
         import pulumi_command as command
         from utils.onboarding.pulumi_ssh import PulumiSSH
-        from utils.onboarding.pulumi_utils import remote_install, pulumi_logger, remote_docker_login
+        from utils.onboarding.pulumi_utils import remote_install, pulumi_logger
 
         if self.pytestmark is not None:
             logger.warn(f"Skipping warmup for {self.name} due has mark {self.pytestmark}")
             return
 
         self.configure()
+        logger.info(
+            f"Launching VM.  With configuration is_uninstall: [{self.is_uninstall}], is_auto_install: {self.is_auto_install}, is_container: [{self.is_container}] "
+        )
         # Startup VM and prepare connection
-        server = aws.ec2.Instance(
+        self.ec2_server = aws.ec2.Instance(
             self.name,
             instance_type=self.ec2_data["instance_type"],
             vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
@@ -103,14 +111,14 @@ class TestedVirtualMachine:
             opts=PulumiSSH.aws_key_resource,
         )
 
-        pulumi.export("privateIp_" + self.name, server.private_ip)
-        Output.all(server.private_ip).apply(lambda args: self.set_ip(args[0]))
-        Output.all(server.private_ip, self.name).apply(
+        pulumi.export("privateIp_" + self.name, self.ec2_server.private_ip)
+        Output.all(self.ec2_server.private_ip).apply(lambda args: self.set_ip(args[0]))
+        Output.all(self.ec2_server.private_ip, self.name).apply(
             lambda args: pulumi_logger(self.provision_scenario, "vms_desc").info(f"{args[0]}:{args[1]}")
         )
 
-        connection = command.remote.ConnectionArgs(
-            host=server.private_ip,
+        self.ec2_server_connection = command.remote.ConnectionArgs(
+            host=self.ec2_server.private_ip,
             user=self.ec2_data["user"],
             private_key=PulumiSSH.private_key_pem,
             dial_error_limit=-1,
@@ -118,10 +126,10 @@ class TestedVirtualMachine:
 
         # We apply initial configurations to the VM before starting with the installation proccess
         prepare_init_config_installer = remote_install(
-            connection,
+            self.ec2_server_connection,
             "prepare_init_config_installer_" + self.name,
             self.prepare_init_config_install["install"],
-            server,
+            self.ec2_server,
             scenario_name=self.provision_scenario,
         )
 
@@ -130,163 +138,151 @@ class TestedVirtualMachine:
 
         if self.ami_id is None:
             # Ok. The AMI doesn't exist we should create.
-            # We will configure respositories, install docker and lang variant.
-            # After that, we will register the new AMI to use it in the future executions
-
-            # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
-            if "install" in self.prepare_repos_install:
-                prepare_repos_installer = remote_install(
-                    connection,
-                    "prepare-repos-installer_" + self.name,
-                    self.prepare_repos_install["install"],
-                    prepare_init_config_installer,
-                    scenario_name=self.provision_scenario,
-                )
-            else:
-                prepare_repos_installer = prepare_init_config_installer
-
-            # Prepare docker installation if we need
-            prepare_docker_installer = remote_install(
-                connection,
-                "prepare-docker-installer_" + self.name,
-                self.prepare_docker_install["install"],
-                prepare_repos_installer,
-                scenario_name=self.provision_scenario,
-            )
-
-            # Install language variants (not mandatory)
-            if "install" in self.language_variant_install_data:
-                main_task_dep = remote_install(
-                    connection,
-                    "lang-variant-installer_" + self.name,
-                    self.language_variant_install_data["install"],
-                    prepare_docker_installer,
-                    scenario_name=self.provision_scenario,
-                )
-            else:
-                main_task_dep = prepare_docker_installer
-
-            # If the ami_name is None, we can not create the AMI (Probably because there another AMI is being generating)
-            if self.ami_name is not None:
-                # Ok. All third party software is installed, let's create the ami to reuse it in the future
-                logger.info(f"Creating AMI with name [{self.ami_name}] from instance ")
-                # Expiration date for the ami
-                # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-                main_task_dep = aws.ec2.AmiFromInstance(
-                    self.ami_name,
-                    # deprecation_time=expiration_date,
-                    source_instance_id=server.id,
-                    opts=pulumi.ResourceOptions(depends_on=[main_task_dep], retain_on_delete=True),
-                )
-
+            configure_repo_installer = self._configure_repositories_manual(prepare_init_config_installer)
+            configure_docker_installer = self._configure_docker(configure_repo_installer)
+            configure_lang_variant_installer = self._configure_lang_variant(configure_docker_installer)
+            main_task_dep = self._create_AMI(configure_lang_variant_installer)
         else:
             logger.info("Using a previously existing AMI")
 
-        # Docker login if we need (avoid too many requests)
-        if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
-            main_task_dep = remote_docker_login(
-                "docker-login_" + self.name,
-                self.datadog_config.docker_login,
-                self.datadog_config.docker_login_pass,
-                connection,
-                main_task_dep,
-            )
+        agent_installer = self._agent_install(main_task_dep)
+        autoinjection_installer = self._autoinjection_install(agent_installer)
+        extract_components_installer = self._extract_installed_components(autoinjection_installer)
+        run_weblog_installer = self.run_weblog(extract_components_installer)
 
-        # Install agent. If we are using agent autoinstall script, agent install info will be empty, due to we load the install process on auto injection node
-        if "install" in self.agent_install_data:
-            agent_installer = remote_install(
-                connection,
-                "agent-installer_" + self.name,
-                self.agent_install_data["install"],
-                main_task_dep,
-                add_dd_keys=True,
-                dd_api_key=self.datadog_config.dd_api_key,
-                dd_site=self.datadog_config.dd_site,
+        if self.is_uninstall:
+            self._unistall_software_and_rerun_weblog(run_weblog_installer)
+
+    def _configure_repositories_manual(self, task_dep):
+        """ Launch commands to configure DD linux repositories (If we aren't using the installation script)"""
+        if not self.is_auto_install:
+            task_dep = remote_install(
+                self.ec2_server_connection,
+                "prepare-repos-installer_" + self.name,
+                self.prepare_repos_install["install"],
+                task_dep,
                 scenario_name=self.provision_scenario,
             )
-        else:
-            agent_installer = main_task_dep
+        return task_dep
 
-        # Install autoinjection
-        autoinjection_installer = remote_install(
-            connection,
+    def _configure_docker(self, task_dep):
+        """ Prepare docker installation if we are on container scenario """
+        if self.is_container:
+            task_dep = remote_install(
+                self.ec2_server_connection,
+                "prepare-docker-installer_" + self.name,
+                self.prepare_docker_install["install"],
+                task_dep,
+                scenario_name=self.provision_scenario,
+            )
+        return task_dep
+
+    def _configure_lang_variant(self, task_dep):
+        """ Install language variants (not mandatory) """
+        if "install" in self.language_variant_install_data:
+            task_dep = remote_install(
+                self.ec2_server_connection,
+                "lang-variant-installer_" + self.name,
+                self.language_variant_install_data["install"],
+                task_dep,
+                scenario_name=self.provision_scenario,
+            )
+        return task_dep
+
+    def _create_AMI(self, task_dep):
+        """ If the ami_name is None, we can not create the AMI (Probably because there another AMI is being generating) """
+        import pulumi
+        import pulumi_aws as aws
+
+        if self.ami_name is not None:
+            # Ok. All third party software is installed, let's create the ami to reuse it in the future
+            logger.info(f"Creating AMI with name [{self.ami_name}] from instance ")
+            # Expiration date for the ami
+            # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            task_dep = aws.ec2.AmiFromInstance(
+                self.ami_name,
+                # deprecation_time=expiration_date,
+                source_instance_id=self.ec2_server.id,
+                opts=pulumi.ResourceOptions(depends_on=[task_dep], retain_on_delete=True),
+            )
+        return task_dep
+
+    def _agent_install(self, task_dep):
+        """ Install agent. If we are using the autoinstall script, we also install the agent. The script we will use only for install autoinjection """
+        return remote_install(
+            self.ec2_server_connection,
+            "agent-installer_" + self.name,
+            self.agent_install_data,
+            task_dep,
+            scenario_name=self.provision_scenario,
+            environment=self._get_command_environment(),
+        )
+
+    def _autoinjection_install(self, task_dep):
+        """ Install autoinjection. The install_data can be for manual install or to use the script  """
+        return remote_install(
+            self.ec2_server_connection,
             "autoinjection-installer_" + self.name,
-            self.autoinjection_install_data["install"],
-            agent_installer,
-            add_dd_keys=True,
-            dd_api_key=self.datadog_config.dd_api_key,
-            dd_site=self.datadog_config.dd_site,
+            self.autoinjection_install_data,
+            task_dep,
             scenario_name=self.provision_scenario,
+            environment=self._get_command_environment(),
         )
 
-        # Extract installed component versions
-        remote_install(
-            connection,
-            "installation-check_" + self.name,
-            self.installation_check_data["install"],
-            autoinjection_installer,
-            logger_name="pulumi_installed_versions",
-            scenario_name=self.provision_scenario,
-            output_callback=lambda command_output: self.set_components(command_output),
-        )
-
-        # self.weblog_install_data["install"]["debug_command"]="sudo docker-compose logs"
+    def run_weblog(self, task_dep):
+        """ Run the weblog app. The run command will depend on received task_dep """
         # Build weblog app
-        weblog_runner = remote_install(
-            connection,
+        return remote_install(
+            self.ec2_server_connection,
             "run-weblog_" + self.name,
-            self.weblog_install_data["install"],
-            autoinjection_installer,
-            add_dd_keys=True,
-            dd_api_key=self.datadog_config.dd_api_key,
-            dd_site=self.datadog_config.dd_site,
+            self.weblog_install_data,
+            task_dep,
             scenario_name=self.provision_scenario,
-            docker_user=self.datadog_config.docker_login
-            if self.prepare_docker_install["install"] is not None
-            else None,
-            docker_pass=self.datadog_config.docker_login_pass
-            if self.prepare_docker_install["install"] is not None
-            else None,
+            environment=self._get_command_environment(),
         )
 
-        # Uninstall process (stop app, uninstall autoinjection and rerun the app)
-        if self.uninstall:
-            logger.info(f"Uninstall the autoinjection software. Command: {self.weblog_uninstall_data['uninstall']} ")
-            weblog_uninstall = remote_install(
-                connection,
-                "uninstall-weblog_" + self.name,
-                self.weblog_uninstall_data["uninstall"],
-                weblog_runner,
-                scenario_name=self.provision_scenario,
-            )
-            autoinjection_uninstall = remote_install(
-                connection,
-                "uninstall-autoinjection_" + self.name,
-                self.autoinjection_uninstall_data["uninstall"],
-                weblog_uninstall,
-                scenario_name=self.provision_scenario,
-            )
-            # Rerun weblog app again, but without autoinstrumentation
-            weblog_rerunner = remote_install(
-                connection,
-                "rerun-weblog_" + self.name,
-                self.weblog_install_data["install"],
-                autoinjection_uninstall,
-                add_dd_keys=True,
-                dd_api_key=self.datadog_config.dd_api_key,
-                dd_site=self.datadog_config.dd_site,
-                scenario_name=self.provision_scenario,
-                docker_user=self.datadog_config.docker_login
-                if self.prepare_docker_install["install"] is not None
-                else None,
-                docker_pass=self.datadog_config.docker_login_pass
-                if self.prepare_docker_install["install"] is not None
-                else None,
-            )
+    def _unistall_software_and_rerun_weblog(self, task_dep):
+        """ Uninstall process (stop app, uninstall autoinjection and rerun the app) """
+        logger.info(f"Uninstall the autoinjection software. Command: {self.weblog_uninstall_data['uninstall']} ")
+        weblog_uninstall = remote_install(
+            self.ec2_server_connection,
+            "uninstall-weblog_" + self.name,
+            self.weblog_uninstall_data["uninstall"],
+            task_dep,
+            scenario_name=self.provision_scenario,
+        )
+        autoinjection_uninstall = remote_install(
+            self.ec2_server_connection,
+            "uninstall-autoinjection_" + self.name,
+            self.autoinjection_uninstall_data[0],
+            weblog_uninstall,
+            scenario_name=self.provision_scenario,
+        )
+        # Rerun weblog app again, but without autoinstrumentation
+        remote_install(
+            self.ec2_server_connection,
+            "rerun-weblog_" + self.name,
+            self.weblog_install_data,
+            autoinjection_uninstall,
+            scenario_name=self.provision_scenario,
+            environment=self._get_command_environment(),
+        )
 
     def set_ip(self, instance_ip):
         self.ip = instance_ip
+
+    def _extract_installed_components(self, task_dep):
+        """ Extract installed component versions """
+        return remote_install(
+            self.ec2_server_connection,
+            "installation-check_" + self.name,
+            self.installation_check_data,
+            task_dep,
+            logger_name="pulumi_installed_versions",
+            scenario_name=self.provision_scenario,
+            output_callback=lambda command_output: self.set_components(command_output),
+            environment=self._get_command_environment(),
+        )
 
     def set_components(self, components_json):
         """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
@@ -304,6 +300,7 @@ class TestedVirtualMachine:
         return raw_version.strip()
 
     def _configure_ami(self):
+        """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
         import pulumi_aws as aws
 
         # Configure name
@@ -355,6 +352,20 @@ class TestedVirtualMachine:
         else:
             logger.info(f"Not found an existing AMI with name {self.ami_name}")
 
+    def _get_command_environment(self):
+        command_env = {}
+        for key, value in self.dd_config_distro.items():
+            command_env["DD_" + key] = value
+        # DD
+        command_env["DD_API_KEY"] = self.datadog_config.dd_api_key
+        command_env["DD_APP_KEY"] = self.datadog_config.dd_app_key
+        # Docker
+        command_env["DD_DOCKER_LOGIN"] = self.datadog_config.docker_login
+        command_env["DD_DOCKER_LOGIN_PASS"] = self.datadog_config.docker_login_pass
+        # Tested library
+        command_env["DD_LANG"] = self.language if self.language != "nodejs" else "js"
+        return command_env
+
 
 class AWSInfraConfig:
     def __init__(self) -> None:
@@ -373,6 +384,6 @@ class DataDogConfig:
         self.dd_app_key = os.getenv("DD_APP_KEY_ONBOARDING")
         self.docker_login = os.getenv("DOCKER_LOGIN")
         self.docker_login_pass = os.getenv("DOCKER_LOGIN_PASS")
-        self.dd_site = os.getenv("DD_SITE_ONBOARDING", "datadoghq.com")
+
         if None in (self.dd_api_key, self.dd_app_key):
             logger.warn("Datadog agent is not configured correctly for auto-injection testing")

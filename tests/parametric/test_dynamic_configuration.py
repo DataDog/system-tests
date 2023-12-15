@@ -269,7 +269,9 @@ class TestDynamicConfigV1:
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
-    @missing_feature(context.library in ["java", "dotnet", "python_http", "golang"], reason="RPC not implemented yet")
+    @missing_feature(
+        context.library in ["java", "dotnet", "python_http", "golang", "nodejs"], reason="RPC not implemented yet"
+    )
     @parametrize(
         "library_env",
         [
