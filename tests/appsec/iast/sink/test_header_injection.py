@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, irrelevant
+from utils import context, coverage, irrelevant, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
@@ -11,6 +11,7 @@ def _expected_location():
         return "iast/index.js"
 
 
+@features.iast_sink_header_injection
 @coverage.basic
 class TestHeaderInjection(BaseSinkTest):
     """Verify Header injection detection"""
