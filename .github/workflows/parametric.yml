@@ -32,11 +32,20 @@ jobs:
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.client != 'python_http'}}
+        if: ${{ matrix.version == 'dev2' && matrix.client != 'python_http'}}
         run: ./utils/scripts/load-binary.sh ${{ matrix.client }}
       - name: Load python_http library binary
         if: ${{ matrix.version == 'dev' && matrix.client == 'python_http'}}
         run: ./utils/scripts/load-binary.sh python
+
+      - name: Checkout rb tracer 1.17.0
+        uses: actions/checkout@v2
+        with:
+          repository: DataDog/dd-trace-rb
+          ref: refs/tags/v1.17.0
+          path: './binaries'
+      - name: Check env
+        run: ls && ls binaries/
       - name: Run
         run: ./run.sh PARAMETRIC
 
