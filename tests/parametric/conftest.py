@@ -358,7 +358,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_absolute_appdir,
-        container_build_context=ruby_absolute_appdir,
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )
