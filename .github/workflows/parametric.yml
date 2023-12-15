@@ -21,8 +21,8 @@ jobs:
           - ruby
         #  - cpp
         version:
-          - prod
-        ## - dev
+        ##  - prod
+         - dev
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.client }}
