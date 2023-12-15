@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import coverage, weblog, interfaces, scenarios, features
+from utils._context.header_tag_vars import *
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @coverage.basic
