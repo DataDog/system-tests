@@ -1289,7 +1289,6 @@ class features:
         pytest.mark.features(feature_id=199)(test_object)
         return test_object
 
-
     @staticmethod
     def appsec_response_blocking(test_object):
         """
@@ -1299,7 +1298,6 @@ class features:
         """
         pytest.mark.features(feature_id=200)(test_object)
         return test_object
-
 
     @staticmethod
     def appsec_blocking_action(test_object):
@@ -1311,7 +1309,6 @@ class features:
         pytest.mark.features(feature_id=201)(test_object)
         return test_object
 
-
     @staticmethod
     def appsec_client_ip_blocking(test_object):
         """
@@ -1321,7 +1318,6 @@ class features:
         """
         pytest.mark.features(feature_id=202)(test_object)
         return test_object
-
 
     @staticmethod
     def appsec_header_injection(test_object):
