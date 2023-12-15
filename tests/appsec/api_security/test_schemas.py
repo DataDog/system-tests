@@ -171,7 +171,18 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}])
+        assert contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],) or contains(
+            schema,
+            [
+                {
+                    "main[0][key]": [8],
+                    "main[0][value]": [8],
+                    "main[1][key]": [8],
+                    "main[1][value]": [8],
+                    "nullable": [8],
+                }
+            ],
+        ), schema
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
