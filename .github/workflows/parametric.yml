@@ -43,7 +43,7 @@ jobs:
         with:
           repository: DataDog/dd-trace-rb
           ref: refs/tags/v1.17.0
-          path: './binaries'
+          path: 'binaries/dd-trace-rb'
       - name: Check env
         run: ls && ls binaries/
       - name: Run
