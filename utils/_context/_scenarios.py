@@ -115,8 +115,11 @@ class _Scenario:
 
         from utils._context.containers import _get_client
 
-        weblog_container = _get_client().containers.get("system-tests-weblog")
-        code, (stdout, stderr) = weblog_container.exec_run("uname -a", demux=True)
+        try:
+            weblog_container = _get_client().containers.get("system-tests-weblog")
+            code, (stdout, stderr) = weblog_container.exec_run("uname -a", demux=True)
+        except:
+            stdout = b"unknown"
         logger.stdout(f"Weblog system: {stdout.decode()}")
 
     def pytest_sessionfinish(self, session):
