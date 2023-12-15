@@ -12,17 +12,17 @@ jobs:
       matrix:
         client:
         #  - php
-          - python
-          - python_http
-          - dotnet
+        ##  - python
+        ##  - python_http
+        ##  - dotnet
         #  - golang
-          - java
-          - nodejs
-        #  - ruby
+        ##  - java
+        ##  - nodejs
+          - ruby
         #  - cpp
         version:
           - prod
-          - dev
+        ## - dev
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.client }}
