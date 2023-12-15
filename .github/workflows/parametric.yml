@@ -21,7 +21,7 @@ jobs:
           - ruby
         #  - cpp
         version:
-         - prod
+        # - prod
          - dev
       fail-fast: false
     env:

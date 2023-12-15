@@ -346,8 +346,9 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_img=f"""
             FROM ruby:3.2.1-bullseye
             WORKDIR /app
-            COPY {ruby_reldir} .
             RUN bundle install   
+            COPY {ruby_reldir} .
+            
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
             RUN /binaries/install_ddtrace.sh
 
