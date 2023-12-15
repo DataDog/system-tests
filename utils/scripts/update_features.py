@@ -24,9 +24,14 @@ def get_known_features():
 
 def _main():
     known_features = get_known_features()
-
     data = requests.get("https://dd-feature-parity.azurewebsites.net/Import/Features", timeout=10).json()
-    for feature in data:
+    data = {feature["id"]: feature for feature in data}
+
+    for feature_id, python_name in known_features.items():
+        if feature_id not in data:
+            print(f"Feature {python_name}/{feature_id} is not present anymore in the feature parity database")
+
+    for feature in data.values():
         feature_id = feature["id"]
         if feature_id not in known_features:
             docstring = f"""

@@ -18,7 +18,7 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
-@features.http_threats_management
+@features.appsec_client_ip_blocking
 class Test_AppSecIPBlockingFullDenylist:
     """A library should block requests from up to 2500 different blocked IP addresses."""
 
