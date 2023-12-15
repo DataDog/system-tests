@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
+gem 'ddtrace'
 
 gem 'grpc'
 gem 'grpc-tools'
