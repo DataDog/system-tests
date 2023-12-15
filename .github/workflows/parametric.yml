@@ -12,16 +12,16 @@ jobs:
       matrix:
         client:
           - php
-        ##  - python
-        ##  - python_http
-        ##  - dotnet
-        #  - golang
+          - python
+          - python_http
+          - dotnet
+          - golang
         ##  - java
-        ##  - nodejs
-        ##  - ruby
+          - nodejs
+          - ruby
         #  - cpp
         version:
-         #- prod
+         - prod
          - dev
       fail-fast: false
     env:
@@ -32,16 +32,13 @@ jobs:
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Load library binary
-        if: ${{ matrix.version == 'dev22' && matrix.client != 'python_http'}}
+        if: ${{ matrix.version == 'dev' && matrix.client != 'python_http' && matrix.client != 'php'}}
         run: ./utils/scripts/load-binary.sh ${{ matrix.client }}
       - name: Load python_http library binary
         if: ${{ matrix.version == 'dev' && matrix.client == 'python_http'}}
         run: ./utils/scripts/load-binary.sh python
-      - name: Load php library binary
-        if: ${{ matrix.version == 'dev' && matrix.client == 'python_http'}}
-        run: ./utils/scripts/load-binary.sh python
       - name: Load library PHP appsec binary
-        if: ${{ matrix.client == 'php' }}
+        if: ${{ matrix.version == 'dev' && matrix.client == 'php' }}
         run: |
           curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.94.1/datadog-setup.php --output-dir binaries/
           curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.94.1/dd-library-php-0.94.1-x86_64-linux-gnu.tar.gz --output-dir binaries/
