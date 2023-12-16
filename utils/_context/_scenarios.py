@@ -119,6 +119,8 @@ class _Scenario:
     def print_test_context(self):
         logger.terminal.write_sep("=", "test context", bold=True)
         logger.stdout(f"Scenario: {self.name}")
+        logger.stdout(f"Library version: {self.library}")
+        logger.stdout(f"Library commit hash: {self.library_info}")
         logger.stdout(f"Logs folder: ./{self.host_log_folder}")
 
     def _get_warmups(self):
@@ -142,6 +144,10 @@ class _Scenario:
     @property
     def library(self):
         return LibraryVersion("undefined")
+
+    @property
+    def library_info(self):
+        return ""
 
     @property
     def agent_version(self):
@@ -989,6 +995,7 @@ class ParametricScenario(_Scenario):
 
         # get tracer version info building and executing the ddtracer-version.docker file
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
+        library_hash = os.getenv("LIBRARY_HASH")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
         if os.path.isfile(tracer_version_dockerfile):
             try:
@@ -1003,6 +1010,8 @@ class ParametricScenario(_Scenario):
                         f"{tracer_version_dockerfile}",
                         "--build-arg",
                         f"BUILD_MODULE={build_param}",
+                        "--build-arg",
+                        f"LIBRARY_HASH={library_hash}"
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,
@@ -1014,7 +1023,12 @@ class ParametricScenario(_Scenario):
                     stdout=subprocess.PIPE,
                     check=False,
                 )
-                self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
+                info = result.stdout.decode("utf-8").split(",")
+                self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), info[0])
+                if len(info) > 1:
+                    if info[1] != "":
+                        x = info[1].split("-")
+                        self.library_hash = x[len(x) - 1]
             except subprocess.CalledProcessError as e:
                 logger.error(f"{e}")
                 raise RuntimeError(e)
@@ -1029,6 +1043,12 @@ class ParametricScenario(_Scenario):
 
     @property
     def library(self):
+        return self._library
+
+    @property
+    def library_info(self):
+        if self._library == "golang":
+            return self.library_hash
         return self._library
 
 
