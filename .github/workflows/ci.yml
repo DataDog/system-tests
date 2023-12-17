@@ -316,6 +316,13 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    - name: Run APM_TRACING_E2E_TRACECONTEXT scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh APM_TRACING_E2E_TRACECONTEXT
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
@@ -491,6 +498,7 @@ jobs:
         # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
         ./run.sh INTEGRATIONS --replay
         # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
+        # ./run.sh APM_TRACING_E2E_TRACECONTEXT --replay  # relies on backend
         ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT --replay
         ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
