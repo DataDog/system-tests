@@ -483,9 +483,7 @@ class Test_Otel_Span_Methods:
         assert "span.type" not in span["meta"]
         assert "analytics.event" not in span["meta"]
 
-    @missing_feature(context.library == "java", reason="Choose to not implement Go parsing logic")
-    @missing_feature(context.library == "golang", reason="OTLP behavior not respected")
-    @missing_feature(context.library == "ruby", reason="OTLP behavior not respected")
+    @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
@@ -501,6 +499,30 @@ class Test_Otel_Span_Methods:
             ("something-else", None),
             (True, 1),
             (False, 0),
+        ],
+    )
+    def test_otel_span_reserved_attributes_overrides_analytics_event(
+        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+    ):
+        """
+            Tests that the analytics.event reserved attribute override
+        """
+        run_otel_span_reserved_attributes_overrides_analytics_event(
+            analytics_event_value=analytics_event_value,
+            expected_metric_value=expected_metric_value,
+            test_library=test_library,
+            test_agent=test_agent,
+        )
+
+    @missing_feature(context.library == "java", reason="Choose to not implement Go parsing logic")
+    @missing_feature(context.library == "golang", reason="Choose to not implement Go parsing logic")
+    @missing_feature(context.library == "ruby", reason="Choose to not implement Go parsing logic")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "python_http", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "analytics_event_value,expected_metric_value",
+        [
             ("t", 1),
             ("T", 1),
             ("f", 0),
@@ -511,8 +533,8 @@ class Test_Otel_Span_Methods:
             ("trUe", None),
         ],
     )
-    def test_otel_span_reserved_attributes_overrides_analytics_event(
-        self, analytics_event_value: Union[bool, str], expected_metric_value: int, test_agent, test_library
+    def test_otel_span_extended_reserved_attributes_overrides_analytics_event(
+        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
     ):
         """
             Tests that the analytics.event reserved attribute override with respect to Go's strconv.ParseBool
@@ -523,7 +545,6 @@ class Test_Otel_Span_Methods:
             test_library=test_library,
             test_agent=test_agent,
         )
-
 
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
     with test_library:
@@ -539,7 +560,7 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
 
 
 def run_otel_span_reserved_attributes_overrides_analytics_event(
-    analytics_event_value: Union[bool, str], expected_metric_value: Union[str, None], test_agent, test_library
+    analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
 ):
     with test_library:
         with test_library.otel_start_span("operation", span_kind=SK_SERVER) as span:
@@ -550,8 +571,8 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
     assert len(trace) == 1
 
     span = get_span(test_agent)
-    if expected_metric_value is not None:
-        assert span["metrics"].get("_dd1.sr.eausr") == expected_metric_value
+    if (expected_metric_value is not None) or (context.library not in ['dotnet']):
+        assert span["metrics"].get("_dd1.sr.eausr") == (0 if expected_metric_value is None else expected_metric_value)
     else:
         assert "_dd1.sr.eausr" not in span["metrics"]
     assert "analytics.event" not in span["meta"]
