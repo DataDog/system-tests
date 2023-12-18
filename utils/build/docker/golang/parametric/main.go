@@ -19,7 +19,7 @@ import (
 
 type apmClientServer struct {
 	UnimplementedAPMClientServer
-	spans     map[uint64]tracer.Span
+	spans     map[uint64]*tracer.Span
 	otelSpans map[uint64]spanContext
 	tp        *ddotel.TracerProvider
 	tracer    otel_trace.Tracer
@@ -32,7 +32,7 @@ type spanContext struct {
 
 func newServer() *apmClientServer {
 	s := &apmClientServer{
-		spans:     make(map[uint64]tracer.Span),
+		spans:     make(map[uint64]*tracer.Span),
 		otelSpans: make(map[uint64]spanContext),
 	}
 	s.tp = ddotel.NewTracerProvider()
