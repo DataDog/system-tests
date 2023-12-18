@@ -203,7 +203,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v2.33.0
-      TestDynamicConfigV2: missing_feature
+      TestDynamicConfigV2: v2.33.0
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: v2.33.0
