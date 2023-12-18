@@ -206,8 +206,8 @@ tests/:
       TestDynamicConfigV2: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Defaults: missing_feature
-      Test_Environment: missing_feature
+      Test_Defaults: v2.33.0
+      Test_Environment: v2.33.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
