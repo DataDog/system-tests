@@ -406,6 +406,18 @@ class EndToEndScenario(_DockerScenario):
             else:
                 self.library_interface_timeout = 40
 
+    def session_start(self):
+        super().session_start()
+        try:
+            code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
+            if code:
+                message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
+            else:
+                message = stdout.decode()
+        except BaseException as e:
+            message = f"Unexpected exception {e}"
+        logger.stdout(f"Weblog system: {message}")
+
     def print_test_context(self):
         from utils import weblog
 
