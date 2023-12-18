@@ -505,9 +505,9 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(context.library == "java", reason="The expected metric value is zero")
-    @missing_feature(context.library == "golang", reason="The expected metric value is zero")
-    @missing_feature(context.library == "ruby", reason="The expected metric value is zero")
+    @irrelevant(context.library == "java", reason="The expected metric value is zero")
+    @irrelevant(context.library == "golang", reason="The expected metric value is zero")
+    @irrelevant(context.library == "ruby", reason="The expected metric value is zero")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
@@ -528,8 +528,8 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(context.library == "java", reason="Choose to not implement Go parsing logic")
-    @missing_feature(context.library == "ruby", reason="Choose to not implement Go parsing logic")
+    @irrelevant(context.library == "java", reason="Choose to not implement Go parsing logic")
+    @irrelevant(context.library == "ruby", reason="Choose to not implement Go parsing logic")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
