@@ -19,7 +19,7 @@ jobs:
         ##  - java
           - nodejs
           - ruby
-        #  - cpp
+          - cpp
         version:
          - prod
          - dev

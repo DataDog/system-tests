@@ -387,7 +387,7 @@ def cpp_library_factory() -> APMLibraryTestServer:
         container_tag="cpp-test-client",
         container_img=f"""
 FROM datadog/docker-library:dd-trace-cpp-ci AS build
-RUN apt-get update && apt-get -y install pkg-config protobuf-compiler-grpc libgrpc++-dev libabsl-dev
+RUN apt-get update && apt-get -y install pkg-config protobuf-compiler-grpc libgrpc++-dev libabsl-dev curl jq
 WORKDIR /usr/app
 COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
 ADD {cpp_reldir}/CMakeLists.txt {cpp_reldir}/developer_noise.cpp {cpp_reldir}/developer_noise.h {cpp_reldir}/distributed_headers_dicts.h {cpp_reldir}/main.cpp {cpp_reldir}/scheduler.h {cpp_reldir}/tracing_service.cpp {cpp_reldir}/tracing_service.h /usr/app/
