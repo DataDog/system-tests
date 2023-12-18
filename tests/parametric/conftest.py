@@ -375,7 +375,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
 def cpp_library_factory() -> APMLibraryTestServer:
     cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
-
+    cpp_reldir = cpp_appdir.replace("\\", "/")
     shutil.copyfile(
         os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
         os.path.join(cpp_absolute_appdir, "apm_test_client.proto"),
@@ -388,9 +388,13 @@ def cpp_library_factory() -> APMLibraryTestServer:
         container_img=f"""
 FROM datadog/docker-library:dd-trace-cpp-ci AS build
 RUN apt-get update && apt-get -y install pkg-config protobuf-compiler-grpc libgrpc++-dev libabsl-dev
-WORKDIR /cpp-parametric-test
-ADD CMakeLists.txt developer_noise.cpp developer_noise.h distributed_headers_dicts.h main.cpp scheduler.h tracing_service.cpp tracing_service.h /cpp-parametric-test/
-ADD apm_test_client.proto /cpp-parametric-test/test_proto3_optional/
+WORKDIR /usr/app
+COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
+ADD {cpp_reldir}/CMakeLists.txt {cpp_reldir}/developer_noise.cpp {cpp_reldir}/developer_noise.h {cpp_reldir}/distributed_headers_dicts.h {cpp_reldir}/main.cpp {cpp_reldir}/scheduler.h {cpp_reldir}/tracing_service.cpp {cpp_reldir}/tracing_service.h /usr/app/
+ADD {cpp_reldir}/apm_test_client.proto /usr/app/test_proto3_optional/
+
+RUN sh /binaries/install_ddtrace.sh
+
 RUN mkdir .build && cd .build && cmake .. && cmake --build . -j $(nproc) && cmake --install .
 
 FROM ubuntu:22.04
@@ -399,7 +403,7 @@ COPY --from=build /usr/local/bin/cpp-parametric-test /usr/local/bin/cpp-parametr
             """,
         container_cmd=["cpp-parametric-test"],
         container_build_dir=cpp_absolute_appdir,
-        container_build_context=cpp_absolute_appdir,
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )

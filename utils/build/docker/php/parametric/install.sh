@@ -6,7 +6,6 @@
 
 PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-gnu.tar.gz')
 SETUP=/binaries/datadog-setup.php
-
 if [ "$PKG" != "" ] && [ ! -f "$SETUP" ]; then
   echo "local install failed: package located in /binaries but datadog-setup.php not present, please include it"
   exit 1
