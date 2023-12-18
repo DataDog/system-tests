@@ -42,6 +42,11 @@ tests/:
           django-poc: v2.1.0.dev
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+        Test_Scanners:
+          '*': missing_feature
+          django-poc: v2.4.0.dev
+          flask-poc: v2.4.0.dev
+          python3.12: v2.4.0.dev
     iast/:
       sink/:
         test_command_injection.py:

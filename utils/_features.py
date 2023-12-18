@@ -1328,3 +1328,13 @@ class features:
         """
         pytest.mark.features(feature_id=203)(test_object)
         return test_object
+
+    @staticmethod
+    def api_security_schemas(test_object):
+        """
+        Schema extraction for API Security
+
+        https://feature-parity.us1.prod.dog/#/?feature=204
+        """
+        pytest.mark.features(feature_id=204)(test_object)
+        return test_object
