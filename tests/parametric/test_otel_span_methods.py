@@ -483,7 +483,7 @@ class Test_Otel_Span_Methods:
         assert "span.type" not in span["meta"]
         assert "analytics.event" not in span["meta"]
 
-    @missing_feature(context.library == "java", reason="OTLP behavior not respected")
+    @missing_feature(context.library == "java", reason="Choose to not implement Go parsing logic")
     @missing_feature(context.library == "golang", reason="OTLP behavior not respected")
     @missing_feature(context.library == "ruby", reason="OTLP behavior not respected")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
