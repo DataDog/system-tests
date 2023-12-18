@@ -522,16 +522,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
         "analytics_event_value,expected_metric_value",
-        [
-            ("t", 1),
-            ("T", 1),
-            ("f", 0),
-            ("F", 0),
-            ("1", 1),
-            ("0", 0),
-            ("fAlse", None),
-            ("trUe", None),
-        ],
+        [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0), ("fAlse", None), ("trUe", None),],
     )
     def test_otel_span_extended_reserved_attributes_overrides_analytics_event(
         self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
@@ -571,7 +562,7 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
     assert len(trace) == 1
 
     span = get_span(test_agent)
-    if (expected_metric_value is not None) or (context.library not in ['dotnet']):
+    if (expected_metric_value is not None) or (context.library not in ["dotnet"]):
         assert span["metrics"].get("_dd1.sr.eausr") == (0 if expected_metric_value is None else expected_metric_value)
     else:
         assert "_dd1.sr.eausr" not in span["metrics"]
