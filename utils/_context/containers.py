@@ -508,7 +508,7 @@ class WeblogContainer(TestedContainer):
         if self.appsec_rules_file:
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
         else:
-            self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
+            self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
         if self.weblog_variant == "python3.12":
             self.environment["DD_IAST_ENABLED"] = "false"  # IAST is not working as now on python3.12

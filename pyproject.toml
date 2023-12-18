@@ -79,6 +79,7 @@ allow_no_feature_nodes = [
     "tests/test_remote_config.py",
     "tests/test_scrubbing.py",
     "tests/test_no_ip_is_reported.py",
+    "tests/appsec/test_user_blocking_full_denylist.py",
     "tests/appsec/test_docs.py",
     "tests/appsec/test_endpoint_ognl.py",
     "tests/appsec/test_endpoint_sqli.py",
