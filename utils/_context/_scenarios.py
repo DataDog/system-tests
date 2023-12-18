@@ -113,15 +113,6 @@ class _Scenario:
             self.close_targets()
             raise
 
-        from utils._context.containers import _get_client
-
-        try:
-            weblog_container = _get_client().containers.get("system-tests-weblog")
-            code, (stdout, stderr) = weblog_container.exec_run("uname -a", demux=True)
-        except:
-            stdout = b"unknown"
-        logger.stdout(f"Weblog system: {stdout.decode()}")
-
     def pytest_sessionfinish(self, session):
         """ called at the end of the process  """
 
@@ -414,6 +405,20 @@ class EndToEndScenario(_DockerScenario):
                 self.library_interface_timeout = 25
             else:
                 self.library_interface_timeout = 40
+
+    def session_start(self):
+        super().session_start()
+        try:
+            code, (stdout, stderr) = self.weblog_container._container.exec_run(
+                "uname -a", demux=True
+            )
+            if code:
+                message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
+            else:
+                message = stdout.decode()
+        except BaseException as e:
+            message = f"Unexpected exception {e}"
+        logger.stdout(f"Weblog system: {message}")
 
     def print_test_context(self):
         from utils import weblog
