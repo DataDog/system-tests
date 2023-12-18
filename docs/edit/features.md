@@ -5,6 +5,7 @@ Let's take an example with a new `Awesome feature`, part of meta feature `stuffs
 ## Hello world test
 
 ```python
+@features.awesome_tests
 class Test_AwesomeFeature:
     """ Short description of Awesome feature """
 
@@ -16,7 +17,8 @@ Several key points:
 
 * One class test one feature
 * One class can have several tests
-* Files can be nested (`tests/test_product/test_stuffs.py::Test_AwesomeFeature`), feature's identifier will be the entire path, include the class name
+* Feature link to the [Feature Parity Dashbaord](https://feature-parity.us1.prod.dog/) is declared with `@features` decorators
+* Files can be nested (`tests/test_product/test_stuffs.py::Test_AwesomeFeature`), and how files are organized does not make any difference. Use you common sense, or ask on [slack](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X).
 
 ## Skip tests
 
