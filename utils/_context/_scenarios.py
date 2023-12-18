@@ -409,9 +409,7 @@ class EndToEndScenario(_DockerScenario):
     def session_start(self):
         super().session_start()
         try:
-            code, (stdout, stderr) = self.weblog_container._container.exec_run(
-                "uname -a", demux=True
-            )
+            code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
             if code:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:
