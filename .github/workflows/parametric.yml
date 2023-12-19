@@ -11,10 +11,12 @@ jobs:
     strategy:
       matrix:
           variant:
-            - client: [java]
-              version: [dev,prod]
-            - client: [nodejs]
-              version: [prod]
+            - client: java
+              version: 
+                - dev
+                - prod
+            - client: nodejs
+              version: prod
 
          # - php
          # - python
