@@ -30,10 +30,17 @@
 
     #Create a datadog user if it doesn't exists
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
+
+    #Allow DD env variables from ssh
+    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
+    sudo systemctl restart sshd.service
  
 - os_type: linux
   os_distro: rpm
   command: |
+    #Allow DD env variables from ssh
+    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
     sudo yum clean expire-cache
     #sudo yum -y update
+    sudo systemctl restart sshd.service

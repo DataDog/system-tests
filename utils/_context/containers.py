@@ -3,12 +3,13 @@ import re
 import stat
 import json
 from pathlib import Path
+from subprocess import run
 import time
 from functools import lru_cache
 import platform
 
 import docker
-from docker.errors import APIError
+from docker.errors import APIError, DockerException
 from docker.models.containers import Container
 import pytest
 import requests
@@ -20,7 +21,24 @@ from utils import interfaces
 
 @lru_cache
 def _get_client():
-    return docker.DockerClient.from_env()
+    try:
+        return docker.DockerClient.from_env()
+    except DockerException as e:
+        # Failed to start the default Docker client... Let's see if we have
+        # better luck with docker contexts...
+        try:
+            ctx_name = run(["docker", "context", "show"], capture_output=True, check=True, text=True).stdout.strip()
+            endpoint = run(
+                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
+                capture_output=True,
+                check=True,
+                text=True,
+            ).stdout.strip()
+            return docker.DockerClient(base_url=endpoint)
+        except:
+            pass
+
+        raise e
 
 
 _NETWORK_NAME = "system-tests_default"
@@ -137,8 +155,8 @@ class TestedContainer:
             self.execute_command(**self.healthcheck)
 
     def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
-        """ 
-            Execute a command inside a container. Usefull for healthcheck and warmups. 
+        """
+            Execute a command inside a container. Usefull for healthcheck and warmups.
             test is a command to be executed, interval, timeout and start_period are in us (microseconds)
         """
 
@@ -490,7 +508,7 @@ class WeblogContainer(TestedContainer):
         if self.appsec_rules_file:
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
         else:
-            self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
+            self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
         if self.weblog_variant == "python3.12":
             self.environment["DD_IAST_ENABLED"] = "false"  # IAST is not working as now on python3.12

@@ -48,9 +48,9 @@ func main() {
 		ctx.Writer.Write([]byte("OK"))
 	})
 
-	r.Any("/tag_value/:tag/:status", func(ctx *gin.Context) {
-		tag := ctx.Param("tag")
-		status, _ := strconv.Atoi(ctx.Param("status"))
+	r.Any("/tag_value/:tag_value/:status_code", func(ctx *gin.Context) {
+		tag := ctx.Param("tag_value")
+		status, _ := strconv.Atoi(ctx.Param("status_code"))
 		span, _ := tracer.SpanFromContext(ctx.Request.Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
 		ctx.Writer.WriteHeader(status)
