@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
           variant:
-            - client: java
+            - client: [java]
               version: [dev,prod]
             - client: [nodejs]
               version: [prod]
