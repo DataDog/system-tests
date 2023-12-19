@@ -7,6 +7,11 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
+        Test_Scanners:
+          '*': missing_feature
+          django-poc: v2.4.0.dev
+          flask-poc: v2.4.0.dev
+          python3.12: v2.4.0.dev
         Test_Schema_Request_Body:
           '*': missing_feature
           django-poc: v2.1.0.dev
