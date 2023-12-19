@@ -15,7 +15,7 @@ RUN pip uninstall -y psycopg2-binary
 RUN pip install psycopg2
 #############
 
-#Set to 0.42b0 due this bug: https://github.com/open-telemetry/opentelemetry-python-contrib/issues/2046
+#Set opentelemetry-distro to 0.42b0 due this bug: https://github.com/open-telemetry/opentelemetry-python-contrib/issues/2046
 RUN pip install opentelemetry-distro==0.42b0 opentelemetry-exporter-otlp
 
 RUN opentelemetry-bootstrap -a install
