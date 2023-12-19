@@ -639,7 +639,7 @@ class Test_Headers_Precedence:
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library == "dotnet", reason="dotnet must implement new tracestate propagation")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
     @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
     @missing_feature(context.library < "python@2.3.3", reason="python must implement new tracestate propagation")

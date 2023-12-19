@@ -93,6 +93,17 @@
             "args": ["-S", "GRAPHQL_APPSEC", "-p", "no:warnings"],
             "console": "integratedTerminal",
             "justMyCode": true
-        }
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "."
+            }
+        },
     ]
 }

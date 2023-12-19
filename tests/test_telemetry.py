@@ -118,6 +118,7 @@ class Test_Telemetry:
 
     @missing_feature(library="python")
     @flaky(library="ruby", reason="AIT-8418")
+    @flaky(library="java", reason="AIT-9152")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -126,10 +127,11 @@ class Test_Telemetry:
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
-            raise Exception("No telemetry data to validate on")
+            raise ValueError("No telemetry data to validate on")
 
         runtime_ids = set((data["request"]["content"]["runtime_id"] for data in telemetry_data))
         for runtime_id in runtime_ids:
+            logger.debug(f"Validating telemetry messages for runtime_id {runtime_id}")
             max_seq_id = 0
             received_max_time = None
             seq_ids = []
@@ -140,10 +142,13 @@ class Test_Telemetry:
                 seq_id = data["request"]["content"]["seq_id"]
                 timestamp_start = data["request"]["timestamp_start"]
                 curr_message_time = datetime.strptime(timestamp_start, FMT)
-                logger.debug(f"Telemetry message at {timestamp_start.split('T')[1]} {seq_id} in {data['log_filename']}")
+                logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
                 if 200 <= data["response"]["status_code"] < 300:
                     seq_ids.append((seq_id, data["log_filename"]))
+                else:
+                    logger.info(f"Response is {data['response']['status_code']}, tracer should resend the message")
+
                 if seq_id > max_seq_id:
                     max_seq_id = seq_id
                     received_max_time = curr_message_time
@@ -151,22 +156,26 @@ class Test_Telemetry:
                     if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
                         seconds=MAX_OUT_OF_ORDER_LAG
                     ):
-                        raise Exception(
+                        raise ValueError(
                             f"Received message with seq_id {seq_id} to far more than"
                             f"100ms after message with seq_id {max_seq_id}"
                         )
 
-            seq_ids.sort()
+            # sort by seq_id, seq_ids is an array of (id, filename), so the key is the first element
+            seq_ids.sort(key=lambda item: item[0])
+
             for i in range(len(seq_ids) - 1):
                 diff = seq_ids[i + 1][0] - seq_ids[i][0]
                 if diff == 0:
-                    raise Exception(
+                    raise ValueError(
                         f"Detected 2 telemetry messages with same seq_id {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
                     )
 
                 if diff > 1:
                     logger.error(f"{seq_ids[i + 1][0]} {seq_ids[i][0]}")
-                    raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
+                    raise ValueError(
+                        f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
+                    )
 
     @bug(library="ruby", reason="app-started not sent")
     @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
@@ -289,6 +298,7 @@ class Test_Telemetry:
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(library="ruby")
+    @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     def test_app_heartbeat(self):
@@ -428,6 +438,7 @@ class Test_Telemetry:
     @irrelevant(library="python")
     @irrelevant(library="php")
     @irrelevant(library="java")
+    @irrelevant(library="nodejs")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,

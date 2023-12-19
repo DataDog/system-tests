@@ -18,6 +18,9 @@ from utils._decorators import released
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
 
+# pytest does not keep a trace of deselected items, so we keep it in a global variable
+_deselected_items = []
+
 
 def _JSON_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/report.json"
@@ -97,7 +100,7 @@ def _collect_item_metadata(item):
         "release_versions": {},
         "coverages": {},
         "rfcs": {},
-        "features": [],
+        "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
     }
 
     result["docs"][item.nodeid] = item.obj.__doc__
@@ -119,18 +122,10 @@ def _collect_item_metadata(item):
     if hasattr(item.obj, "__rfc__"):
         result["rfcs"][item.nodeid] = getattr(item.obj, "__rfc__")
 
-    markers = list(item.own_markers)
+    # get the reason form skip before xfail
+    markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
 
-    parent = item.parent
-    while parent is not None:
-        markers += parent.own_markers
-        parent = parent.parent
-
-    for marker in reversed(markers):
-        if marker.name == "features":
-            result["features"].append(marker.kwargs["feature_id"])
-
-    for marker in reversed(markers):
+    for marker in markers:
         result["skip_reason"] = _get_skip_reason_from_marker(marker)
         if result["skip_reason"]:
             logger.debug(f"{item.nodeid} => {result['skip_reason']} => skipped")
@@ -207,36 +202,19 @@ def pytest_collection_modifyitems(session, config, items):
 
     logger.debug("pytest_collection_modifyitems")
 
-    def get_declared_scenario(item):
-        for marker in item.own_markers:
-            if marker.name == "scenario":
-                return marker.args[0]
-
-        for marker in item.parent.own_markers:
-            if marker.name == "scenario":
-                return marker.args[0]
-
-        for marker in item.parent.parent.own_markers:
-            if marker.name == "scenario":
-                return marker.args[0]
-
-        return None
-
     selected = []
     deselected = []
 
     for item in items:
-        declared_scenario = get_declared_scenario(item)
+        scenario_markers = list(item.iter_markers("scenario"))
+        declared_scenario = scenario_markers[0].args[0] if len(scenario_markers) != 0 else "DEFAULT"
+
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
             deselected.append(item)
             continue
 
-        if (
-            declared_scenario == context.scenario.name
-            or declared_scenario is None
-            and context.scenario.name == "DEFAULT"
-        ):
+        if declared_scenario == context.scenario.name:
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
@@ -252,22 +230,12 @@ def pytest_collection_modifyitems(session, config, items):
     config.hook.pytest_deselected(items=deselected)
 
 
+def pytest_deselected(items):
+    _deselected_items.extend(items)
+
+
 def _item_is_skipped(item):
-    for marker in item.own_markers:
-        if marker.name in ("skip",):
-            return True
-
-    for marker in item.parent.own_markers:
-        if marker.name in ("skip",):
-            return True
-
-    # for test methods in classes, item.parent.parent is the module
-    if item.parent.parent:
-        for marker in item.parent.parent.own_markers:
-            if marker.name in ("skip",):
-                return True
-
-    return False
+    return any(item.iter_markers("skip"))
 
 
 def pytest_collection_finish(session):
@@ -463,3 +431,14 @@ def convert_test_to_feature_parity_model(test):
         raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
 
     return result
+
+
+## Fixtures corners
+@pytest.fixture(scope="session", name="session")
+def fixture_session(request):
+    return request.session
+
+
+@pytest.fixture(scope="session", name="deselected_items")
+def fixture_deselected_items():
+    return _deselected_items
