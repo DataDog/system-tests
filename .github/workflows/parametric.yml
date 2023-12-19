@@ -19,20 +19,23 @@ jobs:
               version: prod
 
             #Pending to update with dev version  
+            - client: php
+              version: prod
+            - client: python
+              version: prod
+            - client: python_http
+              version: prod
+            - client: dotnet
+              version: prod
+            - client: golang
+              version: prod
             - client: nodejs
               version: prod
-
-         # - php
-         # - python
-         # - python_http
-         # - dotnet
-         # - golang
-         # - java
-         # - nodejs
-         # - ruby
-         # - cpp
-
-
+            - client: ruby
+              version: prod
+            - client: cpp
+              version: prod
+ 
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.client }}
