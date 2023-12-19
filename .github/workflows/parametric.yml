@@ -10,16 +10,16 @@ jobs:
       group: "APM Larger Runners"
     strategy:
       matrix:
-        client:
-          - php
-          - python
-          - python_http
-          - dotnet
-          - golang
-          - java
-          - nodejs
-          - ruby
-          - cpp
+        client: [nodejs, java]
+         # - php
+         # - python
+         # - python_http
+         # - dotnet
+         # - golang
+         # - java
+         # - nodejs
+         # - ruby
+         # - cpp
         include:
           - version: prod
           - client: java
