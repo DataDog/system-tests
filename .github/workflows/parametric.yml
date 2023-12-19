@@ -10,11 +10,29 @@ jobs:
       group: "APM Larger Runners"
     strategy:
       matrix:
+        fruit: [apple, pear]
+        animal: [cat, dog]
+        include:
+          - color: green
+          - color: pink
+            animal: cat
+          - fruit: apple
+            shape: circle
+          - fruit: banana
+          - fruit: banana
+            animal: cat
+    steps:
+      - name: Test
+        run: echo "hola"
+  parametric2:
+    if: ${{ false }}  # disable for now
+    runs-on:
+      group: "APM Larger Runners"
+    strategy:
+      matrix:
           variant:
             - client: java
-              version: 
-                - dev
-                - prod
+              version: dev
             - client: nodejs
               version: prod
 
