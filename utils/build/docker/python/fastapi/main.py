@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
-    set_user = lambda *args, **kwargs: None
+    set_user = lambda *args, **kwargs: None  # noqa E731
 
 app = FastAPI()
 
@@ -90,8 +90,9 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
         tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
     )
     if tag_value.startswith("payload_in_response_body"):
-        json_body = await request.json()
-        return JSONResponse({"payload": json_body}, status_code=status_code, headers=request.query_params)
+        return JSONResponse(
+            {"payload": dict(await request.form())}, status_code=status_code, headers=request.query_params,
+        )
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
 
 
@@ -253,15 +254,6 @@ async def view_iast_source_cookie_name(request: Request):
 async def view_iast_source_cookie_value(table: typing.Annotated[str, Cookie()] = "undefined"):
     _sink_point(table=table)
     return "OK"
-
-
-@app.get("/iast/source/headername/test", response_class=PlainTextResponse)
-async def view_iast_source_cookie_name(request: Request):
-    param = [key for key in request.headers if key == "User"]
-    if param:
-        _sink_point(id=param[0])
-        return "OK"
-    return "KO"
 
 
 @app.get("/iast/source/header/test", response_class=PlainTextResponse)
@@ -446,7 +438,7 @@ def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
 def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    command = " ".join([cmd, "-la", filename])
+    command = " ".join([cmd, "-la", filename])  # noqa F841
     # TODO: add secure command
     # subp = subprocess.check_output(command, shell=False)
     # subp.communicate()

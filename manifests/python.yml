@@ -12,41 +12,49 @@ tests/:
           django-poc: v2.4.0.dev
           flask-poc: v2.4.0.dev
           python3.12: v2.4.0.dev
+          fastapi: v2.4.0.dev1
         Test_Schema_Request_Body:
           '*': missing_feature
           django-poc: v2.1.0.dev
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+          fastapi: v2.4.0.dev1
         Test_Schema_Request_Cookies:
           '*': missing_feature
           django-poc: v2.1.0.dev
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+          fastapi: v2.4.0.dev1
         Test_Schema_Request_Headers:
           '*': missing_feature
           django-poc: v2.1.0.dev
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+          fastapi: v2.4.0.dev1
         Test_Schema_Request_Path_Parameters:
           '*': missing_feature
           django-poc: v2.1.0.dev
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+          fastapi: v2.4.0.dev1
         Test_Schema_Request_Query_Parameters:
           '*': missing_feature
           django-poc: v2.1.0.dev
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+          fastapi: v2.4.0.dev1
         Test_Schema_Response_Body:
           '*': missing_feature
           django-poc: v2.1.0.dev
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+          fastapi: v2.4.0.dev1
         Test_Schema_Response_Headers:
           '*': missing_feature
           django-poc: v2.1.0.dev
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+          fastapi: v2.4.0.dev1
     iast/:
       sink/:
         test_command_injection.py:
