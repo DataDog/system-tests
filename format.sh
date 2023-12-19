@@ -15,4 +15,4 @@ fi
 if [[ -z ${1:-} ]]; then
 	set -- .
 fi
-exec docker run -i --rm --user="$(id -u):$(id -g)" --workdir "$(pwd)" -v "$(pwd):$(pwd)" "${IMAGE}" black "$@"
+exec docker run -it --rm --user="$(id -u):$(id -g)" --workdir "$(pwd)" -v "$(pwd):$(pwd)" "${IMAGE}" black "$@"
