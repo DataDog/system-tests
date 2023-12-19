@@ -5,34 +5,20 @@ on:
 env:
   REGISTRY: ghcr.io
 jobs:
+
   parametric:
     runs-on:
       group: "APM Larger Runners"
     strategy:
       matrix:
-        fruit: [apple, pear]
-        animal: [cat, dog]
-        include:
-          - color: green
-          - color: pink
-            animal: cat
-          - fruit: apple
-            shape: circle
-          - fruit: banana
-          - fruit: banana
-            animal: cat
-    steps:
-      - name: Test
-        run: echo "hola"
-  parametric2:
-    if: ${{ false }}  # disable for now
-    runs-on:
-      group: "APM Larger Runners"
-    strategy:
-      matrix:
           variant:
+            #Updated with dev version 
             - client: java
               version: dev
+            - client: java
+              version: prod
+
+            #Pending to update with dev version  
             - client: nodejs
               version: prod
 
