@@ -348,7 +348,7 @@ def cpp_library_factory() -> APMLibraryTestServer:
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
     dockerfile_content = ""
 
-    with open(os.path.join(cpp_appdir, "Dockerfile"), "r") as f:
+    with open(os.path.join(cpp_absolute_appdir, "Dockerfile"), "r") as f:
         dockerfile_content = f.read()
 
     assert dockerfile_content
