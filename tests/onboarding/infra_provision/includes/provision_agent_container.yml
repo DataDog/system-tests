@@ -1,8 +1,5 @@
-  - env: prod
-    install:
-      - os_type: linux
-        copy_files:
-            - name: copy-agent-docker-compose
-              local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
-
-        command: cat docker-compose-agent-prod.yml
+- os_type: linux
+  copy_files:
+      - name: copy-agent-docker-compose
+        local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
+  command: cat docker-compose-agent-prod.yml

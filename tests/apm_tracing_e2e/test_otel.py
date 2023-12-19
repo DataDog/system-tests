@@ -44,7 +44,7 @@ class Test_Otel_Span:
         assert child.get("meta").get("span.kind") == "internal"
 
         # Assert the spans received from the backend!
-        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="")
+        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
         assert 2 == len(spans), _assert_msg(2, len(spans))
 
     def setup_distributed_otel_trace(self):
@@ -75,7 +75,7 @@ class Test_Otel_Span:
         assert handler_span.get("parentID") == roundtrip_span.get("spanID")
 
         # Assert the spans received from the backend!
-        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="")
+        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
         assert 3 == len(spans), _assert_msg(3, len(spans))
 
 

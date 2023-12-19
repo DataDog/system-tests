@@ -5,40 +5,53 @@ on:
 env:
   REGISTRY: ghcr.io
 jobs:
+
   parametric:
     runs-on:
       group: "APM Larger Runners"
     strategy:
       matrix:
-        client:
-          - php
-          - python
-          - python_http
-          - dotnet
-          - golang
-        ##  - java
-          - nodejs
-          - ruby
-          - cpp
-        version:
-         - prod
-         - dev
+          variant:
+            #Updated with dev version 
+            - client: java
+              version: dev
+            - client: java
+              version: prod
+
+            #Pending to update with dev version  
+            - client: php
+              version: prod
+            - client: python
+              version: prod
+            - client: python_http
+              version: prod
+            - client: dotnet
+              version: prod
+            - client: golang
+              version: prod
+            - client: nodejs
+              version: prod
+            - client: ruby
+              version: prod
+            - client: cpp
+              version: prod
+ 
       fail-fast: false
     env:
-      TEST_LIBRARY: ${{ matrix.client }}
+      TEST_LIBRARY: ${{ matrix.variant.client }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.client != 'python_http' && matrix.client != 'php'}}
-        run: ./utils/scripts/load-binary.sh ${{ matrix.client }}
+        if: ${{ matrix.variant.version == 'dev' && matrix.variant.client != 'python_http' && matrix.variant.client != 'php'}}
+        run: ./utils/scripts/load-binary.sh ${{ matrix.variant.client }}
       - name: Load python_http library binary
-        if: ${{ matrix.version == 'dev' && matrix.client == 'python_http'}}
+        if: ${{ matrix.variant.version == 'dev' && matrix.variant.client == 'python_http'}}
         run: ./utils/scripts/load-binary.sh python
       - name: Load library PHP appsec binary
-        if: ${{ matrix.version == 'dev' && matrix.client == 'php' }}
+        if: ${{ matrix.variant.version == 'dev' && matrix.variant.client == 'php' }}
         run: |
           curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.94.1/datadog-setup.php --output-dir binaries/
           curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.94.1/dd-library-php-0.94.1-x86_64-linux-gnu.tar.gz --output-dir binaries/
@@ -52,11 +65,11 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v3
         with:
-          name: logs_${{ matrix.client}}_parametric_${{ matrix.version }}_main
+          name: logs_${{ matrix.variant.client}}_parametric_${{ matrix.variant.version }}_main
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: ${{ always() }}
-        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.variant.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
         env:
           DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
       - name: Print fancy log report
