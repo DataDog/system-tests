@@ -77,6 +77,8 @@ class _Weblog:
             m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
             if m is not None:
                 self.domain = m.group(1)
+            else:
+                self.domain = "localhost"
         else:
             self.domain = "localhost"
 

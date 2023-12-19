@@ -14,6 +14,7 @@ class Test_Trace_Sampling_Basic:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"service": "webserver.non-matching", "sample_rate": 0},
@@ -23,12 +24,14 @@ class Test_Trace_Sampling_Basic:
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"name": "web.request.non-matching", "sample_rate": 0}, {"name": "web.request", "sample_rate": 1}]
                 ),
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"service": "webserver.non-matching", "name": "web.request", "sample_rate": 0},
@@ -54,6 +57,7 @@ class Test_Trace_Sampling_Basic:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"service": "webserver", "name": "web.request", "sample_rate": 0}]
                 ),
@@ -79,18 +83,21 @@ class Test_Trace_Sampling_Globs:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1},]
                 ),
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"name": "web.non-matching*", "sample_rate": 0}, {"name": "web.*", "sample_rate": 1}]
                 ),
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"service": "webserv?r.non-matching", "name": "web.req*", "sample_rate": 0},
@@ -116,6 +123,7 @@ class Test_Trace_Sampling_Globs:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"service": "w?bs?rv?r", "name": "web.*", "sample_rate": 0}]),
             }
         ],
@@ -139,12 +147,14 @@ class Test_Trace_Sampling_Resource:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1},]
                 ),
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"name": "web.request.non-matching", "resource": "/bar", "sample_rate": 0},
@@ -155,6 +165,7 @@ class Test_Trace_Sampling_Resource:
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"service": "webserver.non-matching", "resource": "/bar", "sample_rate": 0},
@@ -165,6 +176,7 @@ class Test_Trace_Sampling_Resource:
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {
@@ -208,6 +220,7 @@ class Test_Trace_Sampling_Resource:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"service": "non-matching", "sample_rate": 1},
@@ -240,12 +253,14 @@ class Test_Trace_Sampling_Tags:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"tags": {"tag1": "non-matching"}, "sample_rate": 0}, {"tags": {"tag1": "val1"}, "sample_rate": 1}]
                 ),
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"tags": {"tag1": "non-matching"}, "sample_rate": 0},
@@ -258,12 +273,14 @@ class Test_Trace_Sampling_Tags:
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"tags": {"tag1": "v?r*"}, "sample_rate": 0}, {"tags": {"tag1": "val?"}, "sample_rate": 1}]
                 ),
             },
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"service": "webs?rver.non-matching", "sample_rate": 0},
@@ -300,6 +317,7 @@ class Test_Trace_Sampling_Tags:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [
                         {"tags": {"tag1": "v?l1", "tag2": "non-matching"}, "sample_rate": 1},
