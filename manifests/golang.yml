@@ -106,7 +106,7 @@ tests/:
           gin: v1.37.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
-          '*': v1.59.0.dev0
+          '*': v1.60.0-dev
 
         Test_Headers:
           '*': v1.34.0
