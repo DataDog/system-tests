@@ -346,12 +346,27 @@ def ruby_library_factory() -> APMLibraryTestServer:
 def cpp_library_factory() -> APMLibraryTestServer:
     cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric", "http")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
-    dockerfile_content = ""
+    dockerfile_content = f"""
+FROM datadog/docker-library:dd-trace-cpp-ci AS build
 
-    with open(os.path.join(cpp_absolute_appdir, "Dockerfile"), "r") as f:
-        dockerfile_content = f.read()
+RUN apt-get update && apt-get -y install pkg-config libabsl-dev
+WORKDIR /cpp-parametric-test
+ADD CMakeLists.txt \
+    developer_noise.cpp \
+    developer_noise.h \
+    httplib.h \
+    json.hpp \
+    main.cpp \
+    manual_scheduler.h \
+    request_handler.cpp \
+    request_handler.h \
+    utils.h \
+    /cpp-parametric-test/
+RUN cmake -B .build -DCMAKE_BUILD_TYPE=Release . && cmake --build .build -j $(nproc) && cmake --install .build --prefix dist
 
-    assert dockerfile_content
+FROM ubuntu:22.04
+COPY --from=build /cpp-parametric-test/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-parametric-test
+"""
 
     return APMLibraryTestServer(
         lang="cpp",
