@@ -2,9 +2,7 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-Test_Scanners: missing_feature
-        Test_Schema_Request_Json_Body: missing_feature
-        Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
+        Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v0.94.0
         Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
         Test_Schema_Request_Headers: v0.94.0
