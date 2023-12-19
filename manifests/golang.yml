@@ -33,6 +33,8 @@ tests/:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature          
+        test_header_injection.py:
+          TestHeaderInjection: missing_feature
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
