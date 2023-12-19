@@ -42,9 +42,12 @@ class Test_First_Trace_Telemetry:
             The first trace should contain telemetry for calculating how long it took to emit the first trace.
         """
         with test_library.start_span("first_span"):
+            with test_library.start_span("second_span"):
+                pass
+        with test_library.start_span("third_span"):
             pass
 
-        traces = test_agent.wait_for_num_traces(num=1)
+        traces = test_agent.wait_for_num_traces(num=2)
 
         assert (
             "_dd.install.time" in traces[0][0]["meta"]
@@ -74,6 +77,12 @@ class Test_First_Trace_Telemetry:
         assert (
             install_id == library_env["DD_INSTRUMENTATION_INSTALL_ID"]
         ), "Install id should be the propagated value, got {}".format(install_id)
+
+        # Ensure other spans do not have the telemetry
+        for span in (traces[0][1], traces[1][0]):
+            assert "_dd.install.time" not in span["meta"]
+            assert "_dd.install.type" not in span["meta"]
+            assert "_dd.install.id" not in span["meta"]
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_first_trace_telemetry_not_propagated(self, library_env, test_agent, test_library):
