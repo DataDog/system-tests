@@ -2,12 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, coverage, missing_feature, scenarios
+from utils import context, weblog, interfaces, bug, coverage, missing_feature, scenarios, features
 from .utils import rules
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @coverage.basic
+@features.appsec_response_blocking
 class Test_404:
     """Appsec WAF misc tests"""
 
@@ -30,6 +31,7 @@ class Test_404:
 
 @scenarios.appsec_custom_rules
 @coverage.basic
+@features.appsec_blocking_action
 class Test_MultipleHighlight:
     """Appsec reports multiple attacks on same request"""
 
@@ -42,6 +44,7 @@ class Test_MultipleHighlight:
 
 
 @coverage.good
+@features.appsec_blocking_action
 class Test_MultipleAttacks:
     """If several attacks are sent threw one requests, all of them are reported"""
 
@@ -86,6 +89,7 @@ class Test_CorrectOptionProcessing:
 
 
 @coverage.basic
+@features.threats_configuration
 class Test_NoWafTimeout:
     """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
 

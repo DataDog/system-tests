@@ -1,73 +1,44 @@
 ami: !include tests/onboarding/infra_provision/includes/provision_ami.yml
 
 init-config:
-  install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml
+  install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
+
+init-dd-config-distro: !include tests/onboarding/infra_provision/includes/provision_init_dd_config_distro.yml
 
 prepare-repos:
   install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
 
-agent: !include tests/onboarding/infra_provision/includes/provision_agent.yml
+agent:
+  install: !include tests/onboarding/infra_provision/includes/provision_agent.yml
 
-agent_auto_install:
-    - env: dev
-      install:
-      - os_type: linux
-        copy_files:
-            - name: copy-auto-install-script
-              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: bash execute_install_script_dev.sh js --inject-mode host 
-    - env: prod
-      install:
-      - os_type: linux
-        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=js DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+autoinjection_install_script:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_script.yml
 
-autoinjection:
-#Copy tests/onboarding/autoinjection/host_config.yaml to /etc/datadog-agent/inject/host_config.yaml to enable debug (Disabled for timing reasons)
-  - env: dev
-    install: 
-      - os_type: linux
-        os_distro: deb
-        command: |
-          sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
-          dd-host-install
+autoinjection_install_manual:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_manual.yml
+  uninstall:
+    - os_type: linux
+      command: dd-host-install --uninstall
 
-      - os_type: linux
-        os_distro: rpm
-        command: |
-          sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-js
-          dd-host-install
-    uninstall: 
-      - os_type: linux 
-        command: dd-host-install --uninstall
-
-  - env: prod
-    install: 
-      - os_type: linux
-        os_distro: deb
-        command: |
-          sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
-          dd-host-install 
-
-      - os_type: linux
-        os_distro: rpm
-        command: |
-          sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
-          dd-host-install
-    uninstall: 
-      - os_type: linux 
-        command: dd-host-install --uninstall
-
+installation_checks:
+  install: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml
 language-variants:
   - name: node16
     version: 16
     install: 
       - os_type: linux
         os_distro: deb
-        command: curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - && sudo apt-get install -y nodejs
+        command: curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - && sudo apt-get install -y nodejs  
       - os_type: linux
         os_distro: rpm
-        command: curl -sL https://rpm.nodesource.com/setup_16.x | sudo bash - && sudo yum install -y nodejs       
-
+        command: | 
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          nvm install 16.0.0
+          nvm use node
+          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
 weblogs:
 
   - name: test-app-nodejs
@@ -77,7 +48,7 @@ weblogs:
       - os_type: linux
         copy_files:
           - name: copy-service
-            local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/test-app-nodejs.service
+            local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/test-app.service
 
           - name: copy-run-weblog-script
             local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/test-app-nodejs_run.sh
@@ -88,6 +59,4 @@ weblogs:
         command: sh test-app-nodejs_run.sh
     uninstall: 
       - os_type: linux
-        command: sudo systemctl stop test-app-nodejs.service
-
-installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml
+        command: sudo systemctl stop test-app.service

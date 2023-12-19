@@ -13,59 +13,63 @@ class ProvisionMatrix:
         if not self.provision_filter.language or not self.provision_filter.env or not self.provision_filter.weblog:
             return None
         for ec2_data in self.provision_parser.ec2_instances_data():
-            # for every different agent instalation
-            for agent_instalations in self.provision_parser.ec2_agent_install_data():
-                # for every different autoinjection software (by language, by os and by env)
-                for autoinjection_instalations in self.provision_parser.ec2_autoinjection_install_data():
-                    # for every different language variants. If the aren't language_variants for this language
-                    # the function "ec2_language_variants_install_data" will return an array with an empty dict
-                    for language_variants_instalations in self.provision_parser.ec2_language_variants_install_data():
-                        # for every weblog supported for every language variant or weblog variant
-                        # without "supported-language-versions"
-                        for weblog_instalations in self.provision_parser.ec2_weblogs_install_data(
-                            language_variants_instalations["version"]
-                        ):
-                            prepare_init_config = self.provision_parser.ec2_prepare_init_config_install_data()
-                            prepare_repos_install = self.provision_parser.ec2_prepare_repos_install_data()
-                            prepare_docker_install = self.provision_parser.ec2_prepare_docker_install_data()
-                            installation_check_data = self.provision_parser.ec2_installation_checks_data()
-                            autoinjection_uninstall = None
-                            weblog_uninstall = None
-                            if self.provision_parser.is_uninstall:
-                                autoinjection_uninstall = self.provision_parser.ec2_autoinjection_uninstall_data()
-                                weblog_uninstall = self.provision_parser.ec2_weblog_uninstall_data(
-                                    weblog_instalations["name"]
-                                )
+            # for every different language variants. If the aren't language_variants for this language
+            # the function "ec2_language_variants_install_data" will return an array with an empty dict
+            for language_variants_instalations in self.provision_parser.ec2_language_variants_install_data():
+                # for every weblog supported for every language variant or weblog variant
+                # without "supported-language-versions"
+                for weblog_instalations in self.provision_parser.ec2_weblogs_install_data(
+                    language_variants_instalations["version"]
+                ):
 
-                            yield TestedVirtualMachine(
-                                ec2_data,
-                                agent_instalations,
-                                self.provision_filter.language,
-                                autoinjection_instalations,
-                                autoinjection_uninstall,
-                                language_variants_instalations,
-                                weblog_instalations,
-                                weblog_uninstall,
-                                prepare_init_config,
-                                prepare_repos_install,
-                                prepare_docker_install,
-                                installation_check_data,
-                                self.provision_filter.provision_scenario.lower(),
-                                self.provision_parser.is_uninstall,
-                            )
+                    prepare_init_config = self.provision_parser.ec2_prepare_init_config_install_data()
+                    prepare_repos_install = self.provision_parser.ec2_prepare_repos_install_data()
+                    prepare_docker_install = self.provision_parser.ec2_prepare_docker_install_data()
+
+                    agent_instalations = self.provision_parser.ec2_agent_install_data()
+                    autoinjection_instalation = self.provision_parser.ec2_autoinjection_install_data()
+
+                    installation_check_data = self.provision_parser.ec2_installation_checks_data()
+
+                    autoinjection_uninstall = None
+                    weblog_uninstall = None
+                    if self.provision_parser.is_uninstall:
+                        autoinjection_uninstall = self.provision_parser.ec2_autoinjection_uninstall_data()
+                        weblog_uninstall = self.provision_parser.ec2_weblog_uninstall_data(weblog_instalations["name"])
+
+                    yield TestedVirtualMachine(
+                        ec2_data,
+                        agent_instalations,
+                        self.provision_filter.language,
+                        autoinjection_instalation,
+                        autoinjection_uninstall,
+                        language_variants_instalations,
+                        weblog_instalations["install"],
+                        weblog_uninstall,
+                        prepare_init_config,
+                        prepare_repos_install,
+                        prepare_docker_install,
+                        installation_check_data,
+                        self.provision_filter.provision_scenario.lower(),
+                        self.provision_parser.is_uninstall,
+                        self.provision_filter.env,
+                        self.provision_filter.weblog,
+                        self.provision_parser.ec2_init_dd_config_distro(),
+                        self.provision_parser.is_auto_install,
+                        self.provision_parser.is_container,
+                    )
 
 
 class ProvisionParser:
     def __init__(self, provision_filter):
         self.provision_filter = provision_filter
-        # If the scenario name has suffix "AUTO_INSTALL" the parser behaviour will change
-        self.auto_install_suffix = "_AUTO_INSTALL"
+        # If the scenario name has suffix "_INSTALL_SCRIPT" the parser behaviour will change
+        self.auto_install_suffix = "_INSTALL_SCRIPT"
         # If the scenario name has suffix "UNINSTALL" the parser behaviour will change
         self.uninstall_suffix = "_UNINSTALL"
-        self.is_auto_install = provision_filter.provision_scenario.endswith(
-            self.auto_install_suffix
-        ) or provision_filter.provision_scenario.endswith(self.auto_install_suffix + self.uninstall_suffix)
+        self.is_auto_install = provision_filter.provision_scenario.endswith(self.auto_install_suffix)
         self.is_uninstall = provision_filter.provision_scenario.endswith(self.uninstall_suffix)
+        self.is_container = "CONTAINER" in provision_filter.provision_scenario
         self.config_data = self._load_provision()
 
     def ec2_instances_data(self):
@@ -83,51 +87,23 @@ class ProvisionParser:
         self.provision_filter.os_branch = ami_data.get("os_branch", None)
 
     def ec2_agent_install_data(self):
-        if self.is_auto_install:
-            yield {}
-        else:
-            for agent_data in self._filter_provision_data(self.config_data, "agent"):
-                yield agent_data
+        return self._filter_install_data(self.config_data["agent"])[0]
+
+    def ec2_init_dd_config_distro(self):
+        """ Read dd software software origins for current environment"""
+        for dd_config in self.config_data["init-dd-config-distro"]:
+            if self.provision_filter.env == dd_config["env"]:
+                return dd_config
+        raise NotImplementedError(f"No DD software origins found for current environment {self.provision_filter.env}")
 
     def ec2_autoinjection_install_data(self):
-        autoinjection_data = {}
         if self.is_auto_install:
-            # Read agent_auto_install node
-            autoinjection_data = self._get_autoinstall_data()
-        else:
-            autoinjection_data = self._get_autoinjection_data()
-        if not autoinjection_data:
-            return None
-        for autoinjection_env_data in autoinjection_data:
-            if self.provision_filter.env and autoinjection_env_data["env"] != self.provision_filter.env:
-                continue
-            filteredInstalations = self._filter_install_data(autoinjection_env_data)
-            # No instalation for this os_type/branch. Skip it
-            if not filteredInstalations:
-                continue
+            return self._filter_install_data(self.config_data["autoinjection_install_script"])[0]
 
-            yield {"env": autoinjection_env_data["env"], "install": filteredInstalations[0]}
+        return self._filter_install_data(self.config_data["autoinjection_install_manual"])[0]
 
     def ec2_autoinjection_uninstall_data(self):
-        # Although the installation was automatic, the uninstallation method is the same as the manual installation.
-        autoinjection_data = self._get_autoinjection_data()
-        if not autoinjection_data:
-            return None
-        for autoinjection_env_data in autoinjection_data:
-            if self.provision_filter.env and autoinjection_env_data["env"] != self.provision_filter.env:
-                continue
-            filteredInstalations = self._filter_install_data(autoinjection_env_data, operation="uninstall")
-            # No instalation for this os_type/branch. Skip it
-            if not filteredInstalations:
-                continue
-
-            return {"uninstall": filteredInstalations[0]}
-
-    def _get_autoinstall_data(self):
-        return self.config_data["agent_auto_install"]
-
-    def _get_autoinjection_data(self):
-        return self.config_data["autoinjection"]
+        return self._filter_install_data(self.config_data["autoinjection_install_manual"], operation="uninstall")
 
     def ec2_language_variants_install_data(self):
         language_variants_data_result = []
@@ -181,12 +157,7 @@ class ProvisionParser:
             return filtered_weblog_data
 
     def ec2_installation_checks_data(self):
-        for installation_checks_data in self.config_data["installation_checks"]:
-            for filtered_installation_checks_data in self._filter_provision_data(
-                installation_checks_data, self.provision_filter.language
-            ):
-                # Only one check
-                return filtered_installation_checks_data
+        return self._filter_install_data(self.config_data["installation_checks"])[0]
 
     def _filter_install_data(self, data, exact_match=False, operation=None):
         if not operation:
@@ -207,7 +178,6 @@ class ProvisionParser:
         # Weblog is exact_match=true. If AMI has os_branch we will execute only weblogs with the same os_branch
         # If weblog has os_branch, we will execute this weblog only in machines with os_branch
         if exact_match is True:
-
             if os_branch is not None:
                 if "supported-language-versions" in data and "os_branch" in data:
                     return filteredInstalations
@@ -270,13 +240,11 @@ class ProvisionParser:
     def _load_provision(self):
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
 
-        # Open the file associated with the scenario name.
-        # Remember that we remove the suffix "AUTO_INSTALLL", we use the same provision
-        # Remember that we remove the suffix "UNINSTALL", we use the same provision
-        provision_file_name = self.provision_filter.provision_scenario.removesuffix(self.uninstall_suffix)
+        # Open the file associated with the scenario and lang.
+        main_scenario = "container" if self.is_container else "host"
         provision_file = (
-            "tests/onboarding/infra_provision/provision_"
-            + provision_file_name.removesuffix(self.auto_install_suffix).lower()
+            "tests/onboarding/infra_provision/provision_onboarding_"
+            + main_scenario
             + "_"
             + self.provision_filter.language
             + ".yml"

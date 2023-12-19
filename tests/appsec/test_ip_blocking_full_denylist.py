@@ -4,7 +4,7 @@
 import json
 
 from tests.remote_config.test_remote_configuration import rc_check_request
-from utils import weblog, context, coverage, interfaces, rfc, bug, irrelevant, scenarios, missing_feature
+from utils import weblog, context, coverage, interfaces, rfc, bug, scenarios, missing_feature, features
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json", encoding="utf-8") as f:
@@ -12,12 +12,10 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@irrelevant(
-    context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
-)
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
+@features.appsec_client_ip_blocking
 class Test_AppSecIPBlockingFullDenylist:
     """A library should block requests from up to 2500 different blocked IP addresses."""
 

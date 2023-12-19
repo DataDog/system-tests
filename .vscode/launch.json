@@ -75,6 +75,26 @@
             "args": ["-S", "SAMPLING", "-p", "no:warnings", "--replay"],
             "console": "integratedTerminal",
             "justMyCode": true
-        }
+        },
+        {
+            "name": "Run TEST_THE_TEST scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "TEST_THE_TEST", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "."
+            }
+        },
     ]
 }
