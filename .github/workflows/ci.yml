@@ -321,6 +321,11 @@ jobs:
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
@@ -487,6 +492,7 @@ jobs:
         ./run.sh INTEGRATIONS --replay
         # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
         ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS --replay
+        ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD --replay
