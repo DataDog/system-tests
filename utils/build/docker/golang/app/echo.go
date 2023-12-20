@@ -50,9 +50,9 @@ func main() {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	r.Any("/tag_value/:tag/:status", func(c echo.Context) error {
-		tag := c.Param("tag")
-		status, _ := strconv.Atoi(c.Param("status"))
+	r.Any("/tag_value/:tag_value/:status_code", func(c echo.Context) error {
+		tag := c.Param("tag_value")
+		status, _ := strconv.Atoi(c.Param("status_code"))
 		span, _ := tracer.SpanFromContext(c.Request().Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
 		return c.String(status, "Value tagged")
