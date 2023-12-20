@@ -187,7 +187,7 @@ def golang_library_factory():
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
     golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
-
+    golang_reldir = golang_appdir.replace("\\", "/")
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
@@ -195,15 +195,22 @@ def golang_library_factory():
         container_tag="go118-test-library",
         container_img=f"""
 FROM golang:1.20
-WORKDIR /client
-COPY ./go.mod /client
-COPY ./go.sum /client
-COPY . /client
+
+# install jq
+RUN apt-get update && apt-get -y install jq
+WORKDIR /app
+COPY {golang_reldir}/go.mod /app
+COPY {golang_reldir}/go.sum /app
+COPY {golang_reldir}/. /app
+# download the proper tracer version
+COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=golang_absolute_appdir,
-        container_build_context=golang_absolute_appdir,
+        container_build_context=_get_base_directory(),
         volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
         env={},
         port="",
