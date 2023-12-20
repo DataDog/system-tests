@@ -39,7 +39,6 @@ tests/:
           TestHeaderInjection: 
             '*': missing_feature
             spring-boot: v1.27.0
-            spring-boot: v1.27.0
             spring-boot-jetty: v1.27.0
             spring-boot-openliberty: v1.27.0
             spring-boot-payara: v1.27.0
