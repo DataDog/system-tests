@@ -507,15 +507,15 @@ class Test_Otel_Span_Methods:
 
     @irrelevant(
         context.library == "java",
-        reason="Java tracer always sets _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
+        reason="Java tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
     )
     @irrelevant(
         context.library == "golang",
-        reason="Go tracer always sets _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
+        reason="Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
     )
     @irrelevant(
         context.library == "ruby",
-        reason="Ruby tracer always sets _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
+        reason="Ruby tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
     )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
