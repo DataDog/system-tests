@@ -2,8 +2,6 @@ module weblog
 
 go 1.21
 
-toolchain go1.21.5
-
 require (
 	github.com/DataDog/dd-trace-go/v2 v2.0.0-20231220112030-26fd25e4acf9
 	github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1 v0.0.0-20231220112030-26fd25e4acf9
