@@ -38,14 +38,14 @@ tests/:
         test_header_injection.py:
           TestHeaderInjection: 
             '*': missing_feature
-            spring-boot: v1.20.0
-            spring-boot: v1.20.0
-            spring-boot-jetty: v1.20.0
-            spring-boot-openliberty: v1.20.0
-            spring-boot-payara: v1.20.0
-            spring-boot-undertow: v1.20.0
-            spring-boot-wildfly: v1.20.0
-            uds-spring-boot: v1.20.0
+            spring-boot: v1.27.0
+            spring-boot: v1.27.0
+            spring-boot-jetty: v1.27.0
+            spring-boot-openliberty: v1.27.0
+            spring-boot-payara: v1.27.0
+            spring-boot-undertow: v1.27.0
+            spring-boot-wildfly: v1.27.0
+            uds-spring-boot: v1.27.0
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
