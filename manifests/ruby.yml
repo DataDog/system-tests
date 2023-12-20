@@ -8,9 +8,10 @@ tests/:
     api_security/:
       test_schemas.py:
         Test_Scanners: missing_feature
-        Test_Schema_Request_Body: v1.15.0
         Test_Schema_Request_Cookies: v1.15.0
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: v1.15.0
+        Test_Schema_Request_Json_Body: v1.15.0
         Test_Schema_Request_Path_Parameters:
           '*': v1.15.0
           rack: missing_feature (rack does not have path parameters support)

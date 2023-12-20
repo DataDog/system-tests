@@ -89,7 +89,7 @@ AGENT_VERSION_PATTERN = r"""
             (?P<devel_n>.*)?
         )?
     )
-    (?:\+(?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
+    (?:[\+\-](?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
 """
 
 
