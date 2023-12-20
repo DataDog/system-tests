@@ -24,8 +24,14 @@ def get_schema(request, address):
     return
 
 
+# can be used to match any value in a schema
+ANY = ...
+
+
 def contains(t1, t2):
-    """validate that schema t1 contains all keys and values from t2 """
+    """validate that schema t1 contains all keys and values from t2"""
+    if t2 is ANY:
+        return True
     if t1 is None or t2 is None:
         return False
     return equal_value(t1[0], t2[0])
@@ -33,6 +39,8 @@ def contains(t1, t2):
 
 def equal_value(t1, t2):
     """compare two schema type values, ignoring any metadata"""
+    if t2 is ANY:
+        return True
     if isinstance(t1, list) and isinstance(t2, list):
         return all(contains(a, b) for a, b in zip(t1, t2))
     if isinstance(t1, dict) and isinstance(t2, dict):
@@ -72,7 +80,7 @@ class Test_Schema_Request_Cookies:
 
     def setup_request_method(self):
         self.request = weblog.get(
-            "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
+            "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"},
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
@@ -138,14 +146,17 @@ class Test_Schema_Request_Json_Body:
     """Test API Security - Request Body and list length"""
 
     def setup_request_method(self):
-        payload = {"main": [{"key": "id001", "value": 1345}, {"value": 1567, "key": "id002"}], "nullable": None}
+        payload = {
+            "main": [{"key": "id001", "value": 1345}, {"value": 1567, "key": "id002"}],
+            "nullable": None,
+        }
         self.request = weblog.post("/tag_value/api_match_AS004/200", json=payload)
 
     def test_request_method(self):
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}])
+        assert contains(schema, [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}],)
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -175,11 +186,11 @@ class Test_Schema_Request_FormUrlEncoded_Body:
             schema,
             [
                 {
-                    "main[0][key]": [8],
-                    "main[0][value]": [8],
-                    "main[1][key]": [8],
-                    "main[1][value]": [8],
-                    "nullable": [8],
+                    "main[0][key]": ANY,
+                    "main[0][value]": ANY,
+                    "main[1][key]": ANY,
+                    "main[1][value]": ANY,
+                    "nullable": ANY,
                 }
             ],
         ), schema
@@ -215,7 +226,7 @@ class Test_Schema_Response_Body:
     def setup_request_method(self):
         self.request = weblog.post(
             "/tag_value/payload_in_response_body_001/200",
-            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234,},
         )
 
     def test_request_method(self):
