@@ -146,12 +146,9 @@ TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-tra
 #### NodeJS
 
 There is two ways for running the NodeJS tests with a custom tracer:
-- Place the ddtrace NPM package in the folder `utils/build/docker/nodejs/parametric/npm` and then set the environment variable `NODEJS_DDTRACE_MODULE`
-with the filename placed in the aforementioned folder. For example:
-  - `TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz" ./run.sh PARAMETRIC`
-- Set the environment variable `NODEJS_DDTRACE_MODULE` to hold a commit in a remote branch. The following example will run
-the tests with a specific commit:
-  - `TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh PARAMETRIC`
+1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
+    * `DataDog/dd-trace-js#master`
+2. Clone the dd-trace-js repo inside `binaries`
 
 #### Ruby
 
