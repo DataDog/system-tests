@@ -182,6 +182,82 @@ app.get('/dsm', (req, res) => {
     })
 })
 
+app.get('/kafka/produce', (req, res) => {
+  const topic = req.query.topic
+  const kafka = new Kafka({
+    clientId: 'my-app-producer',
+    brokers: ['kafka:9092'],
+    retry: {
+      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+      retries: 20 // Number of retries before giving up
+    }
+  })
+  const admin = kafka.admin()
+  const producer = kafka.producer()
+  const doKafkaOperations = async () => {
+    await admin.connect()
+    await producer.connect()
+    await admin.createTopics({
+      waitForLeaders: true,
+      topics: [
+        { topic }
+      ]
+    })
+    await producer.send({
+      topic,
+      messages: [
+        { value: 'hello world!' }
+      ]
+    })
+    await producer.disconnect()
+  }
+
+  doKafkaOperations()
+    .then(() => {
+      res.send('ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
+})
+
+app.get('/kafka/consume', (req, res) => {
+  const topic = req.query.topic
+  const kafka = new Kafka({
+    clientId: 'my-app-consumer',
+    brokers: ['kafka:9092'],
+    retry: {
+      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+      retries: 20 // Number of retries before giving up
+    }
+  })
+  const doKafkaOperations = async () => {
+    const consumer = kafka.consumer({ groupId: 'testgroup1' })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic: topic, fromBeginning: true })
+
+    await consumer.run({
+      eachMessage: ({ messageTopic, messagePartition, message }) => {
+        console.log({
+          value: message.value.toString()
+        })
+        consumer.stop()
+        consumer.disconnect()
+      }
+    })
+  }
+  doKafkaOperations()
+    .then(() => {
+      res.send('ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
+})
+
 app.get('/load_dependency', (req, res) => {
   console.log('Load dependency endpoint')
   require('glob')

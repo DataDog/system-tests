@@ -76,7 +76,6 @@ class Test_PythonKafka:
         """ Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
 
         assert self.production_response.status_code == 200
-        # assert self.consume_response.status_code == 200
 
         # The weblog is the producer, the buddy is the consumer
         self.validate_kafka_spans(
@@ -87,6 +86,7 @@ class Test_PythonKafka:
 
     @missing_feature(library="python")
     @missing_feature(library="java")
+    @missing_feature(library="nodejs")
     @missing_feature(library="golang")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
@@ -124,6 +124,7 @@ class Test_PythonKafka:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
+    @missing_feature(library="nodejs")
     @missing_feature(library="python")
     @missing_feature(library="java")
     @missing_feature(library="golang")
