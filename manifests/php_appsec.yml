@@ -3,13 +3,14 @@ tests/:
     api_security/:
       test_schemas.py:
         Test_Scanners: missing_feature
-        Test_Schema_Request_Body: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Cookies: v0.94.0
+        Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
+        Test_Schema_Request_Headers: v0.94.0
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Request_Query_Parameters: v0.94.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Headers: v0.94.0
     iast/:
       sink/:
         test_command_injection.py:
