@@ -31,6 +31,9 @@ on:
       run_integration:
         description: "Shall we run Integrations scenarios"
         value: ${{ jobs.main.outputs.run_integration }}
+      run_graphql:
+        description: "Shall we run GraphQL scenarios"
+        value: ${{ jobs.main.outputs.run_graphql }}
 
 jobs:
   main:
@@ -46,6 +49,7 @@ jobs:
       run_debugger: ${{ steps.compute_debugger.outputs.result }}
       run_appsec: ${{ steps.compute_appsec.outputs.result }}
       run_integration: ${{ steps.compute_integration.outputs.result }}
+      run_graphql: ${{ steps.compute_graphql.outputs.result }}
     steps:
       - name: Compute run_all
         id: compute_run_all
@@ -176,11 +180,30 @@ jobs:
           if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
             echo "result=true" >> $GITHUB_OUTPUT
 
-          elif [ "${{ steps.compute_run_appsec.outputs.result }}" == "true" ]; then
+          elif [ "${{ steps.compute_appsec.outputs.result }}" == "true" ]; then
             # Some AppSec tests are in integrations scenario
             echo "result=true" >> $GITHUB_OUTPUT
 
           elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-integration-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_graphql
+        id: compute_graphql
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ steps.compute_appsec.outputs.result }}" == "true" ]; then
+            # Some AppSec tests are in GraphQL scenario
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-graphql-scenarios') }}" == "true" ]; then
             echo "result=true" >> $GITHUB_OUTPUT
 
           else
@@ -200,3 +223,4 @@ jobs:
           echo "Run debugger: -> ${{ steps.compute_debugger.outputs.result }}"
           echo "Run appsec: -> ${{ steps.compute_appsec.outputs.result }}"
           echo "Run integration: -> ${{ steps.compute_integration.outputs.result }}"
+          echo "Run graphql: -> ${{ steps.compute_graphql.outputs.result }}"

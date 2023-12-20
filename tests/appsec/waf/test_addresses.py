@@ -1,7 +1,20 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, bug, context, coverage, interfaces, irrelevant, missing_feature, rfc, scenarios, features
+from exceptiongroup import ExceptionGroup
+import json
+from utils import (
+    weblog,
+    bug,
+    context,
+    coverage,
+    interfaces,
+    irrelevant,
+    missing_feature,
+    rfc,
+    scenarios,
+    features,
+)
 
 
 @coverage.basic
@@ -415,11 +428,129 @@ class Test_FullGrpc:
     """Full gRPC support"""
 
 
-@coverage.not_implemented
-@features.appsec_request_blocking
+@coverage.good
+@scenarios.graphql_appsec
 @features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""
+
+    def setup_request_no_attack(self):
+        """Set up an innofensive request with no attacks"""
+
+        self.r_no_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "foo"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_no_attack(self):
+        """Verify that no AppSec event was reported"""
+
+        assert self.r_no_attack.status_code == 200  # There is no attack here!
+        interfaces.library.assert_no_appsec_event(self.r_no_attack)
+
+    def setup_request_monitor_attack(self):
+        """Set up a request with a resolver-targeted attack"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "testattack"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_monitor_attack(self):
+        """Verify that the request triggered a resolver attack event"""
+
+        assert self.r_attack.status_code == 200  # This attack is never blocking
+
+        failures = []
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack,
+                rule="monitor-resolvers",
+                key_path=["userByName", "name"],
+                value="testattack",
+                full_trace=True,
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack,
+                rule="monitor-all-resolvers",
+                key_path=["userByName", "0", "name"],
+                value="testattack",
+                full_trace=True,
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        # At least one of the two assertions should have passed...
+        if len(failures) >= 2:
+            raise ExceptionGroup(f"At least one rule should have triggered\n- {failures[0]}\n- {failures[1]}", failures)
+
+    def setup_request_monitor_attack_directive(self):
+        """Set up a request with a directive-targeted attack"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testresolver") { id name }}',
+                    "variables": {"name": "test"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    @missing_feature()
+    def test_request_monitor_attack_directive(self):
+        """Verify that the request triggered a directive attack event"""
+
+        assert self.r_attack.status_code == 200  # This attack is never blocking
+
+        failures = []
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack,
+                rule="monitor-resolvers",
+                key_path=["userByName", "case", "format"],
+                value="testresolver",
+                full_trace=True,
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack,
+                rule="monitor-all-resolvers",
+                key_path=["userByName", "0", "case", "format"],
+                value="testresolver",
+                full_trace=True,
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        # At least one of the two assertions should have passed...
+        if len(failures) >= 2:
+            raise ExceptionGroup(f"At least one rule should have triggered\n- {failures[0]}\n- {failures[1]}", failures)
 
 
 @coverage.not_implemented

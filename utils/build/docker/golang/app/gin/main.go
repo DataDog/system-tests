@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
+	"weblog/internal/common"
+	"weblog/internal/grpc"
 
 	"github.com/gin-gonic/gin"
 
@@ -25,7 +27,7 @@ func main() {
 		ctx.Writer.WriteHeader(http.StatusOK)
 	})
 	r.Any("/waf", func(ctx *gin.Context) {
-		body, err := parseBody(ctx.Request)
+		body, err := common.ParseBody(ctx.Request)
 		if err == nil {
 			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), body)
 		}
@@ -145,8 +147,8 @@ func main() {
 		ctx.Writer.Write(content)
 	})
 
-	initDatadog()
-	go listenAndServeGRPC()
+	common.InitDatadog()
+	go grpc.ListenAndServe()
 	http.ListenAndServe(":7777", r)
 }
 

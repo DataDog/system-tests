@@ -1,4 +1,4 @@
-package main
+package grpc
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	grpctrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/google.golang.org/grpc"
 )
 
-func listenAndServeGRPC() {
+func ListenAndServe() {
 	lis, err := net.Listen("tcp", ":7778")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

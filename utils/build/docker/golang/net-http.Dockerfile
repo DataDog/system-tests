@@ -8,7 +8,7 @@ RUN apt-get update && apt-get -y install jq
 
 # download go dependencies
 RUN mkdir -p /app
-COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app
+COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
 WORKDIR /app
 RUN go mod download && go mod verify
 
@@ -20,7 +20,7 @@ COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 
-RUN go build -v -tags appsec -o weblog ./net-http.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
+RUN go build -v -tags appsec -o weblog ./net-http
 
 RUN echo "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh
