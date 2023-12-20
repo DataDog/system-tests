@@ -1,9 +1,8 @@
-from utils import context, coverage, interfaces, scenarios, weblog, bug, features
+from utils import context, coverage, interfaces, scenarios, weblog, bug
 
 
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
-@features.appsec_userid_blocking
 class Test_UserBlocking_FullDenylist:
     NOT_BLOCKED_USER = "regularUser"
     NUM_OF_BLOCKED_USERS = 2500

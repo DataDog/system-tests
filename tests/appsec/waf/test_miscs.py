@@ -8,7 +8,7 @@ from .utils import rules
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @coverage.basic
-@features.http_threats_management
+@features.appsec_response_blocking
 class Test_404:
     """Appsec WAF misc tests"""
 
@@ -31,6 +31,7 @@ class Test_404:
 
 @scenarios.appsec_custom_rules
 @coverage.basic
+@features.appsec_blocking_action
 class Test_MultipleHighlight:
     """Appsec reports multiple attacks on same request"""
 
@@ -43,7 +44,7 @@ class Test_MultipleHighlight:
 
 
 @coverage.good
-@features.http_threats_management
+@features.appsec_blocking_action
 class Test_MultipleAttacks:
     """If several attacks are sent threw one requests, all of them are reported"""
 

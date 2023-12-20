@@ -256,6 +256,7 @@ class Test_Login_Events:
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @scenarios.appsec_auto_events_extended
+@features.user_monitoring
 @bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"

@@ -950,16 +950,6 @@ class features:
         return test_object
 
     @staticmethod
-    def http_threats_management(test_object):
-        """
-        HTTP Threats Management
-
-        https://feature-parity.us1.prod.dog/#/?feature=99
-        """
-        pytest.mark.features(feature_id=99)(test_object)
-        return test_object
-
-    @staticmethod
     def weak_cipher_detection(test_object):
         """
         Weak cipher detection
@@ -1000,7 +990,7 @@ class features:
         return test_object
 
     @staticmethod
-    def rate_limiter(test_object):
+    def appsec_rate_limiter(test_object):
         """
         Rate limiter
 
@@ -1100,16 +1090,6 @@ class features:
         return test_object
 
     @staticmethod
-    def appsec_userid_blocking(test_object):
-        """
-        UserId Blocking
-
-        https://feature-parity.us1.prod.dog/#/?feature=160
-        """
-        pytest.mark.features(feature_id=160)(test_object)
-        return test_object
-
-    @staticmethod
     def custom_business_logic_events(test_object):
         """
         Custom Business Logic Events
@@ -1167,6 +1147,16 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=168
         """
         pytest.mark.features(feature_id=168)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_header_injection(test_object):
+        """
+        IAST Sink: Header Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=203
+        """
+        pytest.mark.features(feature_id=203)(test_object)
         return test_object
 
     @staticmethod
@@ -1297,4 +1287,64 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=198
         """
         pytest.mark.features(feature_id=198)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_request_blocking(test_object):
+        """
+        Request Blocking
+
+        https://feature-parity.us1.prod.dog/#/?feature=199
+        """
+        pytest.mark.features(feature_id=199)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_response_blocking(test_object):
+        """
+        Response Blocking
+
+        https://feature-parity.us1.prod.dog/#/?feature=200
+        """
+        pytest.mark.features(feature_id=200)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_blocking_action(test_object):
+        """
+        Blocking Action
+
+        https://feature-parity.us1.prod.dog/#/?feature=201
+        """
+        pytest.mark.features(feature_id=201)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_client_ip_blocking(test_object):
+        """
+        Client IP Blocking
+
+        https://feature-parity.us1.prod.dog/#/?feature=202
+        """
+        pytest.mark.features(feature_id=202)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_header_injection(test_object):
+        """
+        Header Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=203
+        """
+        pytest.mark.features(feature_id=203)(test_object)
+        return test_object
+
+    @staticmethod
+    def api_security_schemas(test_object):
+        """
+        Schema extraction for API Security
+
+        https://feature-parity.us1.prod.dog/#/?feature=204
+        """
+        pytest.mark.features(feature_id=204)(test_object)
         return test_object

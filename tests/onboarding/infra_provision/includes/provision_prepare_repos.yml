@@ -8,6 +8,7 @@
 
             #Staging beta repository
             sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datad0g.com beta apm" > datadog-beta.list
+
             sudo cp datadog-beta.list /etc/apt/sources.list.d/
             #Production repository
             sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datadoghq.com stable 7" > datadog-stable.list

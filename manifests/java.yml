@@ -11,9 +11,11 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
+        Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
@@ -33,6 +35,8 @@ tests/:
             vertx4: v1.12.0
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature            
+        test_header_injection.py:
+          TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
@@ -922,10 +926,9 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_the_test/:
-    test_decorators.py:
-      Test_NotReleased: missing_feature
     test_json_report.py:
       Test_Mock: v0.0.99
+      Test_NotReleased: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
