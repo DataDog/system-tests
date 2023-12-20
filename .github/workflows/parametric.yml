@@ -17,7 +17,10 @@ jobs:
               version: dev
             - client: java
               version: prod
-
+            - client: nodejs
+              version: prod
+            - client: nodejs
+              version: dev
             #Pending to update with dev version  
             - client: php
               version: prod
@@ -28,8 +31,6 @@ jobs:
             - client: dotnet
               version: prod
             - client: golang
-              version: prod
-            - client: nodejs
               version: prod
             - client: ruby
               version: prod
