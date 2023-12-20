@@ -11,3 +11,4 @@ RUN npm install
 
 COPY utils/build/docker/nodejs/parametric/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
