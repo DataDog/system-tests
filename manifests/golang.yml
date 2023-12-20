@@ -12,13 +12,14 @@ tests/:
     api_security/:
       test_schemas.py:
         Test_Scanners: missing_feature
-        Test_Schema_Request_Body: missing_feature
         Test_Schema_Request_Cookies:
           '*': v1.60.0-dev
-          net-http: irrelevant (net-http doesn't handle path params)
+          net-http: irrelevant (net-http doesn't handle path params)        
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
@@ -33,6 +34,8 @@ tests/:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature          
+        test_header_injection.py:
+          TestHeaderInjection: missing_feature
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
