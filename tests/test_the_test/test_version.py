@@ -81,6 +81,9 @@ def test_version_serialization():
     v = Version("7.43.1-beta-cache-hit-ratio", "agent")
     assert v == "7.43.1"
 
+    v = Version("7.50.0-dbm-oracle-0.1", "agent")
+    assert str(v) == "7.50.0+dbm.oracle.0.1"
+
 
 def test_agent_version():
 
