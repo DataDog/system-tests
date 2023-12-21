@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features
 from utils.tools import logger
 
 
+@features.datastreams_monitoring_support_for_kafka
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -36,7 +37,7 @@ class Test_DsmKafka:
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
-
+@features.datastreams_monitoring_support_for_http
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -51,7 +52,7 @@ class Test_DsmHttp:
             hash_=3883033147046472598, parent_hash=0, tags=("direction:in", "type:http")
         )
 
-
+@features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -100,7 +101,7 @@ class Test_DsmRabbitmq:
             tags=("direction:in", "topic:testRoutingKey", "type:rabbitmq"),
         )
 
-
+@features.datastreams_monitoring_support_for_rabbitmq_topicexchange
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
@@ -135,7 +136,7 @@ class Test_DsmRabbitmq_TopicExchange:
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
         )
 
-
+@features.datastreams_monitoring_support_for_rabbitmq_fanout
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
