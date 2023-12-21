@@ -198,7 +198,7 @@ app.get('/kafka/produce', (req, res) => {
     await admin.connect()
     await producer.connect()
     await admin.createTopics({
-      waitForLeaders: true,
+      waitForLeaders: true,  // While the topic already exists we use this to wait for leadership election to finish
       topics: [
         { topic }
       ]

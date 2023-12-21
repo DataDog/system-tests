@@ -84,10 +84,10 @@ class Test_PythonKafka:
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
-    @missing_feature(library="python")
-    @missing_feature(library="java")
-    @missing_feature(library="nodejs")
-    @missing_feature(library="golang")
+    @missing_feature(library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context")
+    @missing_feature(library="python", reason="Expected to fail, one end is always Python which does not currently propagate context")
+    @missing_feature(library="java", reason="Expected to fail, one end is always Python which does not currently propagate context")
+    @missing_feature(library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
@@ -124,10 +124,10 @@ class Test_PythonKafka:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(library="nodejs")
-    @missing_feature(library="python")
-    @missing_feature(library="java")
-    @missing_feature(library="golang")
+    @missing_feature(library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context")
+    @missing_feature(library="python", reason="Expected to fail, one end is always Python which does not currently propagate context")
+    @missing_feature(library="java", reason="Expected to fail, one end is always Python which does not currently propagate context")
+    @missing_feature(library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.python_buddy, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
