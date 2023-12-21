@@ -368,7 +368,7 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
 
         # Ensure previous tags are restored.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_tags": None})
+        set_and_wait_rc(test_agent, config_overrides={})
         with test_library:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
