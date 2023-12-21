@@ -1384,6 +1384,17 @@ class features:
 
 
     @staticmethod
+    def mssql_support(test_object):
+        """
+        MySQL Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=225
+        """
+        pytest.mark.features(feature_id=225)(test_object)
+        return test_object
+
+
+    @staticmethod
     def postgres_support(test_object):
         """
         PostGres Support
