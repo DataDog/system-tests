@@ -7,7 +7,7 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRI
 from utils import rfc, scenarios, features
 
 
-@features.single_span_sampling
+@features.trace_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1HRbi1DrBjL_KGeONrPgH7lblgqSLGlV5Ox1p4RL97xM/")
 class Test_Trace_Sampling_Basic:
