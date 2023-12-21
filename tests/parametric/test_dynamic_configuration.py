@@ -8,7 +8,7 @@ from typing import List
 
 from utils.parametric.spec.remoteconfig import Capabilities
 from utils.parametric.spec.trace import Span, assert_trace_has_tags
-from utils import context, missing_feature, irrelevant, rfc, scenarios
+from utils import context, missing_feature, irrelevant, rfc, scenarios, features
 
 import pytest
 
@@ -99,6 +99,7 @@ ENV_SAMPLING_RULE_RATE = 0.55
 
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
+@features.dynamic_configuration
 class TestDynamicConfigV1:
     """Tests covering the v1 release of the dynamic configuration feature.
 
@@ -341,6 +342,7 @@ class TestDynamicConfigV1:
 
 @rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
 @scenarios.parametric
+@features.dynamic_configuration
 class TestDynamicConfigV2:
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],

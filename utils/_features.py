@@ -1505,6 +1505,17 @@ class features:
 
 
     @staticmethod
+    def otel_mssql_support(test_object):
+        """
+        OTEL MySql Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=226
+        """
+        pytest.mark.features(feature_id=226)(test_object)
+        return test_object
+
+
+    @staticmethod
     def otel_postgres_support(test_object):
         """
         OTEL PostGres Support
