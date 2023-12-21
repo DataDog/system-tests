@@ -139,12 +139,14 @@ class Test_Postgres(_BaseOtelDbIntegrationTestClass):
 
     db_service = "postgresql"
 
+
 @features.otel_mysql_support
 @scenarios.otel_integrations
 class Test_MySql(_BaseOtelDbIntegrationTestClass):
     """ OpenTelemetry/MySql integration """
 
     db_service = "mysql"
+
 
 @features.otel_mssql_support
 @scenarios.otel_integrations

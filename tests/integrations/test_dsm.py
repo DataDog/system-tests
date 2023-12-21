@@ -37,6 +37,7 @@ class Test_DsmKafka:
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
+
 @features.datastreams_monitoring_support_for_http
 @scenarios.integrations
 class Test_DsmHttp:
@@ -51,6 +52,7 @@ class Test_DsmHttp:
         DsmHelper.assert_checkpoint_presence(
             hash_=3883033147046472598, parent_hash=0, tags=("direction:in", "type:http")
         )
+
 
 @features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
@@ -101,6 +103,7 @@ class Test_DsmRabbitmq:
             tags=("direction:in", "topic:testRoutingKey", "type:rabbitmq"),
         )
 
+
 @features.datastreams_monitoring_support_for_rabbitmq_topicexchange
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
@@ -135,6 +138,7 @@ class Test_DsmRabbitmq_TopicExchange:
             parent_hash=18436203392999142109,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
         )
+
 
 @features.datastreams_monitoring_support_for_rabbitmq_fanout
 @scenarios.integrations

@@ -1349,7 +1349,6 @@ class features:
         pytest.mark.features(feature_id=204)(test_object)
         return test_object
 
-
     @staticmethod
     def span_links_through_datadog_api(test_object):
         """
@@ -1359,7 +1358,6 @@ class features:
         """
         pytest.mark.features(feature_id=205)(test_object)
         return test_object
-
 
     @staticmethod
     def cassandra_support(test_object):
@@ -1371,7 +1369,6 @@ class features:
         pytest.mark.features(feature_id=206)(test_object)
         return test_object
 
-
     @staticmethod
     def mysql_support(test_object):
         """
@@ -1381,7 +1378,6 @@ class features:
         """
         pytest.mark.features(feature_id=207)(test_object)
         return test_object
-
 
     @staticmethod
     def mssql_support(test_object):
@@ -1393,7 +1389,6 @@ class features:
         pytest.mark.features(feature_id=225)(test_object)
         return test_object
 
-
     @staticmethod
     def postgres_support(test_object):
         """
@@ -1403,7 +1398,6 @@ class features:
         """
         pytest.mark.features(feature_id=208)(test_object)
         return test_object
-
 
     @staticmethod
     def database_monitoring_correlation(test_object):
@@ -1415,7 +1409,6 @@ class features:
         pytest.mark.features(feature_id=209)(test_object)
         return test_object
 
-
     @staticmethod
     def datastreams_monitoring_support_for_http(test_object):
         """
@@ -1425,7 +1418,6 @@ class features:
         """
         pytest.mark.features(feature_id=210)(test_object)
         return test_object
-
 
     @staticmethod
     def debugger(test_object):
@@ -1437,7 +1429,6 @@ class features:
         pytest.mark.features(feature_id=211)(test_object)
         return test_object
 
-
     @staticmethod
     def datastreams_monitoring_support_for_kafka(test_object):
         """
@@ -1447,7 +1438,6 @@ class features:
         """
         pytest.mark.features(feature_id=212)(test_object)
         return test_object
-
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq(test_object):
@@ -1459,7 +1449,6 @@ class features:
         pytest.mark.features(feature_id=213)(test_object)
         return test_object
 
-
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq_fanout(test_object):
         """
@@ -1469,7 +1458,6 @@ class features:
         """
         pytest.mark.features(feature_id=214)(test_object)
         return test_object
-
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq_topicexchange(test_object):
@@ -1481,7 +1469,6 @@ class features:
         pytest.mark.features(feature_id=215)(test_object)
         return test_object
 
-
     @staticmethod
     def mongo_support(test_object):
         """
@@ -1491,7 +1478,6 @@ class features:
         """
         pytest.mark.features(feature_id=216)(test_object)
         return test_object
-
 
     @staticmethod
     def otel_mysql_support(test_object):
@@ -1503,7 +1489,6 @@ class features:
         pytest.mark.features(feature_id=217)(test_object)
         return test_object
 
-
     @staticmethod
     def otel_mssql_support(test_object):
         """
@@ -1513,7 +1498,6 @@ class features:
         """
         pytest.mark.features(feature_id=226)(test_object)
         return test_object
-
 
     @staticmethod
     def otel_postgres_support(test_object):
@@ -1525,7 +1509,6 @@ class features:
         pytest.mark.features(feature_id=218)(test_object)
         return test_object
 
-
     @staticmethod
     def sql_support(test_object):
         """
@@ -1535,7 +1518,6 @@ class features:
         """
         pytest.mark.features(feature_id=219)(test_object)
         return test_object
-
 
     @staticmethod
     def dynamic_configuration(test_object):
@@ -1547,7 +1529,6 @@ class features:
         pytest.mark.features(feature_id=220)(test_object)
         return test_object
 
-
     @staticmethod
     def datadog_headers_propagation(test_object):
         """
@@ -1557,7 +1538,6 @@ class features:
         """
         pytest.mark.features(feature_id=221)(test_object)
         return test_object
-
 
     @staticmethod
     def single_span_sampling(test_object):
@@ -1569,7 +1549,6 @@ class features:
         pytest.mark.features(feature_id=222)(test_object)
         return test_object
 
-
     @staticmethod
     def tracer_flare(test_object):
         """
@@ -1579,7 +1558,6 @@ class features:
         """
         pytest.mark.features(feature_id=223)(test_object)
         return test_object
-
 
     @staticmethod
     def profiling(test_object):
