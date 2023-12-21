@@ -198,7 +198,7 @@ app.get('/kafka/produce', (req, res) => {
     await admin.connect()
     await producer.connect()
     await admin.createTopics({
-      waitForLeaders: true,  // While the topic already exists we use this to wait for leadership election to finish
+      waitForLeaders: true, // While the topic already exists we use this to wait for leadership election to finish
       topics: [
         { topic }
       ]
@@ -236,7 +236,7 @@ app.get('/kafka/consume', (req, res) => {
     const consumer = kafka.consumer({ groupId: 'testgroup1' })
 
     await consumer.connect()
-    await consumer.subscribe({ topic: topic, fromBeginning: true })
+    await consumer.subscribe({ topic, fromBeginning: true })
 
     await consumer.run({
       eachMessage: ({ messageTopic, messagePartition, message }) => {
