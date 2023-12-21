@@ -38,7 +38,7 @@ Build images used for system tests.
 
 ## Weblog variants
 
-* For `cpp`: `poc` (default)
+* For `cpp`: `nginx` (default), `poc`
 * For `dotnet`: `poc` (default), `uds`
 * For `golang`: `net-http` (default), `gin`, `echo`, `chi`
 * For `java`: `spring-boot` (default)
