@@ -11,7 +11,7 @@ import pytest
 
 from utils.parametric.spec.trace import SPAN_MEASURED_KEY
 from utils.parametric.spec.trace import V06StatsAggr
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -40,6 +40,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
 
 
 @scenarios.parametric
+@features.client_side_stats_supported
 class Test_Library_Tracestats:
     @enable_tracestats()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")

@@ -1,11 +1,13 @@
+import json
+
 import pytest
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
-import json
-from utils import rfc, scenarios
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
+from utils import rfc, scenarios, features
 
 
+@features.single_span_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1HRbi1DrBjL_KGeONrPgH7lblgqSLGlV5Ox1p4RL97xM/")
 class Test_Trace_Sampling_Basic:
@@ -75,6 +77,7 @@ class Test_Trace_Sampling_Basic:
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
 
 
+@features.single_span_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Globs:
@@ -139,6 +142,7 @@ class Test_Trace_Sampling_Globs:
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
 
 
+@features.single_span_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Resource:
@@ -245,6 +249,7 @@ class Test_Trace_Sampling_Resource:
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
 
 
+@features.single_span_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Tags:

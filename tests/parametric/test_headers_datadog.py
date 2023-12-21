@@ -1,12 +1,12 @@
-import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import bug, context, scenarios
+from utils import features, scenarios
 
 
+@features.datadog_headers_propagation
 @scenarios.parametric
 class Test_Headers_Datadog:
     def test_distributed_headers_extract_datadog_D001(self, test_agent, test_library):
