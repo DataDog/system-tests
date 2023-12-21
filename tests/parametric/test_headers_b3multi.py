@@ -48,7 +48,7 @@ def enable_case_insensitive_b3multi() -> Any:
     return parametrize("library_env", [env1, env2])
 
 
-@features.b3_headers_injection_and_extraction
+@features.b3_headers_propagation
 @scenarios.parametric
 class Test_Headers_B3multi:
     @enable_b3multi()

@@ -41,7 +41,7 @@ def enable_migrated_b3_single_key() -> Any:
     return parametrize("library_env", [env])
 
 
-@features.b3_headers_injection_and_extraction
+@features.b3_headers_propagation
 @scenarios.parametric
 class Test_Headers_B3:
     @enable_b3()

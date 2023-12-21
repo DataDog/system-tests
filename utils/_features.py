@@ -140,7 +140,7 @@ class features:
         return test_object
 
     @staticmethod
-    def b3_headers_injection_and_extraction(test_object):
+    def b3_headers_propagation(test_object):
         """
         B3 headers injection and extraction
 
