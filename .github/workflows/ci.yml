@@ -63,7 +63,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/parametric.yml@robertomonteromiguel/parametric_use_load_binary_golang
+    uses: datadog/system-tests/.github/workflows/parametric.yml@main
     secrets: inherit
 
   experimental:
