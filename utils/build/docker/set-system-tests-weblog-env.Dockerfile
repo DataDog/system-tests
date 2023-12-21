@@ -3,7 +3,7 @@ FROM system_tests/weblog
 # Datadog setup
 ENV DD_SERVICE=weblog
 ENV DD_VERSION=1.0.0
-ENV DD_TAGS='key1:val1, key2 : val2 '
+ENV DD_TAGS='key1:val1,key2:val2'
 ENV DD_ENV=system-tests
 ENV DD_TRACE_DEBUG=true
 ENV DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
