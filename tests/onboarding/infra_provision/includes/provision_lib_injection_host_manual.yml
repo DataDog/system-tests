@@ -18,7 +18,7 @@
     if [ -e datadog-apm-inject_*_$architecture.deb ]
     then
         echo "Instaling datadog-apm-inject from local folder"
-        sudo apt install ./datadog-apm-inject_*_$architecture.deb
+        sudo apt install -y ./datadog-apm-inject_*_$architecture.deb
     else
         echo "Instaling datadog-apm-inject from remote repository"
         sudo apt install -y -t $DD_deb_repo_name datadog-apm-inject
