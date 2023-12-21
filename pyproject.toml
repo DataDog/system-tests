@@ -33,7 +33,6 @@ allow_no_feature_nodes = [
     "tests/apm_tracing_e2e/test_otel.py",
     "tests/apm_tracing_e2e/test_single_span.py",
     "tests/apm_tracing_e2e/test_smoke.py",
-    "tests/debugger/test_debugger.py",
     "tests/integrations/test_cassandra.py",
     "tests/integrations/test_db_integrations_sql.py",
     "tests/integrations/test_dbm.py",
