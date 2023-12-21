@@ -1568,3 +1568,13 @@ class features:
         """
         pytest.mark.features(feature_id=224)(test_object)
         return test_object
+
+    @staticmethod
+    def trace_sampling(test_object):
+        """
+        Profiling
+
+        https://feature-parity.us1.prod.dog/#/?feature=227
+        """
+        pytest.mark.features(feature_id=227)(test_object)
+        return test_object
