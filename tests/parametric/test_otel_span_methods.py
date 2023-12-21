@@ -484,7 +484,6 @@ class Test_Otel_Span_Methods:
         assert "analytics.event" not in span["meta"]
 
     @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
-    @missing_feature(context.library == "dotnet", reason=".NET dosn't treat 'something-else' as a valid input here.")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
