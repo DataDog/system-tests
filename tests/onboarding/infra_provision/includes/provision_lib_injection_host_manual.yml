@@ -24,7 +24,6 @@
         sudo apt install -y -t $DD_deb_repo_name datadog-apm-inject
     fi
 
-    #sudo apt install -y -t $DD_deb_repo_name datadog-apm-inject datadog-apm-library-$DD_LANG
     sudo apt install -y -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
     dd-host-install
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
@@ -54,7 +53,6 @@
         sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject
     fi
 
-    #sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject datadog-apm-library-$DD_LANG
     sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG
     dd-host-install
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
