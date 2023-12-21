@@ -77,7 +77,7 @@ class Test_Trace_Sampling_Basic:
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
 
 
-@features.single_span_sampling
+@features.trace_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Globs:
