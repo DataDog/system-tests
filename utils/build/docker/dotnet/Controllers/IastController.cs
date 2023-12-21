@@ -386,17 +386,31 @@ namespace weblog
         }
 
         [HttpGet("weak_randomness/test_insecure")]
-        public IActionResult test_insecure_weakRandomness(string user)
+        public IActionResult test_insecure_weakRandomness()
         {
             return Content("Weak random number: " + (new Random()).Next().ToString(), "text/html");
         }
 
         [HttpGet("weak_randomness/test_secure")]
-        public IActionResult test_secure_weakRandomness(string user)
+        public IActionResult test_secure_weakRandomness()
         {
             return Content("Secure random number: " + RandomNumberGenerator.GetInt32(100).ToString(), "text/html");
         }
+
+        [HttpGet("trust-boundary-violation/test_insecure")]
+        public IActionResult test_insecure_trustBoundaryViolation([FromQuery]string username, [FromQuery]string password)
+        {
+            HttpContext.Session.SetString("UserData", username);
+            return Content("Parameter added to session. User : " + HttpContext.Session.GetString("UserData"));
+        }
+
+        [HttpGet("trust-boundary-violation/test_secure")]
+        public IActionResult test_secure_trustBoundaryViolation([FromQuery]string username, [FromQuery]string password)
+        {
+            return Content("Nothing added to session");
+        }
         
+
         [HttpGet("source/cookievalue/test")]
         public IActionResult test_cookie_value()
         {

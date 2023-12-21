@@ -94,9 +94,14 @@ class BaseSinkTestWithoutTelemetry:
         if self.__class__.insecure_request is None:
             assert self.insecure_endpoint is not None, f"{self}.insecure_endpoint must not be None"
 
-            self.__class__.insecure_request = weblog.request(
-                method=self.http_method, path=self.insecure_endpoint, data=self.data, headers=self.headers
-            )
+            if self.http_method == "GET":
+                self.__class__.insecure_request = weblog.request(
+                    method=self.http_method, path=self.insecure_endpoint, params=self.data, headers=self.headers
+                )
+            else:
+                self.__class__.insecure_request = weblog.request(
+                    method=self.http_method, path=self.insecure_endpoint, data=self.data, headers=self.headers
+                )
 
         self.insecure_request = self.__class__.insecure_request
 
@@ -117,9 +122,15 @@ class BaseSinkTestWithoutTelemetry:
         if self.__class__.secure_request is None:
             assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
             assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
-            self.__class__.secure_request = weblog.request(
-                method=self.http_method, path=self.secure_endpoint, data=self.data, headers=self.headers
-            )
+
+            if self.http_method == "GET":
+                self.__class__.insecure_request = weblog.request(
+                    method=self.http_method, path=self.secure_endpoint, params=self.data, headers=self.headers
+                )
+            else:
+                self.__class__.insecure_request = weblog.request(
+                    method=self.http_method, path=self.secure_endpoint, data=self.data, headers=self.headers
+                )
 
         self.secure_request = self.__class__.secure_request
 
