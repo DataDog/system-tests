@@ -332,7 +332,7 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigV1: v1.58.0-dev
+      TestDynamicConfigV1: v1.59.0-dev
       TestDynamicConfigV2: v1.59.0-dev
     test_span_links.py: missing_feature
     test_trace_sampling.py:
