@@ -945,8 +945,14 @@ tests/:
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
     Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: v0.102.0
-    Test_HeaderTagsShortFormat: v0.102.0
+    Test_HeaderTags_Colon_Leading: v0.102.0
+    Test_HeaderTags_Colon_Trailing: v0.102.0
+    Test_HeaderTags_Long: v0.102.0
+    Test_HeaderTags_Short: v0.102.0
+    Test_HeaderTags_Whitespace_Header: v0.102.0
+    Test_HeaderTags_Whitespace_Tag: v0.102.0
+    Test_HeaderTags_Whitespace_Val_Long: v0.102.0
+    Test_HeaderTags_Whitespace_Val_Short: v0.102.0
   test_profiling.py:
     Test_Profile:
       akka-http: v1.22.0

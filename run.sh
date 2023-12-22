@@ -293,6 +293,11 @@ function main() {
                 scenarios+=(APPSEC_BLOCKING_FULL_DENYLIST)
                 unset "scenarios[${i}]"
                 ;;
+
+            LIBRARY_CONF_CUSTOM_HEADERS_SHORT|LIBRARY_CONF_CUSTOM_HEADERS_LONG)
+                scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 
