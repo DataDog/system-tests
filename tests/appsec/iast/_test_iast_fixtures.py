@@ -123,7 +123,7 @@ class BaseSinkTestWithoutTelemetry:
             assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
             assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
 
-            self.__class__.insecure_request = weblog.request(
+            self.__class__.secure_request = weblog.request(
                 method=self.http_method,
                 path=self.secure_endpoint,
                 params=self.params,
