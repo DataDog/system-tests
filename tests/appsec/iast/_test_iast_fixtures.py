@@ -68,6 +68,7 @@ class BaseSinkTestWithoutTelemetry:
     http_method = None
     insecure_endpoint = None
     secure_endpoint = None
+    params = None
     data = None
     headers = None
     location_map = None
@@ -94,14 +95,9 @@ class BaseSinkTestWithoutTelemetry:
         if self.__class__.insecure_request is None:
             assert self.insecure_endpoint is not None, f"{self}.insecure_endpoint must not be None"
 
-            if self.http_method == "GET":
-                self.__class__.insecure_request = weblog.request(
-                    method=self.http_method, path=self.insecure_endpoint, params=self.data, headers=self.headers
-                )
-            else:
-                self.__class__.insecure_request = weblog.request(
-                    method=self.http_method, path=self.insecure_endpoint, data=self.data, headers=self.headers
-                )
+            self.__class__.insecure_request = weblog.request(
+                method=self.http_method, path=self.insecure_endpoint, params=self.params, data=self.data, headers=self.headers
+            )
 
         self.insecure_request = self.__class__.insecure_request
 
@@ -123,14 +119,9 @@ class BaseSinkTestWithoutTelemetry:
             assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
             assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
 
-            if self.http_method == "GET":
-                self.__class__.insecure_request = weblog.request(
-                    method=self.http_method, path=self.secure_endpoint, params=self.data, headers=self.headers
-                )
-            else:
-                self.__class__.insecure_request = weblog.request(
-                    method=self.http_method, path=self.secure_endpoint, data=self.data, headers=self.headers
-                )
+            self.__class__.insecure_request = weblog.request(
+                method=self.http_method, path=self.secure_endpoint, params=self.params, data=self.data, headers=self.headers
+            )
 
         self.secure_request = self.__class__.secure_request
 

@@ -14,7 +14,7 @@ class Test_TrustBoundaryViolation(BaseSinkTest):
     http_method = "GET"
     insecure_endpoint = "/iast/trust-boundary-violation/test_insecure"
     secure_endpoint = "/iast/trust-boundary-violation/test_secure"
-    data = {"username": "shaquille_oatmeal", "password": "123456"}
+    params = {"username": "shaquille_oatmeal", "password": "123456"}
     location_map = {"nodejs": "iast/index.js"}
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
