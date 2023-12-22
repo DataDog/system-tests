@@ -11,9 +11,11 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
+        Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
@@ -33,6 +35,16 @@ tests/:
             vertx4: v1.12.0
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature            
+        test_header_injection.py:
+          TestHeaderInjection: 
+            '*': missing_feature
+            spring-boot: v1.27.0
+            spring-boot-jetty: v1.27.0
+            spring-boot-openliberty: v1.27.0
+            spring-boot-payara: v1.27.0
+            spring-boot-undertow: v1.27.0
+            spring-boot-wildfly: v1.27.0
+            uds-spring-boot: v1.27.0
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
@@ -844,7 +856,22 @@ tests/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_crossed_integrations.py:
-      Test_PythonKafka: missing_feature
+      Test_PythonKafka:
+        '*': v0.1 # real version not known
+        akka-http: missing_feature (Endpoint not implemented)
+        jersey-grizzly2: missing_feature (Endpoint not implemented)
+        play: missing_feature (Endpoint not implemented)
+        ratpack: missing_feature (Endpoint not implemented)
+        resteasy-netty3: missing_feature (Endpoint not implemented)
+        spring-boot-3-native: missing_feature (Endpoint not implemented)
+        spring-boot-jetty: missing_feature (Endpoint not implemented)
+        spring-boot-openliberty: missing_feature (Endpoint not implemented)
+        spring-boot-payara: missing_feature (Endpoint not implemented)
+        spring-boot-undertow: missing_feature (Endpoint not implemented)
+        spring-boot-wildfly: missing_feature (Endpoint not implemented)
+        uds-spring-boot: missing_feature (Endpoint not implemented)
+        vertx3: missing_feature (Endpoint not implemented)
+        vertx4: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
@@ -880,7 +907,13 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.17.0
+      TestDynamicConfigV2: missing_feature
     test_span_links.py: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: v0.111.0
+      Test_Trace_Sampling_Globs: v1.25.0
+      Test_Trace_Sampling_Resource: v1.25.0
+      Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
     test_tracer_flare.py:
@@ -901,10 +934,9 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_the_test/:
-    test_decorators.py:
-      Test_NotReleased: missing_feature
     test_json_report.py:
       Test_Mock: v0.0.99
+      Test_NotReleased: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -953,7 +985,9 @@ tests/:
   test_telemetry.py:
     Test_DependencyEnable: v1.7.0
     Test_Log_Generation: missing_feature
-    Test_MessageBatch: missing_feature
+    Test_MessageBatch:
+      '*': v1.23.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled:

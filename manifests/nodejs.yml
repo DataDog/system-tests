@@ -7,9 +7,11 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
+        Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
@@ -24,6 +26,10 @@ tests/:
           Test_HardcodedSecrets:
             '*': missing_feature
             express4: v4.18.0
+        test_header_injection.py:
+          TestHeaderInjection:
+            '*': missing_feature
+            express4: v4.21.0
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader:
             '*': missing_feature
@@ -295,7 +301,13 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v4.11.0
+      TestDynamicConfigV2: missing_feature
     test_span_links.py: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: missing_feature
+      Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Resource: missing_feature
+      Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v3.21.0
     test_tracer_flare.py:

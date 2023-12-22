@@ -175,6 +175,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
+        # todo: translate json into list within list
+        # so server.xx do not have to
         return resp.json()["http_headers"]
 
     def trace_flush(self) -> None:
@@ -234,6 +236,14 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def otel_flush(self, timeout: int) -> bool:
         resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout}).json()
         return resp["success"]
+
+    # TODO: test and implement this endpoint for test_dynamic_configuration tests
+    # def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
+    #     resp = self._session.post(
+    #         self._url("/http/client/request"),
+    #         json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
+    #     ).json()
+    #     return resp
 
 
 class _TestSpan:

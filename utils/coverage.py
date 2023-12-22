@@ -20,7 +20,7 @@ def not_testable(klass):
 def not_implemented(klass):
     assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
 
-    @pytest.mark.skip(reason="missing feature: test is not implemented")
+    @pytest.mark.skip(reason="missing_feature: test is not implemented")
     def test(self):  # pylint: disable=unused-argument
         pass
 

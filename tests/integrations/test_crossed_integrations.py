@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 
-from utils import interfaces, scenarios, coverage, weblog, missing_feature
+from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
 from utils._weblog import _Weblog
 from utils.tools import logger
 
@@ -20,31 +22,44 @@ class _PythonBuddy(_Weblog):
 
 @scenarios.crossed_tracing_libraries
 @coverage.basic
+@features.kafkaspan_creationcontext_propagation_with_dd_trace_py
 class Test_PythonKafka:
     """ Test kafka compatibility with datadog python tracer """
 
     WEBLOG_TO_BUDDY_TOPIC = "Test_PythonKafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_PythonKafka_buddy_to_weblog"
 
-    @staticmethod
-    def get_span(interface, span_kind, topic):
+    @classmethod
+    def get_span(cls, interface, span_kind, topic):
 
-        logger.debug(f"Try to found traces with span kind: {span_kind} and topic: {topic} in {interface}")
+        logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
             for span in trace:
                 if span_kind != span["meta"].get("span.kind"):
                     continue
 
-                if topic != span["meta"].get("kafka.topic"):
+                if topic != cls.get_topic(span):
                     continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
-
                 return span
 
         logger.debug("No span found")
         return None
+
+    @staticmethod
+    def get_topic(span) -> str | None:
+        """ Extracts the topic from a span by trying various fields """
+        topic = span["meta"].get("kafka.topic")  # this is in python
+        if topic is None:
+            if "Topic" in span["resource"]:
+                # in go and java, the topic is the last "word" of the resource name
+                topic = span["resource"].split(" ")[-1]
+
+        if topic is None:
+            logger.error(f"could not extract topic from this span:\n{span}")
+        return topic
 
     def setup_produce(self):
         """
@@ -64,7 +79,6 @@ class Test_PythonKafka:
         # assert self.consume_response.status_code == 200
 
         # The weblog is the producer, the buddy is the consumer
-        # The buddy is the producer, the weblog is the consumer
         self.validate_kafka_spans(
             producer_interface=interfaces.library,
             consumer_interface=interfaces.python_buddy,
@@ -72,9 +86,12 @@ class Test_PythonKafka:
         )
 
     @missing_feature(library="python")
+    @missing_feature(library="java")
+    @missing_feature(library="golang")
     def test_produce_trace_equality(self):
+        """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
-        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -108,9 +125,12 @@ class Test_PythonKafka:
         )
 
     @missing_feature(library="python")
+    @missing_feature(library="java")
+    @missing_feature(library="golang")
     def test_consume_trace_equality(self):
-        producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
-        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        """This test relies on the setup for consume, it currently cannot be run on its own"""
+        producer_span = self.get_span(interfaces.python_buddy, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        consumer_span = self.get_span(interfaces.library, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -119,8 +139,8 @@ class Test_PythonKafka:
 
     def validate_kafka_spans(self, producer_interface, consumer_interface, topic):
         """
-            Validates production/comsuption of kafka message.
-            It work the same for both test_produce and test_consume
+            Validates production/consumption of kafka message.
+            It works the same for both test_produce and test_consume
         """
 
         # Check that the producer did not created any consumer span
@@ -131,12 +151,13 @@ class Test_PythonKafka:
 
         producer_span = self.get_span(producer_interface, span_kind="producer", topic=topic)
         consumer_span = self.get_span(consumer_interface, span_kind="consumer", topic=topic)
-
         # check that both consumer and producer spans exists
         assert producer_span is not None
         assert consumer_span is not None
 
-        assert consumer_span["meta"]["kafka.received_message"] == "True"
+        consumed = consumer_span["meta"].get("kafka.received_message")
+        if consumed is not None:  # available only for python spans
+            assert consumed == "True"
 
         # Assert that the consumer span is not the root
         assert "parent_id" in consumer_span, "parent_id is missing in consumer span"

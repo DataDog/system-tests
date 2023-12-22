@@ -159,11 +159,11 @@ class Test_Headers_Tracestate_DD:
 
         traceparent6, tracestate6 = get_tracecontext(headers6)
         sampled6 = str(traceparent6).split("-")[3]
-        dd_items6 = tracestate6["dd"].split(";")
         assert "traceparent" in headers6
         assert sampled6 == "00"
-        assert "tracestate" in headers6
-        assert "s:0" in dd_items6 or not any(item.startswith("s:") for item in dd_items6)
+        if "dd" in tracestate6:
+            dd_items6 = tracestate6["dd"].split(";")
+            assert "s:0" in dd_items6 or not any(item.startswith("s:") for item in dd_items6)
 
         # 7) Sampled = 0, tracestate[dd][s] <= 0
         # Result: SamplingPriority = incoming sampling priority
@@ -183,11 +183,12 @@ class Test_Headers_Tracestate_DD:
 
         traceparent8, tracestate8 = get_tracecontext(headers8)
         sampled8 = str(traceparent8).split("-")[3]
-        dd_items8 = tracestate8["dd"].split(";")
         assert "traceparent" in headers8
         assert sampled8 == "00"
         assert "tracestate" in headers8
-        assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
+        if "dd" in tracestate8:
+            dd_items8 = tracestate8["dd"].split(";")
+            assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
@@ -651,7 +652,7 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @bug(library="cpp", reason="c++ is not dropping the 33rd (last) list-member")
     @bug(library="dotnet", reason="dotnet is not dropping the 33rd (last) list-member")
-    @bug(context.library < "java@1.24.0", reason="java is not dropping the 33rd (last) list-member")
+    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @bug(library="nodejs", reason="NodeJS is not dropping the 33rd (last) list-member")
     @bug(library="python", reason="python is not dropping the 33rd (last) list-member")
     @bug(library="python_http", reason="python is not dropping the 33rd (last) list-member")

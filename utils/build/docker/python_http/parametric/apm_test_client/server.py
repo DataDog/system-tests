@@ -53,6 +53,7 @@ class StartSpanArgs(BaseModel):
     resource: str
     origin: str
     http_headers: List[Tuple[str, str]]
+    links: List[Dict]
 
 
 class StartSpanReturn(BaseModel):
@@ -80,6 +81,21 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
     span = ddtrace.tracer.start_span(
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
+    for link in args.links:
+        link_parent_id = link["parent_id"]
+        link_attributes = link["attributes"]
+        for k, v in link_attributes.items():
+            if type(v) == str and v.startswith(("[", "{")):  # get any list or dict in attributes out of strings
+                link_attributes[k] = eval[v]
+
+        link_attributes = {"foo": "bar", "array": ["a", "b", "c"]}
+        if link_parent_id != 0:  # we have a parent_id to create link instead
+            link_parent = spans[link_parent_id]
+            span._set_span_link(trace_id=link_parent.trace_id, span_id=link_parent_id, attributes=link_attributes)
+        else:
+            context = HTTPPropagator.extract(headers)
+            span.link_span(context, attributes=link_attributes)
+
     spans[span.span_id] = span
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
 

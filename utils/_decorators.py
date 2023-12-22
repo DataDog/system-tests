@@ -118,7 +118,7 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
         if not expected_to_fail:
             return function_or_class
 
-        full_reason = "known bug" if reason is None else f"known bug: {reason}"
+        full_reason = "bug" if reason is None else f"bug: {reason}"
         return _get_expected_failure_item(function_or_class, full_reason)
 
     return decorator
@@ -137,7 +137,7 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
         if not skip:
             return function_or_class
 
-        full_reason = "known bug (flaky)" if reason is None else f"known bug (flaky): {reason}"
+        full_reason = "flaky" if reason is None else f"flaky: {reason}"
         return _get_skipped_item(function_or_class, full_reason)
 
     return decorator

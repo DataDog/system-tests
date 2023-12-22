@@ -1,7 +1,12 @@
 
-FROM alpine/xml
+FROM mcr.microsoft.com/dotnet/sdk:6.0
+
+RUN apt-get update && apt-get install dos2unix
+
 WORKDIR /client
 
-COPY ./utils/build/docker/dotnet/parametric/ApmTestClient.csproj .
+COPY utils/build/docker/dotnet/parametric/install_ddtrace.sh binaries* /binaries/
+RUN dos2unix /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh
 
-CMD echo $(xmllint --xpath 'string(//Project/ItemGroup/PackageReference[@Include="Datadog.Trace.Bundle"]/@Version)' ApmTestClient.csproj)
+CMD echo $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)

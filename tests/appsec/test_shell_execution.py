@@ -3,24 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
-import sys
-from utils import (
-    bug,
-    context,
-    coverage,
-    interfaces,
-    irrelevant,
-    missing_feature,
-    rfc,
-    scenarios,
-    weblog,
-    flaky,
-)
+from utils import coverage, interfaces, weblog, features
 
 
+@features.appsec_shell_execution_tracing
 @coverage.basic
 class Test_ShellExecution:
-    """ Test shell execution tracing """
+    """Test shell execution tracing"""
 
     def setup_track_cmd_exec(self):
         self.r_cmd_exec = weblog.post(

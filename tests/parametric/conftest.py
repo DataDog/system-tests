@@ -11,7 +11,6 @@ from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, Type
 import urllib.parse
 
 import requests
-import packaging.version
 import pytest
 
 from utils.parametric.spec.trace import V06StatsPayload
@@ -152,34 +151,33 @@ RUN python3.9 -m pip install %s
 
 
 def node_library_factory() -> APMLibraryTestServer:
-
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
-    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
+    nodejs_reldir = nodejs_appdir.replace("\\", "/")
+
     return APMLibraryTestServer(
         lang="nodejs",
-        protocol="grpc",
+        protocol="http",
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
-WORKDIR /client
-COPY ./package.json /client/
-COPY ./package-lock.json /client/
-COPY ./*.js /client/
-COPY ./npm/* /client/
+RUN apt-get update && apt-get install -y jq git
+WORKDIR /usr/app
+COPY {nodejs_reldir}/package.json /usr/app/
+COPY {nodejs_reldir}/package-lock.json /usr/app/
+COPY {nodejs_reldir}/*.js /usr/app/
+COPY {nodejs_reldir}/npm/* /usr/app/
+
 RUN npm install
-RUN npm install {node_module}
+
+COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 """,
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_absolute_appdir,
-        container_build_context=nodejs_absolute_appdir,
-        volumes=[
-            (
-                os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-                "/client/apm_test_client.proto",
-            ),
-        ],
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )
@@ -189,7 +187,7 @@ def golang_library_factory():
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
     golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
-
+    golang_reldir = golang_appdir.replace("\\", "/")
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
@@ -197,15 +195,22 @@ def golang_library_factory():
         container_tag="go118-test-library",
         container_img=f"""
 FROM golang:1.20
-WORKDIR /client
-COPY ./go.mod /client
-COPY ./go.sum /client
-COPY . /client
+
+# install jq
+RUN apt-get update && apt-get -y install jq
+WORKDIR /app
+COPY {golang_reldir}/go.mod /app
+COPY {golang_reldir}/go.sum /app
+COPY {golang_reldir}/. /app
+# download the proper tracer version
+COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=golang_absolute_appdir,
-        container_build_context=golang_absolute_appdir,
+        container_build_context=_get_base_directory(),
         volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
         env={},
         port="",
@@ -222,10 +227,16 @@ def dotnet_library_factory():
         container_tag="dotnet7_0-test-client",
         container_img="""
 FROM mcr.microsoft.com/dotnet/sdk:7.0
+RUN apt-get update && apt-get install dos2unix
 WORKDIR /client
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# ensure that the Datadog.Trace.dlls are installed from /binaries
+COPY /install_ddtrace.sh /binaries/
+RUN dos2unix /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
 COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
@@ -240,8 +251,8 @@ WORKDIR /client/out
 # but don't enable it globally
 ENV CORECLR_ENABLE_PROFILING=0
 ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
-ENV CORECLR_PROFILER_PATH=/client/out/datadog/linux-x64/Datadog.Trace.ClrProfiler.Native.so
-ENV DD_DOTNET_TRACER_HOME=/client/out/datadog
+ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
+ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
 # disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
 ENV DD_TRACE_Grpc_ENABLED=false
@@ -586,6 +597,13 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
+    def rc_requests(self):
+        reqs = self.requests()
+        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        for r in rc_reqs:
+            r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+        return rc_reqs
+
     def get_tracer_flares(self, **kwargs):
         resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
         json = resp.json()
@@ -654,7 +672,9 @@ class _TestAgentAPI:
                         self.clear()
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
-        raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+        raise ValueError(
+            "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
+        )
 
     def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` spans to be received from the test agent.
@@ -694,7 +714,7 @@ class _TestAgentAPI:
                             if message["request_type"] == event_name:
                                 if clear:
                                     self.clear()
-                                return event["payload"]
+                                return message
                     elif event["request_type"] == event_name:
                         if clear:
                             self.clear()
@@ -709,11 +729,7 @@ class _TestAgentAPI:
         rc_reqs = []
         for i in range(wait_loops):
             try:
-                reqs = self.requests()
-                # Get all remoteconfig requests.
-                rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
-                for r in rc_reqs:
-                    r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+                rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:
                 pass
             else:
@@ -728,6 +744,25 @@ class _TestAgentAPI:
                             return cfg_state
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+
+    def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
+        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        rc_reqs = []
+        for i in range(wait_loops):
+            try:
+                rc_reqs = self.rc_requests()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                # Look for capabilities in the requests.
+                for req in rc_reqs:
+                    raw_caps = req["body"]["client"].get("capabilities")
+                    if raw_caps:
+                        int_capabilities = int.from_bytes(base64.b64decode(raw_caps), byteorder="big")
+                        if all((int_capabilities >> c) & 1 for c in capabilities):
+                            return int_capabilities
+            time.sleep(0.01)
+        raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
 
     def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""

@@ -23,7 +23,7 @@ pytestmark = pytest.mark.parametrize(
 class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_start_span(self, test_agent, test_library):
@@ -50,7 +50,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
@@ -71,13 +71,17 @@ class Test_Otel_Span_Methods:
         context.library == "java",
         reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
     )
+    @irrelevant(context.library >= "golang@v1.59.0.dev0", reason="New span naming introduced in v1.59.0")
+    @irrelevant(context.library == "ruby", reason="Old array encoding no longer supported")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
-    def test_otel_set_attributes_different_types(self, test_agent, test_library):
+    def test_otel_set_attributes_different_types_legacy(self, test_agent, test_library):
         """
             - Set attributes of multiple types for an otel span
+            This tests legacy behavior. The new behavior is tested in
+            test_otel_set_attributes_different_types_with_array_encoding
         """
         start_time = int(time.time())
         with test_library:
@@ -142,11 +146,12 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["d_double_val"] == 3.14
 
     @missing_feature(
-        context.library == "golang", reason="New operation name mapping & array encoding not yet implemented"
-    )
-    @missing_feature(
         context.library < "java@1.24.0",
         reason="New array encoding implemented in 1.22.0 and new operation name mapping in 1.24.0",
+    )
+    @missing_feature(
+        context.library < "golang@1.59.0",
+        reason="New naming breaks old tests, so only run old tests on previous versions.",
     )
     @missing_feature(
         context.library == "nodejs", reason="New operation name mapping & array encoding not yet implemented"
@@ -259,7 +264,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_span_end(self, test_agent, test_library):
@@ -369,12 +374,14 @@ class Test_Otel_Span_Methods:
                     span.end_span()
                     context = span.span_context()
                     assert context.get("trace_id") == parent.span_context().get("trace_id")
-                    assert context.get("span_id") == "{:016x}".format(span.span_id)
+                    # Some languages e.g. Nodejs using express need to return as a string value
+                    # due to 64-bit integers being too large.
+                    assert context.get("span_id") == "{:016x}".format(int(span.span_id))
                     assert context.get("trace_flags") == "01"
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_set_attributes_separately(self, test_agent, test_library):
@@ -397,9 +404,9 @@ class Test_Otel_Span_Methods:
             assert span["name"] == "kafka.receive"
             assert span["resource"] == "operation"
 
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
@@ -442,10 +449,9 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
-    @bug(context.library == "java", reason="span.kind not set")
     def test_otel_span_reserved_attributes_overrides(self, test_agent, test_library):
         """
             Tests that the reserved attributes will override expected values
@@ -479,28 +485,70 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
         "analytics_event_value,expected_metric_value",
-        [
-            ("true", 1),
-            ("TRUE", 1),
-            ("True", 1),
-            ("false", 0),
-            ("False", 0),
-            ("FALSE", 0),
-            ("something-else", 0),
-            (True, 1),
-            (False, 0),
-        ],
+        [("true", 1), ("TRUE", 1), ("True", 1), ("false", 0), ("False", 0), ("FALSE", 0), (True, 1), (False, 0),],
     )
-    def test_otel_span_reserved_attributes_overrides_analytics_event(
-        self, analytics_event_value: Union[bool, str], expected_metric_value: int, test_agent, test_library
+    def test_otel_span_basic_reserved_attributes_overrides_analytics_event(
+        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
     ):
         """
-            Tests that the analytics.event reserved attribute override
+            Tests the analytics.event reserved attribute override with basic inputs
+        """
+        run_otel_span_reserved_attributes_overrides_analytics_event(
+            analytics_event_value=analytics_event_value,
+            expected_metric_value=expected_metric_value,
+            test_library=test_library,
+            test_agent=test_agent,
+        )
+
+    @irrelevant(
+        context.library == "java",
+        reason="Java tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
+    )
+    @irrelevant(
+        context.library == "golang",
+        reason="Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
+    )
+    @irrelevant(
+        context.library == "ruby",
+        reason="Ruby tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
+    )
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "python_http", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "analytics_event_value,expected_metric_value", [("something-else", None), ("fAlse", None), ("trUe", None),],
+    )
+    def test_otel_span_strict_reserved_attributes_overrides_analytics_event(
+        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+    ):
+        """
+            Tests that the analytics.event reserved attribute override doesn't set the _dd1.sr.eausr metric
+            for inputs that aren't accepted by strconv.ParseBool
+        """
+        run_otel_span_reserved_attributes_overrides_analytics_event(
+            analytics_event_value=analytics_event_value,
+            expected_metric_value=expected_metric_value,
+            test_library=test_library,
+            test_agent=test_agent,
+        )
+
+    @irrelevant(context.library == "java", reason="Choose to not implement Go parsing logic")
+    @irrelevant(context.library == "ruby", reason="Choose to not implement Go parsing logic")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "python_http", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "analytics_event_value,expected_metric_value", [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0),],
+    )
+    def test_otel_span_extended_reserved_attributes_overrides_analytics_event(
+        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+    ):
+        """
+            Tests that the analytics.event reserved attribute override accepts Go's strconv.ParseBool additional values
         """
         run_otel_span_reserved_attributes_overrides_analytics_event(
             analytics_event_value=analytics_event_value,
@@ -524,7 +572,7 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
 
 
 def run_otel_span_reserved_attributes_overrides_analytics_event(
-    analytics_event_value: Union[bool, str], expected_metric_value: int, test_agent, test_library
+    analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
 ):
     with test_library:
         with test_library.otel_start_span("operation", span_kind=SK_SERVER) as span:
@@ -535,5 +583,8 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
     assert len(trace) == 1
 
     span = get_span(test_agent)
-    assert span["metrics"].get("_dd1.sr.eausr") == expected_metric_value
+    if expected_metric_value is not None:
+        assert span["metrics"].get("_dd1.sr.eausr") == expected_metric_value
+    else:
+        assert "_dd1.sr.eausr" not in span["metrics"]
     assert "analytics.event" not in span["meta"]

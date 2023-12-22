@@ -165,10 +165,10 @@ def dbm():
         cursor = postgres_db.cursor()
         operation = flask_request.args.get("operation")
         if operation == "execute":
-            cursor.execute("select 'blah'")
+            cursor.execute("SELECT version()")
             return Response("OK")
         elif operation == "executemany":
-            cursor.executemany("select %s", (("blah",), ("moo",)))
+            cursor.executemany("SELECT version()", [((),)])
             return Response("OK")
         return Response(f"Cursor method is not supported: {operation}", 406)
 

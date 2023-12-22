@@ -1,5 +1,5 @@
 [Unit]
-Description=Java Weblog App Service
+Description=Python Weblog App Service
 After=syslog.target network.target
 
 [Service]
@@ -10,8 +10,10 @@ User=datadog
 Type=simple
 
 Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
+Environment=PYTHONUNBUFFERED=1
+Environment=DJANGO_SETTINGS_MODULE=django_app
 WorkingDirectory=/home/datadog
-ExecStart=/bin/bash -c 'java -Dserver.port=5985 -jar k8s-lib-injection-app-0.0.1-SNAPSHOT.jar'
+ExecStart=/bin/bash -c '/home/datadog/.pyenv/shims/gunicorn --bind :5985 django_app:application'
 ExecStop=/bin/kill -15 $MAINPID
 
 [Install]

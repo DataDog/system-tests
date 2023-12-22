@@ -5,29 +5,51 @@ on:
 env:
   REGISTRY: ghcr.io
 jobs:
+
   parametric:
     runs-on:
       group: "APM Larger Runners"
     strategy:
       matrix:
-        client:
-          - php
-          - python
-          - python_http
-          - dotnet
-          - golang
-          - java
-          - nodejs
-          - ruby
-          - cpp
+          variant:
+            #Updated with dev version 
+            - client: java
+              version: dev
+            - client: java
+              version: prod
+            - client: nodejs
+              version: dev
+            - client: nodejs
+              version: prod
+            - client: golang
+              version: dev
+            - client: golang
+              version: prod
+            #Pending to update with dev version  
+            - client: php
+              version: prod
+            - client: python
+              version: prod
+            - client: python_http
+              version: prod
+            - client: dotnet
+              version: prod
+            - client: ruby
+              version: prod
+            - client: cpp
+              version: prod
+ 
       fail-fast: false
     env:
-      TEST_LIBRARY: ${{ matrix.client }}
+      TEST_LIBRARY: ${{ matrix.variant.client }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install runner
         uses: ./.github/actions/install_runner
+      - name: Load library binary
+        if: ${{ matrix.variant.version == 'dev' }}
+        run: ./utils/scripts/load-binary.sh ${{ matrix.variant.client }}
       - name: Run
         run: ./run.sh PARAMETRIC
       - name: Compress logs
@@ -35,14 +57,14 @@ jobs:
         if: always()
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
       - name: Upload artifact
-        if: always()
+        if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v3
         with:
-          name: logs_${{  matrix.client }}_main
+          name: logs_${{ matrix.variant.client}}_parametric_${{ matrix.variant.version }}_main
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: ${{ always() }}
-        run: ./utils/scripts/upload_results_CI_visibility.sh dev system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.variant.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
         env:
           DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
       - name: Print fancy log report

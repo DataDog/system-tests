@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import flaky, context, coverage, missing_feature
-from utils.tools import logging
+from utils import coverage, missing_feature, features
 from .._test_iast_fixtures import BaseSinkTest, DetectionStage
 
 
+@features.iast_sink_hardcoded_secrets
 @coverage.basic
 class Test_HardcodedSecrets(BaseSinkTest):
     """Test Hardcoded secrets detection."""

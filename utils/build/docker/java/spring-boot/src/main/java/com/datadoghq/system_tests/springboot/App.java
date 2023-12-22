@@ -286,8 +286,35 @@ public class App {
         return "hi Mongo";
     }
 
+    @RequestMapping("/kafka/produce")
+    String kafkaProduce(@RequestParam(required = true) String topic) {
+        KafkaConnector kafka = new KafkaConnector(topic);
+        try {
+            kafka.produceMessageWithoutNewThread("DistributedTracing");
+        } catch (Exception e) {
+            System.out.println("[kafka] Failed to start producing message...");
+            e.printStackTrace();
+            return "failed to start producing message";
+        }
+        return "ok";
+    }
+
+    @RequestMapping("/kafka/consume")
+    String kafkaConsume(@RequestParam(required = true) String topic, @RequestParam(required = false) Integer timeout) {
+        KafkaConnector kafka = new KafkaConnector(topic);
+        if (timeout == null) timeout = Integer.MAX_VALUE;
+        try {
+            boolean consumed = kafka.consumeMessageWithoutNewThread(timeout);
+            return consumed ? "ok" : "timed out";
+        } catch (Exception e) {
+            System.out.println("[kafka] Failed to start consuming message...");
+            e.printStackTrace();
+            return "failed to start consuming message";
+        }
+    }
+
     @RequestMapping("/dsm")
-    String publishToKafka(@RequestParam(required = true, name="integration") String integration) {
+    String publishToKafka(@RequestParam(required = true, name = "integration") String integration) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector();
             try {

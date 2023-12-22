@@ -242,10 +242,9 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
 
 elif [ "$TARGET" = "waf_rule_set" ]; then
     assert_version_is_dev
-    curl --silent \
+    curl --fail --output "waf_rule_set.json" \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
-        --output "waf_rule_set.json" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 
 else

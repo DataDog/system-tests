@@ -9,3 +9,6 @@ end
 
 gem 'grpc'
 gem 'grpc-tools'
+
+# Only used for OpenTelemetry testing.
+gem 'opentelemetry-sdk'

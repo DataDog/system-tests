@@ -1,10 +1,11 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, coverage, interfaces
+from utils import weblog, coverage, interfaces, features
 
 
 @coverage.basic
+@features.user_monitoring
 class Test_UserLoginSuccessEvent:
     """Success test for User Login Event SDK for AppSec"""
 
@@ -39,6 +40,7 @@ class Test_UserLoginSuccessEvent:
 
 
 @coverage.basic
+@features.user_monitoring
 class Test_UserLoginFailureEvent:
     """Failure test for User Login Event SDK for AppSec"""
 
@@ -74,6 +76,7 @@ class Test_UserLoginFailureEvent:
 
 
 @coverage.basic
+@features.custom_business_logic_events
 class Test_CustomEvent:
     """Test for Custom Event SDK for AppSec"""
 

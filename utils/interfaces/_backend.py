@@ -133,7 +133,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         query_filter = f"service:weblog @single_span:true @http.useragent:*{rid}"
         return self.assert_request_spans_exist(request, query_filter, min_spans_len, limit)
 
-    def assert_request_spans_exist(self, request, query_filter, min_spans_len=1, limit=100):
+    def assert_request_spans_exist(self, request, query_filter, min_spans_len=1, limit=100, retries=5):
         """Attempts to fetch span events from the Event Platform using the given `query_filter`
         as part of the search query. The query should be what you would use in the `/apm/traces`
         page in the UI. When a valid request is provided we will restrict the span search to span
@@ -147,9 +147,9 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         if rid:
             query_filter = f"{query_filter} @http.useragent:*{rid}"
 
-        return self.assert_spans_exist(query_filter, min_spans_len, limit)
+        return self.assert_spans_exist(query_filter, min_spans_len, limit, retries)
 
-    def assert_spans_exist(self, query_filter, min_spans_len=1, limit=100):
+    def assert_spans_exist(self, query_filter, min_spans_len=1, limit=100, retries=5):
         """Attempts to fetch span events from the Event Platform using the given `query_filter`
         as part of the search query. The query should be what you would use in the `/apm/traces`
         page in the UI.
@@ -159,7 +159,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         """
 
         logger.debug(f"We will attempt to fetch span events with query filter: {query_filter}")
-        data = self._wait_for_event_platform_spans(query_filter, limit)
+        data = self._wait_for_event_platform_spans(query_filter, limit, retries)
 
         result = data["response"]["content"]["result"]
         assert result["count"] >= min_spans_len, f"Did not have the expected number of spans ({min_spans_len}): {data}"
@@ -404,7 +404,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
                 logs = data["response"]["content"]["data"]
                 # Log search can sometimes return wrong results. Retry if expected log is not present.
                 for log in logs:
-                    if rid in log["attributes"]["message"]:
+                    if log["attributes"].get("message") == f"Handle request with user agent: system_tests rid/{rid}":
                         return log
 
             time.sleep(sleep_interval_s)

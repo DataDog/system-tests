@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Shopify/sarama"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -20,6 +21,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
+	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -114,6 +116,96 @@ func main() {
 			ddtracer.SetUser(span, "usr.id", ddtracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
+	})
+
+	mux.HandleFunc("/kafka/produce", func(w http.ResponseWriter, r *http.Request) {
+		var server = "kafka:9092"
+		var message = "Test"
+
+		topic := r.URL.Query().Get("topic")
+		if len(topic) == 0 {
+			w.Write([]byte("missing param 'topic'"))
+			w.WriteHeader(422)
+			return
+		}
+
+		cfg := sarama.NewConfig()
+		cfg.Producer.Return.Successes = true
+
+		producer, err := sarama.NewSyncProducer([]string{server}, cfg)
+		if err != nil {
+			panic(err)
+		}
+		defer producer.Close()
+
+		producer = saramatrace.WrapSyncProducer(cfg, producer)
+
+		msg := &sarama.ProducerMessage{
+			Topic:     topic,
+			Partition: 0,
+			Value:     sarama.StringEncoder(message),
+		}
+
+		partition, offset, err := producer.SendMessage(msg)
+
+		log.Printf("PRODUCER SENT MESSAGE TO (partition offset): ", partition, " ", offset)
+
+		w.Write([]byte("OK"))
+		w.WriteHeader(200)
+	})
+
+	mux.HandleFunc("/kafka/consume", func(w http.ResponseWriter, r *http.Request) {
+		var server = "kafka:9092"
+
+		topic := r.URL.Query().Get("topic")
+		if len(topic) == 0 {
+			w.Write([]byte("missing param 'topic'"))
+			w.WriteHeader(422)
+			return
+		}
+
+		cfg := sarama.NewConfig()
+
+		consumer, err := sarama.NewConsumer([]string{server}, cfg)
+		if err != nil {
+			panic(err)
+		}
+
+		defer consumer.Close()
+
+		consumer = saramatrace.WrapConsumer(consumer)
+
+		partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
+
+		if err != nil {
+			panic(err)
+		}
+
+		defer partitionConsumer.Close()
+
+		// Added a time to avoid this issue: https://github.com/IBM/sarama/issues/2116
+		timeOutTimer := time.NewTimer(time.Second * 20)
+		defer timeOutTimer.Stop()
+		log.Printf("CONSUMING MESSAGES from topic: %s", topic)
+	ConsumeMessages:
+		for {
+			select {
+			case receivedMsg := <-partitionConsumer.Messages():
+				responseOutput := fmt.Sprintf("Consumed message.\n\tOffset: %s\n\tMessage: %s\n", fmt.Sprint(receivedMsg.Offset), string(receivedMsg.Value))
+				log.Print(responseOutput)
+				w.Write([]byte(responseOutput))
+				w.WriteHeader(200)
+				return // consume only one message. Works for now.
+				// if we want to consume more, we need to handle the return code differently in timeout,
+				// whether messages were consumed or not
+			case <-timeOutTimer.C:
+				timedOutMessage := "TimeOut"
+				log.Print(timedOutMessage)
+				w.Write([]byte(timedOutMessage))
+				w.WriteHeader(408)
+				break ConsumeMessages
+			}
+		}
 	})
 
 	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {

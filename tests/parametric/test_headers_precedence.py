@@ -96,7 +96,8 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python_http", reason="New 'datadog' default hasn't been implemented yet")
     @irrelevant(context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator")
-    def test_headers_precedence_propagationstyle_default(self, test_agent, test_library):
+    @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
+    def test_headers_precedence_propagationstyle_legacy(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
     @enable_datadog()
@@ -638,11 +639,11 @@ class Test_Headers_Precedence:
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library == "dotnet", reason="dotnet must implement new tracestate propagation")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
     @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
-    @missing_feature(context.library == "python", reason="python must implement new tracestate propagation")
-    @missing_feature(context.library == "python_http", reason="python must implement new tracestate propagation")
+    @missing_feature(context.library < "python@2.3.3", reason="python must implement new tracestate propagation")
+    @missing_feature(context.library < "python_http@2.3.3", reason="python must implement new tracestate propagation")
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
@@ -710,7 +711,6 @@ class Test_Headers_Precedence:
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
-
             # 2) Scenario 1 but the x-datadog-* headers don't match the tracestate string
             # Note: This is an exceptional case that should not happen, but we should be consistent
             headers2 = make_single_request_and_get_inject_headers(

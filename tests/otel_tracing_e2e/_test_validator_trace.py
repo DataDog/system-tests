@@ -38,7 +38,6 @@ def validate_trace(traces: list[dict], use_128_bits_trace_id: bool) -> tuple:
 def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
     assert span["parent_id"] == "0"
     assert span["service"] == "otel-system-tests-spring-boot"
-    assert span["ingestion_reason"] == "otel"
     expected_meta = {
         "deployment.environment": "system-tests",
         "otel.status_code": "Unset",

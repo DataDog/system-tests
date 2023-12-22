@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, missing_feature, bug
+from utils import coverage, missing_feature, bug, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
+@features.iast_source_body
 @coverage.basic
 class TestRequestBody(BaseSourceTest):
     """Verify that request json body is tainted"""

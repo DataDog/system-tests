@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, bug, missing_feature, coverage
+from utils import weblog, context, bug, missing_feature, coverage, features
 from .._test_iast_fixtures import BaseSinkTest, assert_iast_vulnerability
 
 
@@ -32,6 +32,7 @@ def _expected_evidence():
 
 
 @coverage.basic
+@features.weak_hash_vulnerability_detection
 class TestWeakHash(BaseSinkTest):
     """Verify weak hash detection."""
 
