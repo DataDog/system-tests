@@ -44,7 +44,7 @@ tests/:
         test_ssrf.py:
           TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
-          Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation: v2.43.0
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
