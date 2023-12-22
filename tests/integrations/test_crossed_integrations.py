@@ -24,14 +24,13 @@ class _PythonBuddy(_Weblog):
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_py
 class Test_PythonKafka:
-    """ Test kafka compatibility with datadog python tracer """
+    """Test kafka compatibility with datadog python tracer"""
 
     WEBLOG_TO_BUDDY_TOPIC = "Test_PythonKafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_PythonKafka_buddy_to_weblog"
 
     @classmethod
     def get_span(cls, interface, span_kind, topic):
-
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -50,7 +49,7 @@ class Test_PythonKafka:
 
     @staticmethod
     def get_topic(span) -> str | None:
-        """ Extracts the topic from a span by trying various fields """
+        """Extracts the topic from a span by trying various fields"""
         topic = span["meta"].get("kafka.topic")  # this is in python
         if topic is None:
             if "Topic" in span["resource"]:
@@ -63,8 +62,8 @@ class Test_PythonKafka:
 
     def setup_produce(self):
         """
-            send request A to weblog : this request will produce a kafka message
-            send request B to python buddy, this request will consume kafka message
+        send request A to weblog : this request will produce a kafka message
+        send request B to python buddy, this request will consume kafka message
         """
 
         python_buddy = _PythonBuddy()
@@ -73,10 +72,9 @@ class Test_PythonKafka:
         self.consume_response = python_buddy.get("/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC})
 
     def test_produce(self):
-        """ Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
+        """Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
 
         assert self.production_response.status_code == 200
-        # assert self.consume_response.status_code == 200
 
         # The weblog is the producer, the buddy is the consumer
         self.validate_kafka_spans(
@@ -85,9 +83,18 @@ class Test_PythonKafka:
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
-    @missing_feature(library="python")
-    @missing_feature(library="java")
-    @missing_feature(library="golang")
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
@@ -100,11 +107,11 @@ class Test_PythonKafka:
 
     def setup_consume(self):
         """
-            send request A to python buddy : this request will produce a kafka message
-            send request B to weblog, this request will consume kafka message
+        send request A to python buddy : this request will produce a kafka message
+        send request B to weblog, this request will consume kafka message
 
-            request A: GET /python_buddy/produce_kafka_message
-            request B: GET /weblog/consume_kafka_message 
+        request A: GET /python_buddy/produce_kafka_message
+        request B: GET /weblog/consume_kafka_message
         """
         python_buddy = _PythonBuddy()
 
@@ -112,7 +119,7 @@ class Test_PythonKafka:
         self.consume_response = weblog.get("/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC})
 
     def test_consume(self):
-        """ Check that a message by an app instrumented by a Datadog python tracer is correctly ingested """
+        """Check that a message by an app instrumented by a Datadog python tracer is correctly ingested"""
 
         assert self.production_response.status_code == 200
         assert self.consume_response.status_code == 200
@@ -124,9 +131,18 @@ class Test_PythonKafka:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(library="python")
-    @missing_feature(library="java")
-    @missing_feature(library="golang")
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.python_buddy, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
@@ -139,8 +155,8 @@ class Test_PythonKafka:
 
     def validate_kafka_spans(self, producer_interface, consumer_interface, topic):
         """
-            Validates production/consumption of kafka message.
-            It works the same for both test_produce and test_consume
+        Validates production/consumption of kafka message.
+        It works the same for both test_produce and test_consume
         """
 
         # Check that the producer did not created any consumer span
