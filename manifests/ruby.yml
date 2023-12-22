@@ -215,6 +215,7 @@ tests/:
         sinatra14: missing_feature (Only requires one server -  rails70)
         sinatra20: missing_feature (Only requires one server -  rails70)
         sinatra21: missing_feature (Only requires one server -  rails70)
+        uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
