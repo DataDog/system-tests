@@ -1,20 +1,32 @@
-import pytest
+import json
 
 from ddapm_test_agent.trace import Span
-from ddapm_test_agent.trace import Trace
 from ddapm_test_agent.trace import root_span
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import bug, context, scenarios, missing_feature
+from utils import context, scenarios, missing_feature, bug
 from utils.parametric._library_client import Link
 
 
 @scenarios.parametric
 class Test_Span_Links:
+    @staticmethod
+    def _get_span_links(span):
+        if context.library >= "python_http@2.4.0" or context.library >= "python@2.4.0":
+            # trace API v0.5
+            encoded_span_links = span.get("meta", {}).get("_dd.span_links")
+            if not encoded_span_links:
+                return None
+
+            return json.loads(encoded_span_links)
+
+        # trace API v0.4
+        return span.get("span_links")
+
+    @bug(library="python_http", reason="Since using v0.5 API, trace_id are differents")
     @missing_feature(library="python", reason="test not implemented")
     def test_span_started_with_link(self, test_agent, test_library):
         """Test adding a span link created from another span.
@@ -38,9 +50,10 @@ class Test_Span_Links:
         span = find_span(trace, Span(name="child"))
 
         assert span.get("parent_id") == root.get("span_id")
-        assert span.get("span_links") is not None
 
-        span_links = span["span_links"]
+        span_links = self._get_span_links(span)
+        assert span_links is not None
+
         assert len(span_links) == 1
         link = span_links[0]
         assert link.get("span_id") == root.get("span_id")
