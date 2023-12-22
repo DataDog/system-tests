@@ -48,8 +48,11 @@ jobs:
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Load library binary
-        if: ${{ matrix.variant.version == 'dev' }}
+        if: ${{ matrix.variant.version == 'dev' &&  matrix.variant.client != 'python_http'}}
         run: ./utils/scripts/load-binary.sh ${{ matrix.variant.client }}
+      - name: Load library binary python_http
+        if: ${{ matrix.variant.version == 'dev' &&  matrix.variant.client == 'python_http'}}
+        run: ./utils/scripts/load-binary.sh python
       - name: Run
         run: ./run.sh PARAMETRIC
       - name: Compress logs

@@ -34,11 +34,10 @@ jobs:
       uses: ./.github/actions/lint_code
 
   test_the_test:
-    if: ${{ false }}  # disable for now
     strategy:
       matrix:
         os:
-          - macos-latest
+        #  - macos-latest
           - ubuntu-latest
     name: Test the test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
