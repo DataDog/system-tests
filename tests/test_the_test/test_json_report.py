@@ -193,7 +193,7 @@ class Test_Json_Report:
 @rfc("https://mock")
 @coverage.good
 @features.api_v2_implemented
-@features.b3_headers_injection_and_extraction
+@features.b3_headers_propagation
 class Test_Mock:
     def test_mock(self):
         """Mock test doc"""

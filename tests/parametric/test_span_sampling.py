@@ -1,3 +1,5 @@
+import time
+import json
 import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
@@ -8,11 +10,10 @@ from utils.parametric.spec.trace import MANUAL_DROP_KEY
 from utils.parametric.spec.trace import USER_KEEP
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
-import time
-import json
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, features
 
 
+@features.single_span_sampling
 @scenarios.parametric
 class Test_Span_Sampling:
     @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")

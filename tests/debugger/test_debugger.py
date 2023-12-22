@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import scenarios, interfaces, weblog
+from utils import scenarios, interfaces, weblog, features
 from utils.tools import logger
 
 
@@ -95,6 +95,7 @@ def validate_spans(expected_spans):
         check_trace(expected_trace, span_map)
 
 
+@features.debugger
 @scenarios.debugger_probes_status
 class Test_Debugger_Probe_Statuses:
     def test_method_probe_status(self):
@@ -170,6 +171,7 @@ class _Base_Debugger_Snapshot_Test:
         return False
 
 
+@features.debugger
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
@@ -215,6 +217,7 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         validate_spans(expected_spans)
 
 
+@features.debugger
 @scenarios.debugger_line_probes_snapshot
 class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
@@ -255,6 +258,7 @@ class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         validate_spans(expected_spans)
 
 
+@features.debugger
 @scenarios.debugger_mix_log_probe
 class Test_Debugger_Mix_Log_Probe(_Base_Debugger_Snapshot_Test):
     multi_probe_response = None
