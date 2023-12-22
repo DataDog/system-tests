@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
+	"os"
 	"strconv"
 	"time"
-	"os"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -267,6 +269,9 @@ func main() {
 		w.Write([]byte(content))
 	})
 
+	semanticCore := &semanticCoreHandlers{}
+	mux.HandleFunc("/semantic-core/sensitive-data/http-url", semanticCore.SensitiveDataHttpUrl)
+
 	initDatadog()
 	go listenAndServeGRPC()
 	http.ListenAndServe(":7777", mux)
@@ -284,4 +289,57 @@ func headers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-length", "42")
 	w.Header().Set("content-language", "en-US")
 	w.Write([]byte("Hello, headers!"))
+}
+
+type semanticCoreHandlers struct{}
+
+func (s *semanticCoreHandlers) SensitiveDataHttpUrl(w http.ResponseWriter, r *http.Request) {
+	h := httptrace.NewServeMux(httptrace.WithServiceName("sensitive-data-server"))
+	h.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+		span, ok := ddtracer.SpanFromContext(r.Context())
+		if !ok {
+			panic("no span found in context")
+		}
+
+		b, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			panic(err)
+		}
+		span.SetTag("system_test.raw_request", string(b))
+
+		user, pass, _ := r.BasicAuth()
+		span.SetTag("system_test.basic_auth.user", user)
+		span.SetTag("system_test.basic_auth.pass", pass)
+
+		s.successResponse(w)
+	})
+
+	testServer := httptest.NewServer(h)
+	defer testServer.Close()
+
+	url := fmt.Sprintf("http://user:pass@%s/token?token=my-secret-token", testServer.Listener.Addr().String())
+
+	c := httptrace.WrapClient(&http.Client{}, httptrace.RTWithServiceName("sensitive-data-client"))
+	_, err := c.Get(url)
+	if err != nil {
+		panic(err)
+	}
+
+	s.successResponse(w)
+}
+
+func (s *semanticCoreHandlers) successResponse(w http.ResponseWriter) {
+	s.successResponseWithMessage(w, "ok")
+}
+
+func (s *semanticCoreHandlers) successResponseWithMessage(w http.ResponseWriter, msg string) {
+	s.buildResponse(w, http.StatusOK, msg)
+}
+
+func (s *semanticCoreHandlers) buildResponse(w http.ResponseWriter, code int, message string) {
+	w.WriteHeader(code)
+	resp := fmt.Sprintf("{\"status\": %q, \"message\": %q}", http.StatusText(code), message)
+	if _, err := w.Write([]byte(resp)); err != nil {
+		panic(err)
+	}
 }
