@@ -47,7 +47,7 @@ class Test_SensitiveData:
     sensitive_fields = ["http.url"]
 
     def setup_http_url(self):
-        self.r = weblog.get("/semantic-core/sensitive-data/http-url", auth=('user', 'pass'))
+        self.r = weblog.get("/semantic-core/sensitive-data/http-url", auth=("user", "pass"))
 
     def test_http_url(self):
         assert self.r.status_code == 200
@@ -89,9 +89,9 @@ class Test_SensitiveData:
             meta = span["meta"]
 
             if f in meta:
-                logger.debug(f"validating field: \"{f}={meta[f]}\"")
-                assert 'user' not in meta[f]
-                assert 'pass' not in meta[f]
+                logger.debug(f'validating field: "{f}={meta[f]}"')
+                assert "user" not in meta[f]
+                assert "pass" not in meta[f]
                 # TODO: verify if this is the expected behavior, since query params are
                 #  redacted in server spans but not in the client
                 # assert '/token?<redacted>' in meta[f]
@@ -101,13 +101,13 @@ class Test_SensitiveData:
 
         # ensure the request was actually sending sensitive data in different places.
         meta = span["meta"]
-        assert 'system_test.raw_request' in meta
-        assert 'system_test.basic_auth.user' in meta
-        assert 'system_test.basic_auth.pass' in meta
+        assert "system_test.raw_request" in meta
+        assert "system_test.basic_auth.user" in meta
+        assert "system_test.basic_auth.pass" in meta
 
-        assert meta['system_test.basic_auth.user'] == 'user'
-        assert meta['system_test.basic_auth.pass'] == 'pass'
-        b64_credentials = base64.b64encode(bytes('user:pass', 'utf-8')).decode('utf-8')
+        assert meta["system_test.basic_auth.user"] == "user"
+        assert meta["system_test.basic_auth.pass"] == "pass"
+        b64_credentials = base64.b64encode(bytes("user:pass", "utf-8")).decode("utf-8")
 
         assert f"Authorization: Basic {b64_credentials}" in meta["system_test.raw_request"]
         assert "/token?token=my-secret-token" in meta["system_test.raw_request"]
@@ -117,7 +117,7 @@ class Test_SensitiveData:
             meta = span["meta"]
 
             if f in meta:
-                logger.debug(f"validating field: \"{f}={meta[f]}\"")
-                assert 'user' not in meta[f]
-                assert 'pass' not in meta[f]
-                assert '/token?<redacted>' in meta[f]
+                logger.debug(f'validating field: "{f}={meta[f]}"')
+                assert "user" not in meta[f]
+                assert "pass" not in meta[f]
+                assert "/token?<redacted>" in meta[f]
