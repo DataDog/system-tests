@@ -157,7 +157,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_valid(self, test_agent, test_library):
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
@@ -169,7 +168,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_invalid(self, test_agent, test_library):
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
@@ -181,7 +179,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_inject_valid(self, test_agent, test_library):
         self.test_headers_b3_inject_valid(test_agent, test_library)
 
@@ -193,7 +190,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_propagate_valid(self, test_agent, test_library):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
@@ -205,7 +201,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_propagate_invalid(self, test_agent, test_library):
         self.test_headers_b3_propagate_invalid(test_agent, test_library)
 
@@ -217,7 +212,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python_http", reason="Need to remove b3=b3multi alias")
     @missing_feature(
         context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
     )

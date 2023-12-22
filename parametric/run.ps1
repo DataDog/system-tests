@@ -11,7 +11,7 @@ $DEFAULT_COUNT = "auto"
 if (![string]::IsNullOrEmpty($env:CLIENTS_ENABLED)) {
     foreach ($client in $env:CLIENTS_ENABLED.split(',')) {
         # default to "1" for languages with concurrency issues
-        if ($client -eq "dotnet" -or $client -eq "go" -or $client -eq "python_http") {
+        if ($client -eq "dotnet" ) {
             $DEFAULT_COUNT = "1"
             break
         }

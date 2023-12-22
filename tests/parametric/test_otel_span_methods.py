@@ -25,7 +25,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_start_span(self, test_agent, test_library):
         """
             - Start/end a span with start and end options
@@ -52,7 +51,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
         """
             - Update the service name on a span
@@ -76,7 +74,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_attributes_different_types_legacy(self, test_agent, test_library):
         """
             - Set attributes of multiple types for an otel span
@@ -162,9 +159,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(
         context.library == "python", reason="New operation name mapping & array encoding not yet implemented"
     )
-    @missing_feature(
-        context.library == "python_http", reason="New operation name mapping & array encoding not yet implemented"
-    )
     def test_otel_set_attributes_different_types_with_array_encoding(self, test_agent, test_library):
         """
             - Set attributes of multiple types for an otel span
@@ -241,7 +235,6 @@ class Test_Otel_Span_Methods:
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_span_finished_end_options(self, test_agent, test_library):
         """
         Test functionality of ending a span with end options.
@@ -266,7 +259,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_span_end(self, test_agent, test_library):
         """
         Test functionality of ending a span. After ending:
@@ -305,7 +297,6 @@ class Test_Otel_Span_Methods:
         reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
     )
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
-    @missing_feature(context.library == "python_http", reason="New operation name mapping not yet implemented")
     def test_otel_set_span_status_error(self, test_agent, test_library):
         """
             This test verifies that setting the status of a span
@@ -334,10 +325,6 @@ class Test_Otel_Span_Methods:
     )
     @missing_feature(
         context.library == "python",
-        reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
-    )
-    @missing_feature(
-        context.library == "python_http",
         reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
     )
     def test_otel_set_span_status_ok(self, test_agent, test_library):
@@ -383,7 +370,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_set_attributes_separately(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -408,7 +394,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
         "expected_operation_name,span_kind,attributes",
         [
@@ -451,7 +436,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_span_reserved_attributes_overrides(self, test_agent, test_library):
         """
             Tests that the reserved attributes will override expected values
@@ -487,7 +471,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason=".NET dosn't treat 'something-else' as a valid input here.")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
         "analytics_event_value,expected_metric_value",
         [
