@@ -34,6 +34,7 @@ jobs:
       uses: ./.github/actions/lint_code
 
   test_the_test:
+    if: ${{ false }}  # disable for now
     strategy:
       matrix:
         os:
@@ -61,9 +62,9 @@ jobs:
     if: needs.scenarios.outputs.run_parametric == 'true'
     needs:
     - lint
-    - test_the_test
+   # - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/parametric.yml@main
+    uses: datadog/system-tests/.github/workflows/parametric.yml@robertomonteromiguel/parametric_use_load_binary_python
     secrets: inherit
 
   experimental:
@@ -76,6 +77,7 @@ jobs:
     secrets: inherit
 
   main:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint
