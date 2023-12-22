@@ -6,10 +6,6 @@
 
 from utils import weblog, interfaces, bug, context
 
-SCHEMA_URL = (
-    "https://github.com/DataDog/schema/blob/fpaulo/SMTC-38_agent-payload-defs/semantic-core/v1/agent_payload.json"
-)
-
 
 class Test_Library:
     """Libraries's payload are valid regarding schemas"""
