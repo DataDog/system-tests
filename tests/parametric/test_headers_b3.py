@@ -6,7 +6,7 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -41,6 +41,7 @@ def enable_migrated_b3_single_key() -> Any:
     return parametrize("library_env", [env])
 
 
+@features.b3_headers_propagation
 @scenarios.parametric
 class Test_Headers_B3:
     @enable_b3()

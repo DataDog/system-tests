@@ -140,7 +140,7 @@ class features:
         return test_object
 
     @staticmethod
-    def b3_headers_injection_and_extraction(test_object):
+    def b3_headers_propagation(test_object):
         """
         B3 headers injection and extraction
 
@@ -1347,4 +1347,234 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=204
         """
         pytest.mark.features(feature_id=204)(test_object)
+        return test_object
+
+    @staticmethod
+    def span_links_through_datadog_api(test_object):
+        """
+        Span links (through Datadog API)
+
+        https://feature-parity.us1.prod.dog/#/?feature=205
+        """
+        pytest.mark.features(feature_id=205)(test_object)
+        return test_object
+
+    @staticmethod
+    def cassandra_support(test_object):
+        """
+        Cassandra support
+
+        https://feature-parity.us1.prod.dog/#/?feature=206
+        """
+        pytest.mark.features(feature_id=206)(test_object)
+        return test_object
+
+    @staticmethod
+    def mysql_support(test_object):
+        """
+        MySQL Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=207
+        """
+        pytest.mark.features(feature_id=207)(test_object)
+        return test_object
+
+    @staticmethod
+    def mssql_support(test_object):
+        """
+        MySQL Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=225
+        """
+        pytest.mark.features(feature_id=225)(test_object)
+        return test_object
+
+    @staticmethod
+    def postgres_support(test_object):
+        """
+        PostGres Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=208
+        """
+        pytest.mark.features(feature_id=208)(test_object)
+        return test_object
+
+    @staticmethod
+    def database_monitoring_correlation(test_object):
+        """
+        Database Monitoring correlation
+
+        https://feature-parity.us1.prod.dog/#/?feature=209
+        """
+        pytest.mark.features(feature_id=209)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_http(test_object):
+        """
+        DataStreams Monitoring support for Http
+
+        https://feature-parity.us1.prod.dog/#/?feature=210
+        """
+        pytest.mark.features(feature_id=210)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger(test_object):
+        """
+        Debugger
+
+        https://feature-parity.us1.prod.dog/#/?feature=211
+        """
+        pytest.mark.features(feature_id=211)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_kafka(test_object):
+        """
+        DataStreams Monitoring support for Kafka
+
+        https://feature-parity.us1.prod.dog/#/?feature=212
+        """
+        pytest.mark.features(feature_id=212)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_rabbitmq(test_object):
+        """
+        DataStreams Monitoring support for RabbitMQ
+
+        https://feature-parity.us1.prod.dog/#/?feature=213
+        """
+        pytest.mark.features(feature_id=213)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_rabbitmq_fanout(test_object):
+        """
+        DataStreams Monitoring support for RabbitMQ - Fanout
+
+        https://feature-parity.us1.prod.dog/#/?feature=214
+        """
+        pytest.mark.features(feature_id=214)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_rabbitmq_topicexchange(test_object):
+        """
+        DataStreams Monitoring support for RabbitMq - TopicExchange
+
+        https://feature-parity.us1.prod.dog/#/?feature=215
+        """
+        pytest.mark.features(feature_id=215)(test_object)
+        return test_object
+
+    @staticmethod
+    def mongo_support(test_object):
+        """
+        Mongo Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=216
+        """
+        pytest.mark.features(feature_id=216)(test_object)
+        return test_object
+
+    @staticmethod
+    def otel_mysql_support(test_object):
+        """
+        OTEL MySql Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=217
+        """
+        pytest.mark.features(feature_id=217)(test_object)
+        return test_object
+
+    @staticmethod
+    def otel_mssql_support(test_object):
+        """
+        OTEL MySql Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=226
+        """
+        pytest.mark.features(feature_id=226)(test_object)
+        return test_object
+
+    @staticmethod
+    def otel_postgres_support(test_object):
+        """
+        OTEL PostGres Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=218
+        """
+        pytest.mark.features(feature_id=218)(test_object)
+        return test_object
+
+    @staticmethod
+    def sql_support(test_object):
+        """
+        Sql support
+
+        https://feature-parity.us1.prod.dog/#/?feature=219
+        """
+        pytest.mark.features(feature_id=219)(test_object)
+        return test_object
+
+    @staticmethod
+    def dynamic_configuration(test_object):
+        """
+        Dynamic Configuration
+
+        https://feature-parity.us1.prod.dog/#/?feature=220
+        """
+        pytest.mark.features(feature_id=220)(test_object)
+        return test_object
+
+    @staticmethod
+    def datadog_headers_propagation(test_object):
+        """
+        Datadog headers propagation
+
+        https://feature-parity.us1.prod.dog/#/?feature=221
+        """
+        pytest.mark.features(feature_id=221)(test_object)
+        return test_object
+
+    @staticmethod
+    def single_span_sampling(test_object):
+        """
+        Single Span Sampling
+
+        https://feature-parity.us1.prod.dog/#/?feature=222
+        """
+        pytest.mark.features(feature_id=222)(test_object)
+        return test_object
+
+    @staticmethod
+    def tracer_flare(test_object):
+        """
+        Tracer Flare
+
+        https://feature-parity.us1.prod.dog/#/?feature=223
+        """
+        pytest.mark.features(feature_id=223)(test_object)
+        return test_object
+
+    @staticmethod
+    def profiling(test_object):
+        """
+        Profiling
+
+        https://feature-parity.us1.prod.dog/#/?feature=224
+        """
+        pytest.mark.features(feature_id=224)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_sampling(test_object):
+        """
+        Profiling
+
+        https://feature-parity.us1.prod.dog/#/?feature=227
+        """
+        pytest.mark.features(feature_id=227)(test_object)
         return test_object

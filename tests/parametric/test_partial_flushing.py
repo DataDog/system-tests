@@ -1,9 +1,10 @@
 import pytest
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
-from utils import missing_feature, bug, context, scenarios
+from utils import missing_feature, features, context, scenarios
 
 
+@features.partial_flush
 @scenarios.parametric
 class Test_Partial_Flushing:
     @pytest.mark.parametrize(

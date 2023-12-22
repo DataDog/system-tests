@@ -15,7 +15,7 @@ tests/:
         Test_BodyJson: missing_feature
         Test_BodyXml: missing_feature
         Test_ClientIP: missing_feature
-        Test_Headers: v0.68.3  # probably sooner, but was flaky 
+        Test_Headers: v0.68.3  # probably sooner, but was flaky
         Test_Method: missing_feature
         Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
       test_rules.py:
@@ -76,9 +76,9 @@ tests/:
     test_span_links.py: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Globs: v0.96.0
+      Test_Trace_Sampling_Resource: v0.96.0
+      Test_Trace_Sampling_Tags: v0.96.0
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:

@@ -718,7 +718,7 @@ class _TestAgentAPI:
                             if message["request_type"] == event_name:
                                 if clear:
                                     self.clear()
-                                return event["payload"]
+                                return message
                     elif event["request_type"] == event_name:
                         if clear:
                             self.clear()

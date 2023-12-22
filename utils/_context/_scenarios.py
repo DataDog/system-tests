@@ -1015,6 +1015,7 @@ class ParametricScenario(_Scenario):
                         "ddtracer_version",
                         "-f",
                         f"{tracer_version_dockerfile}",
+                        "--quiet",
                         "--build-arg",
                         f"BUILD_MODULE={build_param}",
                     ],

@@ -1,6 +1,5 @@
 
 FROM golang:1.20
-
 # install jq
 RUN apt-get update && apt-get -y install jq
 
@@ -14,5 +13,4 @@ RUN go mod download && go mod verify
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-
 CMD cat SYSTEM_TESTS_LIBRARY_VERSION
