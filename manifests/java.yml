@@ -680,13 +680,6 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    test_docs.py:
-      Test_InstallationDebugProcedure:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_InstallationInstructions:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_PublicDocumentation:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_endpoint_ognl.py:
       Test_Ognl:
         akka-http: missing_feature (Need to build endpoint on weblog)

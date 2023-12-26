@@ -390,10 +390,6 @@ tests/:
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0rc2.dev
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
-    test_docs.py:
-      Test_InstallationDebugProcedure: v1.4.2
-      Test_InstallationInstructions: v1.4.2
-      Test_PublicDocumentation: v1.4.2
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
       Test_UserLoginFailureEvent: v1.9.0

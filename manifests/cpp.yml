@@ -56,7 +56,6 @@ tests/:
     test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
     test_conf.py: irrelevant (ASM is not implemented in C++)
     test_customconf.py: irrelevant (ASM is not implemented in C++)
-    test_docs.py: irrelevant (ASM is not implemented in C++)
     test_endpoint_ognl.py: irrelevant (ASM is not implemented in C++)
     test_endpoint_sqli.py: irrelevant (ASM is not implemented in C++)
     test_endpoint_ssrf.py: irrelevant (ASM is not implemented in C++)
