@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         os:
-        #  - macos-latest
+          - macos-latest
           - ubuntu-latest
     name: Test the test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -61,7 +61,7 @@ jobs:
     if: needs.scenarios.outputs.run_parametric == 'true'
     needs:
     - lint
-   # - test_the_test
+    - test_the_test
     - scenarios
     uses: datadog/system-tests/.github/workflows/parametric.yml@robertomonteromiguel/parametric_use_load_binary_python
     secrets: inherit
@@ -76,7 +76,6 @@ jobs:
     secrets: inherit
 
   main:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint
