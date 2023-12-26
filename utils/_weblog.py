@@ -18,6 +18,9 @@ import google.protobuf.struct_pb2 as pb
 from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
+# monkey patching header validation in requests module, as we want to be able to send anything to weblog
+requests.utils._validate_header_part = lambda *args, **kwargs: None  # pylint: disable=protected-access
+
 
 class ResponseEncoder(json.JSONEncoder):
     def default(self, o):

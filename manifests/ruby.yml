@@ -247,9 +247,15 @@ tests/:
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
-    Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTags: v1.13.0
+    Test_HeaderTags_Colon_Leading: v1.13.0
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8602)
+    Test_HeaderTags_Long: v1.13.0
+    Test_HeaderTags_Short: v1.13.0
+    Test_HeaderTags_Whitespace_Header: v1.13.0
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-8599)
+    Test_HeaderTags_Whitespace_Val_Long: v1.13.0
+    Test_HeaderTags_Whitespace_Val_Short: v1.13.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_sampling_rates.py:

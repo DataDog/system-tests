@@ -98,8 +98,14 @@ tests/:
     Test_Propagate_Legacy: v0.85.0
   test_library_conf.py:
     Test_HeaderTags: v0.68.2
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: v0.74.0
+    Test_HeaderTags_Colon_Leading: v0.74.0
+    Test_HeaderTags_Colon_Trailing: v0.74.0
+    Test_HeaderTags_Long: missing_feature
+    Test_HeaderTags_Short: v0.74.0
+    Test_HeaderTags_Whitespace_Header: v0.74.0
+    Test_HeaderTags_Whitespace_Tag: missing_feature
+    Test_HeaderTags_Whitespace_Val_Long: missing_feature
+    Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_sampling_rates.py:
