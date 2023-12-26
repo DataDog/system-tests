@@ -607,21 +607,20 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implemented
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        # TODO
+        assert False, "TODO"
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
-        # TODO
+        assert False, "TODO"
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
-        # TODO
+        assert False, "TODO"
 
 
 @scenarios.appsec_blocking
