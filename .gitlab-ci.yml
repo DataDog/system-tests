@@ -4,7 +4,7 @@ stages:
   - java_tracer
   - python_tracer
   - dotnet_tracer
-  #- parse_results
+  - parse_results
 
 .base_job_onboarding:
   only:
@@ -146,7 +146,7 @@ onboarding_ruby:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
-.onboarding_parse_results:
+onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
