@@ -1,4 +1,5 @@
 require 'datadog/kit/appsec/events'
+require 'kafka'
 
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -168,4 +169,48 @@ class SystemTestController < ApplicationController
 
     render plain: 'Hello, world!'
   end
+
+
+  def kafka_produce
+    kafka_client = Kafka.new(["kafka:9092"], client_id: "system-tests-client-producer")
+    topic = request.params["topic"]
+    stop = false
+    while stop == false
+      begin
+        Datadog::Tracing.trace('kafka_produce') do |span|
+          kafka_client.deliver_message("Hello, world!", topic: topic)
+          # This has to be done manually for now, because ruby does not add the topic
+          # to the span at all
+          span.set_tag("span.kind", "producer")
+          span.set_tag("kafka.topic", topic)
+          stop = true
+        end
+      rescue Kafka::LeaderNotAvailable
+      end
+    end
+
+    render plain: "Done"
+  end
+
+
+  def kafka_consume
+    kafka_client = Kafka.new(["kafka:9092"], client_id: "system-tests-client-consumer")
+    topic = request.params["topic"]
+    consumer = kafka_client.consumer(group_id: "system-tests-group")
+    consumer.subscribe(topic)
+    begin
+      consumer.each_message do |message|
+        if not message.nil?
+          break
+        end
+      end
+    rescue Exception => e
+      puts "An error has occurred while consuming messages from Kafka: #{e}"
+    ensure
+      consumer.stop
+    end
+
+    render plain: "Done"
+  end
+
 end
