@@ -146,7 +146,7 @@ tests/:
       Test_Blocking_request_uri: v2.32.0
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
-      Test_Suspicious_Request_Blocking: v2.29.0
+      Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
     test_conf.py:
@@ -182,6 +182,7 @@ tests/:
       Test_AppSecEventSpanTags: v1.29.0
       Test_AppSecObfuscator: v2.7.0
       Test_CollectRespondHeaders: v2.5.1
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0

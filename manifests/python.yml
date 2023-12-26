@@ -199,7 +199,7 @@ tests/:
         Test_BodyXml:
           '*': v1.5.0rc1.dev
           fastapi: v2.4.0.dev1
-        Test_ClientIP: v1.5.0rc1.dev
+        Test_ClientIP: missing_feature (v1.5.0rc1.dev but test is not implemented)
         Test_Cookies:
           django-poc: v1.1.0rc2.dev
           fastapi: v2.4.0.dev1
@@ -376,7 +376,7 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: v1.20.0
+      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
@@ -423,6 +423,7 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:

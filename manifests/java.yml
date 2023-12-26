@@ -641,6 +641,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (Missing support)
+      Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
@@ -809,6 +810,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (No AppSec support)
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces:
         '*': v0.92.0
         akka-http: v1.22.0
