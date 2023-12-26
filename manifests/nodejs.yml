@@ -136,7 +136,7 @@ tests/:
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
-          '*': v4.16.0
+          '*': missing_feature (v4.16.0 but test is not implemented)
           nextjs: irrelevant # nextjs is not related with graphql
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
@@ -213,7 +213,7 @@ tests/:
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
       Test_Suspicious_Request_Blocking:
-        '*': v3.19.0
+        '*': missing_feature (v3.19.0, but test is not implemented)
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v3.6.0
@@ -262,6 +262,7 @@ tests/:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
       Test_CollectRespondHeaders: v2.0.0
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:

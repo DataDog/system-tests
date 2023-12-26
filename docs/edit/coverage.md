@@ -6,31 +6,6 @@ You can choose between 5 levels:
 
 The first two levels is suitable for test classes without any test method
 
-### Not testable
-
-``` python
-@coverage.not_testable
-```
-
-It means that the feature is not testable in system test (it would make no sense, or it would not be efficient). This level is usefull for teams who want a full automated feature matrix based on system test output: having an (even empty) test class can also ship released information or RFC link:
-
-``` python
-@rfc("https://project-lambda")
-@coverage.not_testable
-class Test_ProjectLambdaRevamp:
-    """ Tracers internals has been revamped folowwing the Lamda Project """
-    # as there is no visible effect of this "feature", we can't test it
-    # though, we want to follow versions, and have the RFC link in the feature matrix
-```
-
-### Not implemented
-
-``` python
-@coverage.not_implemented
-```
-
-It means that the test is not yet implemented.
-
 ## Implemented test coverage levels
 
 The last three level are real coverage score for implemented tests
