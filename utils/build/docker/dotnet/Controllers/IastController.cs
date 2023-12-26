@@ -410,6 +410,35 @@ namespace weblog
             return Content("Nothing added to session");
         }
         
+        [HttpPost("unvalidated_redirect/test_insecure_header")]
+        public IActionResult test_insecure_redirect_header([FromForm]string location)
+        {
+            Response.Headers["location"] = location;
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_secure_header")]
+        public IActionResult test_secure_redirect_header()
+        {
+            var location = "http://dummy.location.com";
+            Response.Headers["location"] = location;
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_insecure_redirect")]
+        public IActionResult test_insecure_redirect([FromForm]string location)
+        {
+            Response.Redirect(location);
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_secure_redirect")]
+        public IActionResult test_secure_redirect()
+        {
+            var location = "http://dummy.location.com";
+            Response.Redirect(location);
+            return Content("Redirected to " + location);
+        }
 
         [HttpGet("source/cookievalue/test")]
         public IActionResult test_cookie_value()
