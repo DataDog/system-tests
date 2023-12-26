@@ -2,7 +2,7 @@ import os
 import yaml
 from yamlinclude import YamlIncludeConstructor
 from utils._context.virtual_machines import TestedVirtualMachine
-
+from utils.tools import logger
 
 class ProvisionMatrix:
     def __init__(self, provision_filter):
@@ -78,6 +78,10 @@ class ProvisionParser:
             if os_distro_filter and ami_data["os_distro"] != os_distro_filter:
                 continue
             self._set_ami_filter(ami_data)
+            
+            if ami_data["ami_id"] in self.provision_filter.excluded_amis:
+                continue
+
             yield ami_data
 
     def _set_ami_filter(self, ami_data):
@@ -260,4 +264,6 @@ class ProvisionFilter:
         self.language = language
         self.env = env
         self.os_distro = os.getenv("ONBOARDING_FILTER_OS_DISTRO")
+        #AMIs we don't want to use
+        self.excluded_amis= os.getenv("ONBOARDING_EXCLUDED_AMIS","").split(",")
         self.weblog = weblog
