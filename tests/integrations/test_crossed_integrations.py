@@ -47,7 +47,9 @@ class Test_PythonKafka:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
+            print(trace)
             for span in trace:
+                print(span)
                 if span_kind != span["meta"].get("span.kind"):
                     continue
 
@@ -270,9 +272,9 @@ class Test_NodeJSKafka:
     @missing_feature(
         library="python", reason="Expected to fail, one end is always NodeJS which does not currently propagate context"
     )
-    # @missing_feature(
-    #     library="java", reason="Expected to fail, one end is always NodeJS which does not currently propagate context"
-    # )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always NodeJS which does not currently propagate context"
+    )
     @missing_feature(
         library="golang", reason="Expected to fail, one end is always NodeJS which does not currently propagate context"
     )
@@ -321,9 +323,9 @@ class Test_NodeJSKafka:
     @missing_feature(
         library="python", reason="Expected to fail, one end is always NodeJS which does not currently propagate context"
     )
-    # @missing_feature(
-    #     library="java", reason="Expected to fail, one end is always NodeJS which does not currently propagate context"
-    # )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always NodeJS which does not currently propagate context"
+    )
     @missing_feature(
         library="golang", reason="Expected to fail, one end is always NodeJS which does not currently propagate context"
     )
