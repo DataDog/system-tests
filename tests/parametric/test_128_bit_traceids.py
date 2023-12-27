@@ -3,13 +3,14 @@ import pytest
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.spec.trace import find_span_in_traces, Span
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 POWER_2_64 = 18446744073709551616
 
 
 @scenarios.parametric
+@features.trace_id_128_bit_generation_propagation
 class Test_128_Bit_Traceids:
     @pytest.mark.parametrize(
         "library_env",
