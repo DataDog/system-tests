@@ -829,7 +829,7 @@ tests/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_crossed_integrations.py:
-      Test_PythonKafka:
+      Test_NodeJSKafka:
         '*': v0.1 # real version not known
         akka-http: missing_feature (Endpoint not implemented)
         jersey-grizzly2: missing_feature (Endpoint not implemented)
@@ -845,7 +845,7 @@ tests/:
         uds-spring-boot: missing_feature (Endpoint not implemented)
         vertx3: missing_feature (Endpoint not implemented)
         vertx4: missing_feature (Endpoint not implemented)
-      Test_NodeJSKafka:
+      Test_PythonKafka:
         '*': v0.1 # real version not known
         akka-http: missing_feature (Endpoint not implemented)
         jersey-grizzly2: missing_feature (Endpoint not implemented)

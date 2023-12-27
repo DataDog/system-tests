@@ -278,11 +278,11 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_crossed_integrations.py:
-      Test_PythonKafka:
+      Test_NodeJSKafka:
         '*': v0.1
         express4-typescript: missing_feature (Endpoint not implemented)
         nextjs: missing_feature (Endpoint not implemented)
-      Test_NodeJSKafka:
+      Test_PythonKafka:
         '*': v0.1
         express4-typescript: missing_feature (Endpoint not implemented)
         nextjs: missing_feature (Endpoint not implemented)
