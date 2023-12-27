@@ -2,6 +2,7 @@
 
 import json
 import dictdiffer
+from utils.tools import logger
 
 # Validates traces from Agent, Collector and Backend intake OTLP ingestion paths are consistent
 def validate_all_traces(
@@ -96,6 +97,8 @@ def validate_spans_from_all_paths(spans_agent: tuple, spans_intake: tuple, spans
 
 
 def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
+    logger.debug(f"Validate span fields. [{name1}]:[{span1}]")
+    logger.debug(f"Validate span fields. [{name2}]:[{span2}]")
     assert span1["start"] == span2["start"]
     assert span1["end"] == span2["end"]
     assert span1["duration"] == span2["duration"]
