@@ -50,6 +50,12 @@ class Test_PythonKafka:
             print(trace)
             for span in trace:
                 print(span)
+                if type(span) != dict:
+                    continue
+
+                if span.get('meta', {}) == {}:
+                    continue
+
                 if span_kind != span["meta"].get("span.kind"):
                     continue
 
@@ -217,7 +223,15 @@ class Test_NodeJSKafka:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
+            print(trace)
             for span in trace:
+                print(span)
+                if type(span) != dict:
+                    continue
+
+                if span.get('meta', {}) == {}:
+                    continue
+
                 if span_kind != span["meta"].get("span.kind"):
                     continue
 
