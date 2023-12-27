@@ -375,9 +375,17 @@ class Test_Otel_Span_Methods:
                     span.end_span()
                     context = span.span_context()
                     assert context.get("trace_id") == parent.span_context().get("trace_id")
-                    # Some languages e.g. Nodejs using express need to return as a string value
-                    # due to 64-bit integers being too large.
-                    assert context.get("span_id") == "{:016x}".format(int(span.span_id))
+                    if (
+                        isinstance(span.span_id, str)
+                        and len(span.span_id) == 16
+                        and all(c in "0123456789abcdef" for c in span.span_id)
+                    ):
+                        # Some languages e.g. PHP return a hexadecimal span id
+                        assert context.get("span_id") == span.span_id
+                    else:
+                        # Some languages e.g. Nodejs using express need to return as a string value
+                        # due to 64-bit integers being too large.
+                        assert context.get("span_id") == "{:016x}".format(int(span.span_id))
                     assert context.get("trace_flags") == "01"
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
