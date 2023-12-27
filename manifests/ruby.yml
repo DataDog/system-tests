@@ -201,7 +201,7 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_crossed_integrations.py:
-      Test_PythonKafka:
+      Test_NodeJSKafka:
         '*': v0.1
         rack: missing_feature (Only requires one server -  rails70)
         rails32: missing_feature (Only requires one server -  rails70)
@@ -217,7 +217,7 @@ tests/:
         sinatra20: missing_feature (Only requires one server -  rails70)
         sinatra21: missing_feature (Only requires one server -  rails70)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
-      Test_NodeJSKafka:
+      Test_PythonKafka:
         '*': v0.1
         rack: missing_feature (Only requires one server -  rails70)
         rails32: missing_feature (Only requires one server -  rails70)
