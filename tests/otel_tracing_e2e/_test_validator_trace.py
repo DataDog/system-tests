@@ -121,6 +121,10 @@ KNOWN_UNMATCHED_METAS = [
     "_dd.p.dm",
     "_dd.agent_hostname",
     "_dd.ingestion_reason",  # this is replaced by `ddtags: ingestion_reason:otel` in the latest version
+    "_dd.install.id",
+    "_dd.install.time",
+    "_dd.install.type",
+    "_dd.p.tid",
 ]
 KNOWN_UNMATCHED_METRICS = [
     "_dd.agent_errors_sampler.target_tps",
