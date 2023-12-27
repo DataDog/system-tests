@@ -710,7 +710,7 @@ class features:
         return test_object
 
     @staticmethod
-    def heart_beat_collected(test_object):
+    def telemetry_heart_beat_collected(test_object):
         """
         Heart beat collected
 
@@ -740,7 +740,7 @@ class features:
         return test_object
 
     @staticmethod
-    def metrics_collected(test_object):
+    def telemetry_metrics_collected(test_object):
         """
         Metrics collected
 
@@ -750,7 +750,7 @@ class features:
         return test_object
 
     @staticmethod
-    def api_v2_implemented(test_object):
+    def telemetry_api_v2_implemented(test_object):
         """
         API V2 Implemented
 
@@ -790,7 +790,7 @@ class features:
         return test_object
 
     @staticmethod
-    def message_batch(test_object):
+    def telemetry_message_batch(test_object):
         """
         message-batch
 
@@ -800,7 +800,7 @@ class features:
         return test_object
 
     @staticmethod
-    def app_started_changes(test_object):
+    def telemetry_app_started_event(test_object):
         """
         app-started changes
 
@@ -1577,4 +1577,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=227
         """
         pytest.mark.features(feature_id=227)(test_object)
+        return test_object
+
+    @staticmethod
+    def telemetry_instrumentation(test_object):
+        """
+        Instrumentation telemetry
+
+        https://feature-parity.us1.prod.dog/#/?feature=229
+        """
+        pytest.mark.features(feature_id=229)(test_object)
         return test_object
