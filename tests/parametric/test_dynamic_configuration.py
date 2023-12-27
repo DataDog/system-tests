@@ -271,7 +271,7 @@ class TestDynamicConfigV1:
         assert cfg_state["apply_state"] == 2
 
     @missing_feature(
-        context.library in ["java", "dotnet", "python_http", "golang", "nodejs"], reason="RPC not implemented yet"
+        context.library in ["java", "dotnet", "python", "golang", "nodejs"], reason="RPC not implemented yet"
     )
     @parametrize(
         "library_env",

@@ -94,7 +94,6 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "python_http", reason="New 'datadog' default hasn't been implemented yet")
     @irrelevant(context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator")
     @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_legacy(self, test_agent, test_library):
@@ -491,7 +490,6 @@ class Test_Headers_Precedence:
     @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
     @irrelevant(context.library == "php", reason="library does not implement this default configuration")
     @irrelevant(context.library == "python", reason="library does not implement this default configuration")
-    @irrelevant(context.library == "python_http", reason="library does not implement this default configuration")
     def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
 
@@ -643,7 +641,6 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
     @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
     @missing_feature(context.library < "python@2.3.3", reason="python must implement new tracestate propagation")
-    @missing_feature(context.library < "python_http@2.3.3", reason="python must implement new tracestate propagation")
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(

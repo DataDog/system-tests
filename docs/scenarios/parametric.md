@@ -251,7 +251,7 @@ docker image rm <library>-test-library
 
 ### Extending the interface
 
-The Python implementation of the interface `app/python_http`, when run, provides a specification of the API when run.
+The Python implementation of the interface `app/python`, when run, provides a specification of the API when run.
 See the steps below in the HTTP section to run the Python server and view the specification.
 
 ## Implementation
