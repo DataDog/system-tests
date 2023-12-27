@@ -4,7 +4,7 @@ FROM python:3.9
 RUN mkdir /app
 WORKDIR /app
 
-COPY utils/build/docker/python_http/parametric/requirements.txt utils/build/docker/python_http/parametric/requirements.txt
+COPY utils/build/docker/python/parametric/requirements.txt utils/build/docker/python/parametric/requirements.txt
 COPY requirements.txt .
 COPY build.sh .
 COPY utils/build/build.sh utils/build/build.sh
