@@ -374,7 +374,7 @@ class EndToEndScenario(_DockerScenario):
                     "nodejs_buddy",
                     "williamconti549/system-tests:nodejs_buddy-v0",
                     self.host_log_folder,
-                    proxy_port=9002
+                    proxy_port=9002,
                 ),
             ]
 
