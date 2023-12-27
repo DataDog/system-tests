@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage
+from utils import coverage, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
 @coverage.basic
+@features.iast_source_multipart
 class TestMultipart(BaseSourceTest):
     """Verify that multipart parameter is tainted"""
 

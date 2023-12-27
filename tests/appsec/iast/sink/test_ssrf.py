@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, missing_feature
+from utils import coverage, missing_feature, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
+@features.iast_sink_ssrf
 @coverage.basic
 class TestSSRF(BaseSinkTest):
     """Test ssrf detection."""

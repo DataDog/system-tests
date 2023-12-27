@@ -1,6 +1,7 @@
-from utils import interfaces, scenarios, weblog
+from utils import interfaces, scenarios, weblog, features
 
 
+@features.waf_features
 @scenarios.appsec_custom_rules
 class Test_CustomRules:
     """Includes a version of the WAF supporting custom rules"""

@@ -681,28 +681,6 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    test_endpoint_ognl.py:
-      Test_Ognl:
-        akka-http: missing_feature (Need to build endpoint on weblog)
-        jersey-grizzly2: missing_feature (Need to build endpoint on weblog)
-        play: missing_feature (Need to build endpoint on weblog)
-        ratpack: missing_feature (Need to build endpoint on weblog)
-        resteasy-netty3: missing_feature (Need to build endpoint on weblog)
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        vertx3: missing_feature (Need to build endpoint on weblog)
-        vertx4: missing_feature (Need to build endpoint on weblog)
-    test_endpoint_sqli.py:
-      Test_Sqli:
-        akka-http: missing_feature (Need to build endpoint on weblog)
-        jersey-grizzly2: missing_feature (Need to build endpoint on weblog)
-        play: missing_feature (Need to build endpoint on weblog)
-        ratpack: missing_feature (Need to build endpoint on weblog)
-        resteasy-netty3: missing_feature (Need to build endpoint on weblog)
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        vertx3: missing_feature (Need to build endpoint on weblog)
-        vertx4: missing_feature (Need to build endpoint on weblog)
-    test_endpoint_ssrf.py:
-      Test_Ssrf: missing_feature (Need to build endpoint on weblog)
     test_event_tracking.py:
       Test_CustomEvent:
         '*': v1.8.0
