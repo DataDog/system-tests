@@ -76,7 +76,6 @@ jobs:
     secrets: inherit
 
   main:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint
@@ -610,9 +609,8 @@ jobs:
         path: artifact.tar.gz
 
   open-telemetry-automatic:
-    if: ${{ false }}  
     runs-on: ubuntu-latest
-    #if: needs.scenarios.outputs.run_open_telemetry == 'true' || needs.scenarios.outputs.run_integration == 'true'
+    if: needs.scenarios.outputs.run_open_telemetry == 'true' || needs.scenarios.outputs.run_integration == 'true'
     needs:
     - lint
     - test_the_test
