@@ -47,9 +47,7 @@ class Test_PythonKafka:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
-            print(trace)
             for span in trace:
-                print(span)
                 if type(span) != dict:
                     continue
 
@@ -223,9 +221,7 @@ class Test_NodeJSKafka:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
-            print(trace)
             for span in trace:
-                print(span)
                 if type(span) != dict:
                     continue
 
