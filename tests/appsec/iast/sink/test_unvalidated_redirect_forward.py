@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage
+from utils import context, coverage, features
 from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
@@ -16,6 +16,7 @@ def _expected_location():
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
 
 
+@features.iast_sink_unvalidatedforward
 @coverage.basic
 class TestUnvalidatedForward(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect forward detection."""

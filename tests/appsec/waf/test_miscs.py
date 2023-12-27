@@ -76,6 +76,7 @@ class Test_MultipleAttacks:
 
 
 @coverage.good
+@features.waf_features
 class Test_CorrectOptionProcessing:
     """Check that the case sensitive option is properly processed"""
 

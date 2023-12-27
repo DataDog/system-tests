@@ -20,6 +20,7 @@ from utils import (
 
 @coverage.basic
 @scenarios.appsec_blocking
+@features.appsec_request_blocking
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -607,6 +608,7 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
@@ -625,6 +627,7 @@ class Test_Suspicious_Request_Blocking:
 
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 
