@@ -53,7 +53,7 @@ class Test_PythonKafka:
                 if type(span) != dict:
                     continue
 
-                if span.get('meta', {}) == {}:
+                if span.get("meta", {}) == {}:
                     continue
 
                 if span_kind != span["meta"].get("span.kind"):
@@ -229,7 +229,7 @@ class Test_NodeJSKafka:
                 if type(span) != dict:
                     continue
 
-                if span.get('meta', {}) == {}:
+                if span.get("meta", {}) == {}:
                     continue
 
                 if span_kind != span["meta"].get("span.kind"):
