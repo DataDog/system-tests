@@ -77,6 +77,7 @@ tests/:
   integrations/:
     test_crossed_integrations.py:
       Test_PythonKafka: missing_feature
+      Test_NodeJSKafka: missing_feature
     test_db_integrations_sql.py: 
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
