@@ -205,7 +205,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "php", reason="not implemented")
-    @missing_feature(context.library == "python", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog"}],
@@ -432,7 +431,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "dotnet", reason="not implemented")
     @missing_feature(context.library == "java", reason="not implemented")
-    @missing_feature(context.library == "python", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
@@ -486,7 +484,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "python", reason="inconsistent_tid is not implemented for w3c")
-    @missing_feature(context.library == "python_http", reason="inconsistent_tid is not implemented for w3c")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -534,7 +531,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "python", reason="malformed_tid is not implemented")
-    @missing_feature(context.library == "python_http", reason="malformed_tid is not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",

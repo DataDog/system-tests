@@ -104,33 +104,8 @@ def python_library_factory() -> APMLibraryTestServer:
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     return APMLibraryTestServer(
         lang="python",
-        protocol="grpc",
-        container_name="python-test-library",
-        container_tag="python-test-library",
-        container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
-WORKDIR /app
-RUN pyenv global 3.9.11
-RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3 requests
-COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-""",
-        container_cmd="python3.9 -m apm_test_client".split(" "),
-        container_build_dir=python_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
-        env={},
-        port="",
-    )
-
-
-def python_http_library_factory() -> APMLibraryTestServer:
-    python_appdir = os.path.join("utils", "build", "docker", "python_http", "parametric")
-    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    return APMLibraryTestServer(
-        lang="python",
         protocol="http",
-        container_name="python-test-library-http",
+        container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
@@ -417,7 +392,6 @@ _libs: Dict[str, ClientLibraryServerFactory] = {
     "nodejs": node_library_factory,
     "php": php_library_factory,
     "python": python_library_factory,
-    "python_http": python_http_library_factory,
     "ruby": ruby_library_factory,
 }
 

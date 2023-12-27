@@ -44,10 +44,10 @@ tests/:
         test_ssrf.py:
           TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
-          Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation: v2.43.0
         test_unvalidated_redirect.py:
-          TestUnvalidatedHeader: missing_feature
-          TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedHeader: v2.44.0
+          TestUnvalidatedRedirect: v2.44.0
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
@@ -146,7 +146,7 @@ tests/:
       Test_Blocking_request_uri: v2.32.0
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
-      Test_Suspicious_Request_Blocking: v2.29.0
+      Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
     test_conf.py:
@@ -182,6 +182,7 @@ tests/:
       Test_AppSecEventSpanTags: v1.29.0
       Test_AppSecObfuscator: v2.7.0
       Test_CollectRespondHeaders: v2.5.1
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
@@ -235,8 +236,14 @@ tests/:
     Test_Propagate_Legacy: v2.26.0
   test_library_conf.py:
     Test_HeaderTags: v2.27.0
-    Test_HeaderTagsLongFormat: v2.1.0
-    Test_HeaderTagsShortFormat: v2.1.0
+    Test_HeaderTags_Colon_Leading: v2.1.0
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8600)
+    Test_HeaderTags_Long: v2.1.0
+    Test_HeaderTags_Short: v2.1.0
+    Test_HeaderTags_Whitespace_Header: v2.1.0
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-8308)
+    Test_HeaderTags_Whitespace_Val_Long: v2.1.0
+    Test_HeaderTags_Whitespace_Val_Short: v2.1.0
   test_profiling.py:
     Test_Profile: missing_feature (Not receiving profiles)
   test_scrubbing.py:

@@ -33,7 +33,6 @@ allow_no_feature_nodes = [
     "tests/apm_tracing_e2e/test_otel.py",
     "tests/apm_tracing_e2e/test_single_span.py",
     "tests/apm_tracing_e2e/test_smoke.py",
-    "tests/onboarding/test_onboarding_install.py",
     "tests/otel_tracing_e2e/test_e2e.py",
     "tests/parametric/test_128_bit_traceids.py",
     "tests/parametric/test_headers_none.py",

@@ -25,12 +25,12 @@ jobs:
               version: dev
             - client: golang
               version: prod
-            #Pending to update with dev version  
-            - client: php
-              version: prod
+            - client: python
+              version: dev
             - client: python
               version: prod
-            - client: python_http
+            #Pending to update with dev version  
+            - client: php
               version: prod
             - client: dotnet
               version: prod
