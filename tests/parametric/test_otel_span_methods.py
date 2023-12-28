@@ -493,6 +493,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library <= "php@0.95.0", reason="Implemented in 0.96.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
@@ -525,6 +526,7 @@ class Test_Otel_Span_Methods:
         reason="Ruby tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
     )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library <= "php@0.95.0", reason="Implemented in 0.96.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
@@ -547,6 +549,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "java", reason="Choose to not implement Go parsing logic")
     @irrelevant(context.library == "ruby", reason="Choose to not implement Go parsing logic")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library <= "php@0.95.0", reason="Implemented in 0.96.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
