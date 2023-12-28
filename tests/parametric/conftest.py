@@ -197,7 +197,7 @@ def dotnet_library_factory():
         protocol="grpc",
         container_name="dotnet-test-client",
         container_tag="dotnet7_0-test-client",
-        container_img="""
+        container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:7.0
 RUN apt-get update && apt-get install dos2unix
 WORKDIR /client
@@ -206,23 +206,24 @@ WORKDIR /client
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY /install_ddtrace.sh /binaries/
+COPY {dotnet_appdir}/install_ddtrace.sh /binaries/
+COPY binaries /binaries
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
+COPY {dotnet_appdir} ./
+
 # restore nuget packages
-COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
 
 # build and publish
-COPY . ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /client/out
 
 # Set up automatic instrumentation (required for OpenTelemetry tests),
 # but don't enable it globally
 ENV CORECLR_ENABLE_PROFILING=0
-ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
+ENV CORECLR_PROFILER={{846F5F1C-F9AE-4B07-969E-05C26BC060D8}}
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
@@ -234,7 +235,7 @@ ENV DD_TRACE_OTEL_ENABLED=false
 """,
         container_cmd=["./ApmTestClient"],
         container_build_dir=dotnet_absolute_appdir,
-        container_build_context=dotnet_absolute_appdir,
+        container_build_context=_get_base_directory(),
         volumes=[],
         env={},
         port="",
