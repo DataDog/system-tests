@@ -73,12 +73,14 @@ namespace ApmTestClient.Services
 
         public override Task<StartSpanReturn> StartSpan(StartSpanArgs request, ServerCallContext context)
         {
-            _logger.LogInformation("StartSpan: {Request}", request);
+            _logger.LogInformation("StartSpan request: {Request}", request);
 
             var creationSettings = new SpanCreationSettings
                                    {
                                        FinishOnClose = false,
                                    };
+
+            _logger.LogCritical("StartSpan request.HttpHeaders: {taskReturn}", request.HttpHeaders);
 
             if (request.HttpHeaders?.HttpHeaders.Count > 0)
             {
@@ -90,8 +92,11 @@ namespace ApmTestClient.Services
 
             if (creationSettings.Parent is null && request is { HasParentId: true, ParentId: > 0 })
             {
+                _logger.LogCritical("StartSpan request is null: {taskReturn}", request);
+
                 var parentSpan = Spans[request.ParentId];
                 creationSettings.Parent = (ISpanContext)SpanContext.GetValue(parentSpan)!;
+                _logger.LogCritical("StartSpan creationSettings.Parent is null: {taskReturn}", creationSettings.Parent);
             }
 
             using var scope = Tracer.Instance.StartActive(operationName: request.Name, creationSettings);
@@ -120,12 +125,20 @@ namespace ApmTestClient.Services
 
             Spans[span.SpanId] = span;
 
-            return Task.FromResult(
+            var taskReturn = Task.FromResult(
                 new StartSpanReturn
                 {
                     SpanId = span.SpanId,
                     TraceId = span.TraceId,
                 });
+
+            _logger.LogCritical("StartSpan taskReturn x3: {taskReturn}", new StartSpanReturn
+                {
+                    SpanId = span.SpanId,
+                    TraceId = span.TraceId,
+                });
+
+            return taskReturn;
         }
 
         public override Task<SpanSetMetaReturn> SpanSetMeta(SpanSetMetaArgs request, ServerCallContext context)
