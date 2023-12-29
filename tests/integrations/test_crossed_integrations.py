@@ -34,12 +34,6 @@ class _NodeJSBuddy(_Weblog):
 
 
 class _Test_Kafka:
-    def __init__(self, buddy_library_name, buddy_libary_cls, buddy_interface):
-        self.buddy_interface = buddy_interface
-        self.buddy = buddy_libary_cls()
-        self.WEBLOG_TO_BUDDY_TOPIC = f"Test_{buddy_library_name}Kafka_weblog_to_buddy"
-        self.BUDDY_TO_WEBLOG_TOPIC = f"Test_{buddy_library_name}Kafka_buddy_to_weblog"
-
     """Test kafka compatibility with inputted datadog tracer"""
 
     @classmethod
@@ -179,8 +173,10 @@ class _Test_Kafka:
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_py
 class Test_PythonKafka(_Test_Kafka):
-    def __init__(self):
-        super().__init__(self, "Python", _PythonBuddy, interfaces.python_buddy)
+    buddy_interface = interfaces.python_buddy
+    buddy = _PythonBuddy()
+    WEBLOG_TO_BUDDY_TOPIC = f"Test_PythonKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = f"Test_PythonKafka_buddy_to_weblog"
 
     @missing_feature(
         library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
@@ -223,8 +219,10 @@ class Test_PythonKafka(_Test_Kafka):
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_js
 class Test_NodeJSKafka(_Test_Kafka):
-    def __init__(self):
-        super().__init__(self, "NodeJS", _NodeJSBuddy, interfaces.nodejs_buddy)
+    buddy_interface = interfaces.nodejs_buddy
+    buddy = _NodeJSBuddy()
+    WEBLOG_TO_BUDDY_TOPIC = f"Test_NodeJSKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = f"Test_NodeJSKafka_buddy_to_weblog"
 
     @missing_feature(
         library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
