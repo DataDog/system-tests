@@ -32,6 +32,7 @@ class _NodeJSBuddy(_Weblog):
         self.current_nodeid = "not used"
         self.replay = False
 
+
 class _Test_Kafka:
     def __init__(self, buddy_library_name, buddy_libary_cls, buddy_interface):
         self.buddy_interface = buddy_interface
