@@ -32,10 +32,6 @@ class _NodeJSBuddy(_Weblog):
         self.current_nodeid = "not used"
         self.replay = False
 
-
-@scenarios.crossed_tracing_libraries
-@coverage.basic
-@features.kafkaspan_creationcontext_propagation_with_dd_trace_py
 class _Test_Kafka:
     def __init__(self, buddy_library_name, buddy_libary_cls, buddy_interface):
         self.buddy_interface = buddy_interface
