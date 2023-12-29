@@ -313,6 +313,18 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_crossed_integrations.py:
+      Test_GolangKafka:
+        '*': v0.1  # real version not known
+        chi: missing_feature (Endpoint not implemented)
+        echo: missing_feature (Endpoint not implemented)
+        gin: missing_feature (Endpoint not implemented)
+        uds-echo: missing_feature (Endpoint not implemented)
+      Test_JavaKafka:
+        '*': v0.1  # real version not known
+        chi: missing_feature (Endpoint not implemented)
+        echo: missing_feature (Endpoint not implemented)
+        gin: missing_feature (Endpoint not implemented)
+        uds-echo: missing_feature (Endpoint not implemented)
       Test_NodeJSKafka:
         '*': v0.1  # real version not known
         chi: missing_feature (Endpoint not implemented)
@@ -320,6 +332,12 @@ tests/:
         gin: missing_feature (Endpoint not implemented)
         uds-echo: missing_feature (Endpoint not implemented)
       Test_PythonKafka:
+        '*': v0.1  # real version not known
+        chi: missing_feature (Endpoint not implemented)
+        echo: missing_feature (Endpoint not implemented)
+        gin: missing_feature (Endpoint not implemented)
+        uds-echo: missing_feature (Endpoint not implemented)
+      Test_RubyKafka:
         '*': v0.1  # real version not known
         chi: missing_feature (Endpoint not implemented)
         echo: missing_feature (Endpoint not implemented)
