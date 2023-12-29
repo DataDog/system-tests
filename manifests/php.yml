@@ -72,7 +72,12 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature
-    test_otel_span_methods.py: missing_feature
+    test_otel_span_methods.py:
+        Test_Otel_Span_Methods: v0.94.0
+    test_otel_span_with_w3c.py:
+        Test_Otel_Span_With_W3c: v0.94.0
+    test_otel_tracer.py:
+        Test_Otel_Tracer: v0.94.0
     test_span_links.py: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?

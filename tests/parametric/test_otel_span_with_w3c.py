@@ -18,7 +18,6 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 class Test_Otel_Span_With_W3c:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
@@ -46,7 +45,6 @@ class Test_Otel_Span_With_W3c:
         assert root_span["duration"] == duration_ns
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_with_w3c_headers(self, test_agent, test_library):
         with test_library:
             with test_library.otel_start_span(
