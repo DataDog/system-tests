@@ -13,7 +13,7 @@ from utils import weblog, interfaces
 from utils.tools import logger
 
 
-SCHEMA_URL = "https://raw.githubusercontent.com/DataDog/schema/rarguelloF/SMTC-40/extend-agent-payload/semantic-core/v1/agent_payload_modified.json"
+SCHEMA_URL = "https://raw.githubusercontent.com/DataDog/schema/andrew.glaude/system-tests/semantic-core/v1/agent_payload_modified.json"
 
 
 class Test_Schemas:
