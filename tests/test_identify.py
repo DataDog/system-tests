@@ -28,6 +28,7 @@ def validate_identify_tags(tags):
 
 
 @coverage.basic
+@features.propagation_of_user_id_rfc
 class Test_Basic:
     """Basic tests for Identify SDK"""
 

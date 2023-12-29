@@ -1,3 +1,5 @@
+import time
+import json
 import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
@@ -8,11 +10,10 @@ from utils.parametric.spec.trace import MANUAL_DROP_KEY
 from utils.parametric.spec.trace import USER_KEEP
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
-import time
-import json
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, features
 
 
+@features.single_span_sampling
 @scenarios.parametric
 class Test_Span_Sampling:
     @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
@@ -180,7 +181,6 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    @missing_feature(context.library == "python", reason="Fixed in v1.7.0")
     @missing_feature(
         context.library == "php",
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
@@ -288,10 +288,6 @@ class Test_Span_Sampling:
     )
     @missing_feature(
         library="python",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
-    @missing_feature(
-        library="python_http",
         reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
     )
     @missing_feature(
@@ -406,7 +402,6 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
-    @missing_feature(context.library == "python", reason="Fixed in v1.7.0")
     @missing_feature(
         context.library == "php",
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
@@ -476,7 +471,6 @@ class Test_Span_Sampling:
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
 
-    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -519,7 +513,6 @@ class Test_Span_Sampling:
         if "meta" in child_span:
             assert child_span["meta"].get("_dd.p.dm") is None
 
-    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -563,7 +556,6 @@ class Test_Span_Sampling:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
-    @missing_feature(context.library == "python_http", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected"
     )
@@ -621,7 +613,6 @@ class Test_Span_Sampling:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
-    @missing_feature(context.library == "python_http", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected"
     )
@@ -680,7 +671,6 @@ class Test_Span_Sampling:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
-    @missing_feature(context.library == "python_http", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected"
     )

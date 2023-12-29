@@ -100,51 +100,23 @@ def _get_base_directory():
 def python_library_factory() -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
-        protocol="grpc",
+        protocol="http",
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
-WORKDIR /client
-RUN pyenv global 3.9.11
-RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3 requests
-RUN python3.9 -m pip install %s
-"""
-        % (python_package,),
-        container_cmd="python3.9 -m apm_test_client".split(" "),
-        container_build_dir=python_absolute_appdir,
-        container_build_context=python_absolute_appdir,
-        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/client/apm_test_client"),],
-        env={},
-        port="",
-    )
-
-
-def python_http_library_factory() -> APMLibraryTestServer:
-    python_appdir = os.path.join("utils", "build", "docker", "python_http", "parametric")
-    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    # By default run parametric tests against the development branch
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
-    return APMLibraryTestServer(
-        lang="python",
-        protocol="http",
-        container_name="python-test-library-http",
-        container_tag="python-test-library",
-        container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
-WORKDIR /client
+WORKDIR /app
 RUN pyenv global 3.9.11
 RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0 requests
-RUN python3.9 -m pip install %s
-"""
-        % (python_package,),
+COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+""",
         container_cmd="python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
-        container_build_context=python_absolute_appdir,
-        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/client/apm_test_client"),],
+        container_build_context=_get_base_directory(),
+        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
         env={},
         port="",
     )
@@ -153,7 +125,8 @@ RUN python3.9 -m pip install %s
 def node_library_factory() -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
-    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
+    nodejs_reldir = nodejs_appdir.replace("\\", "/")
+
     return APMLibraryTestServer(
         lang="nodejs",
         protocol="http",
@@ -161,17 +134,22 @@ def node_library_factory() -> APMLibraryTestServer:
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
-WORKDIR /client
-COPY ./package.json /client/
-COPY ./package-lock.json /client/
-COPY ./*.js /client/
-COPY ./npm/* /client/
+RUN apt-get update && apt-get install -y jq git
+WORKDIR /usr/app
+COPY {nodejs_reldir}/package.json /usr/app/
+COPY {nodejs_reldir}/package-lock.json /usr/app/
+COPY {nodejs_reldir}/*.js /usr/app/
+COPY {nodejs_reldir}/npm/* /usr/app/
+
 RUN npm install
-RUN npm install {node_module}
+
+COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 """,
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_absolute_appdir,
-        container_build_context=nodejs_absolute_appdir,
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )
@@ -181,7 +159,7 @@ def golang_library_factory():
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
     golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
-
+    golang_reldir = golang_appdir.replace("\\", "/")
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
@@ -189,15 +167,22 @@ def golang_library_factory():
         container_tag="go118-test-library",
         container_img=f"""
 FROM golang:1.20
-WORKDIR /client
-COPY ./go.mod /client
-COPY ./go.sum /client
-COPY . /client
+
+# install jq
+RUN apt-get update && apt-get -y install jq
+WORKDIR /app
+COPY {golang_reldir}/go.mod /app
+COPY {golang_reldir}/go.sum /app
+COPY {golang_reldir}/. /app
+# download the proper tracer version
+COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=golang_absolute_appdir,
-        container_build_context=golang_absolute_appdir,
+        container_build_context=_get_base_directory(),
         volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
         env={},
         port="",
@@ -400,7 +385,6 @@ _libs: Dict[str, ClientLibraryServerFactory] = {
     "nodejs": node_library_factory,
     "php": php_library_factory,
     "python": python_library_factory,
-    "python_http": python_http_library_factory,
     "ruby": ruby_library_factory,
 }
 
@@ -701,7 +685,7 @@ class _TestAgentAPI:
                             if message["request_type"] == event_name:
                                 if clear:
                                     self.clear()
-                                return event["payload"]
+                                return message
                     elif event["request_type"] == event_name:
                         if clear:
                             self.clear()

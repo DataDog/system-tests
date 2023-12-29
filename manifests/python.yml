@@ -10,41 +10,55 @@ tests/:
         Test_Scanners:
           '*': missing_feature
           django-poc: v2.4.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.4.0.dev
           python3.12: v2.4.0.dev
-        Test_Schema_Request_Body:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
         Test_Schema_Request_Cookies:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
+        Test_Schema_Request_FormUrlEncoded_Body:
+          '*': missing_feature
+          django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Request_Headers:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
+        Test_Schema_Request_Json_Body:
+          '*': missing_feature
+          django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Request_Path_Parameters:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Request_Query_Parameters:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Response_Body:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Response_Headers:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
     iast/:
@@ -185,7 +199,7 @@ tests/:
         Test_BodyXml:
           '*': v1.5.0rc1.dev
           fastapi: v2.4.0.dev1
-        Test_ClientIP: v1.5.0rc1.dev
+        Test_ClientIP: missing_feature (v1.5.0rc1.dev but test is not implemented)
         Test_Cookies:
           django-poc: v1.1.0rc2.dev
           fastapi: v2.4.0.dev1
@@ -362,7 +376,7 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: v1.20.0
+      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
@@ -376,10 +390,6 @@ tests/:
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0rc2.dev
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
-    test_docs.py:
-      Test_InstallationDebugProcedure: v1.4.2
-      Test_InstallationInstructions: v1.4.2
-      Test_PublicDocumentation: v1.4.2
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
       Test_UserLoginFailureEvent: v1.9.0
@@ -413,6 +423,7 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
@@ -492,8 +503,14 @@ tests/:
     Test_Propagate_Legacy: v1.5.0rc1.dev
   test_library_conf.py:
     Test_HeaderTags: v0.53
-    Test_HeaderTagsLongFormat: v1.2.1
-    Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTags_Colon_Leading: v1.2.1 # was marked as ? when we used decorators
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8601)
+    Test_HeaderTags_Long: v1.2.1
+    Test_HeaderTags_Short: missing_feature
+    Test_HeaderTags_Whitespace_Header: missing_feature
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
+    Test_HeaderTags_Whitespace_Val_Long: v1.2.1
+    Test_HeaderTags_Whitespace_Val_Short: missing_feature
   test_profiling.py:
     Test_Profile:
       '*': v0.1 # real version unknown

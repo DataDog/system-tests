@@ -12,9 +12,10 @@ tests/:
     api_security/:
       test_schemas.py:
         Test_Scanners: missing_feature
-        Test_Schema_Request_Body: missing_feature
         Test_Schema_Request_Cookies: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
@@ -35,7 +36,15 @@ tests/:
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature            
         test_header_injection.py:
-          TestHeaderInjection: missing_feature
+          TestHeaderInjection: 
+            '*': missing_feature
+            spring-boot: v1.27.0
+            spring-boot-jetty: v1.27.0
+            spring-boot-openliberty: v1.27.0
+            spring-boot-payara: v1.27.0
+            spring-boot-undertow: v1.27.0
+            spring-boot-wildfly: v1.27.0
+            uds-spring-boot: v1.27.0
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
@@ -632,6 +641,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (Missing support)
+      Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
@@ -671,35 +681,6 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    test_docs.py:
-      Test_InstallationDebugProcedure:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_InstallationInstructions:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_PublicDocumentation:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    test_endpoint_ognl.py:
-      Test_Ognl:
-        akka-http: missing_feature (Need to build endpoint on weblog)
-        jersey-grizzly2: missing_feature (Need to build endpoint on weblog)
-        play: missing_feature (Need to build endpoint on weblog)
-        ratpack: missing_feature (Need to build endpoint on weblog)
-        resteasy-netty3: missing_feature (Need to build endpoint on weblog)
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        vertx3: missing_feature (Need to build endpoint on weblog)
-        vertx4: missing_feature (Need to build endpoint on weblog)
-    test_endpoint_sqli.py:
-      Test_Sqli:
-        akka-http: missing_feature (Need to build endpoint on weblog)
-        jersey-grizzly2: missing_feature (Need to build endpoint on weblog)
-        play: missing_feature (Need to build endpoint on weblog)
-        ratpack: missing_feature (Need to build endpoint on weblog)
-        resteasy-netty3: missing_feature (Need to build endpoint on weblog)
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        vertx3: missing_feature (Need to build endpoint on weblog)
-        vertx4: missing_feature (Need to build endpoint on weblog)
-    test_endpoint_ssrf.py:
-      Test_Ssrf: missing_feature (Need to build endpoint on weblog)
     test_event_tracking.py:
       Test_CustomEvent:
         '*': v1.8.0
@@ -807,6 +788,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (No AppSec support)
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces:
         '*': v0.92.0
         akka-http: v1.22.0
@@ -936,8 +918,14 @@ tests/:
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
     Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: v0.102.0
-    Test_HeaderTagsShortFormat: v0.102.0
+    Test_HeaderTags_Colon_Leading: v0.102.0
+    Test_HeaderTags_Colon_Trailing: v0.102.0
+    Test_HeaderTags_Long: v0.102.0
+    Test_HeaderTags_Short: v0.102.0
+    Test_HeaderTags_Whitespace_Header: v0.102.0
+    Test_HeaderTags_Whitespace_Tag: v0.102.0
+    Test_HeaderTags_Whitespace_Val_Long: v0.102.0
+    Test_HeaderTags_Whitespace_Val_Short: v0.102.0
   test_profiling.py:
     Test_Profile:
       akka-http: v1.22.0

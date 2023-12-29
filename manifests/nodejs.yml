@@ -8,9 +8,10 @@ tests/:
     api_security/:
       test_schemas.py:
         Test_Scanners: missing_feature
-        Test_Schema_Request_Body: missing_feature
         Test_Schema_Request_Cookies: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
@@ -135,7 +136,7 @@ tests/:
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
-          '*': v4.16.0
+          '*': missing_feature (v4.16.0 but test is not implemented)
           nextjs: irrelevant # nextjs is not related with graphql
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
@@ -212,7 +213,7 @@ tests/:
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
       Test_Suspicious_Request_Blocking:
-        '*': v3.19.0
+        '*': missing_feature (v3.19.0, but test is not implemented)
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v3.6.0
@@ -261,6 +262,7 @@ tests/:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
       Test_CollectRespondHeaders: v2.0.0
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
@@ -276,7 +278,10 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_crossed_integrations.py:
-      Test_PythonKafka: missing_feature
+      Test_PythonKafka:
+        '*': v0.1
+        express4-typescript: missing_feature (Endpoint not implemented)
+        nextjs: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
@@ -327,9 +332,15 @@ tests/:
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
-    Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTags: v4.11.0
+    Test_HeaderTags_Colon_Leading: v4.11.0
+    Test_HeaderTags_Colon_Trailing: v4.11.0
+    Test_HeaderTags_Long: v4.11.0
+    Test_HeaderTags_Short: v4.11.0
+    Test_HeaderTags_Whitespace_Header: bug (AIT-9109)
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-9109)
+    Test_HeaderTags_Whitespace_Val_Long: v4.11.0
+    Test_HeaderTags_Whitespace_Val_Short: v4.11.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:
