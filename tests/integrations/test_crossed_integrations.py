@@ -266,12 +266,12 @@ class Test_NodeJSKafka(_Test_Kafka):
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
-        super().test_produce_trace_equality(self)
+        super().test_produce_trace_equality()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
-        super().test_consume_trace_equality(self)
+        super().test_consume_trace_equality()
 
 
 @scenarios.crossed_tracing_libraries
@@ -299,7 +299,7 @@ class Test_GolangKafka(_Test_Kafka):
         library="ruby", reason="Expected to fail, one end is always Golang which does not currently propagate context"
     )
     def test_produce_trace_equality(self):
-        super().test_produce_trace_equality(self)
+        super().test_produce_trace_equality()
 
     @missing_feature(
         library="nodejs", reason="Expected to fail, one end is always Golang which does not currently propagate context"
@@ -317,7 +317,7 @@ class Test_GolangKafka(_Test_Kafka):
         library="ruby", reason="Expected to fail, one end is always Golang which does not currently propagate context"
     )
     def test_consume_trace_equality(self):
-        super().test_consume_trace_equality(self)
+        super().test_consume_trace_equality()
 
 
 @scenarios.crossed_tracing_libraries
@@ -332,12 +332,12 @@ class Test_JavaKafka(_Test_Kafka):
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
-        super().test_produce_trace_equality(self)
+        super().test_produce_trace_equality()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
-        super().test_consume_trace_equality(self)
+        super().test_consume_trace_equality()
 
 
 @scenarios.crossed_tracing_libraries
@@ -365,7 +365,7 @@ class Test_RubyKafka(_Test_Kafka):
         library="ruby", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
     )
     def test_produce_trace_equality(self):
-        super().test_produce_trace_equality(self)
+        super().test_produce_trace_equality()
 
     @missing_feature(
         library="nodejs", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
@@ -383,4 +383,4 @@ class Test_RubyKafka(_Test_Kafka):
         library="ruby", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
     )
     def test_consume_trace_equality(self):
-        super().test_consume_trace_equality(self)
+        super().test_consume_trace_equality()
