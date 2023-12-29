@@ -172,30 +172,29 @@ class Test_Headers_B3multi:
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
+    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_extract_valid(self, test_agent, test_library):
         self.test_headers_b3multi_extract_valid(test_agent, test_library)
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_extract_invalid(self, test_agent, test_library):
         self.test_headers_b3multi_extract_invalid(test_agent, test_library)
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
+    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_inject_valid(self, test_agent, test_library):
         self.test_headers_b3multi_inject_valid(test_agent, test_library)
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
+    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_propagate_valid(self, test_agent, test_library):
         self.test_headers_b3multi_propagate_valid(test_agent, test_library)
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
+    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_propagate_invalid(self, test_agent, test_library):
         self.test_headers_b3multi_propagate_invalid(test_agent, test_library)

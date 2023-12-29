@@ -71,11 +71,11 @@ There is three level for an implemented test. It's a compromise between too many
 ## Implementation
 
 ```python
-@coverage.not_testable
+@coverage.not_testable  # DEPRECATED: this information exists in the feature parity dashbaord
 class Test_Feature():
     pass
 
-@coverage.not_implemented
+@coverage.not_implemented  # DEPRECATED: this information exists in the feature parity dashbaord
 class Test_Feature():
     pass
 
@@ -151,10 +151,14 @@ class Test_Feature(BaseTestCase.CompleteCoverage):
 
 ### not_testable
 
+DEPRECATED: this information exists in the feature parity dashbaord
+
 * if one or more test method exists, and exception will be raised at test collection
 * feature is marked as `passed`
 
 ### not_implemented
+
+DEPRECATED: this information exists in the feature parity dashbaord
 
 * if one or more test method exists, and exception will be raised at test collection
 * Feature is marked as `missing feature`

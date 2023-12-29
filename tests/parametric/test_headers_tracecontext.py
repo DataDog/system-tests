@@ -90,10 +90,6 @@ class Test_Headers_Tracecontext:
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
     @missing_feature(
-        context.library == "python_http",
-        reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
         context.library == "golang",
         reason="golang does not reconcile duplicate http headers, if duplicate headers received the propagator will not be used",
     )
@@ -580,10 +576,6 @@ class Test_Headers_Tracecontext:
         context.library == "python",
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
-    @missing_feature(
-        context.library == "python_http",
-        reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
     def test_tracestate_empty_header(self, test_agent, test_library):
         """
         harness sends a request with empty tracestate header
@@ -638,10 +630,6 @@ class Test_Headers_Tracecontext:
     )
     @missing_feature(
         context.library == "python",
-        reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "python_http",
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
     def test_tracestate_multiple_headers_different_keys(self, test_agent, test_library):

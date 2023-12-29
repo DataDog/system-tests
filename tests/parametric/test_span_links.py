@@ -15,7 +15,7 @@ from utils.parametric._library_client import Link
 class Test_Span_Links:
     @staticmethod
     def _get_span_links(span):
-        if context.library >= "python_http@2.4.0" or context.library >= "python@2.4.0":
+        if context.library >= "python@2.4.0":
             # trace API v0.5
             encoded_span_links = span.get("meta", {}).get("_dd.span_links")
             if not encoded_span_links:
@@ -26,8 +26,7 @@ class Test_Span_Links:
         # trace API v0.4
         return span.get("span_links")
 
-    @bug(library="python_http", reason="Since using v0.5 API, trace_id are differents")
-    @missing_feature(library="python", reason="test not implemented")
+    @bug(library="python", reason="Since using v0.5 API, trace_id are differents")
     def test_span_started_with_link(self, test_agent, test_library):
         """Test adding a span link created from another span.
         This tests the functionality of "create a direct link between two spans
@@ -68,7 +67,6 @@ class Test_Span_Links:
         assert (link.get("flags") or 0) == 0
 
     @missing_feature(library="python", reason="test not implemented")
-    @missing_feature(library="python_http", reason="test not implemented")
     def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links.
         Testing the conversion of x-datadog-* headers to tracestate for
@@ -118,7 +116,6 @@ class Test_Span_Links:
         assert link["attributes"].get("foo") == "bar"
 
     @missing_feature(library="python", reason="test not implemented")
-    @missing_feature(library="python_http", reason="test not implemented")
     def test_span_link_from_distributed_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
@@ -165,7 +162,6 @@ class Test_Span_Links:
         assert len(link.get("attributes") or {}) == 0
 
     @missing_feature(library="python", reason="test not implemented")
-    @missing_feature(library="python_http", reason="test not implemented")
     def test_span_with_attached_links(self, test_agent, test_library):
         """Test adding a span link from a span to another span.
         """

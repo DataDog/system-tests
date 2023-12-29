@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, coverage
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, coverage, features
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -32,6 +32,7 @@ def is_v1_payload(data):
     return data["request"]["content"].get("api_version") == "v1"
 
 
+@features.telemetry_instrumentation
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
@@ -179,6 +180,7 @@ class Test_Telemetry:
 
     @bug(library="ruby", reason="app-started not sent")
     @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
+    @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
 
@@ -197,6 +199,7 @@ class Test_Telemetry:
 
     @bug(library="ruby", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
+    @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
@@ -280,6 +283,7 @@ class Test_Telemetry:
     @irrelevant(library="dotnet")
     @irrelevant(library="golang")
     @irrelevant(library="python")
+    @features.dd_telemetry_dependency_collection_enabled_supported
     def test_app_dependencies_loaded_not_sent(self):
         """app-dependencies-loaded request should not be sent"""
         # Request type app-dependencies-loaded is never sent from certain language tracers
@@ -301,6 +305,7 @@ class Test_Telemetry:
     @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
+    @features.telemetry_heart_beat_collected
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -556,6 +561,7 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.type")
 
 
+@features.telemetry_api_v2_implemented
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
@@ -591,6 +597,7 @@ class Test_TelemetryV2:
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
+@features.telemetry_api_v2_implemented
 class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
@@ -616,6 +623,7 @@ class Test_ProductsDisabled:
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
 
+@features.dd_telemetry_dependency_collection_enabled_supported
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
@@ -631,6 +639,7 @@ class Test_DependencyEnable:
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
+@features.telemetry_message_batch
 class Test_MessageBatch:
     """ Tests on Message batching """
 
@@ -649,6 +658,7 @@ class Test_MessageBatch:
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
+@features.telemetry_api_v2_implemented
 @coverage.basic
 class Test_Log_Generation:
     """Assert that logs reported by default, and not reported when logs generation is disabled in telemetry"""
@@ -667,6 +677,7 @@ class Test_Log_Generation:
         assert len(self._get_filename_with_logs()) != 0
 
 
+@features.telemetry_metrics_collected
 @scenarios.telemetry_metric_generation_disabled
 class Test_Metric_Generation_Disabled:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
@@ -677,6 +688,7 @@ class Test_Metric_Generation_Disabled:
                 raise Exception("Metric generate event is sent when metric generation is disabled")
 
 
+@features.telemetry_metrics_collected
 @scenarios.telemetry_metric_generation_enabled
 class Test_Metric_Generation_Enabled:
     """Assert that metrics are reported when metric generation is enabled in telemetry"""
