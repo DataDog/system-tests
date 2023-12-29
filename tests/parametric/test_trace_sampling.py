@@ -1,9 +1,11 @@
-import pytest
-from utils.parametric.spec.trace import Span
-from utils.parametric.spec.trace import find_span_in_traces
 import json
+
+import pytest
+
 from utils import rfc, scenarios
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
+from utils.parametric.spec.trace import Span
+from utils.parametric.spec.trace import find_span_in_traces
 
 
 @scenarios.parametric
@@ -85,7 +87,7 @@ class Test_Trace_Sampling_Globs:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1},]
+                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1}, ]
                 ),
             },
             {
@@ -149,7 +151,7 @@ class Test_Trace_Sampling_Resource:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1},]
+                    [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1}, ]
                 ),
             },
             {
@@ -339,3 +341,95 @@ class Test_Trace_Sampling_Tags:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+
+
+@scenarios.parametric
+@rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
+class Test_Trace_Sampling_With_W3C:
+    # originSpan, _ := StartSpanFromContext(context.Background(), "web.request",
+    #                                       ServiceName("webserver"), ResourceName("/bar"), Tag("tag0", "val0"))
+    # originSpan.SetTag("tag1", "val1")
+    # // based on the  Tag("tag0", "val0") start span option, span sampling would be 'drop',
+    # // and setting the second pair of tags doesn't invoke sampling func
+    # assert.EqualValues(t, -1, originSpan.(*span).Metrics[keySamplingPriority])
+    # assert.EqualValues(t, 0, originSpan.(*span).Metrics[keyRulesSamplerAppliedRate])
+    # headers := TextMapCarrier(map[string]string{})
+    #
+    # // inject invokes resampling, since span satisfies rule #2, sampling will be 'keep'
+    # tr.Inject(originSpan.Context(), headers)
+    # assert.EqualValues(t, 2, originSpan.(*span).Metrics[keySamplingPriority])
+    # assert.EqualValues(t, 1, originSpan.(*span).Metrics[keyRulesSamplerAppliedRate])
+    #
+    #        // context already injected / propagated, thus sampling decision will not be changed from now on
+    # originSpan.SetTag("tag2", "val2")
+    # originSpan.Finish()
+    # assert.EqualValues(t, -1, originSpan.(*span).Metrics[keySamplingPriority])
+    # assert.EqualValues(t, 0, originSpan.(*span).Metrics[keyRulesSamplerAppliedRate])
+    #
+    # w3cCtx, err := tr.Extract(headers)
+    # assert.Nil(t, err)
+    #
+    # w3cSpan, _ := StartSpanFromContext(context.Background(), "web.request", ChildOf(w3cCtx))
+    # w3cSpan.Finish()
+    #
+    # assert.EqualValues(t, 2, w3cSpan.(*span).Metrics[keySamplingPriority])
+    # })
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [{"tags": {"tag1": "non-matching"}, "sample_rate": 0}, {"tags": {"tag1": "val1"}, "sample_rate": 1}]
+                ),
+            },
+        ],
+    )
+    def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent, test_library):
+        """Test that a trace is sampled by the matching trace sampling rule"""
+
+        with test_library:
+            with test_library.start_span(name="web.request", service="webserver", resource="/bar",
+                                         tags=[["tag0", "val0"]]) as span:
+                # based on the  Tag("tag0", "val0") start span option, span sampling would be 'drop',
+                # and setting the second pair of tags doesn't invoke sampling func
+                span.set_meta("tag1", "val1")
+                assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+                assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0
+                # TODO : here assert this
+                # assert.EqualValues(t, -1, originSpan.(*span).Metrics[keySamplingPriority])
+                # assert.EqualValues(t, 0, originSpan.(*span).Metrics[keyRulesSamplerAppliedRate])
+                # ----
+                # TODO : inject
+                # TODO assert this
+                headers = test_library.inject_headers(span.span_id)
+                assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+                assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1
+                # assert.EqualValues(t, 2, originSpan.(*span).Metrics[keySamplingPriority])
+                # assert.EqualValues(t, 1, originSpan.(*span).Metrics[keyRulesSamplerAppliedRate])
+                #     with test_library.start_span(
+                #     name="name", service="service", resource="resource", http_headers=headers,) as span:
+                #         return {k.lower(): v for k, v in headers}
+                #  ------
+                # TODO : set ("tag2", "val2")
+                # TODO finish
+                # TODO assert
+                span.set_meta("tag2", "val2")
+                span.finish()
+                assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+                assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0
+                # assert.EqualValues(t, -1, originSpan.(*span).Metrics[keySamplingPriority])
+                # assert.EqualValues(t, 0, originSpan.(*span).Metrics[keyRulesSamplerAppliedRate])
+                #        // context already injected / propagated, thus sampling decision will not be changed from now on
+                # originSpan.SetTag("tag2", "val2")
+                # originSpan.Finish()
+                # assert.EqualValues(t, -1, originSpan.(*span).Metrics[keySamplingPriority])
+                # assert.EqualValues(t, 0, originSpan.(*span).Metrics[keyRulesSamplerAppliedRate])
+        span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
+        )
+
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0
