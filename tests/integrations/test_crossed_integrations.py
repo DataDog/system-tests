@@ -42,7 +42,7 @@ class _Test_Kafka:
         self.buddy = buddy_libary_cls()
         self.WEBLOG_TO_BUDDY_TOPIC = f"Test_{buddy_library_name}Kafka_weblog_to_buddy"
         self.BUDDY_TO_WEBLOG_TOPIC = f"Test_{buddy_library_name}Kafka_buddy_to_weblog"
-   
+
     """Test kafka compatibility with inputted datadog tracer"""
 
     @classmethod
@@ -202,7 +202,7 @@ class Test_PythonKafka(_Test_Kafka):
     )
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality(self)
-    
+
     @missing_feature(
         library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
     )
@@ -246,7 +246,7 @@ class Test_NodeJSKafka(_Test_Kafka):
     )
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality(self)
-    
+
     @missing_feature(
         library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
     )
