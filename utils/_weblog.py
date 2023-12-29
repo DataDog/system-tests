@@ -171,6 +171,7 @@ class _Weblog:
             logger.debug(f"Sending request {rid}: {method} {url}")
 
             r = requests.Session().send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
+
             response_data["status_code"] = r.status_code
             response_data["headers"] = r.headers
             response_data["text"] = r.text

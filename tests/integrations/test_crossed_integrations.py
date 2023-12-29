@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 
 from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
 from utils._weblog import _Weblog
@@ -120,6 +121,7 @@ class _Test_Kafka:
         send request B to library buddy, this request will consume kafka message
         """
         self.production_response = weblog.get("/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC})
+        time.sleep(10)
         self.consume_response = self.buddy.get("/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC})
 
     def test_produce(self):
@@ -137,6 +139,7 @@ class _Test_Kafka:
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
+        time.sleep(10)
         consumer_span = self.get_span(self.buddy_interface, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
@@ -152,8 +155,8 @@ class _Test_Kafka:
         request A: GET /library_buddy/produce_kafka_message
         request B: GET /weblog/consume_kafka_message
         """
-
         self.production_response = self.buddy.get("/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC})
+        time.sleep(10)
         self.consume_response = weblog.get("/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC})
 
     def test_consume(self):
@@ -172,6 +175,7 @@ class _Test_Kafka:
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        time.sleep(10)
         consumer_span = self.get_span(interfaces.library, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
@@ -208,50 +212,50 @@ class _Test_Kafka:
         return producer_span, consumer_span
 
 
-# @scenarios.crossed_tracing_libraries
-# @coverage.basic
-# @features.kafkaspan_creationcontext_propagation_with_dd_trace_py
-# class Test_PythonKafka(_Test_Kafka):
-#     buddy_interface = interfaces.python_buddy
-#     buddy = _PythonBuddy()
-#     WEBLOG_TO_BUDDY_TOPIC = f"Test_PythonKafka_weblog_to_buddy"
-#     BUDDY_TO_WEBLOG_TOPIC = f"Test_PythonKafka_buddy_to_weblog"
+@scenarios.crossed_tracing_libraries
+@coverage.basic
+@features.kafkaspan_creationcontext_propagation_with_dd_trace_py
+class Test_PythonKafka(_Test_Kafka):
+    buddy_interface = interfaces.python_buddy
+    buddy = _PythonBuddy()
+    WEBLOG_TO_BUDDY_TOPIC = f"Test_PythonKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = f"Test_PythonKafka_buddy_to_weblog"
 
-#     @missing_feature(
-#         library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     @missing_feature(
-#         library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     @missing_feature(
-#         library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     @missing_feature(
-#         library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     @missing_feature(
-#         library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     def test_produce_trace_equality(self):
-#         super().test_produce_trace_equality(self)
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality(self)
 
-#     @missing_feature(
-#         library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     @missing_feature(
-#         library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     @missing_feature(
-#         library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     @missing_feature(
-#         library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     @missing_feature(
-#         library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-#     )
-#     def test_consume_trace_equality(self):
-#         super().test_consume_trace_equality(self)
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality(self)
 
 
 @scenarios.crossed_tracing_libraries
