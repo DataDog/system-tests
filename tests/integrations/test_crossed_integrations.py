@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 
 from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
 from utils._weblog import _Weblog
@@ -20,14 +21,21 @@ class _PythonBuddy(_Weblog):
         self.replay = False
 
 
-@scenarios.crossed_tracing_libraries
-@coverage.basic
-@features.kafkaspan_creationcontext_propagation_with_dd_trace_py
-class Test_PythonKafka:
-    """Test kafka compatibility with datadog python tracer"""
+# # TODO: move this class in utils
+# class _NodeJSBuddy(_Weblog):
+#     def __init__(self):
+#         from collections import defaultdict
 
-    WEBLOG_TO_BUDDY_TOPIC = "Test_PythonKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_PythonKafka_buddy_to_weblog"
+#         self.port = 9002
+#         self.domain = "localhost"
+
+#         self.responses = defaultdict(list)
+#         self.current_nodeid = "not used"
+#         self.replay = False
+
+
+class _Test_Kafka:
+    """Test kafka compatibility with inputted datadog tracer"""
 
     @classmethod
     def get_span(cls, interface, span_kind, topic):
@@ -35,6 +43,9 @@ class Test_PythonKafka:
 
         for data, trace in interface.get_traces():
             for span in trace:
+                if span.get("meta", {}) == {}:
+                    continue
+
                 if span_kind != span["meta"].get("span.kind"):
                     continue
 
@@ -63,13 +74,11 @@ class Test_PythonKafka:
     def setup_produce(self):
         """
         send request A to weblog : this request will produce a kafka message
-        send request B to python buddy, this request will consume kafka message
+        send request B to library buddy, this request will consume kafka message
         """
-
-        python_buddy = _PythonBuddy()
-
         self.production_response = weblog.get("/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC})
-        self.consume_response = python_buddy.get("/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC})
+        time.sleep(10)
+        self.consume_response = self.buddy.get("/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC})
 
     def test_produce(self):
         """Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
@@ -79,29 +88,15 @@ class Test_PythonKafka:
         # The weblog is the producer, the buddy is the consumer
         self.validate_kafka_spans(
             producer_interface=interfaces.library,
-            consumer_interface=interfaces.python_buddy,
+            consumer_interface=self.buddy_interface,
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
-    @missing_feature(
-        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
-        consumer_span = self.get_span(interfaces.python_buddy, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
+        time.sleep(10)
+        consumer_span = self.get_span(self.buddy_interface, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -110,15 +105,14 @@ class Test_PythonKafka:
 
     def setup_consume(self):
         """
-        send request A to python buddy : this request will produce a kafka message
+        send request A to library buddy : this request will produce a kafka message
         send request B to weblog, this request will consume kafka message
 
-        request A: GET /python_buddy/produce_kafka_message
+        request A: GET /library_buddy/produce_kafka_message
         request B: GET /weblog/consume_kafka_message
         """
-        python_buddy = _PythonBuddy()
-
-        self.production_response = python_buddy.get("/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC})
+        self.production_response = self.buddy.get("/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC})
+        time.sleep(10)
         self.consume_response = weblog.get("/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC})
 
     def test_consume(self):
@@ -129,29 +123,15 @@ class Test_PythonKafka:
 
         # The buddy is the producer, the weblog is the consumer
         self.validate_kafka_spans(
-            producer_interface=interfaces.python_buddy,
+            producer_interface=self.buddy_interface,
             consumer_interface=interfaces.library,
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(
-        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
-        producer_span = self.get_span(interfaces.python_buddy, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        producer_span = self.get_span(self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        time.sleep(10)
         consumer_span = self.get_span(interfaces.library, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
@@ -186,3 +166,69 @@ class Test_PythonKafka:
 
         # returns both span for any custom check
         return producer_span, consumer_span
+
+
+@scenarios.crossed_tracing_libraries
+@coverage.basic
+@features.kafkaspan_creationcontext_propagation_with_dd_trace_py
+class Test_PythonKafka(_Test_Kafka):
+    buddy_interface = interfaces.python_buddy
+    buddy = _PythonBuddy()
+    WEBLOG_TO_BUDDY_TOPIC = f"Test_PythonKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = f"Test_PythonKafka_buddy_to_weblog"
+
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality(self)
+
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality(self)
+
+
+# @scenarios.crossed_tracing_libraries
+# @coverage.basic
+# @features.kafkaspan_creationcontext_propagation_with_dd_trace_js
+# class Test_NodeJSKafka(_Test_Kafka):
+#     buddy_interface = interfaces.nodejs_buddy
+#     buddy = _NodeJSBuddy()
+#     WEBLOG_TO_BUDDY_TOPIC = f"Test_NodeJSKafka_weblog_to_buddy"
+#     BUDDY_TO_WEBLOG_TOPIC = f"Test_NodeJSKafka_buddy_to_weblog"
+
+#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+#     def test_produce_trace_equality(self):
+#         super().test_produce_trace_equality()
+
+#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+#     def test_consume_trace_equality(self):
+#         super().test_consume_trace_equality()
