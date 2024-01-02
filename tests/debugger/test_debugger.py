@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import scenarios, interfaces, weblog, features
+from utils import scenarios, interfaces, weblog, features, missing_feature
 from utils.tools import logger
 
 
@@ -194,6 +194,7 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         self.span_probe_response = weblog.get("/debugger/span")
         self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
+    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_method_probe_snaphots(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
@@ -204,10 +205,10 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         assert self.span_decoration_probe_response.status_code == 200
 
         expected_probes = {
-            "log170aa-acda-4453-9111-1478a6method": "EMITTING",
-            "metricaa-acda-4453-9111-1478a6method": "EMITTING",
-            "span70aa-acda-4453-9111-1478a6method": "EMITTING",
-            "decor0aa-acda-4453-9111-1478a6method": "EMITTING",
+            "log170aa-acda-4453-9111-1478a6method": "INSTALLED",
+            "metricaa-acda-4453-9111-1478a6method": "INSTALLED",
+            "span70aa-acda-4453-9111-1478a6method": "INSTALLED",
+            "decor0aa-acda-4453-9111-1478a6method": "INSTALLED",
         }
         expected_snapshots = ["log170aa-acda-4453-9111-1478a6method"]
         expected_spans = ["span70aa-acda-4453-9111-1478a6method", "decor0aa-acda-4453-9111-1478a6method"]
