@@ -238,6 +238,7 @@ class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         self.metric_probe_response = weblog.get("/debugger/metric/1")
         self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
+    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_line_probe_snaphots(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
@@ -274,6 +275,7 @@ class Test_Debugger_Mix_Log_Probe(_Base_Debugger_Snapshot_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.multi_probe_response = weblog.get("/debugger/mix/asd/1")
 
+    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_mix_probe(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
