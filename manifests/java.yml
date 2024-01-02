@@ -886,7 +886,7 @@ tests/:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
       Test_Trace_Sampling_Resource: v1.25.0
-      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Tags: v1.26.0
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
     test_tracer_flare.py:
