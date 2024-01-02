@@ -204,10 +204,10 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         assert self.span_decoration_probe_response.status_code == 200
 
         expected_probes = {
-            "log170aa-acda-4453-9111-1478a6method": "INSTALLED",
-            "metricaa-acda-4453-9111-1478a6method": "INSTALLED",
-            "span70aa-acda-4453-9111-1478a6method": "INSTALLED",
-            "decor0aa-acda-4453-9111-1478a6method": "INSTALLED",
+            "log170aa-acda-4453-9111-1478a6method": "EMITTING",
+            "metricaa-acda-4453-9111-1478a6method": "EMITTING",
+            "span70aa-acda-4453-9111-1478a6method": "EMITTING",
+            "decor0aa-acda-4453-9111-1478a6method": "EMITTING",
         }
         expected_snapshots = ["log170aa-acda-4453-9111-1478a6method"]
         expected_spans = ["span70aa-acda-4453-9111-1478a6method", "decor0aa-acda-4453-9111-1478a6method"]
