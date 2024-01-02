@@ -440,6 +440,11 @@ tests/:
       Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
     test_crossed_integrations.py:
+      Test_NodeJSKafka:
+        '*': v0.1 # real version unknown
+        django-poc: missing_feature (missing endpoint on weblog)
+        fastapi: missing_feature (missing endpoint on weblog)
+        python3.12: missing_feature (missing endpoint on weblog)
       Test_PythonKafka:
         '*': v0.1 # real version unknown
         django-poc: missing_feature (missing endpoint on weblog)

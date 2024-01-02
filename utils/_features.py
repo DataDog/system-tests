@@ -1828,3 +1828,12 @@ class features:
         """
         pytest.mark.features(feature_id=254)(test_object)
         return test_object
+
+    @staticmethod
+    def kafkaspan_creationcontext_propagation_with_dd_trace_js(test_object):
+        """
+        [Kafka][Span Creation][Context Propagation] with dd-trace-js
+        https://feature-parity.us1.prod.dog/#/?feature=255
+        """
+        pytest.mark.features(feature_id=255)(test_object)
+        return test_object
