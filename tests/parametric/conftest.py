@@ -311,8 +311,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
 
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
-
-    ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
+    ruby_reldir = ruby_appdir.replace("\\", "/")
 
     shutil.copyfile(
         os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
@@ -325,20 +324,19 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_tag="ruby-test-client",
         container_img=f"""
             FROM ruby:3.2.1-bullseye
-            WORKDIR /client
-            RUN gem install ddtrace # Install a baseline ddtrace version, to cache all dependencies
-            COPY ./Gemfile /client/
-            COPY ./install_dependencies.sh /client/
-            ENV RUBY_DDTRACE_SHA='{ddtrace_sha}'
-            RUN bash install_dependencies.sh # Cache dependencies before copying application code
-            COPY ./apm_test_client.proto /client/
-            COPY ./generate_proto.sh /client/
+            WORKDIR /app
+            COPY {ruby_reldir} .           
+            COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
+            RUN bundle install 
+            RUN /binaries/install_ddtrace.sh
+            COPY {ruby_reldir}/apm_test_client.proto /app/
+            COPY {ruby_reldir}/generate_proto.sh /app/
             RUN bash generate_proto.sh
-            COPY ./server.rb /client/
+            COPY {ruby_reldir}/server.rb /app/
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_absolute_appdir,
-        container_build_context=ruby_absolute_appdir,
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )
