@@ -63,7 +63,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/parametric.yml@parametric_use_load_binary_dotnet
+    uses: datadog/system-tests/.github/workflows/parametric.yml@robertomonteromiguel/parametric_use_load_binary_dotnet
     secrets: inherit
 
   experimental:
