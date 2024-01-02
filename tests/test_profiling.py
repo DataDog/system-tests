@@ -12,6 +12,7 @@ TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9}
 
 
 @features.profiling
+@features.dd_profiling_enabled
 @scenarios.profiling
 class Test_Profile:
     """ Basic testing of profiling """

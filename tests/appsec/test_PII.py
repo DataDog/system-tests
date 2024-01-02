@@ -3,6 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 
+from utils import features
+
+
+@features.appsec_scrubbing
 class Test_Scrubbing:
     """Appsec scrubs all sensitive data"""
 

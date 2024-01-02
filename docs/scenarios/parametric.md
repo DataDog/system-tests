@@ -152,11 +152,11 @@ There is two ways for running the NodeJS tests with a custom tracer:
 
 #### Ruby
 
-To run the Ruby tests "locally" push your code GitHub and then specify `RUBY_DDTRACE_SHA`:
+There is two ways for running the Ruby tests with a custom tracer:
 
-```sh
-RUBY_DDTRACE_SHA=0552ebd49dc5b3bec4e739c2c74b214fb3102c2a ./run.sh ...
-```
+1. Create an file ruby-load-from-bundle-add in binaries/, the content will be installed by bundle add. Content example:
+gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'
+2. Clone the dd-trace-rb repo inside binaries
 
 #### C++
 

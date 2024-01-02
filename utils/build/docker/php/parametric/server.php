@@ -14,9 +14,15 @@ use Amp\Http\Server\Router;
 use Amp\Http\Server\SocketHttpServer;
 use Amp\Log\ConsoleFormatter;
 use Amp\Log\StreamHandler;
-use League\Uri\Components\Query;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\SDK\Trace as SDK;
+use OpenTelemetry\SDK\Trace\TracerProvider;
 use function Amp\trapSignal;
 
 $logHandler = new StreamHandler(ByteStream\getStdout());
@@ -25,7 +31,7 @@ $logHandler->setFormatter(new ConsoleFormatter);
 $logger = new Logger('server');
 $logger->pushHandler($logHandler);
 
-$server = new SocketHttpServer($logger);
+$server = SocketHttpServer::createForDirectAccess($logger);
 
 $port = getenv('APM_TEST_CLIENT_SERVER_PORT');
 $server->expose("0.0.0.0:" . $port);
@@ -41,9 +47,28 @@ function arg($req, $arg) {
     return ($buffer[$req] ??= json_decode($req->getBody()->buffer(), true))[$arg] ?? null;
 }
 
-$closed_spans = $spans = [];
+function remappedSpanKind($spanKind) {
+    switch ($spanKind) {
+        case 1: // SK_INTERNAL
+            return SpanKind::KIND_INTERNAL;
+        case 2: // SK_SERVER
+            return SpanKind::KIND_SERVER;
+        case 3: // SK_CLIENT
+            return SpanKind::KIND_CLIENT;
+        case 4: // SK_PRODUCER
+            return SpanKind::KIND_PRODUCER;
+        case 5: // SK_CONSUMER
+            return SpanKind::KIND_CONSUMER;
+        default:
+            return null;
+    }
+}
 
-$router = new Router($server, $errorHandler);
+$closed_spans = $spans = [];
+/** @var ScopeInterface[] $scopes */
+$scopes = [];
+
+$router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     if ($parent = arg($req, 'parent_id')) {
         \DDTrace\switch_stack($spans[$parent]);
@@ -142,7 +167,160 @@ $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(functio
     dd_trace_internal_fn("synchronous_flush");
     return jsonResponse([]);
 }));
+$router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(function (Request $req) use (&$spans, &$scopes) {
+    $name = arg($req, 'name');
+    $timestamp = arg($req, 'timestamp');
+    $spanKind = arg($req, 'span_kind');
+    $parentId = arg($req, 'parent_id');
+    $httpHeaders = arg($req, 'http_headers');
+    $attributes = arg($req, 'attributes');
 
+    $tracer = (new TracerProvider())->getTracer('OpenTelemetry.PHPTestTracer');
+
+    $spanBuilder = $tracer->spanBuilder($name);
+    if ($parentId) {
+        /** @var ?Span $parentSpan */
+        $parentSpan = $spans[$parentId];
+        if ($parentSpan === null) {
+            return jsonResponse([]);
+        }
+        $contextWithParentSpan = $parentSpan->storeInContext(OpenTelemetry\Context\Context::getRoot());
+        $spanBuilder->setParent($contextWithParentSpan);
+    }
+
+    $spanKind = remappedSpanKind($spanKind);
+    if ($spanKind !==  null) {
+        $spanBuilder->setSpanKind($spanKind);
+    }
+
+    if ($timestamp) {
+        $spanBuilder->setStartTimestamp($timestamp * 1000); // ms -> ns
+    }
+
+    if ($httpHeaders) {
+        $carrier = [];
+        foreach ($httpHeaders as $headers) {
+            $carrier[$headers[0]] = $headers[1];
+        }
+        $remoteContext = TraceContextPropagator::getInstance()->extract($carrier);
+        $spanBuilder->setParent($remoteContext);
+    }
+
+    if ($attributes) {
+        $spanBuilder->setAttributes($attributes);
+    }
+
+    $span = $spanBuilder->startSpan();
+    $spanId = $span->getContext()->getSpanId();
+    $traceId = $span->getContext()->getTraceId();
+    $scopes[$spanId] = $span->activate();
+    $spans[$spanId] = $span;
+
+    return jsonResponse([
+        'span_id' => $spanId,
+        'trace_id' => $traceId
+    ]);
+}));
+$router->addRoute('POST', '/trace/otel/end_span', new ClosureRequestHandler(function (Request $req) use (&$spans, &$scopes) {
+    $spanId = arg($req, 'id');
+    $timestamp = arg($req, 'timestamp');
+
+    /** @var ?Span $span */
+    $span = $spans[$spanId];
+    if ($span) {
+        $scope = $scopes[$spanId];
+        $scope?->detach();
+        $span->end($timestamp ? $timestamp * 1000 : null);
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/set_attributes', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $spanId = arg($req, 'span_id');
+    $attributes = arg($req, 'attributes');
+
+    /** @var ?Span $span */
+    $span = $spans[$spanId];
+    if ($span) {
+        $span->setAttributes($attributes);
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/set_name', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $spanId = arg($req, 'span_id');
+    $name = arg($req, 'name');
+
+    /** @var ?Span $span */
+    $span = $spans[$spanId];
+    if ($span) {
+        $span->updateName($name);
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $spanId = arg($req, 'span_id');
+    $code = arg($req, 'code');
+    $description = arg($req, 'description');
+
+    switch ($code) {
+        case 'UNSET':
+            $code = StatusCode::STATUS_UNSET;
+            break;
+        case 'OK':
+            $code = StatusCode::STATUS_OK;
+            break;
+        case 'ERROR':
+            $code = StatusCode::STATUS_ERROR;
+            break;
+    }
+
+    /** @var ?Span $span */
+    $span = $spans[$spanId];
+    $span?->setStatus($code, $description);
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    \DDTrace\flush();
+    dd_trace_internal_fn("synchronous_flush");
+     return jsonResponse([
+         'success' => true
+     ]);
+}));
+$router->addRoute('POST', '/trace/otel/is_recording', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $spanId = arg($req, 'span_id');
+
+    /** @var ?Span $span */
+    $span = $spans[$spanId];
+    if ($span) {
+        return jsonResponse([
+            'is_recording' => $span->isRecording()
+        ]);
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $spanId = arg($req, 'span_id');
+
+    /** @var ?SDK\Span $span */
+    $span = $spans[$spanId];
+    if ($span) {
+        $spanContext = $span->getContext();
+
+        return jsonResponse([
+            'trace_id' => $spanContext->getTraceId(),
+            'span_id' => $spanContext->getSpanId(),
+            'trace_flags' => $spanContext->getTraceFlags() ? '01' : '00',
+            'trace_state' => (string) $spanContext->getTraceState(), // Implements __toString()
+            'remote' => $spanContext->isRemote()
+        ]);
+    }
+
+    return jsonResponse([]);
+}));
 $server->start($router, $errorHandler);
 
 $signal = trapSignal([SIGINT, SIGTERM]);

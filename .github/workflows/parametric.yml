@@ -29,12 +29,14 @@ jobs:
               version: dev
             - client: python
               version: prod
+            - client: ruby
+              version: dev
+            - client: ruby
+              version: prod
             #Pending to update with dev version  
             - client: php
               version: prod
             - client: dotnet
-              version: prod
-            - client: ruby
               version: prod
             - client: cpp
               version: prod

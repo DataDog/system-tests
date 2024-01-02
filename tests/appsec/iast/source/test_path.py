@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage
+from utils import coverage, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
+@features.iast_source_path
 @coverage.basic
 class TestPath(BaseSourceTest):
     """Verify that request path is tainted"""

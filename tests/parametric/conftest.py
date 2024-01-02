@@ -328,12 +328,10 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_img=f"""
             FROM ruby:3.2.1-bullseye
             WORKDIR /app
-            
             COPY {ruby_reldir} .           
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
             RUN bundle install 
             RUN /binaries/install_ddtrace.sh
-
             COPY {ruby_reldir}/apm_test_client.proto /app/
             COPY {ruby_reldir}/generate_proto.sh /app/
             RUN bash generate_proto.sh

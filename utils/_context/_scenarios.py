@@ -992,17 +992,9 @@ class ParametricScenario(_Scenario):
     def configure(self, config):
         super().configure(config)
         assert "TEST_LIBRARY" in os.environ
-        test_library = os.getenv("TEST_LIBRARY")
-        if test_library == "python_http":
-            test_library = "python"
-        # For some tracers we need a env variable present to use custom build of the tracer
-        lang_custom_build_param = {
-            "ruby": "RUBY_DDTRACE_SHA",
-        }
-        build_param = os.getenv(lang_custom_build_param.get(test_library, ""), "")
 
         # get tracer version info building and executing the ddtracer-version.docker file
-        parametric_appdir = os.path.join("utils", "build", "docker", test_library, "parametric")
+        parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
         if os.path.isfile(tracer_version_dockerfile):
             try:
@@ -1016,8 +1008,6 @@ class ParametricScenario(_Scenario):
                         "-f",
                         f"{tracer_version_dockerfile}",
                         "--quiet",
-                        "--build-arg",
-                        f"BUILD_MODULE={build_param}",
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,

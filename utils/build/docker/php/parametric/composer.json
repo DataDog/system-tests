@@ -4,6 +4,14 @@
     "league/uri-components": "^2",
     "amphp/http-server": "3.x-dev",
     "amphp/http-server-router": "2.x-dev",
-    "amphp/log": "2.x-dev"
+    "amphp/log": "2.x-dev",
+    "open-telemetry/sdk": "^1.0.0",
+    "symfony/http-client": "6.4.x-dev",
+    "nyholm/psr7": "^1.8@dev"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
   }
 }
