@@ -255,7 +255,7 @@ app.get('/kafka/consume', (req, res) => {
   }
 
   doKafkaOperations()
-    .then(() => {
+    .then(async () => {
       await consumer.stop()
       await consumer.disconnect()
       res.status(200).send('consume ok')
