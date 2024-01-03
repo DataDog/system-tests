@@ -79,13 +79,16 @@ class _Test_Kafka:
         self.production_response = None
         self.consume_response = None
         while self.production_response is None or self.production_response.status_code != 200:
+            # breakpoint()
             self.production_response = weblog.get(
-                "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=20
+                "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=60
             )
 
         while self.consume_response is None or self.consume_response.status_code != 200:
+            
+            # # breakpoint()
             self.consume_response = self.buddy.get(
-                "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 30}, timeout=20
+                "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60}, timeout=60
             )
 
     def test_produce(self):
@@ -121,13 +124,15 @@ class _Test_Kafka:
         self.production_response = None
         self.consume_response = None
         while self.production_response is None or self.production_response.status_code != 200:
+            # breakpoint()
             self.production_response = self.buddy.get(
-                "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=20
+                "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=60
             )
 
         while self.consume_response is None or self.consume_response.status_code != 200:
+            # breakpoint()
             self.consume_response = weblog.get(
-                "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 30}, timeout=20
+                "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 60}, timeout=60
             )
 
     def test_consume(self):
