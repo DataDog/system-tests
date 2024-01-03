@@ -511,14 +511,13 @@ class Test_GraphQL:
             headers={"Content-Type": "application/json"},
             data=json.dumps(
                 {
-                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testresolver") { id name }}',
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testattack") { id name }}',
                     "variables": {"name": "test"},
                     "operationName": "getUserByName",
                 }
             ),
         )
 
-    @missing_feature()
     def test_request_monitor_attack_directive(self):
         """Verify that the request triggered a directive attack event"""
 
@@ -531,7 +530,7 @@ class Test_GraphQL:
                 self.r_attack,
                 rule="monitor-resolvers",
                 key_path=["userByName", "case", "format"],
-                value="testresolver",
+                value="testattack",
                 full_trace=True,
             )
         except ValueError as e:

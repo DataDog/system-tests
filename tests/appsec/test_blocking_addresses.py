@@ -645,7 +645,6 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
-    @missing_feature()
     def test_request_block_attack(self):
         assert self.r_attack.status_code == 403
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
@@ -683,7 +682,6 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
-    @missing_feature()
     def test_request_block_attack_directive(self):
         assert self.r_attack.status_code == 403
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):

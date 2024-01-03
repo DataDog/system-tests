@@ -30,11 +30,11 @@ const typeDefs = gql`
         name: String
       }`
 
-function getUser (args) {
+function getUser (parent, args) {
   return users.find((item) => args.id === item.id)
 }
 
-function getUserByName (args) {
+function getUserByName (parent, args) {
   return users.filter((item) => args.name === item.name)
 }
 
