@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import time
 
-from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
+from utils import interfaces, scenarios, coverage, weblog, missing_feature, features, context, irrelevant
 from utils._weblog import _Weblog
 from utils.tools import logger
 
@@ -186,6 +186,14 @@ class _Test_Kafka:
         return producer_span, consumer_span
 
 
+@irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
+@irrelevant(context.library == "cpp")
+@irrelevant(context.library == "php")
+@irrelevant(context.library == "dotnet")
+@irrelevant(context.library == "golang" and context.weblog_variant != "net-http")
+@irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
+@irrelevant(context.library == "nodejs" and context.weblog_variant != "express4")
+@irrelevant(context.library == "ruby" and context.weblog_variant != "rails70")
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_js
@@ -208,6 +216,14 @@ class Test_NodeJSKafka(_Test_Kafka):
         super().test_consume_trace_equality()
 
 
+@irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
+@irrelevant(context.library == "cpp")
+@irrelevant(context.library == "php")
+@irrelevant(context.library == "dotnet")
+@irrelevant(context.library == "golang" and context.weblog_variant != "net-http")
+@irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
+@irrelevant(context.library == "nodejs" and context.weblog_variant != "express4")
+@irrelevant(context.library == "ruby" and context.weblog_variant != "rails70")
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_py
