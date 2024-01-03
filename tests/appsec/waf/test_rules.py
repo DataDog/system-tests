@@ -4,11 +4,12 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, coverage
+from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, coverage, features
 from .utils import rules
 
 
 @coverage.good
+@features.waf_rules
 class Test_Scanners:
     """ Appsec WAF tests on scanners rules """
 
@@ -25,6 +26,7 @@ class Test_Scanners:
 
 
 @coverage.good
+@features.waf_rules
 class Test_HttpProtocol:
     """ Appsec WAF tests on HTTP protocol rules """
 
@@ -48,6 +50,7 @@ class Test_HttpProtocol:
 
 
 @coverage.good
+@features.waf_rules
 class Test_LFI:
     """ Appsec WAF tests on LFI rules """
 
@@ -88,6 +91,7 @@ class Test_LFI:
 
 
 @coverage.good
+@features.waf_rules
 class Test_RFI:
     """ Appsec WAF tests on RFI rules """
 
@@ -102,6 +106,7 @@ class Test_RFI:
 
 
 @coverage.good
+@features.waf_rules
 class Test_CommandInjection:
     """ Appsec WAF tests on Command injection rules """
 
@@ -124,6 +129,7 @@ class Test_CommandInjection:
 
 
 @coverage.good
+@features.waf_rules
 class Test_PhpCodeInjection:
     """ Appsec WAF tests on PHP injection rules """
 
@@ -156,6 +162,7 @@ class Test_PhpCodeInjection:
 
 
 @coverage.good
+@features.waf_rules
 class Test_JsInjection:
     """ Appsec WAF tests on Js Injection rules """
 
@@ -170,6 +177,7 @@ class Test_JsInjection:
 
 
 @coverage.good
+@features.waf_rules
 class Test_XSS:
     """ Appsec WAF tests on XSS rules """
 
@@ -203,6 +211,7 @@ class Test_XSS:
 
 
 @coverage.good
+@features.waf_rules
 class Test_SQLI:
     """ Appsec WAF tests on SQLI rules """
 
@@ -251,6 +260,7 @@ class Test_SQLI:
 
 
 @coverage.good
+@features.waf_rules
 class Test_NoSqli:
     """ Appsec WAF tests on NoSQLi rules """
 
@@ -279,6 +289,7 @@ class Test_NoSqli:
 
 
 @coverage.good
+@features.waf_rules
 class Test_JavaCodeInjection:
     """ Appsec WAF tests on Java code injection rules """
 
@@ -295,6 +306,7 @@ class Test_JavaCodeInjection:
 
 
 @coverage.good
+@features.waf_rules
 class Test_SSRF:
     """ Appsec WAF tests on SSRF rules """
 
@@ -308,6 +320,7 @@ class Test_SSRF:
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @coverage.good
+@features.waf_rules
 class Test_DiscoveryScan:
     """AppSec WAF Tests on Discovery Scan rules"""
 

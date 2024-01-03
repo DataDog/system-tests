@@ -328,7 +328,9 @@ class Test_CollectRespondHeaders:
         interfaces.library.validate_spans(self.r, validate_response_headers)
 
 
-@coverage.not_implemented
 @features.security_events_metadata
 class Test_DistributedTraceInfo:
     """Distributed traces info (Services, URL, trace id)"""
+
+    def test_main(self):
+        assert False, "Test not implemented"

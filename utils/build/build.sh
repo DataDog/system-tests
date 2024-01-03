@@ -25,7 +25,6 @@ readonly DEFAULT_DOCKER_MODE=0
 # XXX: Avoid associative arrays for Bash 3 compatibility.
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
-readonly DEFAULT_python_http=
 readonly DEFAULT_ruby=rails70
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot

@@ -14,7 +14,10 @@ def get_known_features():
         def obj():
             pass
 
-        obj = getattr(features, attr)(obj)
+        try:
+            obj = getattr(features, attr)(obj)
+        except AttributeError:
+            pass
 
         if hasattr(obj, "pytestmark"):
             result[obj.pytestmark[0].kwargs["feature_id"]] = attr

@@ -325,6 +325,21 @@ public class AppSecIast {
         return "ok";
     }
 
+    @PostMapping("/header_injection/test_insecure")
+    public String headerInjectionInsecure(final HttpServletRequest request, HttpServletResponse response) {
+      String paramValue = request.getParameter("test");
+      response.addHeader("X-Test-Header", paramValue);
+      return "Ok";
+    }
+
+    @PostMapping("/header_injection/test_secure")
+    public String headerInjectionSecure(final HttpServletRequest request, HttpServletResponse response) {
+      String paramValue = request.getParameter("test");
+        response.addHeader("Sec-WebSocket-Location", paramValue);
+      return "Ok";
+    }
+
+
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily
      *

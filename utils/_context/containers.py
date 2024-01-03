@@ -503,7 +503,7 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_TRACE_HEADER_TAGS"] = ""
 
         if len(self.additional_trace_header_tags) != 0:
-            self.environment["DD_TRACE_HEADER_TAGS"] += ",".join(self.additional_trace_header_tags)
+            self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
         if self.appsec_rules_file:
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file

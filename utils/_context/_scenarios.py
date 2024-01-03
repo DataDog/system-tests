@@ -11,6 +11,8 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
+
+from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
@@ -991,14 +993,6 @@ class ParametricScenario(_Scenario):
         super().configure(config)
         assert "TEST_LIBRARY" in os.environ
 
-        # For some tracers we need a env variable present to use custom build of the tracer
-        lang_custom_build_param = {
-            "python": "PYTHON_DDTRACE_PACKAGE",
-            "nodejs": "NODEJS_DDTRACE_MODULE",
-            "ruby": "RUBY_DDTRACE_SHA",
-        }
-        build_param = os.getenv(lang_custom_build_param.get(os.getenv("TEST_LIBRARY"), ""), "")
-
         # get tracer version info building and executing the ddtracer-version.docker file
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
@@ -1013,8 +1007,7 @@ class ParametricScenario(_Scenario):
                         "ddtracer_version",
                         "-f",
                         f"{tracer_version_dockerfile}",
-                        "--build-arg",
-                        f"BUILD_MODULE={build_param}",
+                        "--quiet",
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,
@@ -1366,14 +1359,17 @@ class scenarios:
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
 
-    library_conf_custom_headers_short = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2"), doc=""
+    library_conf_custom_header_tags = EndToEndScenario(
+        "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
+        additional_trace_header_tags=(VALID_CONFIGS),
+        doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
-    library_conf_custom_headers_long = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
-        additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
-        doc="",
+    library_conf_custom_header_tags_invalid = EndToEndScenario(
+        "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
+        additional_trace_header_tags=(INVALID_CONFIGS),
+        doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
+
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
