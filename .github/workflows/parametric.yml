@@ -33,12 +33,14 @@ jobs:
               version: dev
             - client: ruby
               version: prod
-            #Pending to update with dev version  
-            - client: php
-              version: prod
+            - client: dotnet
+              version: dev
             - client: dotnet
               version: prod
+            #Pending to update with dev version  
             - client: cpp
+              version: prod
+            - client: php
               version: prod
  
       fail-fast: false
