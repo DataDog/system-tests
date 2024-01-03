@@ -224,7 +224,7 @@ app.get('/kafka/produce', (req, res) => {
 
 app.get('/kafka/consume', (req, res) => {
   const topic = req.query.topic
-  const timeout = req.query.timeout ? req.query.timeout * 1000 :  60000
+  const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
   const kafka = new Kafka({
     clientId: 'my-app-consumer',
     brokers: ['kafka:9092'],
@@ -233,8 +233,9 @@ app.get('/kafka/consume', (req, res) => {
       retries: 50 // Number of retries before giving up
     }
   })
+  let consumer
   const doKafkaOperations = async () => {
-    const consumer = kafka.consumer({ groupId: 'testgroup1' })
+    consumer = kafka.consumer({ groupId: 'testgroup1' })
 
     await consumer.connect()
     await consumer.subscribe({ topic: topic, fromBeginning: true })
