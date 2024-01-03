@@ -16,7 +16,7 @@ elif [ $(ls python-load-from-pip | wc -l) = 1 ]; then
     pip install "$(cat python-load-from-pip)"
 elif [ $(ls *.whl | wc -l) = 0 ]; then
     echo "Install ddtrace from pypi"
-    pip install ddtrace==2.0
+    pip install ddtrace
 else
     echo "ERROR: Found several wheel files in binaries/, abort."
     exit 1
