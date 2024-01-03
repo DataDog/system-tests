@@ -85,7 +85,6 @@ class _Test_Kafka:
             )
 
         while self.consume_response is None or self.consume_response.status_code != 200:
-            
             # # breakpoint()
             self.consume_response = self.buddy.get(
                 "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60}, timeout=60
