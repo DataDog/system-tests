@@ -204,7 +204,16 @@ elif [ "$TARGET" = "php_appsec" ]; then
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
     mv ./temp/dd-appsec-php-*.tar.gz . && rm -rf ./temp
-    
+elif [ "$TARGET" = "php-lib" ]; then
+    rm -rf *.tar.gz
+    if [ $VERSION = 'dev' ]; then
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest_snapshot ./temp
+    elif [ $VERSION = 'prod' ]; then
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi  
+    mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp   
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
