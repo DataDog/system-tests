@@ -214,7 +214,7 @@ app.get('/kafka/produce', (req, res) => {
 
   doKafkaOperations()
     .then(() => {
-      res.send('ok')
+      res.status(200).send('produce ok')
     })
     .catch((error) => {
       console.error(error)
@@ -224,37 +224,45 @@ app.get('/kafka/produce', (req, res) => {
 
 app.get('/kafka/consume', (req, res) => {
   const topic = req.query.topic
+  const timeout = req.query.timeout ? req.query.timeout * 1000 :  60000
   const kafka = new Kafka({
     clientId: 'my-app-consumer',
     brokers: ['kafka:9092'],
     retry: {
-      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
-      retries: 20 // Number of retries before giving up
+      initialRetryTime: 200, // Time to wait in milliseconds before the first retry
+      retries: 50 // Number of retries before giving up
     }
   })
   const doKafkaOperations = async () => {
     const consumer = kafka.consumer({ groupId: 'testgroup1' })
 
     await consumer.connect()
-    await consumer.subscribe({ topic, fromBeginning: true })
+    await consumer.subscribe({ topic: topic, fromBeginning: true })
 
-    await consumer.run({
-      eachMessage: ({ messageTopic, messagePartition, message }) => {
-        console.log({
-          value: message.value.toString()
-        })
-        consumer.stop()
-        consumer.disconnect()
-      }
+    return new Promise((resolve, reject) => {
+      consumer.run({
+        eachMessage: async ({ messageTopic, messagePartition, message }) => {
+          console.log({
+            value: message.value.toString()
+          })
+          resolve()
+        }
+      })
+      setTimeout(() => {
+        reject(new Error('Message not received'))
+      }, timeout) // Set a timeout of n seconds for message reception
     })
   }
+
   doKafkaOperations()
     .then(() => {
-      res.send('ok')
+      await consumer.stop()
+      await consumer.disconnect()
+      res.status(200).send('consume ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error')
+      res.status(500).send('Timeout: Failed to consume')
     })
 })
 
