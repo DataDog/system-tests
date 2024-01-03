@@ -190,7 +190,6 @@ class Test_NodeJSKafka(_Test_Kafka):
     buddy = _NodeJSBuddy()
     WEBLOG_TO_BUDDY_TOPIC = f"Test_NodeJSKafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = f"Test_NodeJSKafka_buddy_to_weblog"
-    breakpoint()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
@@ -213,7 +212,6 @@ class Test_PythonKafka(_Test_Kafka):
     buddy = _PythonBuddy()
     WEBLOG_TO_BUDDY_TOPIC = f"Test_PythonKafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = f"Test_PythonKafka_buddy_to_weblog"
-    breakpoint()
 
     @missing_feature(
         library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
