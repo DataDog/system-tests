@@ -38,8 +38,6 @@ jobs:
             - client: dotnet
               version: prod
             #Pending to update with dev version  
-            - client: dotnet
-              version: prod
             - client: cpp
               version: prod
             - client: php
