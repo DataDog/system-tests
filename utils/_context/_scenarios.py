@@ -373,6 +373,9 @@ class EndToEndScenario(_DockerScenario):
                 BuddyContainer(
                     "nodejs_buddy", "datadog/system-tests:nodejs_buddy-v0", self.host_log_folder, proxy_port=9002,
                 ),
+                BuddyContainer(
+                    "java_buddy", "datadog/system-tests:java_buddy-v0", self.host_log_folder, proxy_port=9003,
+                ),
             ]
 
             self._required_containers += self.buddies

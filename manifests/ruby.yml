@@ -201,6 +201,22 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_crossed_integrations.py:
+      Test_JavaKafka:
+        '*': v0.1
+        rack: missing_feature (Only requires one server -  rails70)
+        rails32: missing_feature (Only requires one server -  rails70)
+        rails40: missing_feature (Only requires one server -  rails70)
+        rails41: missing_feature (Only requires one server -  rails70)
+        rails42: missing_feature (Only requires one server -  rails70)
+        rails50: missing_feature (Only requires one server -  rails70)
+        rails51: missing_feature (Only requires one server -  rails70)
+        rails52: missing_feature (Only requires one server -  rails70)
+        rails60: missing_feature (Only requires one server -  rails70)
+        rails61: missing_feature (Only requires one server -  rails70)
+        sinatra14: missing_feature (Only requires one server -  rails70)
+        sinatra20: missing_feature (Only requires one server -  rails70)
+        sinatra21: missing_feature (Only requires one server -  rails70)
+        uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
       Test_NodeJSKafka:
         '*': v0.1
         rack: missing_feature (Only requires one server -  rails70)

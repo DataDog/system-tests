@@ -55,6 +55,7 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_crossed_integrations.py:
+      Test_JavaKafka: missing_feature
       Test_NodeJSKafka: missing_feature
       Test_PythonKafka: missing_feature
     test_db_integrations_sql.py:

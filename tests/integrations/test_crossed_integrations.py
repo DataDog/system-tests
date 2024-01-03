@@ -34,6 +34,19 @@ class _NodeJSBuddy(_Weblog):
         self.replay = False
 
 
+# TODO: move this class in utils
+class _JavaBuddy(_Weblog):
+    def __init__(self):
+        from collections import defaultdict
+
+        self.port = 9003
+        self.domain = "localhost"
+
+        self.responses = defaultdict(list)
+        self.current_nodeid = "not used"
+        self.replay = False
+
+
 class _Test_Kafka:
     """Test kafka compatibility with inputted datadog tracer"""
 
@@ -266,5 +279,35 @@ class Test_PythonKafka(_Test_Kafka):
     @missing_feature(
         library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
     )
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality()
+
+
+@irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
+@irrelevant(context.library == "cpp")
+@irrelevant(context.library == "php")
+@irrelevant(context.library == "dotnet")
+@irrelevant(context.library == "golang" and context.weblog_variant != "net-http")
+@irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
+@irrelevant(context.library == "nodejs" and context.weblog_variant != "express4")
+@irrelevant(context.library == "ruby" and context.weblog_variant != "rails70")
+@scenarios.crossed_tracing_libraries
+@coverage.basic
+@features.kafkaspan_creationcontext_propagation_with_dd_trace_java
+class Test_JavaKafka(_Test_Kafka):
+    buddy_interface = interfaces.java_buddy
+    buddy = _JavaBuddy()
+    WEBLOG_TO_BUDDY_TOPIC = f"Test_JavaKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = f"Test_JavaKafka_buddy_to_weblog"
+
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality()
+
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()
