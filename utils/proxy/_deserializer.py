@@ -26,7 +26,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
 from _decoders.protobuf_schemas import MetricPayload, TracePayload
 
 
-# logger = logging.getLogger(__name__)
+### logger = logging.getLogger(__name__)
 
 
 def get_header_value(name, headers):
