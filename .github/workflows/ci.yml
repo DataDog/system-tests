@@ -274,7 +274,7 @@ jobs:
       if: ${{ matrix.variant.library == 'php' }}
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
     - name: Load agent binary
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.version == 'devvvvvvvvv' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
