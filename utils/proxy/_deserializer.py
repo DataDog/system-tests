@@ -7,7 +7,6 @@ import gzip
 import json
 import logging
 import traceback
-from utils.tools import logger
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
 from google.protobuf.json_format import MessageToDict
@@ -26,7 +25,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
 from _decoders.protobuf_schemas import MetricPayload, TracePayload
 
 
-### logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_header_value(name, headers):
@@ -91,8 +90,10 @@ def deserialize_dd_appsec_s_meta(payload):
         return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
     except Exception:
         # b64/gzip is optional
-        logger.info(f"THE PAYLOAD::::: {payload}")
-        return json.loads(payload)
+        try:
+            return json.loads(payload)
+        except Exception as e:
+            raise ValueError(payload)
 
 
 def deserialize_http_message(path, message, content: bytes, interface, key):
