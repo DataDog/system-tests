@@ -272,7 +272,7 @@ app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
   // Create an SQS client
   const sqs = new AWS.SQS({
-    endpoint: "http://localstack:4566",
+    endpoint: 'http://localstack:4566',
     region: 'us-east-1'
   })
 
@@ -289,7 +289,7 @@ app.get('/sqs/produce', (req, res) => {
           const produce = () => {
             sqs.sendMessage({
               QueueUrl: `http://localstack:4566/000000000000/${queue}`,
-              MessageBody: `Hello from SQS JavaScript injection`,
+              MessageBody: 'Hello from SQS JavaScript injection'
             }, (err, data) => {
               if (err) {
                 console.log(err)
@@ -299,7 +299,7 @@ app.get('/sqs/produce', (req, res) => {
                 resolve()
               }
             })
-            console.log(`Produced a message`)
+            console.log('Produced a message')
           }
 
           // Start producing messages
@@ -324,37 +324,37 @@ app.get('/sqs/consume', (req, res) => {
   const timeout = req.query.timeout ?? 5
   // Create an SQS client
   const sqs = new AWS.SQS({
-    endpoint: "http://localstack:4566",
+    endpoint: 'http://localstack:4566',
     region: 'us-east-1'
   })
 
   const consumeMessage = async () => {
     return new Promise((resolve, reject) => {
       sqs.receiveMessage({
-          QueueUrl: `http://localstack:4566/000000000000/${queue}`,
-          MaxNumberOfMessages: 1,
-          WaitTimeSeconds: timeout,
+        QueueUrl: `http://localstack:4566/000000000000/${queue}`,
+        MaxNumberOfMessages: 1,
+        WaitTimeSeconds: timeout
       }, (err, response) => {
-          if (err) {
-              console.error('Error receiving message: ', err)
-              reject(err)
-          }
+        if (err) {
+          console.error('Error receiving message: ', err)
+          reject(err)
+        }
 
-          try {
-              if (response && response.Messages) {
-                  for (const message of response.Messages) {
-                      const consumedMessage = message.Body
-                      console.log('Consumed the following: ' + consumedMessage)
-                  }
-                  resolve()
-              } else {
-                  console.log('No messages received')
-                  reject("No messages received")
-              }
-          } catch (error) {
-              console.error('Error while consuming messages: ', error)
-              reject(err)
+        try {
+          if (response && response.Messages) {
+            for (const message of response.Messages) {
+              const consumedMessage = message.Body
+              console.log('Consumed the following: ' + consumedMessage)
+            }
+            resolve()
+          } else {
+            console.log('No messages received')
+            reject('No messages received')
           }
+        } catch (error) {
+          console.error('Error while consuming messages: ', error)
+          reject(err)
+        }
       })
     })
   }
