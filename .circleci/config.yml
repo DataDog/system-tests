@@ -27,11 +27,11 @@ jobs:
       - run:
           name: PHP tracer.
           command: |
-            ./utils/scripts/load-binary.sh php
-            mkdir binaries1
-            cp binaries/*.* binaries1/
+           # ./utils/scripts/load-binary.sh php
+           # mkdir binaries1
+           # cp binaries/*.* binaries1/
             ./utils/scripts/load-binary.sh php-lib
-            cp binaries1/*.* binaries/
+           # cp binaries1/*.* binaries/
 
       - run:
           name: Build
