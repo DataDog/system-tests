@@ -25,7 +25,7 @@ jobs:
           command: ./build.sh -i proxy
 
       - run:
-          name: PHP tracer
+          name: PHP tracer.
           command: |
             ./utils/scripts/load-binary.sh php
             mkdir binaries1
