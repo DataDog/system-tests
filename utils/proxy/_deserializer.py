@@ -91,6 +91,7 @@ def deserialize_dd_appsec_s_meta(payload):
         return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
     except Exception:
         # b64/gzip is optional
+        logger.info(f"THE PAYLOAD::::: {payload}")
         return json.loads(payload)
 
 
