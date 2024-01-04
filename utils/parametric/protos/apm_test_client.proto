@@ -2,8 +2,6 @@ syntax = "proto3";
 
 option java_package = "com.datadoghq.client";
 option go_package = "./";
-// if you forgot how to run, run this from utils/build/docker/golang/parametric folder:
-// protoc -I=../../../.. --go_out=. --go_opt=Mprotos/apm_test_client.proto=. --go-grpc_out=. --go-grpc_opt=Mprotos/apm_test_client.proto=.  ../../../../parametric/protos/apm_test_client.proto
 option csharp_namespace = "ApmTestClient";
 
 // Interface of APM clients to be used for shared testing.
