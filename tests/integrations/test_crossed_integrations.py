@@ -47,6 +47,32 @@ class _JavaBuddy(_Weblog):
         self.replay = False
 
 
+# TODO: move this class in utils
+class _RubyBuddy(_Weblog):
+    def __init__(self):
+        from collections import defaultdict
+
+        self.port = 9004
+        self.domain = "localhost"
+
+        self.responses = defaultdict(list)
+        self.current_nodeid = "not used"
+        self.replay = False
+
+
+# TODO: move this class in utils
+class _GolangBuddy(_Weblog):
+    def __init__(self):
+        from collections import defaultdict
+
+        self.port = 9005
+        self.domain = "localhost"
+
+        self.responses = defaultdict(list)
+        self.current_nodeid = "not used"
+        self.replay = False
+
+
 class _Test_Kafka:
     """Test kafka compatibility with inputted datadog tracer"""
 
@@ -91,14 +117,20 @@ class _Test_Kafka:
         """
         self.production_response = None
         self.consume_response = None
-        while self.production_response is None or self.production_response.status_code != 200:
-            # breakpoint()
+        while (
+            self.production_response is None
+            or self.production_response.status_code != 200
+            or self.production_response.text is None
+        ):
             self.production_response = weblog.get(
                 "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=5
             )
 
-        while self.consume_response is None or self.consume_response.status_code != 200:
-            # # breakpoint()
+        while (
+            self.consume_response is None
+            or self.consume_response.status_code != 200
+            or self.consume_response.text is None
+        ):
             self.consume_response = self.buddy.get(
                 "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 5}, timeout=5
             )
@@ -135,13 +167,21 @@ class _Test_Kafka:
         """
         self.production_response = None
         self.consume_response = None
-        while self.production_response is None or self.production_response.status_code != 200:
+        while (
+            self.production_response is None
+            or self.production_response.status_code != 200
+            or self.production_response.text is None
+        ):
             # breakpoint()
             self.production_response = self.buddy.get(
                 "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=5
             )
 
-        while self.consume_response is None or self.consume_response.status_code != 200:
+        while (
+            self.consume_response is None
+            or self.consume_response.status_code != 200
+            or self.consume_response.text is None
+        ):
             # breakpoint()
             self.consume_response = weblog.get(
                 "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 5}, timeout=5
@@ -309,5 +349,113 @@ class Test_JavaKafka(_Test_Kafka):
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality()
+
+
+@irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
+@irrelevant(context.library == "cpp")
+@irrelevant(context.library == "php")
+@irrelevant(context.library == "dotnet")
+@irrelevant(context.library == "golang" and context.weblog_variant != "net-http")
+@irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
+@irrelevant(context.library == "nodejs" and context.weblog_variant != "express4")
+@irrelevant(context.library == "ruby" and context.weblog_variant != "rails70")
+@scenarios.crossed_tracing_libraries
+@coverage.basic
+@features.kafkaspan_creationcontext_propagation_with_dd_trace_rb
+class Test_RubyKafka(_Test_Kafka):
+    buddy_interface = interfaces.ruby_buddy
+    buddy = _RubyBuddy()
+    WEBLOG_TO_BUDDY_TOPIC = f"Test_RubyKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = f"Test_RubyKafka_buddy_to_weblog"
+
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality()
+
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Ruby which does not currently propagate context"
+    )
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality()
+
+
+@irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
+@irrelevant(context.library == "cpp")
+@irrelevant(context.library == "php")
+@irrelevant(context.library == "dotnet")
+@irrelevant(context.library == "golang" and context.weblog_variant != "net-http")
+@irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
+@irrelevant(context.library == "nodejs" and context.weblog_variant != "express4")
+@irrelevant(context.library == "ruby" and context.weblog_variant != "rails70")
+@scenarios.crossed_tracing_libraries
+@coverage.basic
+@features.kafkaspan_creationcontext_propagation_with_dd_trace_go
+class Test_GolangKafka(_Test_Kafka):
+    buddy_interface = interfaces.golang_buddy
+    buddy = _GolangBuddy()
+    WEBLOG_TO_BUDDY_TOPIC = f"Test_GolangKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = f"Test_GolangKafka_buddy_to_weblog"
+
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality()
+
+    @missing_feature(
+        library="nodejs", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    @missing_feature(
+        library="python", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    @missing_feature(
+        library="java", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    @missing_feature(
+        library="golang", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Golang which does not currently propagate context"
+    )
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

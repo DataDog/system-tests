@@ -134,6 +134,10 @@ class _RequestLogger:
                     interface = "nodejs_buddy"
                 elif port == 9003:
                     interface = "java_buddy"
+                elif port == 9004:
+                    interface = "ruby_buddy"
+                elif port == 9005:
+                    interface = "golang_buddy"
                 else:
                     raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
             else:
@@ -248,6 +252,8 @@ def start_proxy() -> None:
         "regular@9001",  # python_buddy
         "regular@9002",  # nodejs_buddy
         "regular@9003",  # java_buddy
+        "regular@9004",  # ruby_buddy
+        "regular@9005",  # golang_buddy
     ]
 
     loop = asyncio.new_event_loop()

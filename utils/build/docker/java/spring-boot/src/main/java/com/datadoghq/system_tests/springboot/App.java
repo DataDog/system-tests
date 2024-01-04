@@ -303,8 +303,9 @@ public class App {
     ResponseEntity<String> kafkaConsume(@RequestParam(required = true) String topic, @RequestParam(required = false) Integer timeout) {
         KafkaConnector kafka = new KafkaConnector(topic);
         if (timeout == null) timeout = Integer.MAX_VALUE;
+        boolean consumed = false;
         try {
-            boolean consumed = kafka.consumeMessageWithoutNewThread(timeout, topic);
+            consumed = kafka.consumeMessageWithoutNewThread(timeout, topic);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start consuming message...");
@@ -325,7 +326,7 @@ public class App {
                 return "failed to start producing message";
             }
             try {
-                kafka.startConsumingMessages("dsm-topic");
+                kafka.startConsumingMessages("");
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
