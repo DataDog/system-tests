@@ -349,7 +349,7 @@ app.get('/sqs/consume', (req, res) => {
             resolve()
           } else {
             console.log('No messages received')
-            reject('No messages received')
+            // reject('No messages received')
           }
         } catch (error) {
           console.error('Error while consuming messages: ', error)
