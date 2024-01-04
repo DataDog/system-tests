@@ -90,7 +90,7 @@ class Test_Trace_Sampling_Globs:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1}, ]
+                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1},]
                 ),
             },
             {
@@ -155,7 +155,7 @@ class Test_Trace_Sampling_Resource:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1}, ]
+                    [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1},]
                 ),
             },
             {
@@ -365,9 +365,11 @@ class Test_Trace_Sampling_With_W3C:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"tags": {"tag2": "val2"}, "sample_rate": 0},
-                     {"tags": {"tag1": "val1"}, "sample_rate": 1},
-                     {"tags": {"tag0": "val*"}, "sample_rate": 0}]
+                    [
+                        {"tags": {"tag2": "val2"}, "sample_rate": 0},
+                        {"tags": {"tag1": "val1"}, "sample_rate": 1},
+                        {"tags": {"tag0": "val*"}, "sample_rate": 0},
+                    ]
                 ),
             },
         ],
@@ -376,8 +378,9 @@ class Test_Trace_Sampling_With_W3C:
         """Test that a trace is sampled by the matching trace sampling rule"""
 
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver", resource="/bar",
-                                         tags=[["tag0", "val0"]]) as span:
+            with test_library.start_span(
+                name="web.request", service="webserver", resource="/bar", tags=[["tag0", "val0"]]
+            ) as span:
                 # based on the Tag("tag0", "val0") start span option, span sampling would be 'drop',
 
                 # setting new tags doesn't trigger re-sampling,
@@ -396,6 +399,6 @@ class Test_Trace_Sampling_With_W3C:
         )
 
         # sampling priority in headers reflects the state after new pair of tags was set
-        assert headers['x-datadog-sampling-priority'] == '2'
+        assert headers["x-datadog-sampling-priority"] == "2"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0
