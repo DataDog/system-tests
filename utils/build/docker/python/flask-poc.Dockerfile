@@ -20,7 +20,7 @@ ENV AWS_SECRET_ACCESS_KEY=my-access-key
 # docker startup
 # FIXME: Ensure gevent patching occurs before ddtrace
 
-RUN pip install boto3
+# RUN pip install boto3
 
 ENV FLASK_APP=app.py
 CMD ./app.sh
