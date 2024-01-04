@@ -46,7 +46,7 @@ jobs:
           command: tar cvzf system-tests.tar.gz logs
 
       - store_artifacts:
-          path: system-tests/logs
+          path: logs/
           destination: system-tests.tar.gz
 
 workflows:
