@@ -826,8 +826,6 @@ tests/:
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
   integrations/:
-    test_cassandra.py:
-      Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     crossed_integrations/:
       test_kafka.py:
         Test_JavaKafka:
@@ -878,6 +876,8 @@ tests/:
           uds-spring-boot: missing_feature (Endpoint not implemented)
           vertx3: missing_feature (Endpoint not implemented)
           vertx4: missing_feature (Endpoint not implemented)
+    test_cassandra.py:
+      Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
