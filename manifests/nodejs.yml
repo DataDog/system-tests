@@ -277,7 +277,7 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
-    crossed_integrations/test_kafka.py:
+    test_crossed_integrations.py:
       Test_JavaKafka:
         '*': v0.1
         express4-typescript: missing_feature (Endpoint not implemented)

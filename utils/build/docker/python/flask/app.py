@@ -4,7 +4,6 @@ import random
 import subprocess
 import threading
 
-import boto3
 from confluent_kafka import Producer, Consumer
 import psycopg2
 import requests
@@ -222,55 +221,6 @@ def consume_kafka_message():
         return {"error": "message not found"}, 404
 
     return {"message": msg.value().decode("utf-8")}
-
-
-@app.route("/sqs/produce")
-def produce_sqs_message():
-    queue = flask_request.args.get("topic", "DistributedTracing")
-
-    # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://localstack:4566", region_name="us-east-1")
-
-    try:
-        # Send the message to the SQS queue
-        sqs.send_message(QueueUrl=f"http://localstack:4566/000000000000/{queue}", MessageBody="Hello from Python SQS")
-        logging.info("Python SQS message sent successfully")
-        return "SQS Produce ok", 200
-    except Exception as e:
-        logging.info(f"Error during Python SQS send message: {str(e)}")
-        return {"error": f"Error during Python SQS send message: {str(e)}"}, 400
-
-
-@app.route("/sqs/consume")
-def consume_sqs_message():
-    """
-        The goal of this endpoint is to trigger sqs consumer calls
-    """
-    queue = flask_request.args.get("topic", "DistributedTracing")
-
-    # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://localstack:4566", region_name="us-east-1")
-
-    response = sqs.receive_message(
-        QueueUrl=f"http://localstack:4566/000000000000/{queue}",
-        MaxNumberOfMessages=1,
-        # AttributeNames=[
-        #     'AWSTraceHeader'
-        # ],
-        # MessageAttributeNames=[
-        #     'all'
-        # ],
-    )
-
-    if response and "Messages" in response:
-        consumed_message = None
-        for message in response["Messages"]:
-            consumed_message = message["Body"]
-            logging.info("Consumed the following: " + consumed_message)
-
-        return {"message": consumed_message}, 200
-    else:
-        return {"error": "No messages to consume"}, 400
 
 
 @app.route("/dsm")

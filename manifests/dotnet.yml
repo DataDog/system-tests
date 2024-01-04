@@ -193,7 +193,7 @@ tests/:
       Test_Debugger_Mix_Log_Probe: v2.33.0
       Test_Debugger_Probe_Statuses: v2.33.0
   integrations/:
-    crossed_integrations/test_kafka.py:
+    test_crossed_integrations.py:
       Test_JavaKafka: missing_feature
       Test_NodeJSKafka: missing_feature
       Test_PythonKafka: missing_feature

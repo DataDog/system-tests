@@ -439,7 +439,7 @@ tests/:
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
-    crossed_integrations/test_kafka.py:
+    test_crossed_integrations.py:
       Test_JavaKafka:
         '*': v0.1 # real version unknown
         django-poc: missing_feature (missing endpoint on weblog)
