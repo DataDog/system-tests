@@ -63,7 +63,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/parametric.yml@main
+    uses: datadog/system-tests/.github/workflows/parametric.yml@robertomonteromiguel/parametric_use_load_binary_php 
     secrets: inherit
 
   experimental:
@@ -275,7 +275,7 @@ jobs:
       if: ${{ matrix.variant.library == 'php' }}
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
     - name: Load agent binary
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.version == 'devvvvvvvvv' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}

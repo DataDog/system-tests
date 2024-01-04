@@ -12,36 +12,39 @@ jobs:
     strategy:
       matrix:
           variant:
-            #Updated with dev version 
-            - client: java
+            #Updated with dev version
+            #- client: java
+            #  version: dev
+            #- client: java
+            #  version: prod
+            #- client: nodejs
+            #  version: dev
+            #- client: nodejs
+            #  version: prod
+            #- client: golang
+            #  version: dev
+            #- client: golang
+            #  version: prod
+            #- client: python
+            #  version: dev
+            #- client: python
+            #  version: prod
+            #- client: ruby
+            #  version: dev
+            #- client: ruby
+            #  version: prod
+            #- client: dotnet
+            #  version: dev
+            #- client: dotnet
+            #  version: prod
+            - client: php
               version: dev
-            - client: java
-              version: prod
-            - client: nodejs
-              version: dev
-            - client: nodejs
-              version: prod
-            - client: golang
-              version: dev
-            - client: golang
-              version: prod
-            - client: python
-              version: dev
-            - client: python
-              version: prod
-            - client: ruby
-              version: dev
-            - client: ruby
-              version: prod
-            - client: dotnet
-              version: dev
-            - client: dotnet
-              version: prod
-            #Pending to update with dev version  
-            - client: cpp
-              version: prod
             - client: php
               version: prod
+            #Pending to update with dev version  
+            #- client: cpp
+            #  version: prod
+
  
       fail-fast: false
     env:
@@ -52,8 +55,18 @@ jobs:
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Load library binary
-        if: ${{ matrix.variant.version == 'dev' }}
+        if: ${{ matrix.variant.version == 'dev' && matrix.variant.client != 'php' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.variant.client }}
+      - name: Log in to the Container registry
+        if: ${{ matrix.variant.version == 'dev' && matrix.variant.client == 'php'}}
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load PHP library binary
+        if: ${{ matrix.variant.version == 'dev' && matrix.variant.client == 'php'}}
+        run: ./utils/scripts/load-binary.sh php-lib
       - name: Run
         run: ./run.sh PARAMETRIC
       - name: Compress logs
