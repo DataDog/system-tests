@@ -441,7 +441,7 @@ class WeblogContainer(TestedContainer):
             name="weblog",
             host_log_folder=host_log_folder,
             environment=environment or {},
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},},
+            volumes={f"./{host_log_folder}/docker/weblog/logs/php": {"bind": "/tmp/", "mode": "rw",},},
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
