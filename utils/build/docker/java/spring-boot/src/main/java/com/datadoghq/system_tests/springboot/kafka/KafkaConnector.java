@@ -89,11 +89,13 @@ public class KafkaConnector {
     public boolean consumeMessageWithoutNewThread(Integer timeout_s, String topic) throws Exception {
         KafkaConsumer<String, String> consumer = createKafkaConsumer(topic);
         consumer.subscribe(Collections.singletonList(topic));
+        boolean recordFound = false;
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
             for (ConsumerRecord<String, String> record : records)
                 System.out.println("got record! " + record.value() + " from " + record.topic());
-                return true;
+                recordFound = true;
+            if (recordFound) return true;
         }
     }
 }

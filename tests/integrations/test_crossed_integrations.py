@@ -172,7 +172,6 @@ class _Test_Kafka:
             or self.production_response.status_code != 200
             or self.production_response.text is None
         ):
-            # breakpoint()
             self.production_response = self.buddy.get(
                 "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=5
             )
@@ -182,7 +181,6 @@ class _Test_Kafka:
             or self.consume_response.status_code != 200
             or self.consume_response.text is None
         ):
-            # breakpoint()
             self.consume_response = weblog.get(
                 "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 5}, timeout=5
             )
