@@ -737,3 +737,24 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         if prev_mode != new_mode:
             os.chmod(self._otel_config_host_path, new_mode)
         return super().start()
+
+
+class LocalstackContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="localstack/localstack:3.0.2",
+            name="localstack",
+            host_log_folder=host_log_folder,
+            environment={
+                "LOCALSTACK_SERVICES": "dynamodb,kinesis,s3,sqs,sns,redshift,route53,logs,serverless,lambda",
+                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid,x-amz-id-2",
+                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid,x-amz-id-2",
+                "AWS_DEFAULT_REGION": "us-east-1",
+                "FORCE_NONINTERACTIVE": "true",
+                "START_WEB": "0",
+                "DEBUG": "${DEBUG-}",
+                "DOCKER_HOST": "unix:///var/run/docker.sock",
+            },
+            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+            allow_old_container=True,
+        )

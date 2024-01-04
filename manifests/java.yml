@@ -828,7 +828,7 @@ tests/:
   integrations/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
-    test_crossed_integrations.py:
+    crossed_integrations/test_kafka.py:
       Test_JavaKafka:
         '*': v0.1 # real version not known
         akka-http: missing_feature (Endpoint not implemented)

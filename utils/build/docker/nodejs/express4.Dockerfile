@@ -15,6 +15,8 @@ RUN npm install
 
 EXPOSE 7777
 
+ENV AWS_ACCESS_KEY_ID=my-access-key
+ENV AWS_SECRET_ACCESS_KEY=my-access-key
 ENV PGUSER=system_tests_user
 ENV PGPASSWORD=system_tests
 ENV PGDATABASE=system_tests

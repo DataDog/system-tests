@@ -6,6 +6,7 @@ const tracer = require('dd-trace').init({
 
 const app = require('express')()
 const { Kafka } = require('kafkajs')
+const AWS = require('aws-sdk')
 const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
@@ -264,6 +265,107 @@ app.get('/kafka/consume', (req, res) => {
     .catch((error) => {
       console.error(error)
       res.status(500).send('Timeout: Failed to consume')
+    })
+})
+
+app.get('/sqs/produce', (req, res) => {
+  const queue = req.query.queue
+  // Create an SQS client
+  const sqs = new AWS.SQS({
+    endpoint: "http://localstack:4566",
+    region: 'us-east-1'
+  })
+
+  const produceMessage = () => {
+    return new Promise((resolve, reject) => {
+      sqs.createQueue({
+        QueueName: queue
+      }, (err, res) => {
+        if (err) {
+          console.log(err)
+          reject(err)
+        } else {
+          // Send messages to the queue
+          const produce = () => {
+            sqs.sendMessage({
+              QueueUrl: `http://localstack:4566/000000000000/${queue}`,
+              MessageBody: `Hello from SQS JavaScript injection`,
+            }, (err, data) => {
+              if (err) {
+                console.log(err)
+                reject(err)
+              } else {
+                console.log(data)
+                resolve()
+              }
+            })
+            console.log(`Produced a message`)
+          }
+
+          // Start producing messages
+          produce()
+        }
+      })
+    })
+  }
+
+  produceMessage()
+    .then(() => {
+      res.status(200).send('produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
+})
+
+app.get('/sqs/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = req.query.timeout ?? 5
+  // Create an SQS client
+  const sqs = new AWS.SQS({
+    endpoint: "http://localstack:4566",
+    region: 'us-east-1'
+  })
+
+  const consumeMessage = async () => {
+    return new Promise((resolve, reject) => {
+      sqs.receiveMessage({
+          QueueUrl: `http://localstack:4566/000000000000/${queue}`,
+          MaxNumberOfMessages: 1,
+          WaitTimeSeconds: timeout,
+      }, (err, response) => {
+          if (err) {
+              console.error('Error receiving message: ', err)
+              reject(err)
+          }
+
+          try {
+              if (response && response.Messages) {
+                  for (const message of response.Messages) {
+                      const consumedMessage = message.Body
+                      console.log('Consumed the following: ' + consumedMessage)
+                  }
+                  resolve()
+              } else {
+                  console.log('No messages received')
+                  reject("No messages received")
+              }
+          } catch (error) {
+              console.error('Error while consuming messages: ', error)
+              reject(err)
+          }
+      })
+    })
+  }
+
+  consumeMessage()
+    .then(() => {
+      res.status(200).send('consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
     })
 })
 
