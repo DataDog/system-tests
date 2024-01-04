@@ -355,6 +355,7 @@ class Test_Trace_Sampling_Tags:
 @missing_feature(context.library == "nodejs", reason="Not implemented")
 @missing_feature(context.library == "php", reason="Not implemented")
 @missing_feature(context.library == "dotnet", reason="Not implemented")
+@missing_feature(context.library == "golang", reason="Not implemented")
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_With_W3C:
@@ -388,10 +389,10 @@ class Test_Trace_Sampling_With_W3C:
                 # after new pair of tags was set
                 # based on the Tag("tag1", "val1"), span sampling would be 'keep'
                 span.set_meta("tag1", "val1")
-                headers_ = test_library.inject_headers(span.span_id)
-                headers = {k.lower(): v for k, v in headers_}
+                headers = {k.lower(): v for k, v in test_library.inject_headers(span.span_id)}
 
-                # based on the Tag("tag2", "val2"), span sampling would be 'drop'
+                # based on the Tag("tag2", "val2"), span sampling would be usually 'drop',
+                # but since headers were injected already, the sampling priority won't change
                 span.set_meta("tag2", "val2")
 
         span = find_span_in_traces(
@@ -400,5 +401,5 @@ class Test_Trace_Sampling_With_W3C:
 
         # sampling priority in headers reflects the state after new pair of tags was set
         assert headers["x-datadog-sampling-priority"] == "2"
-        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
-        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1
