@@ -1882,3 +1882,12 @@ class features:
         """
         pytest.mark.features(feature_id=260)(test_object)
         return test_object
+
+    @staticmethod
+    def aws_sqs_span_creationcontext_propagation_with_dd_trace_java(test_object):
+        """
+        [AWS-SQS][Span Creation][Context Propagation] with dd-trace-java
+        https://feature-parity.us1.prod.dog/#/?feature=261
+        """
+        pytest.mark.features(feature_id=261)(test_object)
+        return test_object
