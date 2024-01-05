@@ -167,11 +167,11 @@ class _Test_SQS:
         return producer_span, consumer_span
 
 
-# @irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
+@irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
 @irrelevant(context.library == "cpp")
 @irrelevant(context.library == "php")
 @irrelevant(context.library == "dotnet")
-@irrelevant(context.library == "python")
+# @irrelevant(context.library == "python")
 @irrelevant(context.library == "java")
 @irrelevant(context.library == "ruby")
 @irrelevant(context.library == "golang")
@@ -205,38 +205,38 @@ class Test_NodeJS_SQS(_Test_SQS):
         super().test_consume_trace_equality()
 
 
-# @irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
-# @irrelevant(context.library == "cpp")
-# @irrelevant(context.library == "php")
-# @irrelevant(context.library == "dotnet")
-# @irrelevant(context.library == "java")
-# @irrelevant(context.library == "ruby")
-# @irrelevant(context.library == "golang")
-# # @irrelevant(context.library == "golang" and context.weblog_variant != "net-http")
-# # @irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
-# @irrelevant(context.library == "nodejs" and context.weblog_variant != "express4")
-# # @irrelevant(context.library == "ruby" and context.weblog_variant != "rails70")
-# @scenarios.crossed_tracing_libraries
-# @coverage.basic
-# @features.aws_sqs_span_creationcontext_propagation_with_dd_trace_py
-# class Test_Python_SQS(_Test_SQS):
-#     buddy_interface = interfaces.python_buddy
-#     buddy = _PythonBuddy()
-#     WEBLOG_TO_BUDDY_QUEUE = f"Test_Python_SQS_weblog_to_buddy"
-#     BUDDY_TO_WEBLOG_QUEUE = f"Test_Python_SQS_buddy_to_weblog"
+@irrelevant(context.library == "python" and context.weblog_variant != "flask-poc")
+@irrelevant(context.library == "cpp")
+@irrelevant(context.library == "php")
+@irrelevant(context.library == "dotnet")
+@irrelevant(context.library == "java")
+@irrelevant(context.library == "ruby")
+@irrelevant(context.library == "golang")
+# @irrelevant(context.library == "golang" and context.weblog_variant != "net-http")
+# @irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
+@irrelevant(context.library == "nodejs" and context.weblog_variant != "express4")
+# @irrelevant(context.library == "ruby" and context.weblog_variant != "rails70")
+@scenarios.crossed_tracing_libraries
+@coverage.basic
+@features.aws_sqs_span_creationcontext_propagation_with_dd_trace_py
+class Test_Python_SQS(_Test_SQS):
+    buddy_interface = interfaces.python_buddy
+    buddy = _PythonBuddy()
+    WEBLOG_TO_BUDDY_QUEUE = f"Test_Python_SQS_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_QUEUE = f"Test_Python_SQS_buddy_to_weblog"
 
-#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-#     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-#     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-#     @missing_feature(library="java", reason="Expected to fail, Nodejs does not propagate context")
-#     def test_produce_trace_equality(self):
-#         super().test_produce_trace_equality()
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
+    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
+    @missing_feature(library="java", reason="Expected to fail, Nodejs does not propagate context")
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality()
 
-#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-#     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-#     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-#     @missing_feature(library="java", reason="Expected to fail, Nodejs does not propagate context")
-#     def test_consume_trace_equality(self):
-#         super().test_consume_trace_equality()
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
+    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
+    @missing_feature(library="java", reason="Expected to fail, Nodejs does not propagate context")
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality()
