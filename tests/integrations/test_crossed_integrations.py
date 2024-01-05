@@ -183,7 +183,7 @@ class _Test_Kafka:
 
         self.production_response = None
         self.consume_response = None
-        while time.time() < timeout and (
+        while (
             self.production_response is None
             or self.production_response.status_code != 200
             or self.production_response.text is None
@@ -191,8 +191,14 @@ class _Test_Kafka:
             self.production_response = self.buddy.get(
                 "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=5
             )
+            if time.time() > timeout:
+                logger.warning(
+                    "Timeout exceeded on `setup_consume` function, no valid produce and consume response was found.",
+                    extra=dict(test_class=self),
+                )
+                break
 
-        while time.time() < timeout and (
+        while (
             self.consume_response is None
             or self.consume_response.status_code != 200
             or self.consume_response.text is None
@@ -200,6 +206,12 @@ class _Test_Kafka:
             self.consume_response = weblog.get(
                 "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 5}, timeout=5
             )
+            if time.time() > timeout:
+                logger.warning(
+                    "Timeout exceeded on `setup_consume` function, no valid consume response was found.",
+                    extra=dict(test_class=self),
+                )
+                break
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog python tracer is correctly ingested"""
