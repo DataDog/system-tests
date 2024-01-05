@@ -305,7 +305,7 @@ public class App {
         if (timeout == null) timeout = Integer.MAX_VALUE;
         boolean consumed = false;
         try {
-            consumed = kafka.consumeMessageWithoutNewThread(timeout, topic);
+            consumed = kafka.consumeMessageWithoutNewThread(timeout);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start consuming message...");

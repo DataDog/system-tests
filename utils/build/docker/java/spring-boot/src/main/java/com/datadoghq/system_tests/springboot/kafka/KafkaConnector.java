@@ -86,7 +86,7 @@ public class KafkaConnector {
     }
 
     // For APM testing, a consume message without starting a new thread
-    public boolean consumeMessageWithoutNewThread(Integer timeout_s, String topic) throws Exception {
+    public boolean consumeMessageWithoutNewThread(Integer timeout_s) throws Exception {
         KafkaConsumer<String, String> consumer = createKafkaConsumer(topic);
         consumer.subscribe(Collections.singletonList(topic));
         boolean recordFound = false;
