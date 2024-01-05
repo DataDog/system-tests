@@ -63,10 +63,10 @@ public class KafkaConnector {
 
     // Ideally we should be able to use @Component and @KafkaListener to auto consume messages, but I wasn't able
     // to get it to work. Can look into this as a follow up.
-    public void startConsumingMessages(String topic) throws Exception {
+    public void startConsumingMessages(String topicName) throws Exception {
         Thread thread = new Thread("KafkaConsume") {
             public void run() {
-                KafkaConsumer<String, String> consumer = createKafkaConsumer(topic);
+                KafkaConsumer<String, String> consumer = createKafkaConsumer(topicName);
                 consumer.subscribe(Collections.singletonList(topic));
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
                 for (ConsumerRecord<String, String> record : records) {
@@ -86,16 +86,17 @@ public class KafkaConnector {
     }
 
     // For APM testing, a consume message without starting a new thread
-    public boolean consumeMessageWithoutNewThread(Integer timeout_s, String topic) throws Exception {
+    public boolean consumeMessageWithoutNewThread(Integer timeout_s) throws Exception {
         KafkaConsumer<String, String> consumer = createKafkaConsumer(topic);
         consumer.subscribe(Collections.singletonList(topic));
         boolean recordFound = false;
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
-            for (ConsumerRecord<String, String> record : records)
+            for (ConsumerRecord<String, String> record : records) {
                 System.out.println("got record! " + record.value() + " from " + record.topic());
                 recordFound = true;
-            if (recordFound) return true;
+            }
+            return recordFound;
         }
     }
 }
