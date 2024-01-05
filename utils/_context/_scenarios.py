@@ -373,22 +373,16 @@ class EndToEndScenario(_DockerScenario):
 
         if include_buddies:
             # so far, only python is supported
+            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+
             self.buddies += [
                 BuddyContainer(
-                    "python_buddy", "datadog/system-tests:python_buddy-v0", self.host_log_folder, proxy_port=9001
-                ),
-                BuddyContainer(
-                    "nodejs_buddy", "datadog/system-tests:nodejs_buddy-v0", self.host_log_folder, proxy_port=9002,
-                ),
-                BuddyContainer(
-                    "java_buddy", "datadog/system-tests:java_buddy-v0", self.host_log_folder, proxy_port=9003,
-                ),
-                BuddyContainer(
-                    "ruby_buddy", "datadog/system-tests:ruby_buddy-v0", self.host_log_folder, proxy_port=9004,
-                ),
-                BuddyContainer(
-                    "golang_buddy", "datadog/system-tests:golang_buddy-v0", self.host_log_folder, proxy_port=9005,
-                ),
+                    f"{language}_buddy",
+                    f"datadog/system-tests:{language}_buddy-v0",
+                    self.host_log_folder,
+                    proxy_port=port,
+                )
+                for language, port in supported_languages
             ]
 
             self._required_containers += self.buddies
