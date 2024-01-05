@@ -346,34 +346,39 @@ def ruby_library_factory() -> APMLibraryTestServer:
 
 
 def cpp_library_factory() -> APMLibraryTestServer:
-    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
+    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric", "http")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
-    cpp_reldir = cpp_appdir.replace("\\", "/")
-    shutil.copyfile(
-        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-        os.path.join(cpp_absolute_appdir, "apm_test_client.proto"),
-    )
-    return APMLibraryTestServer(
-        lang="cpp",
-        protocol="grpc",
-        container_name="cpp-test-client",
-        container_tag="cpp-test-client",
-        container_img=f"""
+    cpp_reldir = cpp_appdir.replace("\\", "/")    
+    dockerfile_content = f"""
 FROM datadog/docker-library:dd-trace-cpp-ci AS build
-RUN apt-get update && apt-get -y install pkg-config protobuf-compiler-grpc libgrpc++-dev libabsl-dev curl jq
+
+RUN apt-get update && apt-get -y install pkg-config libabsl-dev  curl jq
 WORKDIR /usr/app
 COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
-ADD {cpp_reldir}/CMakeLists.txt {cpp_reldir}/developer_noise.cpp {cpp_reldir}/developer_noise.h {cpp_reldir}/distributed_headers_dicts.h {cpp_reldir}/main.cpp {cpp_reldir}/scheduler.h {cpp_reldir}/tracing_service.cpp {cpp_reldir}/tracing_service.h /usr/app/
-ADD {cpp_reldir}/apm_test_client.proto /usr/app/test_proto3_optional/
-
+ADD {cpp_reldir}/CMakeLists.txt \
+    {cpp_reldir}/developer_noise.cpp \
+    {cpp_reldir}/developer_noise.h \
+    {cpp_reldir}/httplib.h \
+    {cpp_reldir}/json.hpp \
+    {cpp_reldir}/main.cpp \
+    {cpp_reldir}/manual_scheduler.h \
+    {cpp_reldir}/request_handler.cpp \
+    {cpp_reldir}/request_handler.h \
+    {cpp_reldir}/utils.h \
+    /usr/app/
 RUN sh /binaries/install_ddtrace.sh
-
-RUN mkdir .build && cd .build && cmake .. && cmake --build . -j $(nproc) && cmake --install .
+RUN cmake -B .build -DCMAKE_BUILD_TYPE=Release . && cmake --build .build -j $(nproc) && cmake --install .build --prefix dist
 
 FROM ubuntu:22.04
-RUN apt-get update && apt-get -y install libgrpc++1 libprotobuf23
-COPY --from=build /usr/local/bin/cpp-parametric-test /usr/local/bin/cpp-parametric-test
-            """,
+COPY --from=build /cpp-parametric-test/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-parametric-test
+"""
+
+    return APMLibraryTestServer(
+        lang="cpp",
+        protocol="http",
+        container_name="cpp-test-client",
+        container_tag="cpp-test-client",
+        container_img=dockerfile_content,
         container_cmd=["cpp-parametric-test"],
         container_build_dir=cpp_absolute_appdir,
         container_build_context=_get_base_directory(),

@@ -83,10 +83,7 @@ go mod tidy
 
 #### dotnet
 
-To test unmerged PRs locally, do the following:
-- In your local dd-trace-dotnet repo, build the `Datadog.Trace` NuGet package. The easiest way to do this is to run `dotnet pack` from the `/tracer/src/Datadog.Trace` directory.
-- Copy the resulting `.nupkg` file into the `apps/dotnet` directory
-- In `apps/dotnet/ApmTestClient.csproj`, update the version of the `Datadog.Trace` package reference to the dev version
+Add a file datadog-dotnet-apm-<VERSION>.tar.gz in binaries/. <VERSION> must be a valid version number.
 
 #### Java
 
