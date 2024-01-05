@@ -375,7 +375,7 @@ class EndToEndScenario(_DockerScenario):
                     self.host_log_folder,
                     proxy_port=port,
                 )
-                for language, port in enumerate(supported_languages)
+                for language, port in supported_languages
             ]
 
             self._required_containers += self.buddies
