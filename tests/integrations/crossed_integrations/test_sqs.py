@@ -23,6 +23,10 @@ class _Test_SQS:
                 if span_kind != span["meta"].get("span.kind"):
                     continue
 
+                # we want to skip all the kafka spans
+                if "aws" not in span["resource"].lower():
+                    continue
+
                 if queue != cls.get_queue(span):
                     continue
 
@@ -38,7 +42,12 @@ class _Test_SQS:
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
 
         if queue is None:
-            logger.error(f"could not extract queue from this span:\n{span}")
+            if "aws.queue.url" in span["meta"]:
+                queue = span["meta"]["aws.queue.url"].split("/")[-1]
+
+            if queue is None:
+                logger.error(f"could not extract queue from this span:\n{span}")
+
         return queue
 
     def setup_produce(self):
