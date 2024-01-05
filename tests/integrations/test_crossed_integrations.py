@@ -115,9 +115,11 @@ class _Test_Kafka:
         send request A to weblog : this request will produce a kafka message
         send request B to library buddy, this request will consume kafka message
         """
+        timeout = time.time() + 180
+
         self.production_response = None
         self.consume_response = None
-        while (
+        while time.time() < timeout and (
             self.production_response is None
             or self.production_response.status_code != 200
             or self.production_response.text is None
@@ -126,7 +128,7 @@ class _Test_Kafka:
                 "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=5
             )
 
-        while (
+        while time.time() < timeout and (
             self.consume_response is None
             or self.consume_response.status_code != 200
             or self.consume_response.text is None
@@ -165,9 +167,11 @@ class _Test_Kafka:
         request A: GET /library_buddy/produce_kafka_message
         request B: GET /weblog/consume_kafka_message
         """
+        timeout = time.time() + 180
+
         self.production_response = None
         self.consume_response = None
-        while (
+        while time.time() < timeout and (
             self.production_response is None
             or self.production_response.status_code != 200
             or self.production_response.text is None
@@ -176,7 +180,7 @@ class _Test_Kafka:
                 "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=5
             )
 
-        while (
+        while time.time() < timeout and (
             self.consume_response is None
             or self.consume_response.status_code != 200
             or self.consume_response.text is None

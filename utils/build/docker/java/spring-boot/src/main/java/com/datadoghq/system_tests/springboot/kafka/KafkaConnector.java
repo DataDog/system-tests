@@ -63,10 +63,10 @@ public class KafkaConnector {
 
     // Ideally we should be able to use @Component and @KafkaListener to auto consume messages, but I wasn't able
     // to get it to work. Can look into this as a follow up.
-    public void startConsumingMessages(String topic) throws Exception {
+    public void startConsumingMessages(String topicName) throws Exception {
         Thread thread = new Thread("KafkaConsume") {
             public void run() {
-                KafkaConsumer<String, String> consumer = createKafkaConsumer(topic);
+                KafkaConsumer<String, String> consumer = createKafkaConsumer(topicName);
                 consumer.subscribe(Collections.singletonList(topic));
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
                 for (ConsumerRecord<String, String> record : records) {
