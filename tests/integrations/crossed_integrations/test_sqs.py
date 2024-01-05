@@ -207,7 +207,7 @@ MISSING_LIBRARY_LOGIC = (
 @features.aws_sqs_span_creationcontext_propagation_with_dd_trace_js
 class Test_NodeJS_SQS(_Test_SQS):
     buddy_interface = interfaces.nodejs_buddy
-    buddy = _nodejs_buddy()
+    buddy = _nodejs_buddy
     WEBLOG_TO_BUDDY_QUEUE = f"Test_NodeJS_SQS_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = f"Test_NodeJS_SQS_buddy_to_weblog"
 
