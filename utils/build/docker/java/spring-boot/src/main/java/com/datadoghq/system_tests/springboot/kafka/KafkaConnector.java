@@ -92,10 +92,11 @@ public class KafkaConnector {
         boolean recordFound = false;
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
-            for (ConsumerRecord<String, String> record : records)
+            for (ConsumerRecord<String, String> record : records) {
                 System.out.println("got record! " + record.value() + " from " + record.topic());
                 recordFound = true;
-            if (recordFound) return true;
+            }
+            return recordFound;
         }
     }
 }
