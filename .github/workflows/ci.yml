@@ -63,7 +63,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/parametric.yml@robertomonteromiguel/parametric_use_load_binary_cpp
+    uses: datadog/system-tests/.github/workflows/parametric.yml@main
     secrets: inherit
 
   experimental:
@@ -76,7 +76,6 @@ jobs:
     secrets: inherit
 
   main:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint

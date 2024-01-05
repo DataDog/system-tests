@@ -13,30 +13,30 @@ jobs:
       matrix:
           variant:
             #Updated with dev version 
-            #- client: java
-            #  version: dev
-            #- client: java
-            #  version: prod
-            #- client: nodejs
-            #  version: dev
-            #- client: nodejs
-            #  version: prod
-            #- client: golang
-            #  version: dev
-            #- client: golang
-            #  version: prod
-            #- client: python
-            #  version: dev
-            #- client: python
-            #  version: prod
-            #- client: ruby
-            #  version: dev
-            #- client: ruby
-            #  version: prod
-            #- client: dotnet
-            #  version: dev
-            #- client: dotnet
-            #  version: prod
+            - client: java
+              version: dev
+            - client: java
+              version: prod
+            - client: nodejs
+              version: dev
+            - client: nodejs
+              version: prod
+            - client: golang
+              version: dev
+            - client: golang
+              version: prod
+            - client: python
+              version: dev
+            - client: python
+              version: prod
+            - client: ruby
+              version: dev
+            - client: ruby
+              version: prod
+            - client: dotnet
+              version: dev
+            - client: dotnet
+              version: prod
             - client: cpp
               version: dev
             - client: cpp
