@@ -279,18 +279,21 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
+        Test_GolangKafka:
+          '*': missing_feature (Endpoint not implemented)
+          express4: v0.1 # real version not known
         Test_JavaKafka:
-          '*': v0.1
-          express4-typescript: missing_feature (Endpoint not implemented)
-          nextjs: missing_feature (Endpoint not implemented)
+          '*': missing_feature (Endpoint not implemented)
+          express4: v0.1 # real version not known
         Test_NodeJSKafka:
-          '*': v0.1
-          express4-typescript: missing_feature (Endpoint not implemented)
-          nextjs: missing_feature (Endpoint not implemented)
+          '*': missing_feature (Endpoint not implemented)
+          express4: v0.1 # real version not known
         Test_PythonKafka:
-          '*': v0.1
-          express4-typescript: missing_feature (Endpoint not implemented)
-          nextjs: missing_feature (Endpoint not implemented)
+          '*': missing_feature (Endpoint not implemented)
+          express4: v0.1 # real version not known
+        Test_RubyKafka:
+          '*': missing_feature (Endpoint not implemented)
+          express4: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature

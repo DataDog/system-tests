@@ -10,7 +10,7 @@ def test_all_class_has_feature_decorator(session, deselected_items):
     shouldfail = False
 
     for item in session.items + deselected_items:
-        reported_node_id = "::".join(item.nodeid.split("::", 2)[0:1])
+        reported_node_id = "::".join(item.nodeid.split("::", 2)[0:2])
 
         if reported_node_id in processed_nodes:
             continue

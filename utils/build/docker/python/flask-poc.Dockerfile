@@ -2,8 +2,6 @@ FROM datadog/system-tests:flask-poc.base-v2
 
 WORKDIR /app
 
-ENV DD_TRACE_API_VERSION=v0.4
-
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
