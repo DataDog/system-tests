@@ -358,6 +358,7 @@ class Test_Trace_Sampling_Tags:
 @missing_feature(context.library == "golang", reason="Not implemented")
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
+@features.trace_sampling
 class Test_Trace_Sampling_With_W3C:
     @pytest.mark.parametrize(
         "library_env",
@@ -376,7 +377,7 @@ class Test_Trace_Sampling_With_W3C:
         ],
     )
     def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent, test_library):
-        """Test that a trace is sampled by the matching trace sampling rule"""
+        """Test that a trace is sampled by the rule and the sampling decision is locked"""
 
         with test_library:
             with test_library.start_span(
