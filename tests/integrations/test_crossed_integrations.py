@@ -86,27 +86,33 @@ class _Test_Kafka:
 
         self.production_response = None
         self.consume_response = None
-        while (
-            self.production_response is None
-            or self.production_response.status_code != 200
-            or self.production_response.text is None
-        ):
-            self.production_response = weblog.get(
-                "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=5
-            )
-            if hit_timeout(self, timeout):
-                break
+        # while (
+        #     self.production_response is None
+        #     or self.production_response.status_code != 200
+        #     or self.production_response.text is None
+        # ):
+        #     self.production_response = weblog.get(
+        #         "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=5
+        #     )
+        #     if hit_timeout(self, timeout):
+        #         break
+        self.production_response = weblog.get(
+            "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=60
+        )
 
-        while (
-            self.consume_response is None
-            or self.consume_response.status_code != 200
-            or self.consume_response.text is None
-        ):
-            self.consume_response = self.buddy.get(
-                "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 5}, timeout=5
-            )
-            if hit_timeout(self, timeout):
-                break
+        # while (
+        #     self.consume_response is None
+        #     or self.consume_response.status_code != 200
+        #     or self.consume_response.text is None
+        # ):
+        #     self.consume_response = self.buddy.get(
+        #         "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 5}, timeout=5
+        #     )
+        #     if hit_timeout(self, timeout):
+        #         break
+        self.consume_response = self.buddy.get(
+            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60}, timeout=61
+        )
 
     def test_produce(self):
         """Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
@@ -157,27 +163,33 @@ class _Test_Kafka:
 
         self.production_response = None
         self.consume_response = None
-        while (
-            self.production_response is None
-            or self.production_response.status_code != 200
-            or self.production_response.text is None
-        ):
-            self.production_response = self.buddy.get(
-                "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=5
-            )
-            if hit_timeout(self, timeout):
-                break
+        # while (
+        #     self.production_response is None
+        #     or self.production_response.status_code != 200
+        #     or self.production_response.text is None
+        # ):
+        #     self.production_response = self.buddy.get(
+        #         "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=5
+        #     )
+        #     if hit_timeout(self, timeout):
+        #         break
+        self.production_response = self.buddy.get(
+            "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=60
+        )
 
-        while (
-            self.consume_response is None
-            or self.consume_response.status_code != 200
-            or self.consume_response.text is None
-        ):
-            self.consume_response = weblog.get(
-                "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 5}, timeout=5
-            )
-            if hit_timeout(self, timeout):
-                break
+        # while (
+        #     self.consume_response is None
+        #     or self.consume_response.status_code != 200
+        #     or self.consume_response.text is None
+        # ):
+        #     self.consume_response = weblog.get(
+        #         "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 5}, timeout=5
+        #     )
+        #     if hit_timeout(self, timeout):
+        #         break
+        self.consume_response = weblog.get(
+            "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 60}, timeout=61
+        )
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog python tracer is correctly ingested"""

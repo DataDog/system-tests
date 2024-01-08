@@ -302,7 +302,12 @@ public class App {
     @RequestMapping("/kafka/consume")
     ResponseEntity<String> kafkaConsume(@RequestParam(required = true) String topic, @RequestParam(required = false) Integer timeout) {
         KafkaConnector kafka = new KafkaConnector(topic);
-        if (timeout == null) timeout = Integer.MAX_VALUE;
+        if (timeout == null) {
+            timeout = Integer.MAX_VALUE;
+        } else {
+            // convert from seconds to ms
+            timeout *= 1000;
+        }
         boolean consumed = false;
         try {
             consumed = kafka.consumeMessageWithoutNewThread(timeout);
