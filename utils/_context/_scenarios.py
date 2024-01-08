@@ -1075,6 +1075,7 @@ class scenarios:
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
+        weblog_env={"DD_TRACE_API_VERSION": "v0.4"},
         include_kafka=True,
         include_buddies=True,
         doc="Spawns a buddy for each supported language of APM",
