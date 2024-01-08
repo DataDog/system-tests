@@ -277,7 +277,7 @@ MISSING_LIBRARY_LOGIC = (
 class Test_NodeJSKafka(_Test_Kafka):
     buddy_interface = interfaces.nodejs_buddy
     buddy = _nodejs_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_NodeJSKafka_weblog_to_buddy"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_NodeJSKafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = f"Test_NodeJSKafka_buddy_to_weblog"
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
