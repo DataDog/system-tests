@@ -83,10 +83,7 @@ go mod tidy
 
 #### dotnet
 
-To test unmerged PRs locally, do the following:
-- In your local dd-trace-dotnet repo, build the `Datadog.Trace` NuGet package. The easiest way to do this is to run `dotnet pack` from the `/tracer/src/Datadog.Trace` directory.
-- Copy the resulting `.nupkg` file into the `apps/dotnet` directory
-- In `apps/dotnet/ApmTestClient.csproj`, update the version of the `Datadog.Trace` package reference to the dev version
+Add a file datadog-dotnet-apm-<VERSION>.tar.gz in binaries/. <VERSION> must be a valid version number.
 
 #### Java
 
@@ -159,6 +156,12 @@ gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", 
 2. Clone the dd-trace-rb repo inside binaries
 
 #### C++
+
+There is two ways for running the C++ library tests with a custom tracer:
+1. Create a file `cpp-load-from-git` in `binaries/`. Content examples:
+    * `https://github.com/DataDog/dd-trace-cpp@main`
+    * `https://github.com/DataDog/dd-trace-cpp@<COMMIT HASH>`
+2. Clone the dd-trace-cpp repo inside `binaries`
 
 The parametric shared tests can be run against the C++ library,
 [dd-trace-cpp][1], this way:

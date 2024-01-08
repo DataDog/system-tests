@@ -521,6 +521,16 @@ class EndToEndScenario(_DockerScenario):
     def post_setup(self):
         from utils import interfaces
 
+        try:
+            self._wait_and_stop_containers()
+        finally:
+            self.close_targets()
+
+        interfaces.library_dotnet_managed.load_data()
+
+    def _wait_and_stop_containers(self):
+        from utils import interfaces
+
         if self.replay:
 
             logger.terminal.write_sep("-", "Load all data from logs")
@@ -554,10 +564,6 @@ class EndToEndScenario(_DockerScenario):
             interfaces.agent.check_deserialization_errors()
 
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
-
-        self.close_targets()
-
-        interfaces.library_dotnet_managed.load_data()
 
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
