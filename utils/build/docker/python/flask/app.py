@@ -197,7 +197,7 @@ def consume_kafka_message():
         The goal of this endpoint is to trigger kafka consumer calls
     """
     message_topic = flask_request.args.get("topic", "DistributedTracing")
-    timeout_s = flask_request.args.get("timeout", 60)
+    timeout_s = int(flask_request.args.get("timeout", 60))
 
     consumer = Consumer(
         {
