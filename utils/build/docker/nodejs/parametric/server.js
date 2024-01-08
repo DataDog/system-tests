@@ -84,7 +84,9 @@ app.post('/trace/span/start', (req, res) => {
       childOf: parent,
       tags: {
           service: request.service
-      }
+      },
+      // parentId is spanId in the tracer
+      links: request.links.map(link => ({ spanId: link.parent_id, attributes: link.attributes }))
   })
   spans[span.context().toSpanId()] = span
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
@@ -124,6 +126,16 @@ app.post('/trace/span/set_metric', (req, res) => {
   span.setTag(key, value);
   res.json({});
 });
+
+app.post('/trace/span/add_link', (req, res)=> {
+  const spanId = req.body.span_id;
+  const parentId = req.body.parent_id;
+  const attributes = req.body.attributes;
+
+  const span = spans[spanId];
+  span.addLink({ spanId: parentId, attributes });
+  res.json({});
+})
 
 app.post('/trace/stats/flush', (req, res) => {
   // TODO: implement once available in NodeJS Tracer

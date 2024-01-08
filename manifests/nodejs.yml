@@ -306,7 +306,7 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v4.11.0
       TestDynamicConfigV2: missing_feature
-    test_span_links.py: missing_feature
+    test_span_links.py: missing_feature # will likely either be 4.24.0 or 5.0.0 (whichever comes first)
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
