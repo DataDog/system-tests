@@ -32,7 +32,6 @@ class _Test_SQS:
                 if queue != cls.get_queue(span):
                     continue
 
-                breakpoint()
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
                 return span
 
@@ -176,7 +175,6 @@ class _Test_SQS:
             is None
         )
 
-        breakpoint()
         producer_span = self.get_span(
             producer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage"
         )
