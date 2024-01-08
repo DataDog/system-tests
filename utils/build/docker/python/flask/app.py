@@ -226,10 +226,15 @@ def consume_kafka_message():
 
 @app.route("/sqs/produce")
 def produce_sqs_message():
-    queue = flask_request.args.get("topic", "DistributedTracing")
+    queue = flask_request.args.get("queue", "DistributedTracing")
 
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://localstack:4566", region_name="us-east-1")
+
+    try:
+        sqs.create_queue(QueueName=queue)
+    except Exception as e:
+        logging.info(f"Error during Python SQS create queue: {str(e)}")
 
     try:
         # Send the message to the SQS queue
@@ -246,21 +251,12 @@ def consume_sqs_message():
     """
         The goal of this endpoint is to trigger sqs consumer calls
     """
-    queue = flask_request.args.get("topic", "DistributedTracing")
+    queue = flask_request.args.get("queue", "DistributedTracing")
 
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://localstack:4566", region_name="us-east-1")
 
-    response = sqs.receive_message(
-        QueueUrl=f"http://localstack:4566/000000000000/{queue}",
-        MaxNumberOfMessages=1,
-        # AttributeNames=[
-        #     'AWSTraceHeader'
-        # ],
-        # MessageAttributeNames=[
-        #     'all'
-        # ],
-    )
+    response = sqs.receive_message(QueueUrl=f"http://localstack:4566/000000000000/{queue}", MaxNumberOfMessages=1,)
 
     if response and "Messages" in response:
         consumed_message = None

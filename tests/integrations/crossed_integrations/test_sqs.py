@@ -11,7 +11,7 @@ class _Test_SQS:
     """Test sqs compatibility with inputted datadog tracer"""
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue):
+    def get_span(cls, interface, span_kind, queue, operation):
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -19,16 +19,20 @@ class _Test_SQS:
                 if not span.get("meta"):
                     continue
 
-                if span_kind != span["meta"].get("span.kind"):
+                if span["meta"].get("span.kind") not in span_kind:
                     continue
 
                 # we want to skip all the kafka spans
-                if "aws" not in span["resource"].lower():
+                if "aws.service" not in span["meta"] and "aws_service" not in span["meta"]:
+                    continue
+
+                if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
                 if queue != cls.get_queue(span):
                     continue
 
+                breakpoint()
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
                 return span
 
@@ -43,6 +47,8 @@ class _Test_SQS:
         if queue is None:
             if "aws.queue.url" in span["meta"]:
                 queue = span["meta"]["aws.queue.url"].split("/")[-1]
+            elif "messaging.url" in span["meta"]:
+                queue = span["meta"]["messaging.url"].split("/")[-1]
 
             if queue is None:
                 logger.error(f"could not extract queue from this span:\n{span}")
@@ -80,8 +86,18 @@ class _Test_SQS:
     @missing_feature(library="java", reason="Expected to fail, Nodejs does not propagate context")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
-        producer_span = self.get_span(interfaces.library, span_kind="producer", queue=self.WEBLOG_TO_BUDDY_QUEUE)
-        consumer_span = self.get_span(self.buddy_interface, span_kind="consumer", queue=self.WEBLOG_TO_BUDDY_QUEUE)
+        producer_span = self.get_span(
+            interfaces.library,
+            span_kind=["producer", "client"],
+            queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            operation="sendMessage",
+        )
+        consumer_span = self.get_span(
+            self.buddy_interface,
+            span_kind=["consumer", "client"],
+            queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            operation="receiveMessage",
+        )
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -124,8 +140,18 @@ class _Test_SQS:
     @missing_feature(library="java", reason="Expected to fail, Nodejs does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
-        producer_span = self.get_span(self.buddy_interface, span_kind="producer", queue=self.BUDDY_TO_WEBLOG_QUEUE)
-        consumer_span = self.get_span(interfaces.library, span_kind="consumer", queue=self.BUDDY_TO_WEBLOG_QUEUE)
+        producer_span = self.get_span(
+            self.buddy_interface,
+            span_kind=["producer", "client"],
+            queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            operation="sendMessage",
+        )
+        consumer_span = self.get_span(
+            interfaces.library,
+            span_kind=["consumer", "client"],
+            queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            operation="receiveMessage",
+        )
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -139,13 +165,24 @@ class _Test_SQS:
         """
 
         # Check that the producer did not created any consumer span
-        assert self.get_span(producer_interface, span_kind="consumer", queue=queue) is None
+        assert (
+            self.get_span(producer_interface, span_kind=["consumer", "client"], queue=queue, operation="receiveMessage")
+            is None
+        )
 
         # Check that the consumer did not created any producer span
-        assert self.get_span(consumer_interface, span_kind="producer", queue=queue) is None
+        assert (
+            self.get_span(consumer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage")
+            is None
+        )
 
-        producer_span = self.get_span(producer_interface, span_kind="producer", queue=queue)
-        consumer_span = self.get_span(consumer_interface, span_kind="consumer", queue=queue)
+        breakpoint()
+        producer_span = self.get_span(
+            producer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage"
+        )
+        consumer_span = self.get_span(
+            consumer_interface, span_kind=["consumer", "client"], queue=queue, operation="receiveMessage"
+        )
         # check that both consumer and producer spans exists
         assert producer_span is not None
         assert consumer_span is not None

@@ -752,8 +752,6 @@ class LocalstackContainer(TestedContainer):
                 "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid,x-amz-id-2",
                 "AWS_DEFAULT_REGION": "us-east-1",
                 "FORCE_NONINTERACTIVE": "true",
-                "START_WEB": "0",
-                "DEBUG": "${DEBUG-}",
                 "DOCKER_HOST": "unix:///var/run/docker.sock",
             },
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
