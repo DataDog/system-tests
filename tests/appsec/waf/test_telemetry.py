@@ -1,4 +1,4 @@
-from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky
+from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky, features
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -24,6 +24,7 @@ def _setup(self):
     Test_TelemetryMetrics.__common_setup_done = True
 
 
+@features.waf_telemetry
 class Test_TelemetryResponses:
     """ Test response from backend/agent """
 
@@ -38,6 +39,7 @@ class Test_TelemetryResponses:
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
 @scenarios.appsec_waf_telemetry
+@features.waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
 

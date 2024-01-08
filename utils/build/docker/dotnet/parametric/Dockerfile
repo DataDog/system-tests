@@ -1,24 +1,23 @@
-
 FROM mcr.microsoft.com/dotnet/sdk:7.0
 RUN apt-get update && apt-get install dos2unix
-WORKDIR /client
+WORKDIR /app
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY /install_ddtrace.sh /binaries/
+COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
-COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
+COPY ["utils/build/docker/dotnet/parametric/ApmTestClient.csproj", "utils/build/docker/dotnet/parametric/nuget.config", "utils/build/docker/dotnet/parametric/*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
 
 # build and publish
-COPY . ./
+COPY utils/build/docker/dotnet/parametric ./
 RUN dotnet publish --no-restore --configuration Release --output out
-WORKDIR /client/out
+WORKDIR /app/out
 
 # Set up automatic instrumentation (required for OpenTelemetry tests),
 # but don't enable it globally

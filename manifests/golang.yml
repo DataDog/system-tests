@@ -15,6 +15,7 @@ tests/:
         Test_Schema_Request_Cookies:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)        
+          uds-echo: bug (APPSEC-18224)
         Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers:
           '*': v1.60.0-dev
@@ -294,6 +295,7 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces:
         '*': v1.36.0
         gin: v1.37.0
@@ -331,7 +333,7 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigV1: v1.58.0-dev
+      TestDynamicConfigV1: v1.59.0-dev
       TestDynamicConfigV2: v1.59.0-dev
     test_span_links.py: missing_feature
     test_trace_sampling.py:
@@ -359,9 +361,15 @@ tests/:
     Test_Propagate: v1.48.0-rc.1
     Test_Propagate_Legacy: v1.41.0
   test_library_conf.py:
-    Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTags: v1.53.0
+    Test_HeaderTags_Colon_Leading: v1.53.0
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8571)
+    Test_HeaderTags_Long: v1.53.0
+    Test_HeaderTags_Short: v1.53.0
+    Test_HeaderTags_Whitespace_Header: v1.53.0
+    Test_HeaderTags_Whitespace_Tag: v1.53.0
+    Test_HeaderTags_Whitespace_Val_Long: v1.53.0
+    Test_HeaderTags_Whitespace_Val_Short: v1.53.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:

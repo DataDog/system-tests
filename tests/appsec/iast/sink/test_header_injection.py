@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, irrelevant, features
+from utils import context, coverage, features, missing_feature
 from .._test_iast_fixtures import BaseSinkTest
 
 
@@ -22,3 +22,11 @@ class TestHeaderInjection(BaseSinkTest):
     secure_endpoint = "/iast/header_injection/test_secure"
     data = {"test": "dummyvalue"}
     location_map = _expected_location()
+
+    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
+    def test_telemetry_metric_instrumented_sink(self):
+        super().test_telemetry_metric_instrumented_sink()
+
+    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
+    def test_telemetry_metric_executed_sink(self):
+        super().test_telemetry_metric_executed_sink()
