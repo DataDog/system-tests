@@ -44,6 +44,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
 
 
 @coverage.basic
+@features.iast_sink_unvalidatedheader
 class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection threw header."""
 
