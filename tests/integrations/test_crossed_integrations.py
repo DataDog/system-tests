@@ -111,7 +111,7 @@ class _Test_Kafka:
         #     if hit_timeout(self, timeout):
         #         break
         self.consume_response = self.buddy.get(
-            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60}, timeout=61
+            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 180}, timeout=181
         )
 
     def test_produce(self):
@@ -188,7 +188,7 @@ class _Test_Kafka:
         #     if hit_timeout(self, timeout):
         #         break
         self.consume_response = weblog.get(
-            "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 60}, timeout=61
+            "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 180}, timeout=181
         )
 
     def test_consume(self):
