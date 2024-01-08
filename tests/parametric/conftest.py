@@ -346,26 +346,29 @@ def ruby_library_factory() -> APMLibraryTestServer:
 def cpp_library_factory() -> APMLibraryTestServer:
     cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric", "http")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
+    cpp_reldir = cpp_appdir.replace("\\", "/")
     dockerfile_content = f"""
 FROM datadog/docker-library:dd-trace-cpp-ci AS build
 
-RUN apt-get update && apt-get -y install pkg-config libabsl-dev
-WORKDIR /cpp-parametric-test
-ADD CMakeLists.txt \
-    developer_noise.cpp \
-    developer_noise.h \
-    httplib.h \
-    json.hpp \
-    main.cpp \
-    manual_scheduler.h \
-    request_handler.cpp \
-    request_handler.h \
-    utils.h \
-    /cpp-parametric-test/
+RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
+WORKDIR /usr/app
+COPY {cpp_reldir}/../install_ddtrace.sh binaries* /binaries/
+ADD {cpp_reldir}/CMakeLists.txt \
+    {cpp_reldir}/developer_noise.cpp \
+    {cpp_reldir}/developer_noise.h \
+    {cpp_reldir}/httplib.h \
+    {cpp_reldir}/json.hpp \
+    {cpp_reldir}/main.cpp \
+    {cpp_reldir}/manual_scheduler.h \
+    {cpp_reldir}/request_handler.cpp \
+    {cpp_reldir}/request_handler.h \
+    {cpp_reldir}/utils.h \
+    /usr/app
+RUN sh /binaries/install_ddtrace.sh
 RUN cmake -B .build -DCMAKE_BUILD_TYPE=Release . && cmake --build .build -j $(nproc) && cmake --install .build --prefix dist
 
 FROM ubuntu:22.04
-COPY --from=build /cpp-parametric-test/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-parametric-test
+COPY --from=build /usr/app/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-parametric-test
 """
 
     return APMLibraryTestServer(
@@ -376,7 +379,7 @@ COPY --from=build /cpp-parametric-test/dist/bin/cpp-parametric-http-test /usr/lo
         container_img=dockerfile_content,
         container_cmd=["cpp-parametric-test"],
         container_build_dir=cpp_absolute_appdir,
-        container_build_context=cpp_absolute_appdir,
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )
