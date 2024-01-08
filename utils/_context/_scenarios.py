@@ -365,7 +365,7 @@ class EndToEndScenario(_DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python is supported
+            # so far, only python, nodejs, java, ruby and golang are supported
             supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
 
             self.buddies += [
