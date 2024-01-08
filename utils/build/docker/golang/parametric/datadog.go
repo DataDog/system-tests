@@ -71,13 +71,13 @@ func (s *apmClientServer) FinishSpan(ctx context.Context, args *FinishSpanArgs) 
 
 func (s *apmClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error) {
 	tracer.Flush()
-	s.spans = make(map[uint64]tracer.Span)
+	s.spans = make(map[uint64]*tracer.Span)
 	return &FlushSpansReturn{}, nil
 }
 
 func (s *apmClientServer) FlushTraceStats(context.Context, *FlushTraceStatsArgs) (*FlushTraceStatsReturn, error) {
 	tracer.Flush()
-	s.spans = make(map[uint64]tracer.Span)
+	s.spans = make(map[uint64]*tracer.Span)
 	return &FlushTraceStatsReturn{}, nil
 }
 

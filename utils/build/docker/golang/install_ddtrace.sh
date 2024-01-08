@@ -5,6 +5,12 @@ set -euv
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
     go mod edit -replace github.com/DataDog/dd-trace-go/v2=/binaries/dd-trace-go
+    go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1=/binaries/dd-trace-go/v2/contrib/IBM/sarama.v1
+    go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin=/binaries/dd-trace-go/v2/contrib/gin-gonic/gin
+    go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5=/binaries/dd-trace-go/v2/contrib/go-chi/chi.v5
+    go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc=/binaries/dd-trace-go/v2/contrib/google.golang.org/grpc
+    go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4=/binaries/dd-trace-go/v2/contrib/labstack/echo.v4
+    go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/net/http=/binaries/dd-trace-go/v2/contrib/net/http
 
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
@@ -14,6 +20,12 @@ else
     echo "Installing production dd-trace-version"
     # TODO(darccio): remove @$ref on v2 release
     go get -v -d -u github.com/DataDog/dd-trace-go/v2@v2-dev
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1@v2-dev
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin@v2-dev
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5@v2-dev
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc@v2-dev
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4@v2-dev
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/net/http@v2-dev
 fi
 
 # Downloading a newer version of the tracer may require to resolve again all dependencies
