@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import time
 
 from utils import interfaces, scenarios, coverage, weblog, missing_feature, features, context, irrelevant
 from utils._weblog import _Weblog
@@ -27,17 +26,6 @@ _nodejs_buddy = _Buddy(9002, "nodejs")
 _java_buddy = _Buddy(9003, "java")
 _ruby_buddy = _Buddy(9004, "ruby")
 _golang_buddy = _Buddy(9005, "golang")
-
-
-def hit_timeout(test_class, timeout):
-    if time.time() > timeout:
-        logger.warning(
-            "Timeout exceeded on `setup_produce` function, no valid produce and consume response was found.",
-            extra=dict(test_class=test_class),
-        )
-        return True
-    else:
-        return False
 
 
 class _Test_Kafka:
@@ -82,34 +70,10 @@ class _Test_Kafka:
         send request A to weblog : this request will produce a kafka message
         send request B to library buddy, this request will consume kafka message
         """
-        timeout = time.time() + 300
-
-        self.production_response = None
-        self.consume_response = None
-        # while (
-        #     self.production_response is None
-        #     or self.production_response.status_code != 200
-        #     or self.production_response.text is None
-        # ):
-        #     self.production_response = weblog.get(
-        #         "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=5
-        #     )
-        #     if hit_timeout(self, timeout):
-        #         break
         self.production_response = weblog.get(
             "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=60
         )
 
-        # while (
-        #     self.consume_response is None
-        #     or self.consume_response.status_code != 200
-        #     or self.consume_response.text is None
-        # ):
-        #     self.consume_response = self.buddy.get(
-        #         "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 5}, timeout=5
-        #     )
-        #     if hit_timeout(self, timeout):
-        #         break
         self.consume_response = self.buddy.get(
             "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60}, timeout=61
         )
@@ -118,6 +82,7 @@ class _Test_Kafka:
         """Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
 
         assert self.production_response.status_code == 200
+        assert self.consume_response.status_code == 200
 
         # The weblog is the producer, the buddy is the consumer
         self.validate_kafka_spans(
@@ -159,34 +124,10 @@ class _Test_Kafka:
         request A: GET /library_buddy/produce_kafka_message
         request B: GET /weblog/consume_kafka_message
         """
-        timeout = time.time() + 300
-
-        self.production_response = None
-        self.consume_response = None
-        # while (
-        #     self.production_response is None
-        #     or self.production_response.status_code != 200
-        #     or self.production_response.text is None
-        # ):
-        #     self.production_response = self.buddy.get(
-        #         "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=5
-        #     )
-        #     if hit_timeout(self, timeout):
-        #         break
         self.production_response = self.buddy.get(
             "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=60
         )
 
-        # while (
-        #     self.consume_response is None
-        #     or self.consume_response.status_code != 200
-        #     or self.consume_response.text is None
-        # ):
-        #     self.consume_response = weblog.get(
-        #         "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 5}, timeout=5
-        #     )
-        #     if hit_timeout(self, timeout):
-        #         break
         self.consume_response = weblog.get(
             "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 60}, timeout=61
         )
