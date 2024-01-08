@@ -314,20 +314,20 @@ tests/:
   integrations/:
     test_crossed_integrations.py:
       Test_GolangKafka:
-        net-http: v0.1 # real version not known
         "*": irrelevant
+        net-http: v0.1 # real version not known
       Test_JavaKafka:
-        net-http: v0.1 # real version not known
         "*": irrelevant
+        net-http: v0.1 # real version not known
       Test_NodeJSKafka:
-        net-http: v0.1 # real version not known
         "*": irrelevant
+        net-http: v0.1 # real version not known
       Test_PythonKafka:
-        net-http: v0.1 # real version not known
         "*": irrelevant
+        net-http: v0.1 # real version not known
       Test_RubyKafka:
-        net-http: v0.1 # real version not known
         "*": irrelevant
+        net-http: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature

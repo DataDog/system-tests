@@ -830,20 +830,20 @@ tests/:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_crossed_integrations.py:
       Test_GolangKafka:
-        spring-boot: v0.1 # real version not known
         "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
       Test_JavaKafka:
-        spring-boot: v0.1 # real version not known
         "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
       Test_NodeJSKafka:
-        spring-boot: v0.1 # real version not known
         "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
       Test_PythonKafka:
-        spring-boot: v0.1 # real version not known
         "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
       Test_RubyKafka:
-        spring-boot: v0.1 # real version not known
         "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
