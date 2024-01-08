@@ -5,7 +5,10 @@ set -eu
 git_clone(){
     url_to_clone=$1
     branch_to_clone=$2
-    git clone --branch "$branch_to_clone" "$url_to_clone" /binaries/dd-trace-cpp
+    current_dir=$(pwd)
+    #git clone --branch "$branch_to_clone" "$url_to_clone" /binaries/dd-trace-cpp
+    git clone "$url_to_clone" /binaries/dd-trace-cpp
+    cd /binaries/dd-trace-cpp && git checkout "$branch_to_clone" && cd "$current_dir"
 }
 
 git_clone_latest_release (){
