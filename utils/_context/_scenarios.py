@@ -374,6 +374,7 @@ class EndToEndScenario(_DockerScenario):
                     f"datadog/system-tests:{language}_buddy-v0",
                     self.host_log_folder,
                     proxy_port=port,
+                    environment=weblog_env,
                 )
                 for language, port in supported_languages
             ]
