@@ -11,6 +11,7 @@ tests/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
+        test_header_injection.py: irrelevant (ASM is not implemented in C++)
         test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
         test_insecure_cookie.py: irrelevant (ASM is not implemented in C++)
         test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
@@ -55,10 +56,6 @@ tests/:
     test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
     test_conf.py: irrelevant (ASM is not implemented in C++)
     test_customconf.py: irrelevant (ASM is not implemented in C++)
-    test_docs.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_ognl.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_sqli.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_ssrf.py: irrelevant (ASM is not implemented in C++)
     test_event_tracking.py: irrelevant (ASM is not implemented in C++)
     test_identify.py: irrelevant (ASM is not implemented in C++)
     test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)

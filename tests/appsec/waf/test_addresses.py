@@ -343,16 +343,20 @@ class Test_BodyXml:
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
 
 
-@coverage.not_implemented
 @features.appsec_request_blocking
 class Test_Method:
     """Appsec supports server.request.method"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
 @features.appsec_request_blocking
 class Test_ClientIP:
     """Appsec supports server.request.client_ip"""
+
+    def test_main(self):
+        assert False, "Need to write a test"
 
 
 @coverage.good
@@ -408,21 +412,27 @@ class Test_gRPC:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
-@coverage.not_implemented
 @features.appsec_request_blocking
 @features.grpc_threats_management
 class Test_FullGrpc:
     """Full gRPC support"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
 @features.appsec_request_blocking
 @features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
 @features.appsec_request_blocking
 class Test_Lambda:
     """Lambda support"""
+
+    def test_main(self):
+        assert False, "Need to write a test"

@@ -8,13 +8,6 @@ from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
 
-@coverage.not_testable
-@features.appsec_onboarding
-@features.threats_configuration
-class Test_OneVariableInstallation:
-    """Installation with 1 env variable"""
-
-
 @coverage.basic
 @features.threats_configuration
 class Test_StaticRuleSet:

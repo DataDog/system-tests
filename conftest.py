@@ -155,10 +155,7 @@ def pytest_pycollect_makemodule(module_path, parent):
 
     # As now, declaration only works for tracers at module level
 
-    if context.scenario.library.library == "python_http":
-        library = "python"
-    else:
-        library = context.scenario.library.library
+    library = context.scenario.library.library
 
     manifests = load_manifests()
 

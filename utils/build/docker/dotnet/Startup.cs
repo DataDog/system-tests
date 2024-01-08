@@ -13,13 +13,14 @@ namespace weblog
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSession();
             services.AddRazorPages();
-           services.AddControllers(options =>
+            services.AddControllers(options =>
             {
                 options.ModelBinderProviders.Insert(0, new ModelBinderSwitcherProvider());
             }).AddXmlSerializerFormatters();
            
-           var identityBuilder = services.AddIdentity<IdentityUser, IdentityRole>(
+            var identityBuilder = services.AddIdentity<IdentityUser, IdentityRole>(
                o =>
                {
                    o.Password.RequireDigit = false;
@@ -43,6 +44,7 @@ namespace weblog
 
             Sql.Setup();
 
+            app.UseSession();
             app.UseRouting();
             app.UseAuthorization();
             app.UseAuthentication();

@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios
+from utils import rfc, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -108,6 +108,7 @@ def assert_valid_zip(content):
 
 @rfc("https://docs.google.com/document/d/1U9aaYM401mJPTM8YMVvym1zaBxFtS4TjbdpZxhX3c3E")
 @scenarios.parametric
+@features.tracer_flare
 class TestTracerFlareV1:
     @parametrize("library_env", [{"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"}])
     def test_telemetry_app_started(self, library_env, test_agent, test_library):

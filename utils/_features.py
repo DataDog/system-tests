@@ -140,7 +140,7 @@ class features:
         return test_object
 
     @staticmethod
-    def b3_headers_injection_and_extraction(test_object):
+    def b3_headers_propagation(test_object):
         """
         B3 headers injection and extraction
 
@@ -710,7 +710,7 @@ class features:
         return test_object
 
     @staticmethod
-    def heart_beat_collected(test_object):
+    def telemetry_heart_beat_collected(test_object):
         """
         Heart beat collected
 
@@ -740,7 +740,7 @@ class features:
         return test_object
 
     @staticmethod
-    def metrics_collected(test_object):
+    def telemetry_metrics_collected(test_object):
         """
         Metrics collected
 
@@ -750,7 +750,7 @@ class features:
         return test_object
 
     @staticmethod
-    def api_v2_implemented(test_object):
+    def telemetry_api_v2_implemented(test_object):
         """
         API V2 Implemented
 
@@ -790,7 +790,7 @@ class features:
         return test_object
 
     @staticmethod
-    def message_batch(test_object):
+    def telemetry_message_batch(test_object):
         """
         message-batch
 
@@ -800,7 +800,7 @@ class features:
         return test_object
 
     @staticmethod
-    def app_started_changes(test_object):
+    def telemetry_app_started_event(test_object):
         """
         app-started changes
 
@@ -1150,6 +1150,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_sink_header_injection(test_object):
+        """
+        IAST Sink: Header Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=203
+        """
+        pytest.mark.features(feature_id=203)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_source_request_parameter_value(test_object):
         """
         IAST Source: Request Parameter Value
@@ -1230,9 +1240,9 @@ class features:
         return test_object
 
     @staticmethod
-    def telemetry(test_object):
+    def waf_telemetry(test_object):
         """
-        Telemetry
+        WAF Telemetry
 
         https://feature-parity.us1.prod.dog/#/?feature=178
         """
@@ -1327,4 +1337,494 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=203
         """
         pytest.mark.features(feature_id=203)(test_object)
+        return test_object
+
+    @staticmethod
+    def api_security_schemas(test_object):
+        """
+        Schema extraction for API Security
+
+        https://feature-parity.us1.prod.dog/#/?feature=204
+        """
+        pytest.mark.features(feature_id=204)(test_object)
+        return test_object
+
+    @staticmethod
+    def span_links_through_datadog_api(test_object):
+        """
+        Span links (through Datadog API)
+
+        https://feature-parity.us1.prod.dog/#/?feature=205
+        """
+        pytest.mark.features(feature_id=205)(test_object)
+        return test_object
+
+    @staticmethod
+    def cassandra_support(test_object):
+        """
+        Cassandra support
+
+        https://feature-parity.us1.prod.dog/#/?feature=206
+        """
+        pytest.mark.features(feature_id=206)(test_object)
+        return test_object
+
+    @staticmethod
+    def mysql_support(test_object):
+        """
+        MySQL Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=207
+        """
+        pytest.mark.features(feature_id=207)(test_object)
+        return test_object
+
+    @staticmethod
+    def mssql_support(test_object):
+        """
+        MySQL Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=225
+        """
+        pytest.mark.features(feature_id=225)(test_object)
+        return test_object
+
+    @staticmethod
+    def postgres_support(test_object):
+        """
+        PostGres Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=208
+        """
+        pytest.mark.features(feature_id=208)(test_object)
+        return test_object
+
+    @staticmethod
+    def database_monitoring_correlation(test_object):
+        """
+        Database Monitoring correlation
+
+        https://feature-parity.us1.prod.dog/#/?feature=209
+        """
+        pytest.mark.features(feature_id=209)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_http(test_object):
+        """
+        DataStreams Monitoring support for Http
+
+        https://feature-parity.us1.prod.dog/#/?feature=210
+        """
+        pytest.mark.features(feature_id=210)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger(test_object):
+        """
+        Debugger
+
+        https://feature-parity.us1.prod.dog/#/?feature=211
+        """
+        pytest.mark.features(feature_id=211)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_kafka(test_object):
+        """
+        DataStreams Monitoring support for Kafka
+
+        https://feature-parity.us1.prod.dog/#/?feature=212
+        """
+        pytest.mark.features(feature_id=212)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_rabbitmq(test_object):
+        """
+        DataStreams Monitoring support for RabbitMQ
+
+        https://feature-parity.us1.prod.dog/#/?feature=213
+        """
+        pytest.mark.features(feature_id=213)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_rabbitmq_fanout(test_object):
+        """
+        DataStreams Monitoring support for RabbitMQ - Fanout
+
+        https://feature-parity.us1.prod.dog/#/?feature=214
+        """
+        pytest.mark.features(feature_id=214)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_rabbitmq_topicexchange(test_object):
+        """
+        DataStreams Monitoring support for RabbitMq - TopicExchange
+
+        https://feature-parity.us1.prod.dog/#/?feature=215
+        """
+        pytest.mark.features(feature_id=215)(test_object)
+        return test_object
+
+    @staticmethod
+    def mongo_support(test_object):
+        """
+        Mongo Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=216
+        """
+        pytest.mark.features(feature_id=216)(test_object)
+        return test_object
+
+    @staticmethod
+    def otel_mysql_support(test_object):
+        """
+        OTEL MySql Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=217
+        """
+        pytest.mark.features(feature_id=217)(test_object)
+        return test_object
+
+    @staticmethod
+    def otel_mssql_support(test_object):
+        """
+        OTEL MySql Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=226
+        """
+        pytest.mark.features(feature_id=226)(test_object)
+        return test_object
+
+    @staticmethod
+    def otel_postgres_support(test_object):
+        """
+        OTEL PostGres Support
+
+        https://feature-parity.us1.prod.dog/#/?feature=218
+        """
+        pytest.mark.features(feature_id=218)(test_object)
+        return test_object
+
+    @staticmethod
+    def sql_support(test_object):
+        """
+        Sql support
+
+        https://feature-parity.us1.prod.dog/#/?feature=219
+        """
+        pytest.mark.features(feature_id=219)(test_object)
+        return test_object
+
+    @staticmethod
+    def dynamic_configuration(test_object):
+        """
+        Dynamic Configuration
+
+        https://feature-parity.us1.prod.dog/#/?feature=220
+        """
+        pytest.mark.features(feature_id=220)(test_object)
+        return test_object
+
+    @staticmethod
+    def datadog_headers_propagation(test_object):
+        """
+        Datadog headers propagation
+
+        https://feature-parity.us1.prod.dog/#/?feature=221
+        """
+        pytest.mark.features(feature_id=221)(test_object)
+        return test_object
+
+    @staticmethod
+    def single_span_sampling(test_object):
+        """
+        Single Span Sampling
+
+        https://feature-parity.us1.prod.dog/#/?feature=222
+        """
+        pytest.mark.features(feature_id=222)(test_object)
+        return test_object
+
+    @staticmethod
+    def tracer_flare(test_object):
+        """
+        Tracer Flare
+
+        https://feature-parity.us1.prod.dog/#/?feature=223
+        """
+        pytest.mark.features(feature_id=223)(test_object)
+        return test_object
+
+    @staticmethod
+    def profiling(test_object):
+        """
+        Profiling
+
+        https://feature-parity.us1.prod.dog/#/?feature=224
+        """
+        pytest.mark.features(feature_id=224)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_sampling(test_object):
+        """
+        Profiling
+
+        https://feature-parity.us1.prod.dog/#/?feature=227
+        """
+        pytest.mark.features(feature_id=227)(test_object)
+        return test_object
+
+    @staticmethod
+    def telemetry_instrumentation(test_object):
+        """
+        Instrumentation telemetry
+
+        https://feature-parity.us1.prod.dog/#/?feature=229
+        """
+        pytest.mark.features(feature_id=229)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_logs(test_object):
+        """
+        Appsec Logs
+
+        https://feature-parity.us1.prod.dog/#/?feature=230
+        """
+        pytest.mark.features(feature_id=230)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_miscs_internals(test_object):
+        """
+        Appsec Miscs Internals
+
+        https://feature-parity.us1.prod.dog/#/?feature=231
+        """
+        pytest.mark.features(feature_id=231)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_scrubbing(test_object):
+        """
+        Appsec Scrubbing
+
+        https://feature-parity.us1.prod.dog/#/?feature=232
+        """
+        pytest.mark.features(feature_id=232)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_standard_tags_client_ip(test_object):
+        """
+        Appsec Standard Tags: client IP
+
+        https://feature-parity.us1.prod.dog/#/?feature=233
+        """
+        pytest.mark.features(feature_id=233)(test_object)
+        return test_object
+
+    @staticmethod
+    def waf_features(test_object):
+        """
+        WAF features
+
+        https://feature-parity.us1.prod.dog/#/?feature=234
+        """
+        pytest.mark.features(feature_id=234)(test_object)
+        return test_object
+
+    @staticmethod
+    def waf_rules(test_object):
+        """
+        WAF rules
+
+        https://feature-parity.us1.prod.dog/#/?feature=235
+        """
+        pytest.mark.features(feature_id=235)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_hsts_missing_header(test_object):
+        """
+        IAST Sink: HSTS missing header
+
+        https://feature-parity.us1.prod.dog/#/?feature=236
+        """
+        pytest.mark.features(feature_id=236)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_http_only_cookie(test_object):
+        """
+        IAST Sink: HTTP only cookie
+
+        https://feature-parity.us1.prod.dog/#/?feature=237
+        """
+        pytest.mark.features(feature_id=237)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_insecure_cookie(test_object):
+        """
+        IAST Sink: Insecure cookie
+
+        https://feature-parity.us1.prod.dog/#/?feature=238
+        """
+        pytest.mark.features(feature_id=238)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_samesite_cookie(test_object):
+        """
+        IAST Sink: SameSite cookie
+
+        https://feature-parity.us1.prod.dog/#/?feature=240
+        """
+        pytest.mark.features(feature_id=240)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_ssrf(test_object):
+        """
+        IAST Sink: SSRF
+
+        https://feature-parity.us1.prod.dog/#/?feature=241
+        """
+        pytest.mark.features(feature_id=241)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_trustboundaryviolation(test_object):
+        """
+        IAST Sink: TrustBoundaryViolation
+
+        https://feature-parity.us1.prod.dog/#/?feature=242
+        """
+        pytest.mark.features(feature_id=242)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_unvalidatedforward(test_object):
+        """
+        IAST Sink: UnvalidatedForward
+
+        https://feature-parity.us1.prod.dog/#/?feature=243
+        """
+        pytest.mark.features(feature_id=243)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_unvalidatedheader(test_object):
+        """
+        IAST Sink: UnvalidatedHeader
+
+        https://feature-parity.us1.prod.dog/#/?feature=244
+        """
+        pytest.mark.features(feature_id=244)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_unvalidatedredirect(test_object):
+        """
+        IAST Sink: UnvalidatedRedirect
+
+        https://feature-parity.us1.prod.dog/#/?feature=245
+        """
+        pytest.mark.features(feature_id=245)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_weakrandomness(test_object):
+        """
+        IAST Sink: WeakRandomness
+
+        https://feature-parity.us1.prod.dog/#/?feature=246
+        """
+        pytest.mark.features(feature_id=246)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_xcontentsniffing(test_object):
+        """
+        IAST Sink: XContentSniffing
+
+        https://feature-parity.us1.prod.dog/#/?feature=247
+        """
+        pytest.mark.features(feature_id=247)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_xpathinjection(test_object):
+        """
+        IAST Sink: XPathInjection
+
+        https://feature-parity.us1.prod.dog/#/?feature=248
+        """
+        pytest.mark.features(feature_id=248)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_xss(test_object):
+        """
+        IAST Sink: XSS
+
+        https://feature-parity.us1.prod.dog/#/?feature=249
+        """
+        pytest.mark.features(feature_id=249)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_source_multipart(test_object):
+        """
+        IAST Source: Multipart
+
+        https://feature-parity.us1.prod.dog/#/?feature=250
+        """
+        pytest.mark.features(feature_id=250)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_source_path(test_object):
+        """
+        IAST Source: Path
+
+        https://feature-parity.us1.prod.dog/#/?feature=251
+        """
+        pytest.mark.features(feature_id=251)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_source_uri(test_object):
+        """
+        IAST Source: URI
+
+        https://feature-parity.us1.prod.dog/#/?feature=252
+        """
+        pytest.mark.features(feature_id=252)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_mongodb_injection(test_object):
+        """
+        IAST Sink: MongoDB injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=253
+        """
+        pytest.mark.features(feature_id=253)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_user_blocking(test_object):
+        """
+        User blocking
+
+        https://feature-parity.us1.prod.dog/#/?feature=254
+        """
+        pytest.mark.features(feature_id=254)(test_object)
         return test_object
