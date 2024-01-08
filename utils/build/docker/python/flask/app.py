@@ -210,14 +210,10 @@ def consume_kafka_message():
     consumer.subscribe([message_topic])
 
     msg = None
-    current_attempts = 0
-    max_attempts = 15
     start_time = time.time()
 
-    while not msg and current_attempts < max_attempts and time.time() - start_time < timeout_s:
+    while not msg and time.time() - start_time < timeout_s:
         msg = consumer.poll(1)
-        if msg is None:
-            current_attempts += 1
 
     consumer.close()
 
