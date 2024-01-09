@@ -81,12 +81,5 @@ class Test_First_Trace_Telemetry:
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
-            assert (
-                "DD-Agent-Install-Id" not in req["headers"]
-            ), "The install id should not be included when not propagated, got headers {}".format(req["headers"])
-            assert (
-                "DD-Agent-Install-Type" not in req["headers"]
-            ), "The install type should not be included when not propagated, got headers {}".format(req["headers"])
-            assert (
-                "DD-Agent-Install-Time" not in req["headers"]
-            ), "The install time should not be included when not propagated, got headers {}".format(req["headers"])
+            body = json.loads(base64.b64decode(req["body"]))
+            assert "install_signature" not in body["payload"], "The install signature should not be included in the telemetry event, got {}".format(body)
