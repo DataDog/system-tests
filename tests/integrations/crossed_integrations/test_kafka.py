@@ -199,19 +199,6 @@ class _Test_Kafka:
         return producer_span, consumer_span
 
 
-MISSING_LIBRARY_LOGIC = (
-    context.library == "cpp"
-    or context.library == "php"
-    or context.library == "dotnet"
-    or (context.library == "python" and context.weblog_variant != "flask-poc")
-    or (context.library == "golang" and context.weblog_variant != "net-http")
-    or (context.library == "java" and context.weblog_variant != "spring-boot")
-    or (context.library == "nodejs" and context.weblog_variant != "express4")
-    or (context.library == "ruby" and context.weblog_variant != "rails70")
-)
-
-
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_js
@@ -219,7 +206,7 @@ class Test_NodeJSKafka(_Test_Kafka):
     buddy_interface = interfaces.nodejs_buddy
     buddy = _nodejs_buddy
     WEBLOG_TO_BUDDY_TOPIC = "Test_NodeJSKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_NodeJSKafka_buddy_to_weblog"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_NodeJSKafka_buddy_to_weblog"
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
@@ -234,26 +221,24 @@ class Test_NodeJSKafka(_Test_Kafka):
         super().test_consume_trace_equality()
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_py
 class Test_PythonKafka(_Test_Kafka):
     buddy_interface = interfaces.python_buddy
     buddy = _python_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_PythonKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_PythonKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_PythonKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_PythonKafka_buddy_to_weblog"
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_java
 class Test_JavaKafka(_Test_Kafka):
     buddy_interface = interfaces.java_buddy
     buddy = _java_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_JavaKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_JavaKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_JavaKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_JavaKafka_buddy_to_weblog"
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
@@ -268,23 +253,21 @@ class Test_JavaKafka(_Test_Kafka):
         super().test_consume_trace_equality()
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_rb
 class Test_RubyKafka(_Test_Kafka):
     buddy_interface = interfaces.ruby_buddy
     buddy = _ruby_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_RubyKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_RubyKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_RubyKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_RubyKafka_buddy_to_weblog"
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_go
 class Test_GolangKafka(_Test_Kafka):
     buddy_interface = interfaces.golang_buddy
     buddy = _golang_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_GolangKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_GolangKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_GolangKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_GolangKafka_buddy_to_weblog"
