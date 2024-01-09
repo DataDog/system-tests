@@ -272,7 +272,7 @@ app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
   // Create an SQS client
   const sqs = new AWS.SQS({
-    endpoint: 'http://localstack:4566',
+    endpoint: 'http://elasticmq:9324',
     region: 'us-east-1'
   })
 
@@ -288,7 +288,7 @@ app.get('/sqs/produce', (req, res) => {
           // Send messages to the queue
           const produce = () => {
             sqs.sendMessage({
-              QueueUrl: `http://localstack:4566/000000000000/${queue}`,
+              QueueUrl: `http://elasticmq:9324/000000000000/${queue}`,
               MessageBody: 'Hello from SQS JavaScript injection'
             }, (err, data) => {
               if (err) {
@@ -324,14 +324,14 @@ app.get('/sqs/consume', (req, res) => {
   const timeout = req.query.timeout ?? 5
   // Create an SQS client
   const sqs = new AWS.SQS({
-    endpoint: 'http://localstack:4566',
+    endpoint: 'http://elasticmq:9324',
     region: 'us-east-1'
   })
 
   const consumeMessage = async () => {
     return new Promise((resolve, reject) => {
       sqs.receiveMessage({
-        QueueUrl: `http://localstack:4566/000000000000/${queue}`,
+        QueueUrl: `http://elasticmq:9324/000000000000/${queue}`,
         MaxNumberOfMessages: 1,
         WaitTimeSeconds: timeout
       }, (err, response) => {

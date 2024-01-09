@@ -9,7 +9,7 @@ import java.util.List;
 import java.net.URI;
 
 public class SqsConnector {
-    public static final String ENDPOINT = "http://localstack:4566";
+    public static final String ENDPOINT = "http://elasticmq:9324";
     public final String queue;
 
     public SqsConnector(String queue){

@@ -229,7 +229,7 @@ def produce_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
 
     # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://localstack:4566", region_name="us-east-1")
+    sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
     try:
         sqs.create_queue(QueueName=queue)
@@ -238,7 +238,7 @@ def produce_sqs_message():
 
     try:
         # Send the message to the SQS queue
-        sqs.send_message(QueueUrl=f"http://localstack:4566/000000000000/{queue}", MessageBody="Hello from Python SQS")
+        sqs.send_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}", MessageBody="Hello from Python SQS")
         logging.info("Python SQS message sent successfully")
         return "SQS Produce ok", 200
     except Exception as e:
@@ -254,9 +254,9 @@ def consume_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
 
     # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://localstack:4566", region_name="us-east-1")
+    sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
-    response = sqs.receive_message(QueueUrl=f"http://localstack:4566/000000000000/{queue}", MaxNumberOfMessages=1,)
+    response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}", MaxNumberOfMessages=1,)
 
     if response and "Messages" in response:
         consumed_message = None

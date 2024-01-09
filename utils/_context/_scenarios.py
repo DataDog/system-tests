@@ -26,7 +26,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
-    LocalstackContainer,
+    ElasticMQContainer,
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
@@ -239,7 +239,7 @@ class _DockerScenario(_Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
-        include_localstack=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(name, doc=doc)
 
@@ -274,8 +274,8 @@ class _DockerScenario(_Scenario):
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
-        if include_localstack:
-            self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+        if include_elasticmq:
+            self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
     def configure(self, config):
         super().configure(config)
@@ -333,7 +333,7 @@ class EndToEndScenario(_DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
-        include_localstack=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(
             name,
@@ -347,7 +347,7 @@ class EndToEndScenario(_DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
-            include_localstack=include_localstack,
+            include_elasticmq=include_elasticmq,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -1096,7 +1096,7 @@ class scenarios:
         },
         include_kafka=True,
         include_buddies=True,
-        include_localstack=True,
+        include_elasticmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
 
