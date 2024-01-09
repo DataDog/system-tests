@@ -743,16 +743,18 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class LocalstackContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="localstack/localstack:3.0.2",
+            image_name="localstack/localstack:0.12.11",  # using old version which uses elasticmq for sqs backend - allows propagation of x-amzn-trace-id header
             name="localstack",
             host_log_folder=host_log_folder,
             environment={
                 "LOCALSTACK_SERVICES": "dynamodb,kinesis,s3,sqs,sns,redshift,route53,logs,serverless,lambda",
-                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid,x-amz-id-2",
-                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid,x-amz-id-2",
+                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",
+                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid",
                 "AWS_DEFAULT_REGION": "us-east-1",
                 "FORCE_NONINTERACTIVE": "true",
                 "DOCKER_HOST": "unix:///var/run/docker.sock",
+                "PROVIDER_OVERRIDE_SQS": "legacy",
+                "SQS_PROVIDER": "elasticmq",
             },
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
             allow_old_container=True,

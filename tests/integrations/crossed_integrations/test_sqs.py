@@ -185,10 +185,6 @@ class _Test_SQS:
         assert producer_span is not None
         assert consumer_span is not None
 
-        # consumed = consumer_span["meta"].get("sqs.received_message")
-        # if consumed is not None:  # available only for python spans
-        #     assert consumed == "True"
-
         # Assert that the consumer span is not the root
         assert "parent_id" in consumer_span, "parent_id is missing in consumer span"
 
@@ -196,49 +192,34 @@ class _Test_SQS:
         return producer_span, consumer_span
 
 
-MISSING_LIBRARY_LOGIC = (
-    context.library == "cpp"
-    or context.library == "php"
-    or context.library == "dotnet"
-    or context.library == "golang"
-    or context.library == "ruby"
-    or (context.library == "python" and context.weblog_variant != "flask-poc")
-    or (context.library == "java" and context.weblog_variant != "spring-boot")
-    or (context.library == "nodejs" and context.weblog_variant != "express4")
-)
-
-
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.aws_sqs_span_creationcontext_propagation_with_dd_trace_js
 class Test_NodeJS_SQS(_Test_SQS):
     buddy_interface = interfaces.nodejs_buddy
     buddy = _nodejs_buddy
-    WEBLOG_TO_BUDDY_QUEUE = f"Test_NodeJS_SQS_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = f"Test_NodeJS_SQS_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_QUEUE = "Test_NodeJS_SQS_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_NodeJS_SQS_buddy_to_weblog"
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.aws_sqs_span_creationcontext_propagation_with_dd_trace_py
 class Test_Python_SQS(_Test_SQS):
     buddy_interface = interfaces.python_buddy
     buddy = _python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = f"Test_Python_SQS_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = f"Test_Python_SQS_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_QUEUE = "Test_Python_SQS_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_Python_SQS_buddy_to_weblog"
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.aws_sqs_span_creationcontext_propagation_with_dd_trace_java
 class Test_Java_SQS(_Test_SQS):
     buddy_interface = interfaces.java_buddy
     buddy = _java_buddy
-    WEBLOG_TO_BUDDY_QUEUE = f"Test_Java_SQS_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = f"Test_Java_SQS_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_QUEUE = "Test_Java_SQS_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_Java_SQS_buddy_to_weblog"
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")

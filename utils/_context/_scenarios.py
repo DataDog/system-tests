@@ -1089,7 +1089,11 @@ class scenarios:
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
-        weblog_env={"DD_TRACE_API_VERSION": "v0.4"},
+        weblog_env={
+            "DD_TRACE_API_VERSION": "v0.4",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_kafka=True,
         include_buddies=True,
         include_localstack=True,
