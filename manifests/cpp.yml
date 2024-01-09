@@ -56,10 +56,6 @@ tests/:
     test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
     test_conf.py: irrelevant (ASM is not implemented in C++)
     test_customconf.py: irrelevant (ASM is not implemented in C++)
-    test_docs.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_ognl.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_sqli.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_ssrf.py: irrelevant (ASM is not implemented in C++)
     test_event_tracking.py: irrelevant (ASM is not implemented in C++)
     test_identify.py: irrelevant (ASM is not implemented in C++)
     test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
@@ -80,7 +76,11 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_crossed_integrations.py:
+      Test_GolangKafka: missing_feature
+      Test_JavaKafka: missing_feature
+      Test_NodeJSKafka: missing_feature
       Test_PythonKafka: missing_feature
+      Test_RubyKafka: missing_feature
     test_db_integrations_sql.py: 
       Test_MsSql: missing_feature
       Test_MySql: missing_feature

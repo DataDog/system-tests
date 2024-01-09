@@ -83,10 +83,7 @@ go mod tidy
 
 #### dotnet
 
-To test unmerged PRs locally, do the following:
-- In your local dd-trace-dotnet repo, build the `Datadog.Trace` NuGet package. The easiest way to do this is to run `dotnet pack` from the `/tracer/src/Datadog.Trace` directory.
-- Copy the resulting `.nupkg` file into the `apps/dotnet` directory
-- In `apps/dotnet/ApmTestClient.csproj`, update the version of the `Datadog.Trace` package reference to the dev version
+Add a file datadog-dotnet-apm-<VERSION>.tar.gz in binaries/. <VERSION> must be a valid version number.
 
 #### Java
 
@@ -146,22 +143,25 @@ TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-tra
 #### NodeJS
 
 There is two ways for running the NodeJS tests with a custom tracer:
-- Place the ddtrace NPM package in the folder `utils/build/docker/nodejs/parametric/npm` and then set the environment variable `NODEJS_DDTRACE_MODULE`
-with the filename placed in the aforementioned folder. For example:
-  - `TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz" ./run.sh PARAMETRIC`
-- Set the environment variable `NODEJS_DDTRACE_MODULE` to hold a commit in a remote branch. The following example will run
-the tests with a specific commit:
-  - `TEST_LIBRARY=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh PARAMETRIC`
+1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
+    * `DataDog/dd-trace-js#master`
+2. Clone the dd-trace-js repo inside `binaries`
 
 #### Ruby
 
-To run the Ruby tests "locally" push your code GitHub and then specify `RUBY_DDTRACE_SHA`:
+There is two ways for running the Ruby tests with a custom tracer:
 
-```sh
-RUBY_DDTRACE_SHA=0552ebd49dc5b3bec4e739c2c74b214fb3102c2a ./run.sh ...
-```
+1. Create an file ruby-load-from-bundle-add in binaries/, the content will be installed by bundle add. Content example:
+gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'
+2. Clone the dd-trace-rb repo inside binaries
 
 #### C++
+
+There is two ways for running the C++ library tests with a custom tracer:
+1. Create a file `cpp-load-from-git` in `binaries/`. Content examples:
+    * `https://github.com/DataDog/dd-trace-cpp@main`
+    * `https://github.com/DataDog/dd-trace-cpp@<COMMIT HASH>`
+2. Clone the dd-trace-cpp repo inside `binaries`
 
 The parametric shared tests can be run against the C++ library,
 [dd-trace-cpp][1], this way:
@@ -254,7 +254,7 @@ docker image rm <library>-test-library
 
 ### Extending the interface
 
-The Python implementation of the interface `app/python_http`, when run, provides a specification of the API when run.
+The Python implementation of the interface `app/python`, when run, provides a specification of the API when run.
 See the steps below in the HTTP section to run the Python server and view the specification.
 
 ## Implementation

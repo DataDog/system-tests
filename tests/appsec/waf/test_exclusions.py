@@ -1,7 +1,8 @@
-from utils import context, interfaces, scenarios, weblog, bug
+from utils import context, interfaces, scenarios, weblog, bug, features
 
 
 @scenarios.appsec_custom_rules
+@features.waf_features
 class Test_Exclusions:
     """Includes a version of the WAF supporting rule exclusion"""
 

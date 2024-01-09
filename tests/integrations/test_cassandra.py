@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios
+from utils import weblog, interfaces, context, missing_feature, scenarios, features
 
 
 @missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
+@features.cassandra_support
 @scenarios.integrations
 class Test_Cassandra:
     """ Verify that a cassandra span is created """

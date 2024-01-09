@@ -11,6 +11,8 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
+
+from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
@@ -363,11 +365,18 @@ class EndToEndScenario(_DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python is supported
+            # so far, only python, nodejs, java, ruby and golang are supported
+            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+
             self.buddies += [
                 BuddyContainer(
-                    "python_buddy", "datadog/system-tests:python_buddy-v0", self.host_log_folder, proxy_port=9001
-                ),
+                    f"{language}_buddy",
+                    f"datadog/system-tests:{language}_buddy-v0",
+                    self.host_log_folder,
+                    proxy_port=port,
+                    environment=weblog_env,
+                )
+                for language, port in supported_languages
             ]
 
             self._required_containers += self.buddies
@@ -512,6 +521,16 @@ class EndToEndScenario(_DockerScenario):
     def post_setup(self):
         from utils import interfaces
 
+        try:
+            self._wait_and_stop_containers()
+        finally:
+            self.close_targets()
+
+        interfaces.library_dotnet_managed.load_data()
+
+    def _wait_and_stop_containers(self):
+        from utils import interfaces
+
         if self.replay:
 
             logger.terminal.write_sep("-", "Load all data from logs")
@@ -545,10 +564,6 @@ class EndToEndScenario(_DockerScenario):
             interfaces.agent.check_deserialization_errors()
 
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
-
-        self.close_targets()
-
-        interfaces.library_dotnet_managed.load_data()
 
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -991,14 +1006,6 @@ class ParametricScenario(_Scenario):
         super().configure(config)
         assert "TEST_LIBRARY" in os.environ
 
-        # For some tracers we need a env variable present to use custom build of the tracer
-        lang_custom_build_param = {
-            "python": "PYTHON_DDTRACE_PACKAGE",
-            "nodejs": "NODEJS_DDTRACE_MODULE",
-            "ruby": "RUBY_DDTRACE_SHA",
-        }
-        build_param = os.getenv(lang_custom_build_param.get(os.getenv("TEST_LIBRARY"), ""), "")
-
         # get tracer version info building and executing the ddtracer-version.docker file
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
@@ -1013,8 +1020,7 @@ class ParametricScenario(_Scenario):
                         "ddtracer_version",
                         "-f",
                         f"{tracer_version_dockerfile}",
-                        "--build-arg",
-                        f"BUILD_MODULE={build_param}",
+                        "--quiet",
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,
@@ -1076,6 +1082,7 @@ class scenarios:
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
+        weblog_env={"DD_TRACE_API_VERSION": "v0.4"},
         include_kafka=True,
         include_buddies=True,
         doc="Spawns a buddy for each supported language of APM",
@@ -1363,14 +1370,17 @@ class scenarios:
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
 
-    library_conf_custom_headers_short = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2"), doc=""
+    library_conf_custom_header_tags = EndToEndScenario(
+        "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
+        additional_trace_header_tags=(VALID_CONFIGS),
+        doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
-    library_conf_custom_headers_long = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
-        additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
-        doc="",
+    library_conf_custom_header_tags_invalid = EndToEndScenario(
+        "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
+        additional_trace_header_tags=(INVALID_CONFIGS),
+        doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
+
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)

@@ -402,7 +402,7 @@ class AgentContainer(TestedContainer):
 
 
 class BuddyContainer(TestedContainer):
-    def __init__(self, name, image_name, host_log_folder, proxy_port) -> None:
+    def __init__(self, name, image_name, host_log_folder, proxy_port, environment) -> None:
         super().__init__(
             name=name,
             image_name=image_name,
@@ -410,6 +410,7 @@ class BuddyContainer(TestedContainer):
             healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
             ports={"7777/tcp": proxy_port},  # not the proxy port
             environment={
+                **environment,
                 "DD_SERVICE": name,
                 "DD_ENV": "system-tests",
                 "DD_VERSION": "1.0.0",
@@ -503,7 +504,7 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_TRACE_HEADER_TAGS"] = ""
 
         if len(self.additional_trace_header_tags) != 0:
-            self.environment["DD_TRACE_HEADER_TAGS"] += ",".join(self.additional_trace_header_tags)
+            self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
         if self.appsec_rules_file:
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file

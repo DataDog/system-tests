@@ -3,13 +3,14 @@ tests/:
     api_security/:
       test_schemas.py:
         Test_Scanners: missing_feature
-        Test_Schema_Request_Body: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Cookies: v0.94.0
+        Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
+        Test_Schema_Request_Headers: v0.94.0
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Request_Query_Parameters: v0.94.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Headers: v0.94.0
     iast/:
       sink/:
         test_command_injection.py:
@@ -128,7 +129,7 @@ tests/:
       Test_Blocking_request_uri: v0.7.0
       Test_Blocking_response_headers: v0.7.0
       Test_Blocking_response_status: v0.7.0
-      Test_Suspicious_Request_Blocking: v0.7.0
+      Test_Suspicious_Request_Blocking: missing_feature (v0.7.0 but test is not implemented)
     test_conf.py:
       Test_RuleSet_1_3_1: v0.3.0
       Test_StaticRuleSet: v0.1.0
@@ -159,6 +160,7 @@ tests/:
       Test_AppSecEventSpanTags: v0.1.0
       Test_AppSecObfuscator: v0.3.0
       Test_CollectRespondHeaders: v0.2.2
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v0.1.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.7.2
