@@ -206,7 +206,7 @@ class Test_NodeJSKafka(_Test_Kafka):
     buddy_interface = interfaces.nodejs_buddy
     buddy = _nodejs_buddy
     WEBLOG_TO_BUDDY_TOPIC = "Test_NodeJSKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_NodeJSKafka_buddy_to_weblog"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_NodeJSKafka_buddy_to_weblog"
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
@@ -227,8 +227,8 @@ class Test_NodeJSKafka(_Test_Kafka):
 class Test_PythonKafka(_Test_Kafka):
     buddy_interface = interfaces.python_buddy
     buddy = _python_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_PythonKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_PythonKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_PythonKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_PythonKafka_buddy_to_weblog"
 
 
 @scenarios.crossed_tracing_libraries
@@ -237,8 +237,8 @@ class Test_PythonKafka(_Test_Kafka):
 class Test_JavaKafka(_Test_Kafka):
     buddy_interface = interfaces.java_buddy
     buddy = _java_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_JavaKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_JavaKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_JavaKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_JavaKafka_buddy_to_weblog"
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
@@ -259,8 +259,8 @@ class Test_JavaKafka(_Test_Kafka):
 class Test_RubyKafka(_Test_Kafka):
     buddy_interface = interfaces.ruby_buddy
     buddy = _ruby_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_RubyKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_RubyKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_RubyKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_RubyKafka_buddy_to_weblog"
 
 
 @scenarios.crossed_tracing_libraries
@@ -269,5 +269,5 @@ class Test_RubyKafka(_Test_Kafka):
 class Test_GolangKafka(_Test_Kafka):
     buddy_interface = interfaces.golang_buddy
     buddy = _golang_buddy
-    WEBLOG_TO_BUDDY_TOPIC = f"Test_GolangKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = f"Test_GolangKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_GolangKafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_GolangKafka_buddy_to_weblog"
