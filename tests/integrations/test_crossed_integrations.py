@@ -199,21 +199,6 @@ class _Test_Kafka:
         return producer_span, consumer_span
 
 
-IRRELEVANT_LIBRARY_LOGIC = context.library == "cpp" or context.library == "php"
-
-
-MISSING_LIBRARY_LOGIC = (
-    context.library == "dotnet"
-    or (context.library == "python" and context.weblog_variant != "flask-poc")
-    or (context.library == "golang" and context.weblog_variant != "net-http")
-    or (context.library == "java" and context.weblog_variant != "spring-boot")
-    or (context.library == "nodejs" and context.weblog_variant != "express4")
-    or (context.library == "ruby" and context.weblog_variant != "rails70")
-)
-
-
-@irrelevant(IRRELEVANT_LIBRARY_LOGIC)
-@missing_feature(MISSING_LIBRARY_LOGIC, reason="Weblog endpoint has not been implemented")
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_js
@@ -236,7 +221,6 @@ class Test_NodeJSKafka(_Test_Kafka):
         super().test_consume_trace_equality()
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_py
@@ -247,7 +231,6 @@ class Test_PythonKafka(_Test_Kafka):
     BUDDY_TO_WEBLOG_TOPIC = f"Test_PythonKafka_buddy_to_weblog"
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_java
@@ -270,7 +253,6 @@ class Test_JavaKafka(_Test_Kafka):
         super().test_consume_trace_equality()
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_rb
@@ -281,7 +263,6 @@ class Test_RubyKafka(_Test_Kafka):
     BUDDY_TO_WEBLOG_TOPIC = f"Test_RubyKafka_buddy_to_weblog"
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_go
