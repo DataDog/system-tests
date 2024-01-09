@@ -199,10 +199,11 @@ class _Test_Kafka:
         return producer_span, consumer_span
 
 
+IRRELEVANT_LIBRARY_LOGIC = context.library == "cpp" or context.library == "php"
+
+
 MISSING_LIBRARY_LOGIC = (
-    context.library == "cpp"
-    or context.library == "php"
-    or context.library == "dotnet"
+    context.library == "dotnet"
     or (context.library == "python" and context.weblog_variant != "flask-poc")
     or (context.library == "golang" and context.weblog_variant != "net-http")
     or (context.library == "java" and context.weblog_variant != "spring-boot")
@@ -211,7 +212,8 @@ MISSING_LIBRARY_LOGIC = (
 )
 
 
-@irrelevant(MISSING_LIBRARY_LOGIC)
+@irrelevant(IRRELEVANT_LIBRARY_LOGIC)
+@missing_feature(MISSING_LIBRARY_LOGIC, reason="Weblog endpoint has not been implemented")
 @scenarios.crossed_tracing_libraries
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_js
