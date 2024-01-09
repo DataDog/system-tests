@@ -100,6 +100,7 @@ class Test_First_Trace_Telemetry:
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
             body = json.loads(base64.b64decode(req["body"]))
-            assert (
-                "install_signature" not in body["payload"]
-            ), "The install signature should not be included in the telemetry event, got {}".format(body)
+            if "payload" in body:
+                assert (
+                    "install_signature" not in body["payload"]
+                ), "The install signature should not be included in the telemetry event, got {}".format(body)
