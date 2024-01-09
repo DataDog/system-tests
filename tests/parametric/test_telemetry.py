@@ -8,7 +8,7 @@ import uuid
 
 import pytest
 
-from utils import scenarios, rfc
+from utils import scenarios, rfc, features
 
 
 DEFAULT_ENVVARS = {
@@ -19,6 +19,7 @@ DEFAULT_ENVVARS = {
 
 @rfc("https://docs.google.com/document/d/14vsrCbnAKnXmJAkacX9I6jKPGKmxsq0PKUb3dfiZpWE/edit")
 @scenarios.parametric
+@features.telemetry_app_started_event
 class Test_First_Trace_Telemetry:
     """
     Test the time-to-first-trace telemetry that should be emitted from the library.
