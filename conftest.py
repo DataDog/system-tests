@@ -161,6 +161,10 @@ def pytest_pycollect_makemodule(module_path, parent):
 
     nodeid = str(module_path.relative_to(module_path.cwd()))
 
+    if library == "php@0.96.0" or library == "php@0.95.0":
+        mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+        mod.add_marker(pytest.mark.skip(reason="PHP 0.95.0 abd 0.96.0 has a bug and we cannot test this version"))
+
     if nodeid in manifests and library in manifests[nodeid]:
         declaration = manifests[nodeid][library]
 
