@@ -57,14 +57,31 @@ class Test_First_Trace_Telemetry:
             body = json.loads(base64.b64decode(req["body"]))
             if body["request_type"] != "app-started":
                 continue
-            assert "install_signature" in body["payload"], "The install signature should be included in the telemetry event, got {}".format(body)
-            assert "install_id" in body["payload"]["install_signature"], "The install id should be included in the telemetry event, got {}".format(body["payload"]["install_signature"])
+            assert (
+                "install_signature" in body["payload"]
+            ), "The install signature should be included in the telemetry event, got {}".format(body)
+            assert (
+                "install_id" in body["payload"]["install_signature"]
+            ), "The install id should be included in the telemetry event, got {}".format(
+                body["payload"]["install_signature"]
+            )
             assert body["payload"]["install_signature"]["install_id"] == library_env["DD_INSTRUMENTATION_INSTALL_ID"]
-            assert body["payload"]["install_signature"]["install_type"] == library_env["DD_INSTRUMENTATION_INSTALL_TYPE"]
-            assert "install_type" in body["payload"]["install_signature"], "The install type should be included in the telemetry event, got {}".format(body["payload"]["install_signature"])
-            assert body["payload"]["install_signature"]["install_time"] == library_env["DD_INSTRUMENTATION_INSTALL_TIME"]
-            assert "install_time" in body["payload"]["install_signature"], "The install time should be included in the telemetry event, got {}".format(body["payload"]["install_signature"])
-
+            assert (
+                body["payload"]["install_signature"]["install_type"] == library_env["DD_INSTRUMENTATION_INSTALL_TYPE"]
+            )
+            assert (
+                "install_type" in body["payload"]["install_signature"]
+            ), "The install type should be included in the telemetry event, got {}".format(
+                body["payload"]["install_signature"]
+            )
+            assert (
+                body["payload"]["install_signature"]["install_time"] == library_env["DD_INSTRUMENTATION_INSTALL_TIME"]
+            )
+            assert (
+                "install_time" in body["payload"]["install_signature"]
+            ), "The install time should be included in the telemetry event, got {}".format(
+                body["payload"]["install_signature"]
+            )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_telemetry_event_not_propagated(self, library_env, test_agent, test_library):
@@ -82,4 +99,6 @@ class Test_First_Trace_Telemetry:
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
             body = json.loads(base64.b64decode(req["body"]))
-            assert "install_signature" not in body["payload"], "The install signature should not be included in the telemetry event, got {}".format(body)
+            assert (
+                "install_signature" not in body["payload"]
+            ), "The install signature should not be included in the telemetry event, got {}".format(body)
