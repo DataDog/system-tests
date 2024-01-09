@@ -34,7 +34,7 @@ else
     # Full installation: APM + ASM + Profiling (Beta)
     INSTALLER_ARGS=()
     INSTALLER_ARGS+=(--enable-appsec)
-    INSTALLER_ARGS+=(--enable-profiling)
+   # INSTALLER_ARGS+=(--enable-profiling)
 
     echo "Install args are ${INSTALLER_ARGS[@]}"
 
