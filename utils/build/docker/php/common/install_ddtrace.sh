@@ -9,11 +9,11 @@ cd /binaries
 if [[ -f "datadog-setup.php" ]]; then
     INSTALLER_ARGS=()
 
-    BINARIES_COMBINED_N=$(find . -name 'dd-library-php-*-x86_64-linux-gnu.tar.gz' | wc -l)
+    BINARIES_COMBINED_N=$(find . -name 'dd-library-php-*x86_64-linux-gnu.tar.gz' | wc -l)
     if [[ $BINARIES_COMBINED_N -eq 1 ]]; then
-      INSTALLER_ARGS+=(--file dd-library-php-*-x86_64-linux-gnu.tar.gz)
+      INSTALLER_ARGS+=(--file dd-library-php-*x86_64-linux-gnu.tar.gz)
     elif [[ $BINARIES_COMBINED_N -gt 1 ]]; then
-      echo "Too many appsec packages in /binaries" >&2
+      echo "Too many PHP packages in /binaries" >&2
       exit 1
     fi
 
@@ -27,29 +27,14 @@ if [[ -f "datadog-setup.php" ]]; then
     fi
 else
     echo "Loading install script"
+
     curl -Lf -o /tmp/dd-library-php-setup.php \
-      https://raw.githubusercontent.com/DataDog/dd-appsec-php/installer/dd-library-php-setup.php
+      https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
 
-    BINARIES_APPSEC_N=$(find . -name 'dd-appsec-php-*.tar.gz' | wc -l)
-    BINARIES_TRACER_N=$(find . -name 'datadog-php-tracer*.tar.gz' | wc -l)
+    # Full installation: APM + ASM + Profiling (Beta)
     INSTALLER_ARGS=()
-    if [[ $BINARIES_APPSEC_N -eq 1 ]]; then
-      INSTALLER_ARGS+=(--appsec-file /binaries/dd-appsec-php-*.tar.gz)
-    elif [[ $BINARIES_APPSEC_N -gt 1 ]]; then
-      echo "Too many appsec packages in /binaries" >&2
-      exit 1
-    else
-      INSTALLER_ARGS+=(--appsec-version $APPSEC_VERSION)
-    fi
-
-    if [[ $BINARIES_TRACER_N -eq 1 ]]; then
-      INSTALLER_ARGS+=(--tracer-file /binaries/datadog-php-tracer*.tar.gz)
-    elif [[ $BINARIES_TRACER_N -gt 1 ]]; then
-      echo "Too many appsec packages in /binaries" >&2
-      exit 1
-    else
-      INSTALLER_ARGS+=(--tracer-version $TRACER_VERSION)
-    fi
+    INSTALLER_ARGS+=(--enable-appsec)
+    INSTALLER_ARGS+=(--enable-profiling)
 
     echo "Install args are ${INSTALLER_ARGS[@]}"
 
