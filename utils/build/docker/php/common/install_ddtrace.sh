@@ -28,10 +28,8 @@ else
       PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"}
  fi
 
-
-if [[ -n "$NO_EXTRACT_VERSION" ]]; then
-    exit 0
-fi
+#Ensure parametric test compatibility
+[ ! -z ${NO_EXTRACT_VERSION+x} ] && exit 0
 
 #Extract version info
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
