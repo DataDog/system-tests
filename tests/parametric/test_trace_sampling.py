@@ -348,14 +348,6 @@ class Test_Trace_Sampling_Tags:
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
 
 
-@missing_feature(context.library == "python", reason="Not implemented")
-@missing_feature(context.library == "python_http", reason="Not implemented")
-@missing_feature(context.library == "java", reason="Not implemented")
-@missing_feature(context.library == "ruby", reason="Not implemented")
-@missing_feature(context.library == "nodejs", reason="Not implemented")
-@missing_feature(context.library == "php", reason="Not implemented")
-@missing_feature(context.library == "dotnet", reason="Not implemented")
-@missing_feature(context.library == "golang", reason="Not implemented")
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 @features.trace_sampling
