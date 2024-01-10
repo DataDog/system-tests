@@ -11,7 +11,6 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
         Test_Schema_Request_Cookies: missing_feature
         Test_Schema_Request_Headers: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
