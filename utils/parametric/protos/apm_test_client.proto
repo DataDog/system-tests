@@ -60,7 +60,7 @@ message HeaderTuple {
 
 message StartSpanReturn {
   uint64 span_id = 1;
-  uint64 trace_id = 2;
+  string trace_id = 2;
 }
 
 message InjectHeadersArgs {
@@ -143,7 +143,7 @@ message OtelStartSpanArgs {
 
 message OtelStartSpanReturn {
   uint64 span_id = 1;
-  uint64 trace_id = 2;
+  string trace_id = 2;
 }
 message OtelEndSpanArgs {
   uint64 id = 1;
