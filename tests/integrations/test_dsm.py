@@ -176,6 +176,38 @@ class Test_DsmRabbitmq_FanoutExchange:
         )
 
 
+@features.datastreams_monitoring_support_for_sqs
+@scenarios.integrations
+class Test_DsmSQS:
+    """ Verify DSM stats points for Sqs """
+
+    def setup_dsm_kafka(self):
+        self.r = weblog.get("/dsm?integration=sqs")
+
+    def test_dsm_kafka(self):
+        assert self.r.text == "ok"
+
+        # Hashes are created by applying the FNV-1 algorithm on
+        # checkpoint strings (e.g. service:foo)
+        # There is currently no FNV-1 library availble for node.js
+        # So we are using a different algorithm for node.js for now
+        if context.library == "nodejs":
+            producer_hash = 2931833227331067675
+            consumer_hash = 271115008390912609
+        else:
+            producer_hash = 4463699290244539355
+            consumer_hash = 3735318893869752335
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:sqs"),
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=("direction:in", "topic:dsm-system-tests-queue", "type:sqs"),
+        )
+
+
 class DsmHelper:
     @staticmethod
     def is_tags_included(actual_tags, expected_tags):

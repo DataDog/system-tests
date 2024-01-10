@@ -1891,3 +1891,13 @@ class features:
         """
         pytest.mark.features(feature_id=261)(test_object)
         return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_sqs(test_object):
+        """
+        DataStreams Monitoring support for SQS
+
+        https://feature-parity.us1.prod.dog/#/?feature=262
+        """
+        pytest.mark.features(feature_id=262)(test_object)
+        return test_object

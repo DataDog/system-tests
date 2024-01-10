@@ -883,6 +883,8 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         '*': missing_feature
         spring-boot: v1.13.0
+      Test_DsmSQS:
+        '*': missing_feature
     test_mongo.py:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:
