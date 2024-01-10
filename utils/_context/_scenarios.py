@@ -1014,6 +1014,8 @@ class ParametricScenario(_Scenario):
                         "-f",
                         f"{tracer_version_dockerfile}",
                         "--quiet",
+                        "--platform",
+                        "linux/amd64",
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,
@@ -1025,6 +1027,7 @@ class ParametricScenario(_Scenario):
                     stdout=subprocess.PIPE,
                     check=False,
                 )
+                logger.stdout(f"RMM Library: {result.stdout}")
                 self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
             except subprocess.CalledProcessError as e:
                 logger.error(f"{e}")
