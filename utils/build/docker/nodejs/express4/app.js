@@ -142,10 +142,10 @@ app.get('/dsm', (req, res) => {
   const integration = req.query.integration
   const timeout = req.query.timeout ?? 10
 
-  if (integration === "kafka") {
+  if (integration === 'kafka') {
     const topic = 'dsm-system-tests-queue'
-    const message  = 'hello from kafka DSM JS'
-  
+    const message = 'hello from kafka DSM JS'
+
     kafkaProduce(topic, message, false)
       .then(() => {
         kafkaConsume(topic, timeout, true)
@@ -153,13 +153,13 @@ app.get('/dsm', (req, res) => {
       .catch(() => {
         res.status(500).send('Internal Server Error')
       })
-  } else if (integration === "sqs") {
+  } else if (integration === 'sqs') {
     const queue = 'dsm-system-tests-queue'
-    const message  = 'hello from SQS DSM JS'
-  
+    const message = 'hello from SQS DSM JS'
+
     sqsProduce(queue, message, false)
       .then(() => {
-        sqsConsume(topic, timeout, true)
+        sqsConsume(queue, timeout, true)
       })
       .catch(() => {
         res.status(500).send('Internal Server Error')
@@ -171,10 +171,10 @@ app.get('/dsm', (req, res) => {
 
 app.get('/kafka/produce', (req, res) => {
   const topic = req.query.topic
-  return kafkaProduce(topic, "Hello from Kafka JS", true)
+  return kafkaProduce(topic, 'Hello from Kafka JS', true, res)
 })
 
-function kafkaProduce (topic, message, sendResponse) {
+function kafkaProduce (topic, message, sendResponse, res) {
   const kafka = new Kafka({
     clientId: 'my-app-producer',
     brokers: ['kafka:9092'],
@@ -216,10 +216,10 @@ function kafkaProduce (topic, message, sendResponse) {
 app.get('/kafka/consume', (req, res) => {
   const topic = req.query.topic
   const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
-  return kafkaConsume(topic, timeout, true)
+  return kafkaConsume(topic, timeout, true, res)
 })
 
-function kafkaConsume (topic, timeout, sendResponse) {
+function kafkaConsume (topic, timeout, sendResponse, res) {
   const kafka = new Kafka({
     clientId: 'my-app-consumer',
     brokers: ['kafka:9092'],
@@ -264,10 +264,10 @@ function kafkaConsume (topic, timeout, sendResponse) {
 
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
-  return sqsProduce(queue, 'Hello from SQS JavaScript injection', true)
+  return sqsProduce(queue, 'Hello from SQS JavaScript injection', true, res)
 })
 
-function sqsProduce (queue, message, sendResponse) {
+function sqsProduce (queue, message, sendResponse, res) {
   // Create an SQS client
   const sqs = new AWS.SQS({
     endpoint: 'http://elasticmq:9324',
@@ -320,10 +320,10 @@ function sqsProduce (queue, message, sendResponse) {
 app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
-  return sqsConsume(queue, timeout, true)
+  return sqsConsume(queue, timeout, true, res)
 })
 
-function sqsConsume (queue, timeout, sendResponse) {
+function sqsConsume (queue, timeout, sendResponse, res) {
   // Create an SQS client
   const sqs = new AWS.SQS({
     endpoint: 'http://elasticmq:9324',
