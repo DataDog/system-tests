@@ -234,7 +234,7 @@ class DsmHelper:
                     observed_parent_hash = stats_point["ParentHash"]
                     observed_tags = tuple(stats_point["EdgeTags"])
 
-                    logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
+                    logger.info(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
                     if (
                         observed_hash == hash_
                         and observed_parent_hash == parent_hash

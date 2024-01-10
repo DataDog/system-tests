@@ -188,7 +188,7 @@ def kafka_produce(topic, message, callback=None):
     return {"result": "ok"}
 
 
-def kafka_consume(topic, group_id, timeout=60):
+def kafka_consume(topic, group_id, timeout=120):
     consumer = Consumer(
         {
             "bootstrap.servers": "kafka:9092",
