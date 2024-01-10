@@ -188,11 +188,11 @@ def kafka_produce(topic, message, callback=None):
     return {"result": "ok"}
 
 
-def kafka_consume(topic, timeout=60):
+def kafka_consume(topic, group_id, timeout=60):
     consumer = Consumer(
         {
             "bootstrap.servers": "kafka:9092",
-            "group.id": "apm_test",
+            "group.id": group_id,
             "enable.auto.commit": True,
             "auto.offset.reset": "earliest",
         }
@@ -240,7 +240,7 @@ def consume_kafka_message():
     """
     topic = flask_request.args.get("topic", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = kafka_consume(topic, timeout)
+    output = kafka_consume(topic, "apm_test", timeout)
     if "error" in output:
         return output, 404
     else:
@@ -330,7 +330,7 @@ def dsm():
         produce_thread = threading.Thread(
             target=kafka_produce, args=(topic, b"Hello, Kafka from DSM!", delivery_report)
         )
-        consume_thread = threading.Thread(target=kafka_consume, args=(topic))
+        consume_thread = threading.Thread(target=kafka_consume, args=(topic, "testgroup1"))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
