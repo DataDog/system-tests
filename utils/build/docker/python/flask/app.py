@@ -3,6 +3,7 @@ import os
 import random
 import subprocess
 import threading
+import time
 
 from confluent_kafka import Producer, Consumer
 import psycopg2
@@ -196,6 +197,7 @@ def consume_kafka_message():
         The goal of this endpoint is to trigger kafka consumer calls
     """
     message_topic = flask_request.args.get("topic", "DistributedTracing")
+    timeout_s = int(flask_request.args.get("timeout", 60))
 
     consumer = Consumer(
         {
@@ -208,12 +210,10 @@ def consume_kafka_message():
     consumer.subscribe([message_topic])
 
     msg = None
-    current_attempts = 0
-    max_attempts = 15
-    while not msg and current_attempts < max_attempts:
+    start_time = time.time()
+
+    while not msg and time.time() - start_time < timeout_s:
         msg = consumer.poll(1)
-        if msg is None:
-            current_attempts += 1
 
     consumer.close()
 
