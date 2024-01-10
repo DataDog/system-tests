@@ -334,8 +334,7 @@ app.get('/sqs/consume', (req, res) => {
     return new Promise((resolve, reject) => {
       sqs.receiveMessage({
         QueueUrl: queueUrl,
-        MaxNumberOfMessages: 1,
-        WaitTimeSeconds: timeout
+        MaxNumberOfMessages: 1
       }, (err, response) => {
         if (err) {
           console.error('Error receiving message: ', err)
@@ -358,6 +357,9 @@ app.get('/sqs/consume', (req, res) => {
           reject(err)
         }
       })
+      setTimeout(() => {
+        reject(new Error('Message not received'))
+      }, timeout) // Set a timeout of n seconds for message reception
     })
   }
 
