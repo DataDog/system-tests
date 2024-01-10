@@ -12,7 +12,10 @@ class TestHeaderValue(BaseSourceTest):
     """Verify that request headers are tainted"""
 
     source_name = (
-        "HTTP_TABLE" if context.library.library == "python" and context.weblog_variant == "django-poc" else "table"
+        "HTTP_TABLE"
+        if context.library.library == "python"
+        and context.weblog_variant == "django-poc"
+        else "table"
     )
 
     endpoint = "/iast/source/header/test"
@@ -20,13 +23,19 @@ class TestHeaderValue(BaseSourceTest):
     source_type = "http.request.header"
     source_value = "user"
 
-    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
+    @bug(
+        context.weblog_variant == "jersey-grizzly2",
+        reason="name field of source not set",
+    )
     def test_source_reported(self):
         super().test_source_reported()
 
     @missing_feature(
         context.library < "java@1.13.0"
-        or (context.library.library == "java" and not context.weblog_variant.startswith("spring-boot")),
+        or (
+            context.library.library == "java"
+            and not context.weblog_variant.startswith("spring-boot")
+        ),
         reason="Not implemented",
     )
     @missing_feature(library="dotnet", reason="Not implemented")

@@ -29,12 +29,19 @@ class Test_DsmKafka:
             consumer_hash = 3735318893869752335
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash,
             parent_hash=producer_hash,
-            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
+            tags=(
+                "direction:in",
+                "group:testgroup1",
+                "topic:dsm-system-tests-queue",
+                "type:kafka",
+            ),
         )
 
 
@@ -69,7 +76,12 @@ class Test_DsmRabbitmq:
         DsmHelper.assert_checkpoint_presence(
             hash_=6176024609184775446,
             parent_hash=0,
-            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
+            tags=(
+                "direction:out",
+                "exchange:systemTestDirectExchange",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            ),
         )
 
         DsmHelper.assert_checkpoint_presence(
@@ -81,7 +93,10 @@ class Test_DsmRabbitmq:
     def setup_dsm_rabbitmq_dotnet_legacy(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
 
-    @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
+    @irrelevant(
+        context.library != "dotnet" or context.library > "dotnet@2.33.0",
+        reason="legacy dotnet behavior",
+    )
     def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 
@@ -90,7 +105,12 @@ class Test_DsmRabbitmq:
         DsmHelper.assert_checkpoint_presence(
             hash_=12547013883960139159,
             parent_hash=0,
-            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:True", "type:rabbitmq"),
+            tags=(
+                "direction:out",
+                "exchange:systemTestDirectExchange",
+                "has_routing_key:True",
+                "type:rabbitmq",
+            ),
         )
 
         # There seems to be a bug in dotnet currently where the queue is not passed, causing DSM to default to setting
@@ -118,25 +138,42 @@ class Test_DsmRabbitmq_TopicExchange:
         DsmHelper.assert_checkpoint_presence(
             hash_=18436203392999142109,
             parent_hash=0,
-            tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
+            tags=(
+                "direction:out",
+                "exchange:systemTestTopicExchange",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            ),
         )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=11364757106893616177,
             parent_hash=18436203392999142109,
-            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
+            tags=(
+                "direction:in",
+                "topic:systemTestRabbitmqTopicQueue1",
+                "type:rabbitmq",
+            ),
         )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=15562446431583779,
             parent_hash=18436203392999142109,
-            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
+            tags=(
+                "direction:in",
+                "topic:systemTestRabbitmqTopicQueue2",
+                "type:rabbitmq",
+            ),
         )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=13344154764958581569,
             parent_hash=18436203392999142109,
-            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
+            tags=(
+                "direction:in",
+                "topic:systemTestRabbitmqTopicQueue3",
+                "type:rabbitmq",
+            ),
         )
 
 
@@ -154,25 +191,42 @@ class Test_DsmRabbitmq_FanoutExchange:
         DsmHelper.assert_checkpoint_presence(
             hash_=877077567891168935,
             parent_hash=0,
-            tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
+            tags=(
+                "direction:out",
+                "exchange:systemTestFanoutExchange",
+                "has_routing_key:false",
+                "type:rabbitmq",
+            ),
         )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=6900956252542091373,
             parent_hash=877077567891168935,
-            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
+            tags=(
+                "direction:in",
+                "topic:systemTestRabbitmqFanoutQueue1",
+                "type:rabbitmq",
+            ),
         )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=497609944035068818,
             parent_hash=877077567891168935,
-            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
+            tags=(
+                "direction:in",
+                "topic:systemTestRabbitmqFanoutQueue2",
+                "type:rabbitmq",
+            ),
         )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=15446107644012012909,
             parent_hash=877077567891168935,
-            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
+            tags=(
+                "direction:in",
+                "topic:systemTestRabbitmqFanoutQueue3",
+                "type:rabbitmq",
+            ),
         )
 
 
@@ -202,7 +256,9 @@ class DsmHelper:
                     observed_parent_hash = stats_point["ParentHash"]
                     observed_tags = tuple(stats_point["EdgeTags"])
 
-                    logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
+                    logger.debug(
+                        f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}"
+                    )
                     if (
                         observed_hash == hash_
                         and observed_parent_hash == parent_hash

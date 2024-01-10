@@ -32,7 +32,9 @@ class Test_UserLoginSuccessEvent:
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
                 if value != expected_value:
-                    raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
+                    raise Exception(
+                        f"{tag} value is '{value}', should be '{expected_value}'"
+                    )
 
             return True
 
@@ -68,7 +70,9 @@ class Test_UserLoginFailureEvent:
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
                 if value != expected_value:
-                    raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
+                    raise Exception(
+                        f"{tag} value is '{value}', should be '{expected_value}'"
+                    )
 
             return True
 
@@ -102,7 +106,9 @@ class Test_CustomEvent:
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
                 if value != expected_value:
-                    raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
+                    raise Exception(
+                        f"{tag} value is '{value}', should be '{expected_value}'"
+                    )
 
             return True
 

@@ -5,7 +5,9 @@
 from utils import rfc, coverage, interfaces
 
 
-@rfc("https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc")
+@rfc(
+    "https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc"
+)
 @coverage.basic
 class Test_NoError:
     """A library should apply with no error all remote config payload."""
@@ -13,7 +15,11 @@ class Test_NoError:
     def test_no_error(self):
         def no_error(data):
             config_states = (
-                data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", {})
+                data.get("request", {})
+                .get("content", {})
+                .get("client", {})
+                .get("state", {})
+                .get("config_states", {})
             )
 
             for state in config_states:
@@ -21,4 +27,6 @@ class Test_NoError:
                 if error is not None:
                     raise Exception(f"Error in remote config application: {error}")
 
-        interfaces.library.validate_remote_configuration(no_error, success_by_default=True)
+        interfaces.library.validate_remote_configuration(
+            no_error, success_by_default=True
+        )

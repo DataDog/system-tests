@@ -24,7 +24,10 @@ class TestParameterName(BaseSourceTest):
 
     @missing_feature(weblog_variant="express4", reason="Tainted as request body")
     @bug(weblog_variant="resteasy-netty3", reason="Not reported")
-    @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
+    @bug(
+        library="python",
+        reason="Python frameworks need a header, if not, 415 status code",
+    )
     @missing_feature(library="dotnet", reason="Tainted as request body")
     def test_source_post_reported(self):
         """ for use case where only one is reported, we want to keep a test on the one reported """
@@ -41,7 +44,10 @@ class TestParameterName(BaseSourceTest):
     @missing_feature(weblog_variant="express4", reason="Tainted as request body")
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
     @bug(weblog_variant="resteasy-netty3", reason="Not reported")
-    @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
+    @bug(
+        library="python",
+        reason="Python frameworks need a header, if not, 415 status code",
+    )
     @missing_feature(library="dotnet", reason="Tainted as request body")
     def test_source_reported(self):
         super().test_source_reported()

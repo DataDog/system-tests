@@ -96,7 +96,9 @@ class Test_HeaderTags_Whitespace_Val_Short:
     but leading/trailing whitespace is stripped, using short form input"""
 
     def setup_trace_header_tags(self):
-        self.headers = {HEADER_NAME_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT}
+        self.headers = {
+            HEADER_NAME_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT
+        }
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):

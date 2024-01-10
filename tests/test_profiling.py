@@ -53,7 +53,11 @@ class Test_Profile:
         # Flatten list
         requests = [r for sublist in requests for r in sublist]
 
-        requests = [r for r in requests if 'name="event"' in r["headers"].get("Content-Disposition", "")]
+        requests = [
+            r
+            for r in requests
+            if 'name="event"' in r["headers"].get("Content-Disposition", "")
+        ]
         assert len(requests) > 0, "No profiling event requests"
         for req in requests:
             content = json.loads(req["content"])

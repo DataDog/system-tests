@@ -2,7 +2,16 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, coverage, missing_feature, scenarios, features
+from utils import (
+    context,
+    weblog,
+    interfaces,
+    bug,
+    coverage,
+    missing_feature,
+    scenarios,
+    features,
+)
 from .utils import rules
 
 
@@ -13,7 +22,9 @@ class Test_404:
     """Appsec WAF misc tests"""
 
     def setup_404(self):
-        self.r = weblog.get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
+        self.r = weblog.get(
+            "/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"}
+        )
 
     @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_404(self):
@@ -40,7 +51,9 @@ class Test_MultipleHighlight:
 
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
-        interfaces.library.assert_waf_attack(self.r, "multiple_highlight_rule", patterns=["highlight1", "highlight2"])
+        interfaces.library.assert_waf_attack(
+            self.r, "multiple_highlight_rule", patterns=["highlight1", "highlight2"]
+        )
 
 
 @coverage.good
@@ -49,25 +62,36 @@ class Test_MultipleAttacks:
     """If several attacks are sent threw one requests, all of them are reported"""
 
     def setup_basic(self):
-        self.r_basic = weblog.get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})
+        self.r_basic = weblog.get(
+            "/waf/",
+            headers={"User-Agent": "/../"},
+            params={"key": "appscan_fingerprint"},
+        )
 
     def test_basic(self):
         """Basic test with more than one attack"""
         interfaces.library.assert_waf_attack(self.r_basic, pattern="/../")
-        interfaces.library.assert_waf_attack(self.r_basic, pattern="appscan_fingerprint")
+        interfaces.library.assert_waf_attack(
+            self.r_basic, pattern="appscan_fingerprint"
+        )
 
     def setup_same_source(self):
         self.r_same_source = weblog.get(
-            "/waf/", headers={"User-Agent": "/../", "random-key": "acunetix-user-agreement"}
+            "/waf/",
+            headers={"User-Agent": "/../", "random-key": "acunetix-user-agreement"},
         )
 
     def test_same_source(self):
         """Test with more than one attack in headers"""
-        interfaces.library.assert_waf_attack(self.r_same_source, pattern="acunetix-user-agreement")
+        interfaces.library.assert_waf_attack(
+            self.r_same_source, pattern="acunetix-user-agreement"
+        )
         interfaces.library.assert_waf_attack(self.r_same_source, pattern="/../")
 
     def setup_same_location(self):
-        self.r_same_location = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1 and /../"})
+        self.r_same_location = weblog.get(
+            "/waf/", headers={"User-Agent": "Arachni/v1 and /../"}
+        )
 
     def test_same_location(self):
         """Test with more than one attack in a unique property"""
@@ -94,6 +118,8 @@ class Test_CorrectOptionProcessing:
 class Test_NoWafTimeout:
     """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
 
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+    @missing_feature(
+        weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only"
+    )
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")

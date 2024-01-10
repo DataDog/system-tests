@@ -12,7 +12,9 @@ class TestMultipart(BaseSourceTest):
     """Verify that multipart parameter is tainted"""
 
     endpoint = "/iast/source/multipart/test"
-    requests_kwargs = [{"method": "POST", "files": {"file1": ("file1", "bsldhkuqwgervf")}}]
+    requests_kwargs = [
+        {"method": "POST", "files": {"file1": ("file1", "bsldhkuqwgervf")}}
+    ]
     source_type = "http.request.multipart.parameter"
     source_names = ["name", "Content-Disposition"]
     source_value = None

@@ -3,9 +3,19 @@ import time
 import pytest
 
 from typing import Union
-from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
+from utils.parametric.spec.otel_trace import (
+    OTEL_UNSET_CODE,
+    OTEL_ERROR_CODE,
+    OTEL_OK_CODE,
+)
 from utils.parametric.spec.otel_trace import OtelSpan, otel_span
-from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
+from utils.parametric.spec.otel_trace import (
+    SK_PRODUCER,
+    SK_INTERNAL,
+    SK_SERVER,
+    SK_CLIENT,
+    SK_CONSUMER,
+)
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.test_agent import get_span
@@ -22,9 +32,15 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "nodejs",
+        reason="New operation name mapping not yet implemented",
+    )
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "python",
+        reason="New operation name mapping not yet implemented",
+    )
     def test_otel_start_span(self, test_agent, test_library):
         """
             - Start/end a span with start and end options
@@ -45,18 +61,28 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
-        assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
+        assert (
+            root_span["duration"] == duration * 1_000
+        )  # OTEL expects microseconds but we convert it to ns internally
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "nodejs",
+        reason="New operation name mapping not yet implemented",
+    )
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "python",
+        reason="New operation name mapping not yet implemented",
+    )
     def test_otel_set_service_name(self, test_agent, test_library):
         """
             - Update the service name on a span
         """
         with test_library:
-            with test_library.otel_start_span("parent_span", span_kind=SK_INTERNAL) as parent:
+            with test_library.otel_start_span(
+                "parent_span", span_kind=SK_INTERNAL
+            ) as parent:
                 parent.set_attributes({"service.name": "new_service"})
                 parent.end_span()
 
@@ -69,12 +95,25 @@ class Test_Otel_Span_Methods:
         context.library == "java",
         reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
     )
-    @irrelevant(context.library >= "golang@v1.59.0.dev0", reason="New span naming introduced in v1.59.0")
-    @irrelevant(context.library == "ruby", reason="Old array encoding no longer supported")
-    @irrelevant(context.library == "php", reason="Old array encoding no longer supported")
-    @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
+    @irrelevant(
+        context.library >= "golang@v1.59.0.dev0",
+        reason="New span naming introduced in v1.59.0",
+    )
+    @irrelevant(
+        context.library == "ruby", reason="Old array encoding no longer supported"
+    )
+    @irrelevant(
+        context.library == "php", reason="Old array encoding no longer supported"
+    )
+    @missing_feature(
+        context.library == "nodejs",
+        reason="New operation name mapping not yet implemented",
+    )
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "python",
+        reason="New operation name mapping not yet implemented",
+    )
     def test_otel_set_attributes_different_types_legacy(self, test_agent, test_library):
         """
             - Set attributes of multiple types for an otel span
@@ -83,7 +122,9 @@ class Test_Otel_Span_Methods:
         """
         start_time = int(time.time())
         with test_library:
-            with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
+            with test_library.otel_start_span(
+                "operation", span_kind=SK_PRODUCER, timestamp=start_time,
+            ) as span:
                 span.set_attributes({"str_val": "val"})
                 span.set_attributes({"str_val_empty": ""})
                 span.set_attributes({"bool_val": True})
@@ -94,7 +135,14 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"array_val_int": [10, 20]})
                 span.set_attributes({"array_val_bool": [True, False]})
                 span.set_attributes({"array_val_double": [10.1, 20.2]})
-                span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
+                span.set_attributes(
+                    {
+                        "d_str_val": "bye",
+                        "d_bool_val": False,
+                        "d_int_val": 2,
+                        "d_double_val": 3.14,
+                    }
+                )
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="operation"))
@@ -152,21 +200,28 @@ class Test_Otel_Span_Methods:
         reason="New naming breaks old tests, so only run old tests on previous versions.",
     )
     @missing_feature(
-        context.library == "nodejs", reason="New operation name mapping & array encoding not yet implemented"
+        context.library == "nodejs",
+        reason="New operation name mapping & array encoding not yet implemented",
     )
     @missing_feature(
-        context.library == "dotnet", reason="New operation name mapping & array encoding not yet implemented"
+        context.library == "dotnet",
+        reason="New operation name mapping & array encoding not yet implemented",
     )
     @missing_feature(
-        context.library == "python", reason="New operation name mapping & array encoding not yet implemented"
+        context.library == "python",
+        reason="New operation name mapping & array encoding not yet implemented",
     )
-    def test_otel_set_attributes_different_types_with_array_encoding(self, test_agent, test_library):
+    def test_otel_set_attributes_different_types_with_array_encoding(
+        self, test_agent, test_library
+    ):
         """
             - Set attributes of multiple types for an otel span
         """
         start_time = int(time.time())
         with test_library:
-            with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
+            with test_library.otel_start_span(
+                "operation", span_kind=SK_PRODUCER, timestamp=start_time,
+            ) as span:
                 span.set_attributes({"str_val": "val"})
                 span.set_attributes({"str_val_empty": ""})
                 span.set_attributes({"bool_val": True})
@@ -177,7 +232,14 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"array_val_int": [10, 20]})
                 span.set_attributes({"array_val_bool": [True, False]})
                 span.set_attributes({"array_val_double": [10.1, 20.2]})
-                span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
+                span.set_attributes(
+                    {
+                        "d_str_val": "bye",
+                        "d_bool_val": False,
+                        "d_int_val": 2,
+                        "d_double_val": 3.14,
+                    }
+                )
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="operation"))
@@ -230,12 +292,18 @@ class Test_Otel_Span_Methods:
                 assert not parent.is_recording()
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "nodejs",
+        reason="New operation name mapping not yet implemented",
+    )
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "python",
+        reason="New operation name mapping not yet implemented",
+    )
     def test_otel_span_finished_end_options(self, test_agent, test_library):
         """
         Test functionality of ending a span with end options.
@@ -244,7 +312,9 @@ class Test_Otel_Span_Methods:
         start_time: int = 12345
         duration: int = 6789
         with test_library:
-            with test_library.otel_start_span(name="operation", span_kind=SK_INTERNAL, timestamp=start_time) as s:
+            with test_library.otel_start_span(
+                name="operation", span_kind=SK_INTERNAL, timestamp=start_time
+            ) as s:
                 assert s.is_recording()
                 s.end_span(timestamp=start_time + duration)
                 assert not s.is_recording()
@@ -253,13 +323,21 @@ class Test_Otel_Span_Methods:
         s = get_span(test_agent)
         assert s.get("name") == "internal"
         assert s.get("resource") == "operation"
-        assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
+        assert (
+            s.get("start") == start_time * 1_000
+        )  # OTEL expects microseconds but we convert it to ns internally
         assert s.get("duration") == duration * 1_000
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "nodejs",
+        reason="New operation name mapping not yet implemented",
+    )
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "python",
+        reason="New operation name mapping not yet implemented",
+    )
     def test_otel_span_end(self, test_agent, test_library):
         """
         Test functionality of ending a span. After ending:
@@ -268,7 +346,9 @@ class Test_Otel_Span_Methods:
             - still possible to start child spans from parent context
         """
         with test_library:
-            with test_library.otel_start_span(name="parent", span_kind=SK_PRODUCER) as parent:
+            with test_library.otel_start_span(
+                name="parent", span_kind=SK_PRODUCER
+            ) as parent:
                 parent.end_span()
                 # setting attributes after finish has no effect
                 parent.set_name("new_name")
@@ -278,7 +358,9 @@ class Test_Otel_Span_Methods:
                 ) as child:
                     child.end_span()
 
-        trace = find_trace_by_root(test_agent.wait_for_num_traces(1), otel_span(name="parent"))
+        trace = find_trace_by_root(
+            test_agent.wait_for_num_traces(1), otel_span(name="parent")
+        )
         assert len(trace) == 2
 
         parent_span = find_span(trace, otel_span(name="parent"))
@@ -292,12 +374,18 @@ class Test_Otel_Span_Methods:
         assert child["parent_id"] == parent_span["span_id"]
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "nodejs",
+        reason="New operation name mapping not yet implemented",
+    )
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
     )
-    @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "python",
+        reason="New operation name mapping not yet implemented",
+    )
     def test_otel_set_span_status_error(self, test_agent, test_library):
         """
             This test verifies that setting the status of a span
@@ -309,7 +397,9 @@ class Test_Otel_Span_Methods:
 
         """
         with test_library:
-            with test_library.otel_start_span(name="error_span", span_kind=SK_INTERNAL) as s:
+            with test_library.otel_start_span(
+                name="error_span", span_kind=SK_INTERNAL
+            ) as s:
                 s.set_status(OTEL_ERROR_CODE, "error_desc")
                 s.set_status(OTEL_UNSET_CODE, "unset_desc")
                 s.end_span()
@@ -319,7 +409,10 @@ class Test_Otel_Span_Methods:
         assert s.get("resource") == "error_span"
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
+    @missing_feature(
+        context.library == "nodejs",
+        reason="New operation name mapping not yet implemented",
+    )
     @missing_feature(
         context.library == "dotnet",
         reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
@@ -339,7 +432,9 @@ class Test_Otel_Span_Methods:
                 prior or future status values
         """
         with test_library:
-            with test_library.otel_start_span(name="ok_span", span_kind=SK_INTERNAL) as span:
+            with test_library.otel_start_span(
+                name="ok_span", span_kind=SK_INTERNAL
+            ) as span:
                 span.set_status(OTEL_OK_CODE, "ok_desc")
                 span.set_status(OTEL_ERROR_CODE, "error_desc")
                 span.end_span()
@@ -358,10 +453,14 @@ class Test_Otel_Span_Methods:
         with test_library:
             with test_library.otel_start_span(name="operation") as parent:
                 parent.end_span()
-                with test_library.otel_start_span(name="operation", parent_id=parent.span_id) as span:
+                with test_library.otel_start_span(
+                    name="operation", parent_id=parent.span_id
+                ) as span:
                     span.end_span()
                     context = span.span_context()
-                    assert context.get("trace_id") == parent.span_context().get("trace_id")
+                    assert context.get("trace_id") == parent.span_context().get(
+                        "trace_id"
+                    )
                     if (
                         isinstance(span.span_id, str)
                         and len(span.span_id) == 16
@@ -372,7 +471,9 @@ class Test_Otel_Span_Methods:
                     else:
                         # Some languages e.g. Nodejs using express need to return as a string value
                         # due to 64-bit integers being too large.
-                        assert context.get("span_id") == "{:016x}".format(int(span.span_id))
+                        assert context.get("span_id") == "{:016x}".format(
+                            int(span.span_id)
+                        )
                     assert context.get("trace_flags") == "01"
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
@@ -385,7 +486,9 @@ class Test_Otel_Span_Methods:
             behaves accordingly to the naming conventions
         """
         with test_library:
-            with test_library.otel_start_span(name="operation", span_kind=SK_CLIENT) as span:
+            with test_library.otel_start_span(
+                name="operation", span_kind=SK_CLIENT
+            ) as span:
                 span.set_attributes({"messaging.system": "Kafka"})
                 span.set_attributes({"messaging.operation": "Receive"})
                 span.end_span()
@@ -408,15 +511,39 @@ class Test_Otel_Span_Methods:
             ("http.server.request", SK_SERVER, {"http.request.method": "GET"}),
             ("http.client.request", SK_CLIENT, {"http.request.method": "GET"}),
             ("redis.query", SK_CLIENT, {"db.system": "Redis"}),
-            ("kafka.receive", SK_CLIENT, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
-            ("kafka.receive", SK_SERVER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
-            ("kafka.receive", SK_PRODUCER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
-            ("kafka.receive", SK_CONSUMER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
-            ("aws.s3.request", SK_CLIENT, {"rpc.system": "aws-api", "rpc.service": "S3"}),
+            (
+                "kafka.receive",
+                SK_CLIENT,
+                {"messaging.system": "Kafka", "messaging.operation": "Receive"},
+            ),
+            (
+                "kafka.receive",
+                SK_SERVER,
+                {"messaging.system": "Kafka", "messaging.operation": "Receive"},
+            ),
+            (
+                "kafka.receive",
+                SK_PRODUCER,
+                {"messaging.system": "Kafka", "messaging.operation": "Receive"},
+            ),
+            (
+                "kafka.receive",
+                SK_CONSUMER,
+                {"messaging.system": "Kafka", "messaging.operation": "Receive"},
+            ),
+            (
+                "aws.s3.request",
+                SK_CLIENT,
+                {"rpc.system": "aws-api", "rpc.service": "S3"},
+            ),
             ("aws.client.request", SK_CLIENT, {"rpc.system": "aws-api"}),
             ("grpc.client.request", SK_CLIENT, {"rpc.system": "GRPC"}),
             ("grpc.server.request", SK_SERVER, {"rpc.system": "GRPC"}),
-            ("aws.my-function.invoke", SK_CLIENT, {"faas.invoked_provider": "aws", "faas.invoked_name": "My-Function"}),
+            (
+                "aws.my-function.invoke",
+                SK_CLIENT,
+                {"faas.invoked_provider": "aws", "faas.invoked_name": "My-Function"},
+            ),
             ("datasource.invoke", SK_SERVER, {"faas.trigger": "Datasource"}),
             ("graphql.server.request", SK_SERVER, {"graphql.operation.type": "query"}),
             ("amqp.server.request", SK_SERVER, {"network.protocol.name": "Amqp"}),
@@ -430,7 +557,12 @@ class Test_Otel_Span_Methods:
         ],
     )
     def test_otel_span_operation_name(
-        self, expected_operation_name: str, span_kind: int, attributes: dict, test_agent, test_library
+        self,
+        expected_operation_name: str,
+        span_kind: int,
+        attributes: dict,
+        test_agent,
+        test_library,
     ):
         run_operation_name_test(
             expected_operation_name=expected_operation_name,
@@ -449,7 +581,9 @@ class Test_Otel_Span_Methods:
             Tests that the reserved attributes will override expected values
         """
         with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+            with test_library.otel_start_span(
+                "otel_span_name", span_kind=SK_SERVER
+            ) as span:
                 span.set_attributes({"http.request.method": "GET"})
                 span.set_attributes({"resource.name": "new.name"})
                 span.set_attributes({"operation.name": "overriden.name"})
@@ -481,10 +615,23 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @pytest.mark.parametrize(
         "analytics_event_value,expected_metric_value",
-        [("true", 1), ("TRUE", 1), ("True", 1), ("false", 0), ("False", 0), ("FALSE", 0), (True, 1), (False, 0),],
+        [
+            ("true", 1),
+            ("TRUE", 1),
+            ("True", 1),
+            ("false", 0),
+            ("False", 0),
+            ("FALSE", 0),
+            (True, 1),
+            (False, 0),
+        ],
     )
     def test_otel_span_basic_reserved_attributes_overrides_analytics_event(
-        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+        self,
+        analytics_event_value: Union[bool, str],
+        expected_metric_value: Union[int, None],
+        test_agent,
+        test_library,
     ):
         """
             Tests the analytics.event reserved attribute override with basic inputs
@@ -513,10 +660,15 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "analytics_event_value,expected_metric_value", [("something-else", None), ("fAlse", None), ("trUe", None),],
+        "analytics_event_value,expected_metric_value",
+        [("something-else", None), ("fAlse", None), ("trUe", None),],
     )
     def test_otel_span_strict_reserved_attributes_overrides_analytics_event(
-        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+        self,
+        analytics_event_value: Union[bool, str],
+        expected_metric_value: Union[int, None],
+        test_agent,
+        test_library,
     ):
         """
             Tests that the analytics.event reserved attribute override doesn't set the _dd1.sr.eausr metric
@@ -529,17 +681,26 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @irrelevant(context.library == "java", reason="Choose to not implement Go parsing logic")
-    @irrelevant(context.library == "ruby", reason="Choose to not implement Go parsing logic")
+    @irrelevant(
+        context.library == "java", reason="Choose to not implement Go parsing logic"
+    )
+    @irrelevant(
+        context.library == "ruby", reason="Choose to not implement Go parsing logic"
+    )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "php@0.95.0", reason="Implemented in 0.96.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "analytics_event_value,expected_metric_value", [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0),],
+        "analytics_event_value,expected_metric_value",
+        [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0),],
     )
     def test_otel_span_extended_reserved_attributes_overrides_analytics_event(
-        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+        self,
+        analytics_event_value: Union[bool, str],
+        expected_metric_value: Union[int, None],
+        test_agent,
+        test_library,
     ):
         """
             Tests that the analytics.event reserved attribute override accepts Go's strconv.ParseBool additional values
@@ -552,9 +713,17 @@ class Test_Otel_Span_Methods:
         )
 
 
-def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
+def run_operation_name_test(
+    expected_operation_name: str,
+    span_kind: int,
+    attributes: dict,
+    test_library,
+    test_agent,
+):
     with test_library:
-        with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
+        with test_library.otel_start_span(
+            "otel_span_name", span_kind=span_kind, attributes=attributes
+        ) as span:
             span.end_span()
     traces = test_agent.wait_for_num_traces(1)
     trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
@@ -566,7 +735,10 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
 
 
 def run_otel_span_reserved_attributes_overrides_analytics_event(
-    analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+    analytics_event_value: Union[bool, str],
+    expected_metric_value: Union[int, None],
+    test_agent,
+    test_library,
 ):
     with test_library:
         with test_library.otel_start_span("operation", span_kind=SK_SERVER) as span:

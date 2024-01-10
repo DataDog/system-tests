@@ -23,8 +23,13 @@ class Test_Dbm:
 
         if self.library_name == "python":
             self.requests = [
-                weblog.get("/dbm", params={"integration": "psycopg", "operation": "execute"}),
-                weblog.get("/dbm", params={"integration": "psycopg", "operation": "executemany"}),
+                weblog.get(
+                    "/dbm", params={"integration": "psycopg", "operation": "execute"}
+                ),
+                weblog.get(
+                    "/dbm",
+                    params={"integration": "psycopg", "operation": "executemany"},
+                ),
             ]
         elif self.library_name == "dotnet":
             self.requests = [
@@ -50,7 +55,9 @@ class Test_Dbm:
                 ),
 
     def _get_db_span(self, response):
-        assert response.status_code == 200, f"Request: {self.scenario} wasn't successful."
+        assert (
+            response.status_code == 200
+        ), f"Request: {self.scenario} wasn't successful."
 
         spans = []
         # we do not use get_spans: the span we look for is not directly the span that carry the request information
@@ -62,7 +69,10 @@ class Test_Dbm:
 
         # look for the span with the good resource
         for data, span in spans:
-            if span.get("resource") == "SELECT version()" or span.get("resource") == "SELECT @@version":
+            if (
+                span.get("resource") == "SELECT version()"
+                or span.get("resource") == "SELECT @@version"
+            ):
                 logger.debug(f"A matching span in found in {data['log_filename']}")
                 return span
 
@@ -72,7 +82,9 @@ class Test_Dbm:
                 f"Found spans with meta.type=sql span, but the ressource does not match: {span.get('resource')}"
             )
 
-        raise ValueError("No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found.")
+        raise ValueError(
+            "No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found."
+        )
 
     def _assert_spans_are_untagged(self):
         for request in self.requests:
@@ -80,11 +92,15 @@ class Test_Dbm:
 
     def _assert_span_is_untagged(self, span):
         meta = span.get("meta", {})
-        assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
+        assert (
+            self.META_TAG not in meta
+        ), f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
 
     def _assert_span_is_tagged(self, span):
         meta = span.get("meta", {})
-        assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
+        assert (
+            self.META_TAG in meta
+        ), f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
         tag_value = meta.get(self.META_TAG)
         assert tag_value == "true", f"{self.META_TAG} value is not `true`."
 

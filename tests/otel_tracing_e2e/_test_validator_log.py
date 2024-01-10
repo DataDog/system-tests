@@ -13,10 +13,16 @@ def validate_log(log: dict, rid: str, otel_source: str) -> dict:
     ]
     assert expected_attributes_tags <= log["attributes"]["tags"]
     expected_attributes_attributes = {
-        "http": {"request": {"headers": {"user-agent": f"system_tests rid/{rid}"}}, "method": "GET"},
+        "http": {
+            "request": {"headers": {"user-agent": f"system_tests rid/{rid}"}},
+            "method": "GET",
+        },
         "status": "info",
     }
-    assert expected_attributes_attributes.items() <= log["attributes"]["attributes"].items()
+    assert (
+        expected_attributes_attributes.items()
+        <= log["attributes"]["attributes"].items()
+    )
     return log["attributes"]["attributes"]["otel"]
 
 

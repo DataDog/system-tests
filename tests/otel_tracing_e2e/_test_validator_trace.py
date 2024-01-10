@@ -6,7 +6,10 @@ from utils.tools import logger
 
 # Validates traces from Agent, Collector and Backend intake OTLP ingestion paths are consistent
 def validate_all_traces(
-    traces_agent: list[dict], traces_intake: list[dict], traces_collector: list[dict], use_128_bits_trace_id: bool
+    traces_agent: list[dict],
+    traces_intake: list[dict],
+    traces_collector: list[dict],
+    use_128_bits_trace_id: bool,
 ):
     spans_agent = validate_trace(traces_agent, use_128_bits_trace_id)
     spans_intake = validate_trace(traces_intake, use_128_bits_trace_id)
@@ -89,11 +92,24 @@ def validate_span_link(server_span: dict, message_span: dict):
 
 
 # Validates fields that we don't know the values upfront for all 3 ingestion paths
-def validate_spans_from_all_paths(spans_agent: tuple, spans_intake: tuple, spans_collector: tuple):
-    validate_span_fields(spans_agent[0], spans_intake[0], "Agent server span", "Intake server span")
-    validate_span_fields(spans_agent[0], spans_collector[0], "Agent server span", "Collector server span")
-    validate_span_fields(spans_agent[1], spans_intake[1], "Agent message span", "Intake message span")
-    validate_span_fields(spans_agent[1], spans_collector[1], "Agent message span", "Collector message span")
+def validate_spans_from_all_paths(
+    spans_agent: tuple, spans_intake: tuple, spans_collector: tuple
+):
+    validate_span_fields(
+        spans_agent[0], spans_intake[0], "Agent server span", "Intake server span"
+    )
+    validate_span_fields(
+        spans_agent[0], spans_collector[0], "Agent server span", "Collector server span"
+    )
+    validate_span_fields(
+        spans_agent[1], spans_intake[1], "Agent message span", "Intake message span"
+    )
+    validate_span_fields(
+        spans_agent[1],
+        spans_collector[1],
+        "Agent message span",
+        "Collector message span",
+    )
 
 
 def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
@@ -103,7 +119,9 @@ def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
     assert span1["end"] == span2["end"]
     assert span1["duration"] == span2["duration"]
     assert span1["resource_hash"] == span2["resource_hash"]
-    validate_span_metas_metrics(span1["meta"], span2["meta"], span1["metrics"], span2["metrics"], name1, name2)
+    validate_span_metas_metrics(
+        span1["meta"], span2["meta"], span1["metrics"], span2["metrics"], name1, name2
+    )
 
 
 KNOWN_UNMATCHED_METAS = [
@@ -135,7 +153,9 @@ KNOWN_UNMATCHED_METRICS = [
 ]
 
 
-def validate_span_metas_metrics(meta1: dict, meta2: dict, metrics1: dict, metrics2: dict, name1: str, name2: str):
+def validate_span_metas_metrics(
+    meta1: dict, meta2: dict, metrics1: dict, metrics2: dict, name1: str, name2: str
+):
     # Exclude fields that are expected to have different values for different ingestion paths
     for known_unmatched_meta in KNOWN_UNMATCHED_METAS:
         meta1.pop(known_unmatched_meta, None)
@@ -145,7 +165,9 @@ def validate_span_metas_metrics(meta1: dict, meta2: dict, metrics1: dict, metric
         metrics2.pop(known_unmatched_metric, None)
 
     # Other fields should match
-    assert meta1 == meta2, f"Diff in metas between {name1} and {name2}: {list(dictdiffer.diff(meta1, meta2))}"
+    assert (
+        meta1 == meta2
+    ), f"Diff in metas between {name1} and {name2}: {list(dictdiffer.diff(meta1, meta2))}"
     assert (
         metrics1 == metrics2
     ), f"Diff in metrics between {name1} and {name2}: {list(dictdiffer.diff(metrics1, metrics2))}"

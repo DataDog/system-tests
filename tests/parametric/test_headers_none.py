@@ -59,7 +59,9 @@ class Test_Headers_None:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
 
     @enable_none_invalid()
-    def test_headers_none_extract_with_other_propagators(self, test_agent, test_library):
+    def test_headers_none_extract_with_other_propagators(
+        self, test_agent, test_library
+    ):
         """Ensure that the 'none' propagator is ignored when other propagators are present.
         In this case, ensure that the Datadog distributed tracing headers are extracted
         and activated properly.
@@ -110,7 +112,9 @@ class Test_Headers_None:
         span = get_span(test_agent)
         assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
         assert int(headers["x-datadog-parent-id"]) == span.get("span_id")
-        assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
+        assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(
+            SAMPLING_PRIORITY_KEY
+        )
 
     @enable_none()
     def test_headers_none_propagate(self, test_agent, test_library):
@@ -146,7 +150,8 @@ class Test_Headers_None:
 
     @enable_none_single_key()
     @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
+        context.library == "ruby",
+        reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
     )
     def test_headers_none_single_key_propagate(self, test_agent, test_library):
         """Ensure that the 'none' propagator is used and

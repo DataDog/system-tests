@@ -10,8 +10,12 @@ class Test_UserBlocking_FullDenylist:
 
     def _remote_config_is_applied(self, data):
         if data["path"] == "/v0.7/config":
-            if "config_states" in data.get("request", {}).get("content", {}).get("client", {}).get("state", {}):
-                config_states = data["request"]["content"]["client"]["state"]["config_states"]
+            if "config_states" in data.get("request", {}).get("content", {}).get(
+                "client", {}
+            ).get("state", {}):
+                config_states = data["request"]["content"]["client"]["state"][
+                    "config_states"
+                ]
 
                 for state in config_states:
                     if state["id"] == "ASM_DATA-third":
@@ -31,7 +35,9 @@ class Test_UserBlocking_FullDenylist:
             return True
 
         assert self.r_nonblock.status_code == 200
-        interfaces.library.validate_spans(self.r_nonblock, validator=validate_nonblock_user)
+        interfaces.library.validate_spans(
+            self.r_nonblock, validator=validate_nonblock_user
+        )
         interfaces.library.assert_no_appsec_event(self.r_nonblock)
 
     def setup_blocking_test(self):
@@ -43,7 +49,10 @@ class Test_UserBlocking_FullDenylist:
             weblog.get("/users", params={"user": 2499}),
         ]
 
-    @bug(context.library < "ruby@1.12.1", reason="not setting the tags on the service entry span")
+    @bug(
+        context.library < "ruby@1.12.1",
+        reason="not setting the tags on the service entry span",
+    )
     def test_blocking_test(self):
         """Test with a denylisted user"""
 
@@ -56,5 +65,7 @@ class Test_UserBlocking_FullDenylist:
 
         for r in self.r_blocked_requests:
             assert r.status_code == 403
-            interfaces.library.assert_waf_attack(r, rule="blk-001-002", address="usr.id")
+            interfaces.library.assert_waf_attack(
+                r, rule="blk-001-002", address="usr.id"
+            )
             interfaces.library.validate_spans(r, validator=validate_blocking_test)

@@ -34,11 +34,19 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
 
-    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
+    @irrelevant(
+        library="java",
+        weblog_variant="vertx3",
+        reason="vertx3 redirects using location header",
+    )
     def test_insecure(self):
         super().test_insecure()
 
-    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
+    @irrelevant(
+        library="java",
+        weblog_variant="vertx3",
+        reason="vertx3 redirects using location header",
+    )
     def test_secure(self):
         super().test_secure()
 

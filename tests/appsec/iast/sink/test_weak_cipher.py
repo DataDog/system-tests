@@ -15,10 +15,16 @@ class TestWeakCipher(BaseSinkTest):
     insecure_endpoint = "/iast/insecure_cipher/test_insecure_algorithm"
     secure_endpoint = "/iast/insecure_cipher/test_secure_algorithm"
     data = None
-    location_map = {"java": "com.datadoghq.system_tests.iast.utils.CryptoExamples", "nodejs": "iast/index.js"}
+    location_map = {
+        "java": "com.datadoghq.system_tests.iast.utils.CryptoExamples",
+        "nodejs": "iast/index.js",
+    }
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 
-    @flaky(library="python", reason="PATH_TRAVERSAL on Crypto.Cipher.AES is reported, approx 10%")
+    @flaky(
+        library="python",
+        reason="PATH_TRAVERSAL on Crypto.Cipher.AES is reported, approx 10%",
+    )
     def test_secure(self):
         super().test_secure()
 

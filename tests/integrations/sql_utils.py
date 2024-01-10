@@ -30,8 +30,17 @@ class BaseDbIntegrationsTestClass:
 
         # Request for db operations
         logger.info("Perform queries.....")
-        for db_operation in ["select", "insert", "update", "delete", "procedure", "select_error"]:
-            BaseDbIntegrationsTestClass.requests[self.db_service][db_operation] = weblog.get(
+        for db_operation in [
+            "select",
+            "insert",
+            "update",
+            "delete",
+            "procedure",
+            "select_error",
+        ]:
+            BaseDbIntegrationsTestClass.requests[self.db_service][
+                db_operation
+            ] = weblog.get(
                 "/db", params={"service": self.db_service, "operation": db_operation}
             )
 
@@ -72,7 +81,9 @@ class BaseDbIntegrationsTestClass:
     @staticmethod
     def get_span_from_tracer(weblog_request):
         for _, _, span in interfaces.library.get_spans(weblog_request):
-            logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
+            logger.info(
+                f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}"
+            )
 
             # iterate over all trace to be sure to miss nothing
             for _, _, span_child in interfaces.library.get_spans():
@@ -81,8 +92,12 @@ class BaseDbIntegrationsTestClass:
 
                 logger.debug(f"Check if span {span_child['span_id']} could match")
 
-                if span_child["resource"] == "SELECT 1;":  # workaround to avoid conflicts on connection check on mssql
-                    logger.debug(f"Wrong resource:{span_child.get('resource')}, continue...")
+                if (
+                    span_child["resource"] == "SELECT 1;"
+                ):  # workaround to avoid conflicts on connection check on mssql
+                    logger.debug(
+                        f"Wrong resource:{span_child.get('resource')}, continue..."
+                    )
                     continue
 
                 if span_child.get("type") != "sql":
@@ -97,7 +112,9 @@ class BaseDbIntegrationsTestClass:
     @staticmethod
     def get_span_from_agent(weblog_request):
         for data, span in interfaces.agent.get_spans(weblog_request):
-            logger.debug(f"Span found: trace id={span['traceID']}; span id={span['spanID']} ({data['log_filename']})")
+            logger.debug(
+                f"Span found: trace id={span['traceID']}; span id={span['spanID']} ({data['log_filename']})"
+            )
 
             # iterate over everything to be sure to miss nothing
             for _, span_child in interfaces.agent.get_spans():
@@ -114,7 +131,9 @@ class BaseDbIntegrationsTestClass:
                 # workaround to avoid conflicts on connection check on mssql
                 # workaround to avoid conflicts on connection check on mssql + nodejs + opentelemetry (there is a bug in the sql obfuscation)
                 if span_child["resource"] in ("SELECT ?", "SELECT 1;"):
-                    logger.debug(f"Wrong resource:{span_child.get('resource')}, continue...")
+                    logger.debug(
+                        f"Wrong resource:{span_child.get('resource')}, continue..."
+                    )
                     continue
 
                 # workaround to avoid conflicts on postgres + nodejs + opentelemetry
@@ -124,7 +143,9 @@ class BaseDbIntegrationsTestClass:
 
                 # workaround to avoid conflicts on mssql + nodejs + opentelemetry
                 if span_child["meta"].get("db.statement") == "SELECT 1;":
-                    logger.debug(f"Wrong db.statement:{span_child.get('meta', {}).get('db.statement')}, continue...")
+                    logger.debug(
+                        f"Wrong db.statement:{span_child.get('meta', {}).get('db.statement')}, continue..."
+                    )
                     continue
 
                 logger.info(f"Span type==sql found: spanId={span_child['spanID']}")

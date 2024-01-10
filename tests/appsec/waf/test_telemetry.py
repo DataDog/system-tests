@@ -1,4 +1,14 @@
-from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky, features
+from utils import (
+    interfaces,
+    rfc,
+    weblog,
+    scenarios,
+    context,
+    bug,
+    missing_feature,
+    flaky,
+    features,
+)
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -14,10 +24,15 @@ def _setup(self):
     if hasattr(Test_TelemetryMetrics, "__common_setup_done"):
         return
     r_plain = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
-    r_triggered = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
+    r_triggered = weblog.get(
+        "/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"}
+    )
     r_blocked = weblog.get(
         "/",
-        headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
+        headers={
+            "x-forwarded-for": "80.80.80.80",
+            "user-agent": "dd-test-scanner-log-block",
+        },
         # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
         rid_in_user_agent=False,
     )
@@ -48,7 +63,9 @@ class Test_TelemetryMetrics:
     @bug(context.library < "java@1.13.0", reason="Missing two headers")
     def test_headers_are_correct(self):
         """Tests that all telemetry requests have correct headers."""
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
+        for data in interfaces.library.get_telemetry_data(
+            flatten_message_batches=False
+        ):
             request_type = data["request"]["content"].get("request_type")
             _validate_headers(data["request"]["headers"], request_type)
 
@@ -68,9 +85,14 @@ class Test_TelemetryMetrics:
             "version",
             "lib_language",
         }
-        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
+        series = self._find_series(
+            TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name
+        )
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
-        if context.library == "python" and context.weblog_variant not in ("fastapi", "uwsgi-poc"):
+        if context.library == "python" and context.weblog_variant not in (
+            "fastapi",
+            "uwsgi-poc",
+        ):
             assert len(series) == 2
         else:
             assert len(series) == 1
@@ -82,7 +104,9 @@ class Test_TelemetryMetrics:
 
         full_tags = set(s["tags"])
         self._assert_valid_tags(
-            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
+            full_tags=full_tags,
+            valid_prefixes=valid_tag_prefixes,
+            mandatory_prefixes=mandatory_tag_prefixes,
         )
 
         assert len(s["points"]) == 1
@@ -106,7 +130,9 @@ class Test_TelemetryMetrics:
             "version",
             "lib_language",
         }
-        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
+        series = self._find_series(
+            TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name
+        )
         assert len(series) == 1
         s = series[0]
         assert s["_computed_namespace"] == "appsec"
@@ -116,7 +142,9 @@ class Test_TelemetryMetrics:
 
         full_tags = set(s["tags"])
         self._assert_valid_tags(
-            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
+            full_tags=full_tags,
+            valid_prefixes=valid_tag_prefixes,
+            mandatory_prefixes=mandatory_tag_prefixes,
         )
 
         assert len(s["points"]) == 1
@@ -145,7 +173,9 @@ class Test_TelemetryMetrics:
             "rule_triggered",
             "request_blocked",
         }
-        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
+        series = self._find_series(
+            TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name
+        )
         logger.debug(series)
         # Depending on the timing, there might be more than 3 series. For example, if a warmup
         # request goes first, we might have two series for rule_triggered:false,blocked_request:false
@@ -164,7 +194,9 @@ class Test_TelemetryMetrics:
 
             full_tags = set(s["tags"])
             self._assert_valid_tags(
-                full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
+                full_tags=full_tags,
+                valid_prefixes=valid_tag_prefixes,
+                mandatory_prefixes=mandatory_tag_prefixes,
             )
 
             if len(full_tags & {"request_blocked:false", "rule_triggered:false"}) == 2:

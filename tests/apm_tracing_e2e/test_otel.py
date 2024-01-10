@@ -10,7 +10,11 @@ class Test_Otel_Span:
     def setup_datadog_otel_span(self):
         self.req = weblog.get(
             "/e2e_otel_span",
-            {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource", "childName": "otel-name.dd-resource"},
+            {
+                "shouldIndex": 1,
+                "parentName": "root-otel-name.dd-resource",
+                "childName": "otel-name.dd-resource",
+            },
         )
 
     # Parent span will have the following traits :
@@ -21,15 +25,22 @@ class Test_Otel_Span:
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
     # - span kind of SpanKind - Internal
-    @bug(context.library == "java", reason="Span.kind is not set to internal, have type instead")
+    @bug(
+        context.library == "java",
+        reason="Span.kind is not set to internal, have type instead",
+    )
     def test_datadog_otel_span(self):
         spans = _get_spans_submitted(self.req)
-        assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
+        assert 2 <= len(spans), _assert_msg(
+            2, len(spans), "Agent did not submit the spans we want!"
+        )
 
         # Assert the parent span sent by the agent.
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
         assert parent.get("parentID") is None
-        if parent.get("meta")["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
+        if (
+            parent.get("meta")["language"] != "jvm"
+        ):  # Java OpenTelemetry API does not provide Span ID API
             assert parent.get("spanID") == "10000"
         assert parent.get("meta").get("attributes") == "values"
         assert parent.get("meta").get("error.message") == "testing_end_span_options"
@@ -44,18 +55,26 @@ class Test_Otel_Span:
         assert child.get("meta").get("span.kind") == "internal"
 
         # Assert the spans received from the backend!
-        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
+        spans = interfaces.backend.assert_request_spans_exist(
+            self.req, query_filter="", retries=10
+        )
         assert 2 == len(spans), _assert_msg(2, len(spans))
 
     def setup_distributed_otel_trace(self):
         self.req = weblog.get(
-            "/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"},
+            "/e2e_otel_span/mixed_contrib",
+            {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"},
         )
 
-    @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
+    @irrelevant(
+        condition=context.library != "golang",
+        reason="Golang specific test with OTel Go contrib package",
+    )
     def test_distributed_otel_trace(self):
         spans = _get_spans_submitted(self.req)
-        assert 3 <= len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
+        assert 3 <= len(spans), _assert_msg(
+            3, len(spans), "Agent did not submit the spans we want!"
+        )
 
         # Assert the parent span sent by the agent.
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
@@ -75,7 +94,9 @@ class Test_Otel_Span:
         assert handler_span.get("parentID") == roundtrip_span.get("spanID")
 
         # Assert the spans received from the backend!
-        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
+        spans = interfaces.backend.assert_request_spans_exist(
+            self.req, query_filter="", retries=10
+        )
         assert 3 == len(spans), _assert_msg(3, len(spans))
 
 

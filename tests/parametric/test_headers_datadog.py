@@ -33,7 +33,9 @@ class Test_Headers_Datadog:
         assert span["meta"].get("_dd.p.dm") == "-4"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
-    def test_distributed_headers_extract_datadog_invalid_D002(self, test_agent, test_library):
+    def test_distributed_headers_extract_datadog_invalid_D002(
+        self, test_agent, test_library
+    ):
         """Ensure that invalid Datadog distributed tracing headers are not extracted.
         """
         with test_library:
@@ -64,7 +66,9 @@ class Test_Headers_Datadog:
         span = get_span(test_agent)
         assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
         assert int(headers["x-datadog-parent-id"]) == span.get("span_id")
-        assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
+        assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(
+            SAMPLING_PRIORITY_KEY
+        )
 
     def test_distributed_headers_propagate_datadog_D004(self, test_agent, test_library):
         """Ensure that Datadog distributed tracing headers are extracted
@@ -89,7 +93,9 @@ class Test_Headers_Datadog:
         assert headers["x-datadog-origin"] == "synthetics"
         assert "_dd.p.dm=-4" in headers["x-datadog-tags"]
 
-    def test_distributed_headers_extractandinject_datadog_invalid_D005(self, test_agent, test_library):
+    def test_distributed_headers_extractandinject_datadog_invalid_D005(
+        self, test_agent, test_library
+    ):
         """Ensure that invalid Datadog distributed tracing headers are not extracted
         and the new span context is injected properly.
         """

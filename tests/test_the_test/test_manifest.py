@@ -25,7 +25,9 @@ def test_content():
         if name.endswith(".py"):
             name = name[:-3]
 
-        assert hasattr(module, name), f"Manifest path {nodeid} does not correspond to any test {dir(module)}"
+        assert hasattr(
+            module, name
+        ), f"Manifest path {nodeid} does not correspond to any test {dir(module)}"
 
         assert_in(elements, getattr(module, name), nodeid)
 
@@ -42,7 +44,9 @@ def test_content():
         try:
             content = get_file_content(file)
         except FileNotFoundError as e:
-            raise ValueError(f"In {component} manifest, file {file} is declared, but does not exists") from e
+            raise ValueError(
+                f"In {component} manifest, file {file} is declared, but does not exists"
+            ) from e
 
         if klass is not None:
             assert (

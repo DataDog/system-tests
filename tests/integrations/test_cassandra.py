@@ -5,7 +5,9 @@
 from utils import weblog, interfaces, context, missing_feature, scenarios, features
 
 
-@missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
+@missing_feature(
+    condition=context.library != "java", reason="Endpoint is not implemented on weblog"
+)
 @features.cassandra_support
 @scenarios.integrations
 class Test_Cassandra:

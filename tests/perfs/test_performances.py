@@ -13,7 +13,14 @@ MAX_CONCURRENT_REQUEST = 5
 TOTAL_REQUEST_COUNT = 10000
 
 WEBLOG_URL = "http://localhost:7777"
-TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=bcd", "/waf?a=b&a=c")
+TESTED_PATHS = (
+    "/",
+    "/waf/",
+    "/waf/fdsfds/fds/fds/fds/",
+    "/waf?a=b",
+    "/waf?acd=bcd",
+    "/waf?a=b&a=c",
+)
 
 # TOTAL_REQUEST_COUNT = 100
 # WARMUP_REQUEST_COUNT = 1
@@ -29,7 +36,11 @@ class Test_Performances:
         self.memory = []
         self.finished = False
 
-        self.appsec = "with_appsec" if environ.get("DD_APPSEC_ENABLED") == "true" else "without_appsec"
+        self.appsec = (
+            "with_appsec"
+            if environ.get("DD_APPSEC_ENABLED") == "true"
+            else "without_appsec"
+        )
         self.lang = scenarios.performances.library.library
 
         threads = [threading.Thread(target=self.watch_docker_target)] + [
@@ -60,13 +71,24 @@ class Test_Performances:
         for _ in range(5):
             for path in TESTED_PATHS:
                 for header in headers:
-                    self.add_request({"method": "GET", "url": f"{WEBLOG_URL}{path}", "headers": header})
+                    self.add_request(
+                        {
+                            "method": "GET",
+                            "url": f"{WEBLOG_URL}{path}",
+                            "headers": header,
+                        }
+                    )
 
             for path in TESTED_PATHS:
                 for header in headers:
                     for data in datas:
                         self.add_request(
-                            {"method": "POST", "url": f"{WEBLOG_URL}{path}", "headers": header, "data": data}
+                            {
+                                "method": "POST",
+                                "url": f"{WEBLOG_URL}{path}",
+                                "headers": header,
+                                "data": data,
+                            }
                         )
 
         for path in TESTED_PATHS:
@@ -74,11 +96,21 @@ class Test_Performances:
                 for data in datas:
                     for _ in range(5):
                         self.add_request(
-                            {"method": "POST", "url": f"{WEBLOG_URL}{path}", "headers": header, "json": medium_nested,}
+                            {
+                                "method": "POST",
+                                "url": f"{WEBLOG_URL}{path}",
+                                "headers": header,
+                                "json": medium_nested,
+                            }
                         )
 
                     self.add_request(
-                        {"method": "POST", "url": f"{WEBLOG_URL}{path}", "headers": header, "json": big_nested}
+                        {
+                            "method": "POST",
+                            "url": f"{WEBLOG_URL}{path}",
+                            "headers": header,
+                            "json": big_nested,
+                        }
                     )
 
     def add_request(self, request):
@@ -123,6 +155,8 @@ class Test_Performances:
         """ add some tests ?"""
 
         with open(
-            f"{scenarios.performances.host_log_folder}/stats_{self.lang}_{self.appsec}.json", "w", encoding="utf-8"
+            f"{scenarios.performances.host_log_folder}/stats_{self.lang}_{self.appsec}.json",
+            "w",
+            encoding="utf-8",
         ) as f:
             json.dump(self.data, f, indent=2)

@@ -11,7 +11,9 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_properties(self):
         """ generic check on all operations """
 
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.scenario.get_container_by_dd_integration_name(
+            self.db_service
+        )
 
         for db_operation, request in self.get_requests():
             logger.info(f"Validating {self.db_service}/{db_operation}")
@@ -46,31 +48,48 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     "peer.service",
                     "net.peer.name",
                 ]:  # These fields hostname, user... are the same as password
-                    assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
+                    assert (
+                        span["meta"][key] != db_container.db_password
+                    ), f"Test is failing for {db_operation}"
 
     def test_resource(self):
         """ Usually the query """
-        for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
+        for db_operation, request in self.get_requests(
+            excluded_operations=["procedure", "select_error"]
+        ):
             span = self.get_span_from_agent(request)
             assert db_operation in span["resource"].lower()
 
-    @missing_feature(library="python_otel", reason="Open telemetry doesn't send this span for python")
+    @missing_feature(
+        library="python_otel", reason="Open telemetry doesn't send this span for python"
+    )
     def test_db_connection_string(self):
         """ The connection string used to connect to the database. """
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            assert span["meta"]["db.connection_string"].strip(), f"Test is failing for {db_operation}"
+            assert span["meta"][
+                "db.connection_string"
+            ].strip(), f"Test is failing for {db_operation}"
 
-    @bug(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
-    @bug(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
+    @bug(
+        library="python_otel",
+        reason="Open Telemetry doesn't send this span for python but it should do",
+    )
+    @bug(
+        library="nodejs_otel",
+        reason="Open Telemetry doesn't send this span for nodejs but it should do",
+    )
     def test_db_operation(self):
         """ The name of the operation being executed """
-        for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
+        for db_operation, request in self.get_requests(
+            excluded_operations=["select_error"]
+        ):
             span = self.get_span_from_agent(request)
 
             if db_operation == "procedure":
                 assert any(
-                    substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
+                    substring in span["meta"]["db.operation"].lower()
+                    for substring in ["call", "exec"]
                 ), "db.operation span not found for procedure operation"
             else:
                 assert (
@@ -83,16 +102,23 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     )
     def test_db_sql_table(self):
         """ The name of the primary table that the operation is acting upon, including the database name (if applicable). """
-        for db_operation, request in self.get_requests(excluded_operations=["procedure"]):
+        for db_operation, request in self.get_requests(
+            excluded_operations=["procedure"]
+        ):
             span = self.get_span_from_agent(request)
-            assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
+            assert span["meta"][
+                "db.sql.table"
+            ].strip(), f"Test is failing for {db_operation}"
 
     def test_error_message(self):
         """ A string representing the error message. """
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
         assert len(span["meta"]["error.msg"].strip()) != 0
 
-    @missing_feature(library="nodejs_otel", reason="Open telemetry with nodejs is not generating this information.")
+    @missing_feature(
+        library="nodejs_otel",
+        reason="Open telemetry with nodejs is not generating this information.",
+    )
     def test_error_type_and_stack(self):
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
 
@@ -102,8 +128,12 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         # A human readable version of the stack trace
         assert span["meta"]["error.stack"].strip()
 
-    @bug(library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
-    @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
+    @bug(
+        library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940"
+    )
+    @bug(
+        library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940"
+    )
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():
@@ -119,13 +149,17 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     def test_sql_success(self):
         """ We check all sql launched for the app work """
-        for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
+        for db_operation, request in self.get_requests(
+            excluded_operations=["select_error"]
+        ):
             span = self.get_span_from_agent(request)
             assert "error" not in span or span["error"] == 0
 
     def test_db_statement_query(self):
         """ Usually the query """
-        for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
+        for db_operation, request in self.get_requests(
+            excluded_operations=["procedure", "select_error"]
+        ):
             span = self.get_span_from_agent(request)
             assert (
                 db_operation in span["meta"]["db.statement"].lower()
@@ -166,12 +200,16 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
             span = self.get_span_from_agent(request)
             assert span["meta"][
                 "db.mssql.instance_name"
-            ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
+            ].strip(), (
+                f"db.mssql.instance_name must not be empty for operation {db_operation}"
+            )
 
     @bug(library="nodejs_otel", reason="We are not generating this span")
     def test_db_operation(self):
         """ The name of the operation being executed. Mssql and Open Telemetry doesn't report this span when we call to procedure """
-        for db_operation, request in self.get_requests(excluded_operations=["select_error", "procedure"]):
+        for db_operation, request in self.get_requests(
+            excluded_operations=["select_error", "procedure"]
+        ):
             span = self.get_span_from_agent(request)
             # db.operation span is not generating by Open Telemetry when we call to procedure or we have a syntax error on the SQL
             if db_operation not in ["select_error", "procedure"]:
@@ -193,7 +231,9 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     def test_db_connection_string(self):
         super().test_db_connection_string()
 
-    @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
+    @bug(
+        library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940"
+    )
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():

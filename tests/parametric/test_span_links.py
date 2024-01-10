@@ -37,7 +37,12 @@ class Test_Span_Links:
                 with test_library.start_span(
                     "child",
                     parent_id=parent.span_id,
-                    links=[Link(parent_id=parent.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+                    links=[
+                        Link(
+                            parent_id=parent.span_id,
+                            attributes={"foo": "bar", "array": ["a", "b", "c"]},
+                        )
+                    ],
                 ):
                     pass
 
@@ -125,7 +130,10 @@ class Test_Span_Links:
                 "root",
                 links=[Link(parent_id=0)],
                 http_headers=[
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    [
+                        "traceparent",
+                        "00-12345678901234567890123456789012-1234567890123456-01",
+                    ],
                     ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
                 ],
             ):
@@ -167,12 +175,19 @@ class Test_Span_Links:
         """
         with test_library:
             with test_library.start_span("root") as parent:
-                with test_library.start_span("first", parent_id=parent.span_id) as first:
+                with test_library.start_span(
+                    "first", parent_id=parent.span_id
+                ) as first:
                     pass
                 with test_library.start_span(
-                    "second", parent_id=parent.span_id, links=[Link(parent_id=parent.span_id)]
+                    "second",
+                    parent_id=parent.span_id,
+                    links=[Link(parent_id=parent.span_id)],
                 ) as second:
-                    second.add_link(first.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
+                    second.add_link(
+                        first.span_id,
+                        attributes={"bools": [True, False], "nested": [1, 2]},
+                    )
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, Span(name="root"))

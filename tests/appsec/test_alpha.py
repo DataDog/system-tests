@@ -17,24 +17,38 @@ class Test_Basic:
     def test_uri(self):
         """ Via server.request.uri.raw """
         # Note: we do not check the returned key_path nor rule_id for the alpha version
-        interfaces.library.assert_waf_attack(self.r_uri, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
+        interfaces.library.assert_waf_attack(
+            self.r_uri, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw"
+        )
 
     def setup_headers(self):
-        self.r_headers_1 = weblog.get("/waf/", headers={"MyHeader": "../../../secret.txt"})
+        self.r_headers_1 = weblog.get(
+            "/waf/", headers={"MyHeader": "../../../secret.txt"}
+        )
         self.r_headers_2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+    @bug(
+        context.library == "python@1.1.0", reason="a PR was not included in the release"
+    )
     def test_headers(self):
         """ Via server.request.headers.no_cookies """
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         address = "server.request.headers.no_cookies"
         pattern = "/../" if context.appsec_rules_version < "1.2.6" else "../"
-        interfaces.library.assert_waf_attack(self.r_headers_1, pattern=pattern, address=address)
-        interfaces.library.assert_waf_attack(self.r_headers_2, pattern="Arachni/v", address=address)
+        interfaces.library.assert_waf_attack(
+            self.r_headers_1, pattern=pattern, address=address
+        )
+        interfaces.library.assert_waf_attack(
+            self.r_headers_2, pattern="Arachni/v", address=address
+        )
 
     def setup_no_cookies(self):
-        self.r_headers_1 = weblog.get("/waf/", headers={"MyHeader": "../../../secret.txt"})
-        self.r_headers_2 = weblog.get("/waf/", cookies={"Cookie": "../../../secret.txt"})
+        self.r_headers_1 = weblog.get(
+            "/waf/", headers={"MyHeader": "../../../secret.txt"}
+        )
+        self.r_headers_2 = weblog.get(
+            "/waf/", cookies={"Cookie": "../../../secret.txt"}
+        )
 
     def test_no_cookies(self):
         """ Address server.request.headers.no_cookies should not include cookies. """
@@ -43,5 +57,7 @@ class Test_Basic:
         # to validate that cookies are properly excluded from server.request.headers.no_cookies.
         address = "server.request.headers.no_cookies"
         pattern = "/../" if context.appsec_rules_version < "1.2.6" else "../"
-        interfaces.library.assert_waf_attack(self.r_headers_1, pattern=pattern, address=address)
+        interfaces.library.assert_waf_attack(
+            self.r_headers_1, pattern=pattern, address=address
+        )
         interfaces.library.assert_no_appsec_event(self.r_headers_2)

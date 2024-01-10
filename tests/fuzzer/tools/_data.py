@@ -18,7 +18,9 @@ class _Data:
 
     @cached_property
     def blns(self):
-        return json.load(open(os.path.join(self._data_path, "blns.json"), "r", encoding="utf-8"))
+        return json.load(
+            open(os.path.join(self._data_path, "blns.json"), "r", encoding="utf-8")
+        )
 
     @cached_property
     def re2_regexs(self):
@@ -26,4 +28,6 @@ class _Data:
 
     @cached_property
     def re2_regexs_with_metadata(self):
-        return json.load(open(os.path.join(self._data_path, "regex.json"), "r", encoding="utf-8"))
+        return json.load(
+            open(os.path.join(self._data_path, "regex.json"), "r", encoding="utf-8")
+        )

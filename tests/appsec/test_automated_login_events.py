@@ -2,10 +2,22 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios, coverage, rfc, bug, features
+from utils import (
+    weblog,
+    interfaces,
+    context,
+    missing_feature,
+    scenarios,
+    coverage,
+    rfc,
+    bug,
+    features,
+)
 
 
-@rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
+@rfc(
+    "https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1"
+)
 @coverage.good
 @features.user_monitoring
 class Test_Login_Events:
@@ -43,15 +55,21 @@ class Test_Login_Events:
 
     BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
     BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
-    BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
+    BASIC_AUTH_INVALID_USER_HEADER = (
+        "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
+    )
     BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
 
     def setup_login_pii_success_local(self):
         self.r_pii_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
+            "/login?auth=local",
+            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
         )
 
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(
+        context.library < "nodejs@4.9.0",
+        reason="Reports empty space in usr.id when id is a PII",
+    )
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -62,10 +80,15 @@ class Test_Login_Events:
             assert_priority(span, meta)
 
     def setup_login_pii_success_basic(self):
-        self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+        self.r_pii_success = weblog.get(
+            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}
+        )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(
+        context.library < "nodejs@4.9.0",
+        reason="Reports empty space in usr.id when id is a PII",
+    )
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -77,7 +100,8 @@ class Test_Login_Events:
 
     def setup_login_success_local(self):
         self.r_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.UUID_USER, self.password_key: self.PASSWORD}
+            "/login?auth=local",
+            data={self.username_key: self.UUID_USER, self.password_key: self.PASSWORD},
         )
 
     def test_login_success_local(self):
@@ -90,7 +114,10 @@ class Test_Login_Events:
             assert_priority(span, meta)
 
     def setup_login_success_basic(self):
-        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
+        self.r_success = weblog.get(
+            "/login?auth=basic",
+            headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER},
+        )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
@@ -104,13 +131,22 @@ class Test_Login_Events:
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
+            "/login?auth=local",
+            data={
+                self.username_key: self.INVALID_USER,
+                self.password_key: self.PASSWORD,
+            },
         )
 
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(
+        context.library < "nodejs@4.9.0",
+        reason="Reports empty space in usr.id when id is a PII",
+    )
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(
+            request=self.r_wrong_user_failure
+        ):
             meta = span.get("meta", {})
             if context.library != "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
@@ -124,14 +160,20 @@ class Test_Login_Events:
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}
+            "/login?auth=basic",
+            headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(
+        context.library < "nodejs@4.9.0",
+        reason="Reports empty space in usr.id when id is a PII",
+    )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(
+            request=self.r_wrong_user_failure
+        ):
             meta = span.get("meta", {})
             if context.library != "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
@@ -145,13 +187,19 @@ class Test_Login_Events:
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
+            "/login?auth=local",
+            data={self.username_key: self.USER, self.password_key: "12345"},
         )
 
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(
+        context.library < "nodejs@4.9.0",
+        reason="Reports empty space in usr.id when id is a PII",
+    )
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(
+            request=self.r_wrong_user_failure
+        ):
             meta = span.get("meta", {})
             if context.library != "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
@@ -165,14 +213,20 @@ class Test_Login_Events:
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}
+            "/login?auth=basic",
+            headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(
+        context.library < "nodejs@4.9.0",
+        reason="Reports empty space in usr.id when id is a PII",
+    )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(
+            request=self.r_wrong_user_failure
+        ):
             meta = span.get("meta", {})
             if context.library != "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
@@ -220,7 +274,10 @@ class Test_Login_Events:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD},
+            data={
+                self.username_key: self.INVALID_USER,
+                self.password_key: self.PASSWORD,
+            },
         )
 
     def test_login_sdk_failure_local(self):
@@ -253,11 +310,16 @@ class Test_Login_Events:
             assert_priority(span, meta)
 
 
-@rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
+@rfc(
+    "https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1"
+)
 @coverage.good
 @scenarios.appsec_auto_events_extended
 @features.user_monitoring
-@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
+@bug(
+    context.library >= "php@0.92.0.dev",
+    reason="AppSec need to update their dev version",
+)
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 
@@ -280,7 +342,8 @@ class Test_Login_Events_Extended:
 
     def setup_login_success_local(self):
         self.r_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
+            "/login?auth=local",
+            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
         )
 
     def test_login_success_local(self):
@@ -298,7 +361,10 @@ class Test_Login_Events_Extended:
                 assert meta["usr.name"] == "test"
             elif context.library == "php":
                 assert meta["appsec.events.users.login.success.username"] == "test"
-                assert meta["appsec.events.users.login.success.email"] == "testuser@ddog.com"
+                assert (
+                    meta["appsec.events.users.login.success.email"]
+                    == "testuser@ddog.com"
+                )
             elif context.library == "ruby":
                 # theres no login field in ruby
                 assert meta["usr.email"] == "testuser@ddog.com"
@@ -311,7 +377,9 @@ class Test_Login_Events_Extended:
             assert_priority(span, meta)
 
     def setup_login_success_basic(self):
-        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+        self.r_success = weblog.get(
+            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}
+        )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
@@ -338,12 +406,15 @@ class Test_Login_Events_Extended:
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: "invalidUser", self.password_key: self.PASSWORD}
+            "/login?auth=local",
+            data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
         )
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(
+            request=self.r_wrong_user_failure
+        ):
             meta = span.get("meta", {})
             if context.library != "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
@@ -357,23 +428,30 @@ class Test_Login_Events_Extended:
                 # For that reason we can not extract id, email or username
                 assert meta.get("appsec.events.users.login.failure.usr.id") == None
                 assert meta.get("appsec.events.users.login.failure.usr.email") == None
-                assert meta.get("appsec.events.users.login.failure.usr.username") == None
+                assert (
+                    meta.get("appsec.events.users.login.failure.usr.username") == None
+                )
             elif context.library == "dotnet":
                 # in dotnet if the user doesn't exist, there is no id (generated upon user creation)
-                assert meta["appsec.events.users.login.failure.username"] == "invalidUser"
+                assert (
+                    meta["appsec.events.users.login.failure.username"] == "invalidUser"
+                )
             else:
                 assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
             assert_priority(span, meta)
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}
+            "/login?auth=basic",
+            headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(
+            request=self.r_wrong_user_failure
+        ):
             meta = span.get("meta", {})
             if context.library != "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
@@ -387,22 +465,29 @@ class Test_Login_Events_Extended:
                 # For that reason we can not extract id, email or username
                 assert meta.get("appsec.events.users.login.failure.usr.id") == None
                 assert meta.get("appsec.events.users.login.failure.usr.email") == None
-                assert meta.get("appsec.events.users.login.failure.usr.username") == None
+                assert (
+                    meta.get("appsec.events.users.login.failure.usr.username") == None
+                )
             elif context.library == "dotnet":
                 # in dotnet if the user doesn't exist, there is no id (generated upon user creation)
-                assert meta["appsec.events.users.login.failure.username"] == "invalidUser"
+                assert (
+                    meta["appsec.events.users.login.failure.username"] == "invalidUser"
+                )
             else:
                 assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
             assert_priority(span, meta)
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
+            "/login?auth=local",
+            data={self.username_key: self.USER, self.password_key: "12345"},
         )
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(
+            request=self.r_wrong_user_failure
+        ):
             meta = span.get("meta", {})
             if context.library == "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
@@ -410,8 +495,14 @@ class Test_Login_Events_Extended:
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
             else:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
-                assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
+                assert (
+                    meta["appsec.events.users.login.failure.usr.id"]
+                    == "social-security-id"
+                )
+                assert (
+                    meta["appsec.events.users.login.failure.email"]
+                    == "testuser@ddog.com"
+                )
                 assert meta["appsec.events.users.login.failure.username"] == "test"
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
@@ -420,19 +511,29 @@ class Test_Login_Events_Extended:
             assert_priority(span, meta)
 
     def setup_login_wrong_password_failure_basic(self):
-        self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="}
+        )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(
+            request=self.r_wrong_user_failure
+        ):
             meta = span.get("meta", {})
             if context.library != "nodejs":
                 # Currently in nodejs there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
-                assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
+                assert (
+                    meta["appsec.events.users.login.failure.usr.id"]
+                    == "social-security-id"
+                )
+                assert (
+                    meta["appsec.events.users.login.failure.email"]
+                    == "testuser@ddog.com"
+                )
                 assert meta["appsec.events.users.login.failure.username"] == "test"
             else:
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
@@ -514,7 +615,9 @@ class Test_Login_Events_Extended:
 def assert_priority(span, meta):
     MANUAL_KEEP_SAMPLING_PRIORITY = 2
     if span["metrics"].get("_sampling_priority_v1") != MANUAL_KEEP_SAMPLING_PRIORITY:
-        assert "manual.keep" in meta, "manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP"
+        assert (
+            "manual.keep" in meta
+        ), "manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP"
         assert (
             meta["manual.keep"] == "true"
         ), 'meta.manual.keep should be "true" when _sampling_priority_v1 is not MANUAL_KEEP'

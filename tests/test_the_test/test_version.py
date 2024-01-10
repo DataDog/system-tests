@@ -32,10 +32,16 @@ def test_version_comparizon():
     assert "1.31.1" < Version("v1.34.1", "")
     assert Version("1.31.1", "") < Version("v1.34.1", "")
 
-    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") == Version("1.0.0.beta1", "ruby")
+    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") == Version(
+        "1.0.0.beta1", "ruby"
+    )
     assert Version("  * ddtrace (1.0.0.beta1)", "ruby")
-    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") < Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
-    assert Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby") < Version("1.0.0", "ruby")
+    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") < Version(
+        "  * ddtrace (1.0.0.beta1 de82857)", "ruby"
+    )
+    assert Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby") < Version(
+        "1.0.0", "ruby"
+    )
 
     assert Version("1.0.0beta1", "ruby") < Version("1.0.0beta1+8a50f1f", "ruby")
 
@@ -69,7 +75,10 @@ def test_version_serialization():
     assert v == Version("1.0.14.1.0.beta1", "libddwaf")
     assert v == "1.0.14.1.0.beta1"
 
-    v = Version("Agent 7.33.0 - Commit: e6cfcb9 - Serialization version: v5.0.4 - Go version: go1.16.7", "agent")
+    v = Version(
+        "Agent 7.33.0 - Commit: e6cfcb9 - Serialization version: v5.0.4 - Go version: go1.16.7",
+        "agent",
+    )
     assert v == "7.33.0"
 
     v = Version("1.0.0-nightly", "php")
@@ -87,7 +96,10 @@ def test_version_serialization():
 
 def test_agent_version():
 
-    v = Version("Agent 7.37.0 - Commit: 1124d66 - Serialization version: v5.0.22 - Go version: go1.17.11", "agent")
+    v = Version(
+        "Agent 7.37.0 - Commit: 1124d66 - Serialization version: v5.0.22 - Go version: go1.17.11",
+        "agent",
+    )
     assert v == "7.37.0"
 
     v = Version(

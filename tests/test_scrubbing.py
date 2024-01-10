@@ -28,19 +28,30 @@ def validate_no_leak(needle, whitelist_pattern=None):
     return crawler
 
 
-@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
+@rfc(
+    "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation"
+)
 @coverage.good
 class Test_UrlQuery:
     """ PII values in query parameter are all removed"""
 
     def setup_main(self):
-        weblog.get("/", params={"pass": "leak-url-main-v1", "key2": "val2", "key3": "val3"})
-        weblog.get("/", params={"key1": "val1", "public_key": "leak-url-main-v2", "key3": "val3"})
-        weblog.get("/", params={"key1": "val1", "key2": "val2", "token": "leak-url-main-v3"})
+        weblog.get(
+            "/", params={"pass": "leak-url-main-v1", "key2": "val2", "key3": "val3"}
+        )
+        weblog.get(
+            "/",
+            params={"key1": "val1", "public_key": "leak-url-main-v2", "key3": "val3"},
+        )
+        weblog.get(
+            "/", params={"key1": "val1", "key2": "val2", "token": "leak-url-main-v3"}
+        )
         weblog.get("/", params={"json": '{"sign":"leak-url-main-v4"}'})
 
     def test_main(self):
-        interfaces.library.validate(validate_no_leak("leak-url-main"), success_by_default=True)
+        interfaces.library.validate(
+            validate_no_leak("leak-url-main"), success_by_default=True
+        )
 
     def setup_multiple_matching_substring(self):
         weblog.get(
@@ -58,7 +69,9 @@ class Test_UrlQuery:
 
     @bug(context.library < "dotnet@2.21.0", reason="APPSEC-5773")
     def test_multiple_matching_substring(self):
-        interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
+        interfaces.library.validate(
+            validate_no_leak("leak-url-multiple"), success_by_default=True
+        )
 
 
 @coverage.basic
@@ -73,7 +86,8 @@ class Test_UrlField:
         self.r = weblog.get("/make_distant_call", params={"url": url})
 
     @missing_feature(
-        context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"), reason="Need weblog endpoint",
+        context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"),
+        reason="Need weblog endpoint",
     )
     def test_main(self):
         """ check that not data is leaked """
@@ -95,8 +109,14 @@ class Test_UrlField:
             r"url=http%3A%2F%2Fleak-name-url%3Aleak-password-url%40agent%3A8127"
         )
 
-        interfaces.library.validate(validate_no_leak("leak-password-url", whitelist_pattern), success_by_default=True)
-        interfaces.library.validate(validate_no_leak("leak-name-url", whitelist_pattern), success_by_default=True)
+        interfaces.library.validate(
+            validate_no_leak("leak-password-url", whitelist_pattern),
+            success_by_default=True,
+        )
+        interfaces.library.validate(
+            validate_no_leak("leak-name-url", whitelist_pattern),
+            success_by_default=True,
+        )
 
 
 @coverage.good
@@ -104,10 +124,14 @@ class Test_EnvVar:
     """ Environnement variables are not leaked """
 
     def test_library(self):
-        interfaces.library.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
+        interfaces.library.validate(
+            validate_no_leak("leaked-env-var"), success_by_default=True
+        )
 
     def test_agent(self):
-        interfaces.agent.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
+        interfaces.agent.validate(
+            validate_no_leak("leaked-env-var"), success_by_default=True
+        )
 
     def test_logs(self):
         interfaces.library_stdout.assert_absence(".*leaked-env-var.*")

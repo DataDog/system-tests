@@ -46,7 +46,10 @@ class RequestGenerator:
 
         request_as_json = json.dumps(request)
 
-        if len(request_as_json) < self.corpus_request_max_size and request_as_json not in self.corpus:
+        if (
+            len(request_as_json) < self.corpus_request_max_size
+            and request_as_json not in self.corpus
+        ):
             self.corpus.append(request_as_json)
 
         while len(self.corpus) > self.corpus_max_size:

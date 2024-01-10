@@ -45,7 +45,9 @@ class TestWeakHash(BaseSinkTest):
     evidence_map = _expected_evidence()
 
     def setup_insecure_hash_remove_duplicates(self):
-        self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
+        self.r_insecure_hash_remove_duplicates = weblog.get(
+            "/iast/insecure_hashing/deduplicate"
+        )
 
     @missing_feature(weblog_variant="spring-boot-openliberty")
     def test_insecure_hash_remove_duplicates(self):
@@ -60,7 +62,9 @@ class TestWeakHash(BaseSinkTest):
         )
 
     def setup_insecure_hash_multiple(self):
-        self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
+        self.r_insecure_hash_multiple = weblog.get(
+            "/iast/insecure_hashing/multiple_hash"
+        )
 
     @bug(weblog_variant="spring-boot-openliberty")
     def test_insecure_hash_multiple(self):
