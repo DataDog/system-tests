@@ -14,7 +14,7 @@ if [ -e "/binaries/dd-trace-go" ]; then
 
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
-    go get -v -d "$(cat /binaries/golang-load-from-go-get)"
+    cat /binaries/golang-load-from-go-get | xargs go get -v -d
 
 else
     echo "Installing production dd-trace-version"
