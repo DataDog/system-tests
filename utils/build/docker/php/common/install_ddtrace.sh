@@ -2,7 +2,7 @@
 
 set -eux
 
-IS_APACHE=$1
+IS_APACHE=${1:-0}
 
 cd /binaries
 
@@ -27,6 +27,11 @@ if [[ $IS_APACHE -eq 0 ]]; then
 else
       PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"}
  fi
+
+
+if [[ -n "$NO_EXTRACT_VERSION" ]]; then
+    exit 0
+fi
 
 #Extract version info
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
