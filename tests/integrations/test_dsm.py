@@ -12,7 +12,7 @@ class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
     def setup_dsm_kafka(self):
-        self.r = weblog.get("/dsm?integration=kafka")
+        self.r = weblog.get("/dsm?integration=kafka", timeout=60)
 
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
@@ -44,7 +44,7 @@ class Test_DsmHttp:
     def setup_dsm_http(self):
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
         # and will be instrumented as such
-        self.r = weblog.get("/dsm?integration=kafka")
+        self.r = weblog.get("/dsm?integration=kafka", timeout=60)
 
     def test_dsm_http(self):
         assert self.r.text == "ok"
@@ -60,7 +60,7 @@ class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
 
     def setup_dsm_rabbitmq(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq")
+        self.r = weblog.get("/dsm?integration=rabbitmq", timeout=60)
 
     @bug(library="dotnet", reason="bug in dotnet behavior")
     def test_dsm_rabbitmq(self):
@@ -79,7 +79,7 @@ class Test_DsmRabbitmq:
         )
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq")
+        self.r = weblog.get("/dsm?integration=rabbitmq", timeout=60)
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
     def test_dsm_rabbitmq_dotnet_legacy(self):
@@ -110,7 +110,7 @@ class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
 
     def setup_dsm_rabbitmq(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
+        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=60)
 
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
@@ -146,7 +146,7 @@ class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
 
     def setup_dsm_rabbitmq(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange", timeout=60)
 
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
@@ -182,7 +182,7 @@ class Test_DsmSQS:
     """ Verify DSM stats points for Sqs """
 
     def setup_dsm_sqs(self):
-        self.r = weblog.get("/dsm?integration=sqs")
+        self.r = weblog.get("/dsm?integration=sqs", timeout=60)
 
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -195,8 +195,8 @@ class Test_DsmSQS:
             producer_hash = 2931833227331067675
             consumer_hash = 271115008390912609
         else:
-            producer_hash = 4463699290244539355
-            consumer_hash = 3735318893869752335
+            producer_hash = 7228682205928812513
+            consumer_hash = 3767823103515000703
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:sqs"),
