@@ -20,12 +20,9 @@ DEFAULT_ENVVARS = {
 @rfc("https://docs.google.com/document/d/14vsrCbnAKnXmJAkacX9I6jKPGKmxsq0PKUb3dfiZpWE/edit")
 @scenarios.parametric
 @features.telemetry_app_started_event
-class Test_First_Trace_Telemetry:
+class Test_TelemetryInstallSignature:
     """
-    Test the time-to-first-trace telemetry that should be emitted from the library.
-
-    The time-to-first trace telemetry provides insight into how long it takes for the library to emit its first trace
-    from the time of Agent installation.
+    This telemetry provides insights into how a library was installed.
     """
 
     @pytest.mark.parametrize(

@@ -319,7 +319,7 @@ tests/:
       TestDynamicConfigV2: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_First_Trace_Telemetry: v4.23.0
+      Test_TelemetryInstallSignature: v4.23.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
