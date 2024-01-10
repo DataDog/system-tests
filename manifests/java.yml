@@ -843,6 +843,16 @@ tests/:
         Test_RubyKafka:
           "*": missing_feature (Endpoint not implemented)
           spring-boot: v0.1 # real version not known
+      test_sqs.py:
+        Test_Java_SQS:
+          "*": missing_feature (Endpoint not implemented)
+          spring-boot: v0.1 # real version not known
+        Test_NodeJS_SQS:
+          "*": missing_feature (Endpoint not implemented)
+          spring-boot: v0.1 # real version not known
+        Test_Python_SQS:
+          "*": missing_feature (Endpoint not implemented)
+          spring-boot: v0.1 # real version not known
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_db_integrations_sql.py:

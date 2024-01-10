@@ -337,7 +337,7 @@ app.get('/sqs/consume', (req, res) => {
   const consumeMessage = async () => {
     return new Promise((resolve, reject) => {
       sqs.receiveMessage({
-        QueueUrl: queueUrl,
+        QueueUrl: queueUrl
         // MaxNumberOfMessages: 1,
         // WaitTimeSeconds: 60
       }, (err, response) => {
