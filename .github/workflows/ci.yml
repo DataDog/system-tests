@@ -229,7 +229,7 @@ jobs:
       #  - library: ruby
       #    weblog: rails70
         version:
-       # - prod
+        - prod
         - dev
             
       fail-fast: false
