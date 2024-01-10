@@ -1027,7 +1027,6 @@ class ParametricScenario(_Scenario):
                     stdout=subprocess.PIPE,
                     check=False,
                 )
-                logger.stdout(f"RMM Library: {result.stdout}")
                 self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
             except subprocess.CalledProcessError as e:
                 logger.error(f"{e}")
