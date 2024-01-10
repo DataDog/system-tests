@@ -218,7 +218,12 @@ tests/:
           "*": missing_feature (Only requires one server -  rails70)
           rails70: v0.1 # real version unknown
       test_sqs.py:
-        "*": missing_feature
+        Test_Java_SQS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_NodeJS_SQS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_Python_SQS:
+          "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
