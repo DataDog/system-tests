@@ -276,7 +276,7 @@ def sqs_consume(queue):
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
-    response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}", MaxNumberOfMessages=1)
+    response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}")
 
     if response and "Messages" in response:
         consumed_message = None
