@@ -13,7 +13,6 @@ import (
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	chitrace "github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5"
 	httptrace "github.com/DataDog/dd-trace-go/v2/contrib/net/http"
-	"github.com/DataDog/dd-trace-go/v2/ddtrace"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
@@ -149,7 +148,7 @@ func main() {
 		parentName := r.URL.Query().Get("parentName")
 		childName := r.URL.Query().Get("childName")
 
-		tags := []ddtrace.StartSpanOption{}
+		tags := []tracer.StartSpanOption{}
 
 		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
 		// and the traces/spans that will be generated below, so that we can reference to them in our tests.

@@ -110,7 +110,7 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 	}
 	return &OtelStartSpanReturn{
 		SpanId:  hexSpanId,
-		TraceId: hex2int(span.SpanContext().TraceID().String()),
+		TraceId: span.SpanContext().TraceID().String(),
 	}, nil
 }
 
