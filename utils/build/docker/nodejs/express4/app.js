@@ -193,8 +193,6 @@ async function kafkaConsume (topic, timeout) {
             value: message.value.toString()
           })
           resolve()
-          await consumer.stop()
-          await consumer.disconnect()
         }
       })
       setTimeout(() => {
@@ -203,7 +201,18 @@ async function kafkaConsume (topic, timeout) {
     })
   }
 
-  return doKafkaOperations()
+  return new Promise((resolve, reject) => {
+    doKafkaOperations()
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+        resolve()
+      })
+      .catch((error) => {
+        console.log(error)
+        reject(error)
+      })
+  })
 }
 
 function sqsProduce (queue, message) {
