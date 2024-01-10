@@ -321,19 +321,25 @@ app.get('/sqs/produce', (req, res) => {
 
 app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
-  const timeout = req.query.timeout ?? 5
+  const timeout = parseInt(req.query.timeout) ?? 5
   // Create an SQS client
   const sqs = new AWS.SQS({
     endpoint: 'http://elasticmq:9324',
     region: 'us-east-1'
   })
 
+  const queueUrl = `http://elasticmq:9324/000000000000/${queue}`
+
+  console.log(queueUrl)
+  console.log(timeout)
+  console.log(typeof timeout)
+
   const consumeMessage = async () => {
     return new Promise((resolve, reject) => {
       sqs.receiveMessage({
-        QueueUrl: `http://elasticmq:9324/000000000000/${queue}`,
-        MaxNumberOfMessages: 1,
-        WaitTimeSeconds: timeout
+        QueueUrl: queueUrl,
+        // MaxNumberOfMessages: 1,
+        // WaitTimeSeconds: 60
       }, (err, response) => {
         if (err) {
           console.error('Error receiving message: ', err)
@@ -341,6 +347,7 @@ app.get('/sqs/consume', (req, res) => {
         }
 
         try {
+          console.log(response)
           if (response && response.Messages) {
             for (const message of response.Messages) {
               const consumedMessage = message.Body
