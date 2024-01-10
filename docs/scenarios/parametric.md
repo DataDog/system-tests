@@ -50,10 +50,10 @@ then, run the following command, which will create a Python virtual environment 
 
 ### Running the tests
 
-Run all the tests:
+Run all the tests for a particular tracer library:
 
 ```sh
-./run.sh PARAMETRIC
+TEST_LIBRARY=dotnet ./run.sh PARAMETRIC
 ```
 
 Run a specific test (`test_metrics_msgpack_serialization_TS001`):
