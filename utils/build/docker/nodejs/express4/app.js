@@ -186,7 +186,7 @@ async function kafkaConsume (topic, timeout) {
     await consumer.connect()
     await consumer.subscribe({ topic: topic, fromBeginning: true })
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       consumer.run({
         eachMessage: async ({ messageTopic, messagePartition, message }) => {
           console.log({
