@@ -6,10 +6,7 @@
   "type": "object",
   "properties": {
     "configuration": {
-      "type": "array",
-      "items": {
-        "$ref": "/miscs/telemetry/v2/objects/configuration.json"
-      }
+      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
     },
     "remote_config": {
       "$ref": "/miscs/telemetry/common/objects/remote_config.json"
