@@ -138,43 +138,7 @@ app.get('/users', (req, res) => {
   }
 })
 
-app.get('/dsm', (req, res) => {
-  const integration = req.query.integration
-  const timeout = req.query.timeout ?? 10
-
-  if (integration === 'kafka') {
-    const topic = 'dsm-system-tests-queue'
-    const message = 'hello from kafka DSM JS'
-
-    kafkaProduce(topic, message, false)
-      .then(() => {
-        kafkaConsume(topic, timeout, true)
-      })
-      .catch(() => {
-        res.status(500).send('Internal Server Error')
-      })
-  } else if (integration === 'sqs') {
-    const queue = 'dsm-system-tests-queue'
-    const message = 'hello from SQS DSM JS'
-
-    sqsProduce(queue, message, false)
-      .then(() => {
-        sqsConsume(queue, timeout, true)
-      })
-      .catch(() => {
-        res.status(500).send('Internal Server Error')
-      })
-  } else {
-    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, SQS]')
-  }
-})
-
-app.get('/kafka/produce', (req, res) => {
-  const topic = req.query.topic
-  return kafkaProduce(topic, 'Hello from Kafka JS', true, res)
-})
-
-function kafkaProduce (topic, message, sendResponse, res) {
+async function kafkaProduce (topic, message) {
   const kafka = new Kafka({
     clientId: 'my-app-producer',
     brokers: ['kafka:9092'],
@@ -203,23 +167,10 @@ function kafkaProduce (topic, message, sendResponse, res) {
     await producer.disconnect()
   }
 
-  doKafkaOperations()
-    .then(() => {
-      if (sendResponse) res.status(200).send('produce ok')
-    })
-    .catch((error) => {
-      console.error(error)
-      if (sendResponse) res.status(500).send('Internal Server Error')
-    })
+  return await doKafkaOperations()
 }
 
-app.get('/kafka/consume', (req, res) => {
-  const topic = req.query.topic
-  const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
-  return kafkaConsume(topic, timeout, true, res)
-})
-
-function kafkaConsume (topic, timeout, sendResponse, res) {
+async function kafkaConsume (topic, timeout) {
   const kafka = new Kafka({
     clientId: 'my-app-consumer',
     brokers: ['kafka:9092'],
@@ -235,13 +186,15 @@ function kafkaConsume (topic, timeout, sendResponse, res) {
     await consumer.connect()
     await consumer.subscribe({ topic: topic, fromBeginning: true })
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       consumer.run({
         eachMessage: async ({ messageTopic, messagePartition, message }) => {
           console.log({
             value: message.value.toString()
           })
           resolve()
+          await consumer.stop()
+          await consumer.disconnect()
         }
       })
       setTimeout(() => {
@@ -250,24 +203,10 @@ function kafkaConsume (topic, timeout, sendResponse, res) {
     })
   }
 
-  doKafkaOperations()
-    .then(async () => {
-      await consumer.stop()
-      await consumer.disconnect()
-      if (sendResponse) res.status(200).send('consume ok')
-    })
-    .catch((error) => {
-      console.error(error)
-      if (sendResponse) res.status(500).send('Timeout: Failed to consume')
-    })
+  return doKafkaOperations()
 }
 
-app.get('/sqs/produce', (req, res) => {
-  const queue = req.query.queue
-  return sqsProduce(queue, 'Hello from SQS JavaScript injection', true, res)
-})
-
-function sqsProduce (queue, message, sendResponse, res) {
+function sqsProduce (queue, message) {
   // Create an SQS client
   const sqs = new AWS.SQS({
     endpoint: 'http://elasticmq:9324',
@@ -307,23 +246,10 @@ function sqsProduce (queue, message, sendResponse, res) {
     })
   }
 
-  produceMessage()
-    .then(() => {
-      if (sendResponse) res.status(200).send('produce ok')
-    })
-    .catch((error) => {
-      console.error(error)
-      if (sendResponse) res.status(500).send('Internal Server Error')
-    })
+  return produceMessage()
 }
 
-app.get('/sqs/consume', (req, res) => {
-  const queue = req.query.queue
-  const timeout = parseInt(req.query.timeout) ?? 5
-  return sqsConsume(queue, timeout, true, res)
-})
-
-function sqsConsume (queue, timeout, sendResponse, res) {
+async function sqsConsume (queue, timeout) {
   // Create an SQS client
   const sqs = new AWS.SQS({
     endpoint: 'http://elasticmq:9324',
@@ -364,16 +290,105 @@ function sqsConsume (queue, timeout, sendResponse, res) {
       }, timeout) // Set a timeout of n seconds for message reception
     })
   }
+  return consumeMessage()
+}
 
-  consumeMessage()
+app.get('/dsm', (req, res) => {
+  const integration = req.query.integration
+  const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
+
+  if (integration === 'kafka') {
+    const topic = 'dsm-system-tests-queue'
+    const message = 'hello from kafka DSM JS'
+
+    kafkaProduce(topic, message)
+      .then(() => {
+        kafkaConsume(topic, timeout)
+          .then(() => {
+            res.send('ok')
+          })
+          .catch((error) => {
+            console.log(error)
+            res.status(500).send('Internal Server Error during Kafka consume')
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+        res.status(500).send('Internal Server Error during Kafka produce')
+      })
+  } else if (integration === 'sqs') {
+    const queue = 'dsm-system-tests-queue'
+    const message = 'hello from SQS DSM JS'
+
+    sqsProduce(queue, message)
+      .then(() => {
+        sqsConsume(queue, timeout)
+          .then(() => {
+            res.send('ok')
+          })
+          .catch((error) => {
+            console.log(error)
+            res.status(500).send('Internal Server Error during SQS consume')
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+        res.status(500).send('Internal Server Error during SQS produce')
+      })
+  } else {
+    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, SQS]')
+  }
+})
+
+app.get('/kafka/produce', (req, res) => {
+  const topic = req.query.topic
+  kafkaProduce(topic, 'Hello from Kafka JS')
     .then(() => {
-      if (sendResponse) res.status(200).send('consume ok')
+      res.status(200).send('produce ok')
     })
     .catch((error) => {
       console.error(error)
-      if (sendResponse) res.status(500).send('Internal Server Error')
+      res.status(500).send('Internal Server Error during Kafka produce')
     })
-}
+})
+
+app.get('/kafka/consume', (req, res) => {
+  const topic = req.query.topic
+  const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
+  kafkaConsume(topic, timeout)
+    .then(() => {
+      res.status(200).send('consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error during Kafka consume')
+    })
+})
+
+app.get('/sqs/produce', (req, res) => {
+  const queue = req.query.queue
+  sqsProduce(queue, 'Hello from SQS JavaScript injection')
+    .then(() => {
+      res.status(200).send('produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error during sqs produce')
+    })
+})
+
+app.get('/sqs/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+  sqsConsume(queue, timeout)
+    .then(() => {
+      res.status(200).send('consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error during sqs consume')
+    })
+})
 
 app.get('/load_dependency', (req, res) => {
   console.log('Load dependency endpoint')

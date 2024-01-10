@@ -181,10 +181,10 @@ class Test_DsmRabbitmq_FanoutExchange:
 class Test_DsmSQS:
     """ Verify DSM stats points for Sqs """
 
-    def setup_dsm_kafka(self):
+    def setup_dsm_sqs(self):
         self.r = weblog.get("/dsm?integration=sqs")
 
-    def test_dsm_kafka(self):
+    def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
         # Hashes are created by applying the FNV-1 algorithm on
