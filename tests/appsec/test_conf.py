@@ -29,14 +29,8 @@ class Test_StaticRuleSet:
     @missing_feature(library="nodejs", reason="Rules file is not parsed")
     def test_basic_hardcoded_ruleset(self):
         """ Library has loaded a hardcoded AppSec ruleset"""
-        stdout = (
-            interfaces.library_stdout
-            if context.library != "dotnet"
-            else interfaces.library_dotnet_managed
-        )
-        stdout.assert_presence(
-            r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO"
-        )
+        stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+        stdout.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 
 @coverage.basic
@@ -77,23 +71,17 @@ class Test_RuleSet_1_3_1:
         self.r_keys2 = weblog.get("/waf/", params={"[$ne]": "value"})
 
     @irrelevant(
-        library="php",
-        reason="The PHP runtime interprets brackets as arrays, so this is considered malformed",
+        library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed",
     )
     @irrelevant(
-        library="nodejs",
-        reason="Node interprets brackets as arrays, so they're truncated",
+        library="nodejs", reason="Node interprets brackets as arrays, so they're truncated",
     )
     def test_nosqli_keys_with_brackets(self):
         """Test a rule defined on this rules version: nosql on keys with brackets"""
-        interfaces.library.assert_waf_attack(
-            self.r_keys2, rules.nosql_injection.crs_942_290
-        )
+        interfaces.library.assert_waf_attack(self.r_keys2, rules.nosql_injection.crs_942_290)
 
 
-@rfc(
-    "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables"
-)
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
 @features.threats_configuration
 class Test_ConfigurationVariables:
@@ -115,13 +103,10 @@ class Test_ConfigurationVariables:
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(
-        library="ruby",
-        weblog_variant="rack",
-        reason="it's not possible to auto instrument with rack",
+        library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack",
     )
     @missing_feature(
-        context.weblog_variant
-        in ["sinatra14", "sinatra20", "sinatra21", "uds-sinatra"],
+        context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21", "uds-sinatra"],
         reason="Conf is done in weblog instead of library",
     )
     @scenarios.appsec_disabled
@@ -130,42 +115,27 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_no_appsec_event(self.r_disabled)
 
     def setup_appsec_rules(self):
-        self.r_appsec_rules = weblog.get(
-            "/waf", headers={"attack": "dedicated-value-for-testing-purpose"}
-        )
+        self.r_appsec_rules = weblog.get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
 
     @scenarios.appsec_custom_rules
     def test_appsec_rules(self):
         """ test DD_APPSEC_RULES = custom rules file """
-        interfaces.library.assert_waf_attack(
-            self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose"
-        )
+        interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(
-            f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(10_000))
-        )
-        self.r_waf_timeout = weblog.get(
-            f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"}
-        )
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(10_000)))
+        self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"})
 
     @missing_feature(context.library < "java@0.113.0")
-    @missing_feature(
-        context.library == "java"
-        and context.weblog_variant == "spring-boot-openliberty"
-    )
-    @missing_feature(
-        context.library == "java" and context.weblog_variant == "spring-boot-wildfly"
-    )
+    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
+    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_obfuscation_parameter_key(self):
-        self.r_op_key = weblog.get(
-            "/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"}
-        )
+        self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
@@ -173,17 +143,13 @@ class Test_ConfigurationVariables:
     def test_obfuscation_parameter_key(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
-        def validate_appsec_span_tags(
-            span, appsec_data
-        ):  # pylint: disable=unused-argument
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             assert not nested_lookup(
                 self.SECRET, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_op_key, pattern="<Redacted>")
-        interfaces.library.validate_appsec(
-            self.r_op_key, validate_appsec_span_tags, success_by_default=True
-        )
+        interfaces.library.validate_appsec(self.r_op_key, validate_appsec_span_tags, success_by_default=True)
 
     def setup_obfuscation_parameter_value(self):
         headers = {"attack": f"acunetix-user-agreement {self.SECRET_WITH_HIDDEN_VALUE}"}
@@ -195,14 +161,10 @@ class Test_ConfigurationVariables:
     def test_obfuscation_parameter_value(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 
-        def validate_appsec_span_tags(
-            span, appsec_data
-        ):  # pylint: disable=unused-argument
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             assert not nested_lookup(
                 self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
-        interfaces.library.validate_appsec(
-            self.r_op_value, validate_appsec_span_tags, success_by_default=True
-        )
+        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)

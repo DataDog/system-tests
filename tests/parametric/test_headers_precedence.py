@@ -88,83 +88,57 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 @scenarios.parametric
 class Test_Headers_Precedence:
     @missing_feature(
-        context.library == "dotnet",
-        reason="New 'datadog' default hasn't been implemented yet",
+        context.library == "dotnet", reason="New 'datadog' default hasn't been implemented yet",
     )
     @missing_feature(
-        context.library == "golang",
-        reason="New 'datadog' default hasn't been implemented yet",
+        context.library == "golang", reason="New 'datadog' default hasn't been implemented yet",
     )
     @irrelevant(
-        context.library >= "cpp@0.1.12",
-        reason="Implements the new 'datadog,tracecontext' default",
+        context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default",
     )
     @irrelevant(
-        context.library >= "java@1.24.0",
-        reason="Implements the new 'datadog,tracecontext' default",
+        context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default",
     )
     @missing_feature(
-        context.library == "nodejs",
-        reason="New 'datadog' default hasn't been implemented yet",
+        context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet",
     )
     @missing_feature(
-        context.library == "php",
-        reason="New 'datadog' default hasn't been implemented yet",
+        context.library == "php", reason="New 'datadog' default hasn't been implemented yet",
     )
     @missing_feature(
-        context.library == "python",
-        reason="New 'datadog' default hasn't been implemented yet",
+        context.library == "python", reason="New 'datadog' default hasn't been implemented yet",
     )
     @irrelevant(
-        context.library < "java@1.24.0",
-        reason="Newer versions include tracecontext as a default propagator",
+        context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator",
     )
     @irrelevant(
-        context.library >= "ruby@1.17.0",
-        reason="Implements the new 'datadog,tracecontext' default",
+        context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default",
     )
     def test_headers_precedence_propagationstyle_legacy(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
     @enable_datadog()
-    def test_headers_precedence_propagationstyle_datadog(
-        self, test_agent, test_library
-    ):
+    def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
             headers1 = make_single_request_and_get_inject_headers(test_library, [])
 
             # 2) Only tracecontext headers
             headers2 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                ],
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                    ["tracestate", "foo=1"],
-                ],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",], ["tracestate", "foo=1"],],
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -186,10 +160,7 @@ class Test_Headers_Precedence:
             headers6 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-0000000000000000-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -259,63 +230,39 @@ class Test_Headers_Precedence:
 
     @bug(context.library == "cpp", reason="Issue: traceparent not being injected")
     @bug(
-        context.library == "nodejs",
-        reason="Issue: headers4 is incorrectly using the x-datadog-trace-id by default",
+        context.library == "nodejs", reason="Issue: headers4 is incorrectly using the x-datadog-trace-id by default",
     )
     @missing_feature(
-        context.library == "java",
-        reason="Issue: tracecontext,Datadog was never the default configuration",
+        context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration",
     )
     @missing_feature(
-        context.library == "ruby",
-        reason="Issue: tracecontext,Datadog was never the default configuration",
+        context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration",
     )
-    def test_headers_precedence_propagationstyle_default_tracecontext_datadog(
-        self, test_agent, test_library
-    ):
-        self.test_headers_precedence_propagationstyle_tracecontext_datadog(
-            test_agent, test_library
-        )
+    def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
+        self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
     @enable_tracecontext_datadog()
-    def test_headers_precedence_propagationstyle_tracecontext_datadog(
-        self, test_agent, test_library
-    ):
+    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
             headers1 = make_single_request_and_get_inject_headers(test_library, [])
 
             # 2) Only tracecontext headers
             headers2 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                ],
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                    ["tracestate", "foo=1"],
-                ],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",], ["tracestate", "foo=1"],],
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -337,10 +284,7 @@ class Test_Headers_Precedence:
             headers6 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-0000000000000000-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -358,12 +302,8 @@ class Test_Headers_Precedence:
         traceparent1, tracestate1 = get_tracecontext(headers1)
         tracestate1Arr = str(tracestate1).split(",")
         assert "traceparent" in headers1
-        assert int(traceparent1.trace_id[-16:], base=16) == int(
-            headers1["x-datadog-trace-id"]
-        )
-        assert int(traceparent1.parent_id, base=16) == int(
-            headers1["x-datadog-parent-id"]
-        )
+        assert int(traceparent1.trace_id[-16:], base=16) == int(headers1["x-datadog-trace-id"])
+        assert int(traceparent1.parent_id, base=16) == int(headers1["x-datadog-parent-id"])
         assert "tracestate" in headers1
         assert len(tracestate1Arr) == 1 and tracestate1Arr[0].startswith("dd=")
 
@@ -378,12 +318,8 @@ class Test_Headers_Precedence:
         assert len(tracestate2Arr) == 1 and tracestate2Arr[0].startswith("dd=")
 
         # Datadog also injected, assert that they are equal to traceparent values
-        assert int(headers2["x-datadog-trace-id"]) == int(
-            traceparent2.trace_id[16:], base=16
-        )
-        assert int(headers2["x-datadog-parent-id"]) == int(
-            traceparent2.parent_id, base=16
-        )
+        assert int(headers2["x-datadog-trace-id"]) == int(traceparent2.trace_id[16:], base=16)
+        assert int(headers2["x-datadog-parent-id"]) == int(traceparent2.parent_id, base=16)
         assert "x-datadog-sampling-priority" in headers2
 
         # 3) Only tracecontext headers, includes existing tracestate
@@ -394,19 +330,11 @@ class Test_Headers_Precedence:
         assert traceparent3.trace_id == "12345678901234567890123456789012"
         assert traceparent3.parent_id != "1234567890123456"
         assert "tracestate" in headers3
-        assert (
-            len(tracestate3Arr) == 2
-            and tracestate3Arr[0].startswith("dd=")
-            and tracestate3Arr[1] == "foo=1"
-        )
+        assert len(tracestate3Arr) == 2 and tracestate3Arr[0].startswith("dd=") and tracestate3Arr[1] == "foo=1"
 
         # Datadog also injected, assert that they are equal to traceparent values
-        assert int(headers3["x-datadog-trace-id"]) == int(
-            traceparent3.trace_id[16:], base=16
-        )
-        assert int(headers3["x-datadog-parent-id"]) == int(
-            traceparent3.parent_id, base=16
-        )
+        assert int(headers3["x-datadog-trace-id"]) == int(traceparent3.trace_id[16:], base=16)
+        assert int(headers3["x-datadog-parent-id"]) == int(traceparent3.parent_id, base=16)
         assert "x-datadog-sampling-priority" in headers3
 
         # 4) Both tracecontext and Datadog headers
@@ -417,19 +345,11 @@ class Test_Headers_Precedence:
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert traceparent4.parent_id != "1234567890123456"
         assert "tracestate" in headers4
-        assert (
-            len(tracestate4Arr) == 2
-            and tracestate4Arr[0].startswith("dd=")
-            and tracestate4Arr[1] == "foo=1"
-        )
+        assert len(tracestate4Arr) == 2 and tracestate4Arr[0].startswith("dd=") and tracestate4Arr[1] == "foo=1"
 
         # Datadog also injected, assert that they are equal to traceparent values
-        assert int(headers4["x-datadog-trace-id"]) == int(
-            traceparent4.trace_id[16:], base=16
-        )
-        assert int(headers4["x-datadog-parent-id"]) == int(
-            traceparent4.parent_id, base=16
-        )
+        assert int(headers4["x-datadog-trace-id"]) == int(traceparent4.trace_id[16:], base=16)
+        assert int(headers4["x-datadog-parent-id"]) == int(traceparent4.parent_id, base=16)
         assert headers4["x-datadog-sampling-priority"] != -2
 
         # 5) Only Datadog headers
@@ -442,12 +362,8 @@ class Test_Headers_Precedence:
         traceparent5, tracestate5 = get_tracecontext(headers5)
         tracestate5Arr = str(tracestate5).split(",")
         assert "traceparent" in headers5
-        assert int(traceparent5.trace_id, base=16) == int(
-            headers5["x-datadog-trace-id"]
-        )
-        assert int(traceparent5.parent_id, base=16) == int(
-            headers5["x-datadog-parent-id"]
-        )
+        assert int(traceparent5.trace_id, base=16) == int(headers5["x-datadog-trace-id"])
+        assert int(traceparent5.parent_id, base=16) == int(headers5["x-datadog-parent-id"])
         assert "tracestate" in headers5
         assert len(tracestate5Arr) == 1 and tracestate5Arr[0].startswith("dd=")
 
@@ -461,54 +377,33 @@ class Test_Headers_Precedence:
         traceparent6, tracestate6 = get_tracecontext(headers6)
         tracestate6Arr = str(tracestate6).split(",")
         assert "traceparent" in headers6
-        assert int(traceparent6.trace_id, base=16) == int(
-            headers6["x-datadog-trace-id"]
-        )
-        assert int(traceparent6.parent_id, base=16) == int(
-            headers6["x-datadog-parent-id"]
-        )
+        assert int(traceparent6.trace_id, base=16) == int(headers6["x-datadog-trace-id"])
+        assert int(traceparent6.parent_id, base=16) == int(headers6["x-datadog-parent-id"])
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
     @enable_tracecontext()
-    def test_headers_precedence_propagationstyle_tracecontext(
-        self, test_agent, test_library
-    ):
+    def test_headers_precedence_propagationstyle_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
             headers1 = make_single_request_and_get_inject_headers(test_library, [])
 
             # 2) Only tracecontext headers
             headers2 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                ],
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                    ["tracestate", "foo=1"],
-                ],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",], ["tracestate", "foo=1"],],
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -530,10 +425,7 @@ class Test_Headers_Precedence:
             headers6 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-0000000000000000-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -572,11 +464,7 @@ class Test_Headers_Precedence:
         assert traceparent3.trace_id == "12345678901234567890123456789012"
         assert traceparent3.parent_id != "1234567890123456"
         assert "tracestate" in headers3
-        assert (
-            len(tracestate3Arr) == 2
-            and tracestate3Arr[0].startswith("dd=")
-            and tracestate3Arr[1] == "foo=1"
-        )
+        assert len(tracestate3Arr) == 2 and tracestate3Arr[0].startswith("dd=") and tracestate3Arr[1] == "foo=1"
         assert "x-datadog-trace-id" not in headers3
         assert "x-datadog-parent-id" not in headers3
         assert "x-datadog-sampling-priority" not in headers3
@@ -589,11 +477,7 @@ class Test_Headers_Precedence:
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert traceparent4.parent_id != "1234567890123456"
         assert "tracestate" in headers4
-        assert (
-            len(tracestate4Arr) == 2
-            and tracestate4Arr[0].startswith("dd=")
-            and tracestate4Arr[1] == "foo=1"
-        )
+        assert len(tracestate4Arr) == 2 and tracestate4Arr[0].startswith("dd=") and tracestate4Arr[1] == "foo=1"
         assert "x-datadog-trace-id" not in headers4
         assert "x-datadog-parent-id" not in headers4
         assert "x-datadog-sampling-priority" not in headers4
@@ -620,83 +504,54 @@ class Test_Headers_Precedence:
 
     @missing_feature(context.library < "java@1.24.0", reason="Implemented from 1.24.0")
     @missing_feature(
-        context.library == "ruby",
-        reason="library does not yet implement this default configuration",
+        context.library == "ruby", reason="library does not yet implement this default configuration",
     )
     @irrelevant(
-        context.library == "cpp",
-        reason="library does not implement this default configuration",
+        context.library == "cpp", reason="library does not implement this default configuration",
     )
     @irrelevant(
-        context.library == "dotnet",
-        reason="library does not implement this default configuration",
+        context.library == "dotnet", reason="library does not implement this default configuration",
     )
     @irrelevant(
-        context.library == "golang",
-        reason="library does not implement this default configuration",
+        context.library == "golang", reason="library does not implement this default configuration",
     )
     @irrelevant(
-        context.library == "nodejs",
-        reason="library does not implement this default configuration",
+        context.library == "nodejs", reason="library does not implement this default configuration",
     )
     @irrelevant(
-        context.library == "php",
-        reason="library does not implement this default configuration",
+        context.library == "php", reason="library does not implement this default configuration",
     )
     @irrelevant(
-        context.library == "python",
-        reason="library does not implement this default configuration",
+        context.library == "python", reason="library does not implement this default configuration",
     )
-    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(
-        self, test_agent, test_library
-    ):
-        self.test_headers_precedence_propagationstyle_datadog_tracecontext(
-            test_agent, test_library
-        )
+    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_agent, test_library):
+        self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
 
     @enable_datadog_tracecontext()
     @missing_feature(
-        context.library == "php",
-        reason="Legacy behaviour: Fixed order instead of order of definition",
+        context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition",
     )
-    def test_headers_precedence_propagationstyle_datadog_tracecontext(
-        self, test_agent, test_library
-    ):
+    def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
             headers1 = make_single_request_and_get_inject_headers(test_library, [])
 
             # 2) Only tracecontext headers
             headers2 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                ],
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                    ["tracestate", "foo=1"],
-                ],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",], ["tracestate", "foo=1"],],
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -718,10 +573,7 @@ class Test_Headers_Precedence:
             headers6 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-0000000000000000-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -739,12 +591,8 @@ class Test_Headers_Precedence:
         traceparent1, tracestate1 = get_tracecontext(headers1)
         tracestate1Arr = str(tracestate1).split(",")
         assert "traceparent" in headers1
-        assert int(traceparent1.trace_id[-16:], base=16) == int(
-            headers1["x-datadog-trace-id"]
-        )
-        assert int(traceparent1.parent_id, base=16) == int(
-            headers1["x-datadog-parent-id"]
-        )
+        assert int(traceparent1.trace_id[-16:], base=16) == int(headers1["x-datadog-trace-id"])
+        assert int(traceparent1.parent_id, base=16) == int(headers1["x-datadog-parent-id"])
         assert "tracestate" in headers1
         assert len(tracestate1Arr) == 1 and tracestate1Arr[0].startswith("dd=")
 
@@ -759,12 +607,8 @@ class Test_Headers_Precedence:
         assert len(tracestate2Arr) == 1 and tracestate2Arr[0].startswith("dd=")
 
         # Datadog also injected, assert that they are equal to traceparent values
-        assert int(headers2["x-datadog-trace-id"]) == int(
-            traceparent2.trace_id[16:], base=16
-        )
-        assert int(headers2["x-datadog-parent-id"]) == int(
-            traceparent2.parent_id, base=16
-        )
+        assert int(headers2["x-datadog-trace-id"]) == int(traceparent2.trace_id[16:], base=16)
+        assert int(headers2["x-datadog-parent-id"]) == int(traceparent2.parent_id, base=16)
         assert "x-datadog-sampling-priority" in headers2
 
         # 3) Only tracecontext headers, includes existing tracestate
@@ -775,19 +619,11 @@ class Test_Headers_Precedence:
         assert traceparent3.trace_id == "12345678901234567890123456789012"
         assert traceparent3.parent_id != "1234567890123456"
         assert "tracestate" in headers3
-        assert (
-            len(tracestate3Arr) == 2
-            and tracestate3Arr[0].startswith("dd=")
-            and tracestate3Arr[1] == "foo=1"
-        )
+        assert len(tracestate3Arr) == 2 and tracestate3Arr[0].startswith("dd=") and tracestate3Arr[1] == "foo=1"
 
         # Datadog also injected, assert that they are equal to traceparent values
-        assert int(headers3["x-datadog-trace-id"]) == int(
-            traceparent3.trace_id[16:], base=16
-        )
-        assert int(headers3["x-datadog-parent-id"]) == int(
-            traceparent3.parent_id, base=16
-        )
+        assert int(headers3["x-datadog-trace-id"]) == int(traceparent3.trace_id[16:], base=16)
+        assert int(headers3["x-datadog-parent-id"]) == int(traceparent3.parent_id, base=16)
         assert "x-datadog-sampling-priority" in headers3
 
         # 4) Both tracecontext and Datadog headers
@@ -800,12 +636,8 @@ class Test_Headers_Precedence:
         traceparent4, tracestate4 = get_tracecontext(headers4)
         tracestate4Arr = str(tracestate4).split(",")
         assert "traceparent" in headers4
-        assert int(traceparent4.trace_id, base=16) == int(
-            headers4["x-datadog-trace-id"]
-        )
-        assert int(traceparent4.parent_id, base=16) == int(
-            headers4["x-datadog-parent-id"]
-        )
+        assert int(traceparent4.trace_id, base=16) == int(headers4["x-datadog-trace-id"])
+        assert int(traceparent4.parent_id, base=16) == int(headers4["x-datadog-parent-id"])
         assert "tracestate" in headers4
         assert len(tracestate4Arr) == 1 and tracestate4Arr[0].startswith("dd=")
 
@@ -819,12 +651,8 @@ class Test_Headers_Precedence:
         traceparent5, tracestate5 = get_tracecontext(headers5)
         tracestate5Arr = str(tracestate5).split(",")
         assert "traceparent" in headers5
-        assert int(traceparent5.trace_id, base=16) == int(
-            headers5["x-datadog-trace-id"]
-        )
-        assert int(traceparent5.parent_id, base=16) == int(
-            headers5["x-datadog-parent-id"]
-        )
+        assert int(traceparent5.trace_id, base=16) == int(headers5["x-datadog-trace-id"])
+        assert int(traceparent5.parent_id, base=16) == int(headers5["x-datadog-parent-id"])
         assert "tracestate" in headers5
         assert len(tracestate5Arr) == 1 and tracestate5Arr[0].startswith("dd=")
 
@@ -838,12 +666,8 @@ class Test_Headers_Precedence:
         traceparent6, tracestate6 = get_tracecontext(headers6)
         tracestate6Arr = str(tracestate6).split(",")
         assert "traceparent" in headers6
-        assert int(traceparent6.trace_id, base=16) == int(
-            headers6["x-datadog-trace-id"]
-        )
-        assert int(traceparent6.parent_id, base=16) == int(
-            headers6["x-datadog-parent-id"]
-        )
+        assert int(traceparent6.trace_id, base=16) == int(headers6["x-datadog-trace-id"])
+        assert int(traceparent6.parent_id, base=16) == int(headers6["x-datadog-parent-id"])
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
@@ -856,9 +680,7 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "php", reason="not_implemented yet")
     @missing_feature(context.library == "python", reason="not_implemented yet")
     @enable_datadog_b3multi_tracecontext_extract_first_false()
-    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts(
-        self, test_agent, test_library
-    ):
+    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts(self, test_agent, test_library):
         """
         This test asserts that when multiple contexts are extracted,
         the first context extracted is the primary context, and the one used.
@@ -872,10 +694,7 @@ class Test_Headers_Precedence:
             headers1 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-11111111111111110000000000000001-000000003ade68b1-01",
-                    ],
+                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01",],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "2"],
                     ["x-datadog-parent-id", "987654321"],
@@ -888,10 +707,7 @@ class Test_Headers_Precedence:
             headers2 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-11111111111111110000000000000001-000000003ade68b1-01",
-                    ],
+                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01",],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "1"],
                     ["x-datadog-parent-id", "987654321"],
@@ -905,10 +721,7 @@ class Test_Headers_Precedence:
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-11111111111111110000000000000001-000000003ade68b1-01",
-                    ],
+                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01",],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "4"],
                     ["x-datadog-parent-id", "987654321"],
@@ -1017,20 +830,15 @@ class Test_Headers_Precedence:
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(
-        context.library == "nodejs",
-        reason="NodeJS must implement new tracestate propagation",
+        context.library == "nodejs", reason="NodeJS must implement new tracestate propagation",
     )
+    @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
     @missing_feature(
-        context.library == "php", reason="php must implement new tracestate propagation"
-    )
-    @missing_feature(
-        context.library < "python@2.3.3",
-        reason="python must implement new tracestate propagation",
+        context.library < "python@2.3.3", reason="python must implement new tracestate propagation",
     )
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(
-        context.library == "ruby",
-        reason="ruby must implement new tracestate propagation",
+        context.library == "ruby", reason="ruby must implement new tracestate propagation",
     )
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent, test_library
@@ -1042,8 +850,7 @@ class Test_Headers_Precedence:
     @enable_datadog_b3multi_tracecontext_extract_first_true()
     @bug(context.library == "cpp", reason="Legacy behaviour")
     @bug(
-        context.library == "php",
-        reason="Legacy behaviour: Fixed order instead of order of definition",
+        context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition",
     )
     @bug(
         context.library < "golang@1.57.0",
@@ -1092,10 +899,7 @@ class Test_Headers_Precedence:
             headers1 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-11111111111111110000000000000001-000000003ade68b1-01",
-                    ],
+                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01",],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "1"],
                     ["x-datadog-parent-id", "987654321"],
@@ -1108,10 +912,7 @@ class Test_Headers_Precedence:
             headers2 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-11111111111111110000000000000002-000000003ade68b1-01",
-                    ],
+                    ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01",],
                     ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "2"],
                     ["x-datadog-parent-id", "987654321"],
@@ -1125,10 +926,7 @@ class Test_Headers_Precedence:
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-11111111111111110000000000000003-000000003ade68b1-01",
-                    ],
+                    ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "3"],
                     ["x-datadog-parent-id", "987654321"],
@@ -1142,10 +940,7 @@ class Test_Headers_Precedence:
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-11111111111111110000000000000004-000000003ade68b1-01",
-                    ],
+                    ["traceparent", "00-11111111111111110000000000000004-000000003ade68b1-01",],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "4"],
                     ["x-datadog-parent-id", "3540"],  # 3539 == 0xdd4
@@ -1160,10 +955,7 @@ class Test_Headers_Precedence:
             headers5 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-11111111111111110000000000000005-000000003ade68b1-01",
-                    ],
+                    ["traceparent", "00-11111111111111110000000000000005-000000003ade68b1-01",],
                     ["tracestate", "foo=1"],
                     ["x-datadog-trace-id", "3541"],  # 3538 == 0xdd5
                     ["x-datadog-parent-id", "987654321"],

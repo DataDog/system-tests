@@ -34,11 +34,7 @@ def get_iast_event(request):
 
 
 def assert_iast_vulnerability(
-    request,
-    vulnerability_count=1,
-    vulnerability_type=None,
-    expected_location=None,
-    expected_evidence=None,
+    request, vulnerability_count=1, vulnerability_type=None, expected_location=None, expected_evidence=None,
 ):
     iast = get_iast_event(request=request)
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
@@ -47,18 +43,10 @@ def assert_iast_vulnerability(
         vulns = [v for v in vulns if v["type"] == vulnerability_type]
         assert vulns, f"No vulnerability of type {vulnerability_type}"
     if expected_location:
-        vulns = [
-            v
-            for v in vulns
-            if v.get("location", {}).get("path", "") == expected_location
-        ]
+        vulns = [v for v in vulns if v.get("location", {}).get("path", "") == expected_location]
         assert vulns, f"No vulnerability with location {expected_location}"
     if expected_evidence:
-        vulns = [
-            v
-            for v in vulns
-            if v.get("evidence", {}).get("value", "") == expected_evidence
-        ]
+        vulns = [v for v in vulns if v.get("evidence", {}).get("value", "") == expected_evidence]
         assert vulns, f"No vulnerability with evidence value {expected_evidence}"
     assert len(vulns) == vulnerability_count
 
@@ -71,9 +59,7 @@ def _check_telemetry_response_from_agent():
         code = data["response"]["status_code"]
         if code != 200:
             filename = data["log_filename"]
-            logging.warning(
-                f"Agent answered {code} on {filename}, it may cause telemetry issues"
-            )
+            logging.warning(f"Agent answered {code} on {filename}, it may cause telemetry issues")
             return
 
 
@@ -107,9 +93,7 @@ class BaseSinkTestWithoutTelemetry:
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
         if self.__class__.insecure_request is None:
-            assert (
-                self.insecure_endpoint is not None
-            ), f"{self}.insecure_endpoint must not be None"
+            assert self.insecure_endpoint is not None, f"{self}.insecure_endpoint must not be None"
 
             self.__class__.insecure_request = weblog.request(
                 method=self.http_method,
@@ -123,9 +107,7 @@ class BaseSinkTestWithoutTelemetry:
 
     def test_insecure(self):
         assert_iast_vulnerability(
-            request=self.insecure_request
-            if self.detection_stage == DetectionStage.REQUEST
-            else None,
+            request=self.insecure_request if self.detection_stage == DetectionStage.REQUEST else None,
             vulnerability_count=1,
             vulnerability_type=self.vulnerability_type,
             expected_location=self.expected_location,
@@ -138,12 +120,8 @@ class BaseSinkTestWithoutTelemetry:
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
         if self.__class__.secure_request is None:
-            assert (
-                self.secure_endpoint is not None
-            ), f"Please set {self}.secure_endpoint"
-            assert isinstance(
-                self.secure_endpoint, str
-            ), f"Please set {self}.secure_endpoint"
+            assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
+            assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
 
             self.__class__.secure_request = weblog.request(
                 method=self.http_method,
@@ -175,9 +153,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
 
         expected_namespace = "iast"
         expected_metric = "instrumented.sink"
-        series = interfaces.library.get_telemetry_metric_series(
-            expected_namespace, expected_metric
-        )
+        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
 
@@ -185,13 +161,9 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
 
         # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
-        series = [
-            serie for serie in series if expected_tag in map(str.lower, serie["tags"])
-        ]
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
-        assert (
-            len(series) != 0
-        ), f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
@@ -211,9 +183,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
 
         expected_namespace = "iast"
         expected_metric = "executed.sink"
-        series = interfaces.library.get_telemetry_metric_series(
-            expected_namespace, expected_metric
-        )
+        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug("Series: %s", series)
 
@@ -221,13 +191,9 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
 
         # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
-        series = [
-            serie for serie in series if expected_tag in map(str.lower, serie["tags"])
-        ]
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
-        assert (
-            len(series) != 0
-        ), f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
@@ -248,9 +214,7 @@ class BaseSourceTest:
     requests: dict = None
 
     def setup_source_reported(self):
-        assert isinstance(
-            self.requests_kwargs, list
-        ), f"{self.__class__}.requests_kwargs must be a list of dicts"
+        assert isinstance(self.requests_kwargs, list), f"{self.__class__}.requests_kwargs must be a list of dicts"
 
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
@@ -260,9 +224,7 @@ class BaseSourceTest:
             for kwargs in self.requests_kwargs:
                 method = kwargs["method"]
                 # store them as method:request to allow later custom test by method
-                self.__class__.requests[method] = weblog.request(
-                    path=self.endpoint, **kwargs
-                )
+                self.__class__.requests[method] = weblog.request(path=self.endpoint, **kwargs)
 
         self.requests = self.__class__.requests
 
@@ -271,9 +233,7 @@ class BaseSourceTest:
             self.validate_request_reported(request)
 
     def validate_request_reported(self, request, source_type=None):
-        if (
-            source_type is None
-        ):  # allow to overwrite source_type for parameter value node's use case
+        if source_type is None:  # allow to overwrite source_type for parameter value node's use case
             source_type = self.source_type
 
         iast = get_iast_event(request=request)
@@ -302,9 +262,7 @@ class BaseSourceTest:
 
         expected_namespace = "iast"
         expected_metric = "instrumented.source"
-        series = interfaces.library.get_telemetry_metric_series(
-            expected_namespace, expected_metric
-        )
+        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logging.debug(f"Series: {json.dumps(series, indent=2)}")
 
@@ -312,13 +270,9 @@ class BaseSourceTest:
         expected_tag = f"source_type:{self.source_type}".lower()
 
         # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
-        series = [
-            serie for serie in series if expected_tag in map(str.lower, serie["tags"])
-        ]
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
-        assert (
-            len(series) != 0
-        ), f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
@@ -337,22 +291,16 @@ class BaseSourceTest:
 
         expected_namespace = "iast"
         expected_metric = "executed.source"
-        series = interfaces.library.get_telemetry_metric_series(
-            expected_namespace, expected_metric
-        )
+        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
 
         # lower the source_type, as all assertion will be case-insensitive
         expected_tag = f"source_type:{self.source_type}".lower()
 
         # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
-        series = [
-            serie for serie in series if expected_tag in map(str.lower, serie["tags"])
-        ]
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
-        assert (
-            len(series) != 0
-        ), f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
         logging.debug(f"Series:\n{json.dumps(series, indent=2)}")
 

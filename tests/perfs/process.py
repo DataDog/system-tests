@@ -47,9 +47,7 @@ def report(bucket, without, with_, diff):
 
 def compute(lib):
     try:
-        without_appsec = compute_file(
-            f"logs_without_appsec//stats_{lib}_without_appsec.json"
-        )
+        without_appsec = compute_file(f"logs_without_appsec//stats_{lib}_without_appsec.json")
         with_appsec = compute_file(f"logs_with_appsec/stats_{lib}_with_appsec.json")
     except FileNotFoundError:
         return
@@ -93,13 +91,9 @@ def plot():
     for i, lib in enumerate(LIBS):
         try:
             add_plot(
-                f"logs_without_appsec/stats_{lib}_without_appsec.json",
-                "Without AppSec",
-                axis[i],
+                f"logs_without_appsec/stats_{lib}_without_appsec.json", "Without AppSec", axis[i],
             )
-            add_plot(
-                f"logs_with_appsec/stats_{lib}_with_appsec.json", "With AppSec", axis[i]
-            )
+            add_plot(f"logs_with_appsec/stats_{lib}_with_appsec.json", "With AppSec", axis[i])
         except FileNotFoundError:
             continue
 

@@ -42,9 +42,7 @@ class _Test_Kafka:
 
     @classmethod
     def get_span(cls, interface, span_kind, topic):
-        logger.debug(
-            f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}"
-        )
+        logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
             for span in trace:
@@ -57,9 +55,7 @@ class _Test_Kafka:
                 if topic != cls.get_topic(span):
                     continue
 
-                logger.debug(
-                    f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}"
-                )
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
                 return span
 
         logger.debug("No span found")
@@ -88,9 +84,7 @@ class _Test_Kafka:
         )
 
         self.consume_response = self.buddy.get(
-            "/kafka/consume",
-            params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60},
-            timeout=61,
+            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60}, timeout=61,
         )
 
     def test_produce(self):
@@ -115,25 +109,19 @@ class _Test_Kafka:
         reason="Expected to fail, one end is always Python which does not currently propagate context",
     )
     @missing_feature(
-        library="java",
-        reason="Expected to fail, one end is always Python which does not currently propagate context",
+        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context",
     )
     @missing_feature(
         library="golang",
         reason="Expected to fail, one end is always Python which does not currently propagate context",
     )
     @missing_feature(
-        library="ruby",
-        reason="Expected to fail, one end is always Python which does not currently propagate context",
+        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context",
     )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
-        producer_span = self.get_span(
-            interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC
-        )
-        consumer_span = self.get_span(
-            self.buddy_interface, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC
-        )
+        producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
+        consumer_span = self.get_span(self.buddy_interface, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -153,9 +141,7 @@ class _Test_Kafka:
         )
 
         self.consume_response = weblog.get(
-            "/kafka/consume",
-            params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 60},
-            timeout=61,
+            "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 60}, timeout=61,
         )
 
     def test_consume(self):
@@ -180,25 +166,19 @@ class _Test_Kafka:
         reason="Expected to fail, one end is always Python which does not currently propagate context",
     )
     @missing_feature(
-        library="java",
-        reason="Expected to fail, one end is always Python which does not currently propagate context",
+        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context",
     )
     @missing_feature(
         library="golang",
         reason="Expected to fail, one end is always Python which does not currently propagate context",
     )
     @missing_feature(
-        library="ruby",
-        reason="Expected to fail, one end is always Python which does not currently propagate context",
+        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context",
     )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
-        producer_span = self.get_span(
-            self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC
-        )
-        consumer_span = self.get_span(
-            interfaces.library, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC
-        )
+        producer_span = self.get_span(self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+        consumer_span = self.get_span(interfaces.library, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -212,21 +192,13 @@ class _Test_Kafka:
         """
 
         # Check that the producer did not created any consumer span
-        assert (
-            self.get_span(producer_interface, span_kind="consumer", topic=topic) is None
-        )
+        assert self.get_span(producer_interface, span_kind="consumer", topic=topic) is None
 
         # Check that the consumer did not created any producer span
-        assert (
-            self.get_span(consumer_interface, span_kind="producer", topic=topic) is None
-        )
+        assert self.get_span(consumer_interface, span_kind="producer", topic=topic) is None
 
-        producer_span = self.get_span(
-            producer_interface, span_kind="producer", topic=topic
-        )
-        consumer_span = self.get_span(
-            consumer_interface, span_kind="consumer", topic=topic
-        )
+        producer_span = self.get_span(producer_interface, span_kind="producer", topic=topic)
+        consumer_span = self.get_span(consumer_interface, span_kind="consumer", topic=topic)
         # check that both consumer and producer spans exists
         assert producer_span is not None
         assert consumer_span is not None
@@ -251,27 +223,15 @@ class Test_NodeJSKafka(_Test_Kafka):
     WEBLOG_TO_BUDDY_TOPIC = "Test_NodeJSKafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_NodeJSKafka_buddy_to_weblog"
 
-    @missing_feature(
-        library="golang", reason="Expected to fail, Golang does not propagate context"
-    )
-    @missing_feature(
-        library="ruby", reason="Expected to fail, Ruby does not propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, Python does not propagate context"
-    )
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
-    @missing_feature(
-        library="golang", reason="Expected to fail, Golang does not propagate context"
-    )
-    @missing_feature(
-        library="ruby", reason="Expected to fail, Ruby does not propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, Python does not propagate context"
-    )
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()
 
@@ -295,27 +255,15 @@ class Test_JavaKafka(_Test_Kafka):
     WEBLOG_TO_BUDDY_TOPIC = "Test_JavaKafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_JavaKafka_buddy_to_weblog"
 
-    @missing_feature(
-        library="golang", reason="Expected to fail, Golang does not propagate context"
-    )
-    @missing_feature(
-        library="ruby", reason="Expected to fail, Ruby does not propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, Python does not propagate context"
-    )
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
-    @missing_feature(
-        library="golang", reason="Expected to fail, Golang does not propagate context"
-    )
-    @missing_feature(
-        library="ruby", reason="Expected to fail, Ruby does not propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, Python does not propagate context"
-    )
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()
 

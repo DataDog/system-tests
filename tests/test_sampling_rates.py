@@ -56,8 +56,7 @@ def _spans_with_parent(traces, parent_ids):
 
 @bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2")
 @bug(
-    context.agent_version < "7.33.0",
-    reason="Before this version, tracerPayloads was named traces",
+    context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces",
 )
 @scenarios.sampling
 @features.twl_customer_controls_ingestion_dd_trace_sampling_rules
@@ -76,9 +75,7 @@ class Test_SamplingRates:
 
     @bug(library="python", reason="When stats are activated, all traces are emitted")
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
-    @flaky(
-        context.weblog_variant == "spring-boot-3-native", reason="Needs investigation"
-    )
+    @flaky(context.weblog_variant == "spring-boot-3-native", reason="Needs investigation")
     @flaky(library="golang", reason="Needs investigation")
     @flaky(library="ruby", reason="Needs investigation")
     def test_sampling_rates(self):
@@ -90,27 +87,17 @@ class Test_SamplingRates:
 
         for data, root_span in interfaces.library.get_root_spans():
             metrics = root_span["metrics"]
-            assert (
-                "_sampling_priority_v1" in metrics
-            ), f"_sampling_priority_v1 is missing in {data['log_filename']}"
-            sampled_count[
-                priority_should_be_kept(metrics["_sampling_priority_v1"])
-            ] += 1
+            assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
+            sampled_count[priority_should_be_kept(metrics["_sampling_priority_v1"])] += 1
 
         trace_count = sum(sampled_count.values())
         # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
         confidence_interval = 4 * (
-            trace_count
-            * context.tracer_sampling_rate
-            * (1.0 - context.tracer_sampling_rate)
+            trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)
         ) ** (1 / 2)
         # E = n * p
         expectation = context.tracer_sampling_rate * trace_count
-        if (
-            not expectation - confidence_interval
-            <= sampled_count[True]
-            <= expectation + confidence_interval
-        ):
+        if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
             raise ValueError(
                 f"Sampling rate is set to {context.tracer_sampling_rate}, "
                 f"expected count of sampled traces {expectation}/{trace_count}."
@@ -132,9 +119,7 @@ class Test_SamplingRates:
             if trace_id in trace_ids:
                 trace_ids.remove(trace_id)
 
-        assert (
-            len(trace_ids) == 0
-        ), f"Some traces have not been sent by the agent: {trace_ids}"
+        assert len(trace_ids) == 0, f"Some traces have not been sent by the agent: {trace_ids}"
 
 
 @scenarios.sampling
@@ -156,16 +141,12 @@ class Test_SamplingDecisions:
             weblog.get(f"/sample_rate_route/{self.next_request_id()}")
 
     @irrelevant(context.library in ("nodejs", "php", "dotnet"), reason="AIT-374")
-    @missing_feature(
-        library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173"
-    )
+    @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(context.library < "java@0.92.0")
     @flaky(context.library < "python@0.57.0")
     @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
     @flaky(
-        context.library == "ruby"
-        and context.weblog_variant
-        in ("sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
+        context.library == "ruby" and context.weblog_variant in ("sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
         reason="fails randomly for Sinatra on JSON body that dutifully keeps",
     )
     @bug(context.library >= "python@1.11.0rc2.dev8", reason="Under investigation")
@@ -182,9 +163,7 @@ class Test_SamplingDecisions:
                 )
 
             sampling_decision = priority_should_be_kept(sampling_priority)
-            expected_decision = trace_should_be_kept(
-                context.tracer_sampling_rate, root_span["trace_id"]
-            )
+            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, root_span["trace_id"])
             if sampling_decision != expected_decision:
                 raise ValueError(
                     f"Trace id {root_span['trace_id']}, sampling priority {sampling_priority}, "
@@ -197,23 +176,16 @@ class Test_SamplingDecisions:
     def setup_sampling_decision_added(self):
         seed(1)  # stay deterministic
 
-        self.traces = [
-            {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)}
-            for _ in range(20)
-        ]
+        self.traces = [{"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)]
 
         for trace in self.traces:
             weblog.get(
                 f"/sample_rate_route/{self.next_request_id()}",
-                headers={
-                    "x-datadog-trace-id": str(trace["trace_id"]),
-                    "x-datadog-parent-id": str(trace["parent_id"]),
-                },
+                headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"]),},
             )
 
     @bug(
-        library="python",
-        reason="Sampling decisions are not taken by the tracer APMRP-259",
+        library="python", reason="Sampling decisions are not taken by the tracer APMRP-259",
     )
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
     def test_sampling_decision_added(self):
@@ -240,22 +212,17 @@ class Test_SamplingDecisions:
                 )
 
         interfaces.library.validate(
-            validator,
-            path_filters=["/v0.4/traces", "/v0.5/traces"],
-            success_by_default=True,
+            validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True,
         )
 
         if len(spans) != len(traces):
-            raise ValueError(
-                f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}"
-            )
+            raise ValueError(f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}")
 
     def setup_sampling_determinism(self):
         seed(0)  # stay deterministic
 
         self.traces_determinism = [
-            {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)}
-            for _ in range(20)
+            {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)
         ]
 
         # Send requests with the same trace and parent id twice
@@ -285,9 +252,7 @@ class Test_SamplingDecisions:
             for span in _spans_with_parent(data["request"]["content"], traces.keys()):
                 expected_trace_id = traces[(span["parent_id"])]["trace_id"]
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
-                sampling_decisions_per_trace_id[span["trace_id"]].append(
-                    sampling_priority
-                )
+                sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
 
                 assert span["trace_id"] == expected_trace_id, (
                     f"Message: {data['log_filename']}: If parent_id matches, "
@@ -300,9 +265,7 @@ class Test_SamplingDecisions:
                 ), f"Message: {data['log_filename']}: sampling priority should be set"
 
         interfaces.library.validate(
-            validator,
-            path_filters=["/v0.4/traces", "/v0.5/traces"],
-            success_by_default=True,
+            validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True,
         )
 
         for trace_id, decisions in sampling_decisions_per_trace_id.items():
@@ -310,15 +273,11 @@ class Test_SamplingDecisions:
                 continue
 
             if not all((d == decisions[0] for d in decisions)):
-                raise ValueError(
-                    f"Sampling decisions are not deterministic for trace_id {trace_id}: {decisions}"
-                )
+                raise ValueError(f"Sampling decisions are not deterministic for trace_id {trace_id}: {decisions}")
 
     def _load_csv_sampling_decisions(self):
         cases = []
-        with open(
-            "tests/fixtures/sampling_rates.csv", newline="", encoding="utf-8"
-        ) as csv_file:
+        with open("tests/fixtures/sampling_rates.csv", newline="", encoding="utf-8") as csv_file:
             r = csv.reader(csv_file)
             for row in r:
                 trace_id, sampling_rate, sampling_priority = (
@@ -335,9 +294,7 @@ class Test_SamplingDecisions:
                     )
                     continue
                 # Check that the input .csv is valid according to this test's implementation of trace_should_be_kept.
-                assert priority_should_be_kept(
-                    sampling_priority
-                ) is trace_should_be_kept(sampling_rate, trace_id)
+                assert priority_should_be_kept(sampling_priority) is trace_should_be_kept(sampling_rate, trace_id)
                 cases.append((trace_id, sampling_rate, sampling_priority))
         return cases
 
@@ -351,10 +308,7 @@ class Test_SamplingDecisions:
             # Each request hits a different URL to help troubleshooting, it isn't required for the test.
             req = weblog.get(
                 f"/sample_rate_route/{self.next_request_id()}",
-                headers={
-                    "x-datadog-trace-id": str(trace_id),
-                    "x-datadog-parent-id": str(parent_id),
-                },
+                headers={"x-datadog-trace-id": str(trace_id), "x-datadog-parent-id": str(parent_id),},
             )
             # Map request results so that the test can validate them.
             self.requests_expected_decision.append((req, sampling_decision))
@@ -370,17 +324,13 @@ class Test_SamplingDecisions:
         for req, sampling_decision in self.requests_expected_decision:
             # Ensure the request succeeded, any failure would make the test incorrect.
             if req.status_code != 200:
-                raise AttributeError(
-                    f"Call to /sample_rate_route/:i failed with code: {req.status_code}"
-                )
+                raise AttributeError(f"Call to /sample_rate_route/:i failed with code: {req.status_code}")
             for _, _, span in interfaces.library.get_spans(request=req):
                 # Validate the sampling decision
                 trace_id = span["trace_id"]
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
                 if sampling_priority is None:
-                    raise ValueError(
-                        f"Root span of trace_id:{trace_id} has no sampling priority attached"
-                    )
+                    raise ValueError(f"Root span of trace_id:{trace_id} has no sampling priority attached")
                 if priority_should_be_kept(sampling_priority) is not sampling_decision:
                     raise ValueError(
                         f"Unexpected sampling decision for trace_id:{trace_id}, expected:{sampling_decision}, priority:{sampling_priority}"

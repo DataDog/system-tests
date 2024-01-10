@@ -15,9 +15,7 @@ class Test_TraceUniqueness:
         interfaces.library.assert_trace_id_uniqueness()
 
 
-@rfc(
-    "https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md"
-)
+@rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md")
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
@@ -39,9 +37,7 @@ class Test_TraceHeaders:
             return len(data["request"]["content"]) != 0
 
         interfaces.library.assert_headers_presence(
-            r"/v[0-9]+\.[0-9]+/traces",
-            request_headers=request_headers,
-            check_condition=check_condition,
+            r"/v[0-9]+\.[0-9]+/traces", request_headers=request_headers, check_condition=check_condition,
         )
 
     def test_trace_header_diagnostic_check(self):
@@ -49,15 +45,10 @@ class Test_TraceHeaders:
 
         def validator(data):
             request_headers = {h[0].lower() for h in data["request"]["headers"]}
-            if (
-                "x-datadog-diagnostic-check" in request_headers
-                and len(data["request"]["content"]) != 0
-            ):
+            if "x-datadog-diagnostic-check" in request_headers and len(data["request"]["content"]) != 0:
                 raise ValueError("Tracer sent a dignostic request with traces in it")
 
-        interfaces.library.add_traces_validation(
-            validator=validator, success_by_default=True
-        )
+        interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
 
     def test_trace_header_count_match(self):
         """X-Datadog-Trace-Count header value is right in all traces submitted to the agent"""
@@ -68,42 +59,29 @@ class Test_TraceHeaders:
                     try:
                         trace_count = int(value)
                     except ValueError:
-                        raise ValueError(
-                            f"'x-datadog-trace-count' request header is not an integer: {value}"
-                        )
+                        raise ValueError(f"'x-datadog-trace-count' request header is not an integer: {value}")
 
                     if trace_count != len(data["request"]["content"]):
-                        raise ValueError(
-                            "x-datadog-trace-count request header didn't match the number of traces"
-                        )
+                        raise ValueError("x-datadog-trace-count request header didn't match the number of traces")
 
-        interfaces.library.add_traces_validation(
-            validator=validator, success_by_default=True
-        )
+        interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
 
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
 
-    @bug(
-        library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194"
-    )
+    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
     @missing_feature(
-        context.library == "java" and "spring-boot" not in context.weblog_variant,
-        reason="Missing endpoint",
+        context.library == "java" and "spring-boot" not in context.weblog_variant, reason="Missing endpoint",
     )
     @missing_feature(weblog_variant="spring-boot-3-native", reason="Missing endpoint")
     @missing_feature(
-        context.library == "nodejs"
-        and context.weblog_variant == "spring-boot-3-native",
-        reason="Missing endpoint",
+        context.library == "nodejs" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint",
     )
     @missing_feature(
-        context.library == "nodejs" and context.weblog_variant != "express4",
-        reason="Missing endpoint",
+        context.library == "nodejs" and context.weblog_variant != "express4", reason="Missing endpoint",
     )
     @missing_feature(
-        context.library == "ruby" and context.weblog_variant != "rails70",
-        reason="Missing endpoint",
+        context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint",
     )
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
@@ -137,9 +115,7 @@ class Test_TraceHeaders:
 
             if weblog_container_id is not None:
                 if "datadog-container-id" not in request_headers:
-                    raise ValueError(
-                        f"Datadog-Container-ID header is missing in request {data['log_filename']}"
-                    )
+                    raise ValueError(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
 
                 if request_headers["datadog-container-id"] != weblog_container_id:
                     raise ValueError(

@@ -17,19 +17,13 @@ from utils import (
 )
 from utils.tools import logger
 
-with open(
-    "tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
-    encoding="utf-8",
-) as f:
+with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json", encoding="utf-8",) as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@rfc(
-    "https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit"
-)
+@rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @bug(
-    "nodejs@3.16.0" < context.library < "nodejs@3.18.0",
-    reason="bugged on that version range",
+    "nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range",
 )
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
@@ -41,8 +35,7 @@ class Test_AppSecIPBlockingFullDenylist:
     python_request_number = 0
 
     @bug(
-        context.library < "java@1.13.0",
-        reason="id reported for config state is not the expected one",
+        context.library < "java@1.13.0", reason="id reported for config state is not the expected one",
     )
     def test_rc_protocol(self):
         """test sequence of remote config messages"""
@@ -76,12 +69,8 @@ class Test_AppSecIPBlockingFullDenylist:
 
         def remote_config_is_applied(data):
             if data["path"] == "/v0.7/config":
-                if "config_states" in data.get("request", {}).get("content", {}).get(
-                    "client", {}
-                ).get("state", {}):
-                    config_states = data["request"]["content"]["client"]["state"][
-                        "config_states"
-                    ]
+                if "config_states" in data.get("request", {}).get("content", {}).get("client", {}).get("state", {}):
+                    config_states = data["request"]["content"]["client"]["state"]["config_states"]
 
                     for state in config_states:
                         if state["id"] == "ASM_DATA-third":
@@ -92,9 +81,7 @@ class Test_AppSecIPBlockingFullDenylist:
         interfaces.library.wait_for_remote_config_request()
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
-        self.not_blocked_request = weblog.get(
-            headers={"X-Forwarded-For": NOT_BLOCKED_IP}
-        )
+        self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
         self.blocked_requests = [
             weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[0]}),
             weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[2500]}),

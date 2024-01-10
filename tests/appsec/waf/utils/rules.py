@@ -16,12 +16,8 @@ class security_scanner:
     nfd_000_005 = "nfd-000-005"  # Detect failed attempt to fetch source code archives
     nfd_000_006 = "nfd-000-006"  # Detect failed attempt to fetch sensitive files
     nfd_000_007 = "nfd-000-007"  # Detect failed attempt to fetch archives
-    nfd_000_008 = (
-        "nfd-000-008"  # Detect failed attempt to trigger incorrect application behavior
-    )
-    nfd_000_009 = (
-        "nfd-000-009"  # Detect failed attempt to leak the structure of the application
-    )
+    nfd_000_008 = "nfd-000-008"  # Detect failed attempt to trigger incorrect application behavior
+    nfd_000_009 = "nfd-000-009"  # Detect failed attempt to leak the structure of the application
     ua0_600_0xx = "ua0-600-0xx"  # Joomla exploitation tool
     ua0_600_10x = "ua0-600-10x"  # Nessus
     ua0_600_12x = "ua0-600-12x"  # Arachni
@@ -77,9 +73,7 @@ class http_protocol_violation:
     crs_921_110 = "crs-921-110"  # HTTP Request Smuggling Attack
     crs_921_140 = "crs-921-140"  # HTTP Header Injection Attack via headers
     crs_921_160 = "crs-921-160"  # HTTP Header Injection Attack via payload (CR/LF and header-name detected)
-    crs_943_100 = (
-        "crs-943-100"  # Possible Session Fixation Attack: Setting Cookie Values in HTML
-    )
+    crs_943_100 = "crs-943-100"  # Possible Session Fixation Attack: Setting Cookie Values in HTML
 
 
 class lfi:
@@ -89,12 +83,8 @@ class lfi:
 
 
 class rfi:
-    crs_931_110 = (
-        "crs-931-110"  # RFI: Common RFI Vulnerable Parameter Name used w/ URL Payload
-    )
-    crs_931_120 = (
-        "crs-931-120"  # RFI: URL Payload Used w/Trailing Question Mark Character (?)
-    )
+    crs_931_110 = "crs-931-110"  # RFI: Common RFI Vulnerable Parameter Name used w/ URL Payload
+    crs_931_120 = "crs-931-120"  # RFI: URL Payload Used w/Trailing Question Mark Character (?)
 
 
 class command_injection:
@@ -114,12 +104,8 @@ class php_code_injection:
     crs_933_130 = "crs-933-130"  # PHP Injection Attack: Global Variables Found
     crs_933_131 = "crs-933-131"  # PHP Injection Attack: HTTP Headers Values Found
     crs_933_140 = "crs-933-140"  # PHP Injection Attack: I/O Stream Found
-    crs_933_150 = (
-        "crs-933-150"  # PHP Injection Attack: High-Risk PHP Function Name Found
-    )
-    crs_933_160 = (
-        "crs-933-160"  # PHP Injection Attack: High-Risk PHP Function Call Found
-    )
+    crs_933_150 = "crs-933-150"  # PHP Injection Attack: High-Risk PHP Function Name Found
+    crs_933_160 = "crs-933-160"  # PHP Injection Attack: High-Risk PHP Function Call Found
     crs_933_170 = "crs-933-170"  # PHP Injection Attack: Serialized Object Injection
     crs_933_200 = "crs-933-200"  # PHP Injection Attack: Wrapper scheme detected
 
@@ -127,9 +113,7 @@ class php_code_injection:
 class js_code_injection:
     crs_934_100 = "crs-934-100"  # Node.js Injection Attack
     dog_000_005 = "dog-000-005"  # Node.js: Prototype pollution through __proto__
-    dog_000_006 = (
-        "dog-000-006"  # Node.js: Prototype pollution through constructor.prototype
-    )
+    dog_000_006 = "dog-000-006"  # Node.js: Prototype pollution through constructor.prototype
     sqr_000_002 = "sqr-000-002"  # Server-side Javascript injection: Try to detect obvious JS injection
 
 
@@ -155,18 +139,12 @@ class xss:
 class sql_injection:
     crs_942_100 = "crs-942-100"  # SQL Injection Attack Detected via libinjection
     crs_942_160 = "crs-942-160"  # Detects blind sqli tests using sleep() or benchmark()
-    crs_942_190 = (
-        "crs-942-190"  # Detects MSSQL code execution and information gathering attempts
-    )
+    crs_942_190 = "crs-942-190"  # Detects MSSQL code execution and information gathering attempts
     crs_942_240 = "crs-942-240"  # Detects MySQL charset switch and MSSQL DoS attempts
-    crs_942_250 = (
-        "crs-942-250"  # Detects MATCH AGAINST, MERGE and EXECUTE IMMEDIATE injections
-    )
+    crs_942_250 = "crs-942-250"  # Detects MATCH AGAINST, MERGE and EXECUTE IMMEDIATE injections
     crs_942_270 = "crs-942-270"  # Basic SQL injection
     crs_942_280 = "crs-942-280"  # SQL Injection with delay functions
-    crs_942_360 = (
-        "crs-942-360"  # Detects concatenated basic SQL injection and SQLLFI attempts
-    )
+    crs_942_360 = "crs-942-360"  # Detects concatenated basic SQL injection and SQLLFI attempts
     crs_942_500 = "crs-942-500"  # MySQL in-line comment detected
 
 
@@ -177,12 +155,8 @@ class nosql_injection:
 
 
 class java_code_injection:
-    crs_944_100 = (
-        "crs-944-100"  # Remote Command Execution: Suspicious Java class detected
-    )
-    crs_944_110 = (
-        "crs-944-110"  # Remote Command Execution: Java process spawn (CVE-2017-9805)
-    )
+    crs_944_100 = "crs-944-100"  # Remote Command Execution: Suspicious Java class detected
+    crs_944_110 = "crs-944-110"  # Remote Command Execution: Java process spawn (CVE-2017-9805)
     crs_944_130 = "crs-944-130"  # Suspicious Java class detected
     dog_000_002 = "dog-000-002"  # OGNL - Look for formatting injection patterns
     dog_000_003 = "dog-000-003"  # OGNL - Detect OGNL exploitation primitives
@@ -195,9 +169,7 @@ class exploit_detection:
 
 class ssrf:
     sqr_000_001 = "sqr-000-001"  # SSRF: Try to access the credential manager of the main cloud services
-    sqr_000_011 = (
-        "sqr-000-011"  # SSRF: Try to access internal OMI service (CVE-2021-38647)
-    )
+    sqr_000_011 = "sqr-000-011"  # SSRF: Try to access internal OMI service (CVE-2021-38647)
     sqr_000_012 = "sqr-000-012"  # SSRF: Detect SSRF attempt on internal service
     sqr_000_013 = "sqr-000-013"  # SSRF: Detect SSRF attempts using IPv6 or octal/hexdecimal obfuscation
     sqr_000_014 = "sqr-000-014"  # SSRF: Detect SSRF domain redirection bypass

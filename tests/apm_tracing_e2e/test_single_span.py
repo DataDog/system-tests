@@ -10,8 +10,7 @@ from tests.apm_tracing_e2e.constants import (
 
 @rfc("ATI-2419")
 @missing_feature(
-    context.agent_version < "7.40",
-    reason="Single Spans is not available in agents pre 7.40.",
+    context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.",
 )
 @scenarios.apm_tracing_e2e_single_span
 class Test_SingleSpan:
@@ -25,19 +24,13 @@ class Test_SingleSpan:
     def setup_parent_span_is_single_span(self):
         self.req = weblog.get(
             "/e2e_single_span",
-            {
-                "shouldIndex": 1,
-                "parentName": "parent.span.single_span_submitted",
-                "childName": "child.span",
-            },
+            {"shouldIndex": 1, "parentName": "parent.span.single_span_submitted", "childName": "child.span",},
         )
 
     def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
         spans = _get_spans_submitted(self.req)
-        assert 1 == len(spans), _assert_msg(
-            1, len(spans), "Agent did not submit the spans we want!"
-        )
+        assert 1 == len(spans), _assert_msg(1, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the spans sent by the agent.
         span = spans[0]
@@ -49,26 +42,18 @@ class Test_SingleSpan:
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_single_spans_exist(self.req)
         assert 1 == len(spans), _assert_msg(1, len(spans))
-        _assert_single_span_event(
-            spans[0], "parent.span.single_span_submitted", is_root=True
-        )
+        _assert_single_span_event(spans[0], "parent.span.single_span_submitted", is_root=True)
 
     def setup_child_span_is_single_span(self):
         self.req = weblog.get(
             "/e2e_single_span",
-            {
-                "shouldIndex": 1,
-                "parentName": "parent.span",
-                "childName": "child.span.single_span_submitted",
-            },
+            {"shouldIndex": 1, "parentName": "parent.span", "childName": "child.span.single_span_submitted",},
         )
 
     def test_child_span_is_single_span(self):
         # Only the child should be submitted to the backend!
         spans = _get_spans_submitted(self.req)
-        assert 1 == len(spans), _assert_msg(
-            1, len(spans), "Agent did not submit the spans we want!"
-        )
+        assert 1 == len(spans), _assert_msg(1, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the spans sent by the agent.
         span = spans[0]
@@ -79,9 +64,7 @@ class Test_SingleSpan:
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_single_spans_exist(self.req)
         assert 1 == len(spans), _assert_msg(1, len(spans))
-        _assert_single_span_event(
-            spans[0], "child.span.single_span_submitted", is_root=False
-        )
+        _assert_single_span_event(spans[0], "child.span.single_span_submitted", is_root=False)
 
 
 def _assert_single_span_event(event, name, is_root):
@@ -98,14 +81,9 @@ def _assert_single_span_event(event, name, is_root):
 
 
 def _assert_single_span_metrics(span):
-    assert (
-        span["metrics"][SAMPLING_PRIORITY_KEY] == -1
-    )  # due to the global sampling rate = 0
+    assert span["metrics"][SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
     assert span["metrics"][SINGLE_SPAN_SAMPLING_RATE] == 1.0
-    assert (
-        span["metrics"][SINGLE_SPAN_SAMPLING_MECHANISM]
-        == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-    )
+    assert span["metrics"][SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"][SINGLE_SPAN_SAMPLING_MAX_PER_SEC] == 50.0
 
 

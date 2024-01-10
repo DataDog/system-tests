@@ -60,9 +60,7 @@ def get_big_requests_corpus():
         if depth == 0:
             return {f"{i}": None for i in range(size)}
 
-        return {
-            gru(2, 2): _get_nested(size, depth - 1, string_size) for i in range(size)
-        }
+        return {gru(2, 2): _get_nested(size, depth - 1, string_size) for i in range(size)}
 
     def _get_nested_arrays(size, depth, string_size=20):
         if depth == 0:
@@ -87,9 +85,7 @@ def get_big_requests_corpus():
 
     def _get_nested_array_requests(comment, size, depth, string_size=20):
         request = _get_base_request(comment, method="POST")
-        request["json"]["data"] = _get_nested_arrays(
-            size, depth, string_size=string_size
-        )
+        request["json"]["data"] = _get_nested_arrays(size, depth, string_size=string_size)
 
         return request
 
@@ -103,9 +99,7 @@ def get_big_requests_corpus():
         request = _get_base_request(comment, payload_name=payload_name, method="POST")
 
         for _ in range(count):
-            request[payload_name][gru(string_size, string_size)] = gru(
-                string_size, string_size
-            )
+            request[payload_name][gru(string_size, string_size)] = gru(string_size, string_size)
 
         return request
 
@@ -122,21 +116,13 @@ def get_big_requests_corpus():
 
     result = []
     result.append(_get_long_url("long url"))
-    result.append(
-        _get_big_data("lot of flat data", "data", count=10000, string_size=100)
-    )
+    result.append(_get_big_data("lot of flat data", "data", count=10000, string_size=100))
     result.append(_get_base_request("base"))
     result.append(_get_waf_triggers_request("waf trigs"))
     result.append(_get_waf_triggers_request("waf trigger count", r1=10000))
     result.append(_get_waf_triggers_request("waf trigger size", r2=5000))
-    result.append(
-        _get_waf_triggers_request("waf triggers in data", payload_name="data")
-    )
-    result.append(
-        _get_waf_triggers_request(
-            "waf triggers big data", payload_name="data", r1=10000
-        )
-    )
+    result.append(_get_waf_triggers_request("waf triggers in data", payload_name="data"))
+    result.append(_get_waf_triggers_request("waf triggers big data", payload_name="data", r1=10000))
     result.append(_get_nested_array_requests("nested std", 8, 4))
     result.append(_get_nested_array_requests("nested deep", 2, 15, string_size=3))
     result.append(_get_nested_dict_requests("nest dict", 7, 4))

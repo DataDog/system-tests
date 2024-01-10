@@ -24,9 +24,7 @@ def is_skipped(item, reason):
                     print(f"Found expected {mark} for {item}")
                     return True
 
-                print(
-                    f"{item} is skipped, but reason is {repr(mark.kwargs['reason'])} io {repr(reason)}"
-                )
+                print(f"{item} is skipped, but reason is {repr(mark.kwargs['reason'])} io {repr(reason)}")
 
     raise Exception(f"{item} is not skipped, or not with the good reason")
 

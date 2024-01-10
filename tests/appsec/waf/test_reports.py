@@ -40,12 +40,7 @@ class Test_Monitoring:
                 if m not in metrics:
                     raise Exception(f"missing span metric tag `{m}` in {metrics}")
 
-            if (
-                re.match(
-                    self.expected_version_regex, meta[expected_rules_version_tag], 0
-                )
-                is None
-            ):
+            if re.match(self.expected_version_regex, meta[expected_rules_version_tag], 0) is None:
                 raise Exception(
                     f"the span meta tag `{meta[expected_rules_version_tag]}` doesn't match the version regex"
                 )
@@ -96,13 +91,8 @@ class Test_Monitoring:
                 if m not in metrics:
                     return None  # Skip this span
 
-            if (
-                re.match(self.expected_version_regex, meta[expected_waf_version_tag], 0)
-                is None
-            ):
-                raise Exception(
-                    f"the span meta tag `{meta[expected_waf_version_tag]}` doesn't match the version regex"
-                )
+            if re.match(self.expected_version_regex, meta[expected_waf_version_tag], 0) is None:
+                raise Exception(f"the span meta tag `{meta[expected_waf_version_tag]}` doesn't match the version regex")
 
             if (
                 expected_rules_monitoring_nb_loaded_tag in metrics
@@ -117,8 +107,7 @@ class Test_Monitoring:
                 possible_errors_tag_values = ["null", "{}"]
                 if (
                     expected_rules_errors_meta_tag in meta
-                    and meta[expected_rules_errors_meta_tag]
-                    not in possible_errors_tag_values
+                    and meta[expected_rules_errors_meta_tag] not in possible_errors_tag_values
                 ):
                     raise Exception(
                         "if there's no rule errors and if there are rule errors detail, then "
@@ -127,9 +116,7 @@ class Test_Monitoring:
                     )
             else:
                 if expected_rules_errors_meta_tag not in meta:
-                    raise Exception(
-                        "if there are rule errors, there should be rule error details too"
-                    )
+                    raise Exception("if there are rule errors, there should be rule error details too")
                 try:
                     json.loads(meta[expected_rules_errors_meta_tag])
                 except ValueError:
@@ -149,8 +136,7 @@ class Test_Monitoring:
         self.r_optional = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(
-        condition=context.library not in ["python", "golang", "dotnet", "nodejs"],
-        reason="optional tags",
+        condition=context.library not in ["python", "golang", "dotnet", "nodejs"], reason="optional tags",
     )
     def test_waf_monitoring_optional(self):
         """WAF monitoring span tags and metrics may send extra optional tags"""
@@ -168,10 +154,7 @@ class Test_Monitoring:
                 if m not in metrics:
                     raise Exception(f"missing span metric tag `{m}` in {metrics}")
 
-            if (
-                metrics[expected_bindings_duration_metric]
-                < metrics[expected_waf_duration_metric]
-            ):
+            if metrics[expected_bindings_duration_metric] < metrics[expected_waf_duration_metric]:
                 raise Exception(
                     "unexpected waf duration metrics: the overall execution duration (with bindings) "
                     f"`{metrics[expected_bindings_duration_metric]}` is less than the internal "

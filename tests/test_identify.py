@@ -45,35 +45,24 @@ class Test_Basic:
         reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
     )
     @bug(
-        library="ruby",
-        reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
+        library="ruby", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
     )
     def test_identify_tags(self):
         interfaces.library.validate_spans(
-            self.r,
-            validate_identify_tags(
-                ["id", "name", "email", "session_id", "role", "scope"]
-            ),
+            self.r, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"]),
         )
 
     def setup_identify_tags_with_attack(self):
         # Send a random attack on the identify endpoint - should not affect the usr.id tag
-        self.r_with_attack = weblog.get(
-            "/identify", headers={"User-Agent": "Arachni/v1"}
-        )
+        self.r_with_attack = weblog.get("/identify", headers={"User-Agent": "Arachni/v1"})
 
     def test_identify_tags_with_attack(self):
         interfaces.library.validate_spans(
-            self.r_with_attack,
-            validate_identify_tags(
-                ["id", "name", "email", "session_id", "role", "scope"]
-            ),
+            self.r_with_attack, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"]),
         )
 
 
-@rfc(
-    "https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1"
-)
+@rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
 @coverage.basic
 @features.propagation_of_user_id_rfc
 class Test_Propagate_Legacy:
@@ -85,9 +74,7 @@ class Test_Propagate_Legacy:
 
     def test_identify_tags_outgoing(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(
-            self.r_outgoing, validate_identify_tags(tagTable)
-        )
+        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -101,14 +88,10 @@ class Test_Propagate_Legacy:
     def test_identify_tags_incoming(self):
         """ with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C """
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(
-            self.r_incoming, validate_identify_tags(tagTable)
-        )
+        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
 
 
-@rfc(
-    "https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1"
-)
+@rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
 @coverage.basic
 @features.propagation_of_user_id_rfc
 class Test_Propagate:
@@ -120,9 +103,7 @@ class Test_Propagate:
 
     def test_identify_tags_outgoing(self):
         tagTable = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(
-            self.r_outgoing, validate_identify_tags(tagTable)
-        )
+        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -142,7 +123,5 @@ class Test_Propagate:
             return True
 
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(
-            self.r_incoming, validate_identify_tags(tagTable)
-        )
+        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
         interfaces.library.validate_spans(self.r_incoming, usr_id_not_present)

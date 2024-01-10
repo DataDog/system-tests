@@ -55,9 +55,7 @@ class Test_Json_Report:
     def test_missing_feature(self):
         """Report is generated with correct outcome and skip reason nodes for missing features decorators"""
 
-        test = self.get_test(
-            "tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature"
-        )
+        test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature")
 
         assert test["outcome"] == "xfailed"
         assert test["skip_reason"] == "missing_feature: not yet done"
@@ -66,10 +64,7 @@ class Test_Json_Report:
         """Report is generated with correct outcome and skip reason nodes for irrelevant decorators"""
 
         for test in self.report_json["tests"]:
-            if (
-                test["nodeid"]
-                == "tests/test_the_test/test_json_report.py::Test_Mock::test_irrelevant"
-            ):
+            if test["nodeid"] == "tests/test_the_test/test_json_report.py::Test_Mock::test_irrelevant":
                 assert test["outcome"] == "skipped"
                 assert test["skip_reason"] == "irrelevant: irrelevant"
                 return
@@ -79,10 +74,7 @@ class Test_Json_Report:
         """Report is generated with correct test data when a test is passed"""
 
         for test in self.report_json["tests"]:
-            if (
-                test["nodeid"]
-                == "tests/test_the_test/test_json_report.py::Test_Mock::test_mock"
-            ):
+            if test["nodeid"] == "tests/test_the_test/test_json_report.py::Test_Mock::test_mock":
                 assert test["outcome"] == "passed"
                 assert test["skip_reason"] is None
                 return
@@ -97,62 +89,30 @@ class Test_Json_Report:
     def test_docs(self):
         """Docs node is generating"""
 
+        assert "tests/test_the_test/test_json_report.py::Test_Mock::test_mock" in self.report_json["docs"]
         assert (
-            "tests/test_the_test/test_json_report.py::Test_Mock::test_mock"
-            in self.report_json["docs"]
-        )
-        assert (
-            self.report_json["docs"][
-                "tests/test_the_test/test_json_report.py::Test_Mock::test_mock"
-            ]
-            == "Mock test doc"
+            self.report_json["docs"]["tests/test_the_test/test_json_report.py::Test_Mock::test_mock"] == "Mock test doc"
         )
 
     def test_rfcs(self):
         """Rfcs node is generating"""
 
-        assert (
-            "tests/test_the_test/test_json_report.py::Test_Mock"
-            in self.report_json["rfcs"]
-        )
-        assert (
-            self.report_json["rfcs"][
-                "tests/test_the_test/test_json_report.py::Test_Mock"
-            ]
-            == "https://mock"
-        )
+        assert "tests/test_the_test/test_json_report.py::Test_Mock" in self.report_json["rfcs"]
+        assert self.report_json["rfcs"]["tests/test_the_test/test_json_report.py::Test_Mock"] == "https://mock"
 
     def test_coverages(self):
         """coverages node is generating"""
 
-        assert (
-            "tests/test_the_test/test_json_report.py::Test_Mock"
-            in self.report_json["coverages"]
-        )
-        assert (
-            self.report_json["coverages"][
-                "tests/test_the_test/test_json_report.py::Test_Mock"
-            ]
-            == "good"
-        )
+        assert "tests/test_the_test/test_json_report.py::Test_Mock" in self.report_json["coverages"]
+        assert self.report_json["coverages"]["tests/test_the_test/test_json_report.py::Test_Mock"] == "good"
 
     def test_release_versions(self):
         """release_versions node is generating"""
 
+        assert "tests/test_the_test/test_json_report.py::Test_Mock" in self.report_json["release_versions"]
+        assert "java" in self.report_json["release_versions"]["tests/test_the_test/test_json_report.py::Test_Mock"]
         assert (
-            "tests/test_the_test/test_json_report.py::Test_Mock"
-            in self.report_json["release_versions"]
-        )
-        assert (
-            "java"
-            in self.report_json["release_versions"][
-                "tests/test_the_test/test_json_report.py::Test_Mock"
-            ]
-        )
-        assert (
-            self.report_json["release_versions"][
-                "tests/test_the_test/test_json_report.py::Test_Mock"
-            ]["java"]
+            self.report_json["release_versions"]["tests/test_the_test/test_json_report.py::Test_Mock"]["java"]
             == "v0.0.99"
         )
 
@@ -189,21 +149,15 @@ class Test_Json_Report:
         )
 
     def test_feature_id(self):
-        test = self.get_test(
-            "tests/test_the_test/test_json_report.py::Test_Mock::test_mock"
-        )
+        test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock::test_mock")
         assert test["metadata"]["features"] == [13, 74, 666]
 
-        test = self.get_test(
-            "tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature"
-        )
+        test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature")
         assert test["metadata"]["features"] == [75, 13, 74, 666]
 
     def test_skip_reason(self):
         """the skip reason must be the closest to the test method"""
-        test = self.get_test(
-            "tests/test_the_test/test_json_report.py::Test_Mock2::test_skipped"
-        )
+        test = self.get_test("tests/test_the_test/test_json_report.py::Test_Mock2::test_skipped")
         assert test["metadata"]["skip_reason"] == "bug: local reason"
 
     def test_xpassed(self):
@@ -238,22 +192,10 @@ class Test_Json_Report:
         assert test["testDeclaration"] == "flaky"
 
     def test_logs(self):
-        assert (
-            f"DEBUG    {BASE_PATH}::Test_IrrelevantClass::test_method => irrelevant => skipped\n"
-            in self.logs
-        )
-        assert (
-            f"DEBUG    {BASE_PATH}::Test_Class::test_irrelevant_method => irrelevant => skipped\n"
-            in self.logs
-        )
-        assert (
-            f"DEBUG    {BASE_PATH}::Test_FlakyClass::test_method => flaky => skipped\n"
-            in self.logs
-        )
-        assert (
-            f"DEBUG    {BASE_PATH}::Test_Class::test_flaky_method => flaky => skipped\n"
-            in self.logs
-        )
+        assert f"DEBUG    {BASE_PATH}::Test_IrrelevantClass::test_method => irrelevant => skipped\n" in self.logs
+        assert f"DEBUG    {BASE_PATH}::Test_Class::test_irrelevant_method => irrelevant => skipped\n" in self.logs
+        assert f"DEBUG    {BASE_PATH}::Test_FlakyClass::test_method => flaky => skipped\n" in self.logs
+        assert f"DEBUG    {BASE_PATH}::Test_Class::test_flaky_method => flaky => skipped\n" in self.logs
 
 
 @scenarios.mock_the_test

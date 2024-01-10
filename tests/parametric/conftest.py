@@ -105,11 +105,7 @@ ClientLibraryServerFactory = Callable[[], APMLibraryTestServer]
 def _get_base_directory():
     """Workaround until the parametric tests are fully migrated"""
     current_directory = os.getcwd()
-    return (
-        f"{current_directory}/.."
-        if current_directory.endswith("parametric")
-        else current_directory
-    )
+    return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
 
 
 def python_library_factory() -> APMLibraryTestServer:
@@ -131,12 +127,7 @@ RUN /binaries/install_ddtrace.sh
         container_cmd="python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[
-            (
-                os.path.join(python_absolute_appdir, "apm_test_client"),
-                "/app/apm_test_client",
-            ),
-        ],
+        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client",),],
         env={},
         port="",
     )
@@ -270,9 +261,7 @@ def java_library_factory():
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
-    protofile = os.path.join(
-        "utils", "parametric", "protos", "apm_test_client.proto"
-    ).replace("\\", "/")
+    protofile = os.path.join("utils", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
 
     return APMLibraryTestServer(
         lang="java",
@@ -324,9 +313,7 @@ ADD {php_reldir}/server.php .
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[
-            (os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),
-        ],
+        volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
         env={},
         port="",
     )
@@ -339,13 +326,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
     ruby_reldir = ruby_appdir.replace("\\", "/")
 
     shutil.copyfile(
-        os.path.join(
-            _get_base_directory(),
-            "utils",
-            "parametric",
-            "protos",
-            "apm_test_client.proto",
-        ),
+        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto",),
         os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
     )
     return APMLibraryTestServer(
@@ -444,18 +425,14 @@ def apm_test_server_definition() -> APMLibraryTestServer:
     yield _libs[context.scenario.library.library]()
 
 
-def build_apm_test_server_image(
-    apm_test_server_definition: APMLibraryTestServer,
-) -> str:
+def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer,) -> str:
     log_path = f"{context.scenario.host_log_folder}/outputs/docker_build_log.log"
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     log_file = open(log_path, "w+")
     # Write dockerfile to the build directory
     # Note that this needs to be done as the context cannot be
     # specified if Dockerfiles are read from stdin.
-    dockf_path = os.path.join(
-        apm_test_server_definition.container_build_dir, "Dockerfile"
-    )
+    dockf_path = os.path.join(apm_test_server_definition.container_build_dir, "Dockerfile")
     with open(dockf_path, "w") as dockf:
         dockf.write(apm_test_server_definition.container_img)
     # Build the container
@@ -475,9 +452,7 @@ def build_apm_test_server_image(
     log_file.flush()
 
     env = os.environ.copy()
-    env[
-        "DOCKER_SCAN_SUGGEST"
-    ] = "false"  # Docker outputs an annoying synk message on every build
+    env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
 
     p = subprocess.run(
         cmd,
@@ -501,10 +476,7 @@ def build_apm_test_server_image(
 
 @pytest.fixture(scope="session")
 def apm_test_server_image(
-    docker,
-    apm_test_server_definition: APMLibraryTestServer,
-    worker_id,
-    tmp_path_factory,
+    docker, apm_test_server_definition: APMLibraryTestServer, worker_id, tmp_path_factory,
 ) -> APMLibraryTestServer:
     """Session level definition of the library test server with the Docker image built"""
     # all this is only needed since xdist will execute session scopes once for every worker
@@ -526,9 +498,7 @@ def apm_test_server_image(
                     fn.write_text("failure")
             else:
                 if fn.read_text() == "failure":
-                    failure_text = (
-                        "Failed to build docker image. See output from other worker."
-                    )
+                    failure_text = "Failed to build docker image. See output from other worker."
 
     if failure_text != None:
         pytest.fail(failure_text, pytrace=False)
@@ -565,11 +535,7 @@ def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, No
         yield f
         f.seek(0)
         request.node._report_sections.append(
-            (
-                "teardown",
-                f"{apm_test_server.lang.capitalize()} Library Output",
-                "".join(f.readlines()),
-            )
+            ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()),)
         )
 
 
@@ -599,8 +565,7 @@ class _TestAgentAPI:
 
     def set_remote_config(self, path, payload):
         resp = self._session.post(
-            self._url("/test/session/responses/config/path"),
-            json={"path": path, "msg": payload,},
+            self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,},
         )
         assert resp.status_code == 202
 
@@ -662,9 +627,7 @@ class _TestAgentAPI:
     def snapshot_context(self, token, ignores=None):
         ignores = ignores or []
         try:
-            resp = self._session.get(
-                self._url("/test/session/start?test_session_token=%s" % token)
-            )
+            resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
@@ -674,17 +637,12 @@ class _TestAgentAPI:
             yield self
             # Query for the results of the test.
             resp = self._session.get(
-                self._url(
-                    "/test/session/snapshot?ignores=%s&test_session_token=%s"
-                    % (",".join(ignores), token)
-                )
+                self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
             )
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
-    def wait_for_num_traces(
-        self, num: int, clear: bool = False, wait_loops: int = 30
-    ) -> List[Trace]:
+    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -705,13 +663,10 @@ class _TestAgentAPI:
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError(
-            "Number (%r) of traces not available from test agent, got %r:\n%r"
-            % (num, num_received, traces)
+            "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
         )
 
-    def wait_for_num_spans(
-        self, num: int, clear: bool = False, wait_loops: int = 30
-    ) -> List[Trace]:
+    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` spans to be received from the test agent.
 
         Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
@@ -733,14 +688,9 @@ class _TestAgentAPI:
                         self.clear()
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
-        raise ValueError(
-            "Number (%r) of spans not available from test agent, got %r"
-            % (num, num_received)
-        )
+        raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
 
-    def wait_for_telemetry_event(
-        self, event_name: str, clear: bool = False, wait_loops: int = 200
-    ):
+    def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
         for i in range(wait_loops):
             try:
@@ -763,11 +713,7 @@ class _TestAgentAPI:
         raise AssertionError("Telemetry event %r not found" % event_name)
 
     def wait_for_rc_apply_state(
-        self,
-        product: str,
-        state: remoteconfig.APPLY_STATUS,
-        clear: bool = False,
-        wait_loops: int = 100,
+        self, product: str, state: remoteconfig.APPLY_STATUS, clear: bool = False, wait_loops: int = 100,
     ):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
@@ -782,21 +728,14 @@ class _TestAgentAPI:
                     if req["body"]["client"]["state"].get("config_states") is None:
                         continue
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
-                        if (
-                            cfg_state["product"] == product
-                            and cfg_state["apply_state"] == state
-                        ):
+                        if cfg_state["product"] == product and cfg_state["apply_state"] == state:
                             if clear:
                                 self.clear()
                             return cfg_state
             time.sleep(0.01)
-        raise AssertionError(
-            "No RemoteConfig apply status found, got requests %r" % rc_reqs
-        )
+        raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
-    def wait_for_rc_capabilities(
-        self, capabilities: List[int] = [], wait_loops: int = 100
-    ):
+    def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         for i in range(wait_loops):
@@ -809,19 +748,13 @@ class _TestAgentAPI:
                 for req in rc_reqs:
                     raw_caps = req["body"]["client"].get("capabilities")
                     if raw_caps:
-                        int_capabilities = int.from_bytes(
-                            base64.b64decode(raw_caps), byteorder="big"
-                        )
+                        int_capabilities = int.from_bytes(base64.b64decode(raw_caps), byteorder="big")
                         if all((int_capabilities >> c) & 1 for c in capabilities):
                             return int_capabilities
             time.sleep(0.01)
-        raise AssertionError(
-            "No RemoteConfig capabilities found, got requests %r" % rc_reqs
-        )
+        raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
 
-    def wait_for_tracer_flare(
-        self, case_id: str = None, clear: bool = False, wait_loops: int = 100
-    ):
+    def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -872,14 +805,11 @@ def docker_run(
     docker = shutil.which("docker")
 
     # Run the docker container
-    r = subprocess.run(
-        _cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout
-    )
+    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout)
     if r.returncode != 0:
         log_file.flush()
         pytest.fail(
-            "Could not start docker container %r with image %r, see the log file %r"
-            % (name, image, log_file.name),
+            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file.name),
             pytrace=False,
         )
 
@@ -899,11 +829,7 @@ def docker_run(
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
         subprocess.run(
-            _cmd,
-            stdout=log_file,
-            stderr=log_file,
-            check=True,
-            timeout=default_subprocess_run_timeout,
+            _cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout,
         )
 
 
@@ -936,9 +862,7 @@ def docker_network_name(test_id) -> str:
 
 
 @pytest.fixture()
-def docker_network(
-    docker: str, docker_network_log_file: TextIO, docker_network_name: str
-) -> str:
+def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_name: str) -> str:
     # Initial check to see if docker network already exists
     cmd = [
         docker,
@@ -948,14 +872,10 @@ def docker_network(
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(
-        cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
-    )
+    r = subprocess.run(cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
-            "Could not check for docker network %r, error: %r"
-            % (docker_network_name, r.stderr),
-            pytrace=False,
+            "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
         )
     elif r.returncode == 1:
         cmd = [
@@ -969,10 +889,7 @@ def docker_network(
         docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
         docker_network_log_file.flush()
         r = subprocess.run(
-            cmd,
-            stdout=docker_network_log_file,
-            stderr=docker_network_log_file,
-            timeout=default_subprocess_run_timeout,
+            cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout,
         )
         if r.returncode != 0:
             pytest.fail(
@@ -990,10 +907,7 @@ def docker_network(
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
     r = subprocess.run(
-        cmd,
-        stdout=docker_network_log_file,
-        stderr=docker_network_log_file,
-        timeout=default_subprocess_run_timeout,
+        cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout,
     )
     if r.returncode != 0:
         pytest.fail(
@@ -1027,9 +941,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
             if "GET /test/session/apmtelemetry" in line:
                 continue
             agent_output += line
-        request.node._report_sections.append(
-            ("teardown", f"Test Agent Output", agent_output)
-        )
+        request.node._report_sections.append(("teardown", f"Test Agent Output", agent_output))
 
 
 @pytest.fixture
@@ -1044,11 +956,7 @@ def test_agent_hostname(test_agent_container_name: str) -> str:
 
 @pytest.fixture
 def test_agent(
-    docker_network: str,
-    request,
-    test_agent_container_name: str,
-    test_agent_port,
-    test_agent_log_file: TextIO,
+    docker_network: str, request, test_agent_container_name: str, test_agent_port, test_agent_log_file: TextIO,
 ):
     env = {}
     if os.getenv("DEV_MODE") is not None:
@@ -1069,10 +977,7 @@ def test_agent(
         log_file=test_agent_log_file,
         network_name=docker_network,
     ):
-        client = _TestAgentAPI(
-            base_url="http://localhost:%s" % test_agent_external_port,
-            pytest_request=request,
-        )
+        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request,)
         # Wait for the agent to start (potentially have to pull the image from the registry)
         for i in range(30):
             try:
@@ -1090,9 +995,7 @@ def test_agent(
             with open(test_agent_log_file.name) as f:
                 logger.error(f"Could not connect to test agent: {f.read()}")
             pytest.fail(
-                "Could not connect to test agent, check the log file %r."
-                % test_agent_log_file.name,
-                pytrace=False,
+                "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False,
             )
 
         # If the snapshot mark is on the test case then do a snapshot test
@@ -1100,13 +1003,9 @@ def test_agent(
         assert len(marks) < 2, "Multiple snapshot marks detected"
         if marks:
             snap = marks[0]
-            assert (
-                len(snap.args) == 0
-            ), "only keyword arguments are supported by the snapshot decorator"
+            assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
             if "token" not in snap.kwargs:
-                snap.kwargs["token"] = (
-                    _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
-                )
+                snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
             with client.snapshot_context(**snap.kwargs):
                 yield client
         else:
@@ -1125,8 +1024,7 @@ def test_server(
 ):
     env = {
         "DD_TRACE_DEBUG": "true",
-        "DD_TRACE_AGENT_URL": "http://%s:%s"
-        % (test_agent_container_name, test_agent_port),
+        "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
@@ -1157,17 +1055,11 @@ def test_server_timeout() -> int:
 
 
 @pytest.fixture
-def test_library(
-    test_server: APMLibraryTestServer, test_server_timeout: int
-) -> Generator[APMLibrary, None, None]:
+def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
     if test_server.protocol == "grpc":
-        client = APMLibraryClientGRPC(
-            "localhost:%s" % test_server.port, test_server_timeout
-        )
+        client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
     elif test_server.protocol == "http":
-        client = APMLibraryClientHTTP(
-            "http://localhost:%s" % test_server.port, test_server_timeout
-        )
+        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
     else:
         raise ValueError("interface %s not supported" % test_server.protocol)
     tracer = APMLibrary(client, test_server.lang)

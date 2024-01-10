@@ -15,9 +15,7 @@ class Test_ShellExecution:
         self.r_cmd_exec = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {"command": "echo", "options": {"shell": False}, "args": "foo"}
-            ),
+            data=json.dumps({"command": "echo", "options": {"shell": False}, "args": "foo"}),
         )
 
     def test_track_cmd_exec(self):
@@ -27,9 +25,7 @@ class Test_ShellExecution:
                     shell_exec_span = span
 
         assert self.r_cmd_exec.status_code == 200
-        assert (
-            shell_exec_span is not None
-        ), f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
+        assert shell_exec_span is not None, f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
         assert shell_exec_span["meta"]["cmd.exec"] == '["echo","foo"]'
@@ -39,9 +35,7 @@ class Test_ShellExecution:
         self.r_cmd_exec = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {"command": "echo", "options": {"shell": True}, "args": "foo"}
-            ),
+            data=json.dumps({"command": "echo", "options": {"shell": True}, "args": "foo"}),
         )
 
     def test_track_shell_exec(self):
@@ -51,9 +45,7 @@ class Test_ShellExecution:
                     shell_exec_span = span
 
         assert self.r_cmd_exec.status_code == 200
-        assert (
-            shell_exec_span is not None
-        ), f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
+        assert shell_exec_span is not None, f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
         assert shell_exec_span["meta"]["cmd.shell"] == '["echo","foo"]'
@@ -64,9 +56,7 @@ class Test_ShellExecution:
         self.r_cmd_exec = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {"command": "echo", "options": {"shell": False}, "args": args}
-            ),
+            data=json.dumps({"command": "echo", "options": {"shell": False}, "args": args}),
         )
 
     def test_truncation(self):
@@ -76,9 +66,7 @@ class Test_ShellExecution:
                     shell_exec_span = span
 
         assert self.r_cmd_exec.status_code == 200
-        assert (
-            shell_exec_span is not None
-        ), f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
+        assert shell_exec_span is not None, f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
         assert shell_exec_span["meta"]["cmd.exec"] == '["echo","fo"]'
@@ -89,9 +77,7 @@ class Test_ShellExecution:
         self.r_cmd_exec = weblog.post(
             "/shell_execution",
             headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {"command": "echo", "options": {"shell": False}, "args": args}
-            ),
+            data=json.dumps({"command": "echo", "options": {"shell": False}, "args": args}),
         )
 
     def test_obfuscation(self):
@@ -101,9 +87,7 @@ class Test_ShellExecution:
                     shell_exec_span = span
 
         assert self.r_cmd_exec.status_code == 200
-        assert (
-            shell_exec_span is not None
-        ), f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
+        assert shell_exec_span is not None, f"shell_exec_span hasn't be found for {self.r_cmd_exec.request.url}"
         assert shell_exec_span["name"] == "command_execution"
         assert shell_exec_span["meta"]["component"] == "subprocess"
         assert shell_exec_span["meta"]["cmd.exec"] == '["echo","password","?"]'

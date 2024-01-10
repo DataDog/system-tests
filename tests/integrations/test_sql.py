@@ -6,9 +6,7 @@ from utils import weblog, interfaces, context, missing_feature, scenarios, featu
 
 
 @features.sql_support
-@missing_feature(
-    condition=context.library != "java", reason="Endpoint is not implemented on weblog"
-)
+@missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
 @scenarios.integrations
 class Test_Sql:
     """ Verify that a sql span is created """

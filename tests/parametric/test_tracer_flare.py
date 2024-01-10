@@ -30,11 +30,7 @@ DEFAULT_ENVVARS = {
 
 def _tracer_flare_task_config() -> Dict[str, Any]:
     return {
-        "args": {
-            "case_id": "12345",
-            "hostname": "my.hostname",
-            "user_handle": "its.me@datadoghq.com",
-        },
+        "args": {"case_id": "12345", "hostname": "my.hostname", "user_handle": "its.me@datadoghq.com",},
         "task_type": "tracer_flare",
     }
 
@@ -59,8 +55,7 @@ def _set_log_level(test_agent, log_level: str) -> None:
     """
     cfg_id = f"flare-log-level.{log_level}"
     test_agent.set_remote_config(
-        path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config",
-        payload={"name": cfg_id, "config": {"log_level": log_level}},
+        path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={"name": cfg_id, "config": {"log_level": log_level}},
     )
     test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2)
 
@@ -69,9 +64,7 @@ def _clear_log_level(test_agent, log_level: str) -> None:
     """Helper to clear a previously set "flare-log-level" config from RC.
     """
     cfg_id = f"flare-log-level.{log_level}"
-    test_agent.set_remote_config(
-        path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={}
-    )
+    test_agent.set_remote_config(path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={})
     test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, clear=True)
 
 
@@ -80,9 +73,7 @@ def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
     """
     task_config["uuid"] = uuid4().hex
     task_id = hash(json.dumps(task_config))
-    test_agent.set_remote_config(
-        path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config
-    )
+    test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
     test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2)
     return task_id
 
@@ -90,9 +81,7 @@ def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
 def _clear_task(test_agent, task_id) -> None:
     """Helper to clear a previously created agent task config from RC.
     """
-    test_agent.set_remote_config(
-        path=f"datadog/2/AGENT_TASK/{task_id}/config", payload={}
-    )
+    test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload={})
     test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2, clear=True)
 
 
@@ -129,8 +118,7 @@ class TestTracerFlareV1:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_flare_log_level_order(self, library_env, test_agent, test_library):
         test_agent.set_remote_config(
-            path="datadog/2/AGENT_CONFIG/configuration_order/config",
-            payload=_flare_log_level_order(),
+            path="datadog/2/AGENT_CONFIG/configuration_order/config", payload=_flare_log_level_order(),
         )
         test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2)
 
@@ -144,24 +132,16 @@ class TestTracerFlareV1:
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
         _set_log_level(test_agent, "debug")
 
-        tracer_flare = trigger_tracer_flare_and_wait(
-            test_agent, {"case_id": "12345-with-debug"}
-        )
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
 
         _clear_log_level(test_agent, "debug")
 
         assert_valid_zip(tracer_flare["flare_file"])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_no_tracer_flare_for_other_task_types(
-        self, library_env, test_agent, test_library
-    ):
+    def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
         task_config = {
-            "args": {
-                "case_id": "12345",
-                "hostname": "my.hostname",
-                "user_handle": "its.me@datadoghq.com",
-            },
+            "args": {"case_id": "12345", "hostname": "my.hostname", "user_handle": "its.me@datadoghq.com",},
             "task_type": "flare",  # this task_type is used to trigger the agent's own flare
         }
 

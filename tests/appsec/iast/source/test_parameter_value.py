@@ -33,8 +33,7 @@ class TestParameterValue(BaseSourceTest):
 
     @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     @bug(
-        library="python",
-        reason="Python frameworks need a header, if not, 415 status code",
+        library="python", reason="Python frameworks need a header, if not, 415 status code",
     )
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
@@ -43,15 +42,11 @@ class TestParameterValue(BaseSourceTest):
 
     @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     def test_source_get_reported(self):
-        self.validate_request_reported(
-            self.requests["GET"], source_type="http.request.parameter"
-        )
+        self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
     @missing_feature(
-        context.library == "java"
-        and not context.weblog_variant.startswith("spring-boot"),
-        reason="Not implemented",
+        context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented",
     )
     @missing_feature(library="dotnet", reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
@@ -59,9 +54,7 @@ class TestParameterValue(BaseSourceTest):
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
     @missing_feature(
-        context.library == "java"
-        and not context.weblog_variant.startswith("spring-boot"),
-        reason="Not implemented",
+        context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented",
     )
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

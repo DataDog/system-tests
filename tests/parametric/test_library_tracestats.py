@@ -43,26 +43,16 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
 @features.client_side_stats_supported
 class Test_Library_Tracestats:
     @enable_tracestats()
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
+    @missing_feature(context.library == "golang", reason="go sends an empty stats aggregation")
     @missing_feature(
-        context.library == "cpp", reason="cpp has not implemented stats computation yet"
+        context.library == "nodejs", reason="nodejs has not implemented stats computation yet",
     )
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(
-        context.library == "golang", reason="go sends an empty stats aggregation"
+        context.library == "ruby", reason="ruby has not implemented stats computation yet",
     )
-    @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs has not implemented stats computation yet",
-    )
-    @missing_feature(
-        context.library == "php", reason="php has not implemented stats computation yet"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="ruby has not implemented stats computation yet",
-    )
-    def test_metrics_msgpack_serialization_TS001(
-        self, library_env, test_agent, test_library
-    ):
+    def test_metrics_msgpack_serialization_TS001(self, library_env, test_agent, test_library):
         """
         When spans are finished
             Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
@@ -70,9 +60,7 @@ class Test_Library_Tracestats:
                 {error_count, hit_count, ok/error latency distributions, duration}
         """
         with test_library:
-            with test_library.start_span(
-                name="web.request", resource="/users", service="webserver"
-            ):
+            with test_library.start_span(name="web.request", resource="/users", service="webserver"):
                 pass
 
         raw_requests = test_agent.requests()
@@ -83,21 +71,12 @@ class Test_Library_Tracestats:
         for request in raw_requests:
             if "v0.6/stats" in request["url"]:
                 raw_stats = request["body"]
-        assert (
-            raw_stats is not None
-        ), "Couldn't find raw stats request sent to test agent"
-        deserialized_stats = msgpack.unpackb(base64.b64decode(raw_stats))["Stats"][0][
-            "Stats"
-        ][0]
+        assert raw_stats is not None, "Couldn't find raw stats request sent to test agent"
+        deserialized_stats = msgpack.unpackb(base64.b64decode(raw_stats))["Stats"][0]["Stats"][0]
         agent_decoded_stats = decoded_stats_requests[0]["body"]["Stats"][0]["Stats"][0]
         assert len(decoded_stats_requests) == 1
         assert len(decoded_stats_requests[0]["body"]["Stats"]) == 1
-        pprint.pprint(
-            [
-                _human_stats(s)
-                for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]
-            ]
-        )
+        pprint.pprint([_human_stats(s) for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]])
         assert deserialized_stats["Name"] == "web.request"
         assert deserialized_stats["Resource"] == "/users"
         assert deserialized_stats["Service"] == "webserver"
@@ -124,23 +103,15 @@ class Test_Library_Tracestats:
             assert key in decoded_request_body, "%r should be in stats request" % key
 
     @enable_tracestats()
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
-        context.library == "cpp", reason="cpp has not implemented stats computation yet"
+        context.library == "nodejs", reason="nodejs has not implemented stats computation yet",
     )
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs has not implemented stats computation yet",
+        context.library == "ruby", reason="ruby has not implemented stats computation yet",
     )
-    @missing_feature(
-        context.library == "php", reason="php has not implemented stats computation yet"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="ruby has not implemented stats computation yet",
-    )
-    def test_distinct_aggregationkeys_TS003(
-        self, library_env, test_agent, test_library, test_server
-    ):
+    def test_distinct_aggregationkeys_TS003(self, library_env, test_agent, test_library, test_server):
         """
         When spans are created with a unique set of dimensions
             Each span has stats computed for it and is in its own bucket
@@ -156,71 +127,43 @@ class Test_Library_Tracestats:
         with test_library:
             # Baseline
             with test_library.start_span(
-                name=name,
-                resource=resource,
-                service=service,
-                typestr=type,
-                origin=origin,
+                name=name, resource=resource, service=service, typestr=type, origin=origin,
             ) as span:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Name
             with test_library.start_span(
-                name="unique-name",
-                resource=resource,
-                service=service,
-                typestr=type,
-                origin=origin,
+                name="unique-name", resource=resource, service=service, typestr=type, origin=origin,
             ) as span:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Resource
             with test_library.start_span(
-                name=name,
-                resource="unique-resource",
-                service=service,
-                typestr=type,
-                origin=origin,
+                name=name, resource="unique-resource", service=service, typestr=type, origin=origin,
             ) as span:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Service
             with test_library.start_span(
-                name=name,
-                resource=resource,
-                service="unique-service",
-                typestr=type,
-                origin=origin,
+                name=name, resource=resource, service="unique-service", typestr=type, origin=origin,
             ) as span:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Type
             with test_library.start_span(
-                name=name,
-                resource=resource,
-                service=service,
-                typestr="unique-type",
-                origin=origin,
+                name=name, resource=resource, service=service, typestr="unique-type", origin=origin,
             ) as span:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Synthetics
             with test_library.start_span(
-                name=name,
-                resource=resource,
-                service=service,
-                typestr=type,
-                origin="synthetics",
+                name=name, resource=resource, service=service, typestr=type, origin="synthetics",
             ) as span:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique HTTP Status Code
             with test_library.start_span(
-                name=name,
-                resource=resource,
-                service=service,
-                typestr=type,
-                origin=origin,
+                name=name, resource=resource, service=service, typestr=type, origin=origin,
             ) as span:
                 span.set_meta(key="http.status_code", val="400")
 
@@ -244,53 +187,34 @@ class Test_Library_Tracestats:
             assert s["TopLevelHits"] == 1
             assert s["Duration"] > 0
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
-        context.library == "cpp", reason="cpp has not implemented stats computation yet"
+        context.library == "nodejs", reason="nodejs has not implemented stats computation yet",
     )
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs has not implemented stats computation yet",
-    )
-    @missing_feature(
-        context.library == "php", reason="php has not implemented stats computation yet"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="ruby has not implemented stats computation yet",
+        context.library == "ruby", reason="ruby has not implemented stats computation yet",
     )
     @enable_tracestats()
-    def test_measured_spans_TS004(
-        self, library_env, test_agent, test_library, test_server
-    ):
+    def test_measured_spans_TS004(self, library_env, test_agent, test_library, test_server):
         """
         When spans are marked as measured
             Each has stats computed for it
         """
         with test_library:
-            with test_library.start_span(
-                name="web.request", resource="/users", service="webserver"
-            ) as span:
+            with test_library.start_span(name="web.request", resource="/users", service="webserver") as span:
                 # Use the same service so these spans are not top-level
                 with test_library.start_span(
-                    name="child.op1",
-                    resource="",
-                    service="webserver",
-                    parent_id=span.span_id,
+                    name="child.op1", resource="", service="webserver", parent_id=span.span_id,
                 ) as op1:
                     op1.set_metric(SPAN_MEASURED_KEY, 1)
                 with test_library.start_span(
-                    name="child.op2",
-                    resource="",
-                    service="webserver",
-                    parent_id=span.span_id,
+                    name="child.op2", resource="", service="webserver", parent_id=span.span_id,
                 ) as op2:
                     op2.set_metric(SPAN_MEASURED_KEY, 1)
                 # Don't measure this one to ensure no stats are computed
                 with test_library.start_span(
-                    name="child.op3",
-                    resource="",
-                    service="webserver",
-                    parent_id=span.span_id,
+                    name="child.op3", resource="", service="webserver", parent_id=span.span_id,
                 ):
                     pass
 
@@ -309,19 +233,13 @@ class Test_Library_Tracestats:
         assert op2_stats["Hits"] == 1
         assert op2_stats["TopLevelHits"] == 0
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
-        context.library == "cpp", reason="cpp has not implemented stats computation yet"
+        context.library == "nodejs", reason="nodejs has not implemented stats computation yet",
     )
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs has not implemented stats computation yet",
-    )
-    @missing_feature(
-        context.library == "php", reason="php has not implemented stats computation yet"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="ruby has not implemented stats computation yet",
+        context.library == "ruby", reason="ruby has not implemented stats computation yet",
     )
     @enable_tracestats()
     def test_top_level_TS005(self, library_env, test_agent, test_library, test_server):
@@ -331,15 +249,10 @@ class Test_Library_Tracestats:
         """
         with test_library:
             # Create a top level span.
-            with test_library.start_span(
-                name="web.request", resource="/users", service="webserver"
-            ) as span:
+            with test_library.start_span(name="web.request", resource="/users", service="webserver") as span:
                 # Create another top level (service entry) span as a child of the web.request span.
                 with test_library.start_span(
-                    name="postgres.query",
-                    resource="SELECT 1",
-                    service="postgres",
-                    parent_id=span.span_id,
+                    name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id,
                 ):
                     pass
 
@@ -374,24 +287,16 @@ class Test_Library_Tracestats:
         assert web_stats["TopLevelHits"] == 1
         assert web_stats["Duration"] > 0
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
-        context.library == "cpp", reason="cpp has not implemented stats computation yet"
+        context.library == "nodejs", reason="nodejs has not implemented stats computation yet",
     )
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs has not implemented stats computation yet",
-    )
-    @missing_feature(
-        context.library == "php", reason="php has not implemented stats computation yet"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="ruby has not implemented stats computation yet",
+        context.library == "ruby", reason="ruby has not implemented stats computation yet",
     )
     @enable_tracestats()
-    def test_successes_errors_recorded_separately_TS006(
-        self, library_env, test_agent, test_library, test_server
-    ):
+    def test_successes_errors_recorded_separately_TS006(self, library_env, test_agent, test_library, test_server):
         """
         When spans are marked as errors
             The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
@@ -399,27 +304,18 @@ class Test_Library_Tracestats:
         with test_library:
             # Send 2 successes
             with test_library.start_span(
-                name="web.request",
-                resource="/health-check",
-                service="webserver",
-                typestr="web",
+                name="web.request", resource="/health-check", service="webserver", typestr="web",
             ):
                 pass
 
             with test_library.start_span(
-                name="web.request",
-                resource="/health-check",
-                service="webserver",
-                typestr="web",
+                name="web.request", resource="/health-check", service="webserver", typestr="web",
             ):
                 pass
 
             # Send 1 failure
             with test_library.start_span(
-                name="web.request",
-                resource="/health-check",
-                service="webserver",
-                typestr="web",
+                name="web.request", resource="/health-check", service="webserver", typestr="web",
             ) as span:
                 span.set_error(message="Unable to load resources")
 
@@ -450,43 +346,30 @@ class Test_Library_Tracestats:
         assert stat["OkSummary"] is not None
         assert stat["ErrorSummary"] is not None
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
-        context.library == "cpp", reason="cpp has not implemented stats computation yet"
+        context.library == "java", reason="FIXME: Undefined behavior according the java tracer core team",
     )
     @missing_feature(
-        context.library == "java",
-        reason="FIXME: Undefined behavior according the java tracer core team",
+        context.library == "nodejs", reason="nodejs has not implemented stats computation yet",
     )
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs has not implemented stats computation yet",
-    )
-    @missing_feature(
-        context.library == "php", reason="php has not implemented stats computation yet"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="ruby has not implemented stats computation yet",
+        context.library == "ruby", reason="ruby has not implemented stats computation yet",
     )
     @enable_tracestats(sample_rate=0.0)
-    def test_sample_rate_0_TS007(
-        self, library_env, test_agent, test_library, test_server
-    ):
+    def test_sample_rate_0_TS007(self, library_env, test_agent, test_library, test_server):
         """
         When the sample rate is 0 and trace stats is enabled
             non-P0 traces should be dropped
             trace stats should be produced
         """
         with test_library:
-            with test_library.start_span(
-                name="web.request", resource="/users", service="webserver"
-            ):
+            with test_library.start_span(name="web.request", resource="/users", service="webserver"):
                 pass
 
         traces = test_agent.traces()
-        assert (
-            len(traces) == 0
-        ), "No traces should be emitted with the sample rate set to 0"
+        assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
 
         requests = test_agent.v06_stats_requests()
         stats = requests[0]["body"]["Stats"][0]["Stats"]
@@ -509,9 +392,7 @@ class Test_Library_Tracestats:
         with test_library:
             # Create 10 traces to get more data
             for i in range(10):
-                with test_library.start_span(
-                    name="web.request", resource="/users", service="webserver"
-                ):
+                with test_library.start_span(name="web.request", resource="/users", service="webserver"):
                     pass
 
         traces = test_agent.traces()
@@ -532,32 +413,22 @@ class Test_Library_Tracestats:
 
         # Validate the sketches
         np_duration = numpy.array(durations)
-        assert web_stats["Duration"] == sum(
-            durations
-        ), "Stats duration should match the span duration exactly"
+        assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
         for quantile in (0.5, 0.75, 0.95, 0.99, 1):
             assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
                 numpy.quantile(np_duration, quantile), rel=0.01,
             ), ("Quantile mismatch for quantile %r" % quantile)
 
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
-        context.library == "cpp", reason="cpp has not implemented stats computation yet"
+        context.library == "nodejs", reason="nodejs has not implemented stats computation yet",
     )
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs has not implemented stats computation yet",
-    )
-    @missing_feature(
-        context.library == "php", reason="php has not implemented stats computation yet"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="ruby has not implemented stats computation yet",
+        context.library == "ruby", reason="ruby has not implemented stats computation yet",
     )
     @enable_tracestats()
-    def test_metrics_computed_after_span_finsh_TS009(
-        self, library_env, test_agent, test_library, test_server
-    ):
+    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent, test_library, test_server):
         """
         When trace stats are computed for traces
             Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
@@ -572,20 +443,12 @@ class Test_Library_Tracestats:
 
         with test_library:
             with test_library.start_span(
-                name=name,
-                service=service,
-                resource=resource,
-                typestr=type,
-                origin=origin,
+                name=name, service=service, resource=resource, typestr=type, origin=origin,
             ) as span:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             with test_library.start_span(
-                name=name,
-                service=service,
-                resource=resource,
-                typestr=type,
-                origin=origin,
+                name=name, service=service, resource=resource, typestr=type, origin=origin,
             ) as span2:
                 span2.set_meta(key="http.status_code", val=http_status_code)
 
@@ -617,16 +480,11 @@ class Test_Library_Tracestats:
         assert stats[0]["Synthetics"] is True
 
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs has not implemented stats computation yet",
+        context.library == "nodejs", reason="nodejs has not implemented stats computation yet",
     )
-    @missing_feature(
-        context.library == "php", reason="php has not implemented stats computation yet"
-    )
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @parametrize("library_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
-    def test_metrics_computed_after_span_finish_TS010(
-        self, library_env, test_agent, test_library
-    ):
+    def test_metrics_computed_after_span_finish_TS010(self, library_env, test_agent, test_library):
         """
         When DD_TRACE_STATS_COMPUTATION_ENABLED=False
             Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after

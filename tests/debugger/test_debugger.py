@@ -8,9 +8,7 @@ from utils.tools import logger
 
 def validate_probes(expected_probes):
     def get_probes_map():
-        agent_logs_endpoint_requests = list(
-            interfaces.agent.get_data(path_filters="/api/v2/logs")
-        )
+        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
         probe_hash = {}
 
         for request in agent_logs_endpoint_requests:
@@ -46,9 +44,7 @@ def validate_probes(expected_probes):
 
 def validate_snapshots(expected_snapshots):
     def get_snapshot_map():
-        agent_logs_endpoint_requests = list(
-            interfaces.agent.get_data(path_filters="/api/v2/logs")
-        )
+        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
         snapshot_hash = {}
 
         for request in agent_logs_endpoint_requests:
@@ -73,9 +69,7 @@ def validate_snapshots(expected_snapshots):
 
 def validate_spans(expected_spans):
     def get_span_map():
-        agent_logs_endpoint_requests = list(
-            interfaces.agent.get_data(path_filters="/api/v0.2/traces")
-        )
+        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v0.2/traces"))
         span_hash = {}
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
@@ -88,9 +82,7 @@ def validate_spans(expected_spans):
                             else:
                                 for key, value in span["meta"].items():
                                     if key.startswith("_dd.di"):
-                                        span_hash[value] = span["meta"][
-                                            key.split(".")[2]
-                                        ]
+                                        span_hash[value] = span["meta"][key.split(".")[2]]
 
         return span_hash
 
@@ -161,14 +153,10 @@ class _Base_Debugger_Snapshot_Test:
 
         missings_ids = set(self.expected_probe_ids) - set(installed_ids)
 
-        logger.debug(
-            f"Found some probes, but not all of them. Missing probes are {missings_ids}"
-        )
+        logger.debug(f"Found some probes, but not all of them. Missing probes are {missings_ids}")
 
     def assert_all_probes_are_installed(self):
-        logger.debug(
-            f"Checking if I found all my probes:\n    {self.expected_probe_ids}"
-        )
+        logger.debug(f"Checking if I found all my probes:\n    {self.expected_probe_ids}")
         for data in interfaces.agent.get_data("/api/v2/logs"):
             if self._is_all_probes_installed(data):
                 return
@@ -204,13 +192,10 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         self.log_probe_response = weblog.get("/debugger/log")
         self.metric_probe_response = weblog.get("/debugger/metric/1")
         self.span_probe_response = weblog.get("/debugger/span")
-        self.span_decoration_probe_response = weblog.get(
-            "/debugger/span-decoration/asd/1"
-        )
+        self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
     @missing_feature(
-        context.library >= "java@1.27",
-        reason="introduction of new EMITTING probe status",
+        context.library >= "java@1.27", reason="introduction of new EMITTING probe status",
     )
     def test_method_probe_snaphots(self):
         self.assert_remote_config_is_sent()
@@ -256,13 +241,10 @@ class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.log_probe_response = weblog.get("/debugger/log")
         self.metric_probe_response = weblog.get("/debugger/metric/1")
-        self.span_decoration_probe_response = weblog.get(
-            "/debugger/span-decoration/asd/1"
-        )
+        self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
     @missing_feature(
-        context.library >= "java@1.27",
-        reason="introduction of new EMITTING probe status",
+        context.library >= "java@1.27", reason="introduction of new EMITTING probe status",
     )
     def test_line_probe_snaphots(self):
         self.assert_remote_config_is_sent()
@@ -301,8 +283,7 @@ class Test_Debugger_Mix_Log_Probe(_Base_Debugger_Snapshot_Test):
         self.multi_probe_response = weblog.get("/debugger/mix/asd/1")
 
     @missing_feature(
-        context.library >= "java@1.27",
-        reason="introduction of new EMITTING probe status",
+        context.library >= "java@1.27", reason="introduction of new EMITTING probe status",
     )
     def test_mix_probe(self):
         self.assert_remote_config_is_sent()

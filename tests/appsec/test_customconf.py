@@ -15,11 +15,7 @@ from utils import (
 
 
 # get the default log output
-stdout = (
-    interfaces.library_stdout
-    if context.library != "dotnet"
-    else interfaces.library_dotnet_managed
-)
+stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
 @coverage.basic
@@ -37,8 +33,7 @@ class Test_CorruptedRules:
     def test_c05(self):
         """Log C5: Rules file is corrupted"""
         stdout.assert_presence(
-            r"AppSec could not read the rule file .* as it was invalid: .*",
-            level="CRITICAL",
+            r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL",
         )
 
     def setup_no_attack_detected(self):
@@ -62,9 +57,7 @@ class Test_MissingRules:
     @missing_feature(library="python")
     @missing_feature(library="php")
     @missing_feature(library="ruby", reason="standard logs not implemented")
-    @bug(
-        library="dotnet", reason="ERROR io CRITICAL"
-    )  # and the last sentence is missing
+    @bug(library="dotnet", reason="ERROR io CRITICAL")  # and the last sentence is missing
     def test_c04(self):
         """Log C4: Rules file is missing"""
         stdout.assert_presence(
@@ -93,16 +86,12 @@ class Test_ConfRuleSet:
 
     def setup_requests(self):
         self.r_1 = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
-        self.r_2 = weblog.get(
-            "/waf", headers={"attack": "dedicated-value-for-testing-purpose"}
-        )
+        self.r_2 = weblog.get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
 
     def test_requests(self):
         """ Appsec does not catch any attack """
         interfaces.library.assert_no_appsec_event(self.r_1)
-        interfaces.library.assert_waf_attack(
-            self.r_2, pattern="dedicated-value-for-testing-purpose"
-        )
+        interfaces.library.assert_waf_attack(self.r_2, pattern="dedicated-value-for-testing-purpose")
 
     def test_log(self):
         """ Check there is no error reported in logs """
@@ -119,17 +108,9 @@ class Test_NoLimitOnWafRules:
     """ Serialize WAF rules without limiting their sizes """
 
     def setup_main(self):
-        self.r_1 = weblog.get(
-            "/waf", headers={"attack": "first_pattern_of_a_very_long_list"}
-        )
-        self.r_2 = weblog.get(
-            "/waf", headers={"attack": "last_pattern_of_a_very_long_list"}
-        )
+        self.r_1 = weblog.get("/waf", headers={"attack": "first_pattern_of_a_very_long_list"})
+        self.r_2 = weblog.get("/waf", headers={"attack": "last_pattern_of_a_very_long_list"})
 
     def test_main(self):
-        interfaces.library.assert_waf_attack(
-            self.r_1, pattern="first_pattern_of_a_very_long_list"
-        )
-        interfaces.library.assert_waf_attack(
-            self.r_2, pattern="last_pattern_of_a_very_long_list"
-        )
+        interfaces.library.assert_waf_attack(self.r_1, pattern="first_pattern_of_a_very_long_list")
+        interfaces.library.assert_waf_attack(self.r_2, pattern="last_pattern_of_a_very_long_list")

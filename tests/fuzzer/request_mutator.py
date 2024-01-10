@@ -325,20 +325,12 @@ class RequestMutator:
 
     def __init__(self, no_mutation=False):
 
-        self.methods = tuple(
-            method for method in self.methods if method not in self.invalid_methods
-        )
+        self.methods = tuple(method for method in self.methods if method not in self.invalid_methods)
 
-        self.invalid_header_keys = tuple(
-            key.lower() for key in self.invalid_header_keys
-        )
+        self.invalid_header_keys = tuple(key.lower() for key in self.invalid_header_keys)
 
         self.header_keys = self.generic_header_keys + self.ip_header_keys
-        self.header_keys = tuple(
-            key
-            for key in self.header_keys
-            if key.lower() not in self.invalid_header_keys
-        )
+        self.header_keys = tuple(key for key in self.header_keys if key.lower() not in self.invalid_header_keys)
 
         self.no_mutation = no_mutation
 
@@ -486,11 +478,7 @@ class RequestMutator:
 
     def get_header_key(self):
         result = random.choice(self.header_keys)
-        result = (
-            result
-            if result
-            else get_random_string(self.header_characters, min_length=1)
-        )
+        result = result if result else get_random_string(self.header_characters, min_length=1)
 
         if not self.allow_colon_in_first_in_header_key and result.startswith(":"):
             result = re.sub(r"^:*", "", result)
@@ -504,9 +492,7 @@ class RequestMutator:
         key = key.lower()
 
         if key == "user-agent":
-            return _get_string_from_list(
-                self.user_agents, self.header_characters, min_length=1
-            )
+            return _get_string_from_list(self.user_agents, self.header_characters, min_length=1)
 
         if key == "content-length":
             return str(random.choice((-1, 0, 1, 12, 2 ** 32, "nan")))
@@ -517,9 +503,7 @@ class RequestMutator:
         if key in self.ip_header_keys:
             return self.mutate_ip(previous_value)
 
-        return _get_string_from_list(
-            self.header_values, self.header_characters, min_length=1
-        )
+        return _get_string_from_list(self.header_values, self.header_characters, min_length=1)
 
     def _get_random_content_type(self):
         return "text/html;charset=" + self._get_random_charset()
@@ -531,10 +515,7 @@ class RequestMutator:
     def get_random_payload(self, payload_type):
         if payload_type == "json":
             count = random.randint(1, 10)
-            return {
-                self.get_payload_key(): self.get_payload_value(True)
-                for _ in range(count)
-            }
+            return {self.get_payload_key(): self.get_payload_value(True) for _ in range(count)}
 
         choice = random.randint(0, 50)
         if choice <= 1:
@@ -553,12 +534,7 @@ class RequestMutator:
         if not allow_nested:
             return random.choice(self.payload_values)
 
-        return random.choice(
-            (
-                {self.get_payload_key(): self.get_payload_value()},
-                [self.get_payload_value()],
-            )
-        )
+        return random.choice(({self.get_payload_key(): self.get_payload_value()}, [self.get_payload_value()],))
 
     ################################
     def clean_request(self, request):
@@ -575,35 +551,22 @@ class RequestMutator:
             request["method"] = "POST"
 
         # sinatra returns 500 is json is not a dict
-        if "json" in request and not isinstance(
-            request["json"], self.allowed_json_payload_types
-        ):
+        if "json" in request and not isinstance(request["json"], self.allowed_json_payload_types):
             del request["json"]
 
         if "headers" in request:
-            request["headers"] = [
-                [k, v]
-                for k, v in request["headers"]
-                if k.lower() not in self.invalid_header_keys
-            ]
+            request["headers"] = [[k, v] for k, v in request["headers"] if k.lower() not in self.invalid_header_keys]
 
             request["headers"] = [
-                [
-                    _clean_string(k, allowed=self.header_characters),
-                    _clean_string(v, allowed=self.header_characters),
-                ]
+                [_clean_string(k, allowed=self.header_characters), _clean_string(v, allowed=self.header_characters),]
                 for k, v in request["headers"]
             ]
 
             if not self.allow_colon_in_first_in_header_key:
-                request["headers"] = [
-                    [re.sub(r"^:*", "", k), v] for k, v in request["headers"]
-                ]
+                request["headers"] = [[re.sub(r"^:*", "", k), v] for k, v in request["headers"]]
 
             if not self.allow_empty_header_key:
-                request["headers"] = [
-                    [k, v] for k, v in request["headers"] if len(k) != 0
-                ]
+                request["headers"] = [[k, v] for k, v in request["headers"] if len(k) != 0]
 
     def __str__(self):
         return f"<{self.__class__.__name__}>"
@@ -737,11 +700,7 @@ class JavaRequestMutator(RequestMutator):
 
     invalid_header_keys = ("Content-length",)
 
-    charsets = [
-        charset
-        for charset in RequestMutator.charsets
-        if charset not in ("ISO-8859-16",)
-    ]
+    charsets = [charset for charset in RequestMutator.charsets if charset not in ("ISO-8859-16",)]
 
 
 class PhpRequestMutator(RequestMutator):

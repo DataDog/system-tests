@@ -27,9 +27,7 @@ from utils import (
 # 511-599 should not be an error
 
 
-@rfc(
-    "https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/status-error-mapping/rfc.md"
-)
+@rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/status-error-mapping/rfc.md")
 class Test_Error_Status_Mapping:
     """ Verify behavior of Error Status Mapping for Client and Server"""
 
@@ -38,10 +36,7 @@ class Test_Error_Status_Mapping:
 
     def test_should_be_error_server_span(self):
         for data, trace, span in interfaces.library.get_spans():
-            if (
-                "span.kind" not in span["meta"].keys()
-                or "http.status_code" not in span["meta"].keys()
-            ):
+            if "span.kind" not in span["meta"].keys() or "http.status_code" not in span["meta"].keys():
                 continue
             if span["meta"]["span.kind"] == "server":
                 if span["meta"]["http.status_code"] == "501":
@@ -57,33 +52,23 @@ class Test_Error_Status_Mapping:
 
     def test_should_not_be_error_server_span(self):
         for data, trace, span in interfaces.library.get_spans():
-            if (
-                "span.kind" not in span["meta"].keys()
-                or "http.status_code" not in span["meta"].keys()
-            ):
+            if "span.kind" not in span["meta"].keys() or "http.status_code" not in span["meta"].keys():
                 continue
             if span["meta"]["span.kind"] == "server":
                 if span["meta"]["http.status_code"] == "511":
                     # logger.debug("this is for should NOT be error span: %s \n", span)
-                    assert (
-                        "error" not in span or span["error"] == 0
-                    ), "this span should not be an error"
+                    assert "error" not in span or span["error"] == 0, "this span should not be an error"
                     return
         assert (
             False
         ), "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
 
     def setup_should_be_error_client_span(self):
-        self.r_413 = weblog.get(
-            "/make_distant_call", params={"url": "http://weblog:7777/status?code=413"}
-        )
+        self.r_413 = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=413"})
 
     def test_should_be_error_client_span(self):
         for data, trace, span in interfaces.library.get_spans():
-            if (
-                "span.kind" not in span["meta"].keys()
-                or "http.status_code" not in span["meta"].keys()
-            ):
+            if "span.kind" not in span["meta"].keys() or "http.status_code" not in span["meta"].keys():
                 continue
             if span["meta"]["span.kind"] == "client":
                 if span["meta"]["http.status_code"] == "413":
@@ -95,23 +80,16 @@ class Test_Error_Status_Mapping:
         ), "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
 
     def setup_should_not_be_error_client_span(self):
-        self.r_416 = weblog.get(
-            "/make_distant_call", params={"url": "http://weblog:7777/status?code=416"}
-        )
+        self.r_416 = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=416"})
 
     def test_should_not_be_error_client_span(self):
         for data, trace, span in interfaces.library.get_spans():
-            if (
-                "span.kind" not in span["meta"].keys()
-                or "http.status_code" not in span["meta"].keys()
-            ):
+            if "span.kind" not in span["meta"].keys() or "http.status_code" not in span["meta"].keys():
                 continue
             if span["meta"]["span.kind"] == "client":
                 if span["meta"]["http.status_code"] == "416":
                     # logger.debug("this is for should NOT be error span: %s \n", span)
-                    assert (
-                        "error" not in span or span["error"] == 0
-                    ), "this span should not be an error"
+                    assert "error" not in span or span["error"] == 0, "this span should not be an error"
                     return
         assert (
             False

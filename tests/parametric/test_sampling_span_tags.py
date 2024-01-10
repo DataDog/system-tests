@@ -23,9 +23,7 @@ class AnyRatio(object):
 def _get_spans(test_agent, test_library, child_span_tag=None):
     with test_library:
         with test_library.start_span(name="parent", service="webserver") as ps:
-            with test_library.start_span(
-                name="child", service="webserver", parent_id=ps.span_id
-            ) as cs:
+            with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
                 if child_span_tag:
                     cs.set_meta(child_span_tag, None)
 
@@ -55,27 +53,19 @@ def _assert_sampling_tags(
     description="",
 ):
     _assert_equal(first_span["meta"].get(SAMPLING_DECISION_MAKER_KEY), dm, description)
-    _assert_equal(
-        parent_span["metrics"].get(SAMPLING_PRIORITY_KEY), parent_priority, description
-    )
+    _assert_equal(parent_span["metrics"].get(SAMPLING_PRIORITY_KEY), parent_priority, description)
     for rate_key, rate_expectation in (
         (SAMPLING_AGENT_PRIORITY_RATE, agent_rate),
         (SAMPLING_LIMIT_PRIORITY_RATE, limit_rate),
         (SAMPLING_RULE_PRIORITY_RATE, rule_rate),
     ):
         if rate_expectation != UNSET:
-            _assert_equal(
-                parent_span["metrics"].get(rate_key), rate_expectation, description
-            )
+            _assert_equal(parent_span["metrics"].get(rate_key), rate_expectation, description)
         else:
             _assert_equal(
-                parent_span.get("metrics", {}).get(rate_key),
-                None,
-                description=description,
+                parent_span.get("metrics", {}).get(rate_key), None, description=description,
             )
-        assert rate_key not in child_span.get(
-            "metrics", {}
-        ), "non-root spans should never include _dd.*_psr tags"
+        assert rate_key not in child_span.get("metrics", {}), "non-root spans should never include _dd.*_psr tags"
     if child_span != first_span:
         assert (
             child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None
@@ -95,9 +85,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="java", reason="java sets dm tag -3")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_child_dropped_sst001(self, test_agent, test_library):
-        parent_span, child_span, first_span = _get_spans(
-            test_agent, test_library, child_span_tag=MANUAL_DROP_KEY
-        )
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_DROP_KEY)
         _assert_sampling_tags(
             parent_span,
             child_span,
@@ -118,9 +106,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="cpp", reason="c++ sets dm tag -3 on first span")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_child_kept_sst007(self, test_agent, test_library):
-        parent_span, child_span, first_span = _get_spans(
-            test_agent, test_library, child_span_tag=MANUAL_KEEP_KEY
-        )
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_KEEP_KEY)
         _assert_sampling_tags(
             parent_span,
             child_span,
@@ -206,13 +192,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="nodejs", reason="nodejs sets limit_psr")
     @bug(library="cpp", reason="c++ sets limit_psr")
     @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_TRACE_SAMPLE_RATE": 1,
-                "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 1}]),
-            }
-        ],
+        "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 1}]),}],
     )
     def test_tags_defaults_rate_1_and_rule_1_sst005(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -238,13 +218,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
     @bug(library="golang", reason="golang sets priority tag 2")
     @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_TRACE_SAMPLE_RATE": 1,
-                "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}]),
-            }
-        ],
+        "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}]),}],
     )
     def test_tags_defaults_rate_1_and_rule_0_sst006(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -268,12 +242,8 @@ class Test_Sampling_Span_Tags:
     @bug(library="ruby", reason="ruby does not set dm tag")
     @bug(library="php", reason="php does not set limit_psr")
     @bug(library="cpp", reason="this test times out with the c++ tracer")
-    @pytest.mark.parametrize(
-        "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}]
-    )
-    def test_tags_defaults_rate_1_and_rate_limit_0_sst008(
-        self, test_agent, test_library
-    ):
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}])
+    def test_tags_defaults_rate_1_and_rate_limit_0_sst008(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -306,9 +276,7 @@ class Test_Sampling_Span_Tags:
             }
         ],
     )
-    def test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009(
-        self, test_agent, test_library
-    ):
+    def test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -335,9 +303,7 @@ class Test_Sampling_Span_Tags:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_RATE_LIMIT": 3}],
     )
-    def test_tags_defaults_rate_1_and_rate_limit_3_sst010(
-        self, test_agent, test_library
-    ):
+    def test_tags_defaults_rate_1_and_rate_limit_3_sst010(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,

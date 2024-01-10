@@ -22,8 +22,7 @@ class TestWeakCipher(BaseSinkTest):
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 
     @flaky(
-        library="python",
-        reason="PATH_TRAVERSAL on Crypto.Cipher.AES is reported, approx 10%",
+        library="python", reason="PATH_TRAVERSAL on Crypto.Cipher.AES is reported, approx 10%",
     )
     def test_secure(self):
         super().test_secure()

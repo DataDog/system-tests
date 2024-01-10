@@ -86,9 +86,7 @@ class Fuzzer:
 
         self.corpus = corpus
         self.seed = seed
-        self.requests = RequestGenerator(
-            get_mutator(no_mutation, weblog), get_corpus(corpus)
-        )
+        self.requests = RequestGenerator(get_mutator(no_mutation, weblog), get_corpus(corpus))
         self.request_count = request_count
 
         self.max_tasks = max_tasks
@@ -98,13 +96,9 @@ class Fuzzer:
 
         self.dump_on_status = dump_on_status
         self.enable_response_dump = False
-        self.systematic_exporter = (
-            _RequestDumper() if systematic_export else lambda x: 0
-        )
+        self.systematic_exporter = _RequestDumper() if systematic_export else lambda x: 0
 
-        self.total_metric = AccumulatedMetric(
-            "#", format_string="#{value}", display_length=7, has_raw_value=False
-        )
+        self.total_metric = AccumulatedMetric("#", format_string="#{value}", display_length=7, has_raw_value=False)
         self.memory_metric = NumericalMetric("Mem")
 
         self.performances = PerformanceMetric()
@@ -114,9 +108,7 @@ class Fuzzer:
 
         self.status_metrics = {}
         self.backend_requests = {}
-        self.backend_requests_size = ResetedAccumulatedMetric(
-            "Bytes", raw_name="backend_bytes"
-        )
+        self.backend_requests_size = ResetedAccumulatedMetric("Bytes", raw_name="backend_bytes")
         self.backend_signals = {}
         self.backend_commands = {}
 
@@ -185,13 +177,11 @@ class Fuzzer:
         while not self.finished:
             try:
                 session = aiohttp.ClientSession(
-                    loop=self.loop,
-                    connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
+                    loop=self.loop, connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
                 )
 
                 async with session.request(
-                    url="http://localhost/containers/system-tests_weblog_1/stats",
-                    method="GET",
+                    url="http://localhost/containers/system-tests_weblog_1/stats", method="GET",
                 ) as resp:
                     async for line in resp.content:
                         if self.finished:
@@ -222,11 +212,7 @@ class Fuzzer:
             return
 
         self.report.start()
-        self.max_datetime = (
-            None
-            if self.max_time is None
-            else datetime.now() + timedelta(seconds=self.max_time)
-        )
+        self.max_datetime = None if self.max_time is None else datetime.now() + timedelta(seconds=self.max_time)
 
         tasks = set()
 
@@ -389,18 +375,12 @@ class Fuzzer:
             request_as_json = json.dumps(request, indent=4)
             hashed = hashlib.md5(request_as_json.encode()).hexdigest()
 
-            with open(
-                os.path.join("logs", f"{status}-{hashed}.json"), "w", encoding="utf-8"
-            ) as f:
+            with open(os.path.join("logs", f"{status}-{hashed}.json"), "w", encoding="utf-8") as f:
                 f.write(request_as_json)
 
             if response and self.enable_response_dump:
                 text = await response.text()
-                with open(
-                    os.path.join("logs", f"{status}-response-{hashed}.html"),
-                    "w",
-                    encoding="utf-8",
-                ) as f:
+                with open(os.path.join("logs", f"{status}-response-{hashed}.html"), "w", encoding="utf-8",) as f:
                     f.write(text)
 
     def update_backend_metrics(self, data):

@@ -16,8 +16,7 @@ from utils import weblog, context, coverage, interfaces, scenarios, bug, feature
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",
 )
 @bug(
-    context.library == "java@1.6.0",
-    reason="https://github.com/DataDog/dd-trace-java/pull/4614",
+    context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614",
 )
 @coverage.basic
 @features.appsec_request_blocking
@@ -34,10 +33,7 @@ class Test_RuntimeActivation:
                     .get("state", {})
                     .get("config_states", [])
                 )
-                return any(
-                    st["product"] == "ASM_FEATURES" and st["apply_state"] == 2
-                    for st in config_states
-                )
+                return any(st["product"] == "ASM_FEATURES" and st["apply_state"] == 2 for st in config_states)
 
         interfaces.library.wait_for(remote_config_asm_payload, timeout=30)
 

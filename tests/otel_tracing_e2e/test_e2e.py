@@ -24,14 +24,9 @@ class Test_OTelTracingE2E:
         self.r = weblog.get(path="/basic/trace")
 
     def test_main(self):
-        otel_trace_ids = set(
-            interfaces.open_telemetry.get_otel_trace_id(request=self.r)
-        )
+        otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 2
-        dd_trace_ids = [
-            _get_dd_trace_id(otel_trace_id, self.use_128_bits_trace_id)
-            for otel_trace_id in otel_trace_ids
-        ]
+        dd_trace_ids = [_get_dd_trace_id(otel_trace_id, self.use_128_bits_trace_id) for otel_trace_id in otel_trace_ids]
 
         try:
             # The 1st account has traces sent by DD Agent
@@ -40,9 +35,7 @@ class Test_OTelTracingE2E:
                     request=self.r,
                     dd_trace_id=dd_trace_id,
                     dd_api_key=os.environ["DD_API_KEY"],
-                    dd_app_key=os.environ.get(
-                        "DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")
-                    ),
+                    dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
                 )
                 for dd_trace_id in dd_trace_ids
             ]
@@ -73,9 +66,7 @@ class Test_OTelTracingE2E:
             logger.warning("Backend does not provide traces")
             return
 
-        validate_all_traces(
-            traces_agent, traces_intake, traces_collector, self.use_128_bits_trace_id
-        )
+        validate_all_traces(traces_agent, traces_intake, traces_collector, self.use_128_bits_trace_id)
 
 
 @scenarios.otel_metric_e2e
@@ -105,9 +96,7 @@ class Test_OTelMetricE2E:
                     rid=rid,
                     metric=metric,
                     dd_api_key=os.environ["DD_API_KEY"],
-                    dd_app_key=os.environ.get(
-                        "DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")
-                    ),
+                    dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
                 )
                 for metric in self.expected_metrics
             ]
@@ -141,13 +130,9 @@ class Test_OTelLogE2E:
 
     def test_main(self):
         rid = get_rid_from_request(self.r)
-        otel_trace_ids = set(
-            interfaces.open_telemetry.get_otel_trace_id(request=self.r)
-        )
+        otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 1
-        dd_trace_id = _get_dd_trace_id(
-            list(otel_trace_ids)[0], self.use_128_bits_trace_id
-        )
+        dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], self.use_128_bits_trace_id)
 
         # The 1st account has logs and traces sent by Agent
         try:
@@ -155,18 +140,14 @@ class Test_OTelLogE2E:
                 query=f"trace_id:{dd_trace_id}",
                 rid=rid,
                 dd_api_key=os.environ["DD_API_KEY"],
-                dd_app_key=os.environ.get(
-                    "DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")
-                ),
+                dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
             )
             otel_log_trace_attrs = validate_log(log_agent, rid, "datadog_agent")
             trace_agent = interfaces.backend.assert_otlp_trace_exist(
                 request=self.r,
                 dd_trace_id=dd_trace_id,
                 dd_api_key=os.environ["DD_API_KEY"],
-                dd_app_key=os.environ.get(
-                    "DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")
-                ),
+                dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
             )
         except ValueError:
             logger.warning("Backend does not provide logs")

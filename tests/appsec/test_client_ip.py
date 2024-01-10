@@ -24,9 +24,7 @@ class Test_StandardTagsClientIp:
 
         def validator(span):
             meta = span.get("meta", {})
-            assert (
-                "appsec.event" not in meta
-            ), "unexpected appsec event while appsec should be disabled"
+            assert "appsec.event" not in meta, "unexpected appsec event while appsec should be disabled"
             assert "http.client_ip" not in meta, "unexpected http.client_ip tag"
             assert "network.client.ip" not in meta, "unexpected network.client.ip tag"
             assert (

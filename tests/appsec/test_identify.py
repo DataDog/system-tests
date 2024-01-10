@@ -21,14 +21,10 @@ class Test_Basic:
                 key = f"usr.{tag}"
                 assert key in span["meta"], f"Can't find {key} in span's meta"
 
-                expected_value = (
-                    f"usr.{tag}"  # key and value are the same on weblog spec
-                )
+                expected_value = f"usr.{tag}"  # key and value are the same on weblog spec
                 value = span["meta"][key]
                 if value != expected_value:
-                    raise Exception(
-                        f"{key} value is '{value}', should be '{expected_value}'"
-                    )
+                    raise Exception(f"{key} value is '{value}', should be '{expected_value}'")
 
             return True
 

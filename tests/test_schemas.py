@@ -12,9 +12,7 @@ class Test_Library:
 
     def setup_full(self):
         # send some requests to be sure to trigger events
-        weblog.get(
-            "/waf", params={"key": "\n :"}
-        )  # rules.http_protocol_violation.crs_921_160
+        weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
 
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
@@ -59,9 +57,7 @@ class Test_Library:
                 r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
             )
         elif context.library == "python":
-            allowed_errors = (
-                r"\[\] is too short on instance \['client'\]\['products'\]",
-            )
+            allowed_errors = (r"\[\] is too short on instance \['client'\]\['products'\]",)
 
         interfaces.library.assert_schemas(allowed_errors=allowed_errors)
 
@@ -71,9 +67,7 @@ class Test_Agent:
 
     def setup_full(self):
         # send some requests to be sure to trigger events
-        weblog.get(
-            "/waf", params={"key": "\n :"}
-        )  # rules.http_protocol_violation.crs_921_160
+        weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
 
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")

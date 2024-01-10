@@ -55,9 +55,7 @@ class Test_Telemetry:
     agent_requests = {}
 
     def validate_library_telemetry_data(self, validator, success_by_default=False):
-        telemetry_data = list(
-            interfaces.library.get_telemetry_data(flatten_message_batches=False)
-        )
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0 and not success_by_default:
             raise Exception("No telemetry data to validate on")
@@ -90,9 +88,7 @@ class Test_Telemetry:
 
         def validator(data):
             response_code = data["response"]["status_code"]
-            assert (
-                200 <= response_code < 300
-            ), f"Got response code {response_code} in {data['log_filename']}"
+            assert 200 <= response_code < 300, f"Got response code {response_code} in {data['log_filename']}"
 
         self.validate_agent_telemetry_data(validator)
         self.validate_library_telemetry_data(validator)
@@ -110,9 +106,7 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
-            request_headers={"via": r"trace-agent 7\..+"},
-            response_headers=(),
-            check_condition=not_onboarding_event,
+            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event,
         )
 
         self.validate_agent_telemetry_data(header_presence_validator)
@@ -146,15 +140,11 @@ class Test_Telemetry:
         MAX_OUT_OF_ORDER_LAG = 0.3  # s
         FMT = "%Y-%m-%dT%H:%M:%S.%f"
 
-        telemetry_data = list(
-            interfaces.library.get_telemetry_data(flatten_message_batches=False)
-        )
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
             raise ValueError("No telemetry data to validate on")
 
-        runtime_ids = set(
-            (data["request"]["content"]["runtime_id"] for data in telemetry_data)
-        )
+        runtime_ids = set((data["request"]["content"]["runtime_id"] for data in telemetry_data))
         for runtime_id in runtime_ids:
             logger.debug(f"Validating telemetry messages for runtime_id {runtime_id}")
             max_seq_id = 0
@@ -167,24 +157,20 @@ class Test_Telemetry:
                 seq_id = data["request"]["content"]["seq_id"]
                 timestamp_start = data["request"]["timestamp_start"]
                 curr_message_time = datetime.strptime(timestamp_start, FMT)
-                logger.debug(
-                    f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}"
-                )
+                logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
                 if 200 <= data["response"]["status_code"] < 300:
                     seq_ids.append((seq_id, data["log_filename"]))
                 else:
-                    logger.info(
-                        f"Response is {data['response']['status_code']}, tracer should resend the message"
-                    )
+                    logger.info(f"Response is {data['response']['status_code']}, tracer should resend the message")
 
                 if seq_id > max_seq_id:
                     max_seq_id = seq_id
                     received_max_time = curr_message_time
                 else:
-                    if received_max_time is not None and (
-                        curr_message_time - received_max_time
-                    ) > timedelta(seconds=MAX_OUT_OF_ORDER_LAG):
+                    if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
+                        seconds=MAX_OUT_OF_ORDER_LAG
+                    ):
                         raise ValueError(
                             f"Received message with seq_id {seq_id} to far more than"
                             f"100ms after message with seq_id {max_seq_id}"
@@ -230,14 +216,9 @@ class Test_Telemetry:
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
-        telemetry_data = list(
-            interfaces.library.get_telemetry_data(flatten_message_batches=False)
-        )
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
-        if (
-            telemetry_data[0]["request"]["content"].get("request_type")
-            == "message-batch"
-        ):
+        if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
             first_message = telemetry_data[0]["request"]["content"]["payload"][0]
             assert (
                 first_message.get("request_type") == "app-started"
@@ -247,9 +228,7 @@ class Test_Telemetry:
                 req_content = data["request"]["content"]
                 if req_content["request_type"] == "app-started":
                     seq_id = req_content["seq_id"]
-                    assert (
-                        seq_id == 1
-                    ), f"app-started found but it was not the first message sent"
+                    assert seq_id == 1, f"app-started found but it was not the first message sent"
                     return
 
             raise Exception(f"app-started message not found")
@@ -275,12 +254,9 @@ class Test_Telemetry:
                 container[key] = data
 
         self.validate_library_telemetry_data(
-            lambda data: save_data(data, self.library_requests),
-            success_by_default=False,
+            lambda data: save_data(data, self.library_requests), success_by_default=False,
         )
-        self.validate_agent_telemetry_data(
-            lambda data: save_data(data, self.agent_requests), success_by_default=False
-        )
+        self.validate_agent_telemetry_data(lambda data: save_data(data, self.agent_requests), success_by_default=False)
 
         # At the end, check that all data are consistent
         for key, agent_data in self.agent_requests.items():
@@ -323,9 +299,7 @@ class Test_Telemetry:
             for s, r in self.library_requests.keys():
                 logger.error(f"seq_id: {s}, runtime_id: {r}")
 
-            raise Exception(
-                "The following telemetry messages were not forwarded by the agent"
-            )
+            raise Exception("The following telemetry messages were not forwarded by the agent")
 
     @irrelevant(library="java")
     @irrelevant(library="nodejs")
@@ -343,27 +317,21 @@ class Test_Telemetry:
 
         def validator(data):
             if get_request_type(data) == "app-dependencies-loaded":
-                raise Exception(
-                    "request_type app-dependencies-loaded should not be used by this tracer"
-                )
+                raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
         self.validate_library_telemetry_data(validator)
 
     @flaky(
-        context.library < "nodejs@4.13.1",
-        reason="Heartbeats are sometimes sent too fast",
+        context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast",
     )
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(
-        context.library < "ruby@1.13.0",
-        reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported",
+        context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported",
     )
     @flaky(library="ruby")
     @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
-    @flaky(
-        context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow"
-    )
+    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
@@ -373,20 +341,14 @@ class Test_Telemetry:
 
         # This interval can't be perfeclty exact, give some room for tests
         UPPER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 2).total_seconds()
-        LOWER_LIMIT = timedelta(
-            seconds=expected_heartbeat_interval * 0.75
-        ).total_seconds()
+        LOWER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 0.75).total_seconds()
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
         assert len(telemetry_data) > 0, "No telemetry messages"
 
-        heartbeats = [
-            d
-            for d in telemetry_data
-            if d["request"]["content"].get("request_type") == "app-heartbeat"
-        ]
+        heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
         assert len(heartbeats) >= 2, "Did not receive, at least, 2 heartbeats"
 
         # depending on the tracer, the very first heartbeat may be sent in a request that pays the
@@ -395,18 +357,12 @@ class Test_Telemetry:
         heartbeats.pop(0)
 
         for data in heartbeats:
-            curr_message_time = datetime.strptime(
-                data["request"]["timestamp_start"], fmt
-            )
+            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if prev_message_time is None:
-                logger.debug(
-                    f"Heartbeat in {data['log_filename']}: {curr_message_time}"
-                )
+                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time}")
             else:
                 delta = (curr_message_time - prev_message_time).total_seconds()
-                logger.debug(
-                    f"Heartbeat in {data['log_filename']}: {curr_message_time} => {delta}s ellapsed"
-                )
+                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time} => {delta}s ellapsed")
 
                 assert (
                     delta < UPPER_LIMIT
@@ -488,9 +444,7 @@ class Test_Telemetry:
                     for dependency in content["payload"]["dependencies"]:
                         dependency_id = dependency["name"]  # +dep["version"]
                         if dependency_id in seen_loaded_dependencies:
-                            raise Exception(
-                                "Loaded dependency should not be in app-started"
-                            )
+                            raise Exception("Loaded dependency should not be in app-started")
                         if dependency_id not in seen_defined_dependencies:
                             continue
                         seen_defined_dependencies[dependency_id] = True
@@ -499,8 +453,7 @@ class Test_Telemetry:
                     dependency_id = dependency["name"]  # +dependency["version"]
                     if seen_loaded_dependencies.get(dependency_id) is True:
                         raise Exception(
-                            "Loaded dependency event sent multiple times for same dependency "
-                            + dependency_id
+                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
                         )
                     if dependency_id in seen_defined_dependencies:
                         seen_defined_dependencies[dependency_id] = True
@@ -509,9 +462,7 @@ class Test_Telemetry:
 
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
-                raise Exception(
-                    dependency + " not received in app-dependencies-loaded message"
-                )
+                raise Exception(dependency + " not received in app-dependencies-loaded message")
 
     @irrelevant(library="ruby")
     @irrelevant(library="golang")
@@ -529,14 +480,11 @@ class Test_Telemetry:
         def validator(data):
             assert is_v1_payload(data)
 
-        self.validate_library_telemetry_data(
-            validator=validator, success_by_default=True
-        )
+        self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
     @irrelevant(library="cpp")
     @missing_feature(
-        context.library in ("golang", "ruby", "cpp", "php"),
-        reason="Telemetry is not implemented yet. ",
+        context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
     )
     @bug(
         library="python",
@@ -589,8 +537,7 @@ class Test_Telemetry:
         weblog.get("/enable_product")
 
     @missing_feature(
-        context.library
-        in ("dotnet", "nodejs", "java", "python", "golang", "cpp", "php", "ruby"),
+        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp", "php", "ruby"),
         reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
     )
     def test_app_product_change(self):
@@ -609,23 +556,17 @@ class Test_Telemetry:
                 for product in products:
                     appsec_enabled = product["appsec"]["enabled"]
                     profiler_enabled = product["profiler"]["enabled"]
-                    dynamic_instrumentation_enabled = product[
-                        "dynamic_instrumentation"
-                    ]["enabled"]
+                    dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
                     assert (
                         appsec_enabled is True
                     ), f"Product appsec Product profiler enabled was expected to be True, found False"
-                    assert (
-                        profiler_enabled is True
-                    ), f"Product profiler enabled was expected to be True, found False"
+                    assert profiler_enabled is True, f"Product profiler enabled was expected to be True, found False"
                     assert (
                         dynamic_instrumentation_enabled is False
                     ), f"Product dynamic_instrumentation enabled was expected to be False, found True"
 
         if app_product_change_event_found is False:
-            raise Exception(
-                "app-product-change is not emitted when product change is enabled"
-            )
+            raise Exception("app-product-change is not emitted when product change is enabled")
 
 
 class Test_APMOnboardingInstallID:
@@ -653,12 +594,8 @@ class Test_TelemetryV2:
 
     @missing_feature(library="golang", reason="Product started missing")
     @missing_feature(library="dotnet", reason="Product started missing")
-    @missing_feature(
-        library="php", reason="Product started missing (both in libdatadog and php)"
-    )
-    @missing_feature(
-        library="python", reason="Product started missing in app-started payload"
-    )
+    @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
+    @missing_feature(library="python", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
@@ -673,31 +610,20 @@ class Test_TelemetryV2:
 
     @missing_feature(library="ruby", reason="dd-client-library-version missing")
     @bug(
-        library="python",
-        reason="library versions do not match due to different origins",
+        library="python", reason="library versions do not match due to different origins",
     )
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads """
 
         def validator(data):
             telemetry = data["request"]["content"]
-            assert get_header(
-                data, "request", "dd-telemetry-api-version"
-            ) == telemetry.get("api_version")
-            assert get_header(
-                data, "request", "dd-telemetry-request-type"
-            ) == telemetry.get("request_type")
+            assert get_header(data, "request", "dd-telemetry-api-version") == telemetry.get("api_version")
+            assert get_header(data, "request", "dd-telemetry-request-type") == telemetry.get("request_type")
             application = telemetry.get("application", {})
-            assert get_header(
-                data, "request", "dd-client-library-language"
-            ) == application.get("language_name")
-            assert get_header(
-                data, "request", "dd-client-library-version"
-            ) == application.get("tracer_version")
+            assert get_header(data, "request", "dd-client-library-language") == application.get("language_name")
+            assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
 
-        interfaces.library.validate_telemetry(
-            validator=validator, success_by_default=True
-        )
+        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
 
 @features.telemetry_api_v2_implemented
@@ -739,9 +665,7 @@ class Test_DependencyEnable:
 
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-dependencies-loaded":
-                raise Exception(
-                    "request_type app-dependencies-loaded should not be sent by this tracer"
-                )
+                raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
 @features.telemetry_message_batch
@@ -756,15 +680,11 @@ class Test_MessageBatch:
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
         event_list = []
-        for data in interfaces.library.get_telemetry_data(
-            flatten_message_batches=False
-        ):
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
             event_list.append(content.get("request_type"))
 
-        assert (
-            "message-batch" in event_list
-        ), f"Expected one or more message-batch events: {event_list}"
+        assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
 
 @features.telemetry_api_v2_implemented
@@ -774,18 +694,12 @@ class Test_Log_Generation:
 
     def _get_filename_with_logs(self):
         all_data = interfaces.library.get_telemetry_data()
-        return [
-            data["log_filename"]
-            for data in all_data
-            if get_request_type(data) == "logs"
-        ]
+        return [data["log_filename"] for data in all_data if get_request_type(data) == "logs"]
 
     @scenarios.telemetry_log_generation_disabled
     def test_log_generation_disabled(self):
         """ When DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false, no log should be sent"""
-        assert (
-            len(self._get_filename_with_logs()) == 0
-        ), "Library shouldn't have sent any log"
+        assert len(self._get_filename_with_logs()) == 0, "Library shouldn't have sent any log"
 
     def test_log_generation_enabled(self):
         """ By default, some logs should be sent"""
@@ -800,9 +714,7 @@ class Test_Metric_Generation_Disabled:
     def test_metric_generation_disabled(self):
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if get_request_type(data) == "generate-metrics":
-                raise Exception(
-                    "Metric generate event is sent when metric generation is disabled"
-                )
+                raise Exception("Metric generate event is sent when metric generation is disabled")
 
 
 @features.telemetry_metrics_collected
@@ -833,13 +745,9 @@ class Test_Metric_Generation_Enabled:
         namespace = "tracers"
         self.assert_count_metric(namespace, "spans_created", expect_at_least=1)
         self.assert_count_metric(namespace, "spans_finished", expect_at_least=1)
-        self.assert_count_metric(
-            namespace, "spans_enqueued_for_serialization", expect_at_least=1
-        )
+        self.assert_count_metric(namespace, "spans_enqueued_for_serialization", expect_at_least=1)
         self.assert_count_metric(namespace, "trace_segments_created", expect_at_least=1)
-        self.assert_count_metric(
-            namespace, "trace_chunks_enqueued_for_serialization", expect_at_least=1
-        )
+        self.assert_count_metric(namespace, "trace_chunks_enqueued_for_serialization", expect_at_least=1)
         self.assert_count_metric(namespace, "trace_chunks_sent", expect_at_least=1)
         self.assert_count_metric(namespace, "trace_segments_closed", expect_at_least=1)
         self.assert_count_metric(namespace, "trace_api.requests", expect_at_least=1)
@@ -849,16 +757,12 @@ class Test_Metric_Generation_Enabled:
 
         namespace = "telemetry"
         self.assert_count_metric(namespace, "telemetry_api.requests", expect_at_least=1)
-        self.assert_count_metric(
-            namespace, "telemetry_api.responses", expect_at_least=1
-        )
+        self.assert_count_metric(namespace, "telemetry_api.responses", expect_at_least=1)
 
     def assert_count_metric(self, namespace, metric, expect_at_least):
         series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
         if len(series) == 0 and expect_at_least > 0:
-            raise Exception(
-                f"No telemetry data received for metric {namespace}.{metric}"
-            )
+            raise Exception(f"No telemetry data received for metric {namespace}.{metric}")
 
         count = 0
         for s in series:

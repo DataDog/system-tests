@@ -16,30 +16,16 @@ from utils._context.core import context
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
-BLOCK_TEMPLATE_HTML_V0_JAVA = open(
-    os.path.join(_CUR_DIR, "blocked.v0.java.html"), "r"
-).read()
-BLOCK_TEMPLATE_HTML_V0_PYTHON = open(
-    os.path.join(_CUR_DIR, "blocked.v0.python.html"), "r"
-).read()
+BLOCK_TEMPLATE_HTML_V0_JAVA = open(os.path.join(_CUR_DIR, "blocked.v0.java.html"), "r").read()
+BLOCK_TEMPLATE_HTML_V0_PYTHON = open(os.path.join(_CUR_DIR, "blocked.v0.python.html"), "r").read()
 BLOCK_TEMPLATE_HTML_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.html"), "r").read()
-BLOCK_TEMPLATE_HTML_MIN_V1 = open(
-    os.path.join(_CUR_DIR, "blocked.v1.min.html"), "r"
-).read()
-BLOCK_TEMPLATE_HTML_MIN_V2 = open(
-    os.path.join(_CUR_DIR, "blocked.v2.min.html"), "r"
-).read()
+BLOCK_TEMPLATE_HTML_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.html"), "r").read()
+BLOCK_TEMPLATE_HTML_MIN_V2 = open(os.path.join(_CUR_DIR, "blocked.v2.min.html"), "r").read()
 
-BLOCK_TEMPLATE_JSON_V0_GO = open(
-    os.path.join(_CUR_DIR, "blocked.v0.go.json"), "r"
-).read()
-BLOCK_TEMPLATE_JSON_V0_PYTHON = open(
-    os.path.join(_CUR_DIR, "blocked.v0.python.json"), "r"
-).read()
+BLOCK_TEMPLATE_JSON_V0_GO = open(os.path.join(_CUR_DIR, "blocked.v0.go.json"), "r").read()
+BLOCK_TEMPLATE_JSON_V0_PYTHON = open(os.path.join(_CUR_DIR, "blocked.v0.python.json"), "r").read()
 BLOCK_TEMPLATE_JSON_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.json"), "r").read()
-BLOCK_TEMPLATE_JSON_MIN_V1 = open(
-    os.path.join(_CUR_DIR, "blocked.v1.min.json"), "r"
-).read()
+BLOCK_TEMPLATE_JSON_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.json"), "r").read()
 
 BLOCK_TEMPLATE_HTML_ANY = {
     BLOCK_TEMPLATE_HTML_V0_JAVA,
@@ -82,19 +68,14 @@ class Test_Blocking:
         self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @bug(
-        context.library < "java@0.115.0"
-        and context.weblog_variant == "spring-boot-undertow",
-        reason="npe",
+        context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe",
     )
     @bug(
-        context.library < "java@0.115.0"
-        and context.weblog_variant == "spring-boot-wildfly",
-        reason="npe",
+        context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe",
     )
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(
-        context.library < "python@1.16.1",
-        reason="Bug, minify and remove new line characters",
+        context.library < "python@1.16.1", reason="Bug, minify and remove new line characters",
     )
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_no_accept(self):
@@ -104,9 +85,7 @@ class Test_Blocking:
         assert self.r_na.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_blocking_appsec_blocked_tag(self):
-        self.r_abt = weblog.get(
-            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"}
-        )
+        self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
     @flaky(context.library >= "java@1.19.0", reason="APPSEC-10798")
     def test_blocking_appsec_blocked_tag(self):
@@ -132,9 +111,7 @@ class Test_Blocking:
         interfaces.library.validate_spans(self.r_abt, validator=validate_appsec_blocked)
 
     def setup_accept_all(self):
-        self.r_aa = weblog.get(
-            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"}
-        )
+        self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
@@ -147,11 +124,7 @@ class Test_Blocking:
     def setup_accept_partial_json(self):
         # */* should be ignored because there are more specific matches for text/html and application/json
         self.r_apj = weblog.get(
-            "/waf/",
-            headers={
-                "User-Agent": "Arachni/v1",
-                "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9",
-            },
+            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9",},
         )
 
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
@@ -164,31 +137,15 @@ class Test_Blocking:
 
     def setup_accept_partial_html(self):
         self.r_aph = weblog.get(
-            "/waf/",
-            headers={
-                "User-Agent": "Arachni/v1",
-                "Accept": "text/*;q=0.8, application/*;q=0.7, */*;q=0.9",
-            },
+            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.8, application/*;q=0.7, */*;q=0.9",},
         )
 
-    @missing_feature(
-        context.library == "php", reason="Support for partial html not implemented"
-    )
-    @missing_feature(
-        context.library == "dotnet", reason="Support for partial html not implemented"
-    )
-    @missing_feature(
-        context.library == "golang", reason="Support for partial html not implemented"
-    )
-    @missing_feature(
-        context.library == "nodejs", reason="Support for partial html not implemented"
-    )
-    @missing_feature(
-        context.library == "python", reason="Support for partial html not implemented"
-    )
-    @missing_feature(
-        context.library == "ruby", reason="Support for partial html not implemented"
-    )
+    @missing_feature(context.library == "php", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "python", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "ruby", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
@@ -221,18 +178,10 @@ class Test_Blocking:
             },
         )
 
-    @missing_feature(
-        context.library == "php", reason="Support for quality not implemented"
-    )
-    @missing_feature(
-        context.library == "dotnet", reason="Support for quality not implemented"
-    )
-    @missing_feature(
-        context.library == "nodejs", reason="Support for quality not implemented"
-    )
-    @missing_feature(
-        context.library == "ruby", reason="Support for quality not implemented"
-    )
+    @missing_feature(context.library == "php", reason="Support for quality not implemented")
+    @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
+    @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
+    @missing_feature(context.library == "ruby", reason="Support for quality not implemented")
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
@@ -241,10 +190,7 @@ class Test_Blocking:
         assert self.r_afh.text in BLOCK_TEMPLATE_HTML_ANY
 
     def setup_json_template_v1(self):
-        self.r_json_v1 = weblog.get(
-            "/waf/",
-            headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},
-        )
+        self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},)
 
     @missing_feature(context.library < "java@1.14.0")
     @missing_feature(context.library < "nodejs@4.1.0")
@@ -256,15 +202,11 @@ class Test_Blocking:
     def test_json_template_v1(self):
         """HTML block template is v1 minified"""
         assert self.r_json_v1.status_code == 403
-        assert (
-            self.r_json_v1.headers.get("content-type", "").lower() in JSON_CONTENT_TYPES
-        )
+        assert self.r_json_v1.headers.get("content-type", "").lower() in JSON_CONTENT_TYPES
         assert self.r_json_v1.text.rstrip() == BLOCK_TEMPLATE_JSON_MIN_V1.rstrip()
 
     def setup_html_template_v2(self):
-        self.r_html_v2 = weblog.get(
-            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},
-        )
+        self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
 
     @missing_feature(context.library < "java@1.14.0")
     @missing_feature(context.library < "nodejs@4.1.0")
@@ -276,22 +218,15 @@ class Test_Blocking:
     def test_html_template_v2(self):
         """HTML block template is v2 minified"""
         assert self.r_html_v2.status_code == 403
-        assert (
-            self.r_html_v2.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
-        )
+        assert self.r_html_v2.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
         assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
 
 
-@rfc(
-    "https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit"
-)
+@rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
 @coverage.basic
 @scenarios.appsec_blocking
 @features.appsec_blocking_action
-@bug(
-    context.library >= "java@1.20.0"
-    and context.weblog_variant == "spring-boot-openliberty"
-)
+@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""
 
@@ -303,9 +238,7 @@ class Test_CustomBlockingResponse:
         assert self.r_cst.status_code == 401
 
     def setup_custom_redirect(self):
-        self.r_cr = weblog.get(
-            "/waf/", headers={"User-Agent": "Canary/v2"}, allow_redirects=False
-        )
+        self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v2"}, allow_redirects=False)
 
     def test_custom_redirect(self):
         """Block with an HTTP redirection"""
@@ -313,18 +246,14 @@ class Test_CustomBlockingResponse:
         assert self.r_cr.headers.get("location", "") == "/you-have-been-blocked"
 
     def setup_custom_redirect_wrong_status_code(self):
-        self.r_cr = weblog.get(
-            "/waf/", headers={"User-Agent": "Canary/v3"}, allow_redirects=False
-        )
+        self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v3"}, allow_redirects=False)
 
     @bug(
-        context.library == "java"
-        and context.weblog_variant not in ("akka-http", "play"),
+        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
         reason="Do not check the configured redirect status code",
     )
     @bug(
-        context.library == "golang",
-        reason="Do not check the configured redirect status code",
+        context.library == "golang", reason="Do not check the configured redirect status code",
     )
     def test_custom_redirect_wrong_status_code(self):
         """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
@@ -332,17 +261,13 @@ class Test_CustomBlockingResponse:
         assert self.r_cr.headers.get("location", "") == "/you-have-been-blocked"
 
     def setup_custom_redirect_missing_location(self):
-        self.r_cr = weblog.get(
-            "/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False
-        )
+        self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False)
 
     @bug(
-        context.library == "java",
-        reason="Do not check the configured redirect location value",
+        context.library == "java", reason="Do not check the configured redirect location value",
     )
     @bug(
-        context.library == "golang",
-        reason="Do not check the configured redirect location value",
+        context.library == "golang", reason="Do not check the configured redirect location value",
     )
     def test_custom_redirect_missing_location(self):
         """Block with an default page because location parameter is missing from redirect request configuration"""

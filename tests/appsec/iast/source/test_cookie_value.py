@@ -18,8 +18,7 @@ class TestCookieValue(BaseSourceTest):
     source_value = "user"
 
     @bug(
-        context.weblog_variant == "jersey-grizzly2",
-        reason="name field of source not set",
+        context.weblog_variant == "jersey-grizzly2", reason="name field of source not set",
     )
     def test_source_reported(self):
         super().test_source_reported()

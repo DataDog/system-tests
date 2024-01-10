@@ -17,13 +17,10 @@ pytestmark = pytest.mark.parametrize(
 
 @scenarios.parametric
 class Test_Otel_Span_With_W3c:
-    @irrelevant(
-        context.library == "cpp", reason="library does not implement OpenTelemetry"
-    )
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(
-        context.library <= "java@1.23.0",
-        reason="OTel resource naming implemented in 1.24.0",
+        context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0",
     )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -41,9 +38,7 @@ class Test_Otel_Span_With_W3c:
                 attributes={"start_attr_key": "start_attr_val"},
             ) as parent:
                 parent.end_span(timestamp=start_time + duration_us)
-        duration_ns = int(
-            duration_us * 1_000
-        )  # OTEL durations are microseconds, must convert to ns for dd
+        duration_ns = int(duration_us * 1_000)  # OTEL durations are microseconds, must convert to ns for dd
 
         root_span = get_span(test_agent)
         assert root_span["name"] == "producer"
@@ -51,19 +46,11 @@ class Test_Otel_Span_With_W3c:
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration_ns
 
-    @irrelevant(
-        context.library == "cpp", reason="library does not implement OpenTelemetry"
-    )
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     def test_otel_span_with_w3c_headers(self, test_agent, test_library):
         with test_library:
             with test_library.otel_start_span(
-                name="name",
-                http_headers=[
-                    [
-                        "traceparent",
-                        "00-00000000000000001111111111111111-2222222222222222-01",
-                    ]
-                ],
+                name="name", http_headers=[["traceparent", "00-00000000000000001111111111111111-2222222222222222-01",]],
             ) as span:
                 context = span.span_context()
                 assert context.get("trace_flags") == "01"

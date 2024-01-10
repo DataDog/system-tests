@@ -30,10 +30,7 @@ VARIANT_COMPONENT_MAP = {
     "django-poc": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
-    "jersey-grizzly2": {
-        "jakarta-rs.request": "jakarta-rs-controller",
-        "grizzly.request": ["grizzly", "jakarta-rs"],
-    },
+    "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"],},
     "net-http": "net/http",
     "sinatra": {"rack.request": "rack"},
     "spring-boot": {
@@ -88,10 +85,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
     },
-    "resteasy-netty3": {
-        "netty.request": ["netty", "jax-rs"],
-        "jax-rs.request": "jax-rs-controller",
-    },
+    "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
     "akka-http": "akka-http-server",
     "rails": {
         "rails.action_controller": "action_pack",
@@ -103,11 +97,7 @@ VARIANT_COMPONENT_MAP = {
     "uds-echo": "labstack/echo.v4",
     "uds-express4": "express",
     "uds-flask": {"flask.request": "flask",},
-    "uds-sinatra": {
-        "rack.request": "rack",
-        "sinatra.route": "sinatra",
-        "sinatra.request": "sinatra",
-    },
+    "uds-sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra",},
     "uds-spring-boot": {
         "servlet.request": "tomcat-server",
         "hsqldb.query": "java-jdbc-statement",
@@ -123,9 +113,7 @@ def get_component_name(weblog_variant, language, span_name):
     if language == "ruby":
         # strip numbers from weblog_variant so rails70 -> rails, sinatra14 -> sinatra
         weblog_variant_stripped_name = re.sub(r"\d+", "", weblog_variant)
-        expected_component = VARIANT_COMPONENT_MAP.get(
-            weblog_variant_stripped_name, weblog_variant_stripped_name
-        )
+        expected_component = VARIANT_COMPONENT_MAP.get(weblog_variant_stripped_name, weblog_variant_stripped_name)
     elif language == "dotnet":
         expected_component = "aspnet_core"
     elif language == "cpp":
@@ -147,13 +135,11 @@ class Test_Meta:
     """meta object in spans respect all conventions"""
 
     @bug(
-        library="cpp",
-        reason="Span.kind said to be implemented but currently not set for nginx",
+        library="cpp", reason="Span.kind said to be implemented but currently not set for nginx",
     )
     @bug(library="python", reason="Span.kind not implemented yet")
     @bug(
-        library="php",
-        reason="All PHP current weblog variants trace with C++ tracers that do not have Span.Kind",
+        library="php", reason="All PHP current weblog variants trace with C++ tracers that do not have Span.Kind",
     )
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
@@ -166,22 +152,17 @@ class Test_Meta:
                 return
 
             assert "span.kind" in span["meta"], "Web span expects a span.kind meta tag"
-            assert span["meta"]["span.kind"] in [
-                "server",
-                "client",
-            ], "Meta tag span.kind should be client or server"
+            assert span["meta"]["span.kind"] in ["server", "client",], "Meta tag span.kind should be client or server"
 
             return True
 
         interfaces.library.validate_spans(validator=validator)
 
     @bug(
-        library="ruby",
-        reason="http.url is not a full url, should be discussed of actually a bug or not",
+        library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not",
     )
     @bug(
-        library="golang",
-        reason="http.url is not a full url, should be discussed of actually a bug or not",
+        library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not",
     )
     @bug(context.library < "php@0.68.2")
     def test_meta_http_url(self):
@@ -197,10 +178,7 @@ class Test_Meta:
             assert "http.url" in span["meta"], "web span expect an http.url meta tag"
 
             scheme = urlparse(span["meta"]["http.url"]).scheme
-            assert scheme in [
-                "http",
-                "https",
-            ], f"Meta http.url's scheme should be http or https, not {scheme}"
+            assert scheme in ["http", "https",], f"Meta http.url's scheme should be http or https, not {scheme}"
 
             return True
 
@@ -216,9 +194,7 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            assert (
-                "http.status_code" in span["meta"]
-            ), "web span expect an http.status_code meta tag"
+            assert "http.status_code" in span["meta"], "web span expect an http.status_code meta tag"
 
             _ = int(span["meta"]["http.status_code"])
 
@@ -236,9 +212,7 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            assert (
-                "http.method" in span["meta"]
-            ), "web span expect an http.method meta tag"
+            assert "http.method" in span["meta"], "web span expect an http.method meta tag"
 
             value = span["meta"]["http.method"]
 
@@ -286,13 +260,10 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
         # checking that we have at least one root span
-        assert (
-            len(list(interfaces.library.get_root_spans())) != 0
-        ), "Did not recieve any root spans to validate."
+        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(
-        library="php",
-        reason="component tag not implemented for apache-mode and php-fpm",
+        library="php", reason="component tag not implemented for apache-mode and php-fpm",
     )
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
@@ -301,9 +272,7 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            expected_component = get_component_name(
-                context.weblog_variant, context.library, span.get("name")
-            )
+            expected_component = get_component_name(context.weblog_variant, context.library, span.get("name"))
 
             assert "component" in span.get(
                 "meta"
@@ -321,14 +290,11 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
         # checking that we have at least one root span
-        assert (
-            len(list(interfaces.library.get_root_spans())) != 0
-        ), "Did not recieve any root spans to validate."
+        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(
-        library="php",
-        reason="runtime-id tag only implemented when profiling is enabled.",
+        library="php", reason="runtime-id tag only implemented when profiling is enabled.",
     )
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
@@ -337,15 +303,11 @@ class Test_Meta:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            assert "runtime-id" in span.get(
-                "meta"
-            ), "No runtime-id tag found. Expected tag to be present."
+            assert "runtime-id" in span.get("meta"), "No runtime-id tag found. Expected tag to be present."
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
         # checking that we have at least one root span
-        assert (
-            len(list(interfaces.library.get_root_spans())) != 0
-        ), "Did not recieve any root spans to validate."
+        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
 @features.add_metadata_globally_to_all_spans_dd_tags
@@ -377,12 +339,8 @@ class Test_MetricsStandardTags:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            assert (
-                "process_id" in span["metrics"]
-            ), "Root span expect a process_id metrics tag"
+            assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
         # checking that we have at least one root span
-        assert (
-            len(list(interfaces.library.get_root_spans())) != 0
-        ), "Did not recieve any root spans to validate."
+        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."

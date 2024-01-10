@@ -24,9 +24,7 @@ class Test_StatusCode:
     """Appsec reports good status code"""
 
     def setup_basic(self):
-        self.r = weblog.get(
-            "/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"}
-        )
+        self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
     @bug(
         library="java",
@@ -39,29 +37,22 @@ class Test_StatusCode:
 
         def check_http_code_legacy(event):
             status_code = event["context"]["http"]["response"]["status"]
-            assert (
-                status_code == 404
-            ), f"404 should have been reported, not {status_code}"
+            assert status_code == 404, f"404 should have been reported, not {status_code}"
 
             return True
 
         def check_http_code(span, appsec_data):
             status_code = span["meta"]["http.status_code"]
-            assert (
-                status_code == "404"
-            ), f"404 should have been reported, not {status_code}"
+            assert status_code == "404", f"404 should have been reported, not {status_code}"
 
             return True
 
-        interfaces.library.validate_appsec(
-            self.r, validator=check_http_code, legacy_validator=check_http_code_legacy
-        )
+        interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
 @coverage.good
 @missing_feature(
-    True,
-    reason="Bug on system test: with the runner on the host, we do not have the real IP from weblog POV",
+    True, reason="Bug on system test: with the runner on the host, we do not have the real IP from weblog POV",
 )
 @features.security_events_metadata
 class Test_HttpClientIP:
@@ -82,23 +73,17 @@ class Test_HttpClientIP:
 
         def legacy_validator(event):
             remote_ip = event["context"]["http"]["request"]["remote_ip"]
-            assert (
-                remote_ip == self.actual_remote_ip
-            ), f"request remote ip should be {self.actual_remote_ip}"
+            assert remote_ip == self.actual_remote_ip, f"request remote ip should be {self.actual_remote_ip}"
 
             return True
 
         def validator(span, appsec_data):
             ip = span["meta"]["network.client.ip"]
-            assert (
-                ip == self.actual_remote_ip
-            ), f"network.client.ip should be {self.actual_remote_ip}"
+            assert ip == self.actual_remote_ip, f"network.client.ip should be {self.actual_remote_ip}"
 
             return True
 
-        interfaces.library.validate_appsec(
-            self.r, validator=validator, legacy_validator=legacy_validator
-        )
+        interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
@@ -117,9 +102,7 @@ class Test_Info:
             name = event["context"]["service"]["name"]
             environment = event["context"]["service"]["environment"]
             assert name == "weblog", f"weblog should have been reported, not {name}"
-            assert (
-                environment == "system-tests"
-            ), f"system-tests should have been reported, not {environment}"
+            assert environment == "system-tests", f"system-tests should have been reported, not {environment}"
 
             return True
 
@@ -127,20 +110,14 @@ class Test_Info:
             name = span.get("service")
             environment = span.get("meta", {}).get("env")
             assert name == "weblog", f"weblog should have been reported, not {name}"
-            assert (
-                environment == "system-tests"
-            ), f"system-tests should have been reported, not {environment}"
+            assert environment == "system-tests", f"system-tests should have been reported, not {environment}"
 
             return True
 
-        interfaces.library.validate_appsec(
-            self.r, legacy_validator=_check_service_legacy, validator=_check_service
-        )
+        interfaces.library.validate_appsec(self.r, legacy_validator=_check_service_legacy, validator=_check_service)
 
 
-@rfc(
-    "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection"
-)
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @coverage.good
@@ -188,15 +165,11 @@ class Test_TagsFromRule:
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @missing_feature(
-        weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only"
-    )
+    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_basic(self):
         """attack timestamp is given by start property of span"""
 
-        for _, _, _, appsec_data in interfaces.library.get_appsec_events(
-            request=self.r
-        ):
+        for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=self.r):
             for trigger in appsec_data["triggers"]:
                 assert "rule" in trigger
                 assert "tags" in trigger["rule"]
@@ -213,9 +186,7 @@ class Test_ExtraTagsFromRule:
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_basic(self):
-        for _, _, _, appsec_data in interfaces.library.get_appsec_events(
-            request=self.r
-        ):
+        for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=self.r):
             for trigger in appsec_data["triggers"]:
                 assert "rule" in trigger
                 assert "tags" in trigger["rule"]
@@ -230,14 +201,10 @@ class Test_AttackTimestamp:
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @missing_feature(
-        weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only"
-    )
+    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_basic(self):
         """attack timestamp is given by start property of span"""
 
         for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r):
             assert "start" in span, "span should contain start property"
-            assert isinstance(
-                span["start"], int
-            ), f"start property should an int, not {repr(span['start'])}"
+            assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"

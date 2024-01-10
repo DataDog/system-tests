@@ -17,16 +17,13 @@ from utils import missing_feature, context, scenarios, features
 @scenarios.parametric
 class Test_Span_Sampling:
     @missing_feature(
-        context.library == "ruby",
-        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
+        context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
     )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
-                "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "web.request"}]
-                ),
+                "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
             }
         ],
@@ -38,59 +35,40 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
 
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     @missing_feature(
-        context.library == "ruby",
-        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
+        context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
     )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
-                "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webse*", "name": "web.re?uest"}]
-                ),
+                "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webse*", "name": "web.re?uest"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
             }
         ],
     )
-    def test_special_glob_characters_span_sampling_sss002(
-        self, test_agent, test_library
-    ):
+    def test_special_glob_characters_span_sampling_sss002(self, test_agent, test_library):
         """Test span sampling tags are added when a rule with glob patterns with special characters * and ? match"""
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
 
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     @pytest.mark.parametrize(
         "library_env",
         [
             {
-                "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "notmatching", "name": "notmatching"}]
-                ),
+                "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "notmatching", "name": "notmatching"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
             }
         ],
@@ -103,31 +81,19 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
 
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     @missing_feature(
-        context.library == "ruby",
-        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
+        context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
     )
     @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]),
-                "DD_TRACE_SAMPLE_RATE": 0,
-            }
-        ],
+        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0,}],
     )
-    def test_single_rule_only_service_pattern_match_span_sampling_sss004(
-        self, test_agent, test_library
-    ):
+    def test_single_rule_only_service_pattern_match_span_sampling_sss004(self, test_agent, test_library):
         """Test span sampling tags are added when both:
         1. a span sampling rule that only has a service pattern matches
         2. the tracer is set to drop the span manually
@@ -135,29 +101,15 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}]),
-                "DD_TRACE_SAMPLE_RATE": 0,
-            }
-        ],
+        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}]), "DD_TRACE_SAMPLE_RATE": 0,}],
     )
-    def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(
-        self, test_agent, test_library
-    ):
+    def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(self, test_agent, test_library):
         """Test span sampling tags are not added when:
         1. a span sampling rule that only has a name pattern does not match
         2. the tracer is set to drop the span manually
@@ -165,17 +117,13 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     @missing_feature(
-        context.library == "ruby",
-        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
+        context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
     )
     @pytest.mark.parametrize(
         "library_env",
@@ -184,11 +132,7 @@ class Test_Span_Sampling:
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
                     [
                         {"service": "webserver", "name": "web.request"},
-                        {
-                            "service": "webserver",
-                            "name": "web.request",
-                            "sample_rate": 0,
-                        },
+                        {"service": "webserver", "name": "web.request", "sample_rate": 0,},
                     ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
@@ -208,15 +152,9 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     @pytest.mark.parametrize(
@@ -225,11 +163,7 @@ class Test_Span_Sampling:
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
                     [
-                        {
-                            "service": "webserver",
-                            "name": "web.request",
-                            "sample_rate": 0,
-                        },
+                        {"service": "webserver", "name": "web.request", "sample_rate": 0,},
                         {"service": "webserver", "name": "web.request"},
                     ]
                 ),
@@ -250,10 +184,7 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -267,21 +198,13 @@ class Test_Span_Sampling:
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [
-                        {
-                            "service": "webserver",
-                            "name": "web.request",
-                            "max_per_second": 2,
-                        }
-                    ]
+                    [{"service": "webserver", "name": "web.request", "max_per_second": 2,}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
             }
         ],
     )
-    def test_single_rule_rate_limiter_span_sampling_sss008(
-        self, test_agent, test_library
-    ):
+    def test_single_rule_rate_limiter_span_sampling_sss008(self, test_agent, test_library):
         """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
         # generate three traces before requesting them to avoid timing issues
         with test_library:
@@ -292,16 +215,12 @@ class Test_Span_Sampling:
         traces = test_agent.wait_for_num_traces(6, clear=True)
 
         # expect first and second traces sampled
-        span = find_span_in_traces(
-            traces[:1], Span(name="web.request", service="webserver")
-        )
+        span = find_span_in_traces(traces[:1], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
 
-        span = find_span_in_traces(
-            traces[1:2], Span(name="web.request", service="webserver")
-        )
+        span = find_span_in_traces(traces[1:2], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
@@ -309,9 +228,7 @@ class Test_Span_Sampling:
         # For example code in the Java tracer starts the clock as soon as the limiter is created.
         # This means that even though all traces happen within ~59 ms, they could straddle two token buckets and hence all be allowed to pass
         # Given 6 traces, at least the last two traces are unsampled because of rate limiters
-        span = find_span_in_traces(
-            traces[5:6], Span(name="web.request", service="webserver")
-        )
+        span = find_span_in_traces(traces[5:6], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -323,8 +240,7 @@ class Test_Span_Sampling:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
         span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1, clear=True),
-            Span(name="web.request", service="webserver"),
+            test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"),
         )
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
@@ -335,13 +251,7 @@ class Test_Span_Sampling:
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [
-                        {
-                            "service": "webserver",
-                            "name": "web.request",
-                            "sample_rate": 0.5,
-                        }
-                    ]
+                    [{"service": "webserver", "name": "web.request", "sample_rate": 0.5,}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
             }
@@ -363,10 +273,7 @@ class Test_Span_Sampling:
         unsampled = []
 
         for trace in traces:
-            if (
-                trace[0]["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-                == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-            ):
+            if trace[0]["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE:
                 sampled.append(trace)
             else:
                 unsampled.append(trace)
@@ -374,9 +281,7 @@ class Test_Span_Sampling:
         assert len(sampled) in range(30, 70)
         assert len(unsampled) in range(30, 70)
 
-    @missing_feature(
-        context.library == "cpp", reason="cpp has not implemented stats computation yet"
-    )
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
         context.library == "*",
         reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
@@ -413,9 +318,7 @@ class Test_Span_Sampling:
         "library_env",
         [
             {
-                "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "web.request"}]
-                ),
+                "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "True",
             }
@@ -426,87 +329,57 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
         # We should be setting sampling priority to manual keep so the agent sampler won't be affected
         # TODO: we need a way to check that the chunk that contains the span was associated with USER_KEEP priority,
         # the below does not apply to all agent APIs
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
+    @missing_feature(context.library == "cpp", reason="manual.drop span tag is not applied")
     @missing_feature(
-        context.library == "cpp", reason="manual.drop span tag is not applied"
+        context.library == "golang", reason="The Go tracer does not have a way to modulate trace sampling once started",
     )
     @missing_feature(
-        context.library == "golang",
-        reason="The Go tracer does not have a way to modulate trace sampling once started",
+        context.library == "php", reason="manual.drop and manual.keep span tags are not implemented.",
     )
     @missing_feature(
-        context.library == "php",
-        reason="manual.drop and manual.keep span tags are not implemented.",
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: does not respect manual.drop or manual.keep span tags",
+        context.library == "ruby", reason="Issue: does not respect manual.drop or manual.keep span tags",
     )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [
-                        {
-                            "service": "webserver",
-                            "name": "web.request",
-                            "sample_rate": 1.0,
-                        }
-                    ]
+                    [{"service": "webserver", "name": "web.request", "sample_rate": 1.0,}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 1.0,
             }
         ],
     )
-    def test_single_rule_always_keep_span_sampling_sss011(
-        self, test_agent, test_library
-    ):
+    def test_single_rule_always_keep_span_sampling_sss011(self, test_agent, test_library):
         """Test that spans are always kept when the sampling rule matches and has sample_rate:1.0 regardless of tracer decision.
 
         Basically, if we have a rule for spans with sample_rate:1.0 we should always keep those spans, either due to trace sampling or span sampling"""
         # This span is set to be dropped by the tracer/user, however it is kept by span sampling
         with test_library:
-            with test_library.start_span(
-                name="web.request", service="webserver"
-            ) as span:
+            with test_library.start_span(name="web.request", service="webserver") as span:
                 span.set_meta(MANUAL_DROP_KEY, "1")
         span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1, clear=True),
-            Span(name="web.request", service="webserver"),
+            test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"),
         )
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
         # This span is sampled by the tracer, not span sampling.
         # Therefore it won't have the span sampling tags, but rather the trace sampling tags.
         with test_library:
-            with test_library.start_span(
-                name="web.request", service="webserver"
-            ) as span:
+            with test_library.start_span(name="web.request", service="webserver") as span:
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
 
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
@@ -524,9 +397,7 @@ class Test_Span_Sampling:
             }
         ],
     )
-    def test_single_rule_tracer_always_keep_span_sampling_sss012(
-        self, test_agent, test_library
-    ):
+    def test_single_rule_tracer_always_keep_span_sampling_sss012(self, test_agent, test_library):
         """Test spans are always kept when tracer keeps, regardless of span sampling rule set to drop.
 
         We're essentially testing to make sure that the span sampling rule cannot control the fate of the span if the span is already being kept by trace sampling.
@@ -536,10 +407,7 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1),
-            Span(name="web.request", service="webserver"),
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"),)
 
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
@@ -556,25 +424,15 @@ class Test_Span_Sampling:
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
                     [
-                        {
-                            "service": "webserver",
-                            "name": "web.request",
-                            "max_per_second": 1,
-                        },
-                        {
-                            "service": "webserver2",
-                            "name": "web.request2",
-                            "max_per_second": 2,
-                        },
+                        {"service": "webserver", "name": "web.request", "max_per_second": 1,},
+                        {"service": "webserver2", "name": "web.request2", "max_per_second": 2,},
                     ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
             }
         ],
     )
-    def test_multi_rule_independent_rate_limiters_sss013(
-        self, test_agent, test_library
-    ):
+    def test_multi_rule_independent_rate_limiters_sss013(self, test_agent, test_library):
         """Span rule rate limiters are per-rule.  So, spans that match different rules don't share a limiter, but
         multiple traces whose spans match the same rule do share a limiter.
         """
@@ -590,47 +448,28 @@ class Test_Span_Sampling:
         traces = test_agent.wait_for_num_traces(10, clear=True)
         # Some issues related with timming. It's difficult to be so accurate and it can cause flakiness
         # We check at least last trace is unsampled
-        span = find_span_in_traces(
-            traces[:1], Span(name="web.request", service="webserver")
-        )
+        span = find_span_in_traces(traces[:1], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
 
-        span = find_span_in_traces(
-            traces[3:4], Span(name="web.request", service="webserver")
-        )
+        span = find_span_in_traces(traces[3:4], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
         # for trace in traces[4:10]:
-        span = find_span_in_traces(
-            traces[4:5], Span(name="web.request2", service="webserver2")
-        )
+        span = find_span_in_traces(traces[4:5], Span(name="web.request2", service="webserver2"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
 
-        span = find_span_in_traces(
-            traces[5:6], Span(name="web.request2", service="webserver2")
-        )
+        span = find_span_in_traces(traces[5:6], Span(name="web.request2", service="webserver2"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
 
-        span = find_span_in_traces(
-            traces[8:9], Span(name="web.request2", service="webserver2")
-        )
+        span = find_span_in_traces(traces[8:9], Span(name="web.request2", service="webserver2"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -641,9 +480,7 @@ class Test_Span_Sampling:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(
-            test_agent.wait_for_num_traces(1), Span(name="web.request")
-        )
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
 
     @pytest.mark.parametrize(
@@ -651,14 +488,7 @@ class Test_Span_Sampling:
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [
-                        {
-                            "service": "webserver",
-                            "name": "parent",
-                            "sample_rate": 1.0,
-                            "max_per_second": 50,
-                        }
-                    ]
+                    [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50,}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
             }
@@ -671,30 +501,19 @@ class Test_Span_Sampling:
         and doesn't affect child spans that are dropped by the tracer sampling mechanism.
         """
         with test_library:
-            with test_library.start_span(
-                name="parent", service="webserver"
-            ) as parent_span:
-                with test_library.start_span(
-                    name="child", service="webserver", parent_id=parent_span.span_id
-                ):
+            with test_library.start_span(name="parent", service="webserver") as parent_span:
+                with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                     pass
 
         traces = test_agent.wait_for_num_spans(2, clear=True)
 
-        parent_span = find_span_in_traces(
-            traces, Span(name="parent", service="webserver")
-        )
-        child_span = find_span_in_traces(
-            traces, Span(name="child", service="webserver")
-        )
+        parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
+        child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
         # the trace should be dropped, so the parent span priority is set to -1
         assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
         # child span should be dropped by defined trace sampling rules
@@ -711,14 +530,7 @@ class Test_Span_Sampling:
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [
-                        {
-                            "service": "webserver",
-                            "name": "child",
-                            "sample_rate": 1.0,
-                            "max_per_second": 50,
-                        }
-                    ]
+                    [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50,}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
             }
@@ -731,22 +543,14 @@ class Test_Span_Sampling:
         and doesn't affect parent spans that are dropped by the tracer sampling mechanism.
         """
         with test_library:
-            with test_library.start_span(
-                name="parent", service="webserver"
-            ) as parent_span:
-                with test_library.start_span(
-                    name="child", service="webserver", parent_id=parent_span.span_id
-                ):
+            with test_library.start_span(name="parent", service="webserver") as parent_span:
+                with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                     pass
 
         traces = test_agent.wait_for_num_spans(2, clear=True)
 
-        parent_span = find_span_in_traces(
-            traces, Span(name="parent", service="webserver")
-        )
-        child_span = find_span_in_traces(
-            traces, Span(name="child", service="webserver")
-        )
+        parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
+        child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
         # root span should be dropped by defined trace sampling rules
         assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
@@ -756,44 +560,27 @@ class Test_Span_Sampling:
 
         # child span should be kept by defined the SSS rules
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(
-        context.library == "cpp", reason="span dropping policy not implemented"
-    )
-    @missing_feature(
-        context.library == "dotnet",
-        reason="The .NET tracer sends the full trace to the agent anyways.",
+        context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.",
     )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(
-        context.library == "php",
-        reason="The PHP tracer always sends the full trace to the agent.",
+        context.library == "php", reason="The PHP tracer always sends the full trace to the agent.",
     )
+    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
-        context.library == "python", reason="RPC issue causing test to hang"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: sending the complete trace when only the root span is expected",
+        context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected",
     )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [
-                        {
-                            "service": "webserver",
-                            "name": "parent",
-                            "sample_rate": 1.0,
-                            "max_per_second": 50,
-                        }
-                    ]
+                    [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50,}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
@@ -810,9 +597,7 @@ class Test_Span_Sampling:
         We're essentially testing to make sure that the child unsampled span is dropped on the tracer side because of
         the activate dropping policy.
         """
-        assert (
-            test_agent.info()["client_drop_p0s"] == True
-        ), "Client drop p0s expected to be enabled"
+        assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
         with test_library:
             with test_library.start_span(name="parent", service="webserver"):
@@ -823,65 +608,40 @@ class Test_Span_Sampling:
 
         # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
         with test_library:
-            with test_library.start_span(
-                name="parent", service="webserver"
-            ) as parent_span:
-                with test_library.start_span(
-                    name="child", service="webserver", parent_id=parent_span.span_id
-                ):
+            with test_library.start_span(name="parent", service="webserver") as parent_span:
+                with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
-        assert (
-            len(traces[0]) == 1
-        ), "only the root span is expected to be sent to the test agent"
+        assert len(traces[0]) == 1, "only the root span is expected to be sent to the test agent"
 
-        parent_span = find_span_in_traces(
-            traces, Span(name="parent", service="webserver")
-        )
+        parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
 
         # the trace should be dropped, so the parent span priority is set to -1
         assert parent_span["name"] == "parent"
         assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(
-        context.library == "cpp", reason="span dropping policy not implemented"
-    )
-    @missing_feature(
-        context.library == "dotnet",
-        reason="The .NET tracer sends the full trace to the agent anyways.",
+        context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.",
     )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(
-        context.library == "php",
-        reason="The PHP tracer always sends the full trace to the agent.",
+        context.library == "php", reason="The PHP tracer always sends the full trace to the agent.",
     )
+    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
-        context.library == "python", reason="RPC issue causing test to hang"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: sending the complete trace when only the root span is expected",
+        context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected",
     )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [
-                        {
-                            "service": "webserver",
-                            "name": "child",
-                            "sample_rate": 1.0,
-                            "max_per_second": 50,
-                        }
-                    ]
+                    [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50,}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
@@ -898,17 +658,11 @@ class Test_Span_Sampling:
         We're essentially testing to make sure that the root unsampled span is dropped on the tracer side because of
         the activate dropping policy.
         """
-        assert (
-            test_agent.info()["client_drop_p0s"] == True
-        ), "Client drop p0s expected to be enabled"
+        assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
         with test_library:
-            with test_library.start_span(
-                name="parent", service="webserver"
-            ) as parent_span:
-                with test_library.start_span(
-                    name="child", service="webserver", parent_id=parent_span.span_id
-                ):
+            with test_library.start_span(name="parent", service="webserver") as parent_span:
+                with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                     pass
 
         # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
@@ -916,51 +670,33 @@ class Test_Span_Sampling:
 
         # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
         with test_library:
-            with test_library.start_span(
-                name="parent", service="webserver"
-            ) as parent_span:
-                with test_library.start_span(
-                    name="child", service="webserver", parent_id=parent_span.span_id
-                ):
+            with test_library.start_span(name="parent", service="webserver") as parent_span:
+                with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
-        assert (
-            len(traces[0]) == 1
-        ), "only the child span is expected to be sent to the test agent"
+        assert len(traces[0]) == 1, "only the child span is expected to be sent to the test agent"
 
-        child_span = find_span_in_traces(
-            traces, Span(name="child", service="webserver")
-        )
+        child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
         # the trace should be dropped, so the parent span priority is set to -1
         assert child_span["name"] == "child"
         assert child_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert (
-            child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM)
-            == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        )
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(
-        context.library == "cpp", reason="span dropping policy not implemented"
-    )
-    @missing_feature(
-        context.library == "dotnet",
-        reason="The .NET tracer sends the full trace to the agent anyways.",
+        context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.",
     )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(
-        context.library == "php",
-        reason="The PHP tracer always sends the full trace to the agent.",
+        context.library == "php", reason="The PHP tracer always sends the full trace to the agent.",
     )
+    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
-        context.library == "python", reason="RPC issue causing test to hang"
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: sending the complete trace when only the root span is expected",
+        context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected",
     )
     @pytest.mark.parametrize(
         "library_env",
@@ -972,18 +708,14 @@ class Test_Span_Sampling:
             }
         ],
     )
-    def test_entire_trace_dropped_when_dropping_policy_is_active018(
-        self, test_agent, test_library
-    ):
+    def test_entire_trace_dropped_when_dropping_policy_is_active018(self, test_agent, test_library):
         """The entire dropped span expected to be dropped on the tracer side when
         dropping policy is active, which is the case when tracer metrics enabled.
 
         We're essentially testing to make sure that the entire unsampled trace is dropped on the tracer side because of
         the activate dropping policy.
         """
-        assert (
-            test_agent.info()["client_drop_p0s"] == True
-        ), "Client drop p0s expected to be enabled"
+        assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
         with test_library:
             with test_library.start_span(name="parent", service="webserver"):
@@ -999,12 +731,8 @@ class Test_Span_Sampling:
 
         # the second similar trace is expected to be dropped on the Tracer side
         with test_library:
-            with test_library.start_span(
-                name="parent", service="webserver"
-            ) as parent_span:
-                with test_library.start_span(
-                    name="child", service="webserver", parent_id=parent_span.span_id
-                ):
+            with test_library.start_span(name="parent", service="webserver") as parent_span:
+                with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(0, clear=True)

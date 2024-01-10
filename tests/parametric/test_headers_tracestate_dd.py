@@ -20,9 +20,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 @scenarios.parametric
 class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
-    def test_headers_tracestate_dd_propagate_samplingpriority(
-        self, test_agent, test_library
-    ):
+    def test_headers_tracestate_dd_propagate_samplingpriority(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -51,23 +49,14 @@ class Test_Headers_Tracestate_DD:
 
             # 3) Sampled = 1, tracestate[dd][s] is not present
             headers3 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                ],
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             # 4) Sampled = 1, tracestate[dd][s] <= 0
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1,dd=s:-1"],
                 ],
             )
@@ -76,33 +65,21 @@ class Test_Headers_Tracestate_DD:
             headers5 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1,dd=s:2"],
                 ],
             )
 
             # 6) Sampled = 0, tracestate[dd][s] is not present
             headers6 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-00",
-                    ],
-                ],
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00",],],
             )
 
             # 7) Sampled = 0, tracestate[dd][s] <= 0
             headers7 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-00",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00",],
                     ["tracestate", "foo=1,dd=s:-1"],
                 ],
             )
@@ -111,10 +88,7 @@ class Test_Headers_Tracestate_DD:
             headers8 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-00",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00",],
                     ["tracestate", "foo=1,dd=s:1"],
                 ],
             )
@@ -153,9 +127,7 @@ class Test_Headers_Tracestate_DD:
         assert "traceparent" in headers3
         assert sampled3 == "01"
         assert "tracestate" in headers3
-        assert "s:1" in dd_items3 or not any(
-            item.startswith("s:") for item in dd_items3
-        )
+        assert "s:1" in dd_items3 or not any(item.startswith("s:") for item in dd_items3)
 
         # 4) Sampled = 1, tracestate[dd][s] <= 0
         # Result: SamplingPriority = 1
@@ -167,9 +139,7 @@ class Test_Headers_Tracestate_DD:
         assert "traceparent" in headers4
         assert sampled4 == "01"
         assert "tracestate" in headers4
-        assert "s:1" in dd_items4 or not any(
-            item.startswith("s:") for item in dd_items4
-        )
+        assert "s:1" in dd_items4 or not any(item.startswith("s:") for item in dd_items4)
 
         # 5) Sampled = 1, tracestate[dd][s] > 0
         # Result: SamplingPriority = incoming sampling priority
@@ -193,9 +163,7 @@ class Test_Headers_Tracestate_DD:
         assert sampled6 == "00"
         if "dd" in tracestate6:
             dd_items6 = tracestate6["dd"].split(";")
-            assert "s:0" in dd_items6 or not any(
-                item.startswith("s:") for item in dd_items6
-            )
+            assert "s:0" in dd_items6 or not any(item.startswith("s:") for item in dd_items6)
 
         # 7) Sampled = 0, tracestate[dd][s] <= 0
         # Result: SamplingPriority = incoming sampling priority
@@ -220,9 +188,7 @@ class Test_Headers_Tracestate_DD:
         assert "tracestate" in headers8
         if "dd" in tracestate8:
             dd_items8 = tracestate8["dd"].split(";")
-            assert "s:0" in dd_items8 or not any(
-                item.startswith("s:") for item in dd_items8
-            )
+            assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
@@ -266,10 +232,7 @@ class Test_Headers_Tracestate_DD:
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1,dd=s:-1"],
                 ],
             )
@@ -278,10 +241,7 @@ class Test_Headers_Tracestate_DD:
             headers5 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1,dd=s:-1;o:synthetics-browser"],
                 ],
             )
@@ -290,10 +250,7 @@ class Test_Headers_Tracestate_DD:
             headers6 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1,dd=s:-1;o:tracing2.0"],
                 ],
             )
@@ -365,16 +322,13 @@ class Test_Headers_Tracestate_DD:
 
     @temporary_enable_propagationstyle_default()
     @missing_feature(
-        context.library == "cpp",
-        reason="_dd.p.dm is reset to DEFAULT because we made the sampling decision",
+        context.library == "cpp", reason="_dd.p.dm is reset to DEFAULT because we made the sampling decision",
     )
     @missing_feature(
         context.library == "golang",
         reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
     )
-    def test_headers_tracestate_dd_propagate_propagatedtags(
-        self, test_agent, test_library
-    ):
+    def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -408,10 +362,7 @@ class Test_Headers_Tracestate_DD:
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
-                    [
-                        "x-datadog-tags",
-                        "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost",
-                    ],
+                    ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost",],
                 ],
             )
 
@@ -419,10 +370,7 @@ class Test_Headers_Tracestate_DD:
             headers4 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1,dd=s:-1"],
                 ],
             )
@@ -453,10 +401,7 @@ class Test_Headers_Tracestate_DD:
         # 3) x-datadog-tags is populated with both well-known tags and unrecognized tags
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
         #         and "=" is replaced with ":"
-        assert (
-            headers3["x-datadog-tags"]
-            == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"
-        )
+        assert headers3["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"
 
         traceparent3, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")
@@ -494,18 +439,14 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @missing_feature(context.library == "cpp", reason="_dd.p.dm is never dropped")
     @missing_feature(
-        context.library == "nodejs",
-        reason="Issue: the decision maker is removed. Is that allowed behavior?",
+        context.library == "nodejs", reason="Issue: the decision maker is removed. Is that allowed behavior?",
     )
     @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
     @missing_feature(
-        context.library == "ruby",
-        reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id",
+        context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id",
     )
-    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(
-        self, test_agent, test_library
-    ):
+    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -517,10 +458,7 @@ class Test_Headers_Tracestate_DD:
             headers1 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1,dd=s:0;t.dm:-0;t.usr.id:baz64~~"],
                 ],
             )
@@ -529,14 +467,8 @@ class Test_Headers_Tracestate_DD:
             headers2 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-00",
-                    ],
-                    [
-                        "tracestate",
-                        "foo=1,dd=s:1;t.dm:-0;t.usr.id:baz64~~;t.url:http://localhost",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00",],
+                    ["tracestate", "foo=1,dd=s:1;t.dm:-0;t.usr.id:baz64~~;t.url:http://localhost",],
                 ],
             )
 
@@ -553,9 +485,7 @@ class Test_Headers_Tracestate_DD:
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
-        assert "s:1" in dd_items1 or not any(
-            item.startswith("s:") for item in dd_items1
-        )
+        assert "s:1" in dd_items1 or not any(item.startswith("s:") for item in dd_items1)
         assert "t.dm:-0" in dd_items1
         assert "t.usr.id:baz64~~" in dd_items1
 
@@ -573,31 +503,20 @@ class Test_Headers_Tracestate_DD:
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
-        assert "s:0" in dd_items2 or not any(
-            item.startswith("s:") for item in dd_items2
-        )
+        assert "s:0" in dd_items2 or not any(item.startswith("s:") for item in dd_items2)
         assert not any(item.startswith("t.dm:") for item in dd_items2)
         assert "t.usr.id:baz64~~" in dd_items2
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
     @missing_feature(
-        context.library == "cpp",
-        reason="_dd.p.dm does not change when a sampling priority was extracted",
+        context.library == "cpp", reason="_dd.p.dm does not change when a sampling priority was extracted",
     )
-    @missing_feature(
-        context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT"
-    )
+    @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
-    @missing_feature(
-        context.library == "python", reason="Issue: Does not reset dm to DEFAULT"
-    )
-    @missing_feature(
-        context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT"
-    )
-    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(
-        self, test_agent, test_library
-    ):
+    @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
+    @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
+    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -609,10 +528,7 @@ class Test_Headers_Tracestate_DD:
             headers1 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~"],
                 ],
             )
@@ -621,14 +537,8 @@ class Test_Headers_Tracestate_DD:
             headers2 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-00",
-                    ],
-                    [
-                        "tracestate",
-                        "foo=1,dd=s:2;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00",],
+                    ["tracestate", "foo=1,dd=s:2;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost",],
                 ],
             )
 
@@ -645,9 +555,7 @@ class Test_Headers_Tracestate_DD:
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
-        assert "s:1" in dd_items1 or not any(
-            item.startswith("s:") for item in dd_items1
-        )
+        assert "s:1" in dd_items1 or not any(item.startswith("s:") for item in dd_items1)
         assert "t.dm:-0" in dd_items1
         assert "t.usr.id:baz64~~" in dd_items1
 
@@ -665,9 +573,7 @@ class Test_Headers_Tracestate_DD:
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
-        assert "s:0" in dd_items2 or not any(
-            item.startswith("s:") for item in dd_items2
-        )
+        assert "s:0" in dd_items2 or not any(item.startswith("s:") for item in dd_items2)
         assert not any(item.startswith("t.dm:") for item in dd_items2)
         assert "t.usr.id:baz64~~" in dd_items2
         assert "t.url:http://localhost" in dd_items2
@@ -677,9 +583,7 @@ class Test_Headers_Tracestate_DD:
         library="php",
         reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
     )
-    def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(
-        self, test_agent, test_library
-    ):
+    def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
         """
         harness sends requests with both tracestate and traceparent.
         all items in the input tracestate are propagated because the resulting
@@ -692,10 +596,7 @@ class Test_Headers_Tracestate_DD:
             headers1 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", other_vendors + ",dd=s:-1"],
                 ],
             )
@@ -704,10 +605,7 @@ class Test_Headers_Tracestate_DD:
             headers2 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", "dd=s:-1," + other_vendors],
                 ],
             )
@@ -716,23 +614,14 @@ class Test_Headers_Tracestate_DD:
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", other_vendors],
                 ],
             )
 
             # 4) Input: No tracestate string
             headers4 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
-                ],
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
@@ -772,9 +661,7 @@ class Test_Headers_Tracestate_DD:
         library="php",
         reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
     )
-    def test_headers_tracestate_dd_evicts_32_or_greater_list_members(
-        self, test_agent, test_library
-    ):
+    def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent.
         the last list-member in the input tracestate is removed from the output
@@ -787,10 +674,7 @@ class Test_Headers_Tracestate_DD:
             headers1 = make_single_request_and_get_inject_headers(
                 test_library,
                 [
-                    [
-                        "traceparent",
-                        "00-12345678901234567890123456789012-1234567890123456-01",
-                    ],
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],
                     ["tracestate", other_vendors + ",key32=value32"],
                 ],
             )

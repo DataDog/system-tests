@@ -135,8 +135,7 @@ class TestDynamicConfigV1:
         assert cfg_state["product"] == "APM_TRACING"
 
     @missing_feature(
-        context.library in ["java", "dotnet", "ruby", "nodejs"],
-        reason="Not implemented yet",
+        context.library in ["java", "dotnet", "ruby", "nodejs"], reason="Not implemented yet",
     )
     @parametrize(
         "library_env",
@@ -148,18 +147,9 @@ class TestDynamicConfigV1:
                 "DD_ENV": e,
             }
             for (s, e) in [
-                (
-                    DEFAULT_ENVVARS["DD_SERVICE"] + "-override",
-                    DEFAULT_ENVVARS["DD_ENV"],
-                ),
-                (
-                    DEFAULT_ENVVARS["DD_SERVICE"],
-                    DEFAULT_ENVVARS["DD_ENV"] + "-override",
-                ),
-                (
-                    DEFAULT_ENVVARS["DD_SERVICE"] + "-override",
-                    DEFAULT_ENVVARS["DD_ENV"] + "-override",
-                ),
+                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"],),
+                (DEFAULT_ENVVARS["DD_SERVICE"], DEFAULT_ENVVARS["DD_ENV"] + "-override",),
+                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"] + "-override",),
             ]
         ],
     )
@@ -199,12 +189,9 @@ class TestDynamicConfigV1:
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
     @parametrize(
-        "library_env",
-        [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
+        "library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
     )
-    def test_trace_sampling_rate_override_env(
-        self, library_env, test_agent, test_library
-    ):
+    def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 
         When RC is unset, the environment variable should be used.
@@ -241,15 +228,11 @@ class TestDynamicConfigV1:
         [
             {
                 **DEFAULT_ENVVARS,
-                "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"sample_rate": ENV_SAMPLING_RULE_RATE, "name": "env_name"}]
-                ),
+                "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": ENV_SAMPLING_RULE_RATE, "name": "env_name"}]),
             }
         ],
     )
-    def test_trace_sampling_rate_with_sampling_rules(
-        self, library_env, test_agent, test_library
-    ):
+    def test_trace_sampling_rate_with_sampling_rules(self, library_env, test_agent, test_library):
         """Ensure that sampling rules still apply when the sample rate is set via remote config."""
         RC_SAMPLING_RULE_RATE = 0.56
         assert RC_SAMPLING_RULE_RATE != ENV_SAMPLING_RULE_RATE
@@ -261,13 +244,10 @@ class TestDynamicConfigV1:
         # Create a remote config entry with a different sample rate. This rate should not
         # apply to env_service spans but should apply to all others.
         set_and_wait_rc(
-            test_agent,
-            config_overrides={"tracing_sampling_rate": RC_SAMPLING_RULE_RATE},
+            test_agent, config_overrides={"tracing_sampling_rate": RC_SAMPLING_RULE_RATE},
         )
 
-        trace = send_and_wait_trace(
-            test_library, test_agent, name="env_name", service=""
-        )
+        trace = send_and_wait_trace(test_library, test_agent, name="env_name", service="")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE)
@@ -280,8 +260,7 @@ class TestDynamicConfigV1:
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
     @missing_feature(
-        library="golang",
-        reason="The Go tracer doesn't support automatic logs injection",
+        library="golang", reason="The Go tracer doesn't support automatic logs injection",
     )
     @parametrize(
         "library_env",
@@ -296,14 +275,11 @@ class TestDynamicConfigV1:
 
         There is no way (at the time of writing) to check the logs produced by the library.
         """
-        cfg_state = set_and_wait_rc(
-            test_agent, config_overrides={"tracing_sample_rate": None}
-        )
+        cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
     @missing_feature(
-        context.library in ["java", "dotnet", "python", "golang", "nodejs"],
-        reason="RPC not implemented yet",
+        context.library in ["java", "dotnet", "python", "golang", "nodejs"], reason="RPC not implemented yet",
     )
     @parametrize(
         "library_env",
@@ -315,12 +291,7 @@ class TestDynamicConfigV1:
         ],
     )
     def test_tracing_client_http_header_tags(
-        self,
-        library_env,
-        test_agent,
-        test_library,
-        test_agent_hostname,
-        test_agent_port,
+        self, library_env, test_agent, test_library, test_agent_hostname, test_agent_port,
     ):
         """Ensure the tracing http header tags can be set via RC.
 
@@ -333,11 +304,7 @@ class TestDynamicConfigV1:
         test_library.http_client_request(
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[
-                ("X-Test-Header", "test-value"),
-                ("X-Test-Header-2", "test-value-2"),
-                ("Content-Length", "35"),
-            ],
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
@@ -358,11 +325,7 @@ class TestDynamicConfigV1:
         test_library.http_client_request(
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[
-                ("X-Test-Header", "test-value"),
-                ("X-Test-Header-2", "test-value-2"),
-                ("Content-Length", "0"),
-            ],
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
@@ -377,11 +340,7 @@ class TestDynamicConfigV1:
         test_library.http_client_request(
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[
-                ("X-Test-Header", "test-value"),
-                ("X-Test-Header-2", "test-value-2"),
-                ("Content-Length", "35"),
-            ],
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
@@ -389,22 +348,17 @@ class TestDynamicConfigV1:
         assert int(trace[0][0]["meta"]["content_length_env"]) > 0
 
 
-@rfc(
-    "https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit"
-)
+@rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
 @scenarios.parametric
 @features.dynamic_configuration
 class TestDynamicConfigV2:
     @parametrize(
-        "library_env",
-        [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
     )
     def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
         expected_local_tags = {}
         if "DD_TAGS" in library_env:
-            expected_local_tags = dict(
-                [p.split(":") for p in library_env["DD_TAGS"].split(",")]
-            )
+            expected_local_tags = dict([p.split(":") for p in library_env["DD_TAGS"].split(",")])
 
         # Ensure tags are applied from the env
         with test_library:
@@ -416,8 +370,7 @@ class TestDynamicConfigV2:
 
         # Ensure local tags are overridden and RC tags applied.
         set_and_wait_rc(
-            test_agent,
-            config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]},
+            test_agent, config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]},
         )
         with test_library:
             with test_library.start_span("test") as span:
@@ -436,37 +389,28 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], expected_local_tags)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_sample_rate(
-        self, library_env, test_agent, test_library
-    ):
+    def test_capability_tracing_sample_rate(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the trace sampling rate capability.
         """
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RATE])
 
     @irrelevant(
-        library="golang",
-        reason="The Go tracer doesn't support automatic logs injection",
+        library="golang", reason="The Go tracer doesn't support automatic logs injection",
     )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_logs_injection(
-        self, library_env, test_agent, test_library
-    ):
+    def test_capability_tracing_logs_injection(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the logs injection capability.
         """
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_LOGS_INJECTION])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_http_header_tags(
-        self, library_env, test_agent, test_library
-    ):
+    def test_capability_tracing_http_header_tags(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the http header tags capability.
         """
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_HTTP_HEADER_TAGS])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_custom_tags(
-        self, library_env, test_agent, test_library
-    ):
+    def test_capability_tracing_custom_tags(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the custom tags capability.
         """
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_CUSTOM_TAGS])

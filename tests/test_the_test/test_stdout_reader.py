@@ -11,15 +11,9 @@ class Test_Main:
         """Test stdout reader"""
 
         os.makedirs("logs_test_the_test/docker/weblog", exist_ok=True)
-        with open(
-            "logs_test_the_test/docker/weblog/stdout.log", "w", encoding="utf-8"
-        ) as f:
-            f.write(
-                "[dd.trace 2021-11-29 17:10:22:203 +0000] [main] DEBUG com.klass - some file\n"
-            )
-            f.write(
-                "[dd.trace 2021-11-29 17:10:22:203 +0000] [main] INFO com.klass - AppSec initial 1.0.14\n"
-            )
+        with open("logs_test_the_test/docker/weblog/stdout.log", "w", encoding="utf-8") as f:
+            f.write("[dd.trace 2021-11-29 17:10:22:203 +0000] [main] DEBUG com.klass - some file\n")
+            f.write("[dd.trace 2021-11-29 17:10:22:203 +0000] [main] INFO com.klass - AppSec initial 1.0.14\n")
 
         stdout = _LibraryStdout()
         stdout.configure(False)
