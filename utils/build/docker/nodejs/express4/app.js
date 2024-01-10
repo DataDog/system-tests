@@ -330,16 +330,12 @@ app.get('/sqs/consume', (req, res) => {
 
   const queueUrl = `http://elasticmq:9324/000000000000/${queue}`
 
-  console.log(queueUrl)
-  console.log(timeout)
-  console.log(typeof timeout)
-
   const consumeMessage = async () => {
     return new Promise((resolve, reject) => {
       sqs.receiveMessage({
-        QueueUrl: queueUrl
-        // MaxNumberOfMessages: 1,
-        // WaitTimeSeconds: 60
+        QueueUrl: queueUrl,
+        MaxNumberOfMessages: 1,
+        WaitTimeSeconds: timeout
       }, (err, response) => {
         if (err) {
           console.error('Error receiving message: ', err)
@@ -356,7 +352,6 @@ app.get('/sqs/consume', (req, res) => {
             resolve()
           } else {
             console.log('No messages received')
-            // reject('No messages received')
           }
         } catch (error) {
           console.error('Error while consuming messages: ', error)
