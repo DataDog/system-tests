@@ -3,14 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
-	if !s.tracerStarted {
-		s.tracerStarted = true
-		tracer.Start()
-	}
 	var opts []tracer.StartSpanOption
 	if args.GetParentId() > 0 {
 		parent := s.spans[*args.ParentId]
@@ -36,7 +33,7 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 			}
 		}
 
-		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
+		sctx, err := tracer.Extract(tracer.TextMapCarrier(headers))
 		if err != nil {
 			fmt.Println("failed in StartSpan", err, headers)
 		} else {

@@ -2,6 +2,7 @@
 
 import json
 import dictdiffer
+from utils.tools import logger
 
 # Validates traces from Agent, Collector and Backend intake OTLP ingestion paths are consistent
 def validate_all_traces(
@@ -38,10 +39,8 @@ def validate_trace(traces: list[dict], use_128_bits_trace_id: bool) -> tuple:
 def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
     assert span["parent_id"] == "0"
     assert span["service"] == "otel-system-tests-spring-boot"
-    assert span["ingestion_reason"] == "otel"
     expected_meta = {
         "deployment.environment": "system-tests",
-        "_dd.ingestion_reason": "otel",
         "otel.status_code": "Unset",
         "otel.library.name": "com.datadoghq.springbootnative",
     }
@@ -98,6 +97,8 @@ def validate_spans_from_all_paths(spans_agent: tuple, spans_intake: tuple, spans
 
 
 def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
+    logger.debug(f"Validate span fields. [{name1}]:[{span1}]")
+    logger.debug(f"Validate span fields. [{name2}]:[{span2}]")
     assert span1["start"] == span2["start"]
     assert span1["end"] == span2["end"]
     assert span1["duration"] == span2["duration"]
@@ -119,6 +120,11 @@ KNOWN_UNMATCHED_METAS = [
     "_dd.tracer_version",
     "_dd.p.dm",
     "_dd.agent_hostname",
+    "_dd.ingestion_reason",  # this is replaced by `ddtags: ingestion_reason:otel` in the latest version
+    "_dd.install.id",
+    "_dd.install.time",
+    "_dd.install.type",
+    "_dd.p.tid",
 ]
 KNOWN_UNMATCHED_METRICS = [
     "_dd.agent_errors_sampler.target_tps",

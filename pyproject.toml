@@ -21,10 +21,45 @@ junit_duration_report = "call"
 junit_suite_name = "system_tests_suite"
 
 markers =[
-    "scenario: run a test only for a specified scenario"
+    "scenario: run a test only for a specified scenario",
+    "features: declare the feature id"
 ]
 
 python_files = "test_*.py _test_*.py"
+
+# migration tooling: list of folders where feature declarations are mandatory
+# once every test class got its feature declaration, we can remove this
+allow_no_feature_nodes = [
+    "tests/apm_tracing_e2e/test_otel.py",
+    "tests/apm_tracing_e2e/test_single_span.py",
+    "tests/apm_tracing_e2e/test_smoke.py",
+    "tests/otel_tracing_e2e/test_e2e.py",
+    "tests/parametric/test_headers_none.py",
+    "tests/parametric/test_headers_precedence.py",
+    "tests/parametric/test_headers_tracecontext.py",
+    "tests/parametric/test_headers_tracestate_dd.py",
+    "tests/parametric/test_otel_span_methods.py",
+    "tests/parametric/test_otel_span_with_w3c.py",
+    "tests/parametric/test_otel_tracer.py",
+    "tests/parametric/test_sampling_span_tags.py",
+    "tests/parametric/test_span_links.py",
+    "tests/parametric/test_tracer.py",
+    "tests/perfs/test_performances.py",
+    "tests/remote_config/test_remote_configuration.py",
+    "tests/test_data_integrity.py",
+    "tests/test_distributed.py",
+    "tests/test_library_logs.py",
+    "tests/test_miscs.py",
+    "tests/test_schemas.py",
+    "tests/test_semantic_conventions.py",
+    "tests/test_smoke.py",
+    "tests/test_telemetry.py",
+    "tests/test_library_conf.py",
+    "tests/test_remote_config.py",
+    "tests/test_scrubbing.py",
+    "tests/test_no_ip_is_reported.py",
+    "tests/test_the_test/",
+]
 
 [tool.pylint]
 init-hook='import sys; sys.path.append(".")'

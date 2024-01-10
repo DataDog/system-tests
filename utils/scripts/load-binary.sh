@@ -218,7 +218,9 @@ elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     # PROFILER: The main version is stored in s3, though we can not access this in CI
-    # Not handled for now
+    # Not handled for now for system-tests. this handles artifact for parametric
+    echo "Using https://github.com/DataDog/dd-trace-cpp@main"
+    echo "https://github.com/DataDog/dd-trace-cpp@main" > cpp-load-from-git
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
     echo "datadog/agent-dev:master-py3" > agent-image
@@ -242,10 +244,9 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
 
 elif [ "$TARGET" = "waf_rule_set" ]; then
     assert_version_is_dev
-    curl --silent \
+    curl --fail --output "waf_rule_set.json" \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
-        --output "waf_rule_set.json" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 
 else

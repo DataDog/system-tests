@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import subprocess
@@ -21,11 +22,12 @@ from iast import (
 from pydantic import BaseModel
 
 tracer.trace("init.service").finish()
+logger = logging.getLogger(__name__)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
-    set_user = lambda *args, **kwargs: None
+    set_user = lambda *args, **kwargs: None  # noqa E731
 
 app = FastAPI()
 
@@ -35,7 +37,15 @@ POSTGRES_CONFIG = dict(
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 
+@app.exception_handler(404)
+async def custom_404_handler(request: Request, _):
+    logger.critical(f"request {request.url} failed with 404")
+    return JSONResponse({"error": 404}, status_code=404)
+
+
 @app.get("/", response_class=PlainTextResponse)
+@app.post("/", response_class=PlainTextResponse)
+@app.options("/", response_class=PlainTextResponse)
 async def root():
     return "Hello, World!"
 
@@ -79,9 +89,10 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
     appsec_trace_utils.track_custom_event(
         tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
     )
-    if tag_value.startswith(payload_in_response_body):
-        json_body = await request.json()
-        return JSONResponse({"payload": json_body}, status_code=status_code, headers=request.query_params)
+    if tag_value.startswith("payload_in_response_body"):
+        return JSONResponse(
+            {"payload": dict(await request.form())}, status_code=status_code, headers=request.query_params,
+        )
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
 
 
@@ -243,15 +254,6 @@ async def view_iast_source_cookie_name(request: Request):
 async def view_iast_source_cookie_value(table: typing.Annotated[str, Cookie()] = "undefined"):
     _sink_point(table=table)
     return "OK"
-
-
-@app.get("/iast/source/headername/test", response_class=PlainTextResponse)
-async def view_iast_source_cookie_name(request: Request):
-    param = [key for key in request.headers if key == "User"]
-    if param:
-        _sink_point(id=param[0])
-        return "OK"
-    return "KO"
 
 
 @app.get("/iast/source/header/test", response_class=PlainTextResponse)
@@ -436,7 +438,7 @@ def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
 def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    command = " ".join([cmd, "-la", filename])
+    command = " ".join([cmd, "-la", filename])  # noqa F841
     # TODO: add secure command
     # subp = subprocess.check_output(command, shell=False)
     # subp.communicate()

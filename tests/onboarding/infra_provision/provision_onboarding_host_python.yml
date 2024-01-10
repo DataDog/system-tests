@@ -1,0 +1,82 @@
+ami: !include tests/onboarding/infra_provision/includes/provision_ami.yml
+
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
+
+init-dd-config-distro: !include tests/onboarding/infra_provision/includes/provision_init_dd_config_distro.yml
+
+prepare-repos:
+  install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
+
+agent:
+  install: !include tests/onboarding/infra_provision/includes/provision_agent.yml
+
+autoinjection_install_script:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_script.yml
+
+autoinjection_install_manual:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_manual.yml
+  uninstall:
+    - os_type: linux
+      command: dd-host-install --uninstall
+
+installation_checks:
+  install: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml        
+language-variants:
+  - name: Python_3.8.15
+    version: 3.8.15
+    install: 
+      - os_type: linux
+        os_distro: deb
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: tests/onboarding/autoinjection/lang/python_install.sh 
+        command: sudo apt-get -y update && sudo sh python_install.sh deb 3.8.15
+
+      - os_type: linux
+        os_distro: rpm
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: tests/onboarding/autoinjection/lang/python_install.sh
+        command: sudo sh python_install.sh rpm 3.8.15
+
+weblogs:
+  - name: test-app-python
+    supported-language-versions:
+      - 3.8.15
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-service
+            local_path: tests/onboarding/weblog/python/test-app-python-django/test-app.service
+
+          - name: copy-run-weblog-script
+            local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python_run.sh
+
+          - name: copy-python-app
+            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
+
+        command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh
+    uninstall: 
+      - os_type: linux
+        command: sudo systemctl stop test-app.service
+
+  - name: test-app-python-gunicorn
+    supported-language-versions:
+      - 3.8.15
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-service
+            local_path: tests/onboarding/weblog/python/test-app-python-django-gunicorn/test-app.service
+
+          - name: copy-run-weblog-script
+            local_path: tests/onboarding/weblog/python/test-app-python-django-gunicorn/test-app-python-gunicorn_run.sh
+
+          - name: copy-python-app
+            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django-gunicorn
+
+        command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python-gunicorn_run.sh
+    uninstall: 
+      - os_type: linux
+        command: sudo systemctl stop test-app.service

@@ -1,7 +1,11 @@
+import logging
 import os
 import random
 import subprocess
+import threading
+import time
 
+from confluent_kafka import Producer, Consumer
 import psycopg2
 import requests
 from flask import Flask, Response, jsonify
@@ -19,6 +23,11 @@ from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
 
+import ddtrace
+
+ddtrace.patch_all()
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
@@ -157,12 +166,118 @@ def dbm():
         cursor = postgres_db.cursor()
         operation = flask_request.args.get("operation")
         if operation == "execute":
-            cursor.execute("select 'blah'")
+            cursor.execute("SELECT version()")
             return Response("OK")
         elif operation == "executemany":
-            cursor.executemany("select %s", (("blah",), ("moo",)))
+            cursor.executemany("SELECT version()", [((),)])
             return Response("OK")
         return Response(f"Cursor method is not supported: {operation}", 406)
+
+    return Response(f"Integration is not supported: {integration}", 406)
+
+
+@app.route("/kafka/produce")
+def produce_kafka_message():
+    """
+        The goal of this endpoint is to trigger kafka producer calls
+    """
+
+    producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
+    message_topic = flask_request.args.get("topic", "DistributedTracing")
+    message_content = b"Distributed Tracing Test!"
+    producer.produce(message_topic, value=message_content)
+    producer.flush()
+
+    return {"result": "ok"}
+
+
+@app.route("/kafka/consume")
+def consume_kafka_message():
+    """
+        The goal of this endpoint is to trigger kafka consumer calls
+    """
+    message_topic = flask_request.args.get("topic", "DistributedTracing")
+    timeout_s = int(flask_request.args.get("timeout", 60))
+
+    consumer = Consumer(
+        {
+            "bootstrap.servers": "kafka:9092",
+            "group.id": "apm_test",
+            "enable.auto.commit": True,
+            "auto.offset.reset": "earliest",
+        }
+    )
+    consumer.subscribe([message_topic])
+
+    msg = None
+    start_time = time.time()
+
+    while not msg and time.time() - start_time < timeout_s:
+        msg = consumer.poll(1)
+
+    consumer.close()
+
+    if msg is None:
+        return {"error": "message not found"}, 404
+
+    return {"message": msg.value().decode("utf-8")}
+
+
+@app.route("/dsm")
+def dsm():
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    topic = "dsm-system-tests-queue"
+    consumer_group = "testgroup1"
+
+    def delivery_report(err, msg):
+        if err is not None:
+            logging.info(f"[kafka] Message delivery failed: {err}")
+        else:
+            logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
+
+    def produce():
+        producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
+        message = b"Hello, Kafka!"
+        producer.produce(topic, value=message, callback=delivery_report)
+        producer.flush()
+
+    def consume():
+        consumer = Consumer(
+            {
+                "bootstrap.servers": "kafka:9092",
+                "group.id": consumer_group,
+                "enable.auto.commit": True,
+                "auto.offset.reset": "earliest",
+            }
+        )
+
+        consumer.subscribe([topic])
+
+        msg_received = False
+        while not msg_received:
+            msg = consumer.poll(1)
+            if msg is None:
+                logging.info("[kafka] Consumed message but got nothing")
+            elif msg.error():
+                logging.info("[kafka] Consumed message but got error " + msg.error())
+            else:
+                logging.info("[kafka] Consumed message")
+                msg_received = True
+        consumer.close()
+
+    integration = flask_request.args.get("integration")
+    logging.info(f"[kafka] Got request with integration: {integration}")
+    if integration == "kafka":
+        produce_thread = threading.Thread(target=produce, args=())
+        consume_thread = threading.Thread(target=consume, args=())
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[kafka] Returning response")
+        return Response("ok")
 
     return Response(f"Integration is not supported: {integration}", 406)
 

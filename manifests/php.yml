@@ -15,7 +15,7 @@ tests/:
         Test_BodyJson: missing_feature
         Test_BodyXml: missing_feature
         Test_ClientIP: missing_feature
-        Test_Headers: v0.68.3  # probably sooner, but was flaky 
+        Test_Headers: v0.68.3  # probably sooner, but was flaky
         Test_Method: missing_feature
         Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
       test_rules.py:
@@ -43,6 +43,8 @@ tests/:
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, vut was flaky
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
@@ -52,15 +54,18 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
+    test_crossed_integrations.py:
+      Test_GolangKafka: missing_feature
+      Test_JavaKafka: missing_feature
+      Test_NodeJSKafka: missing_feature
+      Test_PythonKafka: missing_feature
+      Test_RubyKafka: missing_feature
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration: missing_feature
-      Test_Agent_Mysql_db_integration: missing_feature
-      Test_Agent_Postgres_db_integration: missing_feature
-      Test_Tracer_Mssql_db_integration: missing_feature
-      Test_Tracer_Mysql_db_integration: missing_feature
-      Test_Tracer_Postgres_db_integration: missing_feature
+      Test_MsSql: missing_feature
+      Test_MySql: missing_feature
+      Test_Postgres: missing_feature
     test_dbm.py:
-      Test_Dbm: missing_feature
+      Test_Dbm: v0.91.1
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
@@ -70,8 +75,23 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
+      TestDynamicConfigV2: missing_feature
+    test_otel_span_methods.py:
+        Test_Otel_Span_Methods: v0.94.0
+    test_otel_span_with_w3c.py:
+        Test_Otel_Span_With_W3c: v0.94.0
+    test_otel_tracer.py:
+        Test_Otel_Tracer: v0.94.0
+    test_span_links.py: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
+      Test_Trace_Sampling_Globs: v0.96.0
+      Test_Trace_Sampling_Resource: v0.96.0
+      Test_Trace_Sampling_Tags: v0.96.0
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
+    test_tracer_flare.py:
+      TestTracerFlareV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
@@ -87,8 +107,14 @@ tests/:
     Test_Propagate_Legacy: v0.85.0
   test_library_conf.py:
     Test_HeaderTags: v0.68.2
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: v0.74.0
+    Test_HeaderTags_Colon_Leading: v0.74.0
+    Test_HeaderTags_Colon_Trailing: v0.74.0
+    Test_HeaderTags_Long: missing_feature
+    Test_HeaderTags_Short: v0.74.0
+    Test_HeaderTags_Whitespace_Header: v0.74.0
+    Test_HeaderTags_Whitespace_Tag: missing_feature
+    Test_HeaderTags_Whitespace_Val_Long: missing_feature
+    Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_sampling_rates.py:

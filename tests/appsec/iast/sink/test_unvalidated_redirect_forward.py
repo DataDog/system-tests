@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature
-from .._test_iast_fixtures import SinkFixture
+from utils import context, coverage, features
+from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
 def _expected_location():
@@ -16,31 +16,14 @@ def _expected_location():
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
 
 
+@features.iast_sink_unvalidatedforward
 @coverage.basic
-class TestUnvalidatedForward:
+class TestUnvalidatedForward(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect forward detection."""
 
-    sink_fixture_forward = SinkFixture(
-        vulnerability_type="UNVALIDATED_REDIRECT",
-        http_method="POST",
-        insecure_endpoint="/iast/unvalidated_redirect/test_insecure_forward",
-        secure_endpoint="/iast/unvalidated_redirect/test_secure_forward",
-        data={"location": "http://dummy.location.com"},
-        location_map=_expected_location,
-    )
-
-    def setup_insecure_forward(self):
-        self.sink_fixture_forward.setup_insecure()
-
-    @missing_feature(library="java", weblog_variant="resteasy-netty3")
-    @missing_feature(library="java", weblog_variant="jersey-grizzly2")
-    def test_insecure_forward(self):
-        self.sink_fixture_forward.test_insecure()
-
-    def setup_secure_forward(self):
-        self.sink_fixture_forward.setup_secure()
-
-    @missing_feature(library="java", weblog_variant="resteasy-netty3")
-    @missing_feature(library="java", weblog_variant="jersey-grizzly2")
-    def test_secure_forward(self):
-        self.sink_fixture_forward.test_secure()
+    vulnerability_type = "UNVALIDATED_REDIRECT"
+    http_method = "POST"
+    insecure_endpoint = "/iast/unvalidated_redirect/test_insecure_forward"
+    secure_endpoint = "/iast/unvalidated_redirect/test_secure_forward"
+    data = {"location": "http://dummy.location.com"}
+    location_map = _expected_location()

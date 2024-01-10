@@ -3,11 +3,13 @@ import re
 import stat
 import json
 from pathlib import Path
+from subprocess import run
 import time
 from functools import lru_cache
+import platform
 
 import docker
-from docker.errors import APIError
+from docker.errors import APIError, DockerException
 from docker.models.containers import Container
 import pytest
 import requests
@@ -19,7 +21,24 @@ from utils import interfaces
 
 @lru_cache
 def _get_client():
-    return docker.DockerClient.from_env()
+    try:
+        return docker.DockerClient.from_env()
+    except DockerException as e:
+        # Failed to start the default Docker client... Let's see if we have
+        # better luck with docker contexts...
+        try:
+            ctx_name = run(["docker", "context", "show"], capture_output=True, check=True, text=True).stdout.strip()
+            endpoint = run(
+                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
+                capture_output=True,
+                check=True,
+                text=True,
+            ).stdout.strip()
+            return docker.DockerClient(base_url=endpoint)
+        except:
+            pass
+
+        raise e
 
 
 _NETWORK_NAME = "system-tests_default"
@@ -55,7 +74,7 @@ class TestedContainer:
 
         self.image = ImageInfo(image_name)
         self.healthcheck = healthcheck
-        self.environment = environment
+        self.environment = environment or {}
         self.kwargs = kwargs
         self._container = None
         self.stdout_interface = stdout_interface
@@ -126,46 +145,55 @@ class TestedContainer:
         )
 
         self.wait_for_health()
+        self.warmup()
+
+    def warmup(self):
+        """ if some stuff must be done after healthcheck """
 
     def wait_for_health(self):
-        if not self.healthcheck:
-            return
+        if self.healthcheck:
+            self.execute_command(**self.healthcheck)
 
-        cmd = self.healthcheck["test"]
+    def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
+        """
+            Execute a command inside a container. Usefull for healthcheck and warmups.
+            test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+        """
+
+        cmd = test
 
         if not isinstance(cmd, str):
             assert cmd[0] == "CMD-SHELL", "Only CMD-SHELL is supported"
             cmd = cmd[1]
 
-        retries = self.healthcheck.get("retries", 10)
-        interval = self.healthcheck.get("interval", 1 * 1_000_000_000) / 1_000_000_000
-        # timeout = self.healthcheck.get("timeout", 1 * 1_000_000_000) / 1_000_000_000
-        start_period = self.healthcheck.get("start_period", 0) / 1_000_000_000
+        interval = interval / 1_000_000_000
+        # timeout = timeout / 1_000_000_000
+        start_period = start_period / 1_000_000_000
 
         if start_period:
             time.sleep(start_period)
 
-        logger.info(f"Executing healthcheck {cmd} for {self.name}")
+        logger.info(f"Executing command {cmd} for {self.name}")
 
         for i in range(retries + 1):
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.debug(f"Healthcheck #{i}: {result}")
+                logger.debug(f"Try #{i}: {result}")
 
                 if result.exit_code == 0:
                     return
 
             except APIError as e:
-                logger.exception(f"Healthcheck #{i} failed")
-                pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}: {e.explanation}", 1)
+                logger.exception(f"Try #{i} failed")
+                pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
 
             except Exception as e:
-                logger.debug(f"Healthcheck #{i}: {e}")
+                logger.debug(f"Try #{i}: {e}")
 
             time.sleep(interval)
 
-        pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}", 1)
+        pytest.exit(f"Command {cmd} failed for {self._container.name}", 1)
 
     def _fix_host_pwd_in_volumes(self):
         # on docker compose, volume host path can starts with a "."
@@ -314,6 +342,7 @@ class AgentContainer(TestedContainer):
             "DD_SITE": self.dd_site,
             "DD_APM_RECEIVER_PORT": self.agent_port,
             "DD_DOGSTATSD_PORT": "8125",
+            "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
         }
 
         if use_proxy:
@@ -343,7 +372,22 @@ class AgentContainer(TestedContainer):
 
         self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-        agent_version = self.image.env.get("SYSTEM_TESTS_AGENT_VERSION")
+        if not replay:
+            logger.debug("Get agent version from agent container")
+
+            agent_version = self._container = _get_client().containers.run(
+                image=self.image.name, auto_remove=True, command="/opt/datadog-agent/bin/agent/agent version"
+            )
+
+            agent_version = agent_version.decode("ascii")
+
+            with open(f"{self.host_log_folder}/agent_version", mode="w", encoding="utf-8") as f:
+                f.write(agent_version)
+        else:
+            with open(f"{self.host_log_folder}/agent_version", mode="r", encoding="utf-8") as f:
+                agent_version = f.read()
+
+        logger.info(f"Agent version is {agent_version}")
 
         if agent_version:
             self.agent_version = Version(agent_version, "agent")
@@ -355,6 +399,28 @@ class AgentContainer(TestedContainer):
     @property
     def agent_port(self):
         return 8127
+
+
+class BuddyContainer(TestedContainer):
+    def __init__(self, name, image_name, host_log_folder, proxy_port, environment) -> None:
+        super().__init__(
+            name=name,
+            image_name=image_name,
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
+            ports={"7777/tcp": proxy_port},  # not the proxy port
+            environment={
+                **environment,
+                "DD_SERVICE": name,
+                "DD_ENV": "system-tests",
+                "DD_VERSION": "1.0.0",
+                # "DD_TRACE_DEBUG": "true",
+                "DD_AGENT_HOST": "proxy",
+                "DD_TRACE_AGENT_PORT": proxy_port,
+            },
+        )
+
+        self.interface = None
 
 
 class WeblogContainer(TestedContainer):
@@ -438,12 +504,12 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_TRACE_HEADER_TAGS"] = ""
 
         if len(self.additional_trace_header_tags) != 0:
-            self.environment["DD_TRACE_HEADER_TAGS"] += ",".join(self.additional_trace_header_tags)
+            self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
         if self.appsec_rules_file:
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
         else:
-            self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
+            self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
         if self.weblog_variant == "python3.12":
             self.environment["DD_IAST_ENABLED"] = "false"  # IAST is not working as now on python3.12
@@ -518,12 +584,27 @@ class KafkaContainer(TestedContainer):
             allow_old_container=True,
             healthcheck={
                 "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
-                "start_period": 15 * 1_000_000_000,
+                "start_period": 5 * 1_000_000_000,
                 "interval": 2 * 1_000_000_000,
                 "timeout": 2 * 1_000_000_000,
-                "retries": 15,
+                "retries": 25,
             },
         )
+
+    def warmup(self):
+        topic = "dsm-system-tests-queue"
+        server = "127.0.0.1:9092"
+
+        kafka_options = f"--topic {topic} --bootstrap-server {server}"
+
+        commands = [
+            f"kafka-topics.sh --create {kafka_options}",
+            f'bash -c "echo hello | kafka-console-producer.sh {kafka_options}"',
+            f"kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
+        ]
+
+        for command in commands:
+            self.execute_command(test=command, interval=2 * 1_000_000_000, retries=15)
 
 
 class ZooKeeperContainer(TestedContainer):
@@ -562,6 +643,7 @@ class MySqlContainer(SqlDbTestedContainer):
         super().__init__(
             image_name="mysql/mysql-server:latest",
             name="mysqldb",
+            command="--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "world",
                 "MYSQL_USER": "mysqldb",
@@ -582,6 +664,15 @@ class MySqlContainer(SqlDbTestedContainer):
 class SqlServerContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.data_mssql = f"./{host_log_folder}/data-mssql"
+        healthcheck = {}
+        if not platform.processor().startswith("arm"):
+            # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
+            # see https://hub.docker.com/_/microsoft-azure-sql-edge
+            healthcheck = {
+                "test": '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
+                "retries": 20,
+            }
+
         super().__init__(
             image_name="mcr.microsoft.com/azure-sql-edge:latest",
             name="mssql",
@@ -590,6 +681,7 @@ class SqlServerContainer(SqlDbTestedContainer):
             host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
             #  volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
+            healthcheck=healthcheck,
             dd_integration_service="mssql",
             db_user="SA",
             db_password="yourStrong(!)Password",

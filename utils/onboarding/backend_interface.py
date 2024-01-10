@@ -17,6 +17,7 @@ def _query_for_trace_id(trace_id):
         r = requests.get(f"{host}{path}", headers=headers, timeout=10)
         logger.info(f"Request path [{host}{path}]")
         logger.info(f"Trying to find trace_id [{trace_id}] in backend with result status [{r.status_code}]")
+        logger.debug(f" Backend response for trace_id [{trace_id}]: [{r}]")
         return r.status_code
     except Exception:
         logger.error(f"Error received connecting to host: [{host}] ")
@@ -29,7 +30,7 @@ def wait_backend_trace_id(trace_id, timeout: float = 5.0):
         if _query_for_trace_id(trace_id) != 200:
             time.sleep(2)
         else:
-            print("trace found!")
+            logger.info(f"trace [{trace_id}] found in the backend!")
             break
         if time.perf_counter() - start_time >= timeout:
             raise TimeoutError("Backend timeout")

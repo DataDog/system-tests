@@ -1,6 +1,6 @@
 import os.path
 
-from utils import coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky
+from utils import coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
 
 
@@ -46,6 +46,7 @@ JSON_CONTENT_TYPES = {
 
 @coverage.basic
 @scenarios.appsec_blocking
+@features.appsec_blocking_action
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
 
@@ -128,7 +129,7 @@ class Test_Blocking:
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
-        assert self.r_aph.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_aph.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
         assert self.r_aph.text in BLOCK_TEMPLATE_HTML_ANY
 
     def setup_accept_full_json(self):
@@ -145,7 +146,7 @@ class Test_Blocking:
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
-        assert self.r_afj.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_afj.headers.get("content-type", "").lower() in JSON_CONTENT_TYPES
         assert self.r_afj.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_full_html(self):
@@ -165,7 +166,7 @@ class Test_Blocking:
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
-        assert self.r_afh.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_afh.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
         assert self.r_afh.text in BLOCK_TEMPLATE_HTML_ANY
 
     def setup_json_template_v1(self):
@@ -181,7 +182,7 @@ class Test_Blocking:
     def test_json_template_v1(self):
         """HTML block template is v1 minified"""
         assert self.r_json_v1.status_code == 403
-        assert self.r_json_v1.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_json_v1.headers.get("content-type", "").lower() in JSON_CONTENT_TYPES
         assert self.r_json_v1.text.rstrip() == BLOCK_TEMPLATE_JSON_MIN_V1.rstrip()
 
     def setup_html_template_v2(self):
@@ -197,13 +198,14 @@ class Test_Blocking:
     def test_html_template_v2(self):
         """HTML block template is v2 minified"""
         assert self.r_html_v2.status_code == 403
-        assert self.r_html_v2.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_html_v2.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
         assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
 
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
 @coverage.basic
 @scenarios.appsec_blocking
+@features.appsec_blocking_action
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""
@@ -226,7 +228,10 @@ class Test_CustomBlockingResponse:
     def setup_custom_redirect_wrong_status_code(self):
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v3"}, allow_redirects=False)
 
-    @bug(context.library == "java", reason="Do not check the configured redirect status code")
+    @bug(
+        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
+        reason="Do not check the configured redirect status code",
+    )
     @bug(context.library == "golang", reason="Do not check the configured redirect status code")
     def test_custom_redirect_wrong_status_code(self):
         """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""

@@ -5,30 +5,6 @@ from utils import coverage
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
-@coverage.not_testable
-class Test_NotTestableSample:
-    pass
-
-
-@coverage.not_implemented
-class Test_NotImplementedSample:
-    pass
-
-
-class Test_NotTestable:
-    def test_main(self):
-        assert hasattr(Test_NotTestableSample, "__coverage__")
-        assert hasattr(Test_NotTestableSample, "test_fake")
-        assert Test_NotTestableSample.__coverage__ == "not-testable"
-
-
-class Test_NotImplemented:
-    def test_main(self):
-        assert hasattr(Test_NotImplementedSample, "__coverage__")
-        assert hasattr(Test_NotImplementedSample, "test_fake")
-        assert Test_NotImplementedSample.__coverage__ == "not-implemented"
-
-
 @coverage.basic
 class Test_BasicCoverage:
     def test_main(self):

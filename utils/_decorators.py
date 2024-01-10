@@ -50,7 +50,6 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
             "python",
             "php",
             "ruby",
-            "python_http",
             "java_otel",
             "python_otel",
             "nodejs_otel",
@@ -118,7 +117,7 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
         if not expected_to_fail:
             return function_or_class
 
-        full_reason = "known bug" if reason is None else f"known bug: {reason}"
+        full_reason = "bug" if reason is None else f"bug: {reason}"
         return _get_expected_failure_item(function_or_class, full_reason)
 
     return decorator
@@ -137,7 +136,7 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
         if not skip:
             return function_or_class
 
-        full_reason = "known bug (flaky)" if reason is None else f"known bug (flaky): {reason}"
+        full_reason = "flaky" if reason is None else f"flaky: {reason}"
         return _get_skipped_item(function_or_class, full_reason)
 
     return decorator
@@ -221,7 +220,6 @@ def released(
             compute_declaration("php", "php", php, context.library.version),
             compute_declaration("python", "python", python, context.library.version),
             compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
-            compute_declaration("python_http", "python_http", python, context.library.version),
             compute_declaration("ruby", "ruby", ruby, context.library.version),
             compute_declaration("*", "agent", agent, context.agent_version),
         ]

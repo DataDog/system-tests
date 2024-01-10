@@ -1,4 +1,4 @@
-from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky
+from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky, features
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -24,6 +24,7 @@ def _setup(self):
     Test_TelemetryMetrics.__common_setup_done = True
 
 
+@features.waf_telemetry
 class Test_TelemetryResponses:
     """ Test response from backend/agent """
 
@@ -38,6 +39,7 @@ class Test_TelemetryResponses:
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
 @scenarios.appsec_waf_telemetry
+@features.waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
 
@@ -68,7 +70,7 @@ class Test_TelemetryMetrics:
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
-        if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+        if context.library == "python" and context.weblog_variant not in ("fastapi", "uwsgi-poc"):
             assert len(series) == 2
         else:
             assert len(series) == 1
@@ -216,14 +218,21 @@ def _validate_headers(headers, request_type):
     # a set means "any of"
     expected_headers = {
         "Content-Type": {"application/json", "application/json; charset=utf-8"},
-        "DD-Telemetry-API-Version": "v1",
         "DD-Telemetry-Request-Type": request_type,
         "DD-Client-Library-Language": expected_language,
         "DD-Client-Library-Version": "",
     }
 
-    # APM Python migrates Telemetry to V2
-    expected_headers["DD-Telemetry-API-Version"] = "v2" if expected_language == "python" else "v1"
+    if context.library == "python":
+        # APM Python migrates Telemetry to V2
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    elif context.library > "nodejs@4.20.0":
+        # APM Node.js migrates Telemetry to V2
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    elif context.library >= "java@1.23.0":
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    else:
+        expected_headers["DD-Telemetry-API-Version"] = "v1"
 
     expected_headers = {k.lower(): v for k, v in expected_headers.items()}
 

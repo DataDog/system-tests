@@ -2,7 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import scenarios, interfaces, weblog
+from utils import scenarios, interfaces, weblog, features, missing_feature, context
+from utils.tools import logger
 
 
 def validate_probes(expected_probes):
@@ -94,6 +95,7 @@ def validate_spans(expected_spans):
         check_trace(expected_trace, span_map)
 
 
+@features.debugger
 @scenarios.debugger_probes_status
 class Test_Debugger_Probe_Statuses:
     def test_method_probe_status(self):
@@ -121,37 +123,55 @@ class Test_Debugger_Probe_Statuses:
 
 
 class _Base_Debugger_Snapshot_Test:
-    remote_config_is_sent = False
-    all_probes_installed = False
     expected_probe_ids = []
 
-    def wait_for_remote_config(self, data):
-        if data["path"] == "/v0.7/config":
+    def assert_remote_config_is_sent(self):
+        for data in interfaces.library.get_data("/v0.7/config"):
+            logger.debug(f"Found config in {data['log_filename']}")
             if "client_configs" in data.get("response", {}).get("content", {}):
-                self.remote_config_is_sent = True
-                return True
-        return False
+                return
+
+        raise ValueError("I was expecting a remote config")
+
+    def _is_all_probes_installed(self, data):
+        contents = data.get("request", {}).get("content", [])
+
+        if contents is None:
+            return False
+
+        installed_ids = set()
+        for content in contents:
+            diagnostics = content.get("debugger", {}).get("diagnostics", {})
+            if diagnostics.get("status") == "INSTALLED":
+                installed_ids.add(diagnostics.get("probeId"))
+
+        logger.debug(f"Found probes in {data['log_filename']}:\n    {installed_ids}")
+
+        if set(self.expected_probe_ids).issubset(installed_ids):
+            logger.debug(f"Succes: found probes {installed_ids}")
+            return True
+
+        missings_ids = set(self.expected_probe_ids) - set(installed_ids)
+
+        logger.debug(f"Found some probes, but not all of them. Missing probes are {missings_ids}")
+
+    def assert_all_probes_are_installed(self):
+        logger.debug(f"Checking if I found all my probes:\n    {self.expected_probe_ids}")
+        for data in interfaces.agent.get_data("/api/v2/logs"):
+            if self._is_all_probes_installed(data):
+                return
+
+        raise ValueError("At least one probe is missing")
 
     def wait_for_all_probes_installed(self, data):
         if data["path"] == "/api/v2/logs":
-            contents = data.get("request", {}).get("content", [])
-
-            if contents is None:
-                return False
-
-            installed_ids = set()
-            for content in contents:
-                diagnostics = content.get("debugger", {}).get("diagnostics", {})
-                if diagnostics.get("status") == "INSTALLED":
-                    installed_ids.add(diagnostics.get("probeId"))
-
-            if set(self.expected_probe_ids).issubset(installed_ids):
-                self.all_probes_installed = True
+            if self._is_all_probes_installed(data):
                 return True
 
         return False
 
 
+@features.debugger
 @scenarios.debugger_method_probes_snapshot
 class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
@@ -167,16 +187,17 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
             "decor0aa-acda-4453-9111-1478a6method",
         ]
 
-        interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
+        interfaces.library.wait_for_remote_config_request()
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.log_probe_response = weblog.get("/debugger/log")
         self.metric_probe_response = weblog.get("/debugger/metric/1")
         self.span_probe_response = weblog.get("/debugger/span")
         self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
+    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_method_probe_snaphots(self):
-        assert self.remote_config_is_sent is True
-        assert self.all_probes_installed is True
+        self.assert_remote_config_is_sent()
+        self.assert_all_probes_are_installed()
 
         assert self.log_probe_response.status_code == 200
         assert self.metric_probe_response.status_code == 200
@@ -197,6 +218,7 @@ class Test_Debugger_Method_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         validate_spans(expected_spans)
 
 
+@features.debugger
 @scenarios.debugger_line_probes_snapshot
 class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
     log_probe_response = None
@@ -210,15 +232,16 @@ class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
             "decor0aa-acda-4453-9111-1478a697line",
         ]
 
-        interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
+        interfaces.library.wait_for_remote_config_request()
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.log_probe_response = weblog.get("/debugger/log")
         self.metric_probe_response = weblog.get("/debugger/metric/1")
         self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
+    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_line_probe_snaphots(self):
-        assert self.remote_config_is_sent is True
-        assert self.all_probes_installed is True
+        self.assert_remote_config_is_sent()
+        self.assert_all_probes_are_installed()
 
         assert self.log_probe_response.status_code == 200
         assert self.metric_probe_response.status_code == 200
@@ -237,6 +260,7 @@ class Test_Debugger_Line_Probe_Snaphots(_Base_Debugger_Snapshot_Test):
         validate_spans(expected_spans)
 
 
+@features.debugger
 @scenarios.debugger_mix_log_probe
 class Test_Debugger_Mix_Log_Probe(_Base_Debugger_Snapshot_Test):
     multi_probe_response = None
@@ -247,13 +271,15 @@ class Test_Debugger_Mix_Log_Probe(_Base_Debugger_Snapshot_Test):
             "logfb5a-1974-4cdb-b1dd-77dba2f1line",
         ]
 
-        interfaces.library.wait_for(self.wait_for_remote_config, timeout=30)
+        interfaces.library.wait_for_remote_config_request()
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.multi_probe_response = weblog.get("/debugger/mix/asd/1")
 
+    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_mix_probe(self):
-        assert self.remote_config_is_sent is True
-        assert self.all_probes_installed is True
+        self.assert_remote_config_is_sent()
+        self.assert_all_probes_are_installed()
+
         assert self.multi_probe_response.status_code == 200
 
         expected_probes = {

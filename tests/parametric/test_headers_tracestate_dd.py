@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import missing_feature, context, scenarios
+from utils import bug, missing_feature, context, scenarios
 
 parametrize = pytest.mark.parametrize
 
@@ -159,11 +159,11 @@ class Test_Headers_Tracestate_DD:
 
         traceparent6, tracestate6 = get_tracecontext(headers6)
         sampled6 = str(traceparent6).split("-")[3]
-        dd_items6 = tracestate6["dd"].split(";")
         assert "traceparent" in headers6
         assert sampled6 == "00"
-        assert "tracestate" in headers6
-        assert "s:0" in dd_items6 or not any(item.startswith("s:") for item in dd_items6)
+        if "dd" in tracestate6:
+            dd_items6 = tracestate6["dd"].split(";")
+            assert "s:0" in dd_items6 or not any(item.startswith("s:") for item in dd_items6)
 
         # 7) Sampled = 0, tracestate[dd][s] <= 0
         # Result: SamplingPriority = incoming sampling priority
@@ -183,11 +183,12 @@ class Test_Headers_Tracestate_DD:
 
         traceparent8, tracestate8 = get_tracecontext(headers8)
         sampled8 = str(traceparent8).split("-")[3]
-        dd_items8 = tracestate8["dd"].split(";")
         assert "traceparent" in headers8
         assert sampled8 == "00"
         assert "tracestate" in headers8
-        assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
+        if "dd" in tracestate8:
+            dd_items8 = tracestate8["dd"].split(";")
+            assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
@@ -442,7 +443,6 @@ class Test_Headers_Tracestate_DD:
     )
     @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
-    @missing_feature(context.library == "python_http", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_agent, test_library):
         """
@@ -511,7 +511,6 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
-    @missing_feature(context.library == "python_http", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_agent, test_library):
         """
@@ -574,3 +573,111 @@ class Test_Headers_Tracestate_DD:
         assert not any(item.startswith("t.dm:") for item in dd_items2)
         assert "t.usr.id:baz64~~" in dd_items2
         assert "t.url:http://localhost" in dd_items2
+
+    @temporary_enable_propagationstyle_default()
+    @bug(
+        library="php",
+        reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
+    )
+    def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
+        """
+        harness sends requests with both tracestate and traceparent.
+        all items in the input tracestate are propagated because the resulting
+        number of list-members in the tracestate is less than or equal to 32
+        """
+        with test_library:
+            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+
+            # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
+            headers1 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", other_vendors + ",dd=s:-1"],
+                ],
+            )
+
+            # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
+            headers2 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "dd=s:-1," + other_vendors],
+                ],
+            )
+
+            # 3) Input: 31 list-members without 'dd' in the tracestate string
+            headers3 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", other_vendors],
+                ],
+            )
+
+            # 4) Input: No tracestate string
+            headers4 = make_single_request_and_get_inject_headers(
+                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],],
+            )
+
+        # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
+        _, tracestate1 = get_tracecontext(headers1)
+        tracestate1String = str(tracestate1)
+        assert "key31=value31" in tracestate1String
+        assert tracestate1String.startswith("dd=")
+        assert len(tracestate1String.split(",")) == 32
+
+        # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
+        _, tracestate2 = get_tracecontext(headers2)
+        tracestate2String = str(tracestate2)
+        assert "key31=value31" in tracestate2String
+        assert tracestate2String.startswith("dd=")
+        assert len(tracestate2String.split(",")) == 32
+
+        # 3) Input: 31 list-members without 'dd' in the tracestate string
+        _, tracestate3 = get_tracecontext(headers3)
+        tracestate3String = str(tracestate3)
+        assert "key31=value31" in tracestate3String
+        assert tracestate3String.startswith("dd=")
+        assert len(tracestate3String.split(",")) == 32
+
+        # 4) Input: No tracestate string
+        _, tracestate4 = get_tracecontext(headers4)
+        tracestate4String = str(tracestate4)
+        assert tracestate4String.startswith("dd=")
+        assert len(tracestate4String.split(",")) == 1
+
+    @temporary_enable_propagationstyle_default()
+    @bug(library="cpp", reason="c++ is not dropping the 33rd (last) list-member")
+    @bug(library="dotnet", reason="dotnet is not dropping the 33rd (last) list-member")
+    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
+    @bug(library="nodejs", reason="NodeJS is not dropping the 33rd (last) list-member")
+    @bug(library="python", reason="python is not dropping the 33rd (last) list-member")
+    @bug(
+        library="php",
+        reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
+    )
+    def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
+        """
+        harness sends a request with both tracestate and traceparent.
+        the last list-member in the input tracestate is removed from the output
+        tracestate string because the maximum number of list-members is 32.
+        """
+        with test_library:
+            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+
+            # 1) Input: 32 list-members without 'dd' in the tracestate string
+            headers1 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", other_vendors + ",key32=value32"],
+                ],
+            )
+
+        # 1) Input: 32 list-members without 'dd' in the tracestate string
+        _, tracestate1 = get_tracecontext(headers1)
+        tracestate1String = str(tracestate1)
+        assert len(tracestate1String.split(",")) == 32
+        assert "key32=value32" not in tracestate1String
+        assert tracestate1String.startswith("dd=")

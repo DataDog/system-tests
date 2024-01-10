@@ -1,0 +1,46 @@
+ami: !include tests/onboarding/infra_provision/includes/provision_ami_container.yml
+
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
+
+init-dd-config-distro: !include tests/onboarding/infra_provision/includes/provision_init_dd_config_distro.yml
+
+prepare-repos:
+  install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
+
+prepare-docker:
+  install: !include tests/onboarding/infra_provision/includes/provision_prepare_docker.yml
+
+agent:
+  install: !include tests/onboarding/infra_provision/includes/provision_agent_container.yml
+
+autoinjection_install_script:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_container_script.yml
+
+autoinjection_install_manual:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_container_manual.yml
+  uninstall:
+    - os_type: linux
+      command: dd-container-install --uninstall && sudo systemctl restart docker
+
+installation_checks:
+  install: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml
+
+weblogs:
+  - name: test-app-dotnet
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-run-weblog-script
+            local_path: tests/onboarding/weblog/dotnet/test-app-dotnet/test-app-dotnet_docker_compose_run.sh
+
+          - name: copy-docker-compose-file
+            local_path: tests/onboarding/weblog/dotnet/test-app-dotnet/docker-compose.yml
+
+          - name: copy-dotnet-app
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+
+        command: sh test-app-dotnet_docker_compose_run.sh
+    uninstall: 
+      - os_type: linux
+        command: sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down

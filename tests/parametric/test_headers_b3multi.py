@@ -6,7 +6,7 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, irrelevant, context, scenarios
+from utils import missing_feature, irrelevant, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -48,6 +48,7 @@ def enable_case_insensitive_b3multi() -> Any:
     return parametrize("library_env", [env1, env2])
 
 
+@features.b3_headers_propagation
 @scenarios.parametric
 class Test_Headers_B3multi:
     @enable_b3multi()
@@ -98,7 +99,7 @@ class Test_Headers_B3multi:
         b3_sampling = headers["x-b3-sampled"]
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
-        assert int(b3_trace_id, base=16) == span.get("trace_id")
+        assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
         assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
@@ -149,7 +150,7 @@ class Test_Headers_B3multi:
         b3_sampling = headers["x-b3-sampled"]
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
-        assert int(b3_trace_id, base=16) == span.get("trace_id")
+        assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
         assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
@@ -171,30 +172,29 @@ class Test_Headers_B3multi:
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
+    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_extract_valid(self, test_agent, test_library):
         self.test_headers_b3multi_extract_valid(test_agent, test_library)
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_extract_invalid(self, test_agent, test_library):
         self.test_headers_b3multi_extract_invalid(test_agent, test_library)
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
+    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_inject_valid(self, test_agent, test_library):
         self.test_headers_b3multi_inject_valid(test_agent, test_library)
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
+    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_propagate_valid(self, test_agent, test_library):
         self.test_headers_b3multi_propagate_valid(test_agent, test_library)
 
     @enable_b3_deprecated()
     @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library in ("python", "python_http"), reason="library removed deprecated b3 config")
+    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
     def test_headers_b3multi_deprecated_propagate_invalid(self, test_agent, test_library):
         self.test_headers_b3multi_propagate_invalid(test_agent, test_library)

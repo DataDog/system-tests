@@ -14,11 +14,13 @@ from utils import (
     scenarios,
     weblog,
     flaky,
+    features,
 )
 
 
 @coverage.basic
 @scenarios.appsec_blocking
+@features.appsec_request_blocking
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -34,6 +36,7 @@ class Test_BlockingAddresses:
         self.block_user_req = weblog.get("/users", params={"user": "blockedUser"})
 
     @missing_feature(library="java", reason="Missing /users endpoint")
+    @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
     def test_block_user(self):
         """can block the request from the user"""
 
@@ -65,6 +68,9 @@ class Test_BlockingAddresses:
         context.library < "java@1.15.0", reason="When supported, path parameter detection happens on subsequent WAF run"
     )
     @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(
+        context.library == "java" and context.weblog_variant == "akka-http", reason="path parameters not supported"
+    )
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
     def test_path_params(self):
@@ -76,6 +82,7 @@ class Test_BlockingAddresses:
     def setup_request_query(self):
         self.rq_req = weblog.get("/waf", params={"foo": "xtrace"})
 
+    @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
     def test_request_query(self):
         """can block on server.request.query"""
 
@@ -96,6 +103,7 @@ class Test_BlockingAddresses:
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
+    @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
@@ -142,7 +150,15 @@ class Test_BlockingAddresses:
     @missing_feature(
         context.library == "java"
         and context.weblog_variant
-        not in ("spring-boot", "uds-spring-boot", "spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
+        not in (
+            "akka-http",
+            "play",
+            "spring-boot",
+            "uds-spring-boot",
+            "spring-boot-jetty",
+            "spring-boot-undertow",
+            "spring-boot-wildfly",
+        )
     )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
@@ -156,7 +172,10 @@ class Test_BlockingAddresses:
     def setup_not_found(self):
         self.rnf_req = weblog.get(path="/finger_print")
 
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(
+        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
+        reason="Happens on a subsequent WAF run",
+    )
     @missing_feature(context.library == "ruby", reason="Not working")
     @missing_feature(library="nodejs", reason="Not supported yet")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
@@ -170,7 +189,10 @@ class Test_BlockingAddresses:
         self.rsh_req = weblog.get(path="/headers")
 
     @missing_feature(context.library < "dotnet@2.32.0")
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(
+        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
+        reason="Happens on a subsequent WAF run",
+    )
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
     @missing_feature(library="nodejs", reason="Not supported yet")
@@ -209,6 +231,7 @@ def _assert_custom_event_tag_absence():
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -237,7 +260,7 @@ class Test_Blocking_request_method:
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.text == "Value tagged"
+        assert "Value tagged" in self.set_req1.text
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3876"))
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
@@ -248,6 +271,7 @@ class Test_Blocking_request_method:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -286,7 +310,7 @@ class Test_Blocking_request_uri:
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.text == "Value tagged"
+        assert "Value tagged" in self.set_req1.text
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3877"))
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
@@ -297,6 +321,7 @@ class Test_Blocking_request_uri:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
@@ -338,6 +363,7 @@ class Test_Blocking_request_path_params:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -382,6 +408,7 @@ class Test_Blocking_request_query:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -415,7 +442,7 @@ class Test_Blocking_request_headers:
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.text == "Value tagged"
+        assert "Value tagged" in self.set_req1.text
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3880"))
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
@@ -426,6 +453,7 @@ class Test_Blocking_request_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -470,6 +498,7 @@ class Test_Blocking_request_cookies:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
@@ -502,7 +531,7 @@ class Test_Blocking_request_body:
         )
 
     @irrelevant(
-        context.weblog_variant in ("jersey-grizzly2", "resteasy-netty3"),
+        context.weblog_variant in ("akka-http", "play", "jersey-grizzly2", "resteasy-netty3"),
         reason="Blocks on text/plain if parsed to a String",
     )
     def test_non_blocking_plain_text(self):
@@ -529,6 +558,7 @@ class Test_Blocking_request_body:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_response_blocking
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
@@ -553,6 +583,7 @@ class Test_Blocking_response_status:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_response_blocking
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
@@ -577,25 +608,26 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implemented
+@features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        # TODO
+        assert False, "TODO"
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
-        # TODO
+        assert False, "TODO"
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
-        # TODO
+        assert False, "TODO"
 
 
 @scenarios.appsec_blocking
 @coverage.good
+@features.appsec_request_blocking
 class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 

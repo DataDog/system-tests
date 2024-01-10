@@ -3,13 +3,13 @@ from collections import defaultdict
 import json
 import logging
 import os
-import rc_debugger
 from datetime import datetime
 
 from mitmproxy import master, options
 from mitmproxy.addons import errorcheck, default_addons
-from mitmproxy.flow import Error as FlowError
+from mitmproxy.flow import Error as FlowError, Flow
 
+import rc_debugger
 from rc_mock import MOCKED_RESPONSES
 from _deserializer import deserialize
 
@@ -49,6 +49,12 @@ class _RequestLogger:
 
         logger.debug(f"Proxy state: {self.state}")
 
+        # request -> original port
+        # as the port is overwritten at request stage, we loose it on response stage
+        # this property will keep it
+
+        self.original_ports = {}
+
     def _scrub(self, content):
         if isinstance(content, str):
             content = content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
@@ -70,9 +76,11 @@ class _RequestLogger:
         logger.error(f"Can't scrub type {type(content)}")
         return content
 
-    def request(self, flow):
+    def request(self, flow: Flow):
 
         logger.info(f"{flow.request.method} {flow.request.pretty_url}")
+
+        self.original_ports[flow.id] = flow.request.port
 
         if flow.request.host in ("proxy", "localhost"):
             # tracer is the only container that uses the proxy directly
@@ -115,7 +123,23 @@ class _RequestLogger:
             if flow.request.headers.get("dd-protocol") == "otlp":
                 interface = "open_telemetry"
             elif self.request_is_from_tracer(flow.request):
-                interface = "library"
+                port = self.original_ports[flow.id]
+                if port == 8126:
+                    interface = "library"
+                elif port == 80:  # UDS mode
+                    interface = "library"
+                elif port == 9001:
+                    interface = "python_buddy"
+                elif port == 9002:
+                    interface = "nodejs_buddy"
+                elif port == 9003:
+                    interface = "java_buddy"
+                elif port == 9004:
+                    interface = "ruby_buddy"
+                elif port == 9005:
+                    interface = "golang_buddy"
+                else:
+                    raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
             else:
                 interface = "agent"
 
@@ -222,14 +246,19 @@ class _RequestLogger:
 
 def start_proxy() -> None:
 
+    # the port is used to make the distinction between weblogs (See CROSSED_TRACING_LIBRARIES scenario)
     modes = [
-        # Used for tracer/agents
-        "regular",
+        "regular@8126",  # base weblog
+        "regular@9001",  # python_buddy
+        "regular@9002",  # nodejs_buddy
+        "regular@9003",  # java_buddy
+        "regular@9004",  # ruby_buddy
+        "regular@9005",  # golang_buddy
     ]
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    opts = options.Options(mode=modes, listen_host="0.0.0.0", listen_port=8126, confdir="utils/proxy/.mitmproxy")
+    opts = options.Options(mode=modes, listen_host="0.0.0.0", confdir="utils/proxy/.mitmproxy")
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())

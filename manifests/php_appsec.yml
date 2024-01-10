@@ -2,17 +2,23 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_Headers: missing_feature
+        Test_Scanners: missing_feature
+        Test_Schema_Request_Cookies: v0.94.0
+        Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
+        Test_Schema_Request_Headers: v0.94.0
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Request_Query_Parameters: v0.94.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Headers: v0.94.0
     iast/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature          
+        test_header_injection.py:
+          TestHeaderInjection: missing_feature
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -34,6 +40,7 @@ tests/:
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
+          TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -58,10 +65,16 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName: missing_feature
         test_parameter_value.py:
           TestParameterValue: missing_feature
+        test_path.py:
+          TestPath: missing_feature
+        test_uri.py:
+          TestURI: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyRaw: v0.1.0
@@ -116,7 +129,7 @@ tests/:
       Test_Blocking_request_uri: v0.7.0
       Test_Blocking_response_headers: v0.7.0
       Test_Blocking_response_status: v0.7.0
-      Test_Suspicious_Request_Blocking: v0.7.0
+      Test_Suspicious_Request_Blocking: missing_feature (v0.7.0 but test is not implemented)
     test_conf.py:
       Test_RuleSet_1_3_1: v0.3.0
       Test_StaticRuleSet: v0.1.0
@@ -141,10 +154,13 @@ tests/:
       Test_AppSecRequestBlocking: v0.7.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v0.7.0
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v0.1.0
       Test_AppSecObfuscator: v0.3.0
       Test_CollectRespondHeaders: v0.2.2
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v0.1.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.7.2

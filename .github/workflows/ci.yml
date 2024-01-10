@@ -128,12 +128,16 @@ jobs:
           weblog: spring-boot-payara
         - library: java
           weblog: akka-http
+        - library: java
+          weblog: play
         - library: nodejs
           weblog: express4
         - library: nodejs
           weblog: uds-express4
         - library: nodejs
           weblog: express4-typescript
+        - library: nodejs
+          weblog: nextjs
         - library: php
           weblog: apache-mod-7.0
         - library: php
@@ -247,16 +251,21 @@ jobs:
         docker buildx build --load --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v0 .
         docker buildx build --load --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v0 .
         docker buildx build --load --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v2 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v1 .
+    - name: Build buddies weblog images
+      if: contains(github.event.pull_request.labels.*.name, 'build-buddies-images')
+      run: ./utils/build/build_tracer_buddies.sh
     - name: Build proxy image
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
       run: ./build.sh -i proxy
-    - name: Load WAF rules
-      if: ${{ matrix.version == 'dev' }}
-      run: ./utils/scripts/load-binary.sh waf_rule_set
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
+    #### skipping this, waiting for a proper solution
+    # - name: Load WAF rules
+    #   if: ${{ matrix.version == 'dev' }}
+    #   run: ./utils/scripts/load-binary.sh waf_rule_set
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
@@ -280,6 +289,11 @@ jobs:
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run CROSSED_TRACING_LIBRARIES scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_integration == 'true'
+      run: ./run.sh CROSSED_TRACING_LIBRARIES
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING
@@ -291,7 +305,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_integration == 'true'
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -302,14 +316,14 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
+    - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
+      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
+    - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
+      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
@@ -477,8 +491,8 @@ jobs:
         # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
         ./run.sh INTEGRATIONS --replay
         # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
-        ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT --replay
-        ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG --replay
+        ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS --replay
+        ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD --replay
@@ -499,12 +513,12 @@ jobs:
         ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
         ./run.sh APPSEC_WAF_TELEMETRY --replay
         ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
-        # ./run.sh SAMPLING --replay  # currently not working on replay mode
+        ./run.sh SAMPLING --replay
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
         ./run.sh DEBUGGER_PROBES_STATUS --replay
-        # ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay  # currently not working on replay mode
-        # ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay  # currently not working on replay mode
-        # ./run.sh DEBUGGER_MIX_LOG_PROBE --replay  # currently not working on replay mode
+        ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay
+        ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay
+        ./run.sh DEBUGGER_MIX_LOG_PROBE --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -596,7 +610,7 @@ jobs:
 
   open-telemetry-automatic:
     runs-on: ubuntu-latest
-    if: needs.scenarios.outputs.run_open_telemetry == 'true'
+    if: needs.scenarios.outputs.run_open_telemetry == 'true' || needs.scenarios.outputs.run_integration == 'true'
     needs:
     - lint
     - test_the_test

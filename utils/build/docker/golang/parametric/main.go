@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -18,17 +19,21 @@ import (
 
 type apmClientServer struct {
 	UnimplementedAPMClientServer
-	spans         map[uint64]tracer.Span
-	otelSpans     map[uint64]otel_trace.Span
-	tp            *ddotel.TracerProvider
-	tracer        otel_trace.Tracer
-	tracerStarted bool
+	spans     map[uint64]tracer.Span
+	otelSpans map[uint64]spanContext
+	tp        *ddotel.TracerProvider
+	tracer    otel_trace.Tracer
+}
+
+type spanContext struct {
+	span otel_trace.Span
+	ctx  context.Context
 }
 
 func newServer() *apmClientServer {
 	s := &apmClientServer{
 		spans:     make(map[uint64]tracer.Span),
-		otelSpans: make(map[uint64]otel_trace.Span),
+		otelSpans: make(map[uint64]spanContext),
 	}
 	s.tp = ddotel.NewTracerProvider()
 	otel.SetTracerProvider(s.tp)

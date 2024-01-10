@@ -40,4 +40,8 @@ Based on class `EndToEndScenario`, they spwan a weblog (HTTP app shipping a trac
 
 ### Parametric scenario
 
-Parametric scenario build and spawn a tracer with a simple GRPC interface. It's not really unit tests (still black-box testing), neither functionnal tests (only tracers are tested), they are convenient to tests different parameter set for tracers. More detailled documentation ca be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
+Parametric scenario build and spawn a tracer with a simple GRPC interface. It's not really unit tests (still black-box testing), neither functionnal tests (only tracers are tested), they are convenient to tests different parameter set for tracers. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
+
+### OnBoarding scenarios
+
+Automatic library injection simplifies the APM onboarding experience for customers deploying Java, NodeJS, .NET and Ruby applications in VMs and docker environments. Datadog software installed on the machine will be intercept the startup of your application and it will inject the tracer library automatically. The OnBoarding scenarios reproduce different environments and check the library injection is done correctly. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md).

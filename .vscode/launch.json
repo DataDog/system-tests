@@ -14,6 +14,15 @@
             "justMyCode": true
         },
         {
+            "name": "Replay DEFAULT scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Run INTEGRATIONS scenario",
             "type": "python",
             "request": "launch",
@@ -23,11 +32,11 @@
             "justMyCode": true
         },
         {
-            "name": "Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario",
+            "name": "Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario",
             "type": "python",
             "request": "launch",
             "module": "pytest",
-            "args": ["-S", "LIBRARY_CONF_CUSTOM_HEADERS_LONG", "-p", "no:warnings"],
+            "args": ["-S", "LIBRARY_CONF_CUSTOM_HEADER_TAGS", "-p", "no:warnings"],
             "console": "integratedTerminal",
             "justMyCode": true
         },
@@ -57,6 +66,35 @@
             "args": ["-S", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES", "-p", "no:warnings", "--replay"],
             "console": "integratedTerminal",
             "justMyCode": true
-        }
+        },
+        {
+            "name": "Replay SAMPLING scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "SAMPLING", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Run TEST_THE_TEST scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "TEST_THE_TEST", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "."
+            }
+        },
     ]
 }

@@ -6,7 +6,7 @@ from collections import defaultdict
 import csv
 from random import randint, seed
 
-from utils import weblog, interfaces, context, missing_feature, bug, irrelevant, flaky, scenarios
+from utils import weblog, interfaces, context, missing_feature, bug, irrelevant, flaky, scenarios, features
 from utils.tools import logger
 
 
@@ -47,6 +47,8 @@ def _spans_with_parent(traces, parent_ids):
 @bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2")
 @bug(context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces")
 @scenarios.sampling
+@features.twl_customer_controls_ingestion_dd_trace_sampling_rules
+@features.ensure_that_sampling_is_consistent_across_languages
 class Test_SamplingRates:
     """Rate at which traces are sampled is the actual sample rate"""
 
@@ -109,6 +111,7 @@ class Test_SamplingRates:
 
 
 @scenarios.sampling
+@features.ensure_that_sampling_is_consistent_across_languages
 class Test_SamplingDecisions:
     """Sampling configuration"""
 
@@ -159,6 +162,8 @@ class Test_SamplingDecisions:
             validator(data, span)
 
     def setup_sampling_decision_added(self):
+        seed(1)  # stay deterministic
+
         self.traces = [{"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)]
 
         for trace in self.traces:
@@ -195,7 +200,7 @@ class Test_SamplingDecisions:
         interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
 
         if len(spans) != len(traces):
-            raise ValueError("Didn't see all requests")
+            raise ValueError(f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}")
 
     def setup_sampling_determinism(self):
         seed(0)  # stay deterministic

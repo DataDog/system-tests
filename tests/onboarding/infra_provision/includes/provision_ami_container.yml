@@ -1,0 +1,37 @@
+- name: ubuntu-x86-22.04
+  ami_id: ami-007855ac798b5175e
+  instance_type: t2.medium
+  user: ubuntu
+  os_type: linux
+  os_distro: deb
+
+- name: ubuntu-x86-18.04
+  ami_id: ami-0263e4deb427da90e
+  instance_type: t2.medium
+  user: ubuntu
+  os_type: linux
+  os_distro: deb
+
+- name: amazon-linux-2023-x86
+  ami_id: ami-06b09bfacae1453cb
+  instance_type: t2.medium
+  user: ec2-user
+  os_type: linux
+  os_distro: rpm
+
+#ARM BASED EC2 INSTANCES
+- name: ubuntu-arm64-22.04
+  ami_id: ami-016485166ec7fa705
+  instance_type: t4g.small
+  user: ubuntu
+  os_type: linux
+  os_distro: deb
+  os_arch: arm
+
+- name: amazon-linux-2023-arm64
+  ami_id: ami-04c97e62cb19d53f1
+  instance_type: t4g.small
+  user: ec2-user
+  os_type: linux
+  os_distro: rpm
+  os_arch: arm

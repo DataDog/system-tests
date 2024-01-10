@@ -191,6 +191,10 @@ The endpoint executes a unique operation of String hashing with given algorithm 
 
 The endpoint executes a unique operation of String hashing with unsecure MD5 algorithm
 
+### GET /iast/hardcoded_secrets/test_insecure
+
+Parameterless endpoint. This endpoint contains a hardcoded secret. The declaration of the hardcoded secret should be sufficient to trigger the vulnerability, so returning it in the response is optional.
+
 ### \[GET, POST\] /iast/source/*
 
 This group of endpoints should trigger vulnerabilities detected by IAST with untrusted data coming from certain sources. The used vulnerability is irrelevant. It could be a command injection, SQL injection, or something else.
@@ -229,6 +233,9 @@ A GET request using a cookie with name `table` and any value. The value must be 
 
 A GET request using a cookie with name `user` and any value. The name must be used in the vulnerability.
 
+#### POST /iast/source/multipart/test
+A multipart request uploading a file (with a file name).
+
 #### POST /iast/source/body/test
 
 A POST request which will receive the following JSON body:
@@ -254,8 +261,12 @@ This endpoint accept a mandatory parameter `url`. It'll make a call to these url
 
 ### GET /dbm
 
-This endpoint executes database queries for DBM supported libraries. A 200 response is returned if the query
+This endpoint executes database queries for [DBM supported libraries](https://docs.datadoghq.com/database_monitoring/guide/connect_dbm_and_apm/?tab=go#before-you-begin). A 200 response is returned if the query
 is executed successfully.
+
+Expected SQL query:
+- For SqlServer: `SELECT @@version`
+- For PostgreSQL & MySQL: `SELECT version()`
 
 Expected query params:
   - `integration`: Name of DBM supported library
@@ -265,10 +276,14 @@ Expected query params:
 
 
 Supported Libraries:
-  - pyscopg (Python PostgreSQL adapter)
-  - npgsql (ADO.NET Data Provider for PostgreSQL)
-  - mysql (ADO.NET driver for MySQL)
-  - sqlclient (Microsoft Data Provider for SQLServer & Azure SQL Database)
+  - Python:
+    - [pyscopg](https://www.psycopg.org/docs/index.html) (Python PostgreSQL adapter)
+  - .NET:
+    - [npgsql](https://www.nuget.org/packages/npgsql) (ADO.NET Data Provider for PostgreSQL)
+    - [mysql](https://www.nuget.org/packages/MySql.Data) (ADO.NET driver for MySQL)
+  - PHP:
+    - [pdo](https://www.php.net/manual/en/book.pdo.php) (Data Objects for accessing multiple databases)
+    - [mysqli](https://www.php.net/manual/en/book.mysqli.php) (Extension that interacts with MySQL)
 
 ### GET /dsm
 
@@ -392,3 +407,11 @@ The following query parameters are required for each endpoint:
 should rename the trace service, creating a "fake" service
 
 The parameter `serviceName` is required and should be a string with the name for the fake service
+
+### POST /shell_execution
+This endpoint is used to spawn a new process and test that shell execution span is properly sent.
+It supports the following body fields:
+- `command`: the program or script to be executed.
+- `options`: a record with the following options:
+  - `shell`: boolean in order to instruct if the program should be executed within a shell.
+- `args`: arguments passed to the program.

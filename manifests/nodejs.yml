@@ -7,9 +7,11 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
+        Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
@@ -20,6 +22,14 @@ tests/:
           TestCommandInjection:
             '*': missing_feature
             express4: v3.11.0
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets:
+            '*': missing_feature
+            express4: v4.18.0
+        test_header_injection.py:
+          TestHeaderInjection:
+            '*': missing_feature
+            express4: v4.21.0
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader:
             '*': missing_feature
@@ -29,11 +39,17 @@ tests/:
             '*': missing_feature
             express4: v4.1.0
         test_ldap_injection.py:
-          TestLDAPInjection: missing_feature
+          TestLDAPInjection:
+            '*': missing_feature
+            express4: v4.1.0
         test_no_httponly_cookie.py:
-          TestNoHttponlyCookie: missing_feature
+          TestNoHttponlyCookie: 
+            '*': missing_feature
+            express4: v4.3.0
         test_no_samesite_cookie.py:
-          TestNoSamesiteCookie: missing_feature
+          TestNoSamesiteCookie:
+            '*': missing_feature
+            express4: v4.3.0
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
@@ -45,10 +61,15 @@ tests/:
             '*': missing_feature
             express4: v3.11.0
         test_ssrf.py:
-          TestSSRF: missing_feature
+          TestSSRF: 
+            '*': missing_feature
+            express4: v4.1.0
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
+          TestUnvalidatedHeader:
+            '*': missing_feature
+            express4: v4.3.0
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -78,34 +99,58 @@ tests/:
         test_cookie_name.py:
           TestCookieName: missing_feature
         test_cookie_value.py:
-          TestCookieValue: missing_feature
+          TestCookieValue:
+            '*': missing_feature
+            express4: v4.3.0
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
-          TestHeaderValue: missing_feature
+          TestHeaderValue:
+            '*': missing_feature
+            express4: v4.3.0
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName: missing_feature
         test_parameter_value.py:
           TestParameterValue:
             '*': missing_feature
             express4: v3.19.0
+        test_path.py:
+          TestPath: missing_feature
+        test_uri.py:
+          TestURI: missing_feature
     waf/:
       test_addresses.py:
-        Test_BodyJson: v2.2.0
+        Test_BodyJson: 
+          '*': v2.2.0
+          nextjs: v4.17.0
         Test_BodyRaw: missing_feature
-        Test_BodyUrlEncoded: v2.2.0
-        Test_BodyXml: v2.2.0
+        Test_BodyUrlEncoded: 
+          '*': v2.2.0
+          nextjs: missing_feature  # request.formData() method not supported yet
+        Test_BodyXml: 
+          '*': v2.2.0
+          nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
         Test_ClientIP: missing_feature
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
-        Test_GraphQL: v4.16.0
+        Test_GraphQL:
+          '*': missing_feature (v4.16.0 but test is not implemented)
+          nextjs: irrelevant # nextjs is not related with graphql
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
-        Test_PathParams: v2.0.0
+        Test_PathParams:
+          '*': v2.0.0
+          nextjs: missing_feature
         Test_ResponseStatus: v2.0.0
-        Test_UrlQuery: v2.0.0
-        Test_UrlQueryKey: v2.6.0
+        Test_UrlQuery:
+          '*': v2.0.0
+          nextjs: v4.17.0
+        Test_UrlQueryKey:
+          '*': v2.6.0
+          nextjs: v4.17.0
         Test_UrlRaw: v2.0.0
         Test_gRPC: missing_feature
       test_blocking.py:
@@ -137,27 +182,39 @@ tests/:
         Test_Scanners: v2.0.0
         Test_XSS: v2.0.0
       test_telemetry.py:
-        Test_TelemetryMetrics: missing_feature
+        Test_TelemetryMetrics: v4.17.0
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v2.0.0
     test_automated_login_events.py:
-      Test_Login_Events: v4.4.0
-      Test_Login_Events_Extended: v4.4.0
+      Test_Login_Events: 
+        '*': v4.4.0
+        nextjs: missing_feature
+      Test_Login_Events_Extended: 
+        '*': v4.4.0
+        nextjs: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v3.19.0
       Test_BlockingGraphqlResolvers: missing_feature
-      Test_Blocking_request_body: v3.19.0
-      Test_Blocking_request_cookies: v14.16.0
+      Test_Blocking_request_body:
+        '*': v3.19.0
+        nextjs: missing_feature
+      Test_Blocking_request_cookies:
+        '*': v4.16.0
+        nextjs: missing_feature
       Test_Blocking_request_headers: v3.19.0
       Test_Blocking_request_method: v3.19.0
       Test_Blocking_request_path_params: missing_feature
-      Test_Blocking_request_query: v3.19.0
+      Test_Blocking_request_query:
+        '*': v3.19.0
+        nextjs: missing_feature
       Test_Blocking_request_uri: v3.19.0
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
-      Test_Suspicious_Request_Blocking: v3.19.0
+      Test_Suspicious_Request_Blocking:
+        '*': missing_feature (v3.19.0, but test is not implemented)
+        nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v3.6.0
     test_conf.py:
@@ -169,9 +226,15 @@ tests/:
       Test_MissingRules: missing_feature
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
-      Test_CustomEvent: v3.13.0
-      Test_UserLoginFailureEvent: v3.13.0
-      Test_UserLoginSuccessEvent: v3.13.0
+      Test_CustomEvent: 
+        '*': v3.13.0
+        nextjs: missing_feature
+      Test_UserLoginFailureEvent: 
+        '*': v3.13.0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEvent: 
+        '*': v3.13.0
+        nextjs: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
@@ -188,16 +251,23 @@ tests/:
       Test_RequestHeaders: v2.0.0
       Test_StatusCode: v2.0.0
     test_request_blocking.py:
-      Test_AppSecRequestBlocking: v3.19.0
+      Test_AppSecRequestBlocking:
+          '*': v3.19.0
+          nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: v3.9.0
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
       Test_CollectRespondHeaders: v2.0.0
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v3.15.0
+      Test_UserBlocking_FullDenylist:
+        '*': v3.15.0
+        nextjs: missing_feature (block method not implemented for nextjs yet)
     test_versions.py:
       Test_Events: v2.0.0
   debugger/:
@@ -207,41 +277,59 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
+    test_crossed_integrations.py:
+      Test_GolangKafka:
+        '*': missing_feature (Endpoint not implemented)
+        express4: v0.1 # real version not known
+      Test_JavaKafka:
+        '*': missing_feature (Endpoint not implemented)
+        express4: v0.1 # real version not known
+      Test_NodeJSKafka:
+        '*': missing_feature (Endpoint not implemented)
+        express4: v0.1 # real version not known
+      Test_PythonKafka:
+        '*': missing_feature (Endpoint not implemented)
+        express4: v0.1 # real version not known
+      Test_RubyKafka:
+        '*': missing_feature (Endpoint not implemented)
+        express4: v0.1 # real version not known
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration:
+      Test_MsSql:
         '*': missing_feature
         express4: v1.0.0
-      Test_Agent_Mysql_db_integration:
+      Test_MySql:
         '*': missing_feature
         express4: v1.0.0
-      Test_Agent_Postgres_db_integration:
-        '*': missing_feature
-        express4: v1.0.0
-      Test_Tracer_Mssql_db_integration:
-        '*': missing_feature
-        express4: v1.0.0
-      Test_Tracer_Mysql_db_integration:
-        '*': missing_feature
-        express4: v1.0.0
-      Test_Tracer_Postgres_db_integration:
+      Test_Postgres:
         '*': missing_feature
         express4: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
-      Test_DsmKafka: v4.4.0
+      Test_DsmKafka: 
+        '*': v4.4.0
+        nextjs: missing_feature (missing endpoint)
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v4.11.0
+      TestDynamicConfigV2: missing_feature
+    test_span_links.py: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: missing_feature
+      Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Resource: missing_feature
+      Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v3.21.0
+    test_tracer_flare.py:
+      TestTracerFlareV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: missing_feature
+      Test_RemoteConfigurationExtraServices: v4.17.0
       Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
@@ -255,21 +343,35 @@ tests/:
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
-    Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTags: v4.11.0
+    Test_HeaderTags_Colon_Leading: v4.11.0
+    Test_HeaderTags_Colon_Trailing: v4.11.0
+    Test_HeaderTags_Long: v4.11.0
+    Test_HeaderTags_Short: v4.11.0
+    Test_HeaderTags_Whitespace_Header: bug (AIT-9109)
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-9109)
+    Test_HeaderTags_Whitespace_Val_Long: v4.11.0
+    Test_HeaderTags_Whitespace_Val_Short: v4.11.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:
     Test_UrlField: v3.13.1
-    Test_UrlQuery: v3.0.0
+    Test_UrlQuery:
+      '*': v3.0.0
+      nextjs: v4.17.0
   test_semantic_conventions.py:
-    Test_Meta: v3.13.1
+    Test_Meta: 
+      '*': v3.13.1
+      nextjs: missing_feature # nextjs makes some internal requests and we have different tag names
     Test_MetricsStandardTags: v3.13.1
   test_standard_tags.py:
-    Test_StandardTagsClientIp: v3.6.0
+    Test_StandardTagsClientIp: 
+      '*': v3.6.0
+      nextjs: missing_feature # nextjs makes some internal requests, so we have more than 1 rootspans
     Test_StandardTagsMethod: v2.11.0
-    Test_StandardTagsRoute: v2.11.0
+    Test_StandardTagsRoute: 
+      '*': v2.11.0
+      nextjs: missing_feature # http.route not added in nextjs
     Test_StandardTagsStatusCode: v2.11.0
     Test_StandardTagsUrl: v3.0.0
     Test_StandardTagsUserAgent: v2.9.0
@@ -282,6 +384,7 @@ tests/:
     Test_ProductsDisabled: missing_feature
     Test_Telemetry:
       '*': v3.2.0
+      nextjs: missing_feature
       uds-express4: v3.7.0
     Test_TelemetryV2: missing_feature
   test_status_error_mapping.py:

@@ -25,7 +25,6 @@ readonly DEFAULT_DOCKER_MODE=0
 # XXX: Avoid associative arrays for Bash 3 compatibility.
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
-readonly DEFAULT_python_http=
 readonly DEFAULT_ruby=rails70
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
@@ -184,14 +183,6 @@ build() {
 		--pull \
                 --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
                 $EXTRA_DOCKER_ARGS \
-                .
-
-            SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
-
-            docker buildx build \
-                --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
-                -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
-                -t system_tests/agent \
                 .
 
         elif [[ $IMAGE_NAME == weblog ]]; then

@@ -7,9 +7,11 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
+        Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: missing_feature
+        Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
@@ -17,38 +19,43 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py:
-          TestCommandInjection: missing_feature
+          TestCommandInjection: v2.28.0
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature
+        test_header_injection.py:
+          TestHeaderInjection: missing_feature
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
-          TestInsecureCookie: missing_feature
+          TestInsecureCookie: v2.39.0
         test_ldap_injection.py:
-          TestLDAPInjection: missing_feature
+          TestLDAPInjection: v2.36.0
         test_no_httponly_cookie.py:
-          TestNoHttponlyCookie: missing_feature
+          TestNoHttponlyCookie: v2.39.0
         test_no_samesite_cookie.py:
-          TestNoSamesiteCookie: missing_feature
+          TestNoSamesiteCookie: v2.39.0
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
-          TestPathTraversal: missing_feature
+          TestPathTraversal: v2.31.0
         test_sql_injection.py:
-          TestSqlInjection: missing_feature
+          TestSqlInjection: 
+             '*': v2.23.0
         test_ssrf.py:
-          TestSSRF: missing_feature
+          TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
-          Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation: v2.43.0
         test_unvalidated_redirect.py:
-          TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedHeader: v2.44.0
+          TestUnvalidatedRedirect: v2.44.0
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
-          TestWeakCipher: missing_feature
+          TestWeakCipher: v2.24.0
         test_weak_hash.py:
-          TestWeakHash:
-              '*': v2.24.0
+          TestWeakHash: v2.24.0
         test_weak_randomness.py:
-          TestWeakRandomness: missing_feature
+          TestWeakRandomness: v2.39.0
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature        
         test_xpath_injection.py:
@@ -57,19 +64,26 @@ tests/:
           TestXSS: missing_feature
       source/:
         test_body.py:
-          TestRequestBody: missing_feature
+          TestRequestBody: v2.39.0
         test_cookie_name.py:
-          TestCookieName: missing_feature
+          TestCookieName: v2.42.0
         test_cookie_value.py:
-          TestCookieValue: missing_feature
+          TestCookieValue: v2.42.0
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
-          TestHeaderValue: missing_feature
+          TestHeaderValue: 
+             '*': v2.39.0
+        test_multipart.py:
+          TestMultipart: missing_feature
         test_parameter_name.py:
-          TestParameterName: missing_feature
+          TestParameterName: v2.28.0
         test_parameter_value.py:
-          TestParameterValue: missing_feature
+          TestParameterValue: v2.28.0
+        test_path.py:
+          TestPath: missing_feature
+        test_uri.py:
+          TestURI: irrelevant     
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -132,7 +146,7 @@ tests/:
       Test_Blocking_request_uri: v2.32.0
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
-      Test_Suspicious_Request_Blocking: v2.29.0
+      Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
     test_conf.py:
@@ -162,10 +176,13 @@ tests/:
       Test_AppSecRequestBlocking: v2.25.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.16.0
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v1.29.0
       Test_AppSecObfuscator: v2.7.0
       Test_CollectRespondHeaders: v2.5.1
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
@@ -176,13 +193,16 @@ tests/:
       Test_Debugger_Mix_Log_Probe: v2.33.0
       Test_Debugger_Probe_Statuses: v2.33.0
   integrations/:
+    test_crossed_integrations.py:
+      Test_GolangKafka: missing_feature
+      Test_JavaKafka: missing_feature
+      Test_NodeJSKafka: missing_feature
+      Test_PythonKafka: missing_feature
+      Test_RubyKafka: missing_feature
     test_db_integrations_sql.py:
-      Test_Agent_Mssql_db_integration: missing_feature
-      Test_Agent_Mysql_db_integration: missing_feature
-      Test_Agent_Postgres_db_integration: missing_feature
-      Test_Tracer_Mssql_db_integration: missing_feature
-      Test_Tracer_Mysql_db_integration: missing_feature
-      Test_Tracer_Postgres_db_integration: missing_feature
+      Test_MsSql: missing_feature
+      Test_MySql: missing_feature
+      Test_Postgres: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
@@ -192,8 +212,17 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v2.33.0
+      TestDynamicConfigV2: v2.44.0
+    test_span_links.py: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: missing_feature
+      Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Resource: missing_feature
+      Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: bug (Both env vars are not independent; injected tags are duplicated in all spans)
+    test_tracer_flare.py:
+      TestTracerFlareV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.36.0
@@ -211,8 +240,14 @@ tests/:
     Test_Propagate_Legacy: v2.26.0
   test_library_conf.py:
     Test_HeaderTags: v2.27.0
-    Test_HeaderTagsLongFormat: v2.1.0
-    Test_HeaderTagsShortFormat: v2.1.0
+    Test_HeaderTags_Colon_Leading: v2.1.0
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8600)
+    Test_HeaderTags_Long: v2.1.0
+    Test_HeaderTags_Short: v2.1.0
+    Test_HeaderTags_Whitespace_Header: v2.1.0
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-8308)
+    Test_HeaderTags_Whitespace_Val_Long: v2.1.0
+    Test_HeaderTags_Whitespace_Val_Short: v2.1.0
   test_profiling.py:
     Test_Profile: missing_feature (Not receiving profiles)
   test_scrubbing.py:

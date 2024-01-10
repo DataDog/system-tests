@@ -4,11 +4,12 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, coverage
+from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, coverage, features
 from .utils import rules
 
 
 @coverage.good
+@features.waf_rules
 class Test_Scanners:
     """ Appsec WAF tests on scanners rules """
 
@@ -25,6 +26,7 @@ class Test_Scanners:
 
 
 @coverage.good
+@features.waf_rules
 class Test_HttpProtocol:
     """ Appsec WAF tests on HTTP protocol rules """
 
@@ -48,6 +50,7 @@ class Test_HttpProtocol:
 
 
 @coverage.good
+@features.waf_rules
 class Test_LFI:
     """ Appsec WAF tests on LFI rules """
 
@@ -79,12 +82,16 @@ class Test_LFI:
     @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     @irrelevant(library="python", weblog_variant="django-poc")
     @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
+    @irrelevant(
+        context.weblog_variant in ("akka-http", "play") and context.library == "java", reason="path is normalized to /"
+    )
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
 
 
 @coverage.good
+@features.waf_rules
 class Test_RFI:
     """ Appsec WAF tests on RFI rules """
 
@@ -99,6 +106,7 @@ class Test_RFI:
 
 
 @coverage.good
+@features.waf_rules
 class Test_CommandInjection:
     """ Appsec WAF tests on Command injection rules """
 
@@ -121,6 +129,7 @@ class Test_CommandInjection:
 
 
 @coverage.good
+@features.waf_rules
 class Test_PhpCodeInjection:
     """ Appsec WAF tests on PHP injection rules """
 
@@ -153,6 +162,7 @@ class Test_PhpCodeInjection:
 
 
 @coverage.good
+@features.waf_rules
 class Test_JsInjection:
     """ Appsec WAF tests on Js Injection rules """
 
@@ -167,6 +177,7 @@ class Test_JsInjection:
 
 
 @coverage.good
+@features.waf_rules
 class Test_XSS:
     """ Appsec WAF tests on XSS rules """
 
@@ -200,6 +211,7 @@ class Test_XSS:
 
 
 @coverage.good
+@features.waf_rules
 class Test_SQLI:
     """ Appsec WAF tests on SQLI rules """
 
@@ -248,6 +260,7 @@ class Test_SQLI:
 
 
 @coverage.good
+@features.waf_rules
 class Test_NoSqli:
     """ Appsec WAF tests on NoSQLi rules """
 
@@ -276,12 +289,13 @@ class Test_NoSqli:
 
 
 @coverage.good
+@features.waf_rules
 class Test_JavaCodeInjection:
     """ Appsec WAF tests on Java code injection rules """
 
     def setup_java_code_injection(self):
         self.r_1 = weblog.get("/waf/", params={"value": "java.lang.runtime"})
-        self.r_2 = weblog.get("/waf/", params={"value": "processbuilder unmarshaller"})
+        self.r_2 = weblog.get("/waf/", params={"value": "unmarshaller processbuilder"})
         self.r_3 = weblog.get("/waf/", params={"value": "java.beans.xmldecode"})
 
     def test_java_code_injection(self):
@@ -292,6 +306,7 @@ class Test_JavaCodeInjection:
 
 
 @coverage.good
+@features.waf_rules
 class Test_SSRF:
     """ Appsec WAF tests on SSRF rules """
 
@@ -305,11 +320,12 @@ class Test_SSRF:
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @coverage.good
+@features.waf_rules
 class Test_DiscoveryScan:
     """AppSec WAF Tests on Discovery Scan rules"""
 
     def setup_security_scan(self):
-        self.r1 = weblog.get("/etc/")
+        self.r1 = weblog.get("/etc/something")
         self.r2 = weblog.get("/mysql")
         self.r3 = weblog.get("/myadmin")
         self.r4 = weblog.get("/readme.md")

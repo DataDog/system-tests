@@ -6,6 +6,8 @@ namespace weblog
 {
     public static class Sql
     {
+        private static System.Data.Common.DbConnection _sqlite = GetSqliteConnection(true);
+
         public static void Setup()
         {
             var success = bool.TryParse(Environment.GetEnvironmentVariable("SETUP_DATABASE"), out var setupDatabase);
@@ -13,6 +15,14 @@ namespace weblog
             {
                 SetupDatabase();
             }
+            SetupSqliteDb();
+        }
+
+        public static System.Data.Common.DbConnection GetSqliteConnection(bool open = false)
+        {
+            var res = new Microsoft.Data.Sqlite.SqliteConnection(Constants.SqliteConnectionString);
+            if(open) { res.Open(); }
+            return res;
         }
 
         private static void SetupDatabase()
@@ -39,6 +49,23 @@ END
             };
 
             cmd.ExecuteNonQuery();
+        }
+
+        private static void SetupSqliteDb()
+        {
+            var commands = new string[]
+            {
+                "CREATE TABLE users (user TEXT, pwd TEXT)",
+                "INSERT INTO users VALUES ('shaquille_oatmeal', 'Value1')",
+                "INSERT INTO users VALUES ('Key2', 'Value2')",
+            };
+
+            foreach(var command in commands)
+            {
+                using var cmd = _sqlite.CreateCommand();
+                cmd.CommandText = command;
+                cmd.ExecuteNonQuery();
+            }
         }
     }
 }

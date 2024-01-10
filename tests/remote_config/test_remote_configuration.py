@@ -16,6 +16,7 @@ from utils import (
     rfc,
     scenarios,
     weblog,
+    features,
 )
 from utils.tools import logger
 
@@ -237,6 +238,7 @@ def rc_check_request(data, expected, caching):
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
+@features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -292,7 +294,7 @@ class Test_RemoteConfigurationExtraServices:
                 if "extra_services" in client_tracer:
                     extra_services = client_tracer["extra_services"]
 
-                    if extra_services is not None and len(extra_services) > 0:
+                    if extra_services is not None and "extraVegetables" in extra_services:
                         return True
 
                 return False
@@ -300,7 +302,8 @@ class Test_RemoteConfigurationExtraServices:
         interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
 
     def test_tracer_extra_services(self):
-        """test"""
+        """Test extra services field"""
+        import itertools
 
         # filter extra services
         extra_services = []
@@ -308,10 +311,14 @@ class Test_RemoteConfigurationExtraServices:
             if data["path"] == "/v0.7/config":
                 client_tracer = data["request"]["content"]["client"]["client_tracer"]
                 if "extra_services" in client_tracer:
-                    extra_services.append(client_tracer["extra_services"])
+                    extra_services.append(client_tracer["extra_services"] or [])
         assert self.r_outgoing.status_code == 200
-        assert len(extra_services) != 0, "extra_services not found"
-        assert any(es == ["extraVegetables"] for es in extra_services), "extraVegetables extra service not found"
+        assert extra_services, "extra_services not found"
+        extra_services = list(itertools.dropwhile(lambda es: "extraVegetables" not in es, extra_services))
+        assert extra_services, "no extra_services contains extraVegetables"
+        assert all(
+            "extraVegetables" in es for es in extra_services
+        ), "extraVegetables is not found in all requests after it was initially added"
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -380,6 +387,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features_nocache
+@features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 

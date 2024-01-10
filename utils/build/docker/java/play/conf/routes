@@ -1,0 +1,13 @@
+GET  /                         controllers.AppSecController.index
+GET  /headers                  controllers.AppSecController.headers
+GET  /tag_value/:value/:code   controllers.AppSecController.tagValue(value: String, code: Int)
+POST /tag_value/:value/:code   controllers.AppSecController.tagValuePost(value: String, code: Int)
+GET  /params/*segments         controllers.AppSecController.params(segments: Seq[String])
+GET  /waf                      controllers.AppSecController.waf
+GET  /waf/*segments            controllers.AppSecController.params(segments: Seq[String])
+POST /waf                      controllers.AppSecController.wafPost
+GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
+GET  /status                   controllers.AppSecController.status(code: Int)
+GET  /user_login_success_event controllers.AppSecController.loginSuccess(event_user_id: Option[String])
+GET  /user_login_failure_event controllers.AppSecController.loginFailure(event_user_id: Option[String], event_user_exists: Option[Boolean])
+GET  /custom_event             controllers.AppSecController.customEvent(event_name: Option[String])

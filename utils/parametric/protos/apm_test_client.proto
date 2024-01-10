@@ -10,6 +10,7 @@ service APMClient {
   rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
   rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
   rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
+  rpc SpanAddLink(SpanAddLinkArgs) returns (SpanAddLinkReturn) {}
   rpc HTTPClientRequest(HTTPRequestArgs) returns (HTTPRequestReturn) {}
   rpc HTTPServerRequest(HTTPRequestArgs) returns (HTTPRequestReturn) {}
   rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
@@ -37,10 +38,19 @@ message StartSpanArgs {
   optional string type = 5;
   optional string origin = 6;
   optional DistributedHTTPHeaders http_headers = 7;
+  repeated SpanLink span_links = 8;
 }
 
 message DistributedHTTPHeaders {
   repeated HeaderTuple http_headers = 9;
+}
+
+message SpanLink {
+  oneof from {
+    uint64 parent_id = 1;
+    DistributedHTTPHeaders http_headers = 2;
+  }
+  Attributes attributes = 3;
 }
 
 message HeaderTuple {
@@ -90,6 +100,14 @@ message SpanSetErrorArgs {
   optional string stack = 4;
 }
 message SpanSetErrorReturn {}
+
+
+message SpanAddLinkArgs {
+  uint64 span_id = 1;
+  repeated SpanLink links = 2;
+}
+
+message SpanAddLinkReturn {}
 
 
 message HTTPRequestArgs {

@@ -5,16 +5,17 @@
 import socket
 
 
-from utils import weblog, context, coverage, interfaces, bug, missing_feature, rfc
+from utils import weblog, context, coverage, interfaces, bug, missing_feature, rfc, features
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @coverage.basic
+@features.security_events_metadata
 class Test_StatusCode:
     """Appsec reports good status code"""
 
     def setup_basic(self):
-        self.r = weblog.get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
+        self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
     @bug(
         library="java",
@@ -44,6 +45,7 @@ class Test_StatusCode:
 @missing_feature(
     True, reason="Bug on system test: with the runner on the host, we do not have the real IP from weblog POV"
 )
+@features.security_events_metadata
 class Test_HttpClientIP:
     """AppSec reports good http client IP"""
 
@@ -77,6 +79,7 @@ class Test_HttpClientIP:
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @coverage.good
+@features.security_events_metadata
 class Test_Info:
     """Environment (production, staging) from DD_ENV variable"""
 
@@ -109,6 +112,7 @@ class Test_Info:
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @coverage.good
+@features.security_events_metadata
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
 
@@ -145,6 +149,7 @@ class Test_RequestHeaders:
 
 
 @coverage.basic
+@features.security_events_metadata
 class Test_TagsFromRule:
     """Tags (Category & event type) from the rule"""
 
@@ -164,6 +169,7 @@ class Test_TagsFromRule:
 
 
 @coverage.basic
+@features.security_events_metadata
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 
@@ -179,6 +185,7 @@ class Test_ExtraTagsFromRule:
 
 
 @coverage.basic
+@features.security_events_metadata
 class Test_AttackTimestamp:
     """Attack timestamp"""
 
