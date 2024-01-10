@@ -34,7 +34,7 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 ### Installation
 
-Make sure you're in the `root` directory before running these commands.
+Make sure you're in the root of the repository before running these commands.
 
 The following dependencies are required to run the tests locally:
 
