@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/DataDog/dd-trace-go/v2/ddtrace"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
@@ -40,13 +41,13 @@ func parseBody(r *http.Request) (interface{}, error) {
 	return url.ParseQuery(string(data))
 }
 
-func forceSpanIndexingTags() []tracer.StartSpanOption {
+func forceSpanIndexingTags() []ddtrace.StartSpanOption {
 	// These tags simulate a retention filter to index spans, otherwise
 	// they will only be available in live search of spans!
 	//
 	// Instead of adding these tags manually, we could also create a retention filter in each org/account
 	// that we want to run these e2e tests to retain single spans (to make them available in normal search).
-	return []tracer.StartSpanOption{
+	return []ddtrace.StartSpanOption{
 		tracer.Tag("_dd.filter.kept", 1),
 		tracer.Tag("_dd.filter.id", "system_tests_e2e"),
 	}
