@@ -6,52 +6,31 @@ IS_APACHE=$1
 
 cd /binaries
 
-if [[ -f "datadog-setup.php" ]]; then
-    INSTALLER_ARGS=()
+PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-linux-gnu.tar.gz')
+SETUP=/binaries/datadog-setup.php
 
-    BINARIES_COMBINED_N=$(find . -name 'dd-library-php-*x86_64-linux-gnu.tar.gz' | wc -l)
-    if [[ $BINARIES_COMBINED_N -eq 1 ]]; then
-      INSTALLER_ARGS+=(--file dd-library-php-*x86_64-linux-gnu.tar.gz)
-    elif [[ $BINARIES_COMBINED_N -gt 1 ]]; then
-      echo "Too many PHP packages in /binaries" >&2
-      exit 1
-    fi
-
-    echo "Install args are ${INSTALLER_ARGS[@]}"
-
-    export DD_APPSEC_ENABLED=0
-    if [[ $IS_APACHE -eq 0 ]]; then
-      php datadog-setup.php --php-bin all "${INSTALLER_ARGS[@]}"
-    else
-      PHP_INI_SCAN_DIR="/etc/php" php datadog-setup.php --php-bin all "${INSTALLER_ARGS[@]}"
-    fi
-else
-    echo "Loading install script"
-
-    curl -Lf -o /tmp/dd-library-php-setup.php \
-      https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
-
-    # Full installation: APM + ASM + Profiling (Beta)
-    INSTALLER_ARGS=()
-    INSTALLER_ARGS+=(--enable-appsec)
-   # INSTALLER_ARGS+=(--enable-profiling)
-
-    echo "Install args are ${INSTALLER_ARGS[@]}"
-
-    export DD_APPSEC_ENABLED=0
-    if [[ $IS_APACHE -eq 0 ]]; then
-      php /tmp/dd-library-php-setup.php \
-        "${INSTALLER_ARGS[@]}"\
-        --php-bin all
-    else
-      PHP_INI_SCAN_DIR="/etc/php" php /tmp/dd-library-php-setup.php \
-        "${INSTALLER_ARGS[@]}"\
-        --php-bin all
-    fi
+if [ "$PKG" != "" ] && [ ! -f "$SETUP" ]; then
+  echo "local install failed: package located in /binaries but datadog-setup.php not present, please include it"
+  exit 1
 fi
 
+if [ "$PKG" == "" ]; then
+  #Download latest release
+  curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
+  SETUP=datadog-setup.php
+  unset PKG
+fi
+
+echo "Installing php package ${PKG-"{default}"} with setup script $SETUP"
+if [[ $IS_APACHE -eq 0 ]]; then
+      php $SETUP --php-bin all ${PKG+"--file=$PKG"}
+else
+      PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"}
+ fi
+
+#Extract version info
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
-  ./SYSTEM_TESTS_LIBRARY_VERSION
+  /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
   ./SYSTEM_TESTS_PHP_APPSEC_VERSION

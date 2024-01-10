@@ -142,50 +142,50 @@ jobs:
           weblog: apache-mod-7.0
         - library: php
           weblog: apache-mod-7.1
-      #  - library: php
-      #    weblog: apache-mod-7.2
-      #  - library: php
-      #    weblog: apache-mod-7.3
-      #  - library: php
-      #    weblog: apache-mod-7.4
-      #  - library: php
-      #    weblog: apache-mod-8.0
-      #  - library: php
-      #    weblog: apache-mod-8.1
-      #  - library: php
-      #    weblog: apache-mod-8.2
-      #  - library: php
-      #    weblog: apache-mod-7.0-zts
-      #  - library: php
-      #    weblog: apache-mod-7.1-zts
-      #  - library: php
-      #    weblog: apache-mod-7.2-zts
-      #  - library: php
-      #    weblog: apache-mod-7.3-zts
-      #  - library: php
-      #    weblog: apache-mod-7.4-zts
-      #  - library: php
-      #    weblog: apache-mod-8.0-zts
-      #  - library: php
-      #    weblog: apache-mod-8.1-zts
-      #  - library: php
-      #    weblog: apache-mod-8.2-zts
-      #  - library: php
-      #    weblog: php-fpm-7.0
-      #  - library: php
-      #    weblog: php-fpm-7.1
-      #  - library: php
-      #    weblog: php-fpm-7.2
-      #  - library: php
-      #    weblog: php-fpm-7.3
-      #  - library: php
-      #    weblog: php-fpm-7.4
-      #  - library: php
-      #    weblog: php-fpm-8.0
-      #  - library: php
-      #    weblog: php-fpm-8.1
-      #  - library: php
-      #    weblog: php-fpm-8.2
+        - library: php
+          weblog: apache-mod-7.2
+        - library: php
+          weblog: apache-mod-7.3
+        - library: php
+          weblog: apache-mod-7.4
+        - library: php
+          weblog: apache-mod-8.0
+        - library: php
+          weblog: apache-mod-8.1
+        - library: php
+          weblog: apache-mod-8.2
+        - library: php
+          weblog: apache-mod-7.0-zts
+        - library: php
+          weblog: apache-mod-7.1-zts
+        - library: php
+          weblog: apache-mod-7.2-zts
+        - library: php
+          weblog: apache-mod-7.3-zts
+        - library: php
+          weblog: apache-mod-7.4-zts
+        - library: php
+          weblog: apache-mod-8.0-zts
+        - library: php
+          weblog: apache-mod-8.1-zts
+        - library: php
+          weblog: apache-mod-8.2-zts
+        - library: php
+          weblog: php-fpm-7.0
+        - library: php
+          weblog: php-fpm-7.1
+        - library: php
+          weblog: php-fpm-7.2
+        - library: php
+          weblog: php-fpm-7.3
+        - library: php
+          weblog: php-fpm-7.4
+        - library: php
+          weblog: php-fpm-8.0
+        - library: php
+          weblog: php-fpm-8.1
+        - library: php
+          weblog: php-fpm-8.2
       #  - library: python
       #    weblog: flask-poc
       #  - library: python
@@ -229,7 +229,7 @@ jobs:
       #  - library: ruby
       #    weblog: rails70
         version:
-        - prod
+       # - prod
         - dev
             
       fail-fast: false
@@ -269,6 +269,12 @@ jobs:
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+    
+      # quick and dirty fix, because we can't test for now the PHP released tracer
+    - name: Load PHP library binary (skipping release tests, use snapshot instead)
+      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
