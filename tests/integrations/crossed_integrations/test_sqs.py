@@ -60,9 +60,9 @@ class _Test_SQS:
         send request B to library buddy, this request will consume sqs message
         """
 
-        self.production_response = weblog.get("/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE}, timeout=60)
+        self.production_response = weblog.get("/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE}, timeout=120)
         self.consume_response = self.buddy.get(
-            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
+            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 120}, timeout=121
         )
 
     def test_produce(self):
@@ -113,10 +113,10 @@ class _Test_SQS:
         """
 
         self.production_response = self.buddy.get(
-            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE}, timeout=60
+            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE}, timeout=120
         )
         self.consume_response = weblog.get(
-            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
+            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 120}, timeout=121
         )
 
     def test_consume(self):
