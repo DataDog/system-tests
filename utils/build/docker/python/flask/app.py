@@ -179,11 +179,10 @@ def dbm():
 
 def kafka_produce(topic, message, callback=None):
     producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
-    message_topic = flask_request.args.get("topic", topic)
     if callback:
-        producer.produce(message_topic, value=message, callback=callback)
+        producer.produce(topic, value=message, callback=callback)
     else:
-        producer.produce(message_topic, value=message)
+        producer.produce(topic, value=message)
     producer.flush()
     return {"result": "ok"}
 
@@ -256,6 +255,7 @@ def sqs_produce(queue, message):
 
     try:
         sqs.create_queue(QueueName=queue)
+        logging.info(f"Created SQS Queue with name: {queue}")
     except Exception as e:
         logging.info(f"Error during Python SQS create queue: {str(e)}")
 
@@ -276,17 +276,20 @@ def sqs_consume(queue):
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
-    response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}")
+    while not consumed_message:
+        try:
+            response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}")
+            if response and "Messages" in response:
+                consumed_message = None
+                for message in response["Messages"]:
+                    consumed_message = message["Body"]
+                    logging.info("Consumed the following: " + consumed_message)
 
-    if response and "Messages" in response:
-        consumed_message = None
-        for message in response["Messages"]:
-            consumed_message = message["Body"]
-            logging.info("Consumed the following: " + consumed_message)
-
-        return {"message": consumed_message}
-    else:
-        return {"error": "No messages to consume"}
+                return {"message": consumed_message}
+            else:
+                return {"error": "No messages to consume"}
+        except Exception as e:
+            logging.warning(e)
 
 
 @app.route("/sqs/produce")
