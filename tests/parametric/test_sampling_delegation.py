@@ -12,7 +12,6 @@ from utils import scenarios
 
 @scenarios.parametric
 class Test_Sampling_Delegation:
-
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -32,8 +31,7 @@ class Test_Sampling_Delegation:
             }
         ],
     )
-    def test_sampling_delegation_extract_neither_decision_nor_delegation(
-            self, test_agent, test_library):
+    def test_sampling_delegation_extract_neither_decision_nor_delegation(self, test_agent, test_library):
         """Make your own sampling decision when the client doesn't send one.
 
         The behavior tested here is not specified in the sampling delegation
@@ -59,15 +57,15 @@ class Test_Sampling_Delegation:
                 ["x-datadog-trace-id", str(trace_id)],
                 # Specifying an origin allows for parent ID to be omitted.
                 ["x-datadog-origin", "rum"],
-            ]
+            ],
         }
         with test_library:
             with test_library.start_span(**span_args):
                 pass
 
-        trace, = test_agent.wait_for_num_traces(1)
+        (trace,) = test_agent.wait_for_num_traces(1)
         assert len(trace) == 1
-        span, = trace
+        (span,) = trace
         # Extraction succeeded if the span produced by the tracer has the same
         # trace ID mentioned in the headers.
         assert span["trace_id"] == trace_id
