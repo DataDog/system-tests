@@ -223,8 +223,8 @@ def produce_kafka_message():
     """
         The goal of this endpoint is to trigger kafka producer calls
     """
-    topic = "DistributedTracing"
-    message = b"Distributed Tracing Test!"
+    topic = flask_request.args.get("topic", "DistributedTracing")
+    message = b"Distributed Tracing Test from Python for Kafka!"
     output = kafka_produce(topic, message)
     if "error" in output:
         return output, 404
