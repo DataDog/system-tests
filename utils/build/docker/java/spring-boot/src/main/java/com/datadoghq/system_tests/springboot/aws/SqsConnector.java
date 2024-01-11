@@ -47,7 +47,11 @@ public class SqsConnector {
     public void startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("SqsProduce") {
             public void run() {
-                produceMessageWithoutNewThread(message);
+                try {
+                    produceMessageWithoutNewThread(message);
+                } catch (Exception e) {
+                    System.err.println("[SQS] Failed to produce message in thread...");
+                }
             }
         };
         thread.start();
@@ -57,7 +61,11 @@ public class SqsConnector {
     public void startConsumingMessages(Integer timeout_s) throws Exception {
         Thread thread = new Thread("SqsConsume") {
             public void run() {
-                boolean recordFound = consumeMessageWithoutNewThread(timeout_s);
+                try {
+                    boolean recordFound = consumeMessageWithoutNewThread(timeout_s);
+                } catch (Exception e) {
+                    System.err.println("[SQS] Failed to consume message in thread...");
+                }
             }
         };
         thread.start();

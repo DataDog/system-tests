@@ -417,7 +417,7 @@ public class App {
         } else if ("sqs".equals(integration)) {
             SqsConnector sqs = new SqsConnector("dsm-system-tests-queue-java");
             try {
-                sqs.startProducingMessages("hello world from SQS Dsm Java!");
+                sqs.startProducingMessage("hello world from SQS Dsm Java!");
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start producing message...");
                 e.printStackTrace();

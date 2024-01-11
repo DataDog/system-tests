@@ -269,7 +269,7 @@ def sqs_produce(queue, message):
         return {"error": f"Error during Python SQS send message: {str(e)}"}
 
 
-def sqs_consume(queue):
+def sqs_consume(queue, timeout=60):
     """
         The goal of this function is to trigger sqs consumer calls
     """
@@ -277,19 +277,23 @@ def sqs_consume(queue):
     sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
     consumed_message = None
-    while not consumed_message:
+    start_time = time.time()
+
+    while not consumed_message and time.time() - start_time < timeout:
         try:
             response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     consumed_message = message["Body"]
                     logging.info("Consumed the following: " + consumed_message)
-
-                return {"message": consumed_message}
-            else:
-                return {"error": "No messages to consume"}
         except Exception as e:
             logging.warning(e)
+        time.sleep(1)
+
+    if not consumed_message:
+        return {"error": "No messages to consume"}
+    else:
+        return {"message": consumed_message}
 
 
 @app.route("/sqs/produce")
@@ -306,7 +310,8 @@ def produce_sqs_message():
 @app.route("/sqs/consume")
 def consume_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
-    output = sqs_consume(queue)
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = sqs_consume(queue, timeout)
     if "error" in output:
         return output, 404
     else:
