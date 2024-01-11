@@ -328,9 +328,9 @@ def dsm():
                 logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
         produce_thread = threading.Thread(
-            target=kafka_produce, args=(topic, b"Hello, Kafka from DSM!", delivery_report)
+            target=kafka_produce, args=(topic, b"Hello, Kafka from DSM!", delivery_report,)
         )
-        consume_thread = threading.Thread(target=kafka_consume, args=(topic, "testgroup1"))
+        consume_thread = threading.Thread(target=kafka_consume, args=(topic, "testgroup1",))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -338,8 +338,8 @@ def dsm():
         logging.info("[kafka] Returning response")
         return Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(target=sqs_produce, args=(topic, b"Hello, SQS from DSM!"))
-        consume_thread = threading.Thread(target=sqs_consume, args=(topic))
+        produce_thread = threading.Thread(target=sqs_produce, args=(topic, "Hello, SQS from DSM!",))
+        consume_thread = threading.Thread(target=sqs_consume, args=(topic,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
