@@ -20,6 +20,7 @@ from utils.parametric.spec import remoteconfig
 from utils.parametric._library_client import APMLibraryClientGRPC
 from utils.parametric._library_client import APMLibraryClientHTTP
 from utils.parametric._library_client import APMLibrary
+from utils.parametric.tcp_ports import FreePort
 
 from utils import context
 from utils.tools import logger
@@ -78,7 +79,7 @@ class APMLibraryTestServer:
     container_cmd: List[str]
     container_build_dir: str
     container_build_context: str = "."
-    port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
+    free_port: FreePort = None
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
 
@@ -118,7 +119,7 @@ RUN /binaries/install_ddtrace.sh
         container_build_context=_get_base_directory(),
         volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
         env={},
-        port="",
+        free_port=None,
     )
 
 
@@ -151,7 +152,7 @@ RUN /binaries/install_ddtrace.sh
         container_build_dir=nodejs_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
-        port="",
+        free_port=None,
     )
 
 
@@ -185,7 +186,7 @@ RUN go install
         container_build_context=_get_base_directory(),
         volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
         env={},
-        port="",
+        free_port=None,
     )
 
 
@@ -238,7 +239,7 @@ ENV DD_TRACE_OTEL_ENABLED=false
         container_build_context=_get_base_directory(),
         volumes=[],
         env={},
-        port="",
+        free_port=None,
     )
 
     return server
@@ -274,7 +275,7 @@ COPY {java_reldir}/run.sh .
         container_build_context=_get_base_directory(),
         volumes=[],
         env={},
-        port="",
+        free_port=None,
     )
 
 
@@ -304,7 +305,7 @@ ADD {php_reldir}/server.php .
         container_build_context=_get_base_directory(),
         volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
         env={},
-        port="",
+        free_port=None,
     )
 
 
@@ -339,7 +340,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_build_dir=ruby_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
-        port="",
+        free_port=None,
     )
 
 
@@ -381,7 +382,7 @@ COPY --from=build /usr/app/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-
         container_build_dir=cpp_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
-        port="",
+        free_port=None,
     )
 
 
@@ -395,16 +396,6 @@ _libs: Dict[str, ClientLibraryServerFactory] = {
     "python": python_library_factory,
     "ruby": ruby_library_factory,
 }
-
-
-def get_open_port():
-    # Not very nice and also not 100% correct but it works for now.
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("", 0))
-    s.listen(1)
-    port = s.getsockname()[1]
-    s.close()
-    return port
 
 
 @pytest.fixture(scope="session")
@@ -506,7 +497,7 @@ def apm_test_server(request, library_env, test_id, apm_test_server_image):
         apm_test_server_image,
         container_name="%s-%s" % (apm_test_server_image.container_name, test_id),
         env=new_env,
-        port=get_open_port(),
+        free_port=FreePort(),
     )
 
 
@@ -778,7 +769,7 @@ def docker_run(
     cmd: List[str],
     env: Dict[str, str],
     volumes: List[Tuple[str, str]],
-    ports: List[Tuple[str, str]],
+    ports: List[Tuple[FreePort, str]],
     log_file: TextIO,
     network_name: str,
 ) -> Generator[None, None, None]:
@@ -795,7 +786,7 @@ def docker_run(
     for k, v in volumes:
         _cmd.extend(["-v", "%s:%s" % (k, v)])
     for k, v in ports:
-        _cmd.extend(["-p", "%s:%s" % (k, v)])
+        _cmd.extend(["-p", "%s:%s" % (k.port, v)])
     _cmd += [image]
     _cmd.extend(cmd)
 
@@ -828,6 +819,8 @@ def docker_run(
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
         subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
+        for k, _ in ports:
+            k.release
 
 
 @pytest.fixture(scope="session")
@@ -960,7 +953,7 @@ def test_agent(
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
 
-    test_agent_external_port = get_open_port()
+    test_agent_external_port = FreePort()
     with docker_run(
         image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.15.0",
         name=test_agent_container_name,
@@ -971,7 +964,7 @@ def test_agent(
         log_file=test_agent_log_file,
         network_name=docker_network,
     ):
-        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
+        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port.port, pytest_request=request)
         # Wait for the agent to start (potentially have to pull the image from the registry)
         for i in range(30):
             try:
@@ -1021,7 +1014,7 @@ def test_server(
         "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
-        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
+        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.free_port.port,
     }
     test_server_env = {}
     for k, v in apm_test_server.env.items():
@@ -1035,7 +1028,7 @@ def test_server(
         name=apm_test_server.container_name,
         cmd=apm_test_server.container_cmd,
         env=env,
-        ports=[(apm_test_server.port, apm_test_server.port)],
+        ports=[(apm_test_server.free_port, apm_test_server.free_port.port)],
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
         network_name=docker_network,
@@ -1051,9 +1044,9 @@ def test_server_timeout() -> int:
 @pytest.fixture
 def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
     if test_server.protocol == "grpc":
-        client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
+        client = APMLibraryClientGRPC("localhost:%s" % test_server.free_port.port, test_server_timeout)
     elif test_server.protocol == "http":
-        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
+        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.free_port.port, test_server_timeout)
     else:
         raise ValueError("interface %s not supported" % test_server.protocol)
     tracer = APMLibrary(client, test_server.lang)
