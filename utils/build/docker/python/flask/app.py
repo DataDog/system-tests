@@ -206,7 +206,7 @@ def kafka_consume(topic, group_id, timeout=120):
         if msg is None:
             logging.info("[kafka] Message not found, still polling.")
         elif msg.error():
-            logging.info("[kafka] Consumed message but got error " + msg.error())
+            logging.info("[kafka] Consumed message but got error " + msg.error().str())
         else:
             logging.info("[kafka] Consumed message")
 

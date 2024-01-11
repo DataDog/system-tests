@@ -44,6 +44,26 @@ public class SqsConnector {
         }
     }
 
+    public void startProducingMessage(String message) throws Exception {
+        Thread thread = new Thread("SqsProduce") {
+            public void run() {
+                produceMessageWithoutNewThread(message);
+            }
+        };
+        thread.start();
+        System.out.println("Started Sqs producer thread");
+    }
+
+    public void startConsumingMessages(Integer timeout_s) throws Exception {
+        Thread thread = new Thread("SqsConsume") {
+            public void run() {
+                boolean recordFound = consumeMessageWithoutNewThread(timeout_s);
+            }
+        };
+        thread.start();
+        System.out.println("Started Sqs consumer thread");
+    }
+
     // For APM testing, produce message without starting a new thread
     public void produceMessageWithoutNewThread(String message) throws Exception {
         SqsClient sqsClient = createSqsClient();
@@ -63,7 +83,7 @@ public class SqsConnector {
         ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
             .queueUrl(queueUrl)
             .maxNumberOfMessages(1)
-            .waitTimeSeconds(5)
+            .waitTimeSeconds(timeout_s)
             .build();
 
         boolean recordFound = false;

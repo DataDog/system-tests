@@ -414,6 +414,22 @@ public class App {
                 e.printStackTrace();
                 return "failed to start consuming message";
             }
+        } else if ("sqs".equals(integration)) {
+            SqsConnector sqs = new SqsConnector("dsm-system-tests-queue-java");
+            try {
+                sqs.startProducingMessages("hello world from SQS Dsm Java!");
+            } catch (Exception e) {
+                System.out.println("[SQS] Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                sqs.startConsumingMessages(60);
+            } catch (Exception e) {
+                System.out.println("[SQS] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
         } else {
             return "unknown integration: " + integration;
         }
