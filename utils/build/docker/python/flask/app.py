@@ -27,6 +27,7 @@ from integrations.db.postgres import executePostgresOperation
 import ddtrace
 
 ddtrace.patch_all()
+from ddtrace import config
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
@@ -251,6 +252,9 @@ def sqs_produce(queue, message):
         The goal of this function is to trigger sqs producer calls
     """
     # Create an SQS client
+    logging.info("DSM Enabled")
+    logging.info(config._data_streams_enabled)
+    logging.info(config.botocore["distributed_tracing"])
     sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
     try:

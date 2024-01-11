@@ -194,17 +194,19 @@ class Test_DsmSQS:
         if context.library == "nodejs":
             producer_hash = 2931833227331067675
             consumer_hash = 271115008390912609
+        elif context.library == "java":
+            producer_hash = 16307892913751934142
+            consumer_hash = 15549836665988044996
+            topic = "dsm-system-tests-queue-java"
         else:
             producer_hash = 7228682205928812513
             consumer_hash = 3767823103515000703
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:sqs"),
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash,
-            parent_hash=producer_hash,
-            tags=("direction:in", "topic:dsm-system-tests-queue", "type:sqs"),
+            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{topic}", "type:sqs"),
         )
 
 
