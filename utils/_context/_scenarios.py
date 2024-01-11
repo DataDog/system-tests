@@ -365,11 +365,18 @@ class EndToEndScenario(_DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python is supported
+            # so far, only python, nodejs, java, ruby and golang are supported
+            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+
             self.buddies += [
                 BuddyContainer(
-                    "python_buddy", "datadog/system-tests:python_buddy-v0", self.host_log_folder, proxy_port=9001
-                ),
+                    f"{language}_buddy",
+                    f"datadog/system-tests:{language}_buddy-v0",
+                    self.host_log_folder,
+                    proxy_port=port,
+                    environment=weblog_env,
+                )
+                for language, port in supported_languages
             ]
 
             self._required_containers += self.buddies
@@ -1077,6 +1084,7 @@ class scenarios:
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
+        weblog_env={"DD_TRACE_API_VERSION": "v0.4"},
         include_kafka=True,
         include_buddies=True,
         doc="Spawns a buddy for each supported language of APM",

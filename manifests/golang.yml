@@ -313,12 +313,21 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     test_crossed_integrations.py:
+      Test_GolangKafka:
+        "*": irrelevant
+        net-http: v0.1 # real version not known
+      Test_JavaKafka:
+        "*": irrelevant
+        net-http: v0.1 # real version not known
+      Test_NodeJSKafka:
+        "*": irrelevant
+        net-http: v0.1 # real version not known
       Test_PythonKafka:
-        '*': v0.1  # real version not known
-        chi: missing_feature (Endpoint not implemented)
-        echo: missing_feature (Endpoint not implemented)
-        gin: missing_feature (Endpoint not implemented)
-        uds-echo: missing_feature (Endpoint not implemented)
+        "*": irrelevant
+        net-http: v0.1 # real version not known
+      Test_RubyKafka:
+        "*": irrelevant
+        net-http: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -336,6 +345,8 @@ tests/:
       TestDynamicConfigV1: v1.59.0-dev
       TestDynamicConfigV2: v1.59.0-dev
     test_span_links.py: missing_feature
+    test_telemetry.py:
+      Test_TelemetryInstallSignature: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: missing_feature
