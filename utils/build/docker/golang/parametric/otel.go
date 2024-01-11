@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
@@ -108,9 +109,12 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		span: span,
 		ctx:  ctx,
 	}
+	tIdBytes := span.SpanContext().TraceID()
+	// convert the lower bits to a uint64
+	tId := binary.BigEndian.Uint64(tIdBytes[8:])
 	return &OtelStartSpanReturn{
 		SpanId:  hexSpanId,
-		TraceId: span.SpanContext().TraceID().String(),
+		TraceId: tId,
 	}, nil
 }
 
