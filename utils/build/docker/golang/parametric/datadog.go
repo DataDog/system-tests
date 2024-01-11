@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
-
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
@@ -45,9 +45,12 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 		span.SetTag("_dd.origin", *args.Origin)
 	}
 	s.spans[span.Context().SpanID()] = span
+	tIdBytes := span.Context().TraceIDBytes()
+	// convert the lower bits to a uint64
+	tId := binary.BigEndian.Uint64(tIdBytes[8:])
 	return &StartSpanReturn{
 		SpanId:  span.Context().SpanID(),
-		TraceId: span.Context().TraceID(),
+		TraceId: tId,
 	}, nil
 }
 
