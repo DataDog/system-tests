@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{8DE7F594-49DB-4DE4-8D24-E8A9CAD1E06D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{2FF100C3-0B3B-4768-A76B-F461340FA4A1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{7BD646BE-C38E-45B2-805D-81F5D13C6BB4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "app", "utils\build\docker\dotnet\app.csproj", "{3093F2DA-4291-48AD-9571-394217A5CF8D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet", "dotnet", "{7C94DCC5-2233-4117-8F27-9699A8EAAC11}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApmTestClient", "utils\build\docker\dotnet\parametric\ApmTestClient.csproj", "{B362B8B4-25CB-40BB-A244-49FA672398A7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib-injection", "lib-injection", "{C312DA91-41DE-49D7-856B-15D6194D6CD3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{70FCC4A1-4263-4909-A217-DA9A386A3415}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{D73FB1FF-4D04-4FDC-A1E7-21412A0564BF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet", "dotnet", "{E4225E93-D2AF-4F46-A760-DBA6F16E60BC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinimalWebApp", "lib-injection\build\docker\dotnet\dd-lib-dotnet-init-test-app\MinimalWebApp.csproj", "{63871E82-4FCF-444F-A6A2-B6694A8D6AAA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3093F2DA-4291-48AD-9571-394217A5CF8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3093F2DA-4291-48AD-9571-394217A5CF8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3093F2DA-4291-48AD-9571-394217A5CF8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3093F2DA-4291-48AD-9571-394217A5CF8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B362B8B4-25CB-40BB-A244-49FA672398A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B362B8B4-25CB-40BB-A244-49FA672398A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B362B8B4-25CB-40BB-A244-49FA672398A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B362B8B4-25CB-40BB-A244-49FA672398A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63871E82-4FCF-444F-A6A2-B6694A8D6AAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63871E82-4FCF-444F-A6A2-B6694A8D6AAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63871E82-4FCF-444F-A6A2-B6694A8D6AAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63871E82-4FCF-444F-A6A2-B6694A8D6AAA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2FF100C3-0B3B-4768-A76B-F461340FA4A1} = {8DE7F594-49DB-4DE4-8D24-E8A9CAD1E06D}
+		{7BD646BE-C38E-45B2-805D-81F5D13C6BB4} = {2FF100C3-0B3B-4768-A76B-F461340FA4A1}
+		{3093F2DA-4291-48AD-9571-394217A5CF8D} = {7BD646BE-C38E-45B2-805D-81F5D13C6BB4}
+		{7C94DCC5-2233-4117-8F27-9699A8EAAC11} = {7BD646BE-C38E-45B2-805D-81F5D13C6BB4}
+		{B362B8B4-25CB-40BB-A244-49FA672398A7} = {7C94DCC5-2233-4117-8F27-9699A8EAAC11}
+		{70FCC4A1-4263-4909-A217-DA9A386A3415} = {C312DA91-41DE-49D7-856B-15D6194D6CD3}
+		{D73FB1FF-4D04-4FDC-A1E7-21412A0564BF} = {70FCC4A1-4263-4909-A217-DA9A386A3415}
+		{E4225E93-D2AF-4F46-A760-DBA6F16E60BC} = {D73FB1FF-4D04-4FDC-A1E7-21412A0564BF}
+		{63871E82-4FCF-444F-A6A2-B6694A8D6AAA} = {E4225E93-D2AF-4F46-A760-DBA6F16E60BC}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1019F4B8-D70B-45B4-A314-5C8623526118}
+	EndGlobalSection
+EndGlobal
