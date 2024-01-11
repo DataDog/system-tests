@@ -276,11 +276,11 @@ def sqs_consume(queue):
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
+    consumed_message = None
     while not consumed_message:
         try:
             response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}")
             if response and "Messages" in response:
-                consumed_message = None
                 for message in response["Messages"]:
                     consumed_message = message["Body"]
                     logging.info("Consumed the following: " + consumed_message)
