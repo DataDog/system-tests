@@ -339,7 +339,7 @@ public class App {
         if (timeout == null) timeout = Integer.MAX_VALUE;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread(timeout);
+            consumed = sqs.consumeMessageWithoutNewThread();
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start consuming message...");
@@ -421,14 +421,14 @@ public class App {
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start producing message...");
                 e.printStackTrace();
-                return "failed to start producing message";
+                return "[SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages(60);
+                sqs.startConsumingMessages();
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
                 e.printStackTrace();
-                return "failed to start consuming message";
+                return "[SQS] failed to start consuming message";
             }
         } else {
             return "unknown integration: " + integration;

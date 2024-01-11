@@ -40,7 +40,7 @@ public class SqsConnector {
             return getQueueUrlResponse.queueUrl();
         }  catch (SqsException e) {
             System.err.println(e.awsErrorDetails().errorMessage());
-            throw new Exception("Failed to create SQS queue");
+            throw new Exception("[SQS] Failed to create SQS queue");
         }
     }
 
@@ -49,34 +49,39 @@ public class SqsConnector {
             public void run() {
                 try {
                     produceMessageWithoutNewThread(message);
+                    System.out.println("[SQS] Successfully produced message");
                 } catch (Exception e) {
                     System.err.println("[SQS] Failed to produce message in thread...");
                 }
             }
         };
         thread.start();
-        System.out.println("Started Sqs producer thread");
+        System.out.println("[SQS] Started Sqs producer thread");
     }
 
-    public void startConsumingMessages(Integer timeout_s) throws Exception {
+    public void startConsumingMessages() throws Exception {
         Thread thread = new Thread("SqsConsume") {
             public void run() {
-                try {
-                    boolean recordFound = consumeMessageWithoutNewThread(timeout_s);
-                } catch (Exception e) {
-                    System.err.println("[SQS] Failed to consume message in thread...");
+                boolean recordFound = false;
+                while (!recordFound) {
+                    try {
+                        recordFound = consumeMessageWithoutNewThread();
+                    } catch (Exception e) {
+                        System.err.println("[SQS] Failed to consume message in thread...");
+                        System.err.println("[SQS] Error consuming: " + e);
+                    }
                 }
             }
         };
         thread.start();
-        System.out.println("Started Sqs consumer thread");
+        System.out.println("[SQS] Started Sqs consumer thread");
     }
 
     // For APM testing, produce message without starting a new thread
     public void produceMessageWithoutNewThread(String message) throws Exception {
         SqsClient sqsClient = createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, true);
-        System.out.printf("Publishing message: %s%n", message);
+        System.out.printf("[SQS] Publishing message: %s%n", message);
         sqsClient.sendMessage(SendMessageRequest.builder()
             .queueUrl(queueUrl)
             .messageBody(message)
@@ -84,14 +89,13 @@ public class SqsConnector {
     }
 
     // For APM testing, a consume message without starting a new thread
-    public boolean consumeMessageWithoutNewThread(Integer timeout_s) throws Exception {
+    public boolean consumeMessageWithoutNewThread() throws Exception {
         SqsClient sqsClient = createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, false);
 
         ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
             .queueUrl(queueUrl)
             .maxNumberOfMessages(1)
-            .waitTimeSeconds(timeout_s)
             .build();
 
         boolean recordFound = false;
@@ -99,7 +103,7 @@ public class SqsConnector {
             ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
             List<Message> messages = response.messages();
             for (Message message : messages) {
-                System.out.println("got message! " + message.body() + " from " + queue);
+                System.out.println("[SQS] got message! " + message.body() + " from " + queue);
                 recordFound = true;
             }
             return recordFound;
