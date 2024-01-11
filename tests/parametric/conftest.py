@@ -558,6 +558,16 @@ class _TestAgentAPI:
         )
         assert resp.status_code == 202
 
+    def raw_telemetry(self, clear=False, **kwargs):
+        raw_reqs = self.requests()
+        reqs = []
+        for req in raw_reqs:
+            if req["url"].endswith("/telemetry/proxy/api/v2/apmtelemetry"):
+                reqs.append(req)
+        if clear:
+            self.clear()
+        return reqs
+
     def telemetry(self, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
         if clear:
