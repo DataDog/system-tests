@@ -191,6 +191,7 @@ class Test_DsmSQS:
         # checkpoint strings (e.g. service:foo)
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
+        topic = "dsm-system-tests-queue"
         if context.library == "nodejs":
             producer_hash = 2931833227331067675
             consumer_hash = 271115008390912609
