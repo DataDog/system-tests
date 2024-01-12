@@ -84,60 +84,60 @@ jobs:
     strategy:
       matrix:
         variant:
-        #- library: cpp
-        #  weblog: nginx
-        #- library: dotnet
-        #  weblog: poc
-        #- library: dotnet
-        #  weblog: uds
-        #- library: golang
-        #  weblog: chi
-        #- library: golang
-        #  weblog: echo
-        #- library: golang
-        #  weblog: gin
-        #- library: golang
-        #  weblog: net-http
-        #- library: golang
-        #  weblog: uds-echo
-        #- library: java
-        #  weblog: jersey-grizzly2
-        #- library: java
-        #  weblog: ratpack
-        #- library: java
-        #  weblog: resteasy-netty3
-        #- library: java
-        #  weblog: vertx3
-        #- library: java
-        #  weblog: vertx4
-        #- library: java
-        #  weblog: spring-boot-jetty
-        #- library: java
-        #  weblog: spring-boot
-        #- library: java
-        #  weblog: spring-boot-3-native
-        #- library: java
-        #  weblog: uds-spring-boot
-        #- library: java
-        #  weblog: spring-boot-openliberty
-        #- library: java
-        #  weblog: spring-boot-wildfly
-        #- library: java
-        #  weblog: spring-boot-undertow
-        #- library: java
-        #  weblog: spring-boot-payara
-        #- library: java
-        #  weblog: akka-http
-        #- library: java
-        #  weblog: play
-        #- library: nodejs
-        #  weblog: express4
-        #- library: nodejs
-        #  weblog: uds-express4
-        #- library: nodejs
-        #  weblog: express4-typescript
-        #- library: nodejs
-        #  weblog: nextjs
+        - library: cpp
+          weblog: nginx
+        - library: dotnet
+          weblog: poc
+        - library: dotnet
+          weblog: uds
+        - library: golang
+          weblog: chi
+        - library: golang
+          weblog: echo
+        - library: golang
+          weblog: gin
+        - library: golang
+          weblog: net-http
+        - library: golang
+          weblog: uds-echo
+        - library: java
+          weblog: jersey-grizzly2
+        - library: java
+          weblog: ratpack
+        - library: java
+          weblog: resteasy-netty3
+        - library: java
+          weblog: vertx3
+        - library: java
+          weblog: vertx4
+        - library: java
+          weblog: spring-boot-jetty
+        - library: java
+          weblog: spring-boot
+        - library: java
+          weblog: spring-boot-3-native
+        - library: java
+          weblog: uds-spring-boot
+        - library: java
+          weblog: spring-boot-openliberty
+        - library: java
+          weblog: spring-boot-wildfly
+        - library: java
+          weblog: spring-boot-undertow
+        - library: java
+          weblog: spring-boot-payara
+        - library: java
+          weblog: akka-http
+        - library: java
+          weblog: play
+        - library: nodejs
+          weblog: express4
+        - library: nodejs
+          weblog: uds-express4
+        - library: nodejs
+          weblog: express4-typescript
+        - library: nodejs
+          weblog: nextjs
         - library: php
           weblog: apache-mod-7.0
         - library: php
@@ -186,50 +186,50 @@ jobs:
           weblog: php-fpm-8.1
         - library: php
           weblog: php-fpm-8.2
-        #- library: python
-        #  weblog: flask-poc
-        #- library: python
-        #  weblog: django-poc
-        #- library: python
-        #  weblog: uwsgi-poc
-        #- library: python
-        #  weblog: uds-flask
-        #- library: python
-        #  weblog: python3.12
-        #- library: python
-        #  weblog: fastapi
-        #- library: ruby
-        #  weblog: rack
-        #- library: ruby
-        #  weblog: sinatra14
-        #- library: ruby
-        #  weblog: sinatra20
-        #- library: ruby
-        #  weblog: sinatra21
-        #- library: ruby
-        #  weblog: uds-sinatra
-        #- library: ruby
-        #  weblog: rails32
-        #- library: ruby
-        #  weblog: rails40
-        #- library: ruby
-        #  weblog: rails41
-        #- library: ruby
-        #  weblog: rails42
-        #- library: ruby
-        #  weblog: rails50
-        #- library: ruby
-        #  weblog: rails51
-        #- library: ruby
-        #  weblog: rails52
-        #- library: ruby
-        #  weblog: rails60
-        #- library: ruby
-        #  weblog: rails61
-        #- library: ruby
-        #  weblog: rails70
+        - library: python
+          weblog: flask-poc
+        - library: python
+          weblog: django-poc
+        - library: python
+          weblog: uwsgi-poc
+        - library: python
+          weblog: uds-flask
+        - library: python
+          weblog: python3.12
+        - library: python
+          weblog: fastapi
+        - library: ruby
+          weblog: rack
+        - library: ruby
+          weblog: sinatra14
+        - library: ruby
+          weblog: sinatra20
+        - library: ruby
+          weblog: sinatra21
+        - library: ruby
+          weblog: uds-sinatra
+        - library: ruby
+          weblog: rails32
+        - library: ruby
+          weblog: rails40
+        - library: ruby
+          weblog: rails41
+        - library: ruby
+          weblog: rails42
+        - library: ruby
+          weblog: rails50
+        - library: ruby
+          weblog: rails51
+        - library: ruby
+          weblog: rails52
+        - library: ruby
+          weblog: rails60
+        - library: ruby
+          weblog: rails61
+        - library: ruby
+          weblog: rails70
         version:
-        #- prod
+        - prod
         - dev
             
       fail-fast: false
