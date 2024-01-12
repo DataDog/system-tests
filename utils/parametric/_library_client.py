@@ -23,7 +23,10 @@ class StartSpanResponse(TypedDict):
 
 
 class Link(TypedDict):
-    parent_id: int  # 0 to extract from headers
+    trace_id: int  # 0 to extract from headers
+    span_id: int
+    tracestate: Optional[str]
+    flags: Optional[int]
     attributes: dict
 
 
@@ -73,7 +76,7 @@ class APMLibraryClient:
     def otel_get_span_context(self, span_id: int):
         raise NotImplementedError
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
+    def span_add_link(self, span_id: int, trace_id_link: int, span_id_link: int, attributes: dict) -> None:
         raise NotImplementedError
 
     def span_set_meta(self, span_id: int, key: str, value: str) -> None:
@@ -167,10 +170,15 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
         )
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None) -> None:
+    def span_add_link(self, span_id: int, trace_id_link: int, span_id_link: int, attributes: dict = None) -> None:
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {}},
+            json={
+                "span_id": span_id,
+                "trace_id_link": trace_id_link,
+                "span_id_link": span_id_link,
+                "attributes": attributes or {},
+            },
         )
 
     def trace_inject_headers(self, span_id):
@@ -247,9 +255,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
 
 class _TestSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
+        self.trace_id = trace_id
 
     def set_meta(self, key: str, val: str):
         self._client.span_set_meta(self.span_id, key, val)
@@ -260,8 +269,8 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict = None):
-        self._client.span_add_link(self.span_id, parent_id, attributes)
+    def add_link(self, trace_id: int, span_id: int, attributes: dict = None):
+        self._client.span_add_link(self.span_id, trace_id, span_id, attributes)
 
     def finish(self):
         self._client.finish_span(self.span_id)
@@ -392,9 +401,14 @@ class APMLibraryClientGRPC:
     def span_set_error(self, span_id: int, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(pb.SpanSetErrorArgs(span_id=span_id, type=typestr, message=message, stack=stack))
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
+    def span_add_link(self, span_id: int, trace_id_link: int, span_id_link: int, attributes: dict) -> None:
         self._client.SpanAddLink(
-            pb.SpanAddLinkArgs(span_id=span_id, parent_id=parent_id, attributes=convert_to_proto(attributes))
+            pb.SpanAddLinkArgs(
+                span_id=span_id,
+                trace_id_link=trace_id_link,
+                span_id_link=span_id_link,
+                attributes=convert_to_proto(attributes),
+            )
         )
 
     def finish_span(self, span_id: int):
@@ -473,7 +487,7 @@ class APMLibrary:
             http_headers=http_headers if http_headers is not None else [],
             links=links if links is not None else [],
         )
-        span = _TestSpan(self._client, resp["span_id"])
+        span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
         span.finish()
 

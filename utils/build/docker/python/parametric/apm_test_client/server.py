@@ -82,19 +82,14 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
     for link in args.links:
-        link_parent_id = link["parent_id"]
-        link_attributes = link["attributes"]
-        for k, v in link_attributes.items():
-            if type(v) == str and v.startswith(("[", "{")):  # get any list or dict in attributes out of strings
-                link_attributes[k] = eval[v]
-
-        link_attributes = {"foo": "bar", "array": ["a", "b", "c"]}
-        if link_parent_id != 0:  # we have a parent_id to create link instead
-            link_parent = spans[link_parent_id]
-            span._set_span_link(trace_id=link_parent.trace_id, span_id=link_parent_id, attributes=link_attributes)
-        else:
-            context = HTTPPropagator.extract(headers)
-            span.link_span(context, attributes=link_attributes)
+        tf = 1 if link.get("flags") else 0
+        span._set_span_link(
+            trace_id=link["trace_id"],
+            span_id=link["span_id"],
+            attributes=link.get("attributes"),
+            tracestate=link.get("tracestate"),
+            traceflags=tf,
+        )
 
     spans[span.span_id] = span
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
@@ -221,6 +216,25 @@ def trace_span_error(args: TraceSpanErrorArgs) -> TraceSpanErrorReturn:
     return TraceSpanErrorReturn()
 
 
+class TraceSpanAddLinksArgs(BaseModel):
+    span_id: int
+    trace_id_link: int
+    span_id_link: int
+    attributes: dict
+
+
+class TraceSpanAddLinkReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/span/add_link")
+def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
+    span = spans[args.span_id]
+    span._set_span_link(trace_id=args.trace_id_link, span_id=args.span_id_link, attributes=args.attributes)
+    print(f"inserver {span._links}")
+    return TraceSpanAddLinkReturn()
+
+
 class OtelStartSpanArgs(BaseModel):
     name: str
     parent_id: int
@@ -261,12 +275,22 @@ def otel_start_span(args: OtelStartSpanArgs):
     else:
         parent_span = None
 
+    links = []
+    for link in args.links:
+        ts = TraceState.from_header([link["tracestate"]]) if link["trace_state"] else None
+        tf = TraceFlags.SAMPLED if link.get("traceflags") == "01" else TraceFlags.DEFAULT
+        links.append(
+            opentelemetry.trace.Link(
+                OtelSpanContext(link["trace_id"], link["span_id"], True, tf, ts), link["attributes"]
+            )
+        )
+
     otel_span = otel_tracer.start_span(
         args.name,
         context=set_span_in_context(parent_span),
         kind=SpanKind(args.span_kind),
         attributes=args.attributes,
-        links=None,
+        links=links,
         # parametric tests expect timestamps to be set in microseconds (required by go)
         # but the python implementation sets time nanoseconds.
         start_time=args.timestamp * 1e3 if args.timestamp else None,
