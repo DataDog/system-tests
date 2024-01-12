@@ -1,4 +1,4 @@
-FROM python:3.12.0rc3-slim
+FROM python:3.12.1-slim
 
 # install bin dependancies
 RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
