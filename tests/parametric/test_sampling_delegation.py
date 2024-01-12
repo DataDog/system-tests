@@ -7,11 +7,13 @@ libraries.
 """
 
 import pytest
-from utils import scenarios
+from utils import features, rfc, scenarios
 
 
+@features.decisionless_extraction
 @scenarios.parametric
-class Test_Sampling_Delegation:
+@rfc("https://docs.google.com/document/d/1HRbi1DrBjL_KGeONrPgH7lblgqSLGlV5Ox1p4RL97xM/")
+class Test_Decisionless_Extraction:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -26,7 +28,7 @@ class Test_Sampling_Delegation:
                 # "trace sampling rule" (3).
                 # Sampling mechanism values are defined [here][1].
                 #
-                # [1]: https://docs.google.com/document/d/1zeO6LGnvxk5XweObHAwJbK3SfK23z7jQzp7ozWJTa2A/edit#heading=h.2nfwolfi3o1j
+                # [1]: https://docs.google.com/document/d/1HRbi1DrBjL_KGeONrPgH7lblgqSLGlV5Ox1p4RL97xM/
                 "DD_TRACE_SAMPLE_RATE": "1.0",
             }
         ],
