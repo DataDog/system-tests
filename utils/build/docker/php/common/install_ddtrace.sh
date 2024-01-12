@@ -23,9 +23,9 @@ fi
 
 echo "Installing php package ${PKG-"{default}"} with setup script $SETUP"
 if [[ $IS_APACHE -eq 0 ]]; then
-      php $SETUP --php-bin all ${PKG+"--file=$PKG"}
+      php $SETUP --php-bin all ${PKG+"--file=$PKG"} --enable-appsec
 else
-      PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"}
+      PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"} --enable-appsec
  fi
 
 #Ensure parametric test compatibility
@@ -35,17 +35,10 @@ else
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
   /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
-php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
-  ./SYSTEM_TESTS_PHP_APPSEC_VERSION
-
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
 library_version=$(<././SYSTEM_TESTS_LIBRARY_VERSION)
 rule_file="/opt/datadog/dd-library/${library_version}/etc/recommended.json"
-if [[ ! -f "${rule_file}" ]]; then
-    appsec_version=$(<./SYSTEM_TESTS_PHP_APPSEC_VERSION)
-    rule_file="/opt/datadog/dd-library/appsec-${appsec_version}/etc/dd-appsec/recommended.json"
-fi
 
 jq -r '.metadata.rules_version // "1.2.5"' "${rule_file}" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 

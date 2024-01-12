@@ -154,10 +154,6 @@ class _Scenario:
         return ""
 
     @property
-    def php_appsec(self):
-        return ""
-
-    @property
     def tracer_sampling_rate(self):
         return 0
 
@@ -437,9 +433,6 @@ class EndToEndScenario(_DockerScenario):
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Agent: {self.agent_version}")
 
-        if self.library == "php":
-            logger.stdout(f"AppSec: {self.weblog_container.php_appsec}")
-
         if self.weblog_container.libddwaf_version:
             logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
 
@@ -595,10 +588,6 @@ class EndToEndScenario(_DockerScenario):
         return self.weblog_container.weblog_variant
 
     @property
-    def php_appsec(self):
-        return self.weblog_container.php_appsec
-
-    @property
     def tracer_sampling_rate(self):
         return self.weblog_container.tracer_sampling_rate
 
@@ -644,7 +633,6 @@ class EndToEndScenario(_DockerScenario):
         return {
             "agent": self.agent_version,
             "library": self.library.version,
-            "php_appsec": self.php_appsec,
             "libddwaf": self.weblog_container.libddwaf_version,
             "appsec_rules": self.appsec_rules_version,
         }

@@ -54,7 +54,7 @@ class RemoteConfigurationFieldsBasicTests:
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
     @bug(context.library >= "nodejs@3.14.1")
-    @bug(context.library == "php" and context.php_appsec >= "0.10.0")
+    @bug(context.library == "php")
     def test_schemas(self):
         """Test all library schemas"""
         interfaces.library.assert_schemas()
