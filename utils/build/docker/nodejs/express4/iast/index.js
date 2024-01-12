@@ -286,6 +286,16 @@ function initRoutes (app, tracer) {
     res.setHeader('testheader', 'not_tainted_string')
     res.send('OK')
   })
+  
+  app.get('/iast/weak_randomness/test_insecure', (req, res) => {
+    Math.random()
+    res.send('OK')
+  })
+
+  app.get('/iast/weak_randomness/test_secure', (req, res) => {
+    crypto.randomBytes(256)
+    res.send('OK')
+  })
 
   require('./sources')(app, tracer)
 }
