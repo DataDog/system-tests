@@ -8,6 +8,9 @@ cd /binaries
 
 PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-linux-gnu.tar.gz')
 SETUP=/binaries/datadog-setup.php
+ENABLE_APPSEC_ARG="--enable-appsec"
+#Parametric tests don't need appsec
+[ ! -z ${NO_EXTRACT_VERSION+x} ] && ENABLE_APPSEC_ARG=""
 
 if [ "$PKG" != "" ] && [ ! -f "$SETUP" ]; then
   echo "local install failed: package located in /binaries but datadog-setup.php not present, please include it"
@@ -23,9 +26,9 @@ fi
 
 echo "Installing php package ${PKG-"{default}"} with setup script $SETUP"
 if [[ $IS_APACHE -eq 0 ]]; then
-      php $SETUP --php-bin all ${PKG+"--file=$PKG"} --enable-appsec
+      php $SETUP --php-bin all ${PKG+"--file=$PKG"} $ENABLE_APPSEC_ARG
 else
-      PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"} --enable-appsec
+      PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"} $ENABLE_APPSEC_ARG
  fi
 
 #Ensure parametric test compatibility
