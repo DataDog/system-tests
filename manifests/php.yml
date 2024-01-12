@@ -152,10 +152,10 @@ tests/:
       Test_Info: v0.68.3  # probably 0.68.2, vut was flaky
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
-    test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v0.86.3
     test_traces.py:
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+    test_user_blocking_full_denylist.py:
+      Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
     test_debugger.py:
       Test_Debugger_Line_Probe_Snaphots: irrelevant
