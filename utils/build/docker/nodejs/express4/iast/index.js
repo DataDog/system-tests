@@ -286,7 +286,7 @@ function initRoutes (app, tracer) {
     res.setHeader('testheader', 'not_tainted_string')
     res.send('OK')
   })
-  
+
   app.get('/iast/weak_randomness/test_insecure', (req, res) => {
     const randomNumber = Math.random()
     res.send(`OK:${randomNumber}`)
