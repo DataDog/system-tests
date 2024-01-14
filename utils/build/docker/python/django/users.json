@@ -1,0 +1,46 @@
+[
+     {
+      "model":"app.customuser",
+      "pk":"591dc126-8431-4d0f-9509-b23318d3dce4",
+      "fields":{
+         "password": "pbkdf2_sha256$260000$36JWISdQ4K0eJ1rAb1ja40$4yyv1nSAOjTIVUqYcRWj01stob8b6ri0EqpnUK+dt9s=",
+         "last_login":null,
+         "is_superuser":false,
+         "username":"testuuid",
+         "first_name":"testuuid",
+         "last_name":"",
+         "email":"testuseruuid@ddog.com",
+         "is_staff":false,
+         "is_active":true,
+         "date_joined":"2023-10-11T10:51:21.846Z",
+         "groups":[
+            
+         ],
+         "user_permissions":[
+            
+         ]
+      }
+   },
+   {
+      "model":"app.customuser",
+      "pk":"social-security-id",
+      "fields":{
+         "password": "pbkdf2_sha256$260000$36JWISdQ4K0eJ1rAb1ja40$4yyv1nSAOjTIVUqYcRWj01stob8b6ri0EqpnUK+dt9s=",
+         "last_login":null,
+         "is_superuser":false,
+         "username":"test",
+         "first_name":"test",
+         "last_name":"",
+         "email":"testuser@ddog.com",
+         "is_staff":false,
+         "is_active":true,
+         "date_joined":"2023-10-11T10:50:53.081Z",
+         "groups":[
+            
+         ],
+         "user_permissions":[
+            
+         ]
+      }
+   }
+]

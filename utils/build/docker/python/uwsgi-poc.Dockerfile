@@ -19,6 +19,7 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 RUN echo '#!/bin/bash \n\
 ddtrace-run uwsgi --http :7777 -w app:app --enable-threads\n' > app.sh
 RUN chmod +x app.sh
+RUN pip install flask-login
 CMD ./app.sh
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .

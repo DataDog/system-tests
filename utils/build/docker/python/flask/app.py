@@ -23,12 +23,16 @@ from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
 
+from flask_login import LoginManager
+from flask_login import UserMixin
+from flask_login import login_user
+
 import ddtrace
 
 ddtrace.patch_all()
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
+from ddtrace.settings.asm import config as asm_config
+from ddtrace.appsec._constants import LOGIN_EVENTS_MODE
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
@@ -41,8 +45,55 @@ POSTGRES_CONFIG = dict(
 )
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "7110c8ae51a4b5af97be6534caef90e4bb9bdcb3380af008f90b23a5d1616bf319bc"
+login_manager = LoginManager(app)
 
 tracer.trace("init.service").finish()
+
+
+class User(UserMixin):
+    def __init__(self, _id, login, name, email, password, is_admin=False):
+        self.id = _id
+        self.login = login
+        self.name = name
+        self.email = email
+        self.password = password
+        self.is_admin = is_admin
+
+    def set_password(self, password):
+        self.password = password
+
+    def check_password(self, password):
+        return self.password == password
+
+    def __repr__(self):
+        return "<User {}>".format(self.email)
+
+    def get_id(self):
+        return self.id
+
+
+EMPTY_USER = User(-1, "", "", "", "", False)
+
+_USERS = [
+    User("social-security-id", "test", "test", "testuser@ddog.com", "1234", False),
+    User("591dc126-8431-4d0f-9509-b23318d3dce4", "testuuid", "tester uuid", "testuseruuid@ddog.com", "1234", False),
+]
+
+
+def get_user(login):
+    for _user in _USERS:
+        if _user.login == login:
+            return _user
+    return None
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    for user in _USERS:
+        if user.id == int(user_id):
+            return user
+    return None
 
 
 @app.route("/")
@@ -457,6 +508,45 @@ def track_user_login_failure_event():
         tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
     )
     return Response("OK")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login_endpoint():
+    sdk_event = request.args.get("sdk_event", "")
+    sdk_user = request.args.get("sdk_user", "")
+    sdk_user_exists = request.args.get("sdk_user_exists", "false").lower() == "true"
+
+    if sdk_event:
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(
+                tracer, user_id=sdk_user, login_events_mode=LOGIN_EVENTS_MODE.SDK
+            )
+            return Response("OK")
+
+        appsec_trace_utils.track_user_login_failure_event(
+            tracer, user_id=sdk_user, exists=sdk_user_exists, login_events_mode=LOGIN_EVENTS_MODE.SDK
+        )
+        return Response("Unauthorized from SDK", status=401)
+
+    mode = asm_config._automatic_login_events_mode
+    user_id = None
+    if request.method == "GET":
+        return Response("Basic Auth not supported on flask-login by default")
+    elif request.method == "POST":
+        _user = get_user(flask_request.form["username"])
+        if _user:
+            user_id = _user.id
+            if _user.password == flask_request.form["password"]:
+                login_user(_user, remember=False)
+                return Response("OK", status=200)
+            else:
+                appsec_trace_utils.track_user_login_failure_event(
+                    tracer, user_id=user_id, exists=True, login_events_mode=mode
+                )
+                return Response("Wrong authentication", status=401)
+
+    appsec_trace_utils.track_user_login_failure_event(tracer, user_id=user_id, exists=False, login_events_mode=mode)
+    return Response("Unauthorized, method: %s" % str(request.method), status=401)
 
 
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
