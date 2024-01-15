@@ -41,7 +41,8 @@ jobs:
               version: dev
             - client: cpp
               version: prod
-            #Pending to update with dev version 
+            - client: php
+              version: dev
             - client: php
               version: prod
  
