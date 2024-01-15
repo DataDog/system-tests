@@ -8,12 +8,25 @@ import json
 
 import requests
 
-from jsonschema import validate
+from jsonschema import Draft202012Validator
 from utils import weblog, interfaces
 from utils.tools import logger
 
 
 SCHEMA_URL = "https://raw.githubusercontent.com/DataDog/schema/rarguelloF/SMTC-40/extend-agent-payload/semantic-core/v1/agent_payload_modified.json"
+
+
+# _format_as_index returns a formatted string from the given path.
+# Example: "instance['tracerPayloads'][0]['chunks'][2]['spans'][0]['meta']"
+def _format_as_index(obj_name, path, skip=None):
+    if skip is None:
+        skip = []
+
+    if not path:
+        return obj_name
+
+    p = [index for index in path if index not in skip]
+    return f"{obj_name}[{']['.join(repr(index) for index in p)}]"
 
 
 class Test_Schemas:
@@ -29,6 +42,8 @@ class Test_Schemas:
         schema = resp.json()
 
         logger.debug(f"using schema {json.dumps(schema)}")
+        validator = Draft202012Validator(schema)
+        all_errors = []
 
         for data in interfaces.agent.get_data():
             path = data["path"]
@@ -37,7 +52,25 @@ class Test_Schemas:
 
             logger.debug(f"validating {json.dumps(data)}")
             content = data["request"]["content"]
-            validate(instance=content, schema=schema)
+
+            errors = [
+                {
+                    "message": e.message,
+                    "instance_path": _format_as_index("instance", e.relative_path),
+                    "schema_path": _format_as_index(
+                        "schema",
+                        list(e.relative_schema_path)[:-1],
+                        skip=["properties", "items"],  # these are redundant for the schema
+                    ),
+                }
+                for e in list(sorted(validator.iter_errors(instance=content), key=str))
+            ]
+
+            if errors:
+                all_errors.append({"instance": content, "errors": errors})
+
+        if all_errors:
+            raise Exception(f"JSON Schema validation failed:\n{json.dumps(all_errors, indent=4)}")
 
 
 class Test_SensitiveData:
