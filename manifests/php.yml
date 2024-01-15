@@ -86,48 +86,48 @@ tests/:
     waf/:
       test_addresses.py:
         Test_BodyJson: missing_feature
-        #Test_BodyRaw: v0.1.0 #I don't know first release
-        #Test_BodyUrlEncoded: v0.1.0 #I don't know first release
+        Test_BodyRaw: v0.68.3
+        Test_BodyUrlEncoded: v0.68.3 
         Test_BodyXml: missing_feature
         Test_ClientIP: missing_feature
-        #Test_Cookies: v0.1.0 #I don't know first release
+        Test_Cookies: v0.68.3
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
         Test_Headers: v0.68.3
         Test_Lambda: missing_feature
         Test_Method: missing_feature
-        #Test_PathParams: v0.2.1 #I don't know first release
-        #Test_UrlQuery: v0.1.0 #I don't know first release
-        #Test_UrlQueryKey: v0.3.2 #I don't know first release
+        Test_PathParams: v0.71.0 
+        Test_UrlQuery: v0.68.3 
+        Test_UrlQueryKey: v0.74.0
         Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
         Test_gRPC: missing_feature
       test_blocking.py:
-        Test_Blocking: v0.7.0
-        Test_CustomBlockingResponse: v0.7.0
+        Test_Blocking: v0.86.0
+        Test_CustomBlockingResponse: v0.86.0
       test_custom_rules.py:
-        Test_CustomRules: v0.8.1
+        Test_CustomRules: v0.87.2
       test_exclusions.py:
-        Test_Exclusions: v0.7.0
+        Test_Exclusions: v0.86.0
       test_miscs.py:
         Test_404: v0.1.0
         Test_CorrectOptionProcessing: v0.1.0
         Test_MultipleAttacks: v0.1.0
         Test_MultipleHighlight: v0.2.0
       test_reports.py:
-        Test_Monitoring: v0.3.0     
+        Test_Monitoring: v0.73.0     
       test_rules.py:
-        Test_CommandInjection: v0.68.3  # probably sooner, but was flaky
-        #Test_HttpProtocol: v0.1.0 #I don't know first release
-        #Test_JavaCodeInjection: v0.1.0 #I don't know first release
-        #Test_JsInjection: v0.1.0 #I don't know first release
-        #Test_LFI: v0.1.0 #I don't know first release
-        Test_NoSqli: v0.68.3  # probably sooner, but was flaky
-        #Test_PhpCodeInjection: v0.1.0 #I don't know first release
-        #Test_RFI: v0.1.0 #I don't know first release
-        Test_SQLI: v0.68.3  # probably sooner, but was flaky
-        #Test_SSRF: v0.1.0 # probably sooner, but was flaky
-        #Test_Scanners: v0.1.0 # probably sooner, but was flaky
-        #Test_XSS: v0.1.0 # probably sooner, but was flaky
+        Test_CommandInjection: v0.68.3  
+        Test_HttpProtocol: v0.68.3
+        Test_JavaCodeInjection: v0.68.3
+        Test_JsInjection: v0.68.3
+        Test_LFI: v0.68.3
+        Test_NoSqli: v0.68.3  
+        Test_PhpCodeInjection: v0.68.3
+        Test_RFI: v0.68.3
+        Test_SQLI: v0.68.3  
+        Test_SSRF: v0.68.3 
+        Test_Scanners: v0.68.3
+        Test_XSS: v0.68.3
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
     test_PII.py:
@@ -140,7 +140,7 @@ tests/:
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
       Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
       Test_Blocking_response_status: irrelevant (On php it is not possible change the status code once its header is sent)
-      Test_Suspicious_Request_Blocking: missing_feature (v0.7.0 but test is not implemented)
+      Test_Suspicious_Request_Blocking: missing_feature (v0.86.0 but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
     test_identify.py:
@@ -149,7 +149,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
-      Test_Info: v0.68.3  # probably 0.68.2, vut was flaky
+      Test_Info: v0.68.3  # probably 0.68.2, but was flaky
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:

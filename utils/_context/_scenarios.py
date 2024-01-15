@@ -1009,8 +1009,6 @@ class ParametricScenario(_Scenario):
                         "-f",
                         f"{tracer_version_dockerfile}",
                         "--quiet",
-                        "--platform",
-                        "linux/amd64",
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,

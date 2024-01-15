@@ -431,8 +431,6 @@ def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer
         docker,
         "build",
         "--progress=plain",  # use plain output to assist in debugging
-        "--platform",
-        "linux/amd64",
         "-t",
         apm_test_server_definition.container_tag,
         "-f",
