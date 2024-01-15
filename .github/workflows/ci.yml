@@ -269,10 +269,12 @@ jobs:
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+    
+      # quick and dirty fix, because we can't test for now the PHP released tracer
+    - name: Load PHP library binary (skipping release tests, use snapshot instead)
+      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
 
-    - name: Load library PHP appsec binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
