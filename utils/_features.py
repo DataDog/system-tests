@@ -1871,7 +1871,7 @@ class features:
         Samping behavior when extracted trace context does not convey a sampling
         decision
 
-        https://feature-parity.us1.prod.dog/#/?feature=259
+        https://feature-parity.us1.prod.dog/#/?feature=261
         """
-        pytest.mark.features(feature_id=259)(test_object)
+        pytest.mark.features(feature_id=261)(test_object)
         return test_object
