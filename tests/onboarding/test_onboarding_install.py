@@ -82,3 +82,14 @@ class TestOnboardingUninstallContainer(_OnboardingUninstallBaseTest):
 @scenarios.onboarding_host_uninstall
 class TestOnboardingUninstallHost(_OnboardingUninstallBaseTest):
     pass
+
+
+#########################
+# Block list scenarios
+#########################
+
+
+@features.host_auto_instrumentation
+@scenarios.onboarding_host_block_list
+class TestOnboardingBlockListInstallManualHost(_OnboardingInstallBaseTest):
+    pass
