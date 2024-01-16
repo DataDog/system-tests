@@ -20,6 +20,7 @@ tests/:
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
     iast/:
       sink/:
         test_command_injection.py:
