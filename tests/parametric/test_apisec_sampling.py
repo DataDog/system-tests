@@ -10,6 +10,15 @@ from utils import (
 )
 
 
+SAMPLE_RATES = [
+    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.0"},
+    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.1"},
+    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.5"},
+    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.9"},
+    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0"},
+]
+
+
 def get_schema(request, address):
     """get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
@@ -26,30 +35,28 @@ def get_schema(request, address):
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
-@pytest.mark.parametrize(
-    "library_env",
-    [
-        {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.0"},
-        {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.1"},
-        {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.5"},
-        {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.9"},
-        {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0"},
-    ],
-)
 class Test_API_Security_sampling:
     """Test API Security - Request Headers Schema"""
 
     N = 20  # square root of number of requests
 
-    @pytest.fixture(scope="function")
-    def setup_and_teardown(self, library_env):
+    def setup_simple(self):
+        self.request = weblog.get("/tag_value/api_match_AS001/200")
+        print(">>> setup_simple")
+
+    def test_simple(self):
+        """can provide request header schema"""
+        assert self.request.status_code == 200
+
+    @pytest.mark.parametrize("library_env", SAMPLE_RATES)
+    def setup_sampling_rate(self, library_env):
         print(">>> setup_request_method", library_env)
         self.all_requests = [
             weblog.get("/tag_value/api_match_AS001/200") for _ in range(self.N**2)
         ]
-        yield
 
-    def test_sampling_rate(self, library_env, setup_and_teardown):
+    @pytest.mark.parametrize("library_env", SAMPLE_RATES)
+    def test_sampling_rate(self, library_env):
         """can provide request header schema"""
         N = self.N
         assert all(r.status_code == 200 for r in self.all_requests)
