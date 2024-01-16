@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+
 from utils import (
     context,
     coverage,
@@ -50,7 +51,9 @@ def equal_value(t1, t2):
     return False
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -71,7 +74,9 @@ class Test_Schema_Request_Headers:
             assert isinstance(schema[0][parameter_name], list)
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -80,7 +85,8 @@ class Test_Schema_Request_Cookies:
 
     def setup_request_method(self):
         self.request = weblog.get(
-            "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"},
+            "/tag_value/api_match_AS001/200",
+            cookies={"secret": "any_value", "cache": "any_other_value"},
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
@@ -95,7 +101,9 @@ class Test_Schema_Request_Cookies:
             assert isinstance(schema[0][parameter_name], list)
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -103,7 +111,9 @@ class Test_Schema_Request_Query_Parameters:
     """Test API Security - Request Query Parameters Schema"""
 
     def setup_request_method(self):
-        self.request = weblog.get("/tag_value/api_match_AS002/200?x=123&y=abc&z=%7B%22key%22%3A%22value%22%7D")
+        self.request = weblog.get(
+            "/tag_value/api_match_AS002/200?x=123&y=abc&z=%7B%22key%22%3A%22value%22%7D"
+        )
 
     def test_request_method(self):
         """can provide request query parameters schema"""
@@ -116,7 +126,9 @@ class Test_Schema_Request_Query_Parameters:
             assert isinstance(schema[0][parameter_name], list)
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -138,7 +150,9 @@ class Test_Schema_Request_Path_Parameters:
             assert isinstance(parameter[0], int)
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -156,10 +170,15 @@ class Test_Schema_Request_Json_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}],)
+        assert contains(
+            schema,
+            [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}],
+        )
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -182,7 +201,10 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],) or contains(
+        assert contains(
+            schema,
+            [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],
+        ) or contains(
             schema,
             [
                 {
@@ -196,7 +218,9 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         ), schema
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -216,7 +240,9 @@ class Test_Schema_Response_Headers:
         assert "x-option" in schema[0]
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -226,7 +252,12 @@ class Test_Schema_Response_Body:
     def setup_request_method(self):
         self.request = weblog.post(
             "/tag_value/payload_in_response_body_001/200",
-            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234,},
+            data={
+                "test_int": 1,
+                "test_str": "anything",
+                "test_bool": True,
+                "test_float": 1.5234,
+            },
         )
 
     def test_request_method(self):
@@ -242,7 +273,46 @@ class Test_Schema_Response_Body:
             assert key in payload_schema
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
+@coverage.basic
+@scenarios.appsec_api_security_no_response_body
+@features.api_security_schemas
+class Test_Schema_Response_Body_env_var:
+    """
+    Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
+    Check that response headers are still parsed but not response body
+    """
+
+    def setup_request_method(self):
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200?X-option=test_value",
+            data={
+                "test_int": 1,
+                "test_str": "anything",
+                "test_bool": True,
+                "test_float": 1.5234,
+            },
+        )
+
+    def test_request_method(self):
+        """can provide response body schema"""
+        assert self.request.status_code == 200
+
+        headers_schema = get_schema(self.request, "res.headers")
+        assert isinstance(headers_schema, list)
+        assert len(headers_schema) == 1
+        assert isinstance(headers_schema[0], dict)
+        assert "x-option" in headers_schema[0]
+
+        body_schema = get_schema(self.request, "res.body")
+        assert body_schema is None
+
+
+@rfc(
+    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
+)
 @coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
@@ -252,8 +322,14 @@ class Test_Scanners:
     def setup_request_method(self):
         self.request = weblog.get(
             "/tag_value/api_match_AS001/200",
-            cookies={"mastercard": "5123456789123456", "authorization": "digest a0b1c2", "SSN": "123-45-6789",},
-            headers={"authorization": "digest a0b1c2",},
+            cookies={
+                "mastercard": "5123456789123456",
+                "authorization": "digest a0b1c2",
+                "SSN": "123-45-6789",
+            },
+            headers={
+                "authorization": "digest a0b1c2",
+            },
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
@@ -267,9 +343,14 @@ class Test_Scanners:
         EXPECTED_COOKIES = {
             "SSN": [8, {"category": "pii", "type": "us_ssn"}],
             "authorization": [8],
-            "mastercard": [8, {"card_type": "mastercard", "type": "card", "category": "payment"},],
+            "mastercard": [
+                8,
+                {"card_type": "mastercard", "type": "card", "category": "payment"},
+            ],
         }
-        EXPECTED_HEADERS = {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]}
+        EXPECTED_HEADERS = {
+            "authorization": [8, {"category": "credentials", "type": "digest_auth"}]
+        }
 
         for schema, expected in [
             (schema_cookies[0], EXPECTED_COOKIES),
