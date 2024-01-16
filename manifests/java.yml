@@ -829,22 +829,21 @@ tests/:
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_crossed_integrations.py:
+      Test_GolangKafka:
+        "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
+      Test_JavaKafka:
+        "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
+      Test_NodeJSKafka:
+        "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
       Test_PythonKafka:
-        '*': v0.1 # real version not known
-        akka-http: missing_feature (Endpoint not implemented)
-        jersey-grizzly2: missing_feature (Endpoint not implemented)
-        play: missing_feature (Endpoint not implemented)
-        ratpack: missing_feature (Endpoint not implemented)
-        resteasy-netty3: missing_feature (Endpoint not implemented)
-        spring-boot-3-native: missing_feature (Endpoint not implemented)
-        spring-boot-jetty: missing_feature (Endpoint not implemented)
-        spring-boot-openliberty: missing_feature (Endpoint not implemented)
-        spring-boot-payara: missing_feature (Endpoint not implemented)
-        spring-boot-undertow: missing_feature (Endpoint not implemented)
-        spring-boot-wildfly: missing_feature (Endpoint not implemented)
-        uds-spring-boot: missing_feature (Endpoint not implemented)
-        vertx3: missing_feature (Endpoint not implemented)
-        vertx4: missing_feature (Endpoint not implemented)
+        "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
+      Test_RubyKafka:
+        "*": missing_feature (Endpoint not implemented)
+        spring-boot: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
@@ -882,11 +881,13 @@ tests/:
       TestDynamicConfigV1: v1.17.0
       TestDynamicConfigV2: missing_feature
     test_span_links.py: missing_feature
+    test_telemetry.py:
+      Test_TelemetryInstallSignature: v1.27.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
       Test_Trace_Sampling_Resource: v1.25.0
-      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Tags: v1.26.0
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
     test_tracer_flare.py:

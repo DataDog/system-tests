@@ -154,10 +154,6 @@ class _Scenario:
         return ""
 
     @property
-    def php_appsec(self):
-        return ""
-
-    @property
     def tracer_sampling_rate(self):
         return 0
 
@@ -365,11 +361,18 @@ class EndToEndScenario(_DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python is supported
+            # so far, only python, nodejs, java, ruby and golang are supported
+            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+
             self.buddies += [
                 BuddyContainer(
-                    "python_buddy", "datadog/system-tests:python_buddy-v0", self.host_log_folder, proxy_port=9001
-                ),
+                    f"{language}_buddy",
+                    f"datadog/system-tests:{language}_buddy-v0",
+                    self.host_log_folder,
+                    proxy_port=port,
+                    environment=weblog_env,
+                )
+                for language, port in supported_languages
             ]
 
             self._required_containers += self.buddies
@@ -429,9 +432,6 @@ class EndToEndScenario(_DockerScenario):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Agent: {self.agent_version}")
-
-        if self.library == "php":
-            logger.stdout(f"AppSec: {self.weblog_container.php_appsec}")
 
         if self.weblog_container.libddwaf_version:
             logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
@@ -514,6 +514,16 @@ class EndToEndScenario(_DockerScenario):
     def post_setup(self):
         from utils import interfaces
 
+        try:
+            self._wait_and_stop_containers()
+        finally:
+            self.close_targets()
+
+        interfaces.library_dotnet_managed.load_data()
+
+    def _wait_and_stop_containers(self):
+        from utils import interfaces
+
         if self.replay:
 
             logger.terminal.write_sep("-", "Load all data from logs")
@@ -548,10 +558,6 @@ class EndToEndScenario(_DockerScenario):
 
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
-        self.close_targets()
-
-        interfaces.library_dotnet_managed.load_data()
-
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
@@ -580,10 +586,6 @@ class EndToEndScenario(_DockerScenario):
     @property
     def weblog_variant(self):
         return self.weblog_container.weblog_variant
-
-    @property
-    def php_appsec(self):
-        return self.weblog_container.php_appsec
 
     @property
     def tracer_sampling_rate(self):
@@ -631,7 +633,6 @@ class EndToEndScenario(_DockerScenario):
         return {
             "agent": self.agent_version,
             "library": self.library.version,
-            "php_appsec": self.php_appsec,
             "libddwaf": self.weblog_container.libddwaf_version,
             "appsec_rules": self.appsec_rules_version,
         }
@@ -993,12 +994,6 @@ class ParametricScenario(_Scenario):
         super().configure(config)
         assert "TEST_LIBRARY" in os.environ
 
-        # For some tracers we need a env variable present to use custom build of the tracer
-        lang_custom_build_param = {
-            "ruby": "RUBY_DDTRACE_SHA",
-        }
-        build_param = os.getenv(lang_custom_build_param.get(os.getenv("TEST_LIBRARY"), ""), "")
-
         # get tracer version info building and executing the ddtracer-version.docker file
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
@@ -1014,8 +1009,6 @@ class ParametricScenario(_Scenario):
                         "-f",
                         f"{tracer_version_dockerfile}",
                         "--quiet",
-                        "--build-arg",
-                        f"BUILD_MODULE={build_param}",
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,
@@ -1077,6 +1070,7 @@ class scenarios:
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
+        weblog_env={"DD_TRACE_API_VERSION": "v0.4"},
         include_kafka=True,
         include_buddies=True,
         doc="Spawns a buddy for each supported language of APM",

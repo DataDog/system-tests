@@ -83,10 +83,7 @@ go mod tidy
 
 #### dotnet
 
-To test unmerged PRs locally, do the following:
-- In your local dd-trace-dotnet repo, build the `Datadog.Trace` NuGet package. The easiest way to do this is to run `dotnet pack` from the `/tracer/src/Datadog.Trace` directory.
-- Copy the resulting `.nupkg` file into the `apps/dotnet` directory
-- In `apps/dotnet/ApmTestClient.csproj`, update the version of the `Datadog.Trace` package reference to the dev version
+Add a file datadog-dotnet-apm-<VERSION>.tar.gz in binaries/. <VERSION> must be a valid version number.
 
 #### Java
 
@@ -152,13 +149,19 @@ There is two ways for running the NodeJS tests with a custom tracer:
 
 #### Ruby
 
-To run the Ruby tests "locally" push your code GitHub and then specify `RUBY_DDTRACE_SHA`:
+There is two ways for running the Ruby tests with a custom tracer:
 
-```sh
-RUBY_DDTRACE_SHA=0552ebd49dc5b3bec4e739c2c74b214fb3102c2a ./run.sh ...
-```
+1. Create an file ruby-load-from-bundle-add in binaries/, the content will be installed by bundle add. Content example:
+gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'
+2. Clone the dd-trace-rb repo inside binaries
 
 #### C++
+
+There is two ways for running the C++ library tests with a custom tracer:
+1. Create a file `cpp-load-from-git` in `binaries/`. Content examples:
+    * `https://github.com/DataDog/dd-trace-cpp@main`
+    * `https://github.com/DataDog/dd-trace-cpp@<COMMIT HASH>`
+2. Clone the dd-trace-cpp repo inside `binaries`
 
 The parametric shared tests can be run against the C++ library,
 [dd-trace-cpp][1], this way:
