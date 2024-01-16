@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _nodejs_buddy, _java_buddy
+from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
 from utils import interfaces, scenarios, coverage, weblog, missing_feature, features, context, irrelevant
 from utils.tools import logger
 
@@ -66,7 +66,7 @@ class _Test_SQS:
         )
 
     def test_produce(self):
-        """Check that a message produced to sqs is correctly ingested by a Datadog python tracer"""
+        """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
 
         assert self.production_response.status_code == 200
         assert self.consume_response.status_code == 200
@@ -120,7 +120,7 @@ class _Test_SQS:
         )
 
     def test_consume(self):
-        """Check that a message by an app instrumented by a Datadog python tracer is correctly ingested"""
+        """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
 
         assert self.production_response.status_code == 200
         assert self.consume_response.status_code == 200
@@ -194,32 +194,22 @@ class _Test_SQS:
 
 @scenarios.crossed_tracing_libraries
 @coverage.basic
-@features.aws_sqs_span_creationcontext_propagation_with_dd_trace_js
-class Test_NodeJS_SQS(_Test_SQS):
-    buddy_interface = interfaces.nodejs_buddy
-    buddy = _nodejs_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_NodeJS_SQS_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_NodeJS_SQS_buddy_to_weblog"
-
-
-@scenarios.crossed_tracing_libraries
-@coverage.basic
-@features.aws_sqs_span_creationcontext_propagation_with_dd_trace_py
-class Test_Python_SQS(_Test_SQS):
+@features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
+class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy_interface = interfaces.python_buddy
     buddy = _python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_Python_SQS_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_Python_SQS_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
 
 
 @scenarios.crossed_tracing_libraries
 @coverage.basic
-@features.aws_sqs_span_creationcontext_propagation_with_dd_trace_java
-class Test_Java_SQS(_Test_SQS):
+@features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
+class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy_interface = interfaces.java_buddy
     buddy = _java_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_Java_SQS_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_Java_SQS_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_aws_xray_header_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_aws_xray_header_buddy_to_weblog"
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")

@@ -1866,28 +1866,19 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_sqs_span_creationcontext_propagation_with_dd_trace_py(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(test_object):
         """
-        [AWS-SQS][Span Creation][Context Propagation] with dd-trace-py
+        [AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
         https://feature-parity.us1.prod.dog/#/?feature=259
         """
         pytest.mark.features(feature_id=259)(test_object)
         return test_object
 
     @staticmethod
-    def aws_sqs_span_creationcontext_propagation_with_dd_trace_js(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
         """
-        [AWS-SQS][Span Creation][Context Propagation] with dd-trace-js
+        [AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
         https://feature-parity.us1.prod.dog/#/?feature=260
         """
         pytest.mark.features(feature_id=260)(test_object)
-        return test_object
-
-    @staticmethod
-    def aws_sqs_span_creationcontext_propagation_with_dd_trace_java(test_object):
-        """
-        [AWS-SQS][Span Creation][Context Propagation] with dd-trace-java
-        https://feature-parity.us1.prod.dog/#/?feature=261
-        """
-        pytest.mark.features(feature_id=261)(test_object)
         return test_object

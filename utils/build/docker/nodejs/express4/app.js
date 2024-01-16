@@ -6,13 +6,14 @@ const tracer = require('dd-trace').init({
 
 const app = require('express')()
 const { Kafka } = require('kafkajs')
-const AWS = require('aws-sdk')
 const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
 
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
+
+const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
 
 iast.initData().catch(() => {})
 
@@ -270,46 +271,8 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
-  // Create an SQS client
-  const sqs = new AWS.SQS({
-    endpoint: 'http://elasticmq:9324',
-    region: 'us-east-1'
-  })
 
-  const produceMessage = () => {
-    return new Promise((resolve, reject) => {
-      sqs.createQueue({
-        QueueName: queue
-      }, (err, res) => {
-        if (err) {
-          console.log(err)
-          reject(err)
-        } else {
-          // Send messages to the queue
-          const produce = () => {
-            sqs.sendMessage({
-              QueueUrl: `http://elasticmq:9324/000000000000/${queue}`,
-              MessageBody: 'Hello from SQS JavaScript injection'
-            }, (err, data) => {
-              if (err) {
-                console.log(err)
-                reject(err)
-              } else {
-                console.log(data)
-                resolve()
-              }
-            })
-            console.log('Produced a message')
-          }
-
-          // Start producing messages
-          produce()
-        }
-      })
-    })
-  }
-
-  produceMessage()
+  produceMessage(queue)
     .then(() => {
       res.status(200).send('produce ok')
     })
@@ -322,48 +285,8 @@ app.get('/sqs/produce', (req, res) => {
 app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
-  // Create an SQS client
-  const sqs = new AWS.SQS({
-    endpoint: 'http://elasticmq:9324',
-    region: 'us-east-1'
-  })
 
-  const queueUrl = `http://elasticmq:9324/000000000000/${queue}`
-
-  const consumeMessage = async () => {
-    return new Promise((resolve, reject) => {
-      sqs.receiveMessage({
-        QueueUrl: queueUrl,
-        MaxNumberOfMessages: 1
-      }, (err, response) => {
-        if (err) {
-          console.error('Error receiving message: ', err)
-          reject(err)
-        }
-
-        try {
-          console.log(response)
-          if (response && response.Messages) {
-            for (const message of response.Messages) {
-              const consumedMessage = message.Body
-              console.log('Consumed the following: ' + consumedMessage)
-            }
-            resolve()
-          } else {
-            console.log('No messages received')
-          }
-        } catch (error) {
-          console.error('Error while consuming messages: ', error)
-          reject(err)
-        }
-      })
-      setTimeout(() => {
-        reject(new Error('Message not received'))
-      }, timeout) // Set a timeout of n seconds for message reception
-    })
-  }
-
-  consumeMessage()
+  consumeMessage(queue, timeout)
     .then(() => {
       res.status(200).send('consume ok')
     })
