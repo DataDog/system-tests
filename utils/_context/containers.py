@@ -456,7 +456,6 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self.php_appsec = None
         self.libddwaf_version = None
         self.appsec_rules_version = None
 
@@ -480,9 +479,6 @@ class WeblogContainer(TestedContainer):
     def configure(self, replay):
         super().configure(replay)
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
-
-        if self.library == "php":
-            self.php_appsec = Version(self.image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
 
         if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
