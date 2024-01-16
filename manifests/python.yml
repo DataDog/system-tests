@@ -69,7 +69,7 @@ tests/:
             fastapi: missing_feature
             python3.12: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature            
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -478,6 +478,12 @@ tests/:
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
+    test_sampling_delegation.py:
+      # The Python tracer does not include the "_dd.p.dm" header when it makes a
+      # sampling decision in the situation where there was no sampling decision
+      # in the extracted trace context.
+      # See <https://github.com/DataDog/system-tests/actions/runs/7530136315/job/20496229596?pr=2005>.
+      Test_Decisionless_Extraction: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature

@@ -14,7 +14,7 @@ tests/:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies:
           '*': v1.60.0-dev
-          net-http: irrelevant (net-http doesn't handle path params)        
+          net-http: irrelevant (net-http doesn't handle path params)
           uds-echo: bug (APPSEC-18224)
         Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers:
@@ -34,10 +34,10 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature          
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
-        test_hsts_missing_header.py: 
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
@@ -69,7 +69,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -341,6 +341,11 @@ tests/:
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
+    test_sampling_delegation.py:
+      # The Go tracer creates a new trace rather than using the trace indicated
+      # by the incoming X-Datadog-Trace-Id header.
+      # See <https://github.com/DataDog/system-tests/actions/runs/7530136315/job/20496227919?pr=2005>.
+      Test_Decisionless_Extraction: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.59.0-dev
       TestDynamicConfigV2: v1.59.0-dev
