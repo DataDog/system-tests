@@ -365,6 +365,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  test_data_integrity.py:
+    Test_LibraryHeaders: missing_feature (Datadog-Container-ID is empty on telemetry payloads)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
