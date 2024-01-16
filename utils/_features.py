@@ -1828,3 +1828,13 @@ class features:
         """
         pytest.mark.features(feature_id=254)(test_object)
         return test_object
+
+    @staticmethod
+    def semantic_core_validations(test_object):
+        """
+        Semantic Core Validations
+
+        https://feature-parity.us1.prod.dog/#/?feature=262
+        """
+        pytest.mark.features(feature_id=262)(test_object)
+        return test_object
