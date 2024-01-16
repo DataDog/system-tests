@@ -1280,7 +1280,7 @@ class scenarios:
         DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
         """,
     )
-    
+
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
