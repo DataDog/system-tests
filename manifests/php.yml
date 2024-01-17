@@ -15,6 +15,7 @@ tests/:
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: v0.94.0
         Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v0.94.0
     iast/:
       sink/:

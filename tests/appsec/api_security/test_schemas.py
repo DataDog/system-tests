@@ -244,6 +244,36 @@ class Test_Schema_Response_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @coverage.basic
+@scenarios.appsec_api_security_no_response_body
+@features.api_security_schemas
+class Test_Schema_Response_Body_env_var:
+    """
+    Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
+    Check that response headers are still parsed but not response body
+    """
+
+    def setup_request_method(self):
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200?X-option=test_value",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234,},
+        )
+
+    def test_request_method(self):
+        """can provide response body schema"""
+        assert self.request.status_code == 200
+
+        headers_schema = get_schema(self.request, "res.headers")
+        assert isinstance(headers_schema, list)
+        assert len(headers_schema) == 1
+        assert isinstance(headers_schema[0], dict)
+        assert "x-option" in headers_schema[0]
+
+        body_schema = get_schema(self.request, "res.body")
+        assert body_schema is None
+
+
+@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Scanners:
