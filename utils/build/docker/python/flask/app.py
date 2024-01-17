@@ -62,14 +62,16 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 @app.route("/waf/", methods=["GET", "POST", "OPTIONS"])
 @app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
 @app.route("/params/<path>", methods=["GET", "POST", "OPTIONS"])
-@app.route("/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"])
+@app.route(
+    "/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"],
+)
 def waf(*args, **kwargs):
     if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]},
         )
         if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
-            return jsonify({"payload": request.form})
+            return jsonify({"payload": request.form}), kwargs["status_code"], flask_request.args
 
         return "Value tagged", kwargs["status_code"], flask_request.args
     return "Hello, World!\n"
@@ -179,7 +181,7 @@ def dbm():
 @app.route("/kafka/produce")
 def produce_kafka_message():
     """
-        The goal of this endpoint is to trigger kafka producer calls
+    The goal of this endpoint is to trigger kafka producer calls
     """
 
     producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
@@ -194,7 +196,7 @@ def produce_kafka_message():
 @app.route("/kafka/consume")
 def consume_kafka_message():
     """
-        The goal of this endpoint is to trigger kafka consumer calls
+    The goal of this endpoint is to trigger kafka consumer calls
     """
     message_topic = flask_request.args.get("topic", "DistributedTracing")
     timeout_s = int(flask_request.args.get("timeout", 60))
@@ -226,7 +228,7 @@ def consume_kafka_message():
 @app.route("/dsm")
 def dsm():
     logging.basicConfig(
-        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S",
     )
     topic = "dsm-system-tests-queue"
     consumer_group = "testgroup1"
@@ -235,7 +237,9 @@ def dsm():
         if err is not None:
             logging.info(f"[kafka] Message delivery failed: {err}")
         else:
-            logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
+            logging.info(
+                "[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition(),
+            )
 
     def produce():
         producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
