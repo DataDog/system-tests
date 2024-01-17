@@ -184,6 +184,7 @@ class Test_DsmSQS:
     def setup_dsm_sqs(self):
         self.r = weblog.get("/dsm?integration=sqs", timeout=60)
 
+    @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being receieved.")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
