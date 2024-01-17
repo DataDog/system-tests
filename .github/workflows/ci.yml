@@ -329,7 +329,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_integration == 'true'
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
