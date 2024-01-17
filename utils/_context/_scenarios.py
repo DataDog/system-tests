@@ -155,10 +155,6 @@ class _Scenario:
         return ""
 
     @property
-    def php_appsec(self):
-        return ""
-
-    @property
     def tracer_sampling_rate(self):
         return 0
 
@@ -444,9 +440,6 @@ class EndToEndScenario(_DockerScenario):
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Agent: {self.agent_version}")
 
-        if self.library == "php":
-            logger.stdout(f"AppSec: {self.weblog_container.php_appsec}")
-
         if self.weblog_container.libddwaf_version:
             logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
 
@@ -602,10 +595,6 @@ class EndToEndScenario(_DockerScenario):
         return self.weblog_container.weblog_variant
 
     @property
-    def php_appsec(self):
-        return self.weblog_container.php_appsec
-
-    @property
     def tracer_sampling_rate(self):
         return self.weblog_container.tracer_sampling_rate
 
@@ -651,7 +640,6 @@ class EndToEndScenario(_DockerScenario):
         return {
             "agent": self.agent_version,
             "library": self.library.version,
-            "php_appsec": self.php_appsec,
             "libddwaf": self.weblog_container.libddwaf_version,
             "appsec_rules": self.appsec_rules_version,
         }
@@ -1277,6 +1265,21 @@ class scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_no_response_body = EndToEndScenario(
+        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if

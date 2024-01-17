@@ -5,14 +5,15 @@ const tracer = require('dd-trace').init({
 })
 
 const app = require('express')()
-const { Kafka } = require('kafkajs')
-const AWS = require('aws-sdk')
 const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
 
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
+
+const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
+const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
 
 iast.initData().catch(() => {})
 
@@ -138,177 +139,13 @@ app.get('/users', (req, res) => {
   }
 })
 
-async function kafkaProduce (topic, message) {
-  const kafka = new Kafka({
-    clientId: 'my-app-producer',
-    brokers: ['kafka:9092'],
-    retry: {
-      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
-      retries: 20 // Number of retries before giving up
-    }
-  })
-  const admin = kafka.admin()
-  const producer = kafka.producer()
-  const doKafkaOperations = async () => {
-    await admin.connect()
-    await producer.connect()
-    await admin.createTopics({
-      waitForLeaders: true, // While the topic already exists we use this to wait for leadership election to finish
-      topics: [
-        { topic }
-      ]
-    })
-    await producer.send({
-      topic,
-      messages: [
-        { value: message }
-      ]
-    })
-    await producer.disconnect()
-  }
-
-  return await doKafkaOperations()
-}
-
-async function kafkaConsume (topic, timeout) {
-  const kafka = new Kafka({
-    clientId: 'my-app-consumer',
-    brokers: ['kafka:9092'],
-    retry: {
-      initialRetryTime: 200, // Time to wait in milliseconds before the first retry
-      retries: 50 // Number of retries before giving up
-    }
-  })
-  let consumer
-  const doKafkaOperations = async () => {
-    consumer = kafka.consumer({ groupId: 'testgroup1' })
-
-    await consumer.connect()
-    await consumer.subscribe({ topic: topic, fromBeginning: true })
-
-    return new Promise((resolve, reject) => {
-      consumer.run({
-        eachMessage: async ({ messageTopic, messagePartition, message }) => {
-          console.log({
-            value: message.value.toString()
-          })
-          resolve()
-        }
-      })
-      setTimeout(() => {
-        reject(new Error('Message not received'))
-      }, timeout) // Set a timeout of n seconds for message reception
-    })
-  }
-
-  return new Promise((resolve, reject) => {
-    doKafkaOperations()
-      .then(async () => {
-        await consumer.stop()
-        await consumer.disconnect()
-        resolve()
-      })
-      .catch((error) => {
-        console.log(error)
-        reject(error)
-      })
-  })
-}
-
-function sqsProduce (queue, message) {
-  // Create an SQS client
-  const sqs = new AWS.SQS({
-    endpoint: 'http://elasticmq:9324',
-    region: 'us-east-1'
-  })
-
-  const produceMessage = () => {
-    return new Promise((resolve, reject) => {
-      sqs.createQueue({
-        QueueName: queue
-      }, (err, res) => {
-        if (err) {
-          console.log(err)
-          reject(err)
-        } else {
-          // Send messages to the queue
-          const produce = () => {
-            sqs.sendMessage({
-              QueueUrl: `http://elasticmq:9324/000000000000/${queue}`,
-              MessageBody: message
-            }, (err, data) => {
-              if (err) {
-                console.log(err)
-                reject(err)
-              } else {
-                console.log(data)
-                resolve()
-              }
-            })
-            console.log('Produced a message')
-          }
-
-          // Start producing messages
-          produce()
-        }
-      })
-    })
-  }
-
-  return produceMessage()
-}
-
-async function sqsConsume (queue, timeout) {
-  // Create an SQS client
-  const sqs = new AWS.SQS({
-    endpoint: 'http://elasticmq:9324',
-    region: 'us-east-1'
-  })
-
-  const queueUrl = `http://elasticmq:9324/000000000000/${queue}`
-
-  const consumeMessage = async () => {
-    return new Promise((resolve, reject) => {
-      sqs.receiveMessage({
-        QueueUrl: queueUrl,
-        MaxNumberOfMessages: 1
-      }, (err, response) => {
-        if (err) {
-          console.error('Error receiving message: ', err)
-          reject(err)
-        }
-
-        try {
-          console.log(response)
-          if (response && response.Messages) {
-            for (const message of response.Messages) {
-              const consumedMessage = message.Body
-              console.log('Consumed the following: ' + consumedMessage)
-            }
-            resolve()
-          } else {
-            console.log('No messages received')
-          }
-        } catch (error) {
-          console.error('Error while consuming messages: ', error)
-          reject(err)
-        }
-      })
-      setTimeout(() => {
-        reject(new Error('Message not received'))
-      }, timeout) // Set a timeout of n seconds for message reception
-    })
-  }
-  return consumeMessage()
-}
-
 app.get('/dsm', (req, res) => {
   const integration = req.query.integration
-  const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
 
   if (integration === 'kafka') {
     const topic = 'dsm-system-tests-queue'
     const message = 'hello from kafka DSM JS'
+    const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
 
     kafkaProduce(topic, message)
       .then(() => {
@@ -328,10 +165,11 @@ app.get('/dsm', (req, res) => {
   } else if (integration === 'sqs') {
     const queue = 'dsm-system-tests-queue'
     const message = 'hello from SQS DSM JS'
+    const timeout = req.query.timeout ?? 5
 
-    sqsProduce(queue, message)
+    produceMessage(queue, message)
       .then(() => {
-        sqsConsume(queue, timeout)
+        consumeMessage(queue, timeout)
           .then(() => {
             res.send('ok')
           })
@@ -351,6 +189,7 @@ app.get('/dsm', (req, res) => {
 
 app.get('/kafka/produce', (req, res) => {
   const topic = req.query.topic
+
   kafkaProduce(topic, 'Hello from Kafka JS')
     .then(() => {
       res.status(200).send('produce ok')
@@ -364,6 +203,7 @@ app.get('/kafka/produce', (req, res) => {
 app.get('/kafka/consume', (req, res) => {
   const topic = req.query.topic
   const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
+
   kafkaConsume(topic, timeout)
     .then(() => {
       res.status(200).send('consume ok')
@@ -376,26 +216,28 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
-  sqsProduce(queue, 'Hello from SQS JavaScript injection')
+
+  produceMessage(queue)
     .then(() => {
       res.status(200).send('produce ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during sqs produce')
+      res.status(500).send('Internal Server Error during SQS produce')
     })
 })
 
 app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
-  sqsConsume(queue, timeout)
+
+  consumeMessage(queue, timeout)
     .then(() => {
       res.status(200).send('consume ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during sqs consume')
+      res.status(500).send('Internal Server Error during SQS consume')
     })
 })
 

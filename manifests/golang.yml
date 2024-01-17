@@ -28,6 +28,7 @@ tests/:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
         Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
@@ -330,11 +331,9 @@ tests/:
           "*": irrelevant
           net-http: v0.1 # real version not known
       test_sqs.py:
-        Test_Java_SQS:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
-        Test_NodeJS_SQS:
-          "*": missing_feature (Endpoint not implemented)
-        Test_Python_SQS:
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
@@ -354,6 +353,8 @@ tests/:
       TestDynamicConfigV1: v1.59.0-dev
       TestDynamicConfigV2: v1.59.0-dev
     test_span_links.py: missing_feature
+    test_telemetry.py:
+      Test_TelemetryInstallSignature: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: missing_feature
@@ -372,6 +373,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  test_data_integrity.py:
+    Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

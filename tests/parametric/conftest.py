@@ -289,14 +289,14 @@ def php_library_factory() -> APMLibraryTestServer:
         container_tag="php-test-library",
         container_img=f"""
 FROM datadog/dd-trace-ci:php-8.2_buster
-WORKDIR /tmp
+WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
 ADD {php_reldir}/composer.lock .
 RUN composer install
-ADD {php_reldir}/install.sh .
+ADD {php_reldir}/../common/install_ddtrace.sh .
 COPY binaries /binaries
-RUN ./install.sh
+RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 ADD {php_reldir}/server.php .
 """,
         container_cmd=["php", "server.php"],
@@ -557,6 +557,16 @@ class _TestAgentAPI:
             self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,}
         )
         assert resp.status_code == 202
+
+    def raw_telemetry(self, clear=False, **kwargs):
+        raw_reqs = self.requests()
+        reqs = []
+        for req in raw_reqs:
+            if req["url"].endswith("/telemetry/proxy/api/v2/apmtelemetry"):
+                reqs.append(req)
+        if clear:
+            self.clear()
+        return reqs
 
     def telemetry(self, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)

@@ -2,7 +2,14 @@ package com.datadoghq.system_tests.springboot.aws;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.*;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 
 import java.util.List;
@@ -40,7 +47,7 @@ public class SqsConnector {
             return getQueueUrlResponse.queueUrl();
         }  catch (SqsException e) {
             System.err.println(e.awsErrorDetails().errorMessage());
-            throw new Exception("[SQS] Failed to create SQS queue");
+            throw new Exception("Failed to create SQS queue with following error: " + e.getLocalizedMessage());
         }
     }
 

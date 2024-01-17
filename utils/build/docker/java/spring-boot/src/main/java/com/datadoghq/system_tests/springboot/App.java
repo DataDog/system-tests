@@ -336,7 +336,7 @@ public class App {
     @RequestMapping("/sqs/consume")
     ResponseEntity<String> sqsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
         SqsConnector sqs = new SqsConnector(queue);
-        if (timeout == null) timeout = Integer.MAX_VALUE;
+        if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
             consumed = sqs.consumeMessageWithoutNewThread();
