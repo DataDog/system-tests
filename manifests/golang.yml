@@ -344,11 +344,6 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.59.0-dev
       TestDynamicConfigV2: v1.59.0-dev
-    test_sampling_delegation.py:
-      # The Go tracer creates a new trace rather than using the trace indicated
-      # by the incoming X-Datadog-Trace-Id header.
-      # See <https://github.com/DataDog/system-tests/actions/runs/7530136315/job/20496227919?pr=2005>.
-      Test_Decisionless_Extraction: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_TelemetryInstallSignature: missing_feature

@@ -51,13 +51,14 @@ class Test_Decisionless_Extraction:
         [1]: https://docs.google.com/document/d/1w7qe6Jp9vF6HmRA5bNjzZI9JxmXq8cwscqpUPpF686Y
         """
         trace_id = 1212121212121212121
+        parent_id = 34343434
         span_args = {
             "name": "name",
             "service": "service",
             "resource": "resource",
             "http_headers": [
                 ["x-datadog-trace-id", str(trace_id)],
-                # Specifying an origin allows for parent ID to be omitted.
+                ["x-datadog-parent-id", str(parent_id)],
                 ["x-datadog-origin", "rum"],
             ],
         }
@@ -69,8 +70,9 @@ class Test_Decisionless_Extraction:
         assert len(trace) == 1
         (span,) = trace
         # Extraction succeeded if the span produced by the tracer has the same
-        # trace ID mentioned in the headers.
+        # trace ID and parent ID mentioned in the headers.
         assert span["trace_id"] == trace_id
+        assert span["parent_id"] == parent_id
         # If the tracer made its own sampling decision, then the decision will
         # be associated with mechanism 3 ("trace sampling rule"), because we set
         # DD_TRACE_SAMPLE_RATE. If, on the other hand, the tracer inferred a
