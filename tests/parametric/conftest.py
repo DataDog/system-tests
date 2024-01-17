@@ -113,7 +113,7 @@ RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0 requests
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 """,
-        container_cmd="python3.9 -m apm_test_client".split(" "),
+        container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
@@ -737,6 +737,7 @@ class _TestAgentAPI:
     def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
+        capabilities_seen = set()
         for i in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
@@ -747,11 +748,13 @@ class _TestAgentAPI:
                 for req in rc_reqs:
                     raw_caps = req["body"]["client"].get("capabilities")
                     if raw_caps:
-                        int_capabilities = int.from_bytes(base64.b64decode(raw_caps), byteorder="big")
+                        decoded_capabilities = base64.b64decode(raw_caps)
+                        int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+                        capabilities_seen.add(remoteconfig.human_readable_capabilities(int_capabilities))
                         if all((int_capabilities >> c) & 1 for c in capabilities):
                             return int_capabilities
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
+        raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
     def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
