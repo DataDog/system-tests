@@ -1829,6 +1829,7 @@ class features:
         pytest.mark.features(feature_id=254)(test_object)
         return test_object
 
+    @staticmethod
     def kafkaspan_creationcontext_propagation_with_dd_trace_js(test_object):
         """
         [Kafka][Span Creation][Context Propagation] with dd-trace-js
@@ -1872,6 +1873,15 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=261
         """
         pytest.mark.features(feature_id=261)(test_object)
+        return test_object
+
+    @staticmethod
+    def semantic_core_validations(test_object):
+        """
+        Semantic Core Validations
+        https://feature-parity.us1.prod.dog/#/?feature=262
+        """
+        pytest.mark.features(feature_id=262)(test_object)
         return test_object
 
     @staticmethod
@@ -1922,14 +1932,4 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=267
         """
         pytest.mark.features(feature_id=267)(test_object)
-        return test_object
-
-    @staticmethod
-    def semantic_core_validations(test_object):
-        """
-        Semantic Core Validations
-
-        https://feature-parity.us1.prod.dog/#/?feature=262
-        """
-        pytest.mark.features(feature_id=262)(test_object)
         return test_object
