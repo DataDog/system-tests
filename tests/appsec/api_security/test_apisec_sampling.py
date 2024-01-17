@@ -1,5 +1,3 @@
-import pytest
-
 from utils import (
     coverage,
     features,
@@ -9,14 +7,9 @@ from utils import (
     weblog,
 )
 
-
-SAMPLE_RATES = [
-    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.0"},
-    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.1"},
-    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.5"},
-    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "0.9"},
-    {"DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0"},
-]
+from utils.tools import logger
+import random
+import string
 
 
 def get_schema(request, address):
@@ -33,44 +26,33 @@ def get_schema(request, address):
     "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
 )
 @coverage.basic
-@scenarios.appsec_api_security
+@scenarios.appsec_blocking
 @features.api_security_schemas
 class Test_API_Security_sampling:
-    """Test API Security - Request Headers Schema"""
+    """Test API Security - Default 0.1 Sampling on Request Headers Schema"""
 
     N = 20  # square root of number of requests
 
-    def setup_simple(self):
-        self.request = weblog.get("/tag_value/api_match_AS001/200")
-        print(">>> setup_simple")
-
-    def test_simple(self):
-        """can provide request header schema"""
-        assert self.request.status_code == 200
-
-    @pytest.mark.parametrize("library_env", SAMPLE_RATES)
-    def setup_sampling_rate(self, library_env):
-        print(">>> setup_request_method", library_env)
+    def setup_sampling_rate(self):
         self.all_requests = [
-            weblog.get("/tag_value/api_match_AS001/200") for _ in range(self.N**2)
+            weblog.get(
+                f"/tag_value/api_match_AS001/200?{''.join(random.choices(string.ascii_letters, k=16))}={random.randint(1<<31, (1<<32)-1)}"
+            )
+            for _ in range(self.N**2)
         ]
 
-    @pytest.mark.parametrize("library_env", SAMPLE_RATES)
-    def test_sampling_rate(self, library_env):
+    def test_sampling_rate(self):
         """can provide request header schema"""
         N = self.N
         assert all(r.status_code == 200 for r in self.all_requests)
         s = sum(get_schema(r, "req.headers") is not None for r in self.all_requests)
         # check result is in at most 4 standard deviations from expected
         # (assuming 99.98% confidence interval)
-        match library_env["DD_API_SECURITY_REQUEST_SAMPLE_RATE"]:
-            case "0.0":
-                assert s == 0
-            case "0.1":
-                assert (N**2) * 0.1 - 1.2 * N <= s <= (N**2) * 0.1 + 1.2 * N
-            case "0.5":
-                assert (N**2) * 0.5 - 2 * N <= s <= (N**2) * 0.5 + 2 * N
-            case "0.9":
-                assert (N**2) * 0.9 - 1.2 * N <= s <= (N**2) * 0.9 + 1.2 * N
-            case "1.0":
-                assert s == N**2
+        # standard deviation is N * 0.3 for 0.1 sampling rate
+        diff = abs(s / N - N * 0.1) / 0.3
+        log_fun = logger.info if diff <= 4 else logger.error
+        log_fun(f"sampled {s} out of {N**2} requests, expecting {int(N**2 * 0.1)}")
+        log_fun(f"diff is {diff} standard deviations")
+        assert (
+            (N**2) * 0.1 - 1.2 * N <= s <= (N**2) * 0.1 + 1.2 * N
+        ), "sampling rate is not 0.1"
