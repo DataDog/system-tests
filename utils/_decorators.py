@@ -153,7 +153,6 @@ def released(
     python_otel=None,
     nodejs_otel=None,
     ruby=None,
-    php_appsec=None,
     agent=None,
     _is_from_manifest=False,
 ):
@@ -216,7 +215,6 @@ def released(
             compute_declaration("java", "java", java, context.library.version),
             compute_declaration("nodejs", "nodejs", nodejs, context.library.version),
             compute_declaration("nodejs_otel", "nodejs_otel", nodejs_otel, context.library.version),
-            compute_declaration("php", "php_appsec", php_appsec, context.php_appsec),
             compute_declaration("php", "php", php, context.library.version),
             compute_declaration("python", "python", python, context.library.version),
             compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
