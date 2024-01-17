@@ -241,6 +241,7 @@ def dsm():
     logging.info(f"[DSM] Got request with integration: {integration}")
 
     if integration == "kafka":
+
         def delivery_report(err, msg):
             if err is not None:
                 logging.info(f"[kafka] Message delivery failed: {err}")

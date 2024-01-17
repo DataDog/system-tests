@@ -3,6 +3,7 @@ import time
 
 from confluent_kafka import Producer, Consumer
 
+
 def kafka_produce(topic, message, callback=None):
     producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
     if callback:

@@ -3,6 +3,7 @@ import time
 
 import boto3
 
+
 def sqs_produce(queue, message):
     """
         The goal of this function is to trigger sqs producer calls
