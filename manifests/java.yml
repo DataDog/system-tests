@@ -10,6 +10,8 @@ tests/:
         spring-boot:  v0.1 # real version not known
   appsec/:
     api_security/:
+      test_apisec_sampling.py:
+        Test_API_Security_sampling: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: missing_feature
@@ -21,8 +23,6 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
-      test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
     iast/:
       sink/:
         test_command_injection.py:

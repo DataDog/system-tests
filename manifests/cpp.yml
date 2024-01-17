@@ -6,8 +6,8 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
-      test_schemas.py: irrelevant (ASM is not implemented in C++)
       test_apisec_sampling.py: irrelevant (ASM is not implemented in C++)
+      test_schemas.py: irrelevant (ASM is not implemented in C++)
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)

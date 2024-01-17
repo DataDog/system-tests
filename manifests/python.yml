@@ -6,6 +6,13 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_apisec_sampling.py:
+        Test_API_Security_sampling:
+          '*': missing_feature
+          django-poc: v2.5.0
+          fastapi: v2.5.0
+          flask-poc: v2.5.0
+          python3.12: v2.5.0
       test_schemas.py:
         Test_Scanners:
           '*': missing_feature
@@ -67,13 +74,6 @@ tests/:
           fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
-      test_apisec_sampling.py:
-        Test_API_Security_sampling:
-          '*': missing_feature
-          django-poc: v2.5.0
-          fastapi: v2.5.0
-          flask-poc: v2.5.0
-          python3.12: v2.5.0
     iast/:
       sink/:
         test_command_injection.py:
