@@ -373,7 +373,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_data_integrity.py:
-    Test_LibraryHeaders: v1.60.0.dev0
+    Test_LibraryHeaders: v1.60.0-rc.1
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
