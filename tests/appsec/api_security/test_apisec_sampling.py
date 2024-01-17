@@ -10,6 +10,25 @@ from utils import (
 from utils.tools import logger
 import random
 import string
+import pytest
+
+
+@pytest.fixture(name="printer")
+def printer(request):
+    """Pytest plugin to print test progress steps in verbose mode."""
+    return create_printer(request)
+
+
+def create_printer(request):
+    terminal_reporter = request.config.pluginmanager.getplugin("terminalreporter")
+    if terminal_reporter is not None:  # pragma: no branch
+        return terminal_reporter.write_line
+
+    return no_op
+
+
+def no_op(msg: str) -> None:  # noqa: ARG001
+    """Do nothing."""
 
 
 def get_schema(request, address):
@@ -24,7 +43,7 @@ def get_schema(request, address):
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @coverage.basic
-@scenarios.appsec_blocking
+@scenarios.appsec_api_security_with_sampling
 @features.api_security_schemas
 class Test_API_Security_sampling:
     """Test API Security - Default 0.1 Sampling on Request Headers Schema"""
@@ -39,7 +58,7 @@ class Test_API_Security_sampling:
             for _ in range(self.N ** 2)
         ]
 
-    def test_sampling_rate(self):
+    def test_sampling_rate(self, printer):
         """can provide request header schema"""
         N = self.N
         assert all(r.status_code == 200 for r in self.all_requests)
@@ -48,7 +67,7 @@ class Test_API_Security_sampling:
         # (assuming 99.98% confidence interval)
         # standard deviation is N * 0.3 for 0.1 sampling rate
         diff = abs(s / N - N * 0.1) / 0.3
-        log_fun = logger.info if diff <= 4 else logger.error
-        log_fun(f"got {s} requests with api sec schemas out of {N**2} requests, expecting {int(N**2 * 0.1)}")
-        log_fun(f"diff is {diff} standard deviations")
+        log_fun = printer if diff <= 4 else logger.error
+        log_fun(f"\tgot {s} requests with api sec schemas out of {N**2} requests, expecting {int(N**2 * 0.1)}")
+        log_fun(f"\tdiff is {diff} standard deviations")
         assert (N ** 2) * 0.1 - 1.2 * N <= s <= (N ** 2) * 0.1 + 1.2 * N, "sampling rate is not 0.1"
