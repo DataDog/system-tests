@@ -1254,6 +1254,21 @@ class scenarios:
         """,
     )
 
+    appsec_api_security_no_response_body = EndToEndScenario(
+        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
