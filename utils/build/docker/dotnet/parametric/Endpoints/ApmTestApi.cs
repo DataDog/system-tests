@@ -12,7 +12,7 @@ public static class ApmTestApi
 {
     public static void MapApmEndpoints(this WebApplication app)
     {
-        app.MapPost("/tracer/span/start", StartSpan);
+        app.MapPost("/tracer/span/start", GetMeThatWeather);
         app.MapGet("/weatherforecast", GetMeThatWeather);
 
     }

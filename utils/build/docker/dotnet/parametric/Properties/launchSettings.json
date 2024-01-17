@@ -1,12 +1,12 @@
 {
   "profiles": {
-    "ApmTestClient": {
+    "ApmTestApi": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "https://localhost:64369;http://localhost:64370"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "APM_TEST_CLIENT_SERVER_PORT": "60526"
+      }
     }
   }
 }
