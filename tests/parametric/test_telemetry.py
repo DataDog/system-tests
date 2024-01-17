@@ -13,6 +13,7 @@ from utils import context, scenarios, rfc, features
 
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
+@features.telemetry_app_started_event
 class Test_Defaults:
     """Clients should use and report the same default values for features."""
 
@@ -52,6 +53,7 @@ class Test_Defaults:
 
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
+@features.telemetry_app_started_event
 class Test_Environment:
     """Clients should use and report the same environment values for features."""
 

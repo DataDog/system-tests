@@ -495,12 +495,12 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature
-    test_telemetry.py:
-      Test_Defaults: v2.4.0
-      Test_Environment: v2.4.0
-      Test_TelemetryInstallSignature: v2.5.0
     test_span_links.py:
       Test_Span_Links: v2.3.0
+    test_telemetry.py:
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
+      Test_TelemetryInstallSignature: v2.5.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: missing_feature
