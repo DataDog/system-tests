@@ -13,6 +13,8 @@ const passport = require('passport')
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
+const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
+
 iast.initData().catch(() => {})
 
 app.use(require('body-parser').json())
@@ -264,6 +266,33 @@ app.get('/kafka/consume', (req, res) => {
     .catch((error) => {
       console.error(error)
       res.status(500).send('Timeout: Failed to consume')
+    })
+})
+
+app.get('/sqs/produce', (req, res) => {
+  const queue = req.query.queue
+
+  produceMessage(queue)
+    .then(() => {
+      res.status(200).send('produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
+})
+
+app.get('/sqs/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  consumeMessage(queue, timeout)
+    .then(() => {
+      res.status(200).send('consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
     })
 })
 
