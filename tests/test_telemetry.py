@@ -542,6 +542,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
+@features.telemetry_instrumentation
 class Test_APMOnboardingInstallID:
     """Tests that APM onboarding install information is correctly propagated"""
 
