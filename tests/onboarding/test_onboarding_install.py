@@ -192,6 +192,6 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         assert self._check_command_skipped("ps -fea")
         assert self._check_command_skipped("touch myfile.txt")
         assert self._check_command_skipped("cat myfile.txt")
-        assert self._check_command_skippedd("ls -la")
+        assert self._check_command_skipped("ls -la")
         assert self._check_command_skipped("java -version")
         assert not self._check_command_skipped("java -help")
