@@ -154,9 +154,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(
         context.library == "nodejs", reason="New operation name mapping & array encoding not yet implemented"
     )
-    @missing_feature(
-        context.library == "dotnet", reason="New operation name mapping & array encoding not yet implemented"
-    )
+    @missing_feature(context.library >= "dotnet@2.46.0", reason="New array encoding implemented in 2.46.0")
     @missing_feature(
         context.library == "python", reason="New operation name mapping & array encoding not yet implemented"
     )
