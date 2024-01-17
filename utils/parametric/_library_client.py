@@ -25,6 +25,7 @@ class StartSpanResponse(TypedDict):
 class Link(TypedDict):
     parent_id: int  # 0 to extract from headers
     attributes: dict
+    http_headers: List[Tuple[str, str]]
 
 
 class APMLibraryClient:
@@ -319,11 +320,14 @@ class APMLibraryClientGRPC:
         pb_links = []
         for link in links:
             pb_link = pb.SpanLink()
-            if (link.get("parent_id") or 0) == 0:
+            if link.get("parent_id") > 0:
                 pb_link.parent_id = link["parent_id"]
             else:
-                pb_link.http_headers = distributed_message
-                distributed_message = pb.DistributedHTTPHeaders()
+                link_headers = pb.DistributedHTTPHeaders()
+                for key, value in link.http_headers:
+                    link_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
+                pb_link.http_headers = link_headers
+
             pb_link.attributes = convert_to_proto(link["attributes"])
             pb_links.append(pb_link)
 
