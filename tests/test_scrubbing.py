@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-from utils import bug, context, coverage, interfaces, rfc, weblog, missing_feature
+from utils import bug, context, coverage, interfaces, rfc, weblog, missing_feature, features
 from utils.tools import logger
 
 
@@ -30,6 +30,7 @@ def validate_no_leak(needle, whitelist_pattern=None):
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.good
+@features.library_scrubbing
 class Test_UrlQuery:
     """ PII values in query parameter are all removed"""
 
@@ -62,6 +63,7 @@ class Test_UrlQuery:
 
 
 @coverage.basic
+@features.library_scrubbing
 class Test_UrlField:
     """ PII in url field is removed on client HTTP calls """
 
@@ -100,6 +102,7 @@ class Test_UrlField:
 
 
 @coverage.good
+@features.library_scrubbing
 class Test_EnvVar:
     """ Environnement variables are not leaked """
 
