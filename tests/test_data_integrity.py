@@ -138,6 +138,13 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate(validator, success_by_default=True)
 
+    @missing_feature(library="java", reason="not implemented yet")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="dotnet", reason="not implemented yet")
+    @missing_feature(library="python", reason="not implemented yet")
+    @missing_feature(library="ruby", reason="not implemented yet")
+    @missing_feature(library="php", reason="not implemented yet")
+    @missing_feature(library="cpp", reason="not implemented yet")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
