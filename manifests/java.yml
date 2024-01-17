@@ -920,6 +920,8 @@ tests/:
     test_json_report.py:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
+  test_data_integrity.py:
+    Test_LibraryHeaders: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

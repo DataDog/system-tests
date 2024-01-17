@@ -264,6 +264,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  test_data_integrity.py:
+    Test_LibraryHeaders: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
