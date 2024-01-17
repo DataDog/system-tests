@@ -1886,7 +1886,7 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_sqsspan_creationcontext_propagationaws_x_ray_with_dd_trace(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(test_object):
         """
         [AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
 
@@ -1896,7 +1896,7 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_sqsspan_creationcontext_propagationaws_message_attributes_with_dd_trace(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
         """
         [AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
 
