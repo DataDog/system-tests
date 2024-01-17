@@ -22,9 +22,7 @@ def get_schema(request, address):
     return
 
 
-@rfc(
-    "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
-)
+@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @coverage.basic
 @scenarios.appsec_blocking
 @features.api_security_schemas
@@ -38,7 +36,7 @@ class Test_API_Security_sampling:
             weblog.get(
                 f"/tag_value/api_match_AS001/200?{''.join(random.choices(string.ascii_letters, k=16))}={random.randint(1<<31, (1<<32)-1)}"
             )
-            for _ in range(self.N**2)
+            for _ in range(self.N ** 2)
         ]
 
     def test_sampling_rate(self):
@@ -51,8 +49,6 @@ class Test_API_Security_sampling:
         # standard deviation is N * 0.3 for 0.1 sampling rate
         diff = abs(s / N - N * 0.1) / 0.3
         log_fun = logger.info if diff <= 4 else logger.error
-        log_fun(f"sampled {s} out of {N**2} requests, expecting {int(N**2 * 0.1)}")
+        log_fun(f"got {s} requests with api sec schemas out of {N**2} requests, expecting {int(N**2 * 0.1)}")
         log_fun(f"diff is {diff} standard deviations")
-        assert (
-            (N**2) * 0.1 - 1.2 * N <= s <= (N**2) * 0.1 + 1.2 * N
-        ), "sampling rate is not 0.1"
+        assert (N ** 2) * 0.1 - 1.2 * N <= s <= (N ** 2) * 0.1 + 1.2 * N, "sampling rate is not 0.1"
