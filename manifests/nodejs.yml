@@ -17,6 +17,8 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
+      test_apisec_sampling.py:
+        Test_API_Security_sampling: missing_feature
     iast/:
       sink/:
         test_command_injection.py:

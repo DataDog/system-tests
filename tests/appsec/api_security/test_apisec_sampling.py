@@ -7,7 +7,6 @@ from utils import (
     weblog,
 )
 
-from utils.tools import logger
 import random
 import string
 import pytest
@@ -16,19 +15,10 @@ import pytest
 @pytest.fixture(name="printer")
 def printer(request):
     """Pytest plugin to print test progress steps in verbose mode."""
-    return create_printer(request)
-
-
-def create_printer(request):
     terminal_reporter = request.config.pluginmanager.getplugin("terminalreporter")
     if terminal_reporter is not None:  # pragma: no branch
         return terminal_reporter.write_line
-
-    return no_op
-
-
-def no_op(msg: str) -> None:  # noqa: ARG001
-    """Do nothing."""
+    return lambda msg: None
 
 
 def get_schema(request, address):
@@ -62,12 +52,18 @@ class Test_API_Security_sampling:
         """can provide request header schema"""
         N = self.N
         assert all(r.status_code == 200 for r in self.all_requests)
-        s = sum(get_schema(r, "req.headers") is not None for r in self.all_requests)
+        self.s = sum(get_schema(r, "req.headers") is not None for r in self.all_requests) * 0
         # check result is in at most 4 standard deviations from expected
         # (assuming 99.98% confidence interval)
         # standard deviation is N * 0.3 for 0.1 sampling rate
-        diff = abs(s / N - N * 0.1) / 0.3
-        log_fun = printer if diff <= 4 else logger.error
-        log_fun(f"\tgot {s} requests with api sec schemas out of {N**2} requests, expecting {int(N**2 * 0.1)}")
-        log_fun(f"\tdiff is {diff} standard deviations")
-        assert (N ** 2) * 0.1 - 1.2 * N <= s <= (N ** 2) * 0.1 + 1.2 * N, "sampling rate is not 0.1"
+        self.diff = abs(self.s / N - N * 0.1) / 0.3
+        self.log_fun = printer
+        assert (N ** 2) * 0.1 - 1.2 * N <= self.s <= (N ** 2) * 0.1 + 1.2 * N, "sampling rate is not 0.1"
+
+    def teardown_method(self):
+        """add result visibility to pytest report"""
+        self.log_fun(
+            f"  got {self.s} requests with api sec schemas out of {self.N**2} requests, expecting {int(self.N**2 * 0.1)}"
+        )
+        if self.diff:
+            self.log_fun(f"  diff is {self.diff:.2f} standard deviations")
