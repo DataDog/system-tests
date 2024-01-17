@@ -1875,6 +1875,7 @@ class features:
         pytest.mark.features(feature_id=261)(test_object)
         return test_object
 
+    @staticmethod
     def semantic_core_validations(test_object):
         """
         Semantic Core Validations
