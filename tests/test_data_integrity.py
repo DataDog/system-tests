@@ -3,11 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import weblog, interfaces, context, bug, rfc, scenarios, missing_feature
+from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
 
+@features.data_integrity
 class Test_TraceUniqueness:
     """All trace ids are uniques"""
 
@@ -16,6 +17,7 @@ class Test_TraceUniqueness:
 
 
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md")
+@features.data_integrity
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
@@ -41,7 +43,7 @@ class Test_TraceHeaders:
         )
 
     def test_trace_header_diagnostic_check(self):
-        """ x-datadog-diagnostic-check header is present iif content is empty """
+        """x-datadog-diagnostic-check header is present iif content is empty"""
 
         def validator(data):
             request_headers = {h[0].lower() for h in data["request"]["headers"]}
@@ -91,7 +93,6 @@ class Test_TraceHeaders:
         logger.info(f"cgroup: weblog container id is {weblog_container_id}")
 
         def validator(data):
-
             if "content" not in data["request"] or not data["request"]["content"]:
                 # RFC states "Once container ID is stored locally in the tracer,
                 # it must be sent to the Agent every time traces are sent."
@@ -121,3 +122,18 @@ class Test_TraceHeaders:
                     )
 
         interfaces.library.add_traces_validation(validator, success_by_default=True)
+
+
+@features.data_integrity
+class Test_LibraryHeaders:
+    """Misc test around headers sent by libraries"""
+
+    def test_datadog_container_id(self):
+        """Datadog-Container-ID header is not empty if present"""
+
+        def validator(data):
+            for header, value in data["request"]["headers"]:
+                if header.lower() == "datadog-container-id":
+                    assert value, "Datadog-Container-ID header is empty"
+
+        interfaces.library.validate(validator, success_by_default=True)

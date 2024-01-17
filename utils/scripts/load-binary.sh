@@ -183,28 +183,16 @@ elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
     echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
-
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest_snapshot ./temp
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest_snapshot ./temp
     elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest ./temp
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi  
-    mv ./temp/datadog-php-tracer*.tar.gz . && rm -rf ./temp
-elif [ "$TARGET" = "php_appsec" ]; then
-
-    if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest_snapshot ./temp
-    elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest ./temp
-    else
-        echo "Don't know how to load version $VERSION for $TARGET"
-    fi
-    mv ./temp/dd-appsec-php-*.tar.gz . && rm -rf ./temp
-    
+    mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp  
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
@@ -218,7 +206,9 @@ elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     # PROFILER: The main version is stored in s3, though we can not access this in CI
-    # Not handled for now
+    # Not handled for now for system-tests. this handles artifact for parametric
+    echo "Using https://github.com/DataDog/dd-trace-cpp@main"
+    echo "https://github.com/DataDog/dd-trace-cpp@main" > cpp-load-from-git
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
     echo "datadog/agent-dev:master-py3" > agent-image

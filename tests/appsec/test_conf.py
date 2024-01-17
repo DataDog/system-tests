@@ -8,13 +8,6 @@ from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
 
-@coverage.not_testable
-@features.appsec_onboarding
-@features.threats_configuration
-class Test_OneVariableInstallation:
-    """Installation with 1 env variable"""
-
-
 @coverage.basic
 @features.threats_configuration
 class Test_StaticRuleSet:
@@ -114,7 +107,7 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(1000)))
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(10_000)))
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"})
 
     @missing_feature(context.library < "java@0.113.0")

@@ -11,12 +11,24 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Schema_Request_Body: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_Headers: missing_feature
-        Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Scanners: missing_feature
+        Test_Schema_Request_Cookies:
+          '*': v1.60.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)        
+          uds-echo: bug (APPSEC-18224)
+        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
+        Test_Schema_Request_Headers:
+          '*': v1.60.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)
+        Test_Schema_Request_Json_Body: missing_feature
+        Test_Schema_Request_Path_Parameters:
+          '*': v1.60.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)
+        Test_Schema_Request_Query_Parameters:
+          '*': v1.60.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)
         Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
@@ -24,6 +36,8 @@ tests/:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature          
+        test_header_injection.py:
+          TestHeaderInjection: missing_feature
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
@@ -282,6 +296,7 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces:
         '*': v1.36.0
         gin: v1.37.0
@@ -298,13 +313,28 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
-    test_crossed_integrations.py:
-      Test_PythonKafka:
-        '*': v0.1  # real version not known
-        chi: missing_feature (Endpoint not implemented)
-        echo: missing_feature (Endpoint not implemented)
-        gin: missing_feature (Endpoint not implemented)
-        uds-echo: missing_feature (Endpoint not implemented)
+    crossed_integrations/:
+      test_kafka.py:
+        Test_GolangKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+        Test_JavaKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+        Test_NodeJSKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+        Test_PythonKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+        Test_RubyKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -319,12 +349,13 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigV1: v1.58.0-dev
+      TestDynamicConfigV1: v1.59.0-dev
       TestDynamicConfigV2: v1.59.0-dev
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
+      Test_TelemetryInstallSignature: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: missing_feature
@@ -343,6 +374,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  test_data_integrity.py:
+    Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -350,9 +383,15 @@ tests/:
     Test_Propagate: v1.48.0-rc.1
     Test_Propagate_Legacy: v1.41.0
   test_library_conf.py:
-    Test_HeaderTags: missing_feature
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTags: v1.53.0
+    Test_HeaderTags_Colon_Leading: v1.53.0
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8571)
+    Test_HeaderTags_Long: v1.53.0
+    Test_HeaderTags_Short: v1.53.0
+    Test_HeaderTags_Whitespace_Header: v1.53.0
+    Test_HeaderTags_Whitespace_Tag: v1.53.0
+    Test_HeaderTags_Whitespace_Val_Long: v1.53.0
+    Test_HeaderTags_Whitespace_Val_Short: v1.53.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:

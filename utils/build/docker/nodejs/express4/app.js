@@ -13,6 +13,8 @@ const passport = require('passport')
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
+const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
+
 iast.initData().catch(() => {})
 
 app.use(require('body-parser').json())
@@ -175,6 +177,118 @@ app.get('/dsm', (req, res) => {
   doKafkaOperations()
     .then(() => {
       res.send('ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
+})
+
+app.get('/kafka/produce', (req, res) => {
+  const topic = req.query.topic
+  const kafka = new Kafka({
+    clientId: 'my-app-producer',
+    brokers: ['kafka:9092'],
+    retry: {
+      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+      retries: 20 // Number of retries before giving up
+    }
+  })
+  const admin = kafka.admin()
+  const producer = kafka.producer()
+  const doKafkaOperations = async () => {
+    await admin.connect()
+    await producer.connect()
+    await admin.createTopics({
+      waitForLeaders: true, // While the topic already exists we use this to wait for leadership election to finish
+      topics: [
+        { topic }
+      ]
+    })
+    await producer.send({
+      topic,
+      messages: [
+        { value: 'hello world!' }
+      ]
+    })
+    await producer.disconnect()
+  }
+
+  doKafkaOperations()
+    .then(() => {
+      res.status(200).send('produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
+})
+
+app.get('/kafka/consume', (req, res) => {
+  const topic = req.query.topic
+  const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
+  const kafka = new Kafka({
+    clientId: 'my-app-consumer',
+    brokers: ['kafka:9092'],
+    retry: {
+      initialRetryTime: 200, // Time to wait in milliseconds before the first retry
+      retries: 50 // Number of retries before giving up
+    }
+  })
+  let consumer
+  const doKafkaOperations = async () => {
+    consumer = kafka.consumer({ groupId: 'testgroup1' })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic: topic, fromBeginning: true })
+
+    return new Promise((resolve, reject) => {
+      consumer.run({
+        eachMessage: async ({ messageTopic, messagePartition, message }) => {
+          console.log({
+            value: message.value.toString()
+          })
+          resolve()
+        }
+      })
+      setTimeout(() => {
+        reject(new Error('Message not received'))
+      }, timeout) // Set a timeout of n seconds for message reception
+    })
+  }
+
+  doKafkaOperations()
+    .then(async () => {
+      await consumer.stop()
+      await consumer.disconnect()
+      res.status(200).send('consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Timeout: Failed to consume')
+    })
+})
+
+app.get('/sqs/produce', (req, res) => {
+  const queue = req.query.queue
+
+  produceMessage(queue)
+    .then(() => {
+      res.status(200).send('produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
+})
+
+app.get('/sqs/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  consumeMessage(queue, timeout)
+    .then(() => {
+      res.status(200).send('consume ok')
     })
     .catch((error) => {
       console.error(error)

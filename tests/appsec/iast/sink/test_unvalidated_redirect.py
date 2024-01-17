@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, irrelevant
+from utils import context, coverage, irrelevant, features
 from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
@@ -23,6 +23,7 @@ def _expected_location():
 
 
 @coverage.basic
+@features.iast_sink_unvalidatedredirect
 class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection."""
 
@@ -43,6 +44,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
 
 
 @coverage.basic
+@features.iast_sink_unvalidatedheader
 class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection threw header."""
 

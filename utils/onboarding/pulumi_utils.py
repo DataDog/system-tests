@@ -11,28 +11,15 @@ import pulumi_command as command
 from utils.tools import logger
 
 
-def remote_docker_login(command_id, user, password, connection, depends_on):
-    # Workaround: Sometimes I get "docker" command not found. Wait some seconds?
-    command_exec = f"sleep 5 && sudo docker login --username={user} --password={password} || true"
-    cmd_exec_install = command.remote.Command(
-        command_id, connection=connection, create=command_exec, opts=pulumi.ResourceOptions(depends_on=[depends_on]),
-    )
-    return cmd_exec_install
-
-
 def remote_install(
     connection,
     command_identifier,
     install_info,
     depends_on,
-    add_dd_keys=False,
     logger_name=None,
-    dd_api_key=None,
-    dd_site=None,
     scenario_name=None,
     output_callback=None,
-    docker_user=None,
-    docker_pass=None,
+    environment=None,
 ):
     # List to store the latest commands in order to manage dependecy between commands
     # (wait for one command finished before launch next command)
@@ -42,15 +29,7 @@ def remote_install(
     if install_info is None:
         return depends_on
 
-    # DD API KEYS IN THE COMMAND
-    if add_dd_keys:
-        command_exec = "DD_API_KEY=" + dd_api_key + " DD_SITE=" + dd_site + " " + install_info["command"]
-    else:
-        command_exec = install_info["command"]
-
-    # Docker login if we need (avoid too many request on CI)
-    if docker_user is not None:
-        command_exec = f"sudo docker login --username={docker_user} --password={docker_pass} || true && {command_exec}"
+    command_exec = install_info["command"]
 
     local_command = None
     # Execute local command if we need
@@ -93,7 +72,6 @@ def remote_install(
                         opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
                     ),
                 )
-
             else:
                 # The best option would be zip folder on local system and copy to remote machine
                 # There is a weird behaviour synchronizing local command and remote command
@@ -110,16 +88,9 @@ def remote_install(
         command_identifier,
         connection=connection,
         create=command_exec,
-        delete=install_info["debug_command"] if "debug_command" in install_info else None,
-        opts=pulumi.ResourceOptions(
-            depends_on=[quee_depends_on.pop()]
-        ),  # Here the quee should contain only one element
+        opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
+        environment=environment,
     )
-    # Execute debug command on delete
-    if "debug_command" in install_info:
-        command.remote.Command(
-            command_identifier + "_debug", connection=connection, delete=install_info["debug_command"]
-        )
 
     if logger_name:
         cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, logger_name).info(outputlog))

@@ -58,7 +58,6 @@ def load():
         "golang",
         "java",
         "nodejs",
-        "php_appsec",
         "php",
         "python",
         "python_otel",
