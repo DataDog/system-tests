@@ -3,7 +3,7 @@ module main
 go 1.18
 
 require (
-	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240111115202-e3db04b84b1d
+	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240118091439-efab8c4745c2
 	go.opentelemetry.io/otel v1.20.0
 	go.opentelemetry.io/otel/trace v1.20.0
 	google.golang.org/grpc v1.57.1
