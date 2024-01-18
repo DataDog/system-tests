@@ -440,9 +440,6 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
-        # TODO Why does flags is expected to be 0, meaning "not set"?
-        # If 0, it is not sampled so it won't be send to the agent.
-        # assert (link.get("flags") or 0) == 0
 
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
@@ -479,7 +476,8 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id") == 1234567890
         assert link.get("trace_id_high") == 16
 
-        # TODO Tracestate is not part of the extracted headers and won't be generated as it is not header injection
+        # TODO Tracestate is not part of the extracted headers.
+        # TODO It won't be generated as it is not header injection and not required by the Trace Context Propagation RFC.
         # assert link.get("tracestate") is not None
         # print ("tracestate is '%s'" % link["tracestate"])
         # tracestateArr = link["tracestate"].split(",")
@@ -497,7 +495,7 @@ class Test_Otel_Span_Methods:
         assert len(link.get("attributes")) == 1
         assert link["attributes"].get("foo") == "bar"
 
-    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
+    @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
@@ -543,64 +541,62 @@ class Test_Otel_Span_Methods:
         assert "t.dm:-4" in tracestateDD
 
         assert link.get("flags") == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
-        assert len(link.get("attributes") or {}) == 0
+        assert len(link.get("attributes")) == 0
 
-    # @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
-    # @missing_feature(context.library == "nodejs", reason="Not implemented")
-    # @missing_feature(context.library == "dotnet", reason="Not implemented")
-    # @missing_feature(context.library == "python", reason="Not implemented")
-    # def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
-    #     """Test adding a span link from a span to another span.
-    #     """
-    #     with test_library:
-    #         with test_library.otel_start_span("root") as parent:
-    #             parent.end_span()
-    #             with test_library.otel_start_span("first", parent_id=parent.span_id) as first:
-    #                 first.end_span()
-    #             with test_library.otel_start_span(
-    #                 "second",
-    #                 parent_id=parent.span_id,
-    #                 links=[
-    #                     Link(parent_id=parent.span_id),
-    #                     Link(parent_id=first.span_id, attributes={"bools": [True, False], "nested": [1, 2]}),
-    #                 ],
-    #             ) as second:
-    #                 second.end_span()
+    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
+        """Test adding a span link from a span to another span.
+        """
+        with test_library:
+            with test_library.otel_start_span("root") as parent:
+                parent.end_span()
+                with test_library.otel_start_span("first", parent_id=parent.span_id) as first:
+                    first.end_span()
+                with test_library.otel_start_span(
+                    "second",
+                    parent_id=parent.span_id,
+                    links=[
+                        Link(parent_id=parent.span_id),
+                        Link(parent_id=first.span_id, attributes={"bools": [True, False], "nested": [1, 2]}),
+                    ],
+                ) as second:
+                    second.end_span()
 
-    #     traces = test_agent.wait_for_num_traces(1)
-    #     trace = find_trace_by_root(traces, otel_span(name="root"))
-    #     assert len(trace) == 3
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, otel_span(name="root"))
+        assert len(trace) == 3
 
-    #     root = find_span(trace, otel_span(name="root"))
-    #     root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
+        root = find_span(trace, otel_span(name="root"))
+        root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
 
-    #     first = find_span(trace, otel_span(name="first"))
-    #     second = find_span(trace, otel_span(name="second"))
-    #     assert second.get("parent_id") == root.get("span_id")
+        first = find_span(trace, otel_span(name="first"))
+        second = find_span(trace, otel_span(name="second"))
+        assert second.get("parent_id") == root.get("span_id")
 
-    #     span_links = retrieve_span_links(second)
-    #     assert span_links is not None
-    #     assert len(span_links) == 2
+        span_links = retrieve_span_links(second)
+        assert span_links is not None
+        assert len(span_links) == 2
 
-    #     link = span_links[0]
-    #     assert link.get("span_id") == root.get("span_id")
-    #     assert link.get("trace_id") == root.get("trace_id")
-    #     assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
-    #     assert len(link.get("attributes") or {}) == 0
-    #     assert (link.get("tracestate") or "") == ""
-    #     assert (link.get("flags") or 0) == 0
+        link = span_links[0]
+        assert link.get("span_id") == root.get("span_id")
+        assert link.get("trace_id") == root.get("trace_id")
+        assert link.get("trace_id_high") == int(root_tid, 16)
+        assert len(link.get("attributes")) == 0
+        assert link.get("tracestate") == ""
 
-    #     link = span_links[1]
-    #     assert link.get("span_id") == first.get("span_id")
-    #     assert link.get("trace_id") == first.get("trace_id")
-    #     assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
-    #     assert len(link.get("attributes")) == 4
-    #     assert link["attributes"].get("bools.0") == "true"
-    #     assert link["attributes"].get("bools.1") == "false"
-    #     assert link["attributes"].get("nested.0") == "1"
-    #     assert link["attributes"].get("nested.1") == "2"
-    #     assert (link.get("tracestate") or "") == ""
-    #     assert (link.get("flags") or 0) == 0
+        link = span_links[1]
+        assert link.get("span_id") == first.get("span_id")
+        assert link.get("trace_id") == first.get("trace_id")
+        assert link.get("trace_id_high") == int(root_tid, 16)
+        assert len(link.get("attributes")) == 4
+        assert link["attributes"].get("bools.0") == "true"
+        assert link["attributes"].get("bools.1") == "false"
+        assert link["attributes"].get("nested.0") == "1"
+        assert link["attributes"].get("nested.1") == "2"
+        assert link.get("tracestate") == ""
 
     @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
