@@ -18,14 +18,13 @@ class Test_HardcodedSecrets:
     def test_hardcoded_secrets_exec(self):
         assert self.r_hardcoded_secrets_exec.status_code == 200
         hardcode_secrets = self.get_hardcoded_secret_vulnerabilities()
-        evidence_condition = lambda x: x["evidence"]["value"] == "aws-access-token"
-        location_condition = lambda x: x["location"]["path"] == self._get_expectation(self.location_map)
-        assert any([evidence_condition(x) and location_condition(x) for x in hardcode_secrets]), (
-            "Hardcoded secrets not found %s" % hardcode_secrets
-        )
+        hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
+        assert len(hardcode_secrets) == 1
+        vuln = hardcode_secrets[0]
+        assert vuln["location"]["path"] == self._get_expectation(self.location_map)
 
     def get_hardcoded_secret_vulnerabilities(self):
-        spans = [span[2] for span in interfaces.library.get_spans()]
+        spans = [s for _, s in interfaces.library.get_root_spans()]
         assert spans, "No spans found"
         spans_meta = [span.get("meta") for span in spans]
         assert spans_meta, "No spans meta found"
@@ -39,13 +38,7 @@ class Test_HardcodedSecrets:
         return hadcoded_secrets
 
     def _get_expectation(self, d):
-        if d is None or isinstance(d, str):
-            return d
-
-        if isinstance(d, dict):
-            expected = d.get(context.library.library)
-            if isinstance(expected, dict):
-                expected = expected.get(context.weblog_variant)
-            return expected
-
-        raise TypeError(f"Unsupported expectation type: {d}")
+        expected = d.get(context.library.library)
+        if isinstance(expected, dict):
+            expected = expected.get(context.weblog_variant)
+        return expected
