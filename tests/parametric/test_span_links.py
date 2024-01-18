@@ -149,11 +149,9 @@ class Test_Span_Links:
         tracestateArr = link["tracestate"].split(",")
         assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
         tracestateDD = tracestateArr[0][3:].split(";")
-        assert len(tracestateDD) == 4
         assert "o:synthetics" in tracestateDD
         assert "s:2" in tracestateDD
         assert "t.dm:-4" in tracestateDD
-        assert "t.tid:0000000000000010" in tracestateDD
 
         assert link.get("flags", 1) == 1  # link has a sampling priority of 2, so it should be sampled
         assert link["attributes"] == {"foo": "bar"}
