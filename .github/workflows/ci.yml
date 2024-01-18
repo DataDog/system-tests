@@ -435,7 +435,9 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
-      run: ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING
+      run: |
+        ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING
+        cat logs_appsec_api_security_with_sampling/tests.lo 2>/dev/null | grep "API SECURITY" || true
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
