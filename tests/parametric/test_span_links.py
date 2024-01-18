@@ -153,7 +153,8 @@ class Test_Span_Links:
         assert "s:2" in tracestateDD
         assert "t.dm:-4" in tracestateDD
 
-        assert link.get("flags", 1) == 1  # link has a sampling priority of 2, so it should be sampled
+        # link has a sampling priority of 2, so it should be sampled
+        assert link.get("flags", 1) == 1 | -2147483648
         assert link["attributes"] == {"foo": "bar"}
 
     def test_span_link_from_distributed_w3c_headers(self, test_agent, test_library):
@@ -201,7 +202,7 @@ class Test_Span_Links:
         assert "t.dm:-4" in tracestateDD
 
         # link has a sampling priority of 2, so it should be sampled
-        assert link.get("flags") == 1
+        assert link.get("flags") == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
         assert len(link.get("attributes", {})) == 0
 
     def test_span_with_attached_links(self, test_agent, test_library):
@@ -237,7 +238,7 @@ class Test_Span_Links:
         assert len(link.get("attributes") or {}) == 0
         # Ensure the tracestate from the parent span is set on the link
         assert link.get("tracestate", "") == "dd=s:1;t.dm:-0"
-        assert link.get("flags", 0) == 1
+        assert link.get("flags", 0) == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
 
         link = span_links[1]
         assert link.get("span_id") == first.get("span_id")
@@ -250,4 +251,4 @@ class Test_Span_Links:
         assert link["attributes"].get("nested.1") == "2"
         # Ensure the tracestate from the first span is set on the link
         assert link.get("tracestate", "") == "dd=s:1;t.dm:-0"
-        assert link.get("flags", 0) == 1
+        assert link.get("flags", 0) == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
