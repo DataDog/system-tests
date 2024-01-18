@@ -1379,6 +1379,8 @@ class scenarios:
     # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
     onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
     onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
+    # Onboarding block list scenarios
+    onboarding_host_block_list = OnBoardingScenario("ONBOARDING_HOST_BLOCK_LIST", doc="")
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
