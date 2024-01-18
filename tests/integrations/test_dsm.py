@@ -188,21 +188,27 @@ class Test_DsmSQS:
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
-        # Hashes are created by applying the FNV-1 algorithm on
-        # checkpoint strings (e.g. service:foo)
-        # There is currently no FNV-1 library availble for node.js
-        # So we are using a different algorithm for node.js for now
-        topic = "dsm-system-tests-queue"
-        if context.library == "nodejs":
-            producer_hash = 2931833227331067675
-            consumer_hash = 271115008390912609
-        elif context.library == "java":
-            producer_hash = 16307892913751934142
-            consumer_hash = 15549836665988044996
-            topic = "dsm-system-tests-queue-java"
-        else:
-            producer_hash = 7228682205928812513
-            consumer_hash = 3767823103515000703
+        language_hashes = {
+            "nodejs": {
+                "producer": 2931833227331067675,
+                "consumer": 271115008390912609,
+                "topic": "dsm-system-tests-queue"
+            },
+            "java": {
+                "producer": 16307892913751934142,
+                "consumer": 15549836665988044996,
+                "topic": "dsm-system-tests-queue-java"
+            },
+            "default": {
+                "producer": 7228682205928812513,
+                "consumer": 3767823103515000703,
+                "topic": "dsm-system-tests-queue"
+            }
+        }
+
+        producer_hash = language_hashes.get(context.library, "default")["producer"]
+        consumer_hash = language_hashes.get(context.library, "default")["consumer"]
+        topic = language_hashes.get(context.library, "default")["topic"]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
