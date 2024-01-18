@@ -69,6 +69,11 @@ class Test_Span_Links:
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
+        # Some languages do not set tracestate on all spans (ex: java, php)
+        # If tracestate is set ensure the value is correct (ex: python)
+        if link.get("tracestate"):
+            assert link.get("tracestate") == "dd=s:1;t.dm:-0"
+        assert link.get("flags", 0) == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
     def test_span_started_with_link_v05(self, test_agent, test_library):
@@ -105,6 +110,11 @@ class Test_Span_Links:
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
+        # Some languages do not set tracestate on all spans (ex: java, php)
+        # If tracestate is set ensure the value is correct
+        if link.get("tracestate"):
+            assert link.get("tracestate") == "dd=s:1;t.dm:-0"
+        assert link.get("flags", 0) == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
 
     def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
@@ -236,9 +246,6 @@ class Test_Span_Links:
         assert link.get("trace_id") == root.get("trace_id")
         assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
         assert len(link.get("attributes") or {}) == 0
-        # Ensure the tracestate from the parent span is set on the link
-        assert link.get("tracestate", "") == "dd=s:1;t.dm:-0"
-        assert link.get("flags", 0) == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
 
         link = span_links[1]
         assert link.get("span_id") == first.get("span_id")
@@ -249,6 +256,3 @@ class Test_Span_Links:
         assert link["attributes"].get("bools.1") == "false"
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
-        # Ensure the tracestate from the first span is set on the link
-        assert link.get("tracestate", "") == "dd=s:1;t.dm:-0"
-        assert link.get("flags", 0) == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
