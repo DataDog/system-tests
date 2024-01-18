@@ -19,5 +19,5 @@ class TestWeakRandomness(BaseSinkTestWithoutTelemetry):
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples",
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"}
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"},
     }
