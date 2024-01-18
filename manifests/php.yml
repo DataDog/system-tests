@@ -154,7 +154,7 @@ tests/:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, but was flaky
     test_shell_execution.py:
-      Test_ShellExecution: missing_feature
+      Test_ShellExecution: v0.95.0
     test_traces.py:
       Test_DistributedTraceInfo: missing_feature (test not implemented)
     test_user_blocking_full_denylist.py:
