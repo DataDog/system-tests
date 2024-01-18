@@ -116,7 +116,7 @@ class Test_Span_Links:
         # If tracestate is set ensure the value is correct
         if link.get("tracestate"):
             assert link.get("tracestate") == "dd=s:1;t.dm:-0"
-        assert link.get("flags", 0) == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
+        assert link.get("flags") == 1
 
     def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
