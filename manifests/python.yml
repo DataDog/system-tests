@@ -55,6 +55,12 @@ tests/:
           fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+        Test_Schema_Response_Body_env_var:
+          '*': missing_feature
+          django-poc: v2.6.0.dev
+          fastapi: v2.6.0.dev1
+          flask-poc: v2.6.0.dev
+          python3.12: v2.6.0.dev
         Test_Schema_Response_Headers:
           '*': missing_feature
           django-poc: v2.1.0.dev
@@ -439,22 +445,30 @@ tests/:
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
-    test_crossed_integrations.py:
-      Test_GolangKafka:
-        '*': missing_feature (missing endpoint on weblog)
-        flask-poc: v0.1 # real version unknown
-      Test_JavaKafka:
-        '*': missing_feature (missing endpoint on weblog)
-        flask-poc: v0.1 # real version unknown
-      Test_NodeJSKafka:
-        '*': missing_feature (missing endpoint on weblog)
-        flask-poc: v0.1 # real version unknown
-      Test_PythonKafka:
-        '*': missing_feature (missing endpoint on weblog)
-        flask-poc: v0.1 # real version unknown
-      Test_RubyKafka:
-        '*': missing_feature (missing endpoint on weblog)
-        flask-poc: v0.1 # real version unknown
+    crossed_integrations/:
+      test_kafka.py:
+        Test_GolangKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+        Test_JavaKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+        Test_NodeJSKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+        Test_PythonKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+        Test_RubyKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+          flask-poc: v0.1 # real version not known
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
+          flask-poc: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature

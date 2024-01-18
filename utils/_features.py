@@ -1864,3 +1864,73 @@ class features:
         """
         pytest.mark.features(feature_id=258)(test_object)
         return test_object
+
+    @staticmethod
+    def decisionless_trace_context_extraction(test_object):
+        """
+        Decisionless Trace Context Extraction
+
+        https://feature-parity.us1.prod.dog/#/?feature=261
+        """
+        pytest.mark.features(feature_id=261)(test_object)
+        return test_object
+
+    @staticmethod
+    def semantic_core_validations(test_object):
+        """
+        Semantic Core Validations
+
+        https://feature-parity.us1.prod.dog/#/?feature=262
+        """
+        pytest.mark.features(feature_id=262)(test_object)
+        return test_object
+
+    @staticmethod
+    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(test_object):
+        """
+        [AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=263
+        """
+        pytest.mark.features(feature_id=263)(test_object)
+        return test_object
+
+    @staticmethod
+    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=264
+        """
+        pytest.mark.features(feature_id=264)(test_object)
+        return test_object
+
+    @staticmethod
+    def agent_remote_configuration(test_object):
+        """
+        Agent supports remote configuration
+
+        https://feature-parity.us1.prod.dog/#/?feature=265
+        """
+        pytest.mark.features(feature_id=265)(test_object)
+        return test_object
+
+    @staticmethod
+    def data_integrity(test_object):
+        """
+        Data integrity
+
+        https://feature-parity.us1.prod.dog/#/?feature=266
+        """
+        pytest.mark.features(feature_id=266)(test_object)
+        return test_object
+
+    @staticmethod
+    def library_scrubbing(test_object):
+        """
+        Library scrubbing
+
+        https://feature-parity.us1.prod.dog/#/?feature=267
+        """
+        pytest.mark.features(feature_id=267)(test_object)
+        return test_object

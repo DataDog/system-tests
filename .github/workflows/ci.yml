@@ -428,6 +428,11 @@ jobs:
       run: ./run.sh APPSEC_API_SECURITY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
@@ -515,6 +520,8 @@ jobs:
         ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
         ./run.sh APPSEC_WAF_TELEMETRY --replay
         ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
+        ./run.sh APPSEC_API_SECURITY --replay
+        ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY --replay
         ./run.sh SAMPLING --replay
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
         ./run.sh DEBUGGER_PROBES_STATUS --replay

@@ -15,6 +15,7 @@ tests/:
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: missing_feature
         Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
@@ -193,12 +194,18 @@ tests/:
       Test_Debugger_Mix_Log_Probe: v2.33.0
       Test_Debugger_Probe_Statuses: v2.33.0
   integrations/:
-    test_crossed_integrations.py:
-      Test_GolangKafka: missing_feature
-      Test_JavaKafka: missing_feature
-      Test_NodeJSKafka: missing_feature
-      Test_PythonKafka: missing_feature
-      Test_RubyKafka: missing_feature
+    crossed_integrations/:
+      test_kafka.py:
+        Test_GolangKafka: missing_feature
+        Test_JavaKafka: missing_feature
+        Test_NodeJSKafka: missing_feature
+        Test_PythonKafka: missing_feature
+        Test_RubyKafka: missing_feature
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature

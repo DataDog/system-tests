@@ -734,3 +734,16 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         if prev_mode != new_mode:
             os.chmod(self._otel_config_host_path, new_mode)
         return super().start()
+
+
+class ElasticMQContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="softwaremill/elasticmq:latest",
+            name="elasticmq",
+            host_log_folder=host_log_folder,
+            environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
+            ports={9324: 9324},
+            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+            allow_old_container=True,
+        )

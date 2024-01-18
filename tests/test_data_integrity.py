@@ -3,11 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import weblog, interfaces, context, bug, rfc, missing_feature
+from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
 
+@features.data_integrity
 class Test_TraceUniqueness:
     """All trace ids are uniques"""
 
@@ -16,6 +17,7 @@ class Test_TraceUniqueness:
 
 
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md")
+@features.data_integrity
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
@@ -122,6 +124,7 @@ class Test_TraceHeaders:
         interfaces.library.add_traces_validation(validator, success_by_default=True)
 
 
+@features.data_integrity
 class Test_LibraryHeaders:
     """Misc test around headers sent by libraries"""
 
