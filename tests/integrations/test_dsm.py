@@ -192,18 +192,18 @@ class Test_DsmSQS:
             "nodejs": {
                 "producer": 2931833227331067675,
                 "consumer": 271115008390912609,
-                "topic": "dsm-system-tests-queue"
+                "topic": "dsm-system-tests-queue",
             },
             "java": {
                 "producer": 16307892913751934142,
                 "consumer": 15549836665988044996,
-                "topic": "dsm-system-tests-queue-java"
+                "topic": "dsm-system-tests-queue-java",
             },
             "default": {
                 "producer": 7228682205928812513,
                 "consumer": 3767823103515000703,
-                "topic": "dsm-system-tests-queue"
-            }
+                "topic": "dsm-system-tests-queue",
+            },
         }
 
         producer_hash = language_hashes.get(context.library, "default")["producer"]
