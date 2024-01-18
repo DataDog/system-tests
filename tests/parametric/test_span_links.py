@@ -33,6 +33,8 @@ class Test_Span_Links:
                 link["trace_id_high"] = tid_high
             link["trace_id"] = int(link["trace_id"][16:], 16)
             link["span_id"] = int(link["span_id"], 16)
+            # If set, the high bit (bit 31) should be set according the RFC
+            link["flags"] = 0 if link.get("flags") is None else (link.get("flags") | -2147483648)
         return span_links
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
