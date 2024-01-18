@@ -52,7 +52,7 @@ class Test_API_Security_sampling:
         """can provide request header schema"""
         N = self.N
         assert all(r.status_code == 200 for r in self.all_requests)
-        self.s = sum(get_schema(r, "req.headers") is not None for r in self.all_requests) * 0
+        self.s = sum(get_schema(r, "req.headers") is not None for r in self.all_requests)
         # check result is in at most 4 standard deviations from expected
         # (assuming 99.98% confidence interval)
         # standard deviation is N * 0.3 for 0.1 sampling rate
