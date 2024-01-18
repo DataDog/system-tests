@@ -404,7 +404,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_span_started_with_link_from_another_span(self, test_agent, test_library):
         """Test adding a span link created from another span.
         This tests the functionality of "create a direct link between two spans
@@ -441,7 +440,7 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
-        # TODO Why does flags is expected to be 0, meaning "not set"? 
+        # TODO Why does flags is expected to be 0, meaning "not set"?
         # If 0, it is not sampled so it won't be send to the agent.
         # assert (link.get("flags") or 0) == 0
 
@@ -449,7 +448,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links.
         """
@@ -492,7 +490,7 @@ class Test_Otel_Span_Methods:
         # assert "s:2" in tracestateDD
         # assert "t.dm:-4" in tracestateDD
 
-        # TODO Why does flags is expected to be 0, meaning "not set"? 
+        # TODO Why does flags is expected to be 0, meaning "not set"?
         # If 0, it is not sampled so it won't be send to the agent.
         # Moreover, sampling priority is set to 2 (KEEP) and decision marker to -4 (MANUAL).
         # assert (link.get("flags") or 0) == 0
@@ -503,7 +501,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
@@ -533,7 +530,7 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id_high") == 1311768467284833366
 
         assert link.get("tracestate") is not None
-        print ("tracestate is '%s'" % link["tracestate"])
+        print("tracestate is '%s'" % link["tracestate"])
         tracestateArr = link["tracestate"].split(",")
         assert len(tracestateArr) == 3
         dd_num = 0 if tracestateArr[0].startswith("dd=") else 1
@@ -552,7 +549,6 @@ class Test_Otel_Span_Methods:
     # @missing_feature(context.library == "nodejs", reason="Not implemented")
     # @missing_feature(context.library == "dotnet", reason="Not implemented")
     # @missing_feature(context.library == "python", reason="Not implemented")
-    # @missing_feature(context.library == "python_http", reason="Not implemented")
     # def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
     #     """Test adding a span link from a span to another span.
     #     """
