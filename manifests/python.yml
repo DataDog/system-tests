@@ -69,7 +69,7 @@ tests/:
             fastapi: missing_feature
             python3.12: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature            
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -552,3 +552,4 @@ tests/:
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v1.16.0
     Test_TelemetryV2: v1.17.3
+  test_semantic_core.py: irrelevant (reporting only)

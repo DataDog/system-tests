@@ -24,7 +24,7 @@ tests/:
           Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
-        test_hsts_missing_header.py: 
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
@@ -39,7 +39,7 @@ tests/:
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
         test_sql_injection.py:
-          TestSqlInjection: 
+          TestSqlInjection:
              '*': v2.23.0
         test_ssrf.py:
           TestSSRF: v2.36.0
@@ -57,7 +57,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: v2.39.0
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -72,7 +72,7 @@ tests/:
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
-          TestHeaderValue: 
+          TestHeaderValue:
              '*': v2.39.0
         test_multipart.py:
           TestMultipart: missing_feature
@@ -83,7 +83,7 @@ tests/:
         test_path.py:
           TestPath: missing_feature
         test_uri.py:
-          TestURI: irrelevant     
+          TestURI: irrelevant
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -273,3 +273,4 @@ tests/:
     Test_ProductsDisabled: v2.12.0
     Test_Telemetry: v2.12.0
     Test_TelemetryV2: v2.35.0
+  test_semantic_core.py: irrelevant (reporting only)

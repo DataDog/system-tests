@@ -2,8 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""Test format specifications"""
-import base64
 import json
 
 import requests
@@ -24,7 +22,7 @@ class Test_Schemas:
     setup_v1 = _setup
 
     def test_v1(self):
-        self._run(self._schema_url("v1.0.0"))
+        self._run(self._schema_url("1.1.0"))
 
     def _run(self, schema_url):
         resp = requests.get(schema_url)
@@ -60,7 +58,7 @@ class Test_Schemas:
                 all_errors.append({"instance": content, "errors": errors})
 
         if all_errors:
-            raise Exception(f"JSON Schema validation failed:\n{json.dumps(all_errors, indent=4)}")
+            raise Exception(f"JSON Schema validation failed: {json.dumps(all_errors, indent=2)}")
 
     # _format_as_index returns a formatted string from the given path.
     # Example: "instance['tracerPayloads'][0]['chunks'][2]['spans'][0]['meta']"
@@ -77,89 +75,4 @@ class Test_Schemas:
 
     @staticmethod
     def _schema_url(version):
-        # return f"https://raw.githubusercontent.com/DataDog/schema/main/semantic-core/schema/releases/{version}/agent_payload.json"
-        # Use branch temporarily
-        return "https://raw.githubusercontent.com/DataDog/schema/rarguelloF/SMTC-40/extend-agent-payload/semantic-core/v1/agent_payload_modified.json"
-
-
-# class Test_SensitiveData:
-#     """Sensitive data is properly obfuscated."""
-#
-#     # TODO: this will be fetched from the semantic-core schema definitions
-#     sensitive_fields = ["http.url"]
-#
-#     def setup_http_url(self):
-#         self.r = weblog.get("/semantic-core/sensitive-data/http-url", auth=("user", "pass"))
-#
-#     def test_http_url(self):
-#         assert self.r.status_code == 200
-#         logger.debug(f"got response: {self.r.text}")
-#
-#         resp = json.loads(self.r.text)
-#         assert resp["status"] == "OK"
-#
-#         client_spans = []
-#         server_spans = []
-#
-#         for data in interfaces.agent.get_data():
-#             path = data["path"]
-#             if "traces" not in path:
-#                 continue
-#
-#             for payload in data["request"]["content"]["tracerPayloads"]:
-#                 for chunk in payload["chunks"]:
-#                     for span in chunk["spans"]:
-#                         if span["service"] == "sensitive-data-client":
-#                             client_spans.append(span)
-#                         if span["service"] == "sensitive-data-server":
-#                             server_spans.append(span)
-#
-#         assert len(client_spans) > 0
-#         assert len(server_spans) > 0
-#
-#         for span in client_spans:
-#             self.assert_client_span(span)
-#
-#         for span in server_spans:
-#             self.assert_server_span(span)
-#
-#     def assert_client_span(self, span):
-#         logger.debug(f"validating client span: {json.dumps(span)}")
-#
-#         for f in self.sensitive_fields:
-#             logger.debug(f"validating field: {f}")
-#             meta = span["meta"]
-#
-#             if f in meta:
-#                 logger.debug(f'validating field: "{f}={meta[f]}"')
-#                 assert "user" not in meta[f]
-#                 assert "pass" not in meta[f]
-#                 # TODO: verify if this is the expected behavior, since query params are
-#                 #  redacted in server spans but not in the client
-#                 # assert '/token?<redacted>' in meta[f]
-#
-#     def assert_server_span(self, span):
-#         logger.debug(f"validating server span: {json.dumps(span)}")
-#
-#         # ensure the request was actually sending sensitive data in different places.
-#         meta = span["meta"]
-#         assert "system_test.raw_request" in meta
-#         assert "system_test.basic_auth.user" in meta
-#         assert "system_test.basic_auth.pass" in meta
-#
-#         assert meta["system_test.basic_auth.user"] == "user"
-#         assert meta["system_test.basic_auth.pass"] == "pass"
-#         b64_credentials = base64.b64encode(bytes("user:pass", "utf-8")).decode("utf-8")
-#
-#         assert f"Authorization: Basic {b64_credentials}" in meta["system_test.raw_request"]
-#         assert "/token?token=my-secret-token" in meta["system_test.raw_request"]
-#
-#         for f in self.sensitive_fields:
-#             logger.debug(f"validating field: {f}")
-#             meta = span["meta"]
-#
-#             if f in meta:
-#                 logger.debug(f'validating field: "{f}={meta[f]}"')
-#                 assert "user" not in meta[f]
-#                 assert "pass" not in meta[f]
-#                 assert "/token?<redacted>" in meta[f]
+        return f"https://raw.githubusercontent.com/DataDog/schema/rarguelloF/AIT-9507/extend-agent-payload/semantic-core/schema/releases/{version}/agent_payload.json"

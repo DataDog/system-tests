@@ -23,7 +23,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature          
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -302,3 +302,4 @@ tests/:
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v1.4.0
     Test_TelemetryV2: v1.11
+  test_semantic_core.py: irrelevant (reporting only)

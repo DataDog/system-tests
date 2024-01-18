@@ -21,10 +21,10 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature          
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
-        test_hsts_missing_header.py: 
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
@@ -56,7 +56,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -82,12 +82,12 @@ tests/:
         test_path.py:
           TestPath: missing_feature
         test_uri.py:
-          TestURI: missing_feature  
+          TestURI: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: missing_feature
         Test_BodyRaw: v0.68.3
-        Test_BodyUrlEncoded: v0.68.3 
+        Test_BodyUrlEncoded: v0.68.3
         Test_BodyXml: missing_feature
         Test_ClientIP: missing_feature
         Test_Cookies: v0.68.3
@@ -96,8 +96,8 @@ tests/:
         Test_Headers: v0.68.3
         Test_Lambda: missing_feature
         Test_Method: missing_feature
-        Test_PathParams: v0.71.0 
-        Test_UrlQuery: v0.68.3 
+        Test_PathParams: v0.71.0
+        Test_UrlQuery: v0.68.3
         Test_UrlQueryKey: v0.74.0
         Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
         Test_gRPC: missing_feature
@@ -114,18 +114,18 @@ tests/:
         Test_MultipleAttacks: v0.1.0
         Test_MultipleHighlight: v0.2.0
       test_reports.py:
-        Test_Monitoring: v0.73.0     
+        Test_Monitoring: v0.73.0
       test_rules.py:
-        Test_CommandInjection: v0.68.3  
+        Test_CommandInjection: v0.68.3
         Test_HttpProtocol: v0.68.3
         Test_JavaCodeInjection: v0.68.3
         Test_JsInjection: v0.68.3
         Test_LFI: v0.68.3
-        Test_NoSqli: v0.68.3  
+        Test_NoSqli: v0.68.3
         Test_PhpCodeInjection: v0.68.3
         Test_RFI: v0.68.3
-        Test_SQLI: v0.68.3  
-        Test_SSRF: v0.68.3 
+        Test_SQLI: v0.68.3
+        Test_SSRF: v0.68.3
         Test_Scanners: v0.68.3
         Test_XSS: v0.68.3
       test_telemetry.py:
@@ -249,3 +249,4 @@ tests/:
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v0.90
     Test_TelemetryV2: v0.90
+  test_semantic_core.py: irrelevant (reporting only)

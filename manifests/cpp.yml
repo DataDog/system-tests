@@ -27,7 +27,7 @@ tests/:
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
         test_weak_hash.py: irrelevant (ASM is not implemented in C++)
         test_weak_randomness.py: irrelevant (ASM is not implemented in C++)
-        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)       
+        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)
         test_xpath_injection.py: irrelevant (ASM is not implemented in C++)
         test_xss.py: irrelevant (ASM is not implemented in C++)
       source/:
@@ -81,7 +81,7 @@ tests/:
       Test_NodeJSKafka: missing_feature
       Test_PythonKafka: missing_feature
       Test_RubyKafka: missing_feature
-    test_db_integrations_sql.py: 
+    test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
       Test_Postgres: missing_feature
@@ -140,3 +140,4 @@ tests/:
     Test_ProductsDisabled: irrelevant
     Test_Telemetry: missing_feature
     Test_TelemetryV2: missing_feature
+  test_semantic_core.py: irrelevant (reporting only)

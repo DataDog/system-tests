@@ -34,9 +34,9 @@ tests/:
             vertx3: v1.12.0
             vertx4: v1.12.0
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature            
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
-          TestHeaderInjection: 
+          TestHeaderInjection:
             '*': missing_feature
             spring-boot: v1.27.0
             spring-boot-jetty: v1.27.0
@@ -88,7 +88,7 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature            
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': v1.1.0
@@ -121,7 +121,7 @@ tests/:
           Test_TrustBoundaryViolation:
             "*": "bug (APPSEC-12201)"
         test_unvalidated_redirect.py:
-          TestUnvalidatedHeader: 
+          TestUnvalidatedHeader:
             '*': v1.16.0
             akka-http: missing_feature
             play: missing_feature
@@ -977,3 +977,4 @@ tests/:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetryV2: v1.23.0
+  test_semantic_core.py: irrelevant (reporting only)
