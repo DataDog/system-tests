@@ -17,6 +17,7 @@ tests/:
           rack: missing_feature (rack does not have path parameters support)
         Test_Schema_Request_Query_Parameters: v1.15.0
         Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v1.15.0
     iast/:
       sink/:
@@ -200,22 +201,28 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
-    test_crossed_integrations.py:
-      Test_GolangKafka:
-        "*": missing_feature (Only requires one server -  rails70)
-        rails70: v0.1 # real version unknown
-      Test_JavaKafka:
-        "*": missing_feature (Only requires one server -  rails70)
-        rails70: v0.1 # real version unknown
-      Test_NodeJSKafka:
-        "*": missing_feature (Only requires one server -  rails70)
-        rails70: v0.1 # real version unknown
-      Test_PythonKafka:
-        "*": missing_feature (Only requires one server -  rails70)
-        rails70: v0.1 # real version unknown
-      Test_RubyKafka:
-        "*": missing_feature (Only requires one server -  rails70)
-        rails70: v0.1 # real version unknown
+    crossed_integrations/:
+      test_kafka.py:
+        Test_GolangKafka:
+          "*": missing_feature (Only requires one server -  rails70)
+          rails70: v0.1 # real version unknown
+        Test_JavaKafka:
+          "*": missing_feature (Only requires one server -  rails70)
+          rails70: v0.1 # real version unknown
+        Test_NodeJSKafka:
+          "*": missing_feature (Only requires one server -  rails70)
+          rails70: v0.1 # real version unknown
+        Test_PythonKafka:
+          "*": missing_feature (Only requires one server -  rails70)
+          rails70: v0.1 # real version unknown
+        Test_RubyKafka:
+          "*": missing_feature (Only requires one server -  rails70)
+          rails70: v0.1 # real version unknown
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature

@@ -26,6 +26,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
+    ElasticMQContainer,
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
@@ -154,10 +155,6 @@ class _Scenario:
         return ""
 
     @property
-    def php_appsec(self):
-        return ""
-
-    @property
     def tracer_sampling_rate(self):
         return 0
 
@@ -238,6 +235,7 @@ class _DockerScenario(_Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(name, doc=doc)
 
@@ -271,6 +269,9 @@ class _DockerScenario(_Scenario):
 
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
+
+        if include_elasticmq:
+            self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
     def configure(self, config):
         super().configure(config)
@@ -328,6 +329,7 @@ class EndToEndScenario(_DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(
             name,
@@ -341,6 +343,7 @@ class EndToEndScenario(_DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
+            include_elasticmq=include_elasticmq,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -436,9 +439,6 @@ class EndToEndScenario(_DockerScenario):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Agent: {self.agent_version}")
-
-        if self.library == "php":
-            logger.stdout(f"AppSec: {self.weblog_container.php_appsec}")
 
         if self.weblog_container.libddwaf_version:
             logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
@@ -595,10 +595,6 @@ class EndToEndScenario(_DockerScenario):
         return self.weblog_container.weblog_variant
 
     @property
-    def php_appsec(self):
-        return self.weblog_container.php_appsec
-
-    @property
     def tracer_sampling_rate(self):
         return self.weblog_container.tracer_sampling_rate
 
@@ -644,7 +640,6 @@ class EndToEndScenario(_DockerScenario):
         return {
             "agent": self.agent_version,
             "library": self.library.version,
-            "php_appsec": self.php_appsec,
             "libddwaf": self.weblog_container.libddwaf_version,
             "appsec_rules": self.appsec_rules_version,
         }
@@ -1082,9 +1077,14 @@ class scenarios:
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
-        weblog_env={"DD_TRACE_API_VERSION": "v0.4"},
+        weblog_env={
+            "DD_TRACE_API_VERSION": "v0.4",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_kafka=True,
         include_buddies=True,
+        include_elasticmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
 
@@ -1259,6 +1259,21 @@ class scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_no_response_body = EndToEndScenario(
+        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if

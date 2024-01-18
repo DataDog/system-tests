@@ -44,21 +44,12 @@ allow_no_feature_nodes = [
     "tests/parametric/test_sampling_span_tags.py",
     "tests/parametric/test_span_links.py",
     "tests/parametric/test_tracer.py",
-    "tests/perfs/test_performances.py",
-    "tests/remote_config/test_remote_configuration.py",
-    "tests/test_data_integrity.py",
-    "tests/test_distributed.py",
-    "tests/test_library_logs.py",
-    "tests/test_miscs.py",
-    "tests/test_schemas.py",
-    "tests/test_semantic_conventions.py",
-    "tests/test_smoke.py",
-    "tests/test_telemetry.py",
-    "tests/test_library_conf.py",
-    "tests/test_remote_config.py",
-    "tests/test_scrubbing.py",
-    "tests/test_no_ip_is_reported.py",
-    "tests/test_the_test/",
+    "tests/perfs/test_performances.py",  # exotic scenario, not really used
+    "tests/test_library_logs.py",  # we do not have a real feature to attach
+    "tests/test_miscs.py",  # we do not have a real feature to attach
+    "tests/test_schemas.py",  # Too broad test, can't attach to a feature
+    "tests/test_smoke.py",  # Too broad test, can't attach to a feature
+    "tests/test_the_test/",  # Not a real test
 ]
 
 [tool.pylint]

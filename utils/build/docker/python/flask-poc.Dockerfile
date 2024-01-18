@@ -16,6 +16,8 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 # docker startup
 # FIXME: Ensure gevent patching occurs before ddtrace
 
+RUN pip install boto3
+
 ENV FLASK_APP=app.py
 CMD ./app.sh
 
