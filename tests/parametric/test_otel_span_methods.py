@@ -482,22 +482,19 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id") == 1234567890
         assert link.get("trace_id_high") == 16
 
-        # TODO Tracestate is not part of the extracted headers.
-        # TODO It won't be generated as it is not header injection and not required by the Trace Context Propagation RFC.
-        # assert link.get("tracestate") is not None
-        # print ("tracestate is '%s'" % link["tracestate"])
-        # tracestateArr = link["tracestate"].split(",")
-        # assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
-        # tracestateDD = tracestateArr[0][3:].split(";")
-        # assert len(tracestateDD) == 3
-        # assert "o:synthetics" in tracestateDD
-        # assert "s:2" in tracestateDD
-        # assert "t.dm:-4" in tracestateDD
+        # Tracestate is not required, but if it is present, it must be valid
+        if link.get("tracestate") is not "":
+            assert link.get("tracestate") is not None
+            tracestateArr = link["tracestate"].split(",")
+            assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
+            tracestateDD = tracestateArr[0][3:].split(";")
+            assert len(tracestateDD) == 3
+            assert "o:synthetics" in tracestateDD
+            assert "s:2" in tracestateDD
+            assert "t.dm:-4" in tracestateDD
+            # Sampled flag should be set to match the existing tracestate
+            assert link.get("flags") == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
 
-        # TODO Why does flags is expected to be 0, meaning "not set"?
-        # If 0, it is not sampled so it won't be send to the agent.
-        # Moreover, sampling priority is set to 2 (KEEP) and decision marker to -4 (MANUAL).
-        # assert (link.get("flags") or 0) == 0
         assert len(link.get("attributes")) == 1
         assert link["attributes"].get("foo") == "bar"
 
@@ -537,7 +534,6 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id_high") == 1311768467284833366
 
         assert link.get("tracestate") is not None
-        print("tracestate is '%s'" % link["tracestate"])
         tracestateArr = link["tracestate"].split(",")
         assert len(tracestateArr) == 3
         dd_num = 0 if tracestateArr[0].startswith("dd=") else 1
