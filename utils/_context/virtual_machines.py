@@ -63,16 +63,17 @@ class TestedVirtualMachine:
 
     def _configure_pytest_mark(self):
         """ Mark test as skip. We won't create this ec2 instance """
-        # Skip arm platform for production
-        if self.env == "prod" and "os_arch" in self.ec2_data and self.ec2_data["os_arch"] == "arm":
-            logger.warn(f" Support for ARM architecture has not been released yet")
-            return "missing_feature: ARM features haven't released yet"
 
         if "os_arch" in self.ec2_data and self.ec2_data["os_arch"] == "arm" and "buildpack" in self.weblog_name:
             logger.warn(f" WEBLOG: {self.weblog_name} doesn't support ARM architecture")
             return "missing_feature: Buildpack is not supported for ARM"
-
-        if "os_arch" in self.ec2_data and self.ec2_data["os_arch"] == "arm" and "alpine" in self.weblog_name:
+        # TODO Enable prod when we release
+        if (
+            self.env == "prod"
+            and "os_arch" in self.ec2_data
+            and self.ec2_data["os_arch"] == "arm"
+            and "alpine" in self.weblog_name
+        ):
             logger.warn(f"[bug][WEBLOG:  {self.weblog_name}] doesn't support ARM architecture")
             return "bug: Error loading shared library ld-linux-aarch64.so"
 
