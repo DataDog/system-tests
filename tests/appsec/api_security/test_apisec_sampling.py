@@ -36,7 +36,7 @@ class Test_API_Security_sampling:
             weblog.get(
                 f"/tag_value/api_match_AS001/200?{''.join(random.choices(string.ascii_letters, k=16))}={random.randint(1<<31, (1<<32)-1)}"
             )
-            for _ in range(self.N**2)
+            for _ in range(self.N ** 2)
         ]
 
     def test_sampling_rate(self):
