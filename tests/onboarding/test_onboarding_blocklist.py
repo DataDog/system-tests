@@ -5,13 +5,11 @@ import json
 
 from utils import scenarios, context, features
 from utils.tools import logger
-from utils.onboarding.weblog_interface import make_get_request
-from utils.onboarding.backend_interface import wait_backend_trace_id
-from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 import paramiko
 from scp import SCPClient
 from utils.onboarding.pulumi_ssh import PulumiSSH
+from utils import irrelevant
 
 
 class _OnboardingBlockListBaseTest:
@@ -105,8 +103,14 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         "donet": ["dotnet restore", "dotnet build -c Release", "sudo dotnet publish"],
     }
 
+    @irrelevant(
+        condition="datadog-apm-inject" not in context.scenario.components
+        or context.scenario.components["datadog-apm-inject"] < "0.13.0",
+        reason="Block list not fully implemented ",
+    )
     def test_builtIn_block_commands(self, onboardig_vm):
         """ Check that commands are skipped from the auto instrummentation"""
+
         ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
 
         # Execute commands
@@ -124,6 +128,11 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         assert self._check_command_skipped("cat myfile.txt", all_command_lines)
         assert self._check_command_skipped("ls -la", all_command_lines)
 
+    @irrelevant(
+        condition="datadog-apm-inject" not in context.scenario.components
+        or context.scenario.components["datadog-apm-inject"] < "0.13.0",
+        reason="Block list not fully implemented ",
+    )
     def test_builtIn_block_args(self, onboardig_vm):
 
         if onboardig_vm.language in self.commands:

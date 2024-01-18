@@ -864,6 +864,10 @@ class OnBoardingScenario(_Scenario):
     def weblog_variant(self):
         return self._weblog
 
+    def session_start(self):
+        super().session_start()
+        self.fill_context()
+
     def fill_context(self):
         # fix package name for nodejs -> js
         if self._library.library == "nodejs":
@@ -886,7 +890,7 @@ class OnBoardingScenario(_Scenario):
                             raise ValueError(
                                 f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
                             )
-
+                        logger.stdout(f"{dd_package_name}: {provision_vm.get_component(dd_package_name)}")
                         self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
                 # Manage specific information for each parametrized test
                 test_metadata = {
@@ -944,10 +948,6 @@ class OnBoardingScenario(_Scenario):
 
     def _get_warmups(self):
         return [self._start_pulumi]
-
-    def post_setup(self):
-        """ Fill context with the installed components information and parametrized test metadata"""
-        self.fill_context()
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
