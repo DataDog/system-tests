@@ -2,9 +2,11 @@ import json
 import pytest
 
 from utils.parametric.spec.trace import ORIGIN
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
+from utils.parametric.spec.trace import AUTO_DROP_KEY
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
-from utils import scenarios
+from utils import scenarios, missing_feature
 from utils.parametric._library_client import Link
 
 
@@ -147,9 +149,6 @@ class Test_Span_Links:
         span = traces[0][0]
         assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
         assert span["meta"].get(ORIGIN) is None
-        # TODO: create a test case to ensure sampling decisions are propagated by span links
-        # assert span["meta"].get("_dd.p.dm") == "-4"
-        # assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
         span_links = self._get_span_links(span)
         assert len(span_links) == 1
@@ -192,9 +191,6 @@ class Test_Span_Links:
         traces = test_agent.wait_for_num_traces(1)
         span = traces[0][0]
         assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
-        # TODO: create a test case to ensure sampling decisions are propagated by span links
-        # assert span["meta"].get("_dd.p.dm") == "-4"
-        # assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
         span_links = self._get_span_links(span)
         assert len(span_links) == 1
@@ -259,3 +255,76 @@ class Test_Span_Links:
         assert link["attributes"].get("bools.1") == "false"
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
+
+    @missing_feature(library="python", reason="links do not influence the sampling decsion of spans")
+    def test_span_link_propagated_sampling_decisions(self, test_agent, test_library):
+        """Sampling decisions made by an upstream span should be propagated via span links to
+        downstream spans.
+        """
+        with test_library:
+            with test_library.start_span(
+                "link_w_manual_keep",
+                links=[
+                    Link(
+                        parent_id=0,
+                        http_headers=[
+                            ["x-datadog-trace-id", "666"],
+                            ["x-datadog-parent-id", "777"],
+                            ["x-datadog-sampling-priority", "2"],
+                            ["x-datadog-tags", "_dd.p.dm=-0,_dd.p.tid=0000000000000010"],
+                        ],
+                    )
+                ],
+            ):
+                pass
+
+            with test_library.start_span(
+                "link_w_manual_drop",
+                links=[
+                    Link(
+                        parent_id=0,
+                        http_headers=[
+                            ["traceparent", "00-66645678901234567890123456789012-0000000000000011-01"],
+                            ["tracestate", "foo=1,dd=t.dm:-3;s:-1,bar=baz"],
+                        ],
+                    )
+                ],
+            ):
+                pass
+
+            with test_library.start_span("auto_dropped_span") as ads:
+                ads.set_meta(AUTO_DROP_KEY, "")
+                pass
+
+            with test_library.start_span("linked_to_auto_dropped_span", links=[Link(parent_id=ads.span_id)]):
+                pass
+
+        traces = test_agent.wait_for_num_traces(4)
+        # Span Link generated from datadog headers containing manual keep
+        link_w_manual_keep = traces[0][0]
+        # assert that span link is set up correctly
+        span_links = self._get_span_links(link_w_manual_keep)
+        assert len(span_links) == 1 and span_links[0]["span_id"] == 777
+        # assert that sampling decision is propagated by the span link
+        assert link_w_manual_keep["meta"].get("_dd.p.dm") == "-0"
+        assert link_w_manual_keep["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+
+        # Span Link generated from tracecontext headers containing manual drop
+        link_w_manual_drop = traces[1][0]
+        # assert that span link is set up correctly
+        span_links = self._get_span_links(link_w_manual_drop)
+        assert len(span_links) == 1 and span_links[0]["span_id"] == 17
+        # assert that sampling decision is propagated by the span link
+        assert link_w_manual_drop["meta"].get("_dd.p.dm") == "-3"
+        assert link_w_manual_drop["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+
+        # Span Link generated between two root spans
+        auto_dropped_span = traces[2][0]
+        linked_to_auto_dropped_span = traces[3][0]
+        # assert that span link is set up correctly
+        span_links = self._get_span_links(linked_to_auto_dropped_span)
+        assert len(span_links) == 1 and span_links[0]["span_id"] == auto_dropped_span["span_id"]
+        # ensure autodropped span has the set sampling decision
+        assert auto_dropped_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 0
+        # assert that sampling decision is propagated by the span link
+        assert linked_to_auto_dropped_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 0
