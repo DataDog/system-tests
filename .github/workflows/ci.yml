@@ -260,7 +260,7 @@ jobs:
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
       run: ./build.sh -i proxy
     #### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
-    #### skipping this, waiting for a proper solution
+    #### skipping this, waiting for a proper solution.
     # - name: Load WAF rules
     #   if: ${{ matrix.version == 'dev' }}
     #   run: ./utils/scripts/load-binary.sh waf_rule_set
