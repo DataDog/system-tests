@@ -168,13 +168,13 @@ app.get("/dsm", (req: Request, res: Response) => {
     })
   }
   doKafkaOperations()
-      .then(() => {
-        res.send('ok');
-      })
-      .catch((error: Error) => {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      });
+    .then(() => {
+      res.send('ok');
+    })
+    .catch((error: Error) => {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+    });
 });
 
 app.get('/load_dependency', (req: Request, res: Response) => {
@@ -191,14 +191,20 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
   }
 
   res.status(parseInt(req.params.status) || 200).send('Value tagged');
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body });
+  } else {
+    res.send('Value tagged');
+  }
 });
 
 app.post('/shell_execution', (req: Request, res: Response) => {
-  const options = { shell: req?.body?.options?.shell ? true : false}
+  const options = { shell: req?.body?.options?.shell ? true : false }
   const args = req?.body?.args.split(' ')
 
   const response = spawnSync(req?.body?.command, args, options)
-  
+
   res.send(response)
 })
 
