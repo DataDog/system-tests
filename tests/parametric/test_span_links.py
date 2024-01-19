@@ -35,7 +35,7 @@ class Test_Span_Links:
             link["trace_id"] = int(link["trace_id"][16:], 16)
             link["span_id"] = int(link["span_id"], 16)
             # If set, the high bit (bit 31) should be set according the RFC
-            link["flags"] = 0 if link.get("flags") is None else (link.get("flags") | -2147483648)
+            link["flags"] = 0 if link.get("flags") is None else (link.get("flags") | TRACECONTEXT_FLAGS_SET)
         return span_links
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
@@ -76,7 +76,7 @@ class Test_Span_Links:
         # If tracestate is set ensure the value is correct (ex: python)
         if link.get("tracestate"):
             assert link.get("tracestate") == "dd=s:1;t.dm:-0"
-        assert link.get("flags", 0) == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
+        assert link.get("flags", 0) == 1 | TRACECONTEXT_FLAGS_SET  # Sampled and Set (31 bit according the RFC)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
     def test_span_started_with_link_v05(self, test_agent, test_library):
@@ -167,7 +167,7 @@ class Test_Span_Links:
         assert "t.dm:-4" in tracestateDD
 
         # link has a sampling priority of 2, so it should be sampled
-        assert link.get("flags", 1) == 1 | -2147483648
+        assert link.get("flags", 1) == 1 | TRACECONTEXT_FLAGS_SET
         assert link["attributes"] == {"foo": "bar"}
 
     def test_span_link_from_distributed_w3c_headers(self, test_agent, test_library):
