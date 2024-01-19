@@ -147,7 +147,7 @@ class Test_Schema_Request_Json_Body:
 
     def setup_request_method(self):
         payload = {
-            "main": [{"key": "id001", "value": 1345}, {"value": 1567, "key": "id002"}],
+            "main": [{"key": "id001", "value": 1345.67}, {"value": 1567.89, "key": "id002"}],
             "nullable": None,
         }
         self.request = weblog.post("/tag_value/api_match_AS004/200", json=payload)
@@ -156,7 +156,7 @@ class Test_Schema_Request_Json_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}],)
+        assert contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}],)
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
