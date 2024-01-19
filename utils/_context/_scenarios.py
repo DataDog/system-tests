@@ -951,14 +951,12 @@ class OnBoardingScenario(_Scenario):
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
-
-    #   self.extract_debug_info_before_close()
-    #   self.close_targets()
+        self.extract_debug_info_before_close()
+        self.close_targets()
 
     def close_targets(self):
         logger.info(f"Pulumi stack down")
-
-    #  self.stack.destroy(on_output=logger.info)
+        self.stack.destroy(on_output=logger.info)
 
 
 class ParametricScenario(_Scenario):

@@ -1,17 +1,8 @@
-import os
-
-import pytest
-import json
-
-from utils import scenarios, context, features
+from utils import scenarios, features
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
-
-import paramiko
-from scp import SCPClient
-from utils.onboarding.pulumi_ssh import PulumiSSH
 
 
 class _OnboardingInstallBaseTest:
