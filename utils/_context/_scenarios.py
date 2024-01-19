@@ -26,6 +26,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
+    ElasticMQContainer,
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
@@ -234,6 +235,7 @@ class _DockerScenario(_Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(name, doc=doc)
 
@@ -267,6 +269,9 @@ class _DockerScenario(_Scenario):
 
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
+
+        if include_elasticmq:
+            self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
     def configure(self, config):
         super().configure(config)
@@ -324,6 +329,7 @@ class EndToEndScenario(_DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(
             name,
@@ -337,6 +343,7 @@ class EndToEndScenario(_DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
+            include_elasticmq=include_elasticmq,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -1070,9 +1077,14 @@ class scenarios:
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
-        weblog_env={"DD_TRACE_API_VERSION": "v0.4"},
+        weblog_env={
+            "DD_TRACE_API_VERSION": "v0.4",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_kafka=True,
         include_buddies=True,
+        include_elasticmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
 
@@ -1251,6 +1263,30 @@ class scenarios:
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
         DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_no_response_body = EndToEndScenario(
+        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_with_sampling = EndToEndScenario(
+        "APPSEC_API_SECURITY_WITH_SAMPLING",
+        appsec_enabled=True,
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_TRACE_DEBUG": "false",},
+        doc="""
+        Scenario for API Security feature, testing api security sampling rate.
         """,
     )
 

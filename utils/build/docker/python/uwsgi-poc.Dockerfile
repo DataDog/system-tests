@@ -13,6 +13,8 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 
+RUN pip install boto3
+
 # docker startup
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi

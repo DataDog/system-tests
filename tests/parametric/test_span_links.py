@@ -3,6 +3,7 @@ import pytest
 
 from utils.parametric.spec.trace import ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
+from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import scenarios
 from utils.parametric._library_client import Link
 
@@ -214,8 +215,8 @@ class Test_Span_Links:
         assert "t.dm:-4" in tracestateDD
 
         # link has a sampling priority of 2, so it should be sampled
-        assert link.get("flags") == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
-        assert len(link.get("attributes", {})) == 0
+        assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
+        assert len(link.get("attributes") or {}) == 0
 
     def test_span_with_attached_links(self, test_agent, test_library):
         """Test adding a span link from a span to another span.

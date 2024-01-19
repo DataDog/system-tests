@@ -21,6 +21,7 @@ class Test_HeaderTags:
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
+@features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Short:
     """Validates that the short, header name only, format for specifying headers correctly tags spans"""
 
@@ -38,6 +39,7 @@ class Test_HeaderTags_Short:
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
+@features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Long:
     """Validates that input in `<header>:<tag_name>` format correctly tags spans"""
 
@@ -55,6 +57,7 @@ class Test_HeaderTags_Long:
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
+@features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Header:
     """Validates that leading/trailing whitespaces are trimmed on the header values given to DD_TRACE_HEADER_TAGS
     e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header' """
@@ -73,6 +76,7 @@ class Test_HeaderTags_Whitespace_Header:
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
+@features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Tag:
     """Validates that leading/trailing whitespaces on the Input to DD_TRACE_HEADER_TAGS are 
     trimmed on mapping parts, but whitespaces in between non-whitespace chars are left in-tact."""
@@ -91,6 +95,7 @@ class Test_HeaderTags_Whitespace_Tag:
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
+@features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Val_Short:
     """Validates that between-char whitespaces in header values are not removed,
     but leading/trailing whitespace is stripped, using short form input"""
@@ -109,6 +114,7 @@ class Test_HeaderTags_Whitespace_Val_Short:
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags
+@features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Val_Long:
     """Validates that between-char whitespaces in header values are not removed,
     but leading/trailing whitespace is stripped, using long form input"""
@@ -127,6 +133,7 @@ class Test_HeaderTags_Whitespace_Val_Long:
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags_invalid
+@features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Colon_Leading:
     """ Validates that Input to DD_TRACE_HEADER_TAGS with leading colon results in 0 additional span tags """
 
@@ -149,6 +156,7 @@ class Test_HeaderTags_Colon_Leading:
 
 @coverage.basic
 @scenarios.library_conf_custom_header_tags_invalid
+@features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Colon_Trailing:
     """ Validates that DD_TRACE_HEADER_TAGS input that contains a leading or trailing colon results in 0 additional span tags """
 
