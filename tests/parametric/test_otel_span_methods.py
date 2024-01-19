@@ -10,6 +10,7 @@ from utils.parametric.spec.otel_trace import OtelSpan, otel_span
 from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
 from utils import bug, missing_feature, irrelevant, context, scenarios
 
@@ -493,7 +494,7 @@ class Test_Otel_Span_Methods:
             assert "s:2" in tracestateDD
             assert "t.dm:-4" in tracestateDD
             # Sampled flag should be set to match the existing tracestate
-            assert link.get("flags") == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
+            assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
 
         assert len(link.get("attributes")) == 1
         assert link["attributes"].get("foo") == "bar"
@@ -545,7 +546,7 @@ class Test_Otel_Span_Methods:
         assert "s:2" in tracestateDD
         assert "t.dm:-4" in tracestateDD
 
-        assert link.get("flags") == 1 | -2147483648  # Sampled and Set (31 bit according the RFC)
+        assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
         assert len(link.get("attributes")) == 0
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -807,7 +808,7 @@ def retrieve_span_links(span):
             link["attributes"] = json_link.get("attributes") or {}
             link["tracestate"] = json_link.get("tracestate") or ""
             # If set, the high bit (bit 31) should be set according the RFC
-            link["flags"] = 0 if json_link.get("flags") is None else (json_link.get("flags") | -2147483648)
+            link["flags"] = 0 if json_link.get("flags") is None else (json_link.get("flags") | TRACECONTEXT_FLAGS_SET)
             links.append(link)
         return links
     else:

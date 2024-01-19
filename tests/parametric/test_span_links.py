@@ -6,6 +6,7 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import span_has_no_parent
+from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
 from utils import context, scenarios, missing_feature, bug
 from utils.parametric._library_client import Link
@@ -158,7 +159,7 @@ class Test_Span_Links:
         assert "s:2" in tracestateDD
         assert "t.dm:-4" in tracestateDD
 
-        assert link.get("flags") == 1 | -2147483648
+        assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
         assert len(link.get("attributes") or {}) == 0
 
     @missing_feature(library="python", reason="test not implemented")
