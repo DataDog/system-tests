@@ -5,10 +5,11 @@
 
 import json
 
-from utils import weblog, interfaces, context, scenarios
+from utils import weblog, interfaces, context, scenarios, features
 from utils.tools import logger
 
 
+@features.database_monitoring_correlation
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
 

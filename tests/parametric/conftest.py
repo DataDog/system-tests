@@ -100,51 +100,24 @@ def _get_base_directory():
 def python_library_factory() -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
-        protocol="grpc",
+        protocol="http",
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
-WORKDIR /client
+WORKDIR /app
 RUN pyenv global 3.9.11
-RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3 requests
-RUN python3.9 -m pip install %s
-"""
-        % (python_package,),
-        container_cmd="python3.9 -m apm_test_client".split(" "),
+RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
+COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+ENV DD_PATCH_MODULES="fastapi:false"
+""",
+        container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
-        container_build_context=python_absolute_appdir,
-        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/client/apm_test_client"),],
-        env={},
-        port="",
-    )
-
-
-def python_http_library_factory() -> APMLibraryTestServer:
-    python_appdir = os.path.join("utils", "build", "docker", "python_http", "parametric")
-    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    # By default run parametric tests against the development branch
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
-    return APMLibraryTestServer(
-        lang="python",
-        protocol="http",
-        container_name="python-test-library-http",
-        container_tag="python-test-library",
-        container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
-WORKDIR /client
-RUN pyenv global 3.9.11
-RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0 requests
-RUN python3.9 -m pip install %s
-"""
-        % (python_package,),
-        container_cmd="python3.9 -m apm_test_client".split(" "),
-        container_build_dir=python_absolute_appdir,
-        container_build_context=python_absolute_appdir,
-        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/client/apm_test_client"),],
+        container_build_context=_get_base_directory(),
+        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
         env={},
         port="",
     )
@@ -153,7 +126,8 @@ RUN python3.9 -m pip install %s
 def node_library_factory() -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
-    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
+    nodejs_reldir = nodejs_appdir.replace("\\", "/")
+
     return APMLibraryTestServer(
         lang="nodejs",
         protocol="http",
@@ -161,17 +135,22 @@ def node_library_factory() -> APMLibraryTestServer:
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
-WORKDIR /client
-COPY ./package.json /client/
-COPY ./package-lock.json /client/
-COPY ./*.js /client/
-COPY ./npm/* /client/
+RUN apt-get update && apt-get install -y jq git
+WORKDIR /usr/app
+COPY {nodejs_reldir}/package.json /usr/app/
+COPY {nodejs_reldir}/package-lock.json /usr/app/
+COPY {nodejs_reldir}/*.js /usr/app/
+COPY {nodejs_reldir}/npm/* /usr/app/
+
 RUN npm install
-RUN npm install {node_module}
+
+COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 """,
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_absolute_appdir,
-        container_build_context=nodejs_absolute_appdir,
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )
@@ -181,7 +160,7 @@ def golang_library_factory():
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
     golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
-
+    golang_reldir = golang_appdir.replace("\\", "/")
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
@@ -189,15 +168,22 @@ def golang_library_factory():
         container_tag="go118-test-library",
         container_img=f"""
 FROM golang:1.20
-WORKDIR /client
-COPY ./go.mod /client
-COPY ./go.sum /client
-COPY . /client
+
+# install jq
+RUN apt-get update && apt-get -y install jq
+WORKDIR /app
+COPY {golang_reldir}/go.mod /app
+COPY {golang_reldir}/go.sum /app
+COPY {golang_reldir}/. /app
+# download the proper tracer version
+COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=golang_absolute_appdir,
-        container_build_context=golang_absolute_appdir,
+        container_build_context=_get_base_directory(),
         volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
         env={},
         port="",
@@ -207,37 +193,38 @@ RUN go install
 def dotnet_library_factory():
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
+    dotnet_reldir = dotnet_appdir.replace("\\", "/")
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
         container_name="dotnet-test-client",
         container_tag="dotnet7_0-test-client",
-        container_img="""
+        container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:7.0
 RUN apt-get update && apt-get install dos2unix
-WORKDIR /client
+WORKDIR /app
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY /install_ddtrace.sh /binaries/
+COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
-COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
+COPY ["{dotnet_reldir}/ApmTestClient.csproj", "{dotnet_reldir}/nuget.config", "{dotnet_reldir}/*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
 
 # build and publish
-COPY . ./
+COPY {dotnet_reldir} ./
 RUN dotnet publish --no-restore --configuration Release --output out
-WORKDIR /client/out
+WORKDIR /app/out
 
 # Set up automatic instrumentation (required for OpenTelemetry tests),
 # but don't enable it globally
 ENV CORECLR_ENABLE_PROFILING=0
-ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
+ENV CORECLR_PROFILER={{846F5F1C-F9AE-4B07-969E-05C26BC060D8}}
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
@@ -249,7 +236,7 @@ ENV DD_TRACE_OTEL_ENABLED=false
 """,
         container_cmd=["./ApmTestClient"],
         container_build_dir=dotnet_absolute_appdir,
-        container_build_context=dotnet_absolute_appdir,
+        container_build_context=_get_base_directory(),
         volumes=[],
         env={},
         port="",
@@ -303,14 +290,14 @@ def php_library_factory() -> APMLibraryTestServer:
         container_tag="php-test-library",
         container_img=f"""
 FROM datadog/dd-trace-ci:php-8.2_buster
-WORKDIR /tmp
+WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
 ADD {php_reldir}/composer.lock .
 RUN composer install
-ADD {php_reldir}/install.sh .
+ADD {php_reldir}/../common/install_ddtrace.sh .
 COPY binaries /binaries
-RUN ./install.sh
+RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 ADD {php_reldir}/server.php .
 """,
         container_cmd=["php", "server.php"],
@@ -326,8 +313,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
 
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
-
-    ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
+    ruby_reldir = ruby_appdir.replace("\\", "/")
 
     shutil.copyfile(
         os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
@@ -340,53 +326,61 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_tag="ruby-test-client",
         container_img=f"""
             FROM ruby:3.2.1-bullseye
-            WORKDIR /client
-            RUN gem install ddtrace # Install a baseline ddtrace version, to cache all dependencies
-            COPY ./Gemfile /client/
-            COPY ./install_dependencies.sh /client/
-            ENV RUBY_DDTRACE_SHA='{ddtrace_sha}'
-            RUN bash install_dependencies.sh # Cache dependencies before copying application code
-            COPY ./apm_test_client.proto /client/
-            COPY ./generate_proto.sh /client/
+            WORKDIR /app
+            COPY {ruby_reldir} .           
+            COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
+            RUN bundle install 
+            RUN /binaries/install_ddtrace.sh
+            COPY {ruby_reldir}/apm_test_client.proto /app/
+            COPY {ruby_reldir}/generate_proto.sh /app/
             RUN bash generate_proto.sh
-            COPY ./server.rb /client/
+            COPY {ruby_reldir}/server.rb /app/
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_absolute_appdir,
-        container_build_context=ruby_absolute_appdir,
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )
 
 
 def cpp_library_factory() -> APMLibraryTestServer:
-    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
+    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric", "http")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
-
-    shutil.copyfile(
-        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-        os.path.join(cpp_absolute_appdir, "apm_test_client.proto"),
-    )
-    return APMLibraryTestServer(
-        lang="cpp",
-        protocol="grpc",
-        container_name="cpp-test-client",
-        container_tag="cpp-test-client",
-        container_img=f"""
+    cpp_reldir = cpp_appdir.replace("\\", "/")
+    dockerfile_content = f"""
 FROM datadog/docker-library:dd-trace-cpp-ci AS build
-RUN apt-get update && apt-get -y install pkg-config protobuf-compiler-grpc libgrpc++-dev libabsl-dev
-WORKDIR /cpp-parametric-test
-ADD CMakeLists.txt developer_noise.cpp developer_noise.h distributed_headers_dicts.h main.cpp scheduler.h tracing_service.cpp tracing_service.h /cpp-parametric-test/
-ADD apm_test_client.proto /cpp-parametric-test/test_proto3_optional/
-RUN mkdir .build && cd .build && cmake .. && cmake --build . -j $(nproc) && cmake --install .
+
+RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
+WORKDIR /usr/app
+COPY {cpp_reldir}/../install_ddtrace.sh binaries* /binaries/
+ADD {cpp_reldir}/CMakeLists.txt \
+    {cpp_reldir}/developer_noise.cpp \
+    {cpp_reldir}/developer_noise.h \
+    {cpp_reldir}/httplib.h \
+    {cpp_reldir}/json.hpp \
+    {cpp_reldir}/main.cpp \
+    {cpp_reldir}/manual_scheduler.h \
+    {cpp_reldir}/request_handler.cpp \
+    {cpp_reldir}/request_handler.h \
+    {cpp_reldir}/utils.h \
+    /usr/app
+RUN sh /binaries/install_ddtrace.sh
+RUN cmake -B .build -DCMAKE_BUILD_TYPE=Release . && cmake --build .build -j $(nproc) && cmake --install .build --prefix dist
 
 FROM ubuntu:22.04
-RUN apt-get update && apt-get -y install libgrpc++1 libprotobuf23
-COPY --from=build /usr/local/bin/cpp-parametric-test /usr/local/bin/cpp-parametric-test
-            """,
+COPY --from=build /usr/app/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-parametric-test
+"""
+
+    return APMLibraryTestServer(
+        lang="cpp",
+        protocol="http",
+        container_name="cpp-test-client",
+        container_tag="cpp-test-client",
+        container_img=dockerfile_content,
         container_cmd=["cpp-parametric-test"],
         container_build_dir=cpp_absolute_appdir,
-        container_build_context=cpp_absolute_appdir,
+        container_build_context=_get_base_directory(),
         env={},
         port="",
     )
@@ -400,7 +394,6 @@ _libs: Dict[str, ClientLibraryServerFactory] = {
     "nodejs": node_library_factory,
     "php": php_library_factory,
     "python": python_library_factory,
-    "python_http": python_http_library_factory,
     "ruby": ruby_library_factory,
 }
 
@@ -566,6 +559,16 @@ class _TestAgentAPI:
         )
         assert resp.status_code == 202
 
+    def raw_telemetry(self, clear=False, **kwargs):
+        raw_reqs = self.requests()
+        reqs = []
+        for req in raw_reqs:
+            if req["url"].endswith("/telemetry/proxy/api/v2/apmtelemetry"):
+                reqs.append(req)
+        if clear:
+            self.clear()
+        return reqs
+
     def telemetry(self, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
         if clear:
@@ -701,7 +704,7 @@ class _TestAgentAPI:
                             if message["request_type"] == event_name:
                                 if clear:
                                     self.clear()
-                                return event["payload"]
+                                return message
                     elif event["request_type"] == event_name:
                         if clear:
                             self.clear()
@@ -735,6 +738,7 @@ class _TestAgentAPI:
     def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
+        capabilities_seen = set()
         for i in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
@@ -745,11 +749,13 @@ class _TestAgentAPI:
                 for req in rc_reqs:
                     raw_caps = req["body"]["client"].get("capabilities")
                     if raw_caps:
-                        int_capabilities = int.from_bytes(base64.b64decode(raw_caps), byteorder="big")
+                        decoded_capabilities = base64.b64decode(raw_caps)
+                        int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+                        capabilities_seen.add(remoteconfig.human_readable_capabilities(int_capabilities))
                         if all((int_capabilities >> c) & 1 for c in capabilities):
                             return int_capabilities
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
+        raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
     def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""

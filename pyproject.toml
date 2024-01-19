@@ -27,6 +27,31 @@ markers =[
 
 python_files = "test_*.py _test_*.py"
 
+# migration tooling: list of folders where feature declarations are mandatory
+# once every test class got its feature declaration, we can remove this
+allow_no_feature_nodes = [
+    "tests/apm_tracing_e2e/test_otel.py",
+    "tests/apm_tracing_e2e/test_single_span.py",
+    "tests/apm_tracing_e2e/test_smoke.py",
+    "tests/otel_tracing_e2e/test_e2e.py",
+    "tests/parametric/test_headers_none.py",
+    "tests/parametric/test_headers_precedence.py",
+    "tests/parametric/test_headers_tracecontext.py",
+    "tests/parametric/test_headers_tracestate_dd.py",
+    "tests/parametric/test_otel_span_methods.py",
+    "tests/parametric/test_otel_span_with_w3c.py",
+    "tests/parametric/test_otel_tracer.py",
+    "tests/parametric/test_sampling_span_tags.py",
+    "tests/parametric/test_span_links.py",
+    "tests/parametric/test_tracer.py",
+    "tests/perfs/test_performances.py",  # exotic scenario, not really used
+    "tests/test_library_logs.py",  # we do not have a real feature to attach
+    "tests/test_miscs.py",  # we do not have a real feature to attach
+    "tests/test_schemas.py",  # Too broad test, can't attach to a feature
+    "tests/test_smoke.py",  # Too broad test, can't attach to a feature
+    "tests/test_the_test/",  # Not a real test
+]
+
 [tool.pylint]
 init-hook='import sys; sys.path.append(".")'
 max-line-length = 120

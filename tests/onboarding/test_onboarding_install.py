@@ -2,9 +2,8 @@ import os
 
 import pytest
 
-from utils import scenarios, context
+from utils import scenarios, context, features
 from utils.tools import logger
-
 from utils.onboarding.weblog_interface import make_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -44,23 +43,27 @@ class _OnboardingUninstallBaseTest:
             pass
 
 
-@scenarios.onboarding_container
-class TestOnboardingInstallContainer(_OnboardingInstallBaseTest):
+@features.container_auto_instrumentation
+@scenarios.onboarding_container_install_manual
+class TestOnboardingInstallManualContainer(_OnboardingInstallBaseTest):
     pass
 
 
-@scenarios.onboarding_host
-class TestOnboardingInstallHost(_OnboardingInstallBaseTest):
+@features.host_auto_instrumentation
+@scenarios.onboarding_host_install_manual
+class TestOnboardingInstallManualHost(_OnboardingInstallBaseTest):
     pass
 
 
-@scenarios.onboarding_host_auto_install
-class TestOnboardingInstallHostAutoInstall(_OnboardingInstallBaseTest):
+@features.host_auto_instrumentation
+@scenarios.onboarding_host_install_script
+class TestOnboardingInstallScriptHost(_OnboardingInstallBaseTest):
     pass
 
 
-@scenarios.onboarding_container_auto_install
-class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
+@features.container_auto_instrumentation
+@scenarios.onboarding_container_install_script
+class TestOnboardingInstallScriptContainer(_OnboardingInstallBaseTest):
     pass
 
 
@@ -69,11 +72,13 @@ class TestOnboardingInstallContainerAutoInstall(_OnboardingInstallBaseTest):
 #########################
 
 
+@features.container_auto_instrumentation
 @scenarios.onboarding_container_uninstall
 class TestOnboardingUninstallContainer(_OnboardingUninstallBaseTest):
     pass
 
 
+@features.host_auto_instrumentation
 @scenarios.onboarding_host_uninstall
 class TestOnboardingUninstallHost(_OnboardingUninstallBaseTest):
     pass

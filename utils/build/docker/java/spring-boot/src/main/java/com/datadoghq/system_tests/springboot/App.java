@@ -1,5 +1,6 @@
 package com.datadoghq.system_tests.springboot;
 
+import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
@@ -287,29 +288,63 @@ public class App {
     }
 
     @RequestMapping("/kafka/produce")
-    String kafkaProduce(@RequestParam(required = true) String topic) {
+    ResponseEntity<String> kafkaProduce(@RequestParam(required = true) String topic) {
         KafkaConnector kafka = new KafkaConnector(topic);
         try {
             kafka.produceMessageWithoutNewThread("DistributedTracing");
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start producing message...");
             e.printStackTrace();
-            return "failed to start producing message";
+            return new ResponseEntity<>("failed to start producing messages", HttpStatus.BAD_REQUEST);
         }
-        return "ok";
+        return new ResponseEntity<>("produce ok", HttpStatus.OK);
     }
 
     @RequestMapping("/kafka/consume")
-    String kafkaConsume(@RequestParam(required = true) String topic, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> kafkaConsume(@RequestParam(required = true) String topic, @RequestParam(required = false) Integer timeout) {
         KafkaConnector kafka = new KafkaConnector(topic);
-        if (timeout == null) timeout = Integer.MAX_VALUE;
+        if (timeout == null) {
+            timeout = Integer.MAX_VALUE;
+        } else {
+            // convert from seconds to ms
+            timeout *= 1000;
+        }
+        boolean consumed = false;
         try {
-            boolean consumed = kafka.consumeMessageWithoutNewThread(timeout);
-            return consumed ? "ok" : "timed out";
+            consumed = kafka.consumeMessageWithoutNewThread(timeout);
+            return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start consuming message...");
             e.printStackTrace();
-            return "failed to start consuming message";
+            return new ResponseEntity<>("failed to start consuming messages", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping("/sqs/produce")
+    ResponseEntity<String> sqsProduce(@RequestParam(required = true) String queue) {
+        SqsConnector sqs = new SqsConnector(queue);
+        try {
+            sqs.produceMessageWithoutNewThread("DistributedTracing SQS");
+        } catch (Exception e) {
+            System.out.println("[SQS] Failed to start producing message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("failed to start producing messages", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("produce ok", HttpStatus.OK);
+    }
+
+    @RequestMapping("/sqs/consume")
+    ResponseEntity<String> sqsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+        SqsConnector sqs = new SqsConnector(queue);
+        if (timeout == null) timeout = 60;
+        boolean consumed = false;
+        try {
+            consumed = sqs.consumeMessageWithoutNewThread(timeout);
+            return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println("[SQS] Failed to start consuming message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("failed to start consuming messages", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -325,7 +360,7 @@ public class App {
                 return "failed to start producing message";
             }
             try {
-                kafka.startConsumingMessages();
+                kafka.startConsumingMessages("");
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();

@@ -3,7 +3,9 @@ import os
 import random
 import subprocess
 import threading
+import time
 
+import boto3
 from confluent_kafka import Producer, Consumer
 import psycopg2
 import requests
@@ -61,14 +63,16 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 @app.route("/waf/", methods=["GET", "POST", "OPTIONS"])
 @app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
 @app.route("/params/<path>", methods=["GET", "POST", "OPTIONS"])
-@app.route("/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"])
+@app.route(
+    "/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"],
+)
 def waf(*args, **kwargs):
     if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]},
         )
         if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
-            return jsonify({"payload": request.form})
+            return jsonify({"payload": request.form}), kwargs["status_code"], flask_request.args
 
         return "Value tagged", kwargs["status_code"], flask_request.args
     return "Hello, World!\n"
@@ -178,7 +182,7 @@ def dbm():
 @app.route("/kafka/produce")
 def produce_kafka_message():
     """
-        The goal of this endpoint is to trigger kafka producer calls
+    The goal of this endpoint is to trigger kafka producer calls
     """
 
     producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})
@@ -193,9 +197,10 @@ def produce_kafka_message():
 @app.route("/kafka/consume")
 def consume_kafka_message():
     """
-        The goal of this endpoint is to trigger kafka consumer calls
+    The goal of this endpoint is to trigger kafka consumer calls
     """
     message_topic = flask_request.args.get("topic", "DistributedTracing")
+    timeout_s = int(flask_request.args.get("timeout", 60))
 
     consumer = Consumer(
         {
@@ -208,12 +213,10 @@ def consume_kafka_message():
     consumer.subscribe([message_topic])
 
     msg = None
-    current_attempts = 0
-    max_attempts = 15
-    while not msg and current_attempts < max_attempts:
+    start_time = time.time()
+
+    while not msg and time.time() - start_time < timeout_s:
         msg = consumer.poll(1)
-        if msg is None:
-            current_attempts += 1
 
     consumer.close()
 
@@ -223,10 +226,55 @@ def consume_kafka_message():
     return {"message": msg.value().decode("utf-8")}
 
 
+@app.route("/sqs/produce")
+def produce_sqs_message():
+    queue = flask_request.args.get("queue", "DistributedTracing")
+
+    # Create an SQS client
+    sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
+
+    try:
+        sqs.create_queue(QueueName=queue)
+    except Exception as e:
+        logging.info(f"Error during Python SQS create queue: {str(e)}")
+
+    try:
+        # Send the message to the SQS queue
+        sqs.send_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}", MessageBody="Hello from Python SQS")
+        logging.info("Python SQS message sent successfully")
+        return "SQS Produce ok", 200
+    except Exception as e:
+        logging.info(f"Error during Python SQS send message: {str(e)}")
+        return {"error": f"Error during Python SQS send message: {str(e)}"}, 400
+
+
+@app.route("/sqs/consume")
+def consume_sqs_message():
+    """
+        The goal of this endpoint is to trigger sqs consumer calls
+    """
+    queue = flask_request.args.get("queue", "DistributedTracing")
+
+    # Create an SQS client
+    sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
+
+    response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}", MaxNumberOfMessages=1,)
+
+    if response and "Messages" in response:
+        consumed_message = None
+        for message in response["Messages"]:
+            consumed_message = message["Body"]
+            logging.info("Consumed the following: " + consumed_message)
+
+        return {"message": consumed_message}, 200
+    else:
+        return {"error": "No messages to consume"}, 400
+
+
 @app.route("/dsm")
 def dsm():
     logging.basicConfig(
-        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S",
     )
     topic = "dsm-system-tests-queue"
     consumer_group = "testgroup1"
@@ -235,7 +283,9 @@ def dsm():
         if err is not None:
             logging.info(f"[kafka] Message delivery failed: {err}")
         else:
-            logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
+            logging.info(
+                "[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition(),
+            )
 
     def produce():
         producer = Producer({"bootstrap.servers": "kafka:9092", "client.id": "python-producer"})

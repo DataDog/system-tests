@@ -37,10 +37,6 @@ class _Context:
         return self.scenario.weblog_variant
 
     @property
-    def php_appsec(self):
-        return self.scenario.php_appsec
-
-    @property
     def libddwaf_version(self):
         return self.scenario.libddwaf_version
 
@@ -89,9 +85,6 @@ class _Context:
                 result["parametrized_tests_metadata"] = self.parametrized_tests_metadata.deserialize()
             except AttributeError:
                 result["parametrized_tests_metadata"] = self.parametrized_tests_metadata
-
-        if self.library == "php":
-            result["php_appsec"] = self.php_appsec
 
         return result
 
