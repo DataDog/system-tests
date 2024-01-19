@@ -310,7 +310,13 @@ app.all('/tag_value/:tag/:status', (req, res) => {
     res.set(k, v)
   }
 
-  res.status(req.params.status || 200).send('Value tagged')
+  res.status(req.params.status || 200)
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body })
+  } else {
+    res.send('Value tagged')
+  }
 })
 
 app.get('/read_file', (req, res) => {
@@ -365,6 +371,6 @@ require('./auth')(app, passport, tracer)
 require('./graphql')(app)
 
 app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => { })
+  tracer.trace('init.service', () => {})
   console.log('listening')
 })
