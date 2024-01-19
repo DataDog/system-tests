@@ -27,6 +27,12 @@ class _OnboardingBlockListBaseTest:
         """ Get remote log file from the vm and parse it """
         all_command_lines = []
         scp = SCPClient(ssh_client.get_transport())
+        # Remove local file first
+        try:
+            os.remove(scenarios.onboarding_host_block_list.host_log_folder + "/host_injection.log")
+        except OSError:
+            pass
+
         scp.get(
             remote_path="/opt/datadog/logs_injection/host_injection.log",
             local_path=scenarios.onboarding_host_block_list.host_log_folder + "/host_injection.log",
@@ -68,7 +74,13 @@ class _OnboardingBlockListBaseTest:
     def _check_command_skipped(self, command, all_command_lines):
         """ From parsed log, search on the list of logged commands if one command has been skipped from the instrumentation"""
         command_args = command.split()
-        command = command_args[0]
+        command = None
+        # Command could not be the first arg example "env_var=1 ./mycommand"
+        for com in command_args:
+            if "=" in com:
+                continue
+            command = com
+            break
 
         logger.info(f"- Checking command: {command_args}")
         for command_desc in all_command_lines:
@@ -90,22 +102,43 @@ class _OnboardingBlockListBaseTest:
                     else:
                         logger.info(f"    command {command_args} is found but it was instrumented!")
                         return False
-        logger.info(f"    Command {command} was NOT skipped")
-        return False
+        logger.info(f"    Command {command} was NOT FOUND")
+        raise ValueError(f"Command {command} was NOT FOUND")
 
 
 @features.host_auto_instrumentation
 @scenarios.onboarding_host_block_list
 class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
 
-    commands = {
-        "java": ["java -version", "java -help"],
-        "donet": ["dotnet restore", "dotnet build -c Release", "sudo dotnet publish"],
+    commands_block = {
+        "java": ["java -version", "MY_ENV_VAR=hello java -help"],
+        "donet": [
+            "dotnet restore",
+            "dotnet build -c Release",
+            "sudo dotnet publish",
+            "MY_ENV_VAR=hello dotnet build -c Release",
+        ],
+    }
+
+    commands_instrument = {
+        "java": [
+            "java -jar myjar.jar",
+            "sudo java -jar myjar.jar",
+            "version=-version java -jar myjar.jar",
+            "java -Dversion='-version' -jar myapp.jar",
+        ],
+        "donet": [
+            "dotnet run -- -p build",
+            "dotnet build.dll -- -p build",
+            "sudo dotnet run myapp.dll -- -p build",
+            "sudo dotnet publish",
+            "MY_ENV_VAR=build dotnet myapp.dll",
+        ],
     }
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] < "0.13.0",
+        or context.scenario.components["datadog-apm-inject"] <= "0.12.3",
         reason="Block list not fully implemented ",
     )
     def test_builtIn_block_commands(self, onboardig_vm):
@@ -113,39 +146,53 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
 
         ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
 
-        # Execute commands
-        ssh_client.exec_command("ps -fea")
-        ssh_client.exec_command("touch myfile.txt")
-        ssh_client.exec_command("cat myfile.txt")
-        ssh_client.exec_command("ls -la")
+        commands_not_instrument = [
+            "ps -fea",
+            "touch myfile.txt",
+            "hello=hola cat myfile.txt",
+            "ls -la",
+            "mkdir newdir",
+        ]
+
+        for command in commands_not_instrument:
+            ssh_client.exec_command(command)
 
         # Retrieve and parse the log file
         all_command_lines = self._parse_remote_log_file(ssh_client)
 
-        # Check if the previously launched commands are skipped from the instrumentation
-        assert self._check_command_skipped("ps -fea", all_command_lines)
-        assert self._check_command_skipped("touch myfile.txt", all_command_lines)
-        assert self._check_command_skipped("cat myfile.txt", all_command_lines)
-        assert self._check_command_skipped("ls -la", all_command_lines)
+        for command in commands_not_instrument:
+            assert self._check_command_skipped(command, all_command_lines), f"The command {command} was instrumented!"
+
+    def _assert_commands_block(self, ssh_client, commands, should_block=True):
+        """Assert that a command should be blocked or instrument."""
+        for command in commands:
+            ssh_client.exec_command(command)
+
+        all_command_lines = self._parse_remote_log_file(ssh_client)
+
+        for command in commands:
+            assert should_block == self._check_command_skipped(
+                command, all_command_lines
+            ), f"Failed. The command {command} was instrumented"
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] < "0.13.0",
+        or context.scenario.components["datadog-apm-inject"] <= "0.12.3",
         reason="Block list not fully implemented ",
     )
     def test_builtIn_block_args(self, onboardig_vm):
-
-        if onboardig_vm.language in self.commands:
+        """ Check that we are blocking command with args that it should block"""
+        if onboardig_vm.language in self.commands_block:
             ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
-            # Execute all commands
-            for command in self.commands[onboardig_vm.language]:
-                ssh_client.exec_command(command)
+            self._assert_commands_block(ssh_client, self.commands_block[onboardig_vm.language], should_block=True)
 
-            # Retrieve and parse the log file
-            all_command_lines = self._parse_remote_log_file(ssh_client)
-
-            # Check that commands were skipped from the instrumentation
-            for command in self.commands[onboardig_vm.language]:
-                assert self._check_command_skipped(
-                    command, all_command_lines
-                ), f"Failed. The command {command} was instrumented"
+    @irrelevant(
+        condition="datadog-apm-inject" not in context.scenario.components
+        or context.scenario.components["datadog-apm-inject"] <= "0.12.3",
+        reason="Block list not fully implemented ",
+    )
+    def test_builtIn_instrument_args(self, onboardig_vm):
+        """ Check that we are instrumenting the command with args that it should instrument"""
+        if onboardig_vm.language in self.commands_instrument:
+            ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
+            self._assert_commands_block(ssh_client, self.commands_instrument[onboardig_vm.language], should_block=False)
