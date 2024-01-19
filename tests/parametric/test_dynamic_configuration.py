@@ -426,16 +426,15 @@ class TestDynamicConfigV2:
         with test_library:
             with test_library.start_span("test"):
                 pass
-        with pytest.raises(ValueError, "no traces are sent"):
+        with pytest.raises(ValueError, "no traces are sent after RC response with tracing_enabled: false"):
             test_agent.wait_for_num_traces(num=1, clear=True)
 
-        if library_env.get("DD_TRACE_ENABLED", True):
-            set_and_wait_rc(test_agent, config_overrides={})
-            with test_library:
-                with test_library.start_span("test"):
-                    pass
+        set_and_wait_rc(test_agent, config_overrides={})
+        with test_library:
+            with test_library.start_span("test"):
+                pass
+        with pytest.raises(
+            ValueError,
+            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting",
+        ):
             test_agent.wait_for_num_traces(num=1, clear=True)
-            assert True, (
-                "tracing_enabled unset in remoteconfig response results in a trace"
-                "being sent. wait_for_num_traces does not raise an exception."
-            )
