@@ -402,3 +402,40 @@ class TestDynamicConfigV2:
         """Ensure the RC request contains the custom tags capability.
         """
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_CUSTOM_TAGS])
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the tracing enabled capability."""
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
+
+    @parametrize(
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+    )
+    def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
+        if library_env.get("DD_TRACE_ENABLED", True):
+            with test_library:
+                with test_library.start_span("test"):
+                    pass
+            test_agent.wait_for_num_traces(num=1, clear=True)
+            assert True, (
+                "DD_TRACE_ENABLED=true and unset results in a trace being sent."
+                "wait_for_num_traces does not raise an exception."
+            )
+
+        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        with test_library:
+            with test_library.start_span("test"):
+                pass
+        with pytest.raises(ValueError, "no traces are sent"):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        if library_env.get("DD_TRACE_ENABLED", True):
+            set_and_wait_rc(test_agent, config_overrides={})
+            with test_library:
+                with test_library.start_span("test"):
+                    pass
+            test_agent.wait_for_num_traces(num=1, clear=True)
+            assert True, (
+                "tracing_enabled unset in remoteconfig response results in a trace"
+                "being sent. wait_for_num_traces does not raise an exception."
+            )
