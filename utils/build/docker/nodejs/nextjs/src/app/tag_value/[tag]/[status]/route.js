@@ -8,6 +8,10 @@ export async function GET (request, { params }) {
 
   rootSpan?.setTag('appsec.events.system_tests_appsec_event.value', params.tag)
 
-  return NextResponse.json('Value tagged')
+  if (params?.tag?.startsWith?.('payload_in_response_body') && request.method === 'POST') {
+    return NextResponse.json({ payload: await request.json() })
+  } else {
+    return NextResponse.json('Value tagged')
+  }
 }
 export const OPTIONS = GET
