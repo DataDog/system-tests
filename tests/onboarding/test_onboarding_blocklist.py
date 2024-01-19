@@ -177,7 +177,7 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] <= "0.12.3",
+        or context.scenario.components["datadog-apm-inject"] <= "0.12.4",
         reason="Block list not fully implemented ",
     )
     def test_builtIn_block_args(self, onboardig_vm):
@@ -188,7 +188,7 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] <= "0.12.3",
+        or context.scenario.components["datadog-apm-inject"] <= "0.12.4",
         reason="Block list not fully implemented ",
     )
     def test_builtIn_instrument_args(self, onboardig_vm):
