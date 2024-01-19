@@ -50,10 +50,10 @@ class Test_ShellExecution:
         )
 
     @irrelevant(library="java", reason="No method for shell execution in Java")
+    @bug(library="nodejs", reason="resource name handling is inconsistent with the RFC")
     def test_track_shell_exec(self):
         span = self.fetch_command_execution_span(self.r_shell_exec)
-        # Some implementations will compute the shell command as "sh -c echo foo".
-        assert span["resource"] in ("echo", "sh")
+        assert span["resource"] == "sh"
         assert span["meta"]["cmd.shell"] == "echo foo"
         assert span["meta"]["cmd.exit_code"] == "0"
 
