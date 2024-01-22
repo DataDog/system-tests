@@ -91,7 +91,14 @@ class Test_AppSecEventSpanTags:
         interfaces.library.validate_spans(validator=validate_custom_span_tags)
 
     def setup_header_collection(self):
-        self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        self.r = weblog.get(
+            "/headers",
+            headers={
+                "User-Agent": "Arachni/v1",
+                "Content-Type": "text/plain",
+                "X-Amzn-Trace-Id": "Root=1-65ae48bc-04fb551979979b6c57973027",
+            },
+        )
 
     @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="a PR was not included in the release")
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
@@ -118,6 +125,23 @@ class Test_AppSecEventSpanTags:
 
         interfaces.library.validate_spans(self.r, validate_request_headers)
         interfaces.library.validate_spans(self.r, validate_response_headers)
+
+    @missing_feature(reason="Not implemented yet")
+    def test_extra_header_collection(self):
+        """
+        Collect extra headers when AppSec is enabled.
+        """
+
+        def assertHeaderInSpanMeta(span, header):
+            if header not in span["meta"]:
+                raise Exception(f"Can't find {header} in span's meta")
+
+        def validate_request_headers(span):
+            for header in ["x-amzn-trace-id"]:
+                assertHeaderInSpanMeta(span, f"http.request.headers.{header}")
+            return True
+
+        interfaces.library.validate_spans(self.r, validate_request_headers)
 
     @bug(context.library < "java@0.93.0")
     def test_root_span_coherence(self):
