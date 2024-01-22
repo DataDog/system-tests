@@ -1938,7 +1938,7 @@ class features:
     @staticmethod
     def datastreams_monitoring_support_for_sqs(test_object):
         """
-        DataStreams Monitoring support for SQS
+        DataStreams Monitoring support for AWS SQS
 
         https://feature-parity.us1.prod.dog/#/?feature=268
         """
