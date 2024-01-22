@@ -42,7 +42,7 @@ class Test_Span_Links:
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
     def test_span_started_with_link_v04(self, test_agent, test_library):
-        """Test adding a span link created from another span.
+        """Test adding a span link created from another span and serialized in the expected v0.4 format.
         This tests the functionality of "create a direct link between two spans
         given two valid span (or SpanContext) objects" as specified in the RFC.
         """
@@ -82,7 +82,7 @@ class Test_Span_Links:
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
     def test_span_started_with_link_v05(self, test_agent, test_library):
-        """Test adding a span link created from another span when trace_api is v0.5.
+        """Test adding a span link created from another span and serialized in the expected v0.5 format.
         This tests the functionality of "create a direct link between two spans
         given two valid span (or SpanContext) objects" as specified in the RFC.
         """
@@ -294,7 +294,6 @@ class Test_Span_Links:
 
             with test_library.start_span("auto_dropped_span") as ads:
                 ads.set_meta(AUTO_DROP_KEY, "")
-                pass
 
             with test_library.start_span("linked_to_auto_dropped_span", links=[Link(parent_id=ads.span_id)]):
                 pass
