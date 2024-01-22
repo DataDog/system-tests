@@ -179,12 +179,12 @@ class Test_DsmRabbitmq_FanoutExchange:
 @features.datastreams_monitoring_support_for_sqs
 @scenarios.integrations
 class Test_DsmSQS:
-    """ Verify DSM stats points for AWS Sqs """
+    """ Verify DSM stats points for AWS Sqs Service """
 
     def setup_dsm_sqs(self):
         self.r = weblog.get("/dsm?integration=sqs")
 
-    @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being receieved.")
+    # @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being receieved.")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
