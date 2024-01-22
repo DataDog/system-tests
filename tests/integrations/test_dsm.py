@@ -179,7 +179,7 @@ class Test_DsmRabbitmq_FanoutExchange:
 @features.datastreams_monitoring_support_for_sqs
 @scenarios.integrations
 class Test_DsmSQS:
-    """ Verify DSM stats points for Sqs """
+    """ Verify DSM stats points for AWS Sqs """
 
     def setup_dsm_sqs(self):
         self.r = weblog.get("/dsm?integration=sqs")
@@ -199,7 +199,7 @@ class Test_DsmSQS:
                 "consumer": 15549836665988044996,
                 "topic": "dsm-system-tests-queue-java",
             },
-            "default": {
+            "all": {
                 "producer": 7228682205928812513,
                 "consumer": 3767823103515000703,
                 "topic": "dsm-system-tests-queue",
