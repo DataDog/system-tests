@@ -12,9 +12,8 @@ public static class ApmTestApi
 {
     public static void MapApmEndpoints(this WebApplication app)
     {
-        app.MapPost("/tracer/span/start", GetMeThatWeather);
+        app.MapPost("/tracer/span/start", StartSpan);
         app.MapGet("/weatherforecast", GetMeThatWeather);
-
     }
 
     private static readonly SpanContextExtractor SpanContextExtractor = new();
@@ -56,7 +55,7 @@ public static class ApmTestApi
         return forecast;
     }
 
-    private static ObjectResult StartSpan(HttpRequest httpRequest)
+    private static Dictionary<string, string> StartSpan(HttpRequest httpRequest)
     {
         // _logger.LogInformation("StartSpan: {Request}", httpRequest);
 
@@ -88,13 +87,10 @@ public static class ApmTestApi
         }
 
         // Step 3: Serialize to JSON
-        var jsonHeaders = JsonConvert.SerializeObject(headersDictionary, Newtonsoft.Json.Formatting.Indented);
+        var jsonHeaders = headersDictionary;
 
 
-        return new ObjectResult(jsonHeaders)
-        {
-            StatusCode = StatusCodes.Status200OK,
-        };
+        return jsonHeaders;
 
         // using var scope = Tracer.Instance.StartActive(operationName: request.Name, creationSettings);
         // var span = scope.Span;*/

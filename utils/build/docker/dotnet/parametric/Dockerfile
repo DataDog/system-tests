@@ -1,9 +1,9 @@
 
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-RUN apt-get update && apt-get install dos2unix
+RUN apt-get update && apt-get install -y dos2unix --no-install-recommends
 RUN apt-get update && apt-get install -y curl
-USER app
+USER root
 WORKDIR /app
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
@@ -22,8 +22,6 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
-RUN mkdir /binaries/
-RUN ls -ld /binaries/
 COPY /install_ddtrace.sh /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
