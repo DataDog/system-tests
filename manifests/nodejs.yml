@@ -6,6 +6,8 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_apisec_sampling.py:
+        Test_API_Security_sampling: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: missing_feature
@@ -83,7 +85,10 @@ tests/:
             '*': missing_feature
             express4: v3.11.0
         test_weak_randomness.py:
-          TestWeakRandomness: missing_feature
+          TestWeakRandomness:
+            '*': missing_feature
+            express4: v5.1.0
+            express4-typescript: v5.1.0
         test_xcontent_sniffing.py:
           Test_XContentSniffing: 
             '*': missing_feature

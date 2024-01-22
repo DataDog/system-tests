@@ -1943,4 +1943,13 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=268
         """
         pytest.mark.features(feature_id=268)(test_object)
+
+    @staticmethod
+    def api_security_configuration(test_object):
+        """
+        Schema extraction for API Security
+
+        https://feature-parity.us1.prod.dog/#/?feature=269
+        """
+        pytest.mark.features(feature_id=269)(test_object)
         return test_object
