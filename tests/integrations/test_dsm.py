@@ -199,7 +199,7 @@ class Test_DsmSQS:
                 "consumer": 15549836665988044996,
                 "topic": "dsm-system-tests-queue-java",
             },
-            "all": {
+            "default": {
                 "producer": 7228682205928812513,
                 "consumer": 3767823103515000703,
                 "topic": "dsm-system-tests-queue",
