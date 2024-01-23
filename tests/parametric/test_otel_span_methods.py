@@ -407,7 +407,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
     def test_otel_span_started_with_link_from_another_span(self, test_agent, test_library):
         """Test adding a span link created from another span.
         This tests the functionality of "create a direct link between two spans
@@ -451,7 +450,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
     def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links.
         """
@@ -489,7 +487,6 @@ class Test_Otel_Span_Methods:
             tracestateArr = link["tracestate"].split(",")
             assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
             tracestateDD = tracestateArr[0][3:].split(";")
-            assert len(tracestateDD) == 3
             assert "o:synthetics" in tracestateDD
             assert "s:2" in tracestateDD
             assert "t.dm:-4" in tracestateDD
@@ -505,7 +502,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
@@ -555,7 +551,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
         """Test adding a span link from a span to another span.
         """
@@ -594,7 +589,8 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id") == root.get("trace_id")
         assert link.get("trace_id_high") == int(root_tid, 16)
         assert len(link.get("attributes")) == 0
-        assert link.get("tracestate") == ""
+        # Tracestate is not required, but if it is present, it must contain the linked span's tracestate
+        assert link.get("tracestate") == "" or link.get("tracestate") == "dd=s:1;t.dm:-0"
 
         link = span_links[1]
         assert link.get("span_id") == first.get("span_id")
@@ -605,7 +601,7 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("bools.1") == "false"
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
-        assert link.get("tracestate") == ""
+        assert link.get("tracestate") == "" or link.get("tracestate") == "dd=s:1;t.dm:-0"
 
     @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")

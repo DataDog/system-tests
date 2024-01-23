@@ -42,7 +42,7 @@ async function kafkaConsume (topic, timeout) {
     consumer = kafka.consumer({ groupId: 'testgroup1' })
 
     await consumer.connect()
-    await consumer.subscribe({ topic: topic, fromBeginning: true })
+    await consumer.subscribe({ topic, fromBeginning: true })
 
     return new Promise((resolve, reject) => {
       consumer.run({
