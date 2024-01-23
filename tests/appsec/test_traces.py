@@ -126,7 +126,12 @@ class Test_AppSecEventSpanTags:
         interfaces.library.validate_spans(self.r, validate_request_headers)
         interfaces.library.validate_spans(self.r, validate_response_headers)
 
-    @missing_feature(reason="Not implemented yet")
+    @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(library="ruby", reason="Not implemented yet")
+    @missing_feature(library="php", reason="Not implemented yet")
+    @missing_feature(library="cpp", reason="Not implemented yet")
     def test_extra_header_collection(self):
         """
         Collect extra headers when AppSec is enabled.
