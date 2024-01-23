@@ -500,6 +500,7 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigV0: v2.6.0
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature
     test_span_links.py:

@@ -100,7 +100,9 @@ ENV_SAMPLING_RULE_RATE = 0.55
 @scenarios.parametric
 @features.dynamic_configuration
 class TestDynamicConfigV0:
-    @missing_feature(context.library in ["java", "dotnet", "golang", "nodejs"], reason="RPC not implemented yet")
+    @missing_feature(
+        context.library in ["java", "dotnet", "golang", "nodejs", "cpp", "php"], reason="RPC not implemented yet"
+    )
     @parametrize(
         "library_env",
         [
