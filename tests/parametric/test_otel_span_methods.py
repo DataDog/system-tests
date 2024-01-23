@@ -1,13 +1,16 @@
+import json
 import time
 
 import pytest
 
 from typing import Union
+from utils.parametric._library_client import Link
 from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
 from utils.parametric.spec.otel_trace import OtelSpan, otel_span
 from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
 from utils import bug, missing_feature, irrelevant, context, scenarios
 
@@ -398,6 +401,208 @@ class Test_Otel_Span_Methods:
         assert span["name"] == "kafka.receive"
         assert span["resource"] == "operation"
 
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_started_with_link_from_another_span(self, test_agent, test_library):
+        """Test adding a span link created from another span.
+        This tests the functionality of "create a direct link between two spans
+        given two valid span (or SpanContext) objects" as specified in the RFC.
+        """
+        with test_library:
+            with test_library.otel_start_span("root") as parent:
+                parent.end_span()
+                with test_library.otel_start_span(
+                    "child",
+                    parent_id=parent.span_id,
+                    links=[Link(parent_id=parent.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+                ) as child:
+                    child.end_span()
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, otel_span(name="root"))
+        assert len(trace) == 2
+
+        root = find_span(trace, otel_span(name="root"))
+        child = find_span(trace, otel_span(name="child"))
+        assert child.get("parent_id") == root.get("span_id")
+
+        span_links = retrieve_span_links(child)
+        assert span_links is not None
+        assert len(span_links) == 1
+
+        link = span_links[0]
+        assert link.get("span_id") == root.get("span_id")
+        assert link.get("trace_id") == root.get("trace_id")
+        root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
+        assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
+        assert link["attributes"].get("foo") == "bar"
+        assert link["attributes"].get("array.0") == "a"
+        assert link["attributes"].get("array.1") == "b"
+        assert link["attributes"].get("array.2") == "c"
+
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
+        """Properly inject datadog distributed tracing information into span links.
+        """
+        with test_library:
+            with test_library.otel_start_span(
+                "root",
+                links=[
+                    Link(
+                        http_headers=[
+                            ["x-datadog-trace-id", "1234567890"],
+                            ["x-datadog-parent-id", "9876543210"],
+                            ["x-datadog-sampling-priority", "2"],
+                            ["x-datadog-origin", "synthetics"],
+                            ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
+                        ],
+                        attributes={"foo": "bar"},
+                    )
+                ],
+            ) as span:
+                span.end_span()
+
+        span = get_span(test_agent)
+        span_links = retrieve_span_links(span)
+        assert span_links is not None
+        assert len(span_links) == 1
+
+        link = span_links[0]
+        assert link.get("span_id") == 9876543210
+        assert link.get("trace_id") == 1234567890
+        assert link.get("trace_id_high") == 16
+
+        # Tracestate is not required, but if it is present, it must be valid
+        if link.get("tracestate") is not "":
+            assert link.get("tracestate") is not None
+            tracestateArr = link["tracestate"].split(",")
+            assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
+            tracestateDD = tracestateArr[0][3:].split(";")
+            assert "o:synthetics" in tracestateDD
+            assert "s:2" in tracestateDD
+            assert "t.dm:-4" in tracestateDD
+            # Sampled flag should be set to match the existing tracestate
+            assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
+
+        assert len(link.get("attributes")) == 1
+        assert link["attributes"].get("foo") == "bar"
+
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
+        """Properly inject w3c distributed tracing information into span links.
+        This mostly tests that the injected tracestate and flags are accurate.
+        """
+        with test_library:
+            with test_library.otel_start_span(
+                "root",
+                links=[
+                    Link(
+                        http_headers=[
+                            ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                            ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
+                        ]
+                    )
+                ],
+            ) as span:
+                span.end_span()
+
+        span = get_span(test_agent)
+        span_links = retrieve_span_links(span)
+        assert span_links is not None
+        assert len(span_links) == 1
+
+        link = span_links[0]
+        assert link.get("span_id") == 1311768467284833366
+        assert link.get("trace_id") == 8687463697196027922
+        assert link.get("trace_id_high") == 1311768467284833366
+
+        assert link.get("tracestate") is not None
+        tracestateArr = link["tracestate"].split(",")
+        assert len(tracestateArr) == 3
+        dd_num = 0 if tracestateArr[0].startswith("dd=") else 1
+        other_num = 0 if dd_num == 1 else 1
+        assert tracestateArr[other_num] == "foo=1"
+        assert tracestateArr[2] == "bar=baz"
+        tracestateDD = tracestateArr[dd_num][3:].split(";")
+        assert len(tracestateDD) == 2
+        assert "s:2" in tracestateDD
+        assert "t.dm:-4" in tracestateDD
+
+        assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
+        assert len(link.get("attributes")) == 0
+
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
+        """Test adding a span link from a span to another span.
+        """
+        with test_library:
+            with test_library.otel_start_span("root") as parent:
+                parent.end_span()
+                with test_library.otel_start_span("first", parent_id=parent.span_id) as first:
+                    first.end_span()
+                with test_library.otel_start_span(
+                    "second",
+                    parent_id=parent.span_id,
+                    links=[
+                        Link(parent_id=parent.span_id),
+                        Link(parent_id=first.span_id, attributes={"bools": [True, False], "nested": [1, 2]}),
+                    ],
+                ) as second:
+                    second.end_span()
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, otel_span(name="root"))
+        assert len(trace) == 3
+
+        root = find_span(trace, otel_span(name="root"))
+        root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
+
+        first = find_span(trace, otel_span(name="first"))
+        second = find_span(trace, otel_span(name="second"))
+        assert second.get("parent_id") == root.get("span_id")
+
+        span_links = retrieve_span_links(second)
+        assert span_links is not None
+        assert len(span_links) == 2
+
+        link = span_links[0]
+        assert link.get("span_id") == root.get("span_id")
+        assert link.get("trace_id") == root.get("trace_id")
+        assert link.get("trace_id_high") == int(root_tid, 16)
+        assert len(link.get("attributes")) == 0
+        # Tracestate is not required, but if it is present, it must contain the linked span's tracestate
+        assert link.get("tracestate") == "" or link.get("tracestate") == "dd=s:1;t.dm:-0"
+
+        link = span_links[1]
+        assert link.get("span_id") == first.get("span_id")
+        assert link.get("trace_id") == first.get("trace_id")
+        assert link.get("trace_id_high") == int(root_tid, 16)
+        assert len(link.get("attributes")) == 4
+        assert link["attributes"].get("bools.0") == "true"
+        assert link["attributes"].get("bools.1") == "false"
+        assert link["attributes"].get("nested.0") == "1"
+        assert link["attributes"].get("nested.1") == "2"
+        assert link.get("tracestate") == "" or link.get("tracestate") == "dd=s:1;t.dm:-0"
+
     @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
@@ -582,3 +787,25 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
     else:
         assert "_dd1.sr.eausr" not in span["metrics"]
     assert "analytics.event" not in span["meta"]
+
+
+def retrieve_span_links(span):
+    if span.get("span_links") is not None:
+        return span["span_links"]
+    elif span["meta"].get("_dd.span_links") is not None:
+        # Convert span_links tags into protobuf v0.4 format
+        json_links = json.loads(span["meta"].get("_dd.span_links"))
+        links = []
+        for json_link in json_links:
+            link = {}
+            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
+            link["trace_id_high"] = int(json_link["trace_id"][:16], base=16) if len(json_link["trace_id"]) > 16 else 0
+            link["span_id"] = int(json_link["span_id"], base=16)
+            link["attributes"] = json_link.get("attributes") or {}
+            link["tracestate"] = json_link.get("tracestate") or ""
+            # If set, the high bit (bit 31) should be set according the RFC
+            link["flags"] = 0 if json_link.get("flags") is None else (json_link.get("flags") | TRACECONTEXT_FLAGS_SET)
+            links.append(link)
+        return links
+    else:
+        return None
