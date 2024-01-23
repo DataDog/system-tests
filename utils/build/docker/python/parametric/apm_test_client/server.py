@@ -249,6 +249,7 @@ class HttpClientRequestReturn(BaseModel):
 
 @app.post("/http/client/request")
 def http_client_request(args: HttpClientRequestArgs) -> HttpClientRequestReturn:
+    """Creates and finishes a span similar to the ones created during HTTP request/response cycles"""
     # falcon config doesn't really matter here - any config object with http header tracing enabled will work
     integration_config = config.falcon
     request_headers = {k: v for k, v in args.headers}
@@ -258,6 +259,8 @@ def http_client_request(args: HttpClientRequestArgs) -> HttpClientRequestReturn:
             request_span, integration_config, request_headers=request_headers, response_headers=response_headers
         )
         spans[request_span.span_id] = request_span
+    # this cache invalidation happens in most web frameworks as a side effect of their multithread design
+    # it's made explicit here to allow test expectations to be precise
     config.http._reset()
     config._header_tag_name.invalidate()
     return HttpClientRequestReturn()
