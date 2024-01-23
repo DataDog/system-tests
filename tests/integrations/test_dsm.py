@@ -206,11 +206,9 @@ class Test_DsmSQS:
             },
         }
 
-        print(context.library)
-        print(context.library.library)
-        producer_hash = language_hashes.get(context.library.library, "default")["producer"]
-        consumer_hash = language_hashes.get(context.library.library, "default")["consumer"]
-        topic = language_hashes.get(context.library.library, "default")["topic"]
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        topic = language_hashes.get(context.library.library, language_hashes.get("default"))["topic"]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
