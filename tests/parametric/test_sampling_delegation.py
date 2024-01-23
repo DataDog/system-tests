@@ -73,6 +73,10 @@ class Test_Decisionless_Extraction:
         # trace ID and parent ID mentioned in the headers.
         assert span["trace_id"] == trace_id
         assert span["parent_id"] == parent_id
+        # DD_TRACE_SAMPLE_RATE is 1.0 (100%), so the sampling priority should be
+        # 2 ("user/manual keep").
+        assert "_sampling_priority_v1" in span["metrics"]
+        assert span["metrics"]["_sampling_priority_v1"] == 2
         # If the tracer made its own sampling decision, then the decision will
         # be associated with mechanism 3 ("trace sampling rule"), because we set
         # DD_TRACE_SAMPLE_RATE. If, on the other hand, the tracer inferred a
@@ -81,7 +85,3 @@ class Test_Decisionless_Extraction:
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-3"
-        # DD_TRACE_SAMPLE_RATE is 1.0 (100%), so the sampling priority should be
-        # 2 ("user/manual keep").
-        assert "_sampling_priority_v1" in span["metrics"]
-        assert span["metrics"]["_sampling_priority_v1"] == 2
