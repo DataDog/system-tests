@@ -53,19 +53,7 @@ class Test_AppSecIPBlockingFullDenylist:
         # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
         BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(100) for b in range(125)]
 
-        def remote_config_is_applied(data):
-            if data["path"] == "/v0.7/config":
-                if "config_states" in data.get("request", {}).get("content", {}).get("client", {}).get("state", {}):
-                    config_states = data["request"]["content"]["client"]["state"]["config_states"]
-
-                    for state in config_states:
-                        if state["id"] == "ASM_DATA-third":
-                            return True
-
-            return False
-
         interfaces.library.wait_for_remote_config_request()
-        interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
         self.blocked_requests = [
