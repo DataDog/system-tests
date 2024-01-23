@@ -1,9 +1,8 @@
 import inspect
 import pytest
+import semantic_version as semver
 
 from utils._context.core import context
-
-import semantic_version as semver
 
 
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
