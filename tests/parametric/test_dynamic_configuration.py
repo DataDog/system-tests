@@ -408,6 +408,7 @@ class TestDynamicConfigV2:
         """Ensure the RC request contains the tracing enabled capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
 
+    @missing_feature(context.library in ["cpp", "dotnet", "golang"])
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
