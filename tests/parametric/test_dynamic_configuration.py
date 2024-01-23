@@ -158,7 +158,7 @@ class TestDynamicConfigHeaderTags:
         assert "test_header_env2" not in trace[0][0]["meta"]
 
         # Unset RC.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_header_tags": None})
+        set_and_wait_rc(test_agent, config_overrides={})
         test_library.http_client_request(
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
