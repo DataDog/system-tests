@@ -1936,6 +1936,16 @@ class features:
         return test_object
 
     @staticmethod
+    def datastreams_monitoring_support_for_sqs(test_object):
+        """
+        DataStreams Monitoring support for AWS SQS
+
+        https://feature-parity.us1.prod.dog/#/?feature=268
+        """
+        pytest.mark.features(feature_id=268)(test_object)
+        return test_object
+
+    @staticmethod
     def api_security_configuration(test_object):
         """
         Schema extraction for API Security
