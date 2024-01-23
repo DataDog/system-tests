@@ -25,4 +25,5 @@ runs:
           docker pull mysql/mysql-server:latest
           docker pull mcr.microsoft.com/mssql/server:latest
           docker pull mcr.microsoft.com/azure-sql-edge:latest
+          docker pull softwaremill/elasticmq:latest
         fi

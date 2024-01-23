@@ -93,7 +93,7 @@ class Test_TraceHeaders:
         logger.info(f"cgroup: weblog container id is {weblog_container_id}")
 
         def validator(data):
-            if "content" not in data["request"] or not data["request"]["content"]:
+            if _empty_request(data):
                 # RFC states "Once container ID is stored locally in the tracer,
                 # it must be sent to the Agent every time traces are sent."
                 #
@@ -137,3 +137,34 @@ class Test_LibraryHeaders:
                     assert value, "Datadog-Container-ID header is empty"
 
         interfaces.library.validate(validator, success_by_default=True)
+
+    @missing_feature(library="java", reason="not implemented yet")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="dotnet", reason="not implemented yet")
+    @missing_feature(library="python", reason="not implemented yet")
+    @missing_feature(library="ruby", reason="not implemented yet")
+    @missing_feature(library="php", reason="not implemented yet")
+    @missing_feature(library="cpp", reason="not implemented yet")
+    def test_datadog_entity_id(self):
+        """Datadog-Entity-ID header is present and respect the in-<digits> format"""
+
+        def validator(data):
+            if _empty_request(data):
+                # Go sends an empty request content to /traces endpoint.
+                # This is a non-issue, because there are no traces to which container tags could be attached.
+                return
+            if data["path"] in ("/info", "/v0.7/config"):
+                # Those endpoints don't require Datadog-Entity-ID header, so skip them
+                return
+            request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-entity-id" not in request_headers:
+                raise ValueError(f"Datadog-Entity-ID header is missing in request {data['log_filename']}")
+            val = request_headers["datadog-entity-id"]
+            assert val.startswith("in-"), f"Datadog-Entity-ID header value {val} doesn't start with 'in-'"
+            assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
+
+        interfaces.library.validate(validator, success_by_default=True)
+
+
+def _empty_request(data):
+    return "content" not in data["request"] or not data["request"]["content"]

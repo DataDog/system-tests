@@ -36,7 +36,7 @@ stages:
     - REPORTS_PATH="reports/$ONBOARDING_FILTER_ENV/$TEST_LIBRARY/$ONBOARDING_FILTER_WEBLOG"
     - mkdir -p "$REPORTS_PATH"
     - cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/
-    - cp logs_"${SCENARIO_SUFIX}"/report.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
+    - cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
   artifacts:
       when: always
       paths:

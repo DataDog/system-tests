@@ -1885,7 +1885,7 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_sqsspan_creationcontext_propagationaws_x_ray_with_dd_trace(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(test_object):
         """
         [AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
 
@@ -1895,7 +1895,7 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_sqsspan_creationcontext_propagationaws_message_attributes_with_dd_trace(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
         """
         [AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
 
@@ -1932,4 +1932,24 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=267
         """
         pytest.mark.features(feature_id=267)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_sqs(test_object):
+        """
+        DataStreams Monitoring support for AWS SQS
+
+        https://feature-parity.us1.prod.dog/#/?feature=268
+        """
+        pytest.mark.features(feature_id=268)(test_object)
+        return test_object
+
+    @staticmethod
+    def api_security_configuration(test_object):
+        """
+        Schema extraction for API Security
+
+        https://feature-parity.us1.prod.dog/#/?feature=269
+        """
+        pytest.mark.features(feature_id=269)(test_object)
         return test_object

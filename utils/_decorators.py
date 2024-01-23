@@ -163,7 +163,7 @@ def released(
 
     def wrapper(test_class):
         if not inspect.isclass(test_class):
-            raise TypeError("@released must be used only on classes")
+            raise TypeError(f"{test_class} is not a class")
 
         def compute_declaration(only_for_library, component_name, declaration, tested_version):
             if declaration is None:

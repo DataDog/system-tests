@@ -10,6 +10,10 @@ tests/:
         chi: v0.1  # real version not known
   appsec/:
     api_security/:
+      test_apisec_sampling.py:
+        Test_API_Security_sampling:
+          '*': v1.60.0-dev
+          net-http: irrelevant (net-http doesn't handle path params)
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies:
@@ -28,6 +32,7 @@ tests/:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
         Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
@@ -312,22 +317,28 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
-    test_crossed_integrations.py:
-      Test_GolangKafka:
-        "*": irrelevant
-        net-http: v0.1 # real version not known
-      Test_JavaKafka:
-        "*": irrelevant
-        net-http: v0.1 # real version not known
-      Test_NodeJSKafka:
-        "*": irrelevant
-        net-http: v0.1 # real version not known
-      Test_PythonKafka:
-        "*": irrelevant
-        net-http: v0.1 # real version not known
-      Test_RubyKafka:
-        "*": irrelevant
-        net-http: v0.1 # real version not known
+    crossed_integrations/:
+      test_kafka.py:
+        Test_GolangKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+        Test_JavaKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+        Test_NodeJSKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+        Test_PythonKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+        Test_RubyKafka:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -340,6 +351,7 @@ tests/:
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.59.0-dev
