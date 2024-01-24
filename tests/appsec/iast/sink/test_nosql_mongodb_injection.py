@@ -16,9 +16,7 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
     insecure_endpoint = "/iast/mongodb-nosql-injection/test_insecure"
     secure_endpoint = "/iast/mongodb-nosql-injection/test_secure"
     data = {"key": "somevalue"}
-    location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"}
-    }
+    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"}}
 
     @scenarios.integrations
     def test_insecure(self):

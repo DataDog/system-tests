@@ -16,9 +16,7 @@ class TestInsecureCookie(BaseSinkTest):
     insecure_endpoint = "/iast/insecure-cookie/test_insecure"
     secure_endpoint = "/iast/insecure-cookie/test_secure"
     data = {}
-    location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"}
-    }
+    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"}}
 
     @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
     def test_secure(self):
