@@ -1,7 +1,5 @@
-import os
-
-import pytest
 import json
+import uuid
 
 from utils import scenarios, context, features
 from utils.tools import logger
@@ -25,22 +23,20 @@ class _OnboardingBlockListBaseTest:
 
     def _parse_remote_log_file(self, ssh_client):
         """ Get remote log file from the vm and parse it """
+        log_local_name_uuid = uuid.uuid4()
+        log_local_path = (
+            scenarios.onboarding_host_block_list.host_log_folder + f"/host_injection{log_local_name_uuid}.log"
+        )
         all_command_lines = []
         scp = SCPClient(ssh_client.get_transport())
-        # Remove local file first
-        try:
-            os.remove(scenarios.onboarding_host_block_list.host_log_folder + "/host_injection.log")
-        except OSError:
-            pass
 
         scp.get(
-            remote_path="/opt/datadog/logs_injection/host_injection.log",
-            local_path=scenarios.onboarding_host_block_list.host_log_folder + "/host_injection.log",
+            remote_path="/opt/datadog/logs_injection/host_injection.log", local_path=log_local_path,
         )
 
         store_as_command = False
         command_lines = []
-        with open("logs_onboarding_host_block_list/host_injection.log") as f:
+        with open(log_local_path) as f:
             for line in f:
                 if "starting process" in line:
                     store_as_command = True
@@ -196,3 +192,18 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         if onboardig_vm.language in self.commands_instrument:
             ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
             self._assert_commands_block(ssh_client, self.commands_instrument[onboardig_vm.language], should_block=False)
+
+    @irrelevant(
+        condition="datadog-apm-inject" not in context.scenario.components
+        or context.scenario.components["datadog-apm-inject"] <= "0.12.4",
+        reason="Block list not fully implemented ",
+    )
+    def test_user_ignored_processes_args(self, onboardig_vm):
+        """ Check that we are not instrumenting the commands that match with patterns set by DD_IGNORED_PROCESSES env variable"""
+
+        ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
+        command = "test.sh"
+        ssh_client.exec_command(command)
+        # Retrieve and parse the log file
+        all_command_lines = self._parse_remote_log_file(ssh_client)
+        assert self._check_command_skipped(command, all_command_lines), f"The command {command} was instrumented!"

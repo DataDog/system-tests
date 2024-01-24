@@ -57,3 +57,4 @@ weblogs:
           sudo sh -c 'echo "DD_APM_INSTRUMENTATION_DEBUG=TRUE" >> /etc/environment'
           sudo sh -c 'echo "DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/host_injection.log" >> /etc/environment'
           source /etc/environment
+          
