@@ -18,7 +18,7 @@ class TestLDAPInjection(BaseSinkTest):
     data = {"username": "ssam", "password": "sammy"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.LDAPExamples",
-        "nodejs": "iast/index.js",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"}
     }
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")

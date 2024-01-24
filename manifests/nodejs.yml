@@ -25,54 +25,66 @@ tests/:
           TestCommandInjection:
             '*': missing_feature
             express4: v3.11.0
+            express4-typescript: v3.11.0
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': missing_feature
             express4: v4.18.0
+            express4-typescript: v4.18.0
         test_header_injection.py:
           TestHeaderInjection:
             '*': missing_feature
             express4: v4.21.0
+            express4-typescript: v4.21.0
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
             express4: v4.8.0
+            express4-typescript: v4.8.0
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': missing_feature
             express4: v4.1.0
+            express4-typescript: v4.1.0
         test_ldap_injection.py:
           TestLDAPInjection:
             '*': missing_feature
             express4: v4.1.0
+            express4-typsecript: v4.1.0
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': missing_feature
             express4: v4.3.0
+            express4-typescript: v4.3.0
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': missing_feature
             express4: v4.3.0
+            express4-typescript: v4.3.0
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': missing_feature
             express4: v3.19.0
+            express4-typescript: v3.19.0
         test_sql_injection.py:
           TestSqlInjection:
             '*': missing_feature
             express4: v3.11.0
+            express4-typescript: v3.11.0
         test_ssrf.py:
           TestSSRF:
             '*': missing_feature
             express4: v4.1.0
+            express4-typescript: v4.1.0
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': missing_feature
             express4: v4.3.0
+            express4-typescript: v4.3.0
           TestUnvalidatedRedirect: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -80,10 +92,12 @@ tests/:
           TestWeakCipher:
             '*': missing_feature
             express4: v3.6.0
+            express4-typescript: v3.6.0
         test_weak_hash.py:
           TestWeakHash:
             '*': missing_feature
             express4: v3.11.0
+            express4-typescript: v3.11.0
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': missing_feature
@@ -93,6 +107,7 @@ tests/:
           Test_XContentSniffing:
             '*': missing_feature
             express4: v4.8.0
+            express4-typescript: v4.8.0
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:

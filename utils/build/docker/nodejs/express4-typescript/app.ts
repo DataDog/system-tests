@@ -6,19 +6,24 @@ const tracer = require('dd-trace').init({ debug: true });
 
 const app = require('express')();
 const axios = require('axios');
-const fs = require('fs');
 const passport = require('passport')
 const { Kafka } = require("kafkajs")
 const { spawnSync } = require('child_process');
+
+const iast = require('./iast')
+
+iast.initData().catch(() => {})
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
 
+iast.initMiddlewares(app)
+
 require('./auth')(app, passport, tracer)
 require('./graphql')(app)
-require('./iast')(app)
+iast.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');

@@ -18,7 +18,7 @@ class TestSqlInjection(BaseSinkTest):
     data = {"username": "shaquille_oatmeal", "password": "123456"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SqlExamples",
-        "nodejs": "iast/index.js",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
