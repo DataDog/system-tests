@@ -152,7 +152,7 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
 
         for command in commands_not_instrument:
             _, stdout, _ = ssh_client.exec_command(command)
-            logger.info(f"Command [{command}] result: [{stdout}]")
+            logger.info(f"Command [{command}] result: [{ stdout.readlines()}]")
 
         # Retrieve and parse the log file
         all_command_lines = self._parse_remote_log_file(ssh_client)
