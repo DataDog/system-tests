@@ -1248,6 +1248,15 @@ class features:
         """
         pytest.mark.features(feature_id=178)(test_object)
         return test_object
+    
+    @staticmethod
+    def kafkaspan_creationcontext_propagation_with_dd_trace(test_object):
+        """
+        [Kafka][Span Creation][Context Propagation] with dd-trace
+        https://feature-parity.us1.prod.dog/#/?feature=192
+        """
+        pytest.mark.features(feature_id=192)(test_object)
+        return test_object
 
     @staticmethod
     def open_tracing_api(test_object):
@@ -1817,15 +1826,6 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=254
         """
         pytest.mark.features(feature_id=254)(test_object)
-        return test_object
-
-    @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace(test_object):
-        """
-        [Kafka][Span Creation][Context Propagation] with dd-trace
-        https://feature-parity.us1.prod.dog/#/?feature=256
-        """
-        pytest.mark.features(feature_id=256)(test_object)
         return test_object
 
     @staticmethod
