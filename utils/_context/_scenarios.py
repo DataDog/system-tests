@@ -1274,6 +1274,19 @@ class scenarios:
         """,
     )
 
+    appsec_api_security_rc = EndToEndScenario(
+        "APPSEC_API_SECURITY_RC",
+        proxy_state={"mock_remote_config_backend": "APPSEC_API_SECURITY_RC"},
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", # TODO Remove this line
+            "DD_APPSEC_RULES": None,
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0"
+        },
+        doc="""
+            TODO: write this later.
+        """,
+    )
+
     appsec_api_security_no_response_body = EndToEndScenario(
         "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
         appsec_enabled=True,

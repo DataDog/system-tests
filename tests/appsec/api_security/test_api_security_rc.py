@@ -1,0 +1,117 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+from utils import (
+    context,
+    coverage,
+    interfaces,
+    missing_feature,
+    rfc,
+    scenarios,
+    weblog,
+    features,
+)
+from utils.tools import logger
+
+def get_schema(request, address):
+    """get api security schema from spans"""
+    for _, _, span in interfaces.library.get_spans(request):
+        meta = span.get("meta", {})
+        payload = meta.get("_dd.appsec.s." + address)
+        if payload is not None:
+            return payload
+    return
+
+@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
+@coverage.basic
+@scenarios.appsec_api_security_rc
+@features.api_security_configuration
+class Test_API_Security_RC_ASM_DD_processors:
+    """Test API Security - Remote config ASM_DD - processors"""
+
+    def setup_request_method(self):
+        interfaces.library.wait_for_remote_config_request()
+        self.request = weblog.get("/tag_value/api_rc_processor/200?key=value")
+
+    def test_request_method(self):
+        """can provide custom req.querytest schema"""
+        schema = get_schema(self.request, "req.querytest")
+        assert self.request.status_code == 200
+        assert schema
+        assert isinstance(schema, list)
+        assert "key" in schema[0]
+        isinstance(schema[0]["key"], list)
+
+@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
+@coverage.basic
+@scenarios.appsec_api_security_rc
+@features.api_security_configuration
+class Test_API_Security_RC_ASM_DD_scanners:
+    """Test API Security - Remote config ASM_DD - scanners"""
+
+    def setup_request_method(self):
+        interfaces.library.wait_for_remote_config_request()
+        self.request = weblog.get("/tag_value/api_rc_scanner/200?mail=systemtestmail@datadoghq.com")
+
+    def test_request_method(self):
+        """can provide custom req.querytest schema"""
+        schema = get_schema(self.request, "req.querytest")
+        EXPECTED_MAIL_SCHEMA = [8, { "category": "pii", "type": "email" }]
+
+        assert self.request.status_code == 200
+        assert schema
+        assert isinstance(schema, list)
+        assert "mail" in schema[0]
+        isinstance(schema[0]["mail"], list)
+        assert len(schema[0]["mail"]) == len(EXPECTED_MAIL_SCHEMA)
+        assert schema[0]["mail"][1] == EXPECTED_MAIL_SCHEMA[1]
+
+@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
+@coverage.basic
+@scenarios.appsec_api_security_rc
+@features.api_security_configuration
+class Test_API_Security_RC_ASM_processor_overrides:
+    """Test API Security - Remote config ASM - processor_overrides"""
+
+    request_number = 0
+
+    def setup_request_method(self):
+        def remote_config_is_applied(data):
+
+            if data["path"] != "/v0.7/config":
+                return False
+
+            logger.info(f"waiting rc request number {self.request_number}")
+            if self.request_number < 2:
+                self.request_number += 1
+                return False
+
+            state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+            if len(state.get("config_states", [])) == 0 or state.get("has_error"):
+                logger.info(f"rc request contains an error or no configs:\n{state}")
+                return False
+
+            for s in state["config_states"]:
+                if s["id"] != "ASM-base" or s.get("apply_error") or s.get("apply_state", 0) != 2:
+                    logger.info(f"rc request contains an error or wrong config:\n{state}")
+                    return False
+
+            return True
+
+#        interfaces.library.wait_for(remote_config_is_applied, timeout=30)
+        interfaces.library.wait_for_remote_config_request()
+        self.request = weblog.get("/tag_value/api_rc_processor_overrides/200?key=testvalue")
+
+    def test_request_method(self):
+        """can provide custom req.querytest schema"""
+        schema = get_schema(self.request, "req.querytest")
+        EXPECTED_KEY_SCHEMA = [8, { "category": "testcategory", "type": "testtype" }]
+
+        assert self.request.status_code == 200
+        assert schema
+        assert isinstance(schema, list)
+        assert "key" in schema[0]
+        isinstance(schema[0]["key"], list)
+        assert len(schema[0]["key"]) == len(EXPECTED_KEY_SCHEMA)
+        assert schema[0]["key"][1] == EXPECTED_KEY_SCHEMA[1]

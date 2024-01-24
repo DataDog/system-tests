@@ -1,0 +1,8 @@
+{
+  "processor_override": [
+    {
+      "target": ["extract-content"],
+      "scanners": ["test-scanner-002"]
+    }
+  ]
+}
