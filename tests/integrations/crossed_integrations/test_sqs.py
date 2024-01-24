@@ -3,12 +3,17 @@ from __future__ import annotations
 import json
 
 from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
-from utils import interfaces, scenarios, coverage, weblog, missing_feature, features, context, irrelevant
+from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
 from utils.tools import logger
 
 
 class _Test_SQS:
     """Test sqs compatibility with inputted datadog tracer"""
+
+    BUDDY_TO_WEBLOG_QUEUE = None
+    WEBLOG_TO_BUDDY_QUEUE = None
+    buddy = None
+    buddy_interface = None
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, operation):

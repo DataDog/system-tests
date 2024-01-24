@@ -5,7 +5,6 @@ const tracer = require('dd-trace').init({
 })
 
 const app = require('express')()
-const { Kafka } = require('kafkajs')
 const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
@@ -13,6 +12,7 @@ const passport = require('passport')
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
+const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
 
 iast.initData().catch(() => {})
@@ -140,132 +140,77 @@ app.get('/users', (req, res) => {
 })
 
 app.get('/dsm', (req, res) => {
-  const kafka = new Kafka({
-    clientId: 'my-app',
-    brokers: ['kafka:9092'],
-    retry: {
-      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
-      retries: 20 // Number of retries before giving up
-    }
-  })
-  const producer = kafka.producer()
-  const doKafkaOperations = async () => {
-    await producer.connect()
-    await producer.send({
-      topic: 'dsm-system-tests-queue',
-      messages: [
-        { value: 'hello world!' }
-      ]
-    })
-    await producer.disconnect()
+  const integration = req.query.integration
 
-    const consumer = kafka.consumer({ groupId: 'testgroup1' })
+  if (integration === 'kafka') {
+    const topic = 'dsm-system-tests-queue'
+    const message = 'hello from kafka DSM JS'
+    const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
 
-    await consumer.connect()
-    await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
+    kafkaProduce(topic, message)
+      .then(() => {
+        kafkaConsume(topic, timeout)
+          .then(() => {
+            res.send('ok')
+          })
+          .catch((error) => {
+            console.log(error)
+            res.status(500).send('Internal Server Error during Kafka consume')
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+        res.status(500).send('Internal Server Error during Kafka produce')
+      })
+  } else if (integration === 'sqs') {
+    const queue = 'dsm-system-tests-queue'
+    const message = 'hello from SQS DSM JS'
+    const timeout = req.query.timeout ?? 5
 
-    await consumer.run({
-      eachMessage: async ({ topic, partition, message }) => {
-        console.log({
-          value: message.value.toString()
-        })
-        await consumer.stop()
-        await consumer.disconnect()
-      }
-    })
+    produceMessage(queue, message)
+      .then(() => {
+        consumeMessage(queue, timeout)
+          .then(() => {
+            res.send('ok')
+          })
+          .catch((error) => {
+            console.log(error)
+            res.status(500).send('Internal Server Error during SQS consume')
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+        res.status(500).send('Internal Server Error during SQS produce')
+      })
+  } else {
+    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, SQS]')
   }
-  doKafkaOperations()
-    .then(() => {
-      res.send('ok')
-    })
-    .catch((error) => {
-      console.error(error)
-      res.status(500).send('Internal Server Error')
-    })
 })
 
 app.get('/kafka/produce', (req, res) => {
   const topic = req.query.topic
-  const kafka = new Kafka({
-    clientId: 'my-app-producer',
-    brokers: ['kafka:9092'],
-    retry: {
-      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
-      retries: 20 // Number of retries before giving up
-    }
-  })
-  const admin = kafka.admin()
-  const producer = kafka.producer()
-  const doKafkaOperations = async () => {
-    await admin.connect()
-    await producer.connect()
-    await admin.createTopics({
-      waitForLeaders: true, // While the topic already exists we use this to wait for leadership election to finish
-      topics: [
-        { topic }
-      ]
-    })
-    await producer.send({
-      topic,
-      messages: [
-        { value: 'hello world!' }
-      ]
-    })
-    await producer.disconnect()
-  }
 
-  doKafkaOperations()
+  kafkaProduce(topic, 'Hello from Kafka JS')
     .then(() => {
       res.status(200).send('produce ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error')
+      res.status(500).send('Internal Server Error during Kafka produce')
     })
 })
 
 app.get('/kafka/consume', (req, res) => {
   const topic = req.query.topic
   const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
-  const kafka = new Kafka({
-    clientId: 'my-app-consumer',
-    brokers: ['kafka:9092'],
-    retry: {
-      initialRetryTime: 200, // Time to wait in milliseconds before the first retry
-      retries: 50 // Number of retries before giving up
-    }
-  })
-  let consumer
-  const doKafkaOperations = async () => {
-    consumer = kafka.consumer({ groupId: 'testgroup1' })
 
-    await consumer.connect()
-    await consumer.subscribe({ topic: topic, fromBeginning: true })
-
-    return new Promise((resolve, reject) => {
-      consumer.run({
-        eachMessage: async ({ messageTopic, messagePartition, message }) => {
-          console.log({
-            value: message.value.toString()
-          })
-          resolve()
-        }
-      })
-      setTimeout(() => {
-        reject(new Error('Message not received'))
-      }, timeout) // Set a timeout of n seconds for message reception
-    })
-  }
-
-  doKafkaOperations()
-    .then(async () => {
-      await consumer.stop()
-      await consumer.disconnect()
+  kafkaConsume(topic, timeout)
+    .then(() => {
       res.status(200).send('consume ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Timeout: Failed to consume')
+      res.status(500).send('Internal Server Error during Kafka consume')
     })
 })
 
@@ -278,7 +223,7 @@ app.get('/sqs/produce', (req, res) => {
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error')
+      res.status(500).send('Internal Server Error during SQS produce')
     })
 })
 
@@ -292,7 +237,7 @@ app.get('/sqs/consume', (req, res) => {
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error')
+      res.status(500).send('Internal Server Error during SQS consume')
     })
 })
 

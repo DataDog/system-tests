@@ -83,18 +83,13 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
     )
     for link in args.links:
         link_parent_id = link["parent_id"]
-        link_attributes = link["attributes"]
-        for k, v in link_attributes.items():
-            if type(v) == str and v.startswith(("[", "{")):  # get any list or dict in attributes out of strings
-                link_attributes[k] = eval[v]
-
-        link_attributes = {"foo": "bar", "array": ["a", "b", "c"]}
         if link_parent_id != 0:  # we have a parent_id to create link instead
             link_parent = spans[link_parent_id]
-            span._set_span_link(trace_id=link_parent.trace_id, span_id=link_parent_id, attributes=link_attributes)
+            span.link_span(link_parent.context, link.get("attributes"))
         else:
+            headers = {k: v for k, v in link["http_headers"]}
             context = HTTPPropagator.extract(headers)
-            span.link_span(context, attributes=link_attributes)
+            span.link_span(context, link.get("attributes"))
 
     spans[span.span_id] = span
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
@@ -221,6 +216,24 @@ def trace_span_error(args: TraceSpanErrorArgs) -> TraceSpanErrorReturn:
     return TraceSpanErrorReturn()
 
 
+class TraceSpanAddLinksArgs(BaseModel):
+    span_id: int
+    parent_id: int
+    attributes: dict
+
+
+class TraceSpanAddLinkReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/span/add_link")
+def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
+    span = spans[args.span_id]
+    linked_span = spans[args.parent_id]
+    span.link_span(linked_span.context, attributes=args.attributes)
+    return TraceSpanAddLinkReturn()
+
+
 class OtelStartSpanArgs(BaseModel):
     name: str
     parent_id: int
@@ -228,6 +241,7 @@ class OtelStartSpanArgs(BaseModel):
     service: str = ""  # Not used but defined in protos/apm-test-client.protos
     resource: str = ""  # Not used but defined in protos/apm-test-client.protos
     type: str = ""  # Not used but defined in protos/apm-test-client.protos
+    links: List[Dict] = []  # Not used but defined in protos/apm-test-client.protos
     timestamp: int
     http_headers: List[Tuple[str, str]]
     attributes: dict
@@ -261,12 +275,31 @@ def otel_start_span(args: OtelStartSpanArgs):
     else:
         parent_span = None
 
+    links = []
+    for link in args.links:
+        parent_id = link.get("parent_id", 0)
+        if parent_id > 0:
+            span_context = otel_spans[parent_id].get_span_context()
+        else:
+            headers = {k: v for k, v in link["http_headers"]}
+            ddcontext = HTTPPropagator.extract(headers)
+            span_context = OtelSpanContext(
+                ddcontext.trace_id,
+                ddcontext.span_id,
+                True,
+                TraceFlags.SAMPLED
+                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
+                else TraceFlags.DEFAULT,
+                TraceState.from_header([ddcontext._tracestate]),
+            )
+        links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
+
     otel_span = otel_tracer.start_span(
         args.name,
         context=set_span_in_context(parent_span),
         kind=SpanKind(args.span_kind),
         attributes=args.attributes,
-        links=None,
+        links=links,
         # parametric tests expect timestamps to be set in microseconds (required by go)
         # but the python implementation sets time nanoseconds.
         start_time=args.timestamp * 1e3 if args.timestamp else None,

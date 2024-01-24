@@ -339,7 +339,7 @@ public class App {
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread(timeout);
+            consumed = sqs.consumeMessageWithoutNewThread();
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start consuming message...");
@@ -413,6 +413,22 @@ public class App {
                 System.out.println("[rabbitmq_fanout] Failed to start consuming message...");
                 e.printStackTrace();
                 return "failed to start consuming message";
+            }
+        } else if ("sqs".equals(integration)) {
+            SqsConnector sqs = new SqsConnector("dsm-system-tests-queue-java");
+            try {
+                sqs.startProducingMessage("hello world from SQS Dsm Java!");
+            } catch (Exception e) {
+                System.out.println("[SQS] Failed to start producing message...");
+                e.printStackTrace();
+                return "[SQS] failed to start producing message";
+            }
+            try {
+                sqs.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[SQS] Failed to start consuming message...");
+                e.printStackTrace();
+                return "[SQS] failed to start consuming message";
             }
         } else {
             return "unknown integration: " + integration;

@@ -85,7 +85,10 @@ tests/:
             '*': missing_feature
             express4: v3.11.0
         test_weak_randomness.py:
-          TestWeakRandomness: missing_feature
+          TestWeakRandomness:
+            '*': missing_feature
+            express4: v5.1.0
+            express4-typescript: v5.1.0
         test_xcontent_sniffing.py:
           Test_XContentSniffing: 
             '*': missing_feature
@@ -324,6 +327,8 @@ tests/:
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSQS: 
+        '*': missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v4.11.0

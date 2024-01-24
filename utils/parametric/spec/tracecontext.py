@@ -21,6 +21,9 @@
 from collections import OrderedDict
 import re
 
+# The Datadog specific tracecontext flags to mark flags are set
+TRACECONTEXT_FLAGS_SET = 1 << 31
+
 traceparent_name_re = re.compile(r"^traceparent$", re.IGNORECASE)
 tracestate_name_re = re.compile(r"^tracestate$", re.IGNORECASE)
 
