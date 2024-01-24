@@ -199,7 +199,7 @@ class _Test_Kafka:
         return producer_span, consumer_span
 
 
-@scenarios.crossed_tracing_libraries
+@scenarios.crossed_tracing_libraries("java")
 @coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace
 class Test_Kafka(_Test_Kafka):

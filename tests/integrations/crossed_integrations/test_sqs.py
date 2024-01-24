@@ -197,7 +197,7 @@ class _Test_SQS:
         return producer_span, consumer_span
 
 
-@scenarios.crossed_tracing_libraries
+@scenarios.crossed_tracing_libraries("python")
 @coverage.basic
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
@@ -207,7 +207,7 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
 
 
-@scenarios.crossed_tracing_libraries
+@scenarios.crossed_tracing_libraries("java")
 @coverage.basic
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
