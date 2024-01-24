@@ -1866,10 +1866,9 @@ class features:
         return test_object
 
     @staticmethod
-    def decisionless_trace_context_extraction(test_object):
+    def decisionless_extraction(test_object):
         """
-        Decisionless Trace Context Extraction
-
+        Sampling behavior when extracted trace context does not convey a sampling decision
         https://feature-parity.us1.prod.dog/#/?feature=261
         """
         pytest.mark.features(feature_id=261)(test_object)
