@@ -220,6 +220,9 @@ tests/:
         Test_RubyKafka:
           "*": missing_feature (Only requires one server -  rails70)
           rails70: v0.1 # real version unknown
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
