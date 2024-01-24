@@ -5,6 +5,7 @@
 from utils import context, coverage, features, missing_feature
 from .._test_iast_fixtures import BaseSinkTest
 
+
 @features.iast_sink_header_injection
 @coverage.basic
 class TestHeaderInjection(BaseSinkTest):
