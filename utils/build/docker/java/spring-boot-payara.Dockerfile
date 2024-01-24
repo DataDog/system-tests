@@ -30,6 +30,7 @@ COPY ./utils/build/docker/java/app-payara.sh /app/app.sh
 RUN chmod +x /app/app.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 ENV APP_EXTRA_ARGS="--port 7777"
 # https://docs.hazelcast.com/hazelcast/5.3/phone-homes
 ENV HZ_PHONE_HOME_ENABLED=false
