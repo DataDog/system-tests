@@ -37,7 +37,7 @@ function initMiddlewares (app: Express): void {
   })
 }
 
-function initRoutes (app: Express): void {
+function initSinkRoutes (app: Express): void {
   app.get('/iast/insecure_hashing/deduplicate', (req: Request, res: Response): void => {
     const supportedAlgorithms: string[] = ['md5', 'sha1']
 
@@ -311,5 +311,81 @@ function initRoutes (app: Express): void {
     res.send(`OK:${randomBytes}`)
   })
 }
+
+function initSourceRoutes (app: Express): void {
+  app.post('/iast/source/body/test', (req: Request, res: Response): void => {
+    readFileSync(req.body.name)
+    res.send('OK')
+  })
+
+  app.get('/iast/source/headername/test', (req: Request, res: Response): void => {
+    let vulnParam: string = ''
+    Object.keys(req.headers).forEach((key: string): void => {
+      vulnParam += key
+    })
+    readFileSync(vulnParam)
+    res.send('OK')
+  })
+
+  app.get('/iast/source/header/test', (req: Request, res: Response): void => {
+    let vulnParam: string = ''
+    Object.keys(req.headers).forEach((key: string): void => {
+      vulnParam += req.headers[key]
+    })
+    readFileSync(vulnParam)
+    res.send('OK')
+  })
+
+  app.get('/iast/source/parametername/test', (req: Request, res: Response): void => {
+    let vulnParam: string = ''
+    Object.keys(req.query).forEach((key: string): void => {
+      vulnParam += key
+    })
+    readFileSync(vulnParam)
+    res.send('OK')
+  })
+
+  app.post('/iast/source/parameter/test', (req: Request, res: Response): void => {
+    let vulnParam: string = ''
+    Object.keys(req.body).forEach((key: string): void => {
+      vulnParam += req.body[key]
+    })
+    readFileSync(vulnParam)
+    res.send('OK')
+  })
+
+  app.get('/iast/source/parameter/test', (req: Request, res: Response): void => {
+    let vulnParam: string = ''
+    Object.keys(req.query).forEach((key: string): void => {
+      vulnParam += req.query[key]
+    })
+    readFileSync(vulnParam)
+    res.send('OK')
+  })
+
+  app.get('/iast/source/cookiename/test', (req: Request, res: Response): void => {
+    let vulnParam: string = ''
+    Object.keys(req.cookies).forEach((key: string): void => {
+      vulnParam += key
+    })
+    readFileSync(vulnParam)
+    res.send('OK')
+  })
+
+  app.get('/iast/source/cookievalue/test', (req: Request, res: Response): void => {
+    let vulnParam: string = ''
+    Object.keys(req.cookies).forEach((key: string): void => {
+      vulnParam += req.cookies[key]
+    })
+    readFileSync(vulnParam)
+    res.send('OK')
+  })
+}
+
+function initRoutes (app: Express): void {
+  initSinkRoutes(app)
+  initSourceRoutes(app)
+}
+
 
 module.exports = { initRoutes, initData, initMiddlewares }
