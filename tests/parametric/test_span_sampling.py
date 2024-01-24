@@ -11,6 +11,7 @@ from utils.parametric.spec.trace import find_span_in_traces
 import time
 import json
 from utils import missing_feature, context, scenarios
+from utils.tools import logger
 
 
 @scenarios.parametric
@@ -33,6 +34,7 @@ class Test_Span_Sampling:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
+        logger.error(f"test_single_rule_match_span_sampling_sss001 SPAN: {span}")
 
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE

@@ -5,7 +5,7 @@ using Datadog.Trace;
 
 namespace ApmTestApi.Endpoints;
 
-public partial class ApmTestApiCommon
+public class ApmTestApiCommon
 {
      // Core types
     private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
@@ -36,7 +36,7 @@ public partial class ApmTestApiCommon
     private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    private static readonly Dictionary<ulong, ISpan> Spans = new();
+    internal static readonly Dictionary<ulong, ISpan> Spans = new();
     
     private static readonly Dictionary<ulong, Activity> Activities = new();
 

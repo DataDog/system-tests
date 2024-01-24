@@ -1,11 +1,6 @@
 ﻿using Datadog.Trace;
-using System.Reflection.PortableExecutable;
-using System.Xml;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
+using static ApmTestApi.Endpoints.ApmTestApiCommon;
+
 namespace ApmTestApi.Endpoints;
 
 public static class ApmTestApi
@@ -55,7 +50,7 @@ public static class ApmTestApi
         return forecast;
     }
 
-    private static Dictionary<string, string> StartSpan(HttpRequest httpRequest)
+    private static ISpan StartSpan(HttpRequest httpRequest)
     {
         // _logger.LogInformation("StartSpan: {Request}", httpRequest);
 
@@ -86,14 +81,9 @@ public static class ApmTestApi
             headersDictionary.Add(header.Key, header.Value.ToString());
         }
 
-        // Step 3: Serialize to JSON
-        var jsonHeaders = headersDictionary;
-
-
-        return jsonHeaders;
-
-        // using var scope = Tracer.Instance.StartActive(operationName: request.Name, creationSettings);
-        // var span = scope.Span;*/
+        using var scope = Tracer.Instance.StartActive(operationName: headersDictionary["name"], creationSettings);
+        
+        return scope.Span;
 
         /*if (request.HasService)
         {
@@ -115,9 +105,10 @@ public static class ApmTestApi
             var spanContext = SpanContext.GetValue(span)!;
             Origin.SetValue(spanContext, request.Origin);
         }
+        */
 
-        Spans[span.SpanId] = span;*/
+        /*Spans[span.SpanId] = span;
 
-        // return creationSettings.Parent;
+        return Spans;*/
     }
 }
