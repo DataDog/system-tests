@@ -33,7 +33,7 @@ tests/:
           TestHeaderInjection:
             '*': missing_feature
             express4: v4.21.0
-        test_hsts_missing_header.py: 
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': missing_feature
             express4: v4.8.0
@@ -46,7 +46,7 @@ tests/:
             '*': missing_feature
             express4: v4.1.0
         test_no_httponly_cookie.py:
-          TestNoHttponlyCookie: 
+          TestNoHttponlyCookie:
             '*': missing_feature
             express4: v4.3.0
         test_no_samesite_cookie.py:
@@ -64,7 +64,7 @@ tests/:
             '*': missing_feature
             express4: v3.11.0
         test_ssrf.py:
-          TestSSRF: 
+          TestSSRF:
             '*': missing_feature
             express4: v4.1.0
         test_trust_boundary_violation.py:
@@ -90,7 +90,7 @@ tests/:
             express4: v5.1.0
             express4-typescript: v5.1.0
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: 
+          Test_XContentSniffing:
             '*': missing_feature
             express4: v4.8.0
         test_xpath_injection.py:
@@ -128,14 +128,14 @@ tests/:
           TestURI: missing_feature
     waf/:
       test_addresses.py:
-        Test_BodyJson: 
+        Test_BodyJson:
           '*': v2.2.0
           nextjs: v4.17.0
         Test_BodyRaw: missing_feature
-        Test_BodyUrlEncoded: 
+        Test_BodyUrlEncoded:
           '*': v2.2.0
           nextjs: missing_feature  # request.formData() method not supported yet
-        Test_BodyXml: 
+        Test_BodyXml:
           '*': v2.2.0
           nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
         Test_ClientIP: missing_feature
@@ -194,10 +194,10 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_automated_login_events.py:
-      Test_Login_Events: 
+      Test_Login_Events:
         '*': v4.4.0
         nextjs: missing_feature
-      Test_Login_Events_Extended: 
+      Test_Login_Events_Extended:
         '*': v4.4.0
         nextjs: missing_feature
     test_blocking_addresses.py:
@@ -232,13 +232,13 @@ tests/:
       Test_MissingRules: missing_feature
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
-      Test_CustomEvent: 
+      Test_CustomEvent:
         '*': v3.13.0
         nextjs: missing_feature
-      Test_UserLoginFailureEvent: 
+      Test_UserLoginFailureEvent:
         '*': v3.13.0
         nextjs: missing_feature
-      Test_UserLoginSuccessEvent: 
+      Test_UserLoginSuccessEvent:
         '*': v3.13.0
         nextjs: missing_feature
     test_identify.py:
@@ -309,7 +309,7 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
-      Test_DsmKafka: 
+      Test_DsmKafka:
         '*': v4.4.0
         nextjs: missing_feature (missing endpoint)
       Test_DsmRabbitmq: missing_feature
@@ -366,16 +366,16 @@ tests/:
       '*': v3.0.0
       nextjs: v4.17.0
   test_semantic_conventions.py:
-    Test_Meta: 
+    Test_Meta:
       '*': v3.13.1
       nextjs: missing_feature # nextjs makes some internal requests and we have different tag names
     Test_MetricsStandardTags: v3.13.1
   test_standard_tags.py:
-    Test_StandardTagsClientIp: 
+    Test_StandardTagsClientIp:
       '*': v3.6.0
       nextjs: missing_feature # nextjs makes some internal requests, so we have more than 1 rootspans
     Test_StandardTagsMethod: v2.11.0
-    Test_StandardTagsRoute: 
+    Test_StandardTagsRoute:
       '*': v2.11.0
       nextjs: missing_feature # http.route not added in nextjs
     Test_StandardTagsStatusCode: v2.11.0
