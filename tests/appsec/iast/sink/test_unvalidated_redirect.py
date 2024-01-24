@@ -22,7 +22,7 @@ def _expected_location():
         if context.weblog_variant == "express4":
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
-            return "dist/iast.js"
+            return "iast.ts"
 
 
 @coverage.basic

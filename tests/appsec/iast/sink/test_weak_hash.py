@@ -14,7 +14,7 @@ def _expected_location():
         if context.weblog_variant == "express4":
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
-            return "dist/iast.js"
+            return "iast.ts"
 
     if context.library.library == "python":
         if context.library.version >= "1.12.0":

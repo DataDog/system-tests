@@ -18,7 +18,7 @@ class TestPathTraversal(BaseSinkTest):
     data = {"path": "/var/log"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.PathExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 

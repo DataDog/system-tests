@@ -17,7 +17,7 @@ class Test_HardcodedSecrets:
 
     location_map = {
         "java": "com.datadoghq.system_tests.springboot.AppSecIast",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "dist/iast.js"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
     }
 
     def setup_hardcoded_secrets_exec(self):
