@@ -1820,9 +1820,9 @@ class features:
         return test_object
 
     @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_java(test_object):
+    def kafkaspan_creationcontext_propagation_with_dd_trace(test_object):
         """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-java
+        [Kafka][Span Creation][Context Propagation] with dd-trace
         https://feature-parity.us1.prod.dog/#/?feature=256
         """
         pytest.mark.features(feature_id=256)(test_object)

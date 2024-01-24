@@ -201,12 +201,12 @@ class _Test_Kafka:
 
 @scenarios.crossed_tracing_libraries
 @coverage.basic
-@features.kafkaspan_creationcontext_propagation_with_dd_trace_java
+@features.kafkaspan_creationcontext_propagation_with_dd_trace
 class Test_Kafka(_Test_Kafka):
     buddy_interface = interfaces.java_buddy
     buddy = _java_buddy
-    WEBLOG_TO_BUDDY_TOPIC = "Test_JavaKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_JavaKafka_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
