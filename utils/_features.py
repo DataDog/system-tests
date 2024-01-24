@@ -1248,7 +1248,7 @@ class features:
         """
         pytest.mark.features(feature_id=178)(test_object)
         return test_object
-    
+
     @staticmethod
     def kafkaspan_creationcontext_propagation_with_dd_trace(test_object):
         """
