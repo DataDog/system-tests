@@ -299,6 +299,9 @@ class TestedVirtualMachine:
         # The format is: [epoch:]upstream_version[-debian_revision]
         if ":" in raw_version:
             raw_version = raw_version.split(":")[1]
+
+        if raw_version.strip() == "":
+            return None
         return Version(raw_version.strip(), component_name)
 
     def _configure_ami(self):

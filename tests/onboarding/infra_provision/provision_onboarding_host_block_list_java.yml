@@ -46,4 +46,5 @@ weblogs:
           sudo touch /opt/datadog/logs_injection/host_injection.log && sudo chmod 777 /opt/datadog/logs_injection/host_injection.log
           sudo sh -c 'echo "DD_APM_INSTRUMENTATION_DEBUG=TRUE" >> /etc/environment'
           sudo sh -c 'echo "DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/host_injection.log" >> /etc/environment'
+          sudo sh -c 'echo "DD_IGNORED_PROCESSES=/opt/datadog/test.sh" >> /etc/environment'
           source /etc/environment
