@@ -367,19 +367,9 @@ class EndToEndScenario(_DockerScenario):
         # but are used only to test feature that invlove another app with a datadog tracer
         self.buddies: list[BuddyContainer] = []
 
-        if include_buddies is not False:
-
+        if include_buddies:
             # so far, only python, nodejs, java, ruby and golang are supported
-            buddy_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
-
-            # if include_buddies is a bool and true, we want to use all buddies
-            if isinstance(include_buddies, bool) and include_buddies:
-                buddies_to_start = buddy_languages
-
-            # if a list of buddies to start was included, only include those specific buddies and not all buddies
-            elif isinstance(include_buddies, str):
-                included_languages = include_buddies.split(",")
-                buddies_to_start = [(lang, port) for lang, port in buddy_languages if lang in included_languages]
+            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
 
             self.buddies += [
                 BuddyContainer(
@@ -389,7 +379,7 @@ class EndToEndScenario(_DockerScenario):
                     proxy_port=port,
                     environment=weblog_env,
                 )
-                for language, port in buddies_to_start
+                for language, port in supported_languages
             ]
 
             self._required_containers += self.buddies
@@ -1091,8 +1081,7 @@ class scenarios:
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
     )
 
-    # callable as an attribute, or by including a comma separated string of buddy languages to start
-    crossed_tracing_libraries = lambda buddies=True: EndToEndScenario(
+    crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
         weblog_env={
             "DD_TRACE_API_VERSION": "v0.4",
@@ -1100,7 +1089,7 @@ class scenarios:
             "AWS_SECRET_ACCESS_KEY": "my-access-key",
         },
         include_kafka=True,
-        include_buddies=buddies,
+        include_buddies=True,
         include_elasticmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
