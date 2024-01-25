@@ -2,7 +2,37 @@
   "processor_override": [
     {
       "target": ["extract-content"],
-      "scanners": ["test-scanner-002"]
+      "scanners": ["test-scanner-002", "test-scanner-custom-001"]
     }
+  ],
+  "custom_scanners": [
+    {
+        "id": "test-scanner-custom-001",
+        "name": "Custom scanner",
+        "key": {
+          "operator": "match_regex",
+          "parameters": {
+            "regex": "\\btestcard\\b",
+            "options": {
+              "case_sensitive": false,
+              "min_length": 2
+            }
+          }
+        },
+        "value": {
+          "operator": "match_regex",
+          "parameters": {
+            "regex": "\\b1234567890\\b",
+            "options": {
+              "case_sensitive": false,
+              "min_length": 5
+            }
+          }
+        },
+        "tags": {
+          "type": "card",
+          "category": "testcategory"
+        }
+      }
   ]
 }

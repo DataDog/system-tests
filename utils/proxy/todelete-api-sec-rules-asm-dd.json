@@ -103,34 +103,6 @@
       "type": "email",
       "category": "pii"
     }
-  },
-  {
-    "id": "test-scanner-002",
-    "name": "Test word scanner",
-    "key": {
-      "operator": "match_regex",
-      "parameters": {
-        "regex": "\\btestcard\\b",
-        "options": {
-          "case_sensitive": false,
-          "min_length": 2
-        }
-      }
-    },
-    "value": {
-      "operator": "match_regex",
-      "parameters": {
-        "regex": "\\b1234567890\\b",
-        "options": {
-          "case_sensitive": false,
-          "min_length": 5
-        }
-      }
-    },
-    "tags": {
-      "type": "card",
-      "category": "testcategory"
-    }
   }]
 }
   

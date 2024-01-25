@@ -71,47 +71,24 @@ class Test_API_Security_RC_ASM_DD_scanners:
 @coverage.basic
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
-class Test_API_Security_RC_ASM_processor_overrides:
+class Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner:
     """Test API Security - Remote config ASM - processor_overrides"""
 
     request_number = 0
 
     def setup_request_method(self):
-        def remote_config_is_applied(data):
-
-            if data["path"] != "/v0.7/config":
-                return False
-
-            logger.info(f"waiting rc request number {self.request_number}")
-            if self.request_number < 2:
-                self.request_number += 1
-                return False
-
-            state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
-            if len(state.get("config_states", [])) == 0 or state.get("has_error"):
-                logger.info(f"rc request contains an error or no configs:\n{state}")
-                return False
-
-            for s in state["config_states"]:
-                if s["id"] != "ASM-base" or s.get("apply_error") or s.get("apply_state", 0) != 2:
-                    logger.info(f"rc request contains an error or wrong config:\n{state}")
-                    return False
-
-            return True
-
-#        interfaces.library.wait_for(remote_config_is_applied, timeout=30)
         interfaces.library.wait_for_remote_config_request()
-        self.request = weblog.get("/tag_value/api_rc_processor_overrides/200?key=testvalue")
+        self.request = weblog.get("/tag_value/api_rc_processor_overrides/200?testcard=1234567890")
 
     def test_request_method(self):
         """can provide custom req.querytest schema"""
         schema = get_schema(self.request, "req.querytest")
-        EXPECTED_KEY_SCHEMA = [8, { "category": "testcategory", "type": "testtype" }]
+        EXPECTED_TESTCARD_SCHEMA = [8, { "category": "testcategory", "type": "card" }]
 
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert "key" in schema[0]
-        isinstance(schema[0]["key"], list)
-        assert len(schema[0]["key"]) == len(EXPECTED_KEY_SCHEMA)
-        assert schema[0]["key"][1] == EXPECTED_KEY_SCHEMA[1]
+        assert "testcard" in schema[0]
+        isinstance(schema[0]["testcard"], list)
+        assert len(schema[0]["testcard"]) == len(EXPECTED_TESTCARD_SCHEMA)
+        assert schema[0]["testcard"][1] == EXPECTED_KEY_SCHEMA[1]

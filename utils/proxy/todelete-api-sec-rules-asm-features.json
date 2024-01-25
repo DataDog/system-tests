@@ -1,0 +1,8 @@
+{
+    "asm": {
+        "enabled": true
+    },
+    "api_security": {
+        "request_sample_rate": 1.0
+    }
+}
