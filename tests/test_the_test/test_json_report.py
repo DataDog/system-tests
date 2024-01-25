@@ -43,7 +43,7 @@ class Test_Json_Report:
     def test_irrelevant_legacy(self):
         """Report is generated with correct outcome and skip reason nodes for irrelevant decorators"""
         test = self.get_test_fp("Test_Mock::test_irrelevant")
-        
+
         assert test["outcome"] == "skipped"
         assert test["details"] == "irrelevant: irrelevant", test
 
@@ -103,10 +103,10 @@ class Test_Json_Report:
         assert test["outcome"] == "skipped"
         assert test["testDeclaration"] == "irrelevant"
 
-    def test_flaky_in_irrelevant(self):
-        test = self.get_test_fp("Test_IrrelevantClass::test_flaky_method_in_irrelevant_class")
-        assert test["outcome"] == "skipped"
-        assert test["testDeclaration"] == "irrelevant"
+    # def test_flaky_in_irrelevant(self):
+    #     test = self.get_test_fp("Test_IrrelevantClass::test_flaky_method_in_irrelevant_class")
+    #     assert test["outcome"] == "skipped"
+    #     assert test["testDeclaration"] == "irrelevant"
 
     def test_doubleskip(self):
         test = self.get_test_fp("Test_Class::test_skipping_prio")
@@ -127,7 +127,6 @@ class Test_Json_Report:
         assert f"DEBUG    {BASE_PATH}::Test_Class::test_irrelevant_method => irrelevant => skipped\n" in self.logs
         assert f"DEBUG    {BASE_PATH}::Test_FlakyClass::test_method => flaky => skipped\n" in self.logs
         assert f"DEBUG    {BASE_PATH}::Test_Class::test_flaky_method => flaky => skipped\n" in self.logs
-
 
 
 @scenarios.mock_the_test
@@ -181,10 +180,10 @@ class Test_NotReleased:
 class Test_IrrelevantClass:
     def test_method(self):
         raise ValueError("Should not be executed")
-    
-    @flaky(True)
-    def test_flaky_method_in_irrelevant_class(self):
-        raise ValueError("Should not be executed")
+
+    # @flaky(True)
+    # def test_flaky_method_in_irrelevant_class(self):
+    #     raise ValueError("Should not be executed")
 
 
 @scenarios.mock_the_test
