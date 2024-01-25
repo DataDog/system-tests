@@ -1953,3 +1953,13 @@ class features:
         """
         pytest.mark.features(feature_id=269)(test_object)
         return test_object
+
+    @staticmethod
+    def rabbitmq_span_creationcontext_propagation_with_dd_trace(test_object):
+        """
+        [RabbitMQ][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=270
+        """
+        pytest.mark.features(feature_id=270)(test_object)
+        return test_object

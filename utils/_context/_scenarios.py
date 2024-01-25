@@ -1091,6 +1091,7 @@ class scenarios:
         include_kafka=True,
         include_buddies=True,
         include_elasticmq=True,
+        include_rabbitmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
 
