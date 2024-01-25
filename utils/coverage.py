@@ -4,21 +4,12 @@
 
 
 def basic(klass):
-    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
-
-    setattr(klass, "__coverage__", "basic")
     return klass
 
 
 def good(klass):
-    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
-
-    setattr(klass, "__coverage__", "good")
     return klass
 
 
 def complete(klass):
-    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
-
-    setattr(klass, "__coverage__", "complete")
     return klass
