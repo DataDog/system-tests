@@ -99,14 +99,17 @@ ENV_SAMPLING_RULE_RATE = 0.55
 
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
-@features.dynamic_configuration
-class TestDynamicConfigV1:
+@features.remote_configuration_trace_v1_no_capabilities
+class Test_RemoteConfigurationV1:
     """Tests covering the v1 release of the dynamic configuration feature.
 
     v1 includes support for:
         - tracing_sampling_rate
         - log_injection_enabled
         - tracing_header_tags
+
+    Note that v1 of the feature does not require the tracer to report capabilities. It
+    is assumed in the UI/backend that each setting is supported in this case.
     """
 
     @parametrize("library_env", [{"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"}])
@@ -342,8 +345,16 @@ class TestDynamicConfigV1:
 
 @rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
 @scenarios.parametric
-@features.dynamic_configuration
-class TestDynamicConfigV2:
+@features.remote_configuration_trace_v2_capabilities
+class Test_RemoteConfigurationTracingV2:
+    """
+    Extension of the remote configuration settings introduced in v1.
+
+    v2 includes support for custom tags AND requires that the tracer report RC capabilities for each setting.
+
+    The capabilities are used in the UI to show which options are available for the given service.
+    """
+
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
     )

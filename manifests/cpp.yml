@@ -103,9 +103,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
-    test_dynamic_configuration.py:
-      TestDynamicConfigV1: missing_feature
-      TestDynamicConfigV2: missing_feature
+    test_library_remote_configuration.py:
+      Test_RemoteConfigurationTracingV1: missing_feature
+      Test_RemoteConfigurationTracingV2: missing_feature
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature
     test_telemetry.py:

@@ -220,9 +220,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
-    test_dynamic_configuration.py:
-      TestDynamicConfigV1: v2.33.0
-      TestDynamicConfigV2: v2.44.0
+    test_library_remote_configuration.py:
+      Test_RemoteConfigurationTracingV1: v2.33.0
+      Test_RemoteConfigurationTracingV2: v2.44.0
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_TelemetryInstallSignature: v2.45.0

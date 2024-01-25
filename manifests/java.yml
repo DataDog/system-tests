@@ -891,9 +891,9 @@ tests/:
     test_sql.py:
       Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
   parametric/:
-    test_dynamic_configuration.py:
-      TestDynamicConfigV1: v1.17.0
-      TestDynamicConfigV2: missing_feature
+    test_library_remote_configuration.py:
+      Test_RemoteConfigurationTracingV1: v1.17.0
+      Test_RemoteConfigurationTracingV2: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_TelemetryInstallSignature: v1.27.0
