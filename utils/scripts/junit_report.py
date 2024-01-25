@@ -27,31 +27,7 @@ def junit_modifyreport(json_report_path, junit_report_path, junit_properties):
         classname = words[0].replace("/", ".").replace(".py", ".") + words[1]
         testcasename = words[2]
 
-        # Util to search for rfcs and coverages
-        search_class = words[0] + "::" + words[1]
-
-        # Get doc/description for the test
-        test_doc = None
-        if "docs" in json_report and nodeid in json_report["docs"]:
-            test_doc = json_report["docs"][nodeid]
-
-        # Get rfc for the test
-        test_rfc = None
-        if "rfcs" in json_report and search_class in json_report["rfcs"]:
-            test_rfc = json_report["rfcs"][search_class]
-
-        # Get coverage for the test
-        test_coverage = None
-        if "coverages" in json_report and search_class in json_report["coverages"]:
-            test_coverage = json_report["coverages"][search_class]
-
-        # Get release versions for the test
-        test_release = None
-        if "release_versions" in json_report and search_class in json_report["release_versions"]:
-            test_release = json_report["release_versions"][search_class]
-
-        if "skip_reason" in test:
-            skip_reason = test["skip_reason"]
+        skip_reason = test["metadata"]["skip_reason"]
         error_trace = ""
 
         _create_testcase_results(
@@ -61,10 +37,6 @@ def junit_modifyreport(json_report_path, junit_report_path, junit_properties):
             outcome,
             skip_reason,
             error_trace,
-            test_doc,
-            test_rfc,
-            test_coverage,
-            test_release,
         )
 
     for testsuite in junit_report_root.findall("testsuite"):
@@ -89,10 +61,6 @@ def _create_testcase_results(
     outcome,
     skip_reason,
     error_trace,
-    test_doc,
-    test_rfc,
-    test_coverage,
-    test_release,
 ):
 
     testcase = junit_xml_root.find(f"testsuite/testcase[@classname='{testclass_name}'][@name='{testcase_name}']")
@@ -106,17 +74,6 @@ def _create_testcase_results(
         ET.SubElement(tc_props, "property", name="dd_tags[systest.case.outcome]", value=outcome)
         ET.SubElement(tc_props, "property", name="dd_tags[systest.case.skip_reason]", value=str(skip_reason or ""))
 
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.doc]", value=str(test_doc or ""))
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.rfc]", value=str(test_rfc or ""))
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.coverage]", value=str(test_coverage or ""))
-        if test_release:
-            for library_name in test_release:
-                ET.SubElement(
-                    tc_props,
-                    "property",
-                    name=f"dd_tags[systest.case.release.library.{library_name}]",
-                    value=str(test_release[library_name]),
-                )
         if outcome == "failed":
             if skip_reason:
                 tc_skipped = ET.SubElement(testcase, "skipped")
