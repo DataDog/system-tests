@@ -87,19 +87,38 @@ def pytest_sessionstart(session):
 def _collect_item_metadata(item):
 
     result = {
-        "skip_reason": None,
+        "details": None,
+        "testDeclaration": None,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
     }
 
     # get the reason form skip before xfail
     markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
-    skip_reasons = [_get_skip_reason_from_marker(marker) for marker in markers]
+    for marker in markers:
+        skip_reason = _get_skip_reason_from_marker(marker)
 
-    for skip_reason in skip_reasons:
-        result["skip_reason"] = skip_reason
-        if result["skip_reason"]:
-            logger.debug(f"{item.nodeid} => {result['skip_reason']} => skipped")
-            break
+        if skip_reason is not None:
+            # if any irrelevant declaration exists, it is the one we need to expose
+            if skip_reason.startswith("irrelevant"):
+                result["details"] = skip_reason
+
+            # otherwise, we keep the first one we found
+            elif result["details"] is None:
+                result["details"] = skip_reason
+
+    if result["details"]:
+        logger.debug(f"{item.nodeid} => {result['details']} => skipped")
+
+        if result["details"].startswith("irrelevant"):
+            result["testDeclaration"] = "irrelevant"
+        elif result["details"].startswith("flaky"):
+            result["testDeclaration"] = "flaky"
+        elif result["details"].startswith("bug"):
+            result["testDeclaration"] = "bug"
+        elif result["details"].startswith("missing_feature"):
+            result["testDeclaration"] = "notImplemented"
+        else:
+            raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
 
     return result
 
@@ -345,23 +364,10 @@ def convert_test_to_feature_parity_model(test):
         "path": test["nodeid"],
         "lineNumber": test["lineno"],
         "outcome": test["outcome"],
-        "testDeclaration": None,
-        "details": test["metadata"]["skip_reason"],
+        "testDeclaration": test["metadata"]["testDeclaration"],
+        "details": test["metadata"]["details"],
         "features": test["metadata"]["features"],
     }
-
-    if result["details"] is None:
-        result["testDeclaration"] = None
-    elif result["details"].startswith("irrelevant"):
-        result["testDeclaration"] = "irrelevant"
-    elif result["details"].startswith("flaky"):
-        result["testDeclaration"] = "flaky"
-    elif result["details"].startswith("bug"):
-        result["testDeclaration"] = "bug"
-    elif result["details"].startswith("missing_feature"):
-        result["testDeclaration"] = "notImplemented"
-    else:
-        raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
 
     return result
 
