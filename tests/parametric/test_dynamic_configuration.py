@@ -97,6 +97,48 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
 ENV_SAMPLING_RULE_RATE = 0.55
 
 
+@scenarios.parametric
+@features.dynamic_configuration
+class TestDynamicConfigTracingEnabled:
+    @missing_feature(context.library in ["cpp", "dotnet", "golang"])
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the tracing enabled capability."""
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
+
+    @missing_feature(context.library in ["cpp", "dotnet", "golang"])
+    @parametrize(
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+    )
+    def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
+        if library_env.get("DD_TRACE_ENABLED", True):
+            with test_library:
+                with test_library.start_span("test"):
+                    pass
+            test_agent.wait_for_num_traces(num=1, clear=True)
+            assert True, (
+                "DD_TRACE_ENABLED=true and unset results in a trace being sent."
+                "wait_for_num_traces does not raise an exception."
+            )
+
+        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        with test_library:
+            with test_library.start_span("test"):
+                pass
+        with pytest.raises(ValueError, "no traces are sent after RC response with tracing_enabled: false"):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        set_and_wait_rc(test_agent, config_overrides={})
+        with test_library:
+            with test_library.start_span("test"):
+                pass
+        with pytest.raises(
+            ValueError,
+            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting",
+        ):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
 @features.dynamic_configuration
