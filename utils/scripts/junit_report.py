@@ -6,13 +6,11 @@ import xml.etree.ElementTree as ET
 from operator import attrgetter
 
 from utils.tools import logger
-import json
 
 
-def junit_modifyreport(json_report_path, junit_report_path, junit_properties):
+def junit_modifyreport(json_report, junit_report_path, junit_properties):
     """Add extra information to auto generated JUnit xml file"""
 
-    json_report = json.load(open(json_report_path))
     # Open XML Junit report
     junit_report = ET.parse(junit_report_path)
     # get root element
@@ -62,7 +60,6 @@ def _create_testcase_results(
     skip_reason,
     error_trace,
 ):
-
     testcase = junit_xml_root.find(f"testsuite/testcase[@classname='{testclass_name}'][@name='{testcase_name}']")
     if testcase is not None:
         # Change name att because CI Visibility uses identifier: testsuite+name

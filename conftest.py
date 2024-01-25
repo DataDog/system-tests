@@ -22,14 +22,6 @@ JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
 _deselected_items = []
 
 
-def _JSON_REPORT_FILE():
-    return f"{context.scenario.host_log_folder}/report.json"
-
-
-def _XML_REPORT_FILE():
-    return f"{context.scenario.host_log_folder}/reportJunit.xml"
-
-
 def pytest_addoption(parser):
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
@@ -70,8 +62,8 @@ def pytest_configure(config):
     context.scenario.configure(config)
 
     if not config.option.replay and not config.option.collectonly:
-        config.option.json_report_file = _JSON_REPORT_FILE()
-        config.option.xmlpath = _XML_REPORT_FILE()
+        config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
+        config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
 
 
 # Called at the very begening
@@ -319,15 +311,16 @@ def pytest_sessionfinish(session, exitstatus):
                 {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
             )
 
+        data = session.config._json_report.report  # pylint: disable=protected-access
+
         junit_modifyreport(
-            _JSON_REPORT_FILE(), _XML_REPORT_FILE(), junit_properties=context.scenario.get_junit_properties(),
+            data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
         )
 
-        export_feature_parity_dashbaord(session)
+        export_feature_parity_dashbaord(session, data)
 
 
-def export_feature_parity_dashbaord(session):
-    data = session.config._json_report.report  # pylint: disable=protected-access
+def export_feature_parity_dashbaord(session, data):
 
     result = {
         "runUrl": session.config.option.report_run_url,
