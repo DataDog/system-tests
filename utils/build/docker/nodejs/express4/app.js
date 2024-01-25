@@ -288,7 +288,14 @@ app.get('/db', async (req, res) => {
 
 app.post('/shell_execution', (req, res) => {
   const options = { shell: !!req?.body?.options?.shell }
-  const args = req?.body?.args.split(' ')
+  const reqArgs = req?.body?.args
+
+  let args
+  if (typeof reqArgs === 'string') {
+    args = reqArgs.split(' ')
+  } else {
+    args = reqArgs
+  }
 
   const response = spawnSync(req?.body?.command, args, options)
 
