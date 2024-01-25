@@ -4,6 +4,11 @@
 
 from utils import coverage, interfaces, weblog, features, context
 
+# Test_HardcodedSecrets doesn't inherit from BaseSinkTest
+# Hardcode secrets detection implementation change a lot between different languages
+# current BaseSinkTest implementation doesn't work for all languages
+# as the vulnerability is not always set in the current request span.
+
 
 @features.iast_sink_hardcoded_secrets
 @coverage.basic
