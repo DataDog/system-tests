@@ -1953,3 +1953,61 @@ class features:
         """
         pytest.mark.features(feature_id=269)(test_object)
         return test_object
+
+    @staticmethod
+    def remote_configuration_trace_sampling_rate(test_object):
+        """
+        https://feature-parity.us1.prod.dog/#/?feature=270
+        """
+        pytest.mark.features(feature_id=270)(test_object)
+        return test_object
+
+    @staticmethod
+    def remote_configuration_trace_logs_injection(test_object):
+        """
+        https://feature-parity.us1.prod.dog/#/?feature=271
+        """
+        pytest.mark.features(feature_id=271)(test_object)
+        return test_object
+
+    @staticmethod
+    def remote_configuration_trace_header_tagging(test_object):
+        """
+        https://feature-parity.us1.prod.dog/#/?feature=272
+        """
+        pytest.mark.features(feature_id=272)(test_object)
+        return test_object
+
+    @staticmethod
+    def remote_configuration_trace_custom_tagging(test_object):
+        """
+        https://feature-parity.us1.prod.dog/#/?feature=273
+        """
+        pytest.mark.features(feature_id=273)(test_object)
+        return test_object
+
+    @staticmethod
+    def remote_configuration_trace_v1_no_capabilities(test_object):
+        """
+        The initial implementation of tracing settings did not
+        require capabilities and assumes that if none are specified
+        that trace sample rate, logs injection and http header tagging
+        are implemented.
+
+        https://feature-parity.us1.prod.dog/#/?feature=274
+        """
+        pytest.mark.features(feature_id=274)(test_object)
+        return test_object
+
+    @staticmethod
+    def remote_configuration_trace_v2_capabilities(test_object):
+        """
+        The initial implementation of tracing settings did not
+        require capabilities and assumes that if none are specified
+        that trace sample rate, logs injection and http header tagging
+        are implemented.
+
+        https://feature-parity.us1.prod.dog/#/?feature=275
+        """
+        pytest.mark.features(feature_id=275)(test_object)
+        return test_object

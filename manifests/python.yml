@@ -502,9 +502,9 @@ tests/:
         '*': missing_feature
         flask-poc: v1.20.3
   parametric/:
-    test_dynamic_configuration.py:
-      TestDynamicConfigV1: missing_feature
-      TestDynamicConfigV2: missing_feature
+    test_library_remote_configuration.py:
+      Test_RemoteConfigurationTracingV1: v2.6.0
+      Test_RemoteConfigurationTracingV2: v2.6.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature
