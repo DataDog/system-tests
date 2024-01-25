@@ -67,6 +67,7 @@ class Test_ShellExecution:
         reason="For PHP 7.4+",
     )
     @bug(library="java", reason="Truncation method not aligned with the RFC")
+    @bug(library="php", reason="Truncation method not aligned with the RFC")
     def test_truncate_1st_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"
@@ -85,6 +86,7 @@ class Test_ShellExecution:
         reason="For PHP 7.4+",
     )
     @bug(library="java", reason="Truncation method not aligned with the RFC")
+    @bug(library="php", reason="Truncation method not aligned with the RFC")
     def test_truncate_blank_2nd_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"
