@@ -203,6 +203,8 @@ tests/:
         Test_NodeJSKafka: missing_feature
         Test_PythonKafka: missing_feature
         Test_RubyKafka: missing_feature
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation: missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -218,6 +220,7 @@ tests/:
       Test_DsmRabbitmq: v2.29.0
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v2.33.0
@@ -245,6 +248,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  test_data_integrity.py:
+    Test_LibraryHeaders: v2.46.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

@@ -846,6 +846,10 @@ tests/:
         Test_RubyKafka:
           "*": missing_feature (Endpoint not implemented)
           spring-boot: v0.1 # real version not known
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": missing_feature (Endpoint not implemented)
+          spring-boot: v0.1 # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -883,6 +887,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         '*': missing_feature
         spring-boot: v1.13.0
+      Test_DsmSQS:
+        '*': missing_feature
+        spring-boot: v0.1 # real version not known
     test_mongo.py:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:

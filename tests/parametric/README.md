@@ -1,1 +1,1 @@
-Full documentation can be found in [docs/scenarios/parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
+Full documentation can be found in [docs/scenarios/parametric.md](../../docs/scenarios/parametric.md).

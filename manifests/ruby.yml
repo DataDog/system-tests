@@ -26,7 +26,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature          
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -220,6 +220,9 @@ tests/:
         Test_RubyKafka:
           "*": missing_feature (Only requires one server -  rails70)
           rails70: v0.1 # real version unknown
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -237,6 +240,7 @@ tests/:
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigV1: v1.13.0
@@ -245,6 +249,12 @@ tests/:
       Test_Otel_Span_Methods: v1.17.0
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v1.17.0
+    test_sampling_delegation.py:
+      Test_Decisionless_Extraction: >-
+        missing_feature
+        (The "_sampling_priority_v1" numeric tag is missing from the local
+        root span when the trace was extracted without a sampling decision.
+        See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782693568?pr=2005>.)
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature
