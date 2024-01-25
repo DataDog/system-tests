@@ -15,7 +15,7 @@ from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.parametric.spec.otel_trace import convert_to_proto
-
+from utils.tools import logger
 
 class StartSpanResponse(TypedDict):
     span_id: int
@@ -149,6 +149,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "links": links,
             },
         )
+        logger.error(f"RESP RESP RESP: {resp}")
         resp_json = resp.json()
         return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
 

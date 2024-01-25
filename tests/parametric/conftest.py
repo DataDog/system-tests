@@ -210,8 +210,8 @@ def dotnet_library_factory():
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="http",
-        container_name="dotnet-test-client",
-        container_tag="dotnet8_0-test-client",
+        container_name="dotnet-test-api",
+        container_tag="dotnet8_0-test-api",
         container_img="""
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
@@ -258,7 +258,7 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "ApmTestApi.dll"]
 """,
-        container_cmd=["./ApmTestClient"],
+        container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=dotnet_absolute_appdir,
         volumes=[],

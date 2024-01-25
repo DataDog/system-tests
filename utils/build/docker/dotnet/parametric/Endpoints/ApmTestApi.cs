@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
@@ -11,7 +10,7 @@ public static class ApmTestApi
 {
     public static void MapApmEndpoints(this WebApplication app)
     {
-        app.MapPost("/tracer/span/start", StartSpan);
+        app.MapPost("/trace/span/start", StartSpan);
         app.MapGet("/weatherforecast", GetMeThatWeather);
     }
     
@@ -63,6 +62,7 @@ public static class ApmTestApi
 
         return values.AsReadOnly();
     }
+
     internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
     {
         public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
@@ -160,33 +160,34 @@ public static class ApmTestApi
 
     private static string StartSpan(HttpRequest httpRequest)
     {
+        Console.WriteLine($"httpRequest {httpRequest.Body}");
+
         var creationSettings = new SpanCreationSettings
         {
             FinishOnClose = false,
         };
 
-        var headerValues = GetHeaderValues;
+        creationSettings.Parent = SpanContextExtractor.Extract(
+            httpRequest.Headers,
+            getter: GetHeaderValues);
 
-        if (httpRequest.Headers.Count > 0)
+        httpRequest.Headers.TryGetValue("parentId", out var parentId);
+        var longParentId = Convert.ToUInt64(parentId);
+        
+        if (creationSettings.Parent is null && longParentId > 0 )
         {
-            creationSettings.Parent = SpanContextExtractor.Extract(
-                httpRequest.Headers ,
-                getter: headerValues);
-        }
-
-        /*if (creationSettings.Parent is null && httpRequest.ParentId is { HasParentId: true, ParentId: > 0 })
-        {
-            var parentSpan = Spans[request.ParentId];
+            var parentSpan = Spans[longParentId];
             creationSettings.Parent = (ISpanContext)SpanContext.GetValue(parentSpan)!;
-        }*/
-        // Step 2: Convert to Array (Dictionary)
+        }
+        
         var headersDictionary = new Dictionary<string, string>();
         foreach (var header in httpRequest.Headers)
         {
             headersDictionary.Add(header.Key, header.Value.ToString());
         }
 
-        using var scope = Tracer.Instance.StartActive(operationName: headersDictionary["name"], creationSettings);
+        headersDictionary.TryGetValue("name", out var name);
+        using var scope = Tracer.Instance.StartActive(operationName: name, creationSettings);
         var span = scope.Span;
 
         if (headersDictionary.TryGetValue("service", out var service))
@@ -212,19 +213,14 @@ public static class ApmTestApi
         
         Spans[span.SpanId] = span;
         
-        var result = new
+        var result = JsonConvert.SerializeObject(new
         {
-            span.SpanId,
-            span.TraceId,
-        };
-
-        var theShit = JsonConvert.SerializeObject(new
-        {
-            Result = result
+            spanId = span.SpanId.ToString(),
+            traceId = span.TraceId.ToString(),
         });
         
-        Console.WriteLine(theShit);
+        Console.WriteLine(result);
 
-        return theShit;
+        return result;
     }
 }
