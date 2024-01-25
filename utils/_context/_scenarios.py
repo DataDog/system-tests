@@ -1064,7 +1064,12 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
+        weblog_env={
+            "DD_DBM_PROPAGATION_MODE": "full",
+            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
@@ -1072,6 +1077,7 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
+        include_elasticmq=True,
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
     )
 
@@ -1085,6 +1091,7 @@ class scenarios:
         include_kafka=True,
         include_buddies=True,
         include_elasticmq=True,
+        include_rabbitmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
 
