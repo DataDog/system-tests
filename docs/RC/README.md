@@ -1,6 +1,6 @@
 ## How to create tests with new Remote Config
 
-1. Create new scenario
+### Create new scenario
 
 To run tests with custom Remote Config, you need to create new scenario with a mocked RC responses.
 
@@ -16,13 +16,13 @@ appsec_api_security_rc = EndToEndScenario(
 In this code example, we can see that we are defining a proxy for remote config, with the name **APPSEC_API_SECURITY_RC**, 
 it means that this scenario will mock calls from libraries to `/v7/config` by the content in *utils/proxy/rc_mocked_responses_**appsec_api_security_rc**.json* file.
 
-2. Create `utils/proxy/rc_mocked_responses_<scenario_name>.json` file
+### Create mock file
 
-This JSON file contains an array with a list of the responses that config url will return. The items are returned in order, first time it returns the first element in the list, and each time the request is made, it returns the next value in the list.
+`utils/proxy/rc_mocked_responses_<defined_mock_rc_backend_name>.json` JSON file contains an array with a list of the responses that config url will return. The items are returned in order, first time it returns the first element in the list, and each time the request is made, it returns the next value in the list.
 
 There is a repository [RC tracer client test generator](https://github.com/DataDog/rc-tracer-client-test-generator) that you can use to generate RC files. 
 
-3. Wait to RC loaded
+### Wait to RC loaded
 
 In your tests, you should wait until the RC is loaded. If your mock list only have one item, you can use this method to wait until RC is loaded to start executing the requests.
 
