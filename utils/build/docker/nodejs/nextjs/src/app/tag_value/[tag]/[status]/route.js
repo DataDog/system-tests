@@ -8,11 +8,42 @@ export async function GET (request, { params }) {
 
   rootSpan?.setTag('appsec.events.system_tests_appsec_event.value', params.tag)
 
+  // read querystring
+  const query = Object.fromEntries(new URL(request.url).searchParams)
+
+  // always read body for API sec
+  const body = await getBody(request)
+
+  let response
+
   if (params?.tag?.startsWith?.('payload_in_response_body') && request.method === 'POST') {
-    return NextResponse.json({ payload: await request.json() })
+    response = { payload: body }
   } else {
-    return NextResponse.json('Value tagged')
+    response = 'Value tagged'
   }
+
+  return NextResponse.json(response, {
+    status: params.status || 200,
+    headers: new Headers(query)
+  })
 }
 export const OPTIONS = GET
 export const POST = GET
+
+// somehow this function works but only when formData() is called before json()
+// i don't want to know why
+async function getBody (request) {
+  try {
+    return Object.fromEntries(await request.formData())
+  } catch (err) {}
+
+  try {
+    return await request.json()
+  } catch (err) {}
+
+  try {
+    return await request.text()
+  } catch (err) {}
+
+  return null
+}
