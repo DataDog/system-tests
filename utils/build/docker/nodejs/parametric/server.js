@@ -78,13 +78,32 @@ app.post('/trace/span/start', (req, res) => {
   const extracted = tracer.extract('http_headers', convertedHeaders)
   if (extracted !== null) parent = extracted
 
+  const links = []
+  for (const link of request.links || []) {
+    const linkParentId = link.parent_id
+    if (linkParentId) {
+      links.push({context: parent.context, attributes: link.attributes })
+    } else {
+      const http_headers = link.http_headers || []
+      // Node.js HTTP headers are automatically lower-cased, simulate that here.
+      const convertedHeaders = {}
+      for (const [key, value] of http_headers) {
+          convertedHeaders[key.toLowerCase()] = value
+      }
+      const extracted = tracer.extract('http_headers', convertedHeaders)
+      span.link_span({context: extracted, attributes: link.attributes }) 
+    }
+
+  }
+
   const span = tracer.startSpan(request.name, {
       type: request.type,
       resource: request.resource,
       childOf: parent,
       tags: {
           service: request.service
-      }
+      },
+      links
   })
   spans[span.context().toSpanId()] = span
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});

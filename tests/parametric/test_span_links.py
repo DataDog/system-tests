@@ -121,6 +121,7 @@ class Test_Span_Links:
             assert link.get("tracestate") == "dd=s:1;t.dm:-0"
         assert link.get("flags") == 1
 
+    @missing_feature(library="nodejs", reason="links do not influence the sampling decsion of spans")
     def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
         Testing the conversion of x-datadog-* headers to tracestate for
@@ -168,7 +169,8 @@ class Test_Span_Links:
         # link has a sampling priority of 2, so it should be sampled
         assert link.get("flags", 1) == 1 | TRACECONTEXT_FLAGS_SET
         assert link["attributes"] == {"foo": "bar"}
-
+    
+    @missing_feature(library="nodejs", reason="links do not influence the sampling decsion of spans")
     def test_span_link_from_distributed_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.

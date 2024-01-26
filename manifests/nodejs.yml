@@ -356,7 +356,8 @@ tests/:
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v4.11.0
       TestDynamicConfigV2: missing_feature
-    test_span_links.py: missing_feature
+    test_span_links.py: 
+      Test_Span_Links: v4.22.0
     test_telemetry.py:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
