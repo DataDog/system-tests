@@ -15,3 +15,4 @@ export async function GET (request, { params }) {
   }
 }
 export const OPTIONS = GET
+export const POST = GET
