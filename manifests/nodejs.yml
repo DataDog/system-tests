@@ -62,7 +62,10 @@ tests/:
             express4: v4.3.0
             express4-typescript: v4.3.0
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection:
+            '*': missing_feature
+            express4: v4.17.0
+            express4-typescript: v4.17.0
         test_path_traversal.py:
           TestPathTraversal:
             '*': missing_feature
