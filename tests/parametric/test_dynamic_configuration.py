@@ -100,13 +100,11 @@ ENV_SAMPLING_RULE_RATE = 0.55
 @scenarios.parametric
 @features.dynamic_configuration
 class TestDynamicConfigTracingEnabled:
-    @missing_feature(context.library in ["cpp", "dotnet", "golang"])
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the tracing enabled capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
 
-    @missing_feature(context.library in ["cpp", "dotnet", "golang"])
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
