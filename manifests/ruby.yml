@@ -239,6 +239,7 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigV1: v1.13.0
       TestDynamicConfigV2: missing_feature
     test_otel_span_methods.py:
