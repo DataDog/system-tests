@@ -24,6 +24,8 @@ from integrations.messaging.aws.sqs import sqs_consume
 from integrations.messaging.aws.sqs import sqs_produce
 from integrations.messaging.kafka import kafka_consume
 from integrations.messaging.kafka import kafka_produce
+from integrations.messaging.rabbitmq import rabbitmq_consume
+from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
 
@@ -224,6 +226,28 @@ def consume_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
     output = sqs_consume(queue, timeout)
+    if "error" in output:
+        return output, 404
+    else:
+        return output, 200
+
+
+@app.route("/rabbitmq/produce")
+def produce_rabbitmq_message():
+    queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
+    message = "Hello from Python RabbitMQ Context Propagation Test"
+    output = rabbitmq_produce(queue, message)
+    if "error" in output:
+        return output, 404
+    else:
+        return output, 200
+
+
+@app.route("/rabbitmq/consume")
+def consume_rabbitmq_message():
+    queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = rabbitmq_consume(queue, timeout)
     if "error" in output:
         return output, 404
     else:
