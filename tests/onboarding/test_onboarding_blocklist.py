@@ -209,14 +209,19 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         self._create_remote_executable_script(ssh_client, "/opt/datadog/logs_injection/myscript.sh")
 
         for test_config in self.user_processes_commands:
-            config_ignored_processes = {"DD_IGNORED_PROCESSES": test_config["ignored_processes"]}
-            local_log_file = self._execute_remote_command(
-                ssh_client, test_config["command"], config=config_ignored_processes, use_injection_config=True
-            )
+            for use_injection_file_config in [True, False]:
+                # Apply the configuration from yml file or from env variables
+                config_ignored_processes = {"DD_IGNORED_PROCESSES": test_config["ignored_processes"]}
+                local_log_file = self._execute_remote_command(
+                    ssh_client,
+                    test_config["command"],
+                    config=config_ignored_processes,
+                    use_injection_config=use_injection_file_config,
+                )
 
-            assert test_config["skip"] == command_injection_skipped(
-                test_config["command"], local_log_file
-            ), f"The command {test_config['command']} with config [{config_ignored_processes}] should be skip? [{test_config['skip']}]"
+                assert test_config["skip"] == command_injection_skipped(
+                    test_config["command"], local_log_file
+                ), f"The command {test_config['command']} with config [{config_ignored_processes}] should be skip? [{test_config['skip']}]"
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components

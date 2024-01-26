@@ -4,7 +4,8 @@ from utils.tools import logger
 
 
 def command_injection_skipped(command_line, log_local_path):
-    """ From parsed log, search on the list of logged commands if one command has been skipped from the instrumentation"""
+    """ From parsed log, search on the list of logged commands 
+    if one command has been skipped from the instrumentation"""
     command, command_args = _parse_command(command_line)
     logger.debug(f"- Checking command: {command_args}")
     for command_desc in _get_commands_from_log_file(log_local_path):
@@ -52,10 +53,32 @@ def _parse_command(command):
 
 
 def _get_command_props_values(command_instrumentation_desc, command_args_check):
-    """ Search into command_instrumentation_desc (lines related with the command on the log file) if the command and arguments are equal 
+    """ Search into command_instrumentation_desc (lines related with the command on the log file) 
         The line that contains the command with args should be like this (example for java -help):
-            {"level":"debug","ts":1,"caller":"xx","msg":"props values","props":{"Env":"","Service":"","Version":"","ProcessProps":
-            {"Path":"/usr/bin/java","Args":["java","-help"]},"ContainerProps":{"Labels":null,"Name":"","ShortName":"","Tag":""}}}
+        {
+            "level":"debug",
+            "ts":1,
+            "caller":"xx",
+            "msg":"props values",
+            "props":{
+                "Env":"",
+                "Service":"",
+                "Version":"",
+                "ProcessProps":{
+                    "Path":"/usr/bin/java",
+                    "Args":[
+                        "java",
+                        "-help"
+                    ]
+                },
+                "ContainerProps":{
+                    "Labels":null,
+                    "Name":"",
+                    "ShortName":"",
+                    "Tag":""
+                }
+            }
+            }
     """
     for line in command_instrumentation_desc:
         if "props values" in line:
