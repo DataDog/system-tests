@@ -300,6 +300,9 @@ tests/:
         Test_RubyKafka:
           '*': missing_feature (Endpoint not implemented)
           express4: v0.1 # real version not known
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -335,6 +338,8 @@ tests/:
       TestDynamicConfigV2: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
       Test_TelemetryInstallSignature: v4.23.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature

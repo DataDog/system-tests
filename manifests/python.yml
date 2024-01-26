@@ -469,6 +469,9 @@ tests/:
         Test_RubyKafka:
           '*': missing_feature (missing endpoint on weblog)
           flask-poc: v0.1 # real version unknown
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -503,6 +506,7 @@ tests/:
         flask-poc: v1.20.3
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature
     test_sampling_delegation.py:
@@ -514,6 +518,8 @@ tests/:
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_telemetry.py:
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
       Test_TelemetryInstallSignature: v2.5.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # TODO what is the earliest version?
