@@ -50,7 +50,7 @@ tests/:
           TestLDAPInjection:
             '*': missing_feature
             express4: v4.1.0
-            express4-typsecript: v4.1.0
+            express4-typescript: v4.1.0
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': missing_feature
