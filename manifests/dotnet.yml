@@ -223,6 +223,7 @@ tests/:
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v2.33.0
       TestDynamicConfigV2: v2.44.0
     test_span_links.py: missing_feature
