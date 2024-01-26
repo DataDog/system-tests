@@ -150,7 +150,9 @@ class TestDynamicConfigHeaderTags:
         assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
         assert trace[0][0]["meta"]["test_header_rc2"] == "test-value-2"
         assert trace[0][0]["meta"]["http.request.headers.content-length"] == "0"
-        assert trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
+        assert (
+            trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
+        ), "response content-length header tag value matches the header value set by the server"
         assert "test_header_env" not in trace[0][0]["meta"]
         assert "test_header_env2" not in trace[0][0]["meta"]
 
