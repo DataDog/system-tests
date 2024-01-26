@@ -151,6 +151,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         )
         logger.error(f"RESP RESP RESP: {resp}")
         resp_json = resp.json()
+        logger.error(f"resp_json resp_json resp_json: {resp_json}")
         return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
 
     def finish_span(self, span_id: int) -> None:

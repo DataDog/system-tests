@@ -160,8 +160,6 @@ public static class ApmTestApi
 
     private static string StartSpan(HttpRequest httpRequest)
     {
-        Console.WriteLine($"httpRequest {httpRequest.Body}");
-
         var creationSettings = new SpanCreationSettings
         {
             FinishOnClose = false,
@@ -179,33 +177,27 @@ public static class ApmTestApi
             var parentSpan = Spans[longParentId];
             creationSettings.Parent = (ISpanContext)SpanContext.GetValue(parentSpan)!;
         }
-        
-        var headersDictionary = new Dictionary<string, string>();
-        foreach (var header in httpRequest.Headers)
-        {
-            headersDictionary.Add(header.Key, header.Value.ToString());
-        }
 
-        headersDictionary.TryGetValue("name", out var name);
+        httpRequest.Headers.TryGetValue("name", out var name);
         using var scope = Tracer.Instance.StartActive(operationName: name, creationSettings);
         var span = scope.Span;
 
-        if (headersDictionary.TryGetValue("service", out var service))
+        if (httpRequest.Headers.TryGetValue("service", out var service))
         {
             span.ServiceName = service;
         }
 
-        if (headersDictionary.TryGetValue("resource", out var resource))
+        if (httpRequest.Headers.TryGetValue("resource", out var resource))
         {
             span.ResourceName = resource;
         }
 
-        if (headersDictionary.TryGetValue("type", out var type))
+        if (httpRequest.Headers.TryGetValue("type", out var type))
         {
             span.Type = type;
         }
 
-        if (headersDictionary.TryGetValue("origin", out var origin) && !string.IsNullOrWhiteSpace(origin))
+        if (httpRequest.Headers.TryGetValue("origin", out var origin) && !string.IsNullOrWhiteSpace(origin))
         {
             var spanContext = SpanContext.GetValue(span)!;
             Origin.SetValue(spanContext, origin);
