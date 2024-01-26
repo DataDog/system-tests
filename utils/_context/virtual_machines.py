@@ -292,7 +292,7 @@ class TestedVirtualMachine:
 
     def get_component(self, component_name):
         if component_name is None or self.components is None or not component_name in self.components:
-            return None
+            return Version("0.0.0", component_name)
 
         raw_version = self.components[component_name]
         # Workaround clean "Epoch" from debian packages.
@@ -301,7 +301,7 @@ class TestedVirtualMachine:
             raw_version = raw_version.split(":")[1]
 
         if raw_version.strip() == "":
-            return None
+            return Version("0.0.0", component_name)
         return Version(raw_version.strip(), component_name)
 
     def _configure_ami(self):

@@ -6,9 +6,7 @@ from utils.tools import logger
 def command_injection_skipped(command_line, log_local_path):
     """ From parsed log, search on the list of logged commands if one command has been skipped from the instrumentation"""
     command, command_args = _parse_command(command_line)
-    logger.info(f"EL COMMAND a buscar {command}")
-
-    logger.info(f"- Checking command: {command_args}")
+    logger.debug(f"- Checking command: {command_args}")
     for command_desc in _get_commands_from_log_file(log_local_path):
         # First line contains the name of the intercepted command
         first_line_json = json.loads(command_desc[0])
@@ -16,22 +14,22 @@ def command_injection_skipped(command_line, log_local_path):
             # last line contains the skip message. The command was skipped by build-in deny list or by user deny list
             last_line_json = json.loads(command_desc[-1])
             if last_line_json["msg"] == "not injecting; on deny list":
-                logger.info(f"    Command {command_args} was skipped by build-in deny list")
+                logger.debug(f"    Command {command_args} was skipped by build-in deny list")
                 return True
             elif last_line_json["msg"] == "not injecting; on user deny list":
-                logger.info(f"    Command {command_args} was skipped by user defined deny process list")
+                logger.debug(f"    Command {command_args} was skipped by user defined deny process list")
                 return True
 
             # Perhaps the command was instrumented or could be skipped by its arguments. Checking
-            elif _get_command_props_values(command_desc, command_args) == True:
+            elif _get_command_props_values(command_desc, command_args) is True:
                 if last_line_json["msg"] == "error when parsing" and last_line_json["error"].startswith(
                     "skipping due to ignore rules for language"
                 ):
                     logger.info(f"    Command {command_args} was skipped by ignore arguments")
                     return True
-                else:
-                    logger.info(f"    command {command_args} is found but it was instrumented!")
-                    return False
+
+                logger.info(f"    command {command_args} is found but it was instrumented!")
+                return False
     logger.info(f"    Command {command} was NOT FOUND")
     raise ValueError(f"Command {command} was NOT FOUND")
 
@@ -56,7 +54,8 @@ def _parse_command(command):
 def _get_command_props_values(command_instrumentation_desc, command_args_check):
     """ Search into command_instrumentation_desc (lines related with the command on the log file) if the command and arguments are equal 
         The line that contains the command with args should be like this (example for java -help):
-            {"level":"debug","ts":1,"caller":"xx","msg":"props values","props":{"Env":"","Service":"","Version":"","ProcessProps":{"Path":"/usr/bin/java","Args":["java","-help"]},"ContainerProps":{"Labels":null,"Name":"","ShortName":"","Tag":""}}}
+            {"level":"debug","ts":1,"caller":"xx","msg":"props values","props":{"Env":"","Service":"","Version":"","ProcessProps":
+            {"Path":"/usr/bin/java","Args":["java","-help"]},"ContainerProps":{"Labels":null,"Name":"","ShortName":"","Tag":""}}}
     """
     for line in command_instrumentation_desc:
         if "props values" in line:

@@ -20,15 +20,15 @@ class _OnboardingBlockListBaseTest:
     }
 
     yml_config_template = """
-    ---
+---
 log_level: debug
 output_paths:
   - file:///tmp/host_injection.log
 env: dev
 config_sources: BASIC
 ignored_processes: 
-    - ###DD_IGNORED_PROCESSES###
-    """
+- DD_IGNORED_PROCESSES
+"""
 
     def _ssh_connect(self, ip, user):
         """ Establish the connection with the remote machine """
@@ -51,12 +51,18 @@ ignored_processes:
             for key in config:
                 config_values = ""
                 for conf_val in config[key].split(","):
-                    config_values = config_values + "/n" + "- " + conf_val
+                    config_values = config_values + " - '" + conf_val + "'\n"
                 test_conf_content = test_conf_content.replace("- " + key, config_values)
-            ssh_client.exec_command(
-                f"sudo sh -c 'echo \"${test_conf_content}\" > /etc/datadog-agent/inject/host_config.yaml' "
-            )
+
+            # Write as local file and the copy by scp to user home. by ssh copy the file to /etc/datadog-agent/inject
+            file_name = f"host_config_{uuid.uuid4()}.yml"
+            temp_file_path = scenarios.onboarding_host_block_list.host_log_folder + "/" + file_name
+            with open(temp_file_path, "w") as host_config_file:
+                host_config_file.write(test_conf_content)
+            SCPClient(ssh_client.get_transport()).put(temp_file_path, file_name)
+            ssh_client.exec_command(f"sudo cp {file_name} /etc/datadog-agent/inject/host_config.yaml")
         else:
+            # We'll use env variables instead of injection config yml
             for key in config:
                 command_with_config = f"{key}={config[key]} {command_with_config}"
 
