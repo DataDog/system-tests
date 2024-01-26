@@ -14,6 +14,22 @@ from utils.onboarding.injection_log_parser import command_injection_skipped
 class _OnboardingBlockListBaseTest:
     """ Base class to test the block list on auto instrumentation"""
 
+    env_vars_config_file_mapper = {
+        "DD_JAVA_IGNORED_ARGS": "java_ignored_args",
+        "DD_IGNORED_PROCESSES": "ignored_processes",
+    }
+
+    yml_config_template = """
+    ---
+log_level: debug
+output_paths:
+  - file:///tmp/host_injection.log
+env: dev
+config_sources: BASIC
+ignored_processes: 
+    - ###DD_IGNORED_PROCESSES###
+    """
+
     def _ssh_connect(self, ip, user):
         """ Establish the connection with the remote machine """
         cert = paramiko.RSAKey.from_private_key_file(PulumiSSH.pem_file)
@@ -22,13 +38,28 @@ class _OnboardingBlockListBaseTest:
         ssh_client.connect(hostname=ip, username=user, pkey=cert)
         return ssh_client
 
-    def _execute_remote_command(self, ssh_client, command, configEnv=None):
-        """ Get remote log file from the vm  """
+    def _execute_remote_command(self, ssh_client, command, config={}, use_injection_config=False):
+        """ Execute remote command and get remote log file from the vm. You can use this method using env variables or using injection config file  """
 
         unique_log_name = f"host_injection_{uuid.uuid4()}.log"
+
         command_with_config = (
             f"DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/{unique_log_name} {command}"
         )
+        if use_injection_config:
+            test_conf_content = self.yml_config_template
+            for key in config:
+                config_values = ""
+                for conf_val in config[key].split(","):
+                    config_values = config_values + "/n" + "- " + conf_val
+                test_conf_content = test_conf_content.replace("- " + key, config_values)
+            ssh_client.exec_command(
+                f"sudo sh -c 'echo \"${test_conf_content}\" > /etc/datadog-agent/inject/host_config.yaml' "
+            )
+        else:
+            for key in config:
+                command_with_config = f"{key}={config[key]} {command_with_config}"
+
         logger.info(f"Executing command: [{command_with_config}] associated with log file: [{unique_log_name}]")
 
         log_local_path = scenarios.onboarding_host_block_list.host_log_folder + f"/{unique_log_name}"
@@ -84,9 +115,33 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
     user_args_commands = {
         "java": [
             {"ignored_args": "-Dtest=test", "command": "java -jar test.jar -Dtest=test", "skip": True},
-            {"ignored_args": "-Dtest=test", "command": "java -jar test.jar -Dtest=test", "skip": False},
+            {
+                "ignored_args": "one_param=1,-Dhey=hola,-Dtest=test",
+                "command": "java -jar test.jar -Dtest=test",
+                "skip": True,
+            },
+            {"ignored_args": "-Dtest=testXX", "command": "java -jar test.jar -Dtest=test", "skip": False},
         ],
     }
+
+    user_processes_commands = [
+        {
+            "ignored_processes": "/opt/datadog/logs_injection/*,other",
+            "command": "/opt/datadog/logs_injection/myscript.sh",
+            "skip": True,
+        },
+        {"ignored_processes": "**/myscript.sh", "command": "/opt/datadog/logs_injection/myscript.sh", "skip": True},
+        {
+            "ignored_processes": "/opt/**/myscript.sh",
+            "command": "/opt/datadog/logs_injection/myscript.sh",
+            "skip": True,
+        },
+        {
+            "ignored_processes": "myscript.sh,otherscript.sh",
+            "command": "/opt/datadog/logs_injection/myscript.sh",
+            "skip": False,
+        },
+    ]
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
@@ -147,16 +202,15 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         # Create a simple executable script
         self._create_remote_executable_script(ssh_client, "/opt/datadog/logs_injection/myscript.sh")
 
-        execute_command = """ 
-        DD_IGNORED_PROCESSES="/opt/datadog/logs_injection/*,other" /opt/datadog/logs_injection/myscript.sh
-        """
+        for test_config in self.user_processes_commands:
+            config_ignored_processes = {"DD_IGNORED_PROCESSES": test_config["ignored_processes"]}
+            local_log_file = self._execute_remote_command(
+                ssh_client, test_config["command"], config=config_ignored_processes, use_injection_config=True
+            )
 
-        # Retrieve the log file
-        local_log_file = self._execute_remote_command(ssh_client, execute_command)
-
-        assert command_injection_skipped(
-            execute_command, local_log_file
-        ), f"The command {execute_command} was instrumented, but it's defined on the user block list!"
+            assert test_config["skip"] == command_injection_skipped(
+                test_config["command"], local_log_file
+            ), f"The command {test_config['command']} with config [{config_ignored_processes}] should be skip? [{test_config['skip']}]"
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
@@ -169,8 +223,8 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         if onboardig_vm.language in self.user_args_commands:
             ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
             for test_config in self.user_args_commands[onboardig_vm.language]:
-                execute_command = f"DD_JAVA_IGNORED_ARGS='{test_config['ignored_args']}' {test_config['command']}"
-                local_log_file = self._execute_remote_command(ssh_client, execute_command)
+                args_config = {"DD_JAVA_IGNORED_ARGS": test_config["ignored_args"]}
+                local_log_file = self._execute_remote_command(ssh_client, test_config["command"], config=args_config)
                 assert test_config["skip"] == command_injection_skipped(
-                    execute_command, local_log_file
-                ), f"The command {execute_command} with ignored args {test_config['ignored_args']} should skip [{test_config['skip']}]!"
+                    test_config["command"], local_log_file
+                ), f"The command {test_config['command']} with ignored args {test_config['ignored_args']} should skip [{test_config['skip']}]!"
