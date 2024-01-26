@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Install runner
         uses: ./.github/actions/install_runner
-      # force /bin/bash in order to test against bash 3.2 on macOS
+      # force /bin/bash in order to test against bash 3.2 on macOS.
       - name: Test the test (direct)
         run: /bin/bash run.sh TEST_THE_TEST
       - name: Test group parsing
