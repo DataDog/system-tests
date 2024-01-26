@@ -8,6 +8,7 @@ tests/:
     api_security/:
       test_apisec_sampling.py: irrelevant (ASM is not implemented in C++)
       test_schemas.py: irrelevant (ASM is not implemented in C++)
+      test_api_security_rc.py: irrelevant (ASM is not implemented in C++)
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)

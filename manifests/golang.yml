@@ -14,6 +14,10 @@ tests/:
         Test_API_Security_sampling:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: missing_feature
+        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies:
