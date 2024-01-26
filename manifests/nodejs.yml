@@ -85,7 +85,10 @@ tests/:
             '*': missing_feature
             express4: v4.3.0
             express4-typescript: v4.3.0
-          TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedRedirect:
+            '*': missing_feature
+            express4: v4.3.0
+            express4-typescript: v4.3.0
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
