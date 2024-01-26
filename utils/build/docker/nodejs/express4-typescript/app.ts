@@ -200,11 +200,18 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
 });
 
 app.post('/shell_execution', (req: Request, res: Response) => {
-  const options = { shell: req?.body?.options?.shell ? true : false}
-  const args = req?.body?.args.split(' ')
+  const options = { shell: !!req?.body?.options?.shell }
+  const reqArgs = req?.body?.args
+
+  let args
+  if (typeof reqArgs === 'string') {
+    args = reqArgs.split(' ')
+  } else {
+    args = reqArgs
+  }
 
   const response = spawnSync(req?.body?.command, args, options)
-  
+
   res.send(response)
 })
 
