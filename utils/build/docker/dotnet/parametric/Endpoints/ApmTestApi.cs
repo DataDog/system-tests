@@ -11,7 +11,7 @@ public static class ApmTestApi
     public static void MapApmEndpoints(this WebApplication app)
     {
         app.MapPost("/trace/span/start", StartSpan);
-        app.MapGet("/weatherforecast", GetMeThatWeather);
+        app.MapPost("/trace/span/finish", FinishSpan);
     }
     
     // Core types
@@ -61,30 +61,6 @@ public static class ApmTestApi
         }
 
         return values.AsReadOnly();
-    }
-
-    internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-    {
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-    }
-
-    private static WeatherForecast[] GetMeThatWeather()
-    {
-        var summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                summaries[Random.Shared.Next(summaries.Length)]
-            ))
-            .ToArray();
-
-        return forecast;
     }
 
     private static MethodInfo? GenerateInjectMethod()
@@ -158,8 +134,11 @@ public static class ApmTestApi
         }
     }
 
-    private static string StartSpan(HttpRequest httpRequest)
+    private static async Task<string> StartSpan(HttpRequest httpRequest)
     {
+        var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerBodyDictionary.ToString());
+        
         var creationSettings = new SpanCreationSettings
         {
             FinishOnClose = false,
@@ -169,35 +148,37 @@ public static class ApmTestApi
             httpRequest.Headers,
             getter: GetHeaderValues);
 
-        httpRequest.Headers.TryGetValue("parentId", out var parentId);
-        var longParentId = Convert.ToUInt64(parentId);
-        
-        if (creationSettings.Parent is null && longParentId > 0 )
+        if (parsedDictionary!.TryGetValue("parentId", out var parentId))
         {
-            var parentSpan = Spans[longParentId];
-            creationSettings.Parent = (ISpanContext)SpanContext.GetValue(parentSpan)!;
+            var longParentId = Convert.ToUInt64(parentId);
+            
+            if (creationSettings.Parent is null && longParentId > 0 )
+            {
+                var parentSpan = Spans[longParentId];
+                creationSettings.Parent = (ISpanContext)SpanContext.GetValue(parentSpan)!;
+            }
         }
 
-        httpRequest.Headers.TryGetValue("name", out var name);
-        using var scope = Tracer.Instance.StartActive(operationName: name, creationSettings);
+        parsedDictionary.TryGetValue("name", out var name);
+        using var scope = Tracer.Instance.StartActive(operationName: name!.ToString(), creationSettings);
         var span = scope.Span;
 
-        if (httpRequest.Headers.TryGetValue("service", out var service))
+        if (parsedDictionary.TryGetValue("service", out var service))
         {
-            span.ServiceName = service;
+            span.ServiceName = service.ToString();
         }
 
-        if (httpRequest.Headers.TryGetValue("resource", out var resource))
+        if (parsedDictionary.TryGetValue("resource", out var resource))
         {
-            span.ResourceName = resource;
+            span.ResourceName = resource.ToString();
         }
 
-        if (httpRequest.Headers.TryGetValue("type", out var type))
+        if (parsedDictionary.TryGetValue("type", out var type))
         {
-            span.Type = type;
+            span.Type = type.ToString();
         }
 
-        if (httpRequest.Headers.TryGetValue("origin", out var origin) && !string.IsNullOrWhiteSpace(origin))
+        if (parsedDictionary.TryGetValue("origin", out var origin) && !string.IsNullOrWhiteSpace(origin.ToString()))
         {
             var spanContext = SpanContext.GetValue(span)!;
             Origin.SetValue(spanContext, origin);
@@ -205,14 +186,20 @@ public static class ApmTestApi
         
         Spans[span.SpanId] = span;
         
-        var result = JsonConvert.SerializeObject(new
+        return JsonConvert.SerializeObject(new
         {
-            spanId = span.SpanId.ToString(),
-            traceId = span.TraceId.ToString(),
+            span_id = span.SpanId.ToString(),
+            trace_id = span.TraceId.ToString(),
         });
-        
-        Console.WriteLine(result);
+    }
+    
+    public static async Task FinishSpan(HttpRequest httpRequest)
+    {
+        var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, UInt64>>(headerBodyDictionary);
 
-        return result;
+        parsedDictionary!.TryGetValue("span_id", out var id);
+        var span = Spans[id];
+        span.Finish();
     }
 }
