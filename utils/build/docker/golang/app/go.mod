@@ -3,13 +3,13 @@ module weblog
 go 1.20
 
 require (
-	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240118091439-efab8c4745c2
-	github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1 v0.0.0-20240118091439-efab8c4745c2
-	github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin v0.0.0-20240118091439-efab8c4745c2
-	github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5 v0.0.0-20240118091439-efab8c4745c2
-	github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc v0.0.0-20240118091439-efab8c4745c2
-	github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4 v0.0.0-20240118091439-efab8c4745c2
-	github.com/DataDog/dd-trace-go/v2/contrib/net/http v0.0.0-20240118091439-efab8c4745c2
+	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240126143828-37539064d80f
+	github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1 v0.0.0-20240126143828-37539064d80f
+	github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin v0.0.0-20240126143828-37539064d80f
+	github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5 v0.0.0-20240126143828-37539064d80f
+	github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc v0.0.0-20240126143828-37539064d80f
+	github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4 v0.0.0-20240126143828-37539064d80f
+	github.com/DataDog/dd-trace-go/v2/contrib/net/http v0.0.0-20240126143828-37539064d80f
 	github.com/IBM/sarama v1.40.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.0.10
@@ -17,18 +17,19 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.44.0
 	go.opentelemetry.io/otel v1.20.0
 	go.opentelemetry.io/otel/trace v1.20.0
-	google.golang.org/grpc v1.57.1
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/grpc v1.60.1
+	google.golang.org/protobuf v1.31.0
 )
 
 require (
 	github.com/DataDog/appsec-internal-go v1.4.0 // indirect
-	github.com/DataDog/datadog-agent/pkg/obfuscate v0.48.0 // indirect
-	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.48.1 // indirect
-	github.com/DataDog/datadog-go/v5 v5.3.0 // indirect
+	github.com/DataDog/datadog-agent/pkg/obfuscate v0.50.0 // indirect
+	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.50.0 // indirect
+	github.com/DataDog/datadog-go/v5 v5.4.0 // indirect
 	github.com/DataDog/go-libddwaf/v2 v2.2.3 // indirect
+	github.com/DataDog/go-sqllexer v0.0.10 // indirect
 	github.com/DataDog/go-tuf v1.0.2-0.5.2 // indirect
-	github.com/DataDog/sketches-go v1.4.2 // indirect
+	github.com/DataDog/sketches-go v1.4.3 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/bytedance/sonic v1.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -39,7 +40,7 @@ require (
 	github.com/eapache/go-resiliency v1.4.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/ebitengine/purego v0.5.0 // indirect
+	github.com/ebitengine/purego v0.5.2 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -51,7 +52,7 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/uuid v1.3.1 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
@@ -76,8 +77,8 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
-	github.com/secure-systems-lab/go-securesystemslib v0.7.0 // indirect
-	github.com/tinylib/msgp v1.1.8 // indirect
+	github.com/secure-systems-lab/go-securesystemslib v0.8.0 // indirect
+	github.com/tinylib/msgp v1.1.9 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -92,10 +93,10 @@ require (
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/time v0.3.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.16.1 // indirect
-	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
+	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231212172506-995d672761c0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	inet.af/netaddr v0.0.0-20230525184311-b8eac61e914a // indirect
 )
