@@ -14,6 +14,7 @@ from utils import (
 )
 from utils.tools import logger
 
+
 def get_schema(request, address):
     """get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
@@ -22,6 +23,7 @@ def get_schema(request, address):
         if payload is not None:
             return payload
     return
+
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
 @coverage.basic
@@ -43,6 +45,7 @@ class Test_API_Security_RC_ASM_DD_processors:
         assert "key" in schema[0]
         isinstance(schema[0]["key"], list)
 
+
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
 @coverage.basic
 @scenarios.appsec_api_security_rc
@@ -57,7 +60,7 @@ class Test_API_Security_RC_ASM_DD_scanners:
     def test_request_method(self):
         """can provide custom req.querytest schema"""
         schema = get_schema(self.request, "req.querytest")
-        EXPECTED_MAIL_SCHEMA = [8, { "category": "pii", "type": "email" }]
+        EXPECTED_MAIL_SCHEMA = [8, {"category": "pii", "type": "email"}]
 
         assert self.request.status_code == 200
         assert schema
@@ -66,6 +69,7 @@ class Test_API_Security_RC_ASM_DD_scanners:
         isinstance(schema[0]["mail"], list)
         assert len(schema[0]["mail"]) == len(EXPECTED_MAIL_SCHEMA)
         assert schema[0]["mail"][1] == EXPECTED_MAIL_SCHEMA[1]
+
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
 @coverage.basic
@@ -83,7 +87,7 @@ class Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner:
     def test_request_method(self):
         """can provide custom req.querytest schema"""
         schema = get_schema(self.request, "req.querytest")
-        EXPECTED_TESTCARD_SCHEMA = [8, { "category": "testcategory", "type": "card" }]
+        EXPECTED_TESTCARD_SCHEMA = [8, {"category": "testcategory", "type": "card"}]
 
         assert self.request.status_code == 200
         assert schema
