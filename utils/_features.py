@@ -1866,10 +1866,9 @@ class features:
         return test_object
 
     @staticmethod
-    def decisionless_trace_context_extraction(test_object):
+    def decisionless_extraction(test_object):
         """
-        Decisionless Trace Context Extraction
-
+        Sampling behavior when extracted trace context does not convey a sampling decision
         https://feature-parity.us1.prod.dog/#/?feature=261
         """
         pytest.mark.features(feature_id=261)(test_object)
@@ -1936,6 +1935,16 @@ class features:
         return test_object
 
     @staticmethod
+    def datastreams_monitoring_support_for_sqs(test_object):
+        """
+        DataStreams Monitoring support for AWS SQS
+
+        https://feature-parity.us1.prod.dog/#/?feature=268
+        """
+        pytest.mark.features(feature_id=268)(test_object)
+        return test_object
+
+    @staticmethod
     def api_security_configuration(test_object):
         """
         Schema extraction for API Security
@@ -1943,4 +1952,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=269
         """
         pytest.mark.features(feature_id=269)(test_object)
+        return test_object
+
+    @staticmethod
+    def rabbitmq_span_creationcontext_propagation_with_dd_trace(test_object):
+        """
+        [RabbitMQ][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=270
+        """
+        pytest.mark.features(feature_id=270)(test_object)
         return test_object

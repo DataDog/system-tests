@@ -23,9 +23,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
-public abstract class RabbitmqConnector {
+public class RabbitmqConnector {
 	private static final String DIRECT_EXCHANGE_NAME = "systemTestDirectExchange";
 	private static final String DIRECT_ROUTING_KEY = "systemTestDirectRoutingKey";
 	private static final String QUEUE = "systemTestRabbitmqQueue";
@@ -90,6 +92,26 @@ public abstract class RabbitmqConnector {
         thread.start();
     }
 
+
+    public void startProducingMessageWithQueue(String message, String queue) throws Exception {
+        Thread thread = new Thread("RabbitmqProduce") {
+            public void run() {
+                try {
+                    Channel channel = createChannel();
+                    channel.exchangeDeclare(DIRECT_EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
+                    channel.queueDeclare(queue, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, /*arguments=*/null);
+                    channel.queueBind(queue, DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY.concat(queue));
+                    channel.basicPublish(DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY.concat(queue), null, message.getBytes("UTF-8"));
+                    System.out.println("[rabbitmq] Published " + message);
+                } catch (Exception e) {
+                    System.out.println("[rabbitmq] Unable to produce message");
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();
+    }
+
     public void startConsumingMessages() throws Exception {
         System.out.println("[rabbitmq] Start consuming messages");
         Thread thread = new Thread("RabbitmqConsume") {
@@ -111,5 +133,43 @@ public abstract class RabbitmqConnector {
             }
         };
         thread.start();
+    }
+
+    public CompletableFuture<Boolean> startConsumingMessagesWithQueue(String queue, Integer timeout) throws Exception {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        
+        System.out.println("[rabbitmq] Start consuming messages");
+        Thread thread = new Thread("RabbitmqConsume") {
+            public void run() {
+                try {
+                    Channel channel = createChannel();
+
+                    channel.exchangeDeclare(DIRECT_EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
+                    channel.queueDeclare(queue, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, /*arguments=*/null);
+                    channel.queueBind(queue, DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY.concat(queue));
+                    System.out.println("[rabbitmq] Start consume-side bindings");
+
+                    final Consumer consumer = createConsumer(channel, ThreadLocalRandom.current().nextInt(0, 200));
+                    channel.basicConsume(queue, /*autoAck=*/false, consumer);
+
+                    future.complete(true); // Message consumed successfully
+                } catch (Exception e) {
+                    System.out.println("[rabbitmq] Unable to consume message");
+                    e.printStackTrace();
+                    future.complete(false); // Error occurred
+                }
+            }
+        };
+        thread.start();
+
+        // Add timeout
+        if (timeout > 0) {
+            thread.join(TimeUnit.SECONDS.toMillis(timeout));
+            if (thread.isAlive()) {
+                future.complete(false); // Timeout occurred
+                thread.interrupt(); // Interrupt the thread if still running
+            }
+        }
+        return future;
     }
 }

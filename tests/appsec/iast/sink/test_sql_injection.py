@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, features
+from utils import context, coverage, missing_feature, features, bug
 from .._test_iast_fixtures import BaseSinkTest
 
 
@@ -18,9 +18,13 @@ class TestSqlInjection(BaseSinkTest):
     data = {"username": "shaquille_oatmeal", "password": "123456"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SqlExamples",
-        "nodejs": "iast/index.js",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
+
+    @bug(weblog_variant="express4-typescript", reason="Incorrect vulnerability location")
+    def test_insecure(self):
+        super().test_insecure()
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
