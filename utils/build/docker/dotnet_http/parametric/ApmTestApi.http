@@ -1,0 +1,8 @@
+@ApmTestApi_HostAddress = http://localhost:5282
+
+###
+POST {{ApmTestApi_HostAddress}}/tracer/span/start/
+Accept: application/json
+###
+GET {{ApmTestApi_HostAddress}}/weatherforecast/
+Accept: application/json
