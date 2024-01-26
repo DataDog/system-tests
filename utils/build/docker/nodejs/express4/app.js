@@ -183,6 +183,27 @@ app.get('/dsm', (req, res) => {
         console.log(error)
         res.status(500).send('Internal Server Error during SQS produce')
       })
+  } else if (integration === 'rabbitmq') {
+    const queue = 'dsm-system-tests-queue'
+    const message = 'hello from SQS DSM JS'
+    const timeout = req.query.timeout ?? 5
+
+    rabbitmqProduce(queue, message)
+      .then(() => {
+        rabbitmqConsume(queue, timeout * 1000)
+          .then(() => {
+            res.status(200).send('DSM ok')
+          })
+          .catch((error) => {
+            console.error(error)
+            res.status(500).send('Internal Server Error during RabbitMQ DSM consume')
+          })
+        res.status(200).send('produce ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error during RabbitMQ DSM produce')
+      })
   } else {
     res.status(400).send('Wrong or missing integration, available integrations are [Kafka, SQS]')
   }
