@@ -29,7 +29,7 @@ class _OnboardingBlockListBaseTest:
         command_with_config = (
             f"DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/{unique_log_name} {command}"
         )
-        logger.info(f"Executing command: [{command}] associated with log file: [{unique_log_name}]")
+        logger.info(f"Executing command: [{command_with_config}] associated with log file: [{unique_log_name}]")
 
         log_local_path = scenarios.onboarding_host_block_list.host_log_folder + f"/{unique_log_name}"
 
@@ -80,6 +80,13 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         "ls -la",
         "mkdir newdir",
     ]
+
+    user_args_commands = {
+        "java": [
+            {"ignored_args": "-Dtest=test", "command": "java -jar test.jar -Dtest=test", "skip": True},
+            {"ignored_args": "-Dtest=test", "command": "java -jar test.jar -Dtest=test", "skip": False},
+        ],
+    }
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
@@ -150,3 +157,20 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         assert command_injection_skipped(
             execute_command, local_log_file
         ), f"The command {execute_command} was instrumented, but it's defined on the user block list!"
+
+    @irrelevant(
+        condition="datadog-apm-inject" not in context.scenario.components
+        or context.scenario.components["datadog-apm-inject"] < "0.12.4",
+        reason="Block list not fully implemented ",
+    )
+    def test_user_ignored_args(self, onboardig_vm):
+        """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
+
+        if onboardig_vm.language in self.user_args_commands:
+            ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
+            for test_config in self.user_args_commands[onboardig_vm.language]:
+                execute_command = f"DD_JAVA_IGNORED_ARGS='{test_config['ignored_args']}' {test_config['command']}"
+                local_log_file = self._execute_remote_command(ssh_client, execute_command)
+                assert test_config["skip"] == command_injection_skipped(
+                    execute_command, local_log_file
+                ), f"The command {execute_command} with ignored args {test_config['ignored_args']} should skip [{test_config['skip']}]!"
