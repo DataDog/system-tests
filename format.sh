@@ -20,7 +20,8 @@ fi
 # To determine whether docker is rootless, examine the permissions of the file
 # referred to by DOCKER_HOST. If it's owned by the current user, then assume
 # that docker is rootless.
-if [[ "$DOCKER_HOST" == unix://* && -O "${DOCKER_HOST#unix://}" ]]; then
+DOCKER_HOST="${DOCKER_HOST:-}"
+if [[ "${DOCKER_HOST}" == unix://* && -O "${DOCKER_HOST#unix://}" ]]; then
   user_arg=""
 else
   user_arg="--user=$(id -u):$(id -g)"
