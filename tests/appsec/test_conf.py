@@ -2,18 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, missing_feature, irrelevant, rfc, scenarios
+from utils import weblog, context, coverage, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
 
-@coverage.not_testable
-class Test_OneVariableInstallation:
-    """Installation with 1 env variable"""
-
-
 @coverage.basic
+@features.threats_configuration
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
 
@@ -28,6 +24,7 @@ class Test_StaticRuleSet:
 
 
 @coverage.basic
+@features.threats_configuration
 class Test_RuleSet_1_2_4:
     """ AppSec uses rule set 1.2.4 or higher """
 
@@ -36,6 +33,7 @@ class Test_RuleSet_1_2_4:
 
 
 @coverage.basic
+@features.threats_configuration
 class Test_RuleSet_1_2_5:
     """ AppSec uses rule set 1.2.5 or higher """
 
@@ -44,6 +42,7 @@ class Test_RuleSet_1_2_5:
 
 
 @coverage.good
+@features.threats_configuration
 class Test_RuleSet_1_3_1:
     """ AppSec uses rule set 1.3.1 or higher """
 
@@ -70,6 +69,7 @@ class Test_RuleSet_1_3_1:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
+@features.threats_configuration
 class Test_ConfigurationVariables:
     """ Configuration environment variables """
 
@@ -107,7 +107,7 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(1000)))
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(10_000)))
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"})
 
     @missing_feature(context.library < "java@0.113.0")

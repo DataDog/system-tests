@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature
+from utils import context, interfaces, bug, missing_feature, features
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -129,6 +129,8 @@ def get_component_name(weblog_variant, language, span_name):
     return expected_component
 
 
+@features.runtime_id_in_span_metadata_for_service_entry_spans
+@features.unix_domain_sockets_support_for_traces
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -296,6 +298,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
+@features.add_metadata_globally_to_all_spans_dd_tags
 class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
@@ -313,6 +316,7 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
+@features.data_integrity
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

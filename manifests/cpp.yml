@@ -6,11 +6,13 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_apisec_sampling.py: irrelevant (ASM is not implemented in C++)
       test_schemas.py: irrelevant (ASM is not implemented in C++)
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
+        test_header_injection.py: irrelevant (ASM is not implemented in C++)
         test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
         test_insecure_cookie.py: irrelevant (ASM is not implemented in C++)
         test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
@@ -53,12 +55,9 @@ tests/:
     test_alpha.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
     test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
+    test_client_ip.py: irrelevant (ASM is not implemented in C++)
     test_conf.py: irrelevant (ASM is not implemented in C++)
     test_customconf.py: irrelevant (ASM is not implemented in C++)
-    test_docs.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_ognl.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_sqli.py: irrelevant (ASM is not implemented in C++)
-    test_endpoint_ssrf.py: irrelevant (ASM is not implemented in C++)
     test_event_tracking.py: irrelevant (ASM is not implemented in C++)
     test_identify.py: irrelevant (ASM is not implemented in C++)
     test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
@@ -78,8 +77,20 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
-    test_crossed_integrations.py:
-      Test_PythonKafka: missing_feature
+    crossed_integrations/:
+      test_kafka.py:
+        Test_GolangKafka: missing_feature
+        Test_JavaKafka: missing_feature
+        Test_NodeJSKafka: missing_feature
+        Test_PythonKafka: missing_feature
+        Test_RubyKafka: missing_feature
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py: 
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -92,11 +103,23 @@ tests/:
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
+      TestDynamicConfigV2: missing_feature
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature
+    test_telemetry.py:
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
+      Test_TelemetryInstallSignature: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: missing_feature
+      Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Resource: missing_feature
+      Test_Trace_Sampling_Tags: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:

@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature
+from utils import context, coverage, missing_feature, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
 @coverage.basic
+@features.iast_sink_path_traversal
 class TestPathTraversal(BaseSinkTest):
     """Test path traversal detection."""
 
@@ -17,7 +18,7 @@ class TestPathTraversal(BaseSinkTest):
     data = {"path": "/var/log"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.PathExamples",
-        "nodejs": "iast/index.js",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 

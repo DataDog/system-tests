@@ -1,20 +1,11 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import (
-    weblog,
-    bug,
-    context,
-    coverage,
-    interfaces,
-    irrelevant,
-    missing_feature,
-    rfc,
-    scenarios,
-)
+from utils import weblog, bug, context, coverage, interfaces, irrelevant, missing_feature, rfc, scenarios, features
 
 
 @coverage.basic
+@features.appsec_request_blocking
 class Test_UrlQueryKey:
     """Appsec supports keys on server.request.query"""
 
@@ -28,6 +19,7 @@ class Test_UrlQueryKey:
 
 
 @coverage.good
+@features.appsec_request_blocking
 class Test_UrlQuery:
     """Appsec supports values on server.request.query"""
 
@@ -59,6 +51,7 @@ class Test_UrlQuery:
 
 
 @coverage.basic
+@features.appsec_request_blocking
 class Test_UrlRaw:
     """Appsec supports server.request.uri.raw"""
 
@@ -71,6 +64,7 @@ class Test_UrlRaw:
 
 
 @coverage.good
+@features.appsec_request_blocking
 class Test_Headers:
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -139,6 +133,7 @@ class Test_Headers:
 
 
 @coverage.good
+@features.appsec_request_blocking
 class Test_Cookies:
     """Appsec supports server.request.cookies"""
 
@@ -237,6 +232,7 @@ class Test_Cookies:
 
 
 @coverage.basic
+@features.appsec_request_blocking
 class Test_BodyRaw:
     """Appsec supports <body>"""
 
@@ -251,6 +247,7 @@ class Test_BodyRaw:
 
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@features.appsec_request_blocking
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
 
@@ -278,6 +275,7 @@ class Test_BodyUrlEncoded:
 
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@features.appsec_request_blocking
 class Test_BodyJson:
     """Appsec supports <JSON encoded body>"""
 
@@ -312,6 +310,7 @@ class Test_BodyJson:
 
 
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@features.appsec_request_blocking
 @coverage.basic
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""
@@ -344,17 +343,24 @@ class Test_BodyXml:
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
 
 
-@coverage.not_implemented
+@features.appsec_request_blocking
 class Test_Method:
     """Appsec supports server.request.method"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
+@features.appsec_request_blocking
 class Test_ClientIP:
     """Appsec supports server.request.client_ip"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
+
 
 @coverage.good
+@features.appsec_request_blocking
 class Test_ResponseStatus:
     """Appsec supports values on server.response.status"""
 
@@ -372,6 +378,7 @@ class Test_ResponseStatus:
 
 
 @coverage.basic
+@features.appsec_request_blocking
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""
 
@@ -386,6 +393,8 @@ class Test_PathParams:
 
 
 @coverage.basic
+@features.appsec_request_blocking
+@features.grpc_threats_management
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""
 
@@ -403,16 +412,27 @@ class Test_gRPC:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
-@coverage.not_implemented
+@features.appsec_request_blocking
+@features.grpc_threats_management
 class Test_FullGrpc:
     """Full gRPC support"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
+@features.appsec_request_blocking
+@features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
+@features.appsec_request_blocking
 class Test_Lambda:
     """Lambda support"""
+
+    def test_main(self):
+        assert False, "Need to write a test"

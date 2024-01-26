@@ -293,6 +293,11 @@ function main() {
                 scenarios+=(APPSEC_BLOCKING_FULL_DENYLIST)
                 unset "scenarios[${i}]"
                 ;;
+
+            LIBRARY_CONF_CUSTOM_HEADERS_SHORT|LIBRARY_CONF_CUSTOM_HEADERS_LONG)
+                scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 
@@ -311,11 +316,9 @@ function main() {
 
     if [[ "${#libraries[@]}" -gt 0 ]]; then
       for library in "${libraries[@]}"; do
-          case "${library}" in
-              dotnet|go|python_http)
-                  pytest_numprocesses=1
-                  ;;
-          esac
+          if [ "${library}" = "dotnet" ]; then
+            pytest_numprocesses=1
+          fi
       done
     fi
 

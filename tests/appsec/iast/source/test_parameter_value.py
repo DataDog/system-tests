@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, bug
+from utils import context, coverage, missing_feature, bug, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
 @coverage.basic
+@features.iast_source_request_parameter_value
 class TestParameterValue(BaseSourceTest):
     """Verify that request parameters are tainted"""
 

@@ -82,7 +82,7 @@ namespace weblog
             try
             {
                 System.Diagnostics.Process.Start(data.table);
-                
+
                 return Content("Ok");
             }
             catch
@@ -97,7 +97,7 @@ namespace weblog
             try
             {
                 System.Diagnostics.Process.Start(table);
-                
+
                 return Content("Ok");
             }
             catch
@@ -386,16 +386,89 @@ namespace weblog
         }
 
         [HttpGet("weak_randomness/test_insecure")]
-        public IActionResult test_insecure_weakRandomness(string user)
+        public IActionResult test_insecure_weakRandomness()
         {
             return Content("Weak random number: " + (new Random()).Next().ToString(), "text/html");
         }
 
         [HttpGet("weak_randomness/test_secure")]
-        public IActionResult test_secure_weakRandomness(string user)
+        public IActionResult test_secure_weakRandomness()
         {
             return Content("Secure random number: " + RandomNumberGenerator.GetInt32(100).ToString(), "text/html");
         }
+
+        [HttpGet("trust-boundary-violation/test_insecure")]
+        public IActionResult test_insecure_trustBoundaryViolation([FromQuery]string username, [FromQuery]string password)
+        {
+            HttpContext.Session.SetString("UserData", username);
+            return Content("Parameter added to session. User : " + HttpContext.Session.GetString("UserData"));
+        }
+
+        [HttpGet("trust-boundary-violation/test_secure")]
+        public IActionResult test_secure_trustBoundaryViolation([FromQuery]string username, [FromQuery]string password)
+        {
+            return Content("Nothing added to session");
+        }
+        
+        [HttpPost("unvalidated_redirect/test_insecure_header")]
+        public IActionResult test_insecure_redirect_header([FromForm]string location)
+        {
+            Response.Headers["location"] = location;
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_secure_header")]
+        public IActionResult test_secure_redirect_header()
+        {
+            var location = "http://dummy.location.com";
+            Response.Headers["location"] = location;
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_insecure_redirect")]
+        public IActionResult test_insecure_redirect([FromForm]string location)
+        {
+            Response.Redirect(location);
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_secure_redirect")]
+        public IActionResult test_secure_redirect()
+        {
+            var location = "http://dummy.location.com";
+            Response.Redirect(location);
+            return Content("Redirected to " + location);
+        }
+
+        [HttpGet("source/cookievalue/test")]
+        public IActionResult test_cookie_value()
+        {
+            var process = Request.Cookies["table"];
+            try
+            {
+                System.Diagnostics.Process.Start(process);                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+        
+        [HttpGet("source/cookiename/test")]
+        public IActionResult test_cookie_name()
+        {
+            var process = Request.Cookies.Keys.First();
+            try
+            {
+                System.Diagnostics.Process.Start(process);                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }                
 
         [HttpPost("source/body/test")]
         public IActionResult test_source_body([FromBody]BodyForIast body)

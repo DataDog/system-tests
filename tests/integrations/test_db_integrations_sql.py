@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import context, bug, missing_feature, irrelevant, scenarios, flaky
+from utils import context, bug, missing_feature, irrelevant, scenarios, features
 from utils.tools import logger
 
 from .sql_utils import BaseDbIntegrationsTestClass
@@ -222,6 +222,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                 ), f"The query is not properly obfuscated for operation {db_operation}"
 
 
+@features.postgres_support
 @scenarios.integrations
 class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
     """ Postgres integration with Datadog tracer+agent """
@@ -234,6 +235,7 @@ class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
         super().test_db_type()
 
 
+@features.mysql_support
 @scenarios.integrations
 class Test_MySql(_BaseDatadogDbIntegrationTestClass):
     """ MySql integration with Datadog tracer+agent """
@@ -250,6 +252,7 @@ class Test_MySql(_BaseDatadogDbIntegrationTestClass):
         super().test_db_user()
 
 
+@features.mssql_support
 @scenarios.integrations
 class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     """ MsSql integration with Datadog tracer+agent """
