@@ -227,6 +227,8 @@ tests/:
       TestDynamicConfigV2: v2.44.0
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
       Test_TelemetryInstallSignature: v2.45.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
