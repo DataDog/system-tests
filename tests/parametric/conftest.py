@@ -210,20 +210,6 @@ WORKDIR /app
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-# ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
-RUN dos2unix /binaries/install_ddtrace.sh
-RUN /binaries/install_ddtrace.sh
-
-# restore nuget packages
-COPY ["{dotnet_reldir}/ApmTestClient.csproj", "{dotnet_reldir}/nuget.config", "{dotnet_reldir}/*.nupkg", "./"]
-RUN dotnet restore "./ApmTestClient.csproj"
-
-# build and publish
-COPY {dotnet_reldir} ./
-RUN dotnet publish --no-restore --configuration Release --output out
-WORKDIR /app/out
-
 # Set up automatic instrumentation (required for OpenTelemetry tests),
 # but don't enable it globally
 ENV CORECLR_ENABLE_PROFILING=0
@@ -237,15 +223,21 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
-COPY /install_ddtrace.sh /binaries/
+# ensure that the Datadog.Trace.dlls are installed from /binaries
+COPY /install_ddtrace.sh /query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
+
+RUN ls /binaries
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["ApmTestApi.csproj", "."]
+
+# restore nuget packages
+COPY ["ApmTestApi.csproj", "nuget.config", "*.nupkg", "./"]
 RUN dotnet restore "./././ApmTestApi.csproj"
+
 COPY . .
 WORKDIR "/src/."
 RUN dotnet build "./ApmTestApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
@@ -261,7 +253,7 @@ ENTRYPOINT ["dotnet", "ApmTestApi.dll"]
 """,
         container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
-        container_build_context=_get_base_directory(),
+        container_build_context=dotnet_absolute_appdir,
         volumes=[],
         env={},
         port="",

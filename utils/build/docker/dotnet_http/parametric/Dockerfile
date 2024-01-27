@@ -22,15 +22,21 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
-COPY /install_ddtrace.sh /binaries/
+# ensure that the Datadog.Trace.dlls are installed from /binaries
+COPY /install_ddtrace.sh /query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
+
+RUN ls /binaries
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["ApmTestApi.csproj", "."]
+
+# restore nuget packages
+COPY ["ApmTestApi.csproj", "nuget.config", "*.nupkg", "./"]
 RUN dotnet restore "./././ApmTestApi.csproj"
+
 COPY . .
 WORKDIR "/src/."
 RUN dotnet build "./ApmTestApi.csproj" -c $BUILD_CONFIGURATION -o /app/build

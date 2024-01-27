@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <Protobuf Include="Protos\apm_test_client.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.52.0" />
+    <PackageReference Include="LucasP.DuckTyping" Version="0.1.0" />
+  </ItemGroup>
+
+</Project>
