@@ -130,7 +130,6 @@ class Test_TracerSCITagging:
     @missing_feature(context.library == "golang", reason="golang does not strip credentials yet")
     @missing_feature(context.library == "nodejs", reason="nodejs does not strip credentials yet")
     @missing_feature(context.library == "python", reason="python does not strip credentials yet")
-    @missing_feature(context.library == "python_http", reason="python does not strip credentials yet")
     def test_tracer_repository_url_strip_credentials(
         self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
     ) -> None:

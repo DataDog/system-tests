@@ -1,5 +1,6 @@
 import enum
 from typing import Literal
+from typing import Tuple
 
 
 # Remote Configuration apply status is used by clients to report the application status of a Remote Configuration
@@ -28,3 +29,8 @@ class Capabilities(enum.IntEnum):
     APM_TRACING_LOGS_INJECTION = 13
     APM_TRACING_HTTP_HEADER_TAGS = 14
     APM_TRACING_CUSTOM_TAGS = 15
+    APM_TRACING_ENABLED = 19
+
+
+def human_readable_capabilities(caps: int) -> Tuple[str]:
+    return tuple(c.name for c in Capabilities if caps >> c & 1)

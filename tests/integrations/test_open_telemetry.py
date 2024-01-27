@@ -1,4 +1,4 @@
-from utils import context, bug, flaky, irrelevant, missing_feature, scenarios
+from utils import context, bug, features, irrelevant, missing_feature, scenarios
 from utils.tools import logger
 from .sql_utils import BaseDbIntegrationsTestClass
 
@@ -45,6 +45,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     "db.name",
                     "peer.service",
                     "net.peer.name",
+                    "server.address",
                 ]:  # These fields hostname, user... are the same as password
                     assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
 
@@ -132,6 +133,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             ), f"{db_operation}  not found in {span['meta']['db.statement']}"
 
 
+@features.otel_postgres_support
 @scenarios.otel_integrations
 class Test_Postgres(_BaseOtelDbIntegrationTestClass):
     """ OpenTelemetry/Postgres integration """
@@ -139,6 +141,7 @@ class Test_Postgres(_BaseOtelDbIntegrationTestClass):
     db_service = "postgresql"
 
 
+@features.otel_mysql_support
 @scenarios.otel_integrations
 class Test_MySql(_BaseOtelDbIntegrationTestClass):
     """ OpenTelemetry/MySql integration """
@@ -146,6 +149,7 @@ class Test_MySql(_BaseOtelDbIntegrationTestClass):
     db_service = "mysql"
 
 
+@features.otel_mssql_support
 @scenarios.otel_integrations
 class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     """ OpenTelemetry/MsSql integration """

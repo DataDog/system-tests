@@ -6,45 +6,72 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_apisec_sampling.py:
+        Test_API_Security_sampling:
+          '*': missing_feature
+          django-poc: v2.5.0
+          fastapi: v2.5.0
+          flask-poc: v2.5.0
+          python3.12: v2.5.0
       test_schemas.py:
         Test_Scanners:
           '*': missing_feature
           django-poc: v2.4.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.4.0.dev
           python3.12: v2.4.0.dev
-        Test_Schema_Request_Body:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
         Test_Schema_Request_Cookies:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
+        Test_Schema_Request_FormUrlEncoded_Body:
+          '*': missing_feature
+          django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Request_Headers:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
+          flask-poc: v2.1.0.dev
+          python3.12: v2.1.0.dev
+        Test_Schema_Request_Json_Body:
+          '*': missing_feature
+          django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Request_Path_Parameters:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Request_Query_Parameters:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
         Test_Schema_Response_Body:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
+        Test_Schema_Response_Body_env_var:
+          '*': missing_feature
+          django-poc: v2.6.0.dev
+          fastapi: v2.6.0.dev1
+          flask-poc: v2.6.0.dev
+          python3.12: v2.6.0.dev
         Test_Schema_Response_Headers:
           '*': missing_feature
           django-poc: v2.1.0.dev
+          fastapi: v2.5.0.dev1
           flask-poc: v2.1.0.dev
           python3.12: v2.1.0.dev
     iast/:
@@ -55,7 +82,7 @@ tests/:
             fastapi: missing_feature
             python3.12: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature            
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -185,7 +212,7 @@ tests/:
         Test_BodyXml:
           '*': v1.5.0rc1.dev
           fastapi: v2.4.0.dev1
-        Test_ClientIP: v1.5.0rc1.dev
+        Test_ClientIP: missing_feature (v1.5.0rc1.dev but test is not implemented)
         Test_Cookies:
           django-poc: v1.1.0rc2.dev
           fastapi: v2.4.0.dev1
@@ -362,7 +389,7 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: v1.20.0
+      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
@@ -376,10 +403,6 @@ tests/:
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0rc2.dev
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
-    test_docs.py:
-      Test_InstallationDebugProcedure: v1.4.2
-      Test_InstallationInstructions: v1.4.2
-      Test_PublicDocumentation: v1.4.2
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
       Test_UserLoginFailureEvent: v1.9.0
@@ -409,10 +432,11 @@ tests/:
       Test_AppSecEventSpanTags: v0.58.5
       Test_AppSecObfuscator:
         '*': v1.5.0rc1.dev
-        fastapi: bug (overwrite of waf reports, will be fixed with nested events)
+        fastapi: v2.6.0.dev1
       Test_CollectRespondHeaders:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
@@ -428,12 +452,33 @@ tests/:
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
-    test_crossed_integrations.py:
-      Test_PythonKafka:
-        '*': v0.1 # real version unknown
-        django-poc: missing_feature (missing endpoint on weblog)
-        fastapi: missing_feature (missing endpoint on weblog)
-        python3.12: missing_feature (missing endpoint on weblog)
+    crossed_integrations/:
+      test_kafka.py:
+        Test_GolangKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+        Test_JavaKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+        Test_NodeJSKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+        Test_PythonKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+        Test_RubyKafka:
+          '*': missing_feature (missing endpoint on weblog)
+          flask-poc: v0.1 # real version unknown
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": missing_feature (Endpoint not implemented)
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+          flask-poc: v0.1 # real version not known
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
+          flask-poc: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
@@ -456,18 +501,31 @@ tests/:
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSQS:
+        '*': missing_feature
+        flask-poc: v1.20.3
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_sampling_delegation.py:
+      Test_Decisionless_Extraction: >-
+        missing_feature
+        (The "_sampling_priority_v1" numeric tag is missing from the local
+        root span when the trace was extracted without a sampling decision.
+        See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782691947?pr=2005>.)
     test_span_links.py:
       Test_Span_Links: v2.3.0
+    test_telemetry.py:
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
+      Test_TelemetryInstallSignature: v2.5.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
-
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
       Test_TracerUniversalServiceTagging: v0.36.0
@@ -492,8 +550,14 @@ tests/:
     Test_Propagate_Legacy: v1.5.0rc1.dev
   test_library_conf.py:
     Test_HeaderTags: v0.53
-    Test_HeaderTagsLongFormat: v1.2.1
-    Test_HeaderTagsShortFormat: missing_feature
+    Test_HeaderTags_Colon_Leading: v1.2.1 # was marked as ? when we used decorators
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8601)
+    Test_HeaderTags_Long: v1.2.1
+    Test_HeaderTags_Short: missing_feature
+    Test_HeaderTags_Whitespace_Header: missing_feature
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
+    Test_HeaderTags_Whitespace_Val_Long: v1.2.1
+    Test_HeaderTags_Whitespace_Val_Short: missing_feature
   test_profiling.py:
     Test_Profile:
       '*': v0.1 # real version unknown

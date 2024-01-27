@@ -1,4 +1,4 @@
-FROM datadog/system-tests:python3.12.base-v0
+FROM datadog/system-tests:python3.12.base-v1
 
 WORKDIR /app
 

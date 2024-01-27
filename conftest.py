@@ -22,14 +22,6 @@ JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
 _deselected_items = []
 
 
-def _JSON_REPORT_FILE():
-    return f"{context.scenario.host_log_folder}/report.json"
-
-
-def _XML_REPORT_FILE():
-    return f"{context.scenario.host_log_folder}/reportJunit.xml"
-
-
 def pytest_addoption(parser):
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
@@ -70,8 +62,8 @@ def pytest_configure(config):
     context.scenario.configure(config)
 
     if not config.option.replay and not config.option.collectonly:
-        config.option.json_report_file = _JSON_REPORT_FILE()
-        config.option.xmlpath = _XML_REPORT_FILE()
+        config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
+        config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
 
 
 # Called at the very begening
@@ -95,44 +87,38 @@ def pytest_sessionstart(session):
 def _collect_item_metadata(item):
 
     result = {
-        "docs": {},
-        "skip_reason": None,
-        "release_versions": {},
-        "coverages": {},
-        "rfcs": {},
+        "details": None,
+        "testDeclaration": None,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
     }
 
-    result["docs"][item.nodeid] = item.obj.__doc__
-    result["docs"][item.parent.nodeid] = item.parent.obj.__doc__
-
-    if hasattr(item.parent.parent, "obj"):
-        result["docs"][item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
-    else:
-        result["docs"][item.parent.parent.nodeid] = "Unexpected structure"
-
-    if released_declaration := getattr(item.parent.obj, "__released__", None):
-        result["release_versions"][item.parent.nodeid] = released_declaration
-
-    if hasattr(item.parent.obj, "__coverage__"):
-        result["coverages"][item.parent.nodeid] = getattr(item.parent.obj, "__coverage__")
-
-    if hasattr(item.parent.obj, "__rfc__"):
-        result["rfcs"][item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
-    if hasattr(item.obj, "__rfc__"):
-        result["rfcs"][item.nodeid] = getattr(item.obj, "__rfc__")
-
     # get the reason form skip before xfail
     markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
-
     for marker in markers:
-        result["skip_reason"] = _get_skip_reason_from_marker(marker)
-        if result["skip_reason"]:
-            logger.debug(f"{item.nodeid} => {result['skip_reason']} => skipped")
-            break
+        skip_reason = _get_skip_reason_from_marker(marker)
 
-    # small cleanups
-    result["docs"] = {k: v for k, v in result["docs"].items() if v is not None}
+        if skip_reason is not None:
+            # if any irrelevant declaration exists, it is the one we need to expose
+            if skip_reason.startswith("irrelevant"):
+                result["details"] = skip_reason
+
+            # otherwise, we keep the first one we found
+            elif result["details"] is None:
+                result["details"] = skip_reason
+
+    if result["details"]:
+        logger.debug(f"{item.nodeid} => {result['details']} => skipped")
+
+        if result["details"].startswith("irrelevant"):
+            result["testDeclaration"] = "irrelevant"
+        elif result["details"].startswith("flaky"):
+            result["testDeclaration"] = "flaky"
+        elif result["details"].startswith("bug"):
+            result["testDeclaration"] = "bug"
+        elif result["details"].startswith("missing_feature"):
+            result["testDeclaration"] = "notImplemented"
+        else:
+            raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
 
     return result
 
@@ -155,10 +141,7 @@ def pytest_pycollect_makemodule(module_path, parent):
 
     # As now, declaration only works for tracers at module level
 
-    if context.scenario.library.library == "python_http":
-        library = "python"
-    else:
-        library = context.scenario.library.library
+    library = context.scenario.library.library
 
     manifests = load_manifests()
 
@@ -194,7 +177,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
             declaration = manifest[nodeid]
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            released(_is_from_manifest=True, **declaration)(obj)
+            released(**declaration)(obj)
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -324,40 +307,8 @@ def pytest_json_runtest_metadata(item, call):
 def pytest_json_modifyreport(json_report):
 
     try:
-        logger.debug("Modifying JSON report")
-
-        # populate and adjust some data
-        for test in json_report["tests"]:
-            if "metadata" in test:
-                # legacy
-                test["skip_reason"] = test["metadata"]["skip_reason"]
-
         # add usefull data for reporting
-        json_report["docs"] = {}
         json_report["context"] = context.serialize()
-        json_report["release_versions"] = {}
-        json_report["rfcs"] = {}
-        json_report["coverages"] = {}
-
-        # clean useless and volumetric data
-        json_report.pop("collectors", None)
-
-        # collect metadataa
-        for test in json_report["tests"]:
-            if "metadata" in test:
-                json_report["docs"] = json_report["docs"] | test["metadata"]["docs"]
-                json_report["release_versions"] = json_report["release_versions"] | test["metadata"]["release_versions"]
-                json_report["rfcs"] = json_report["rfcs"] | test["metadata"]["rfcs"]
-                json_report["coverages"] = json_report["coverages"] | test["metadata"]["coverages"]
-
-                del test["metadata"]["coverages"]
-                del test["metadata"]["rfcs"]
-                del test["metadata"]["release_versions"]
-                del test["metadata"]["docs"]
-
-            for k in ("setup", "call", "teardown", "keywords", "coverages"):
-                if k in test:
-                    del test[k]
 
         logger.debug("Modifying JSON report finished")
 
@@ -379,15 +330,16 @@ def pytest_sessionfinish(session, exitstatus):
                 {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
             )
 
+        data = session.config._json_report.report  # pylint: disable=protected-access
+
         junit_modifyreport(
-            _JSON_REPORT_FILE(), _XML_REPORT_FILE(), junit_properties=context.scenario.get_junit_properties(),
+            data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
         )
 
-        export_feature_parity_dashbaord(session)
+        export_feature_parity_dashbaord(session, data)
 
 
-def export_feature_parity_dashbaord(session):
-    data = session.config._json_report.report  # pylint: disable=protected-access
+def export_feature_parity_dashbaord(session, data):
 
     result = {
         "runUrl": session.config.option.report_run_url,
@@ -412,23 +364,10 @@ def convert_test_to_feature_parity_model(test):
         "path": test["nodeid"],
         "lineNumber": test["lineno"],
         "outcome": test["outcome"],
-        "testDeclaration": None,
-        "details": test["skip_reason"],
+        "testDeclaration": test["metadata"]["testDeclaration"],
+        "details": test["metadata"]["details"],
         "features": test["metadata"]["features"],
     }
-
-    if result["details"] is None:
-        result["testDeclaration"] = None
-    elif result["details"].startswith("irrelevant"):
-        result["testDeclaration"] = "irrelevant"
-    elif result["details"].startswith("flaky"):
-        result["testDeclaration"] = "flaky"
-    elif result["details"].startswith("bug"):
-        result["testDeclaration"] = "bug"
-    elif result["details"].startswith("missing_feature"):
-        result["testDeclaration"] = "notImplemented"
-    else:
-        raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
 
     return result
 

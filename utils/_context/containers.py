@@ -402,7 +402,7 @@ class AgentContainer(TestedContainer):
 
 
 class BuddyContainer(TestedContainer):
-    def __init__(self, name, image_name, host_log_folder, proxy_port) -> None:
+    def __init__(self, name, image_name, host_log_folder, proxy_port, environment) -> None:
         super().__init__(
             name=name,
             image_name=image_name,
@@ -410,6 +410,7 @@ class BuddyContainer(TestedContainer):
             healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
             ports={"7777/tcp": proxy_port},  # not the proxy port
             environment={
+                **environment,
                 "DD_SERVICE": name,
                 "DD_ENV": "system-tests",
                 "DD_VERSION": "1.0.0",
@@ -455,7 +456,6 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self.php_appsec = None
         self.libddwaf_version = None
         self.appsec_rules_version = None
 
@@ -480,9 +480,6 @@ class WeblogContainer(TestedContainer):
         super().configure(replay)
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        if self.library == "php":
-            self.php_appsec = Version(self.image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
-
         if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
 
@@ -503,7 +500,7 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_TRACE_HEADER_TAGS"] = ""
 
         if len(self.additional_trace_header_tags) != 0:
-            self.environment["DD_TRACE_HEADER_TAGS"] += ",".join(self.additional_trace_header_tags)
+            self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
         if self.appsec_rules_file:
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
@@ -737,3 +734,16 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         if prev_mode != new_mode:
             os.chmod(self._otel_config_host_path, new_mode)
         return super().start()
+
+
+class ElasticMQContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="softwaremill/elasticmq:latest",
+            name="elasticmq",
+            host_log_folder=host_log_folder,
+            environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
+            ports={9324: 9324},
+            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+            allow_old_container=True,
+        )

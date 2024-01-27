@@ -48,7 +48,12 @@ def waf(request, *args, **kwargs):
             tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
         )
         if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
-            return HttpResponse(json.dumps({"payload": dict(request.POST)}), content_type="application/json")
+            return HttpResponse(
+                json.dumps({"payload": dict(request.POST)}),
+                content_type="application/json",
+                status=int(kwargs["status_code"]),
+                headers=request.GET.dict(),
+            )
         return HttpResponse("Value tagged", status=int(kwargs["status_code"]), headers=request.GET.dict())
     return HttpResponse("Hello, World!")
 

@@ -36,6 +36,8 @@ public class AppSecIast {
     private final XPathExamples xPathExamples;
     private final XSSExamples xssExamples;
 
+    private final HardcodedSecretExamples hardcodedSecretExamples;
+
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
@@ -46,6 +48,12 @@ public class AppSecIast {
         this.weakRandomnessExamples = new WeakRandomnessExamples();
         this.xPathExamples = new XPathExamples();
         this.xssExamples = new XSSExamples();
+        this.hardcodedSecretExamples = new HardcodedSecretExamples();
+    }
+
+    @RequestMapping("/hardcoded_secrets/test_insecure")
+    String hardcodedSecrets() {
+        return hardcodedSecretExamples.SECRET;
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -324,6 +332,21 @@ public class AppSecIast {
         response.setStatus(HttpStatus.OK.value());
         return "ok";
     }
+
+    @PostMapping("/header_injection/test_insecure")
+    public String headerInjectionInsecure(final HttpServletRequest request, HttpServletResponse response) {
+      String paramValue = request.getParameter("test");
+      response.addHeader("X-Test-Header", paramValue);
+      return "Ok";
+    }
+
+    @PostMapping("/header_injection/test_secure")
+    public String headerInjectionSecure(final HttpServletRequest request, HttpServletResponse response) {
+      String paramValue = request.getParameter("test");
+        response.addHeader("Sec-WebSocket-Location", paramValue);
+      return "Ok";
+    }
+
 
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily

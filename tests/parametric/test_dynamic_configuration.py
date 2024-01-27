@@ -8,7 +8,7 @@ from typing import List
 
 from utils.parametric.spec.remoteconfig import Capabilities
 from utils.parametric.spec.trace import Span, assert_trace_has_tags
-from utils import context, missing_feature, irrelevant, rfc, scenarios
+from utils import context, missing_feature, irrelevant, rfc, scenarios, features
 
 import pytest
 
@@ -97,8 +97,49 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
 ENV_SAMPLING_RULE_RATE = 0.55
 
 
+@scenarios.parametric
+@features.dynamic_configuration
+class TestDynamicConfigTracingEnabled:
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the tracing enabled capability."""
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
+
+    @parametrize(
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+    )
+    def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
+        if library_env.get("DD_TRACE_ENABLED", True):
+            with test_library:
+                with test_library.start_span("test"):
+                    pass
+            test_agent.wait_for_num_traces(num=1, clear=True)
+            assert True, (
+                "DD_TRACE_ENABLED=true and unset results in a trace being sent."
+                "wait_for_num_traces does not raise an exception."
+            )
+
+        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        with test_library:
+            with test_library.start_span("test"):
+                pass
+        with pytest.raises(ValueError, "no traces are sent after RC response with tracing_enabled: false"):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        set_and_wait_rc(test_agent, config_overrides={})
+        with test_library:
+            with test_library.start_span("test"):
+                pass
+        with pytest.raises(
+            ValueError,
+            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting",
+        ):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
+@features.dynamic_configuration
 class TestDynamicConfigV1:
     """Tests covering the v1 release of the dynamic configuration feature.
 
@@ -270,7 +311,7 @@ class TestDynamicConfigV1:
         assert cfg_state["apply_state"] == 2
 
     @missing_feature(
-        context.library in ["java", "dotnet", "python_http", "golang", "nodejs"], reason="RPC not implemented yet"
+        context.library in ["java", "dotnet", "python", "golang", "nodejs"], reason="RPC not implemented yet"
     )
     @parametrize(
         "library_env",
@@ -341,6 +382,7 @@ class TestDynamicConfigV1:
 
 @rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
 @scenarios.parametric
+@features.dynamic_configuration
 class TestDynamicConfigV2:
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
@@ -368,7 +410,7 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
 
         # Ensure previous tags are restored.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_tags": None})
+        set_and_wait_rc(test_agent, config_overrides={})
         with test_library:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
