@@ -24,3 +24,11 @@ class TestKafkaValue(BaseSourceTest):
     def get_sources(self, request):
         iast_event = get_all_iast_events()
         return get_iast_sources(iast_event)
+
+    @scenarios.integrations
+    def test_telemetry_metric_instrumented_source(self):
+        return super().test_telemetry_metric_instrumented_source()
+
+    @scenarios.integrations
+    def test_telemetry_metric_executed_source(self):
+        return super().test_telemetry_metric_executed_source()
