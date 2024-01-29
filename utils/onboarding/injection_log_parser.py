@@ -14,6 +14,7 @@ def command_injection_skipped(command_line, log_local_path):
         if command in first_line_json["inFilename"]:
             # last line contains the skip message. The command was skipped by build-in deny list or by user deny list
             last_line_json = json.loads(command_desc[-1])
+            # pylint: disable=R1705
             if last_line_json["msg"] == "not injecting; on deny list":
                 logger.debug(f"    Command {command_args} was skipped by build-in deny list")
                 return True
@@ -98,7 +99,7 @@ def _get_commands_from_log_file(log_local_path):
 
     store_as_command = False
     command_lines = []
-    with open(log_local_path) as f:
+    with open(log_local_path, "UTF-8") as f:
         for line in f:
             if "starting process" in line:
                 store_as_command = True
