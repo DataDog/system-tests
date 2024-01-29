@@ -178,5 +178,5 @@ check_merge_labels:
     - echo "EL COMMIT BRANCH --- $CI_COMMIT_BRANCH"
     - echo "EL COMMIT MESSAGE --- $CI_COMMIT_MESSAGE"
   rules:
-    - if: $CI_PIPELINE_SOURCE == "push" #$CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "push" #&& $CI_COMMIT_BRANCH == "robertomonteromiguel/auto_generate_buddies"
 
