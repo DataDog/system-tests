@@ -8,9 +8,7 @@ def rabbitmq_produce(queue, message):
 
     task_queue = kombu.Queue(queue, kombu.Exchange(queue), routing_key=queue)
     to_publish = {"message": message}
-    producer.publish(
-        to_publish, exchange=task_queue.exchange, routing_key=task_queue.routing_key, declare=[task_queue]
-    )
+    producer.publish(to_publish, exchange=task_queue.exchange, routing_key=task_queue.routing_key, declare=[task_queue])
     return {"result": "ok"}
 
 
