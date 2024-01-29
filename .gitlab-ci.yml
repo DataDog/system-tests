@@ -164,5 +164,5 @@ job1-test_merge:
   stage: test_stage
   script:
     - echo "This job runs in merge request pipelines"
-  only:
-    - merge_requests
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
