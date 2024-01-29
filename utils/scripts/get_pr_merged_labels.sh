@@ -1,6 +1,6 @@
 #!/bin/bash
 PR_PATTERN='#[0-9]+'
-
+echo "MI DOCKER USER $DOCKER_LOGIN"
 if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
     PR_NUMBER=${BASH_REMATCH[1]:1}
     echo "Merged the PR number: [$PR_NUMBER]"; 
