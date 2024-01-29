@@ -1,5 +1,18 @@
 'use strict'
+
+const { Kafka } = require('kafkajs')
 const { readFileSync } = require('fs')
+
+function getKafka() {
+  return new Kafka({
+    clientId: 'my-app-iast',
+    brokers: ['kafka:9092'],
+    retry: {
+      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+      retries: 20 // Number of retries before giving up
+    }
+  })
+}
 
 function init (app, tracer) {
   app.post('/iast/source/body/test', (req, res) => {
@@ -68,6 +81,82 @@ function init (app, tracer) {
     })
     readFileSync(vulnParam)
     res.send('OK')
+  })
+
+  app.get('/iast/source/kafkavalue/test', (req, res) => {
+    const kafka = getKafka()
+
+    const producer = kafka.producer()
+    const doKafkaOperations = async () => {
+      await producer.connect()
+      await producer.send({
+        topic: 'iast-system-tests-queue',
+        messages: [
+          { value: 'hello value!' }
+        ]
+      })
+      await producer.disconnect()
+  
+      const consumer = kafka.consumer({ groupId: 'testgroup1' })
+  
+      await consumer.connect()
+      await consumer.subscribe({ topic: 'iast-system-tests-queue', fromBeginning: true })
+  
+      await consumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+          const vulnValue = message.value.toString()
+          readFileSync(vulnValue)
+          await consumer.stop()
+          await consumer.disconnect()
+        }
+      })
+    }
+    doKafkaOperations()
+    .then(() => {
+      res.send('ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
+  })
+
+  app.get('/iast/source/kafkakey/test', (req, res) => {
+    const kafka = getKafka()
+
+    const producer = kafka.producer()
+    const doKafkaOperations = async () => {
+      await producer.connect()
+      await producer.send({
+        topic: 'iast-system-tests-queue',
+        messages: [
+          { key: 'hello key!', value: 'value' }
+        ]
+      })
+      await producer.disconnect()
+  
+      const consumer = kafka.consumer({ groupId: 'testgroup1' })
+  
+      await consumer.connect()
+      await consumer.subscribe({ topic: 'iast-system-tests-queue', fromBeginning: true })
+  
+      await consumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+          const vulnKey = message.key.toString()
+          readFileSync(vulnKey)
+          await consumer.stop()
+          await consumer.disconnect()
+        }
+      })
+    }
+    doKafkaOperations()
+    .then(() => {
+      res.send('ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error')
+    })
   })
 }
 

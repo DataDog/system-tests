@@ -77,6 +77,10 @@ tests/:
         test_header_value.py:
           TestHeaderValue: 
              '*': v2.39.0
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -86,7 +90,7 @@ tests/:
         test_path.py:
           TestPath: missing_feature
         test_uri.py:
-          TestURI: irrelevant     
+          TestURI: irrelevant
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0

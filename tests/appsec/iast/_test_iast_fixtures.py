@@ -59,6 +59,21 @@ def _check_telemetry_response_from_agent():
             logging.warning(f"Agent answered {code} on {filename}, it may cause telemetry issues")
             return
 
+def get_all_iast_events():
+    spans = [span[2] for span in interfaces.library.get_spans()]
+    assert spans, "No spans found"
+    spans_meta = [span.get("meta") for span in spans]
+    assert spans_meta, "No spans meta found"
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
+    assert iast_events, "No iast events found"
+
+    return iast_events
+
+def get_iast_sources(iast_events):
+    sources = [event.get("sources") for event in iast_events if event.get("sources")]
+    assert sources, "No sources found"
+    sources = sum(sources, [])  # set all the sources in a single list
+    return sources
 
 class BaseSinkTestWithoutTelemetry:
     vulnerability_type = None
@@ -227,12 +242,16 @@ class BaseSourceTest:
         for request in self.requests.values():
             self.validate_request_reported(request)
 
+    def get_sources(self, request):
+        iast = get_iast_event(request=request)
+        sources = iast["sources"]
+        return sources
+
     def validate_request_reported(self, request, source_type=None):
         if source_type is None:  # allow to overwrite source_type for parameter value node's use case
             source_type = self.source_type
 
-        iast = get_iast_event(request=request)
-        sources = iast["sources"]
+        sources = self.get_sources(request)
         assert sources, "No source reported"
         if source_type:
             assert source_type in {s.get("origin") for s in sources}

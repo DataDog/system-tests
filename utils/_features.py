@@ -1230,6 +1230,26 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_source_kafka_key(test_object):
+        """
+        IAST Source: Kafka message key
+
+        https://feature-parity.us1.prod.dog/#/?feature=179
+        """
+        pytest.mark.features(feature_id=179)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_source_kafka_value(test_object):
+        """
+        IAST Source: Kafka message value
+
+        https://feature-parity.us1.prod.dog/#/?feature=180
+        """
+        pytest.mark.features(feature_id=180)(test_object)
+        return test_object
+
+    @staticmethod
     def grpc_threats_management(test_object):
         """
         gRPC Threats Management
