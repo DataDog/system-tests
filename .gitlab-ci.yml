@@ -163,8 +163,8 @@ onboarding_parse_results:
 
 
 check_merge_labels:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  tags: ["arch:amd64"]
+  image: registry.ddbuild.io/images/ci_docker_base
+  tags: ["runner:docker"]
   stage: test_stage
   before_script:
     - apt-get update && apt-get install -y jq
