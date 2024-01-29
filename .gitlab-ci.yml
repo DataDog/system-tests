@@ -5,6 +5,7 @@ stages:
   - python_tracer
   - dotnet_tracer
   - parse_results
+  - test_stage
 
 .base_job_onboarding:
   only:
@@ -160,6 +161,7 @@ onboarding_parse_results:
   script:
       - sh utils/scripts/push_reports_dashboard.sh
 job1-test_merge:
+  stage: test_stage
   script:
     - echo "This job runs in merge request pipelines"
   only:
