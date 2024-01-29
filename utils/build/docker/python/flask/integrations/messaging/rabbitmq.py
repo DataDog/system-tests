@@ -15,12 +15,16 @@ def rabbitmq_produce(queue, message):
 def rabbitmq_consume(queue, timeout=60):
     conn = kombu.Connection("amqp://rabbitmq:5672")
     task_queue = kombu.Queue(queue, kombu.Exchange(queue), routing_key=queue)
+    message_consumed = None
 
     def process_message(body, message):
-        if message is None:
-            return {"error": "Message not received"}
         message.ack()
-        return {"result": "ok"}
+        message_consumed = message
 
     with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]):
         conn.drain_events(timeout=timeout)
+
+    if message_consumed:
+        return {"result": message_consumed}
+    else:
+        return {"error": "Message not received"}
