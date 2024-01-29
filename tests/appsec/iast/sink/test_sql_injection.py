@@ -22,7 +22,11 @@ class TestSqlInjection(BaseSinkTest):
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
-    @bug(context.library < "nodejs@5.2.1", weblog_variant="express4-typescript", reason="Incorrect vulnerability location")
+    @bug(
+        context.library < "nodejs@5.3.0",
+        weblog_variant="express4-typescript",
+        reason="Incorrect vulnerability location",
+    )
     def test_insecure(self):
         super().test_insecure()
 
