@@ -167,6 +167,7 @@ check_merge_labels:
   tags: ["arch:amd64"]
   stage: test_stage
   script:
+    - apt-get update && apt-get install -y jq
     - GITHUB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
     - GITHUB_TOKEN=$GITHUB_TOKEN utils/scripts/get_pr_merged_labels.sh
     - echo "This job runs in merge request pipelines"
