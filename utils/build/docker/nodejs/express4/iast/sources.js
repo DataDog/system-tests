@@ -3,7 +3,7 @@
 const { Kafka } = require('kafkajs')
 const { readFileSync } = require('fs')
 
-function getKafka() {
+function getKafka () {
   return new Kafka({
     clientId: 'my-app-iast',
     brokers: ['kafka:9092'],
@@ -96,12 +96,12 @@ function init (app, tracer) {
         ]
       })
       await producer.disconnect()
-  
+
       const consumer = kafka.consumer({ groupId: 'testgroup1' })
-  
+
       await consumer.connect()
       await consumer.subscribe({ topic: 'iast-system-tests-queue', fromBeginning: true })
-  
+
       await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
           const vulnValue = message.value.toString()
@@ -112,13 +112,13 @@ function init (app, tracer) {
       })
     }
     doKafkaOperations()
-    .then(() => {
-      res.send('ok')
-    })
-    .catch((error) => {
-      console.error(error)
-      res.status(500).send('Internal Server Error')
-    })
+      .then(() => {
+        res.send('ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+      })
   })
 
   app.get('/iast/source/kafkakey/test', (req, res) => {
@@ -134,12 +134,12 @@ function init (app, tracer) {
         ]
       })
       await producer.disconnect()
-  
+
       const consumer = kafka.consumer({ groupId: 'testgroup1' })
-  
+
       await consumer.connect()
       await consumer.subscribe({ topic: 'iast-system-tests-queue', fromBeginning: true })
-  
+
       await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
           const vulnKey = message.key.toString()
@@ -150,13 +150,13 @@ function init (app, tracer) {
       })
     }
     doKafkaOperations()
-    .then(() => {
-      res.send('ok')
-    })
-    .catch((error) => {
-      console.error(error)
-      res.status(500).send('Internal Server Error')
-    })
+      .then(() => {
+        res.send('ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+      })
   })
 }
 
