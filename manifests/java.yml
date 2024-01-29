@@ -407,11 +407,11 @@ tests/:
           resteasy-netty3: v1.7.0
           spring-boot: v0.112.0
           spring-boot-3-native: missing_feature
+          spring-boot-jetty: v0.112.0
           spring-boot-openliberty: v1.3.0
           spring-boot-payara: missing_feature (No AppSec support)
           spring-boot-undertow: v0.112.0
           spring-boot-wildfly: v0.112.0
-          sprint-boot-jetty: v0.112.0
           uds-spring-boot: v0.112.0
           vertx3: v1.7.0
         Test_CustomBlockingResponse:
@@ -719,7 +719,7 @@ tests/:
         # spring-boot: v0.110.0
         # spring-boot-openliberty: v0.115.0
         # spring-boot-undertow: v0.111.0
-        # sprint-boot-jetty: v0.111.0
+        # spring-boot-jetty: v0.111.0
         # vertx3: v1.7.0
     test_logs.py:
       Test_Standardization:
@@ -769,9 +769,9 @@ tests/:
         ratpack: v1.9.0
         resteasy-netty3: v1.9.0
         spring-boot: v1.9.0
+        spring-boot-jetty: v1.9.0
         spring-boot-openliberty: v1.9.0
         spring-boot-undertow: v1.9.0
-        sprint-boot-jetty: v1.9.0
         vertx3: v1.9.0
     test_runtime_activation.py:
       Test_RuntimeActivation:
@@ -814,7 +814,7 @@ tests/:
         # spring-boot: v0.110.0
         # spring-boot-openliberty: v0.115.0
         # spring-boot-undertow: v0.111.0
-        # sprint-boot-jetty: v0.111.0
+        # spring-boot-jetty: v0.111.0
         # vertx3: v1.7.0
     test_versions.py:
       Test_Events: v0.90.0
@@ -839,19 +839,7 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
-          "*": missing_feature (Endpoint not implemented)
-          spring-boot: v0.1 # real version not known
-        Test_JavaKafka:
-          "*": missing_feature (Endpoint not implemented)
-          spring-boot: v0.1 # real version not known
-        Test_NodeJSKafka:
-          "*": missing_feature (Endpoint not implemented)
-          spring-boot: v0.1 # real version not known
-        Test_PythonKafka:
-          "*": missing_feature (Endpoint not implemented)
-          spring-boot: v0.1 # real version not known
-        Test_RubyKafka:
+        Test_Kafka:
           "*": missing_feature (Endpoint not implemented)
           spring-boot: v0.1 # real version not known
       test_rabbitmq.py:
