@@ -233,10 +233,10 @@ def consume_sqs_message():
 
 
 @app.route("/rabbitmq/produce")
-def produce_rabbitmq_message():
+async def produce_rabbitmq_message():
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     message = "Hello from Python RabbitMQ Context Propagation Test"
-    output = rabbitmq_produce(queue, message)
+    output = await rabbitmq_produce(queue, message)
     if "error" in output:
         return output, 404
     else:
@@ -244,10 +244,10 @@ def produce_rabbitmq_message():
 
 
 @app.route("/rabbitmq/consume")
-def consume_rabbitmq_message():
+async def consume_rabbitmq_message():
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = rabbitmq_consume(queue, timeout)
+    output = await rabbitmq_consume(queue, timeout)
     if "error" in output:
         return output, 404
     else:

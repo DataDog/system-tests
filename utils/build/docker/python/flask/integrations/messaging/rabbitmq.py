@@ -23,7 +23,7 @@ async def rabbitmq_consume(queue, timeout):
 
     result = await channel.consume(queue, timeout=timeout)
     if result is None:
-        raise Exception("Message not received")
+        return {"error": "Message not received"}
 
     delivery_info, properties, body = result
     print({"value": body.decode()})
