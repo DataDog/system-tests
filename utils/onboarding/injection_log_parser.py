@@ -99,7 +99,7 @@ def _get_commands_from_log_file(log_local_path):
 
     store_as_command = False
     command_lines = []
-    with open(log_local_path, "UTF-8") as f:
+    with open(log_local_path, encoding="utf-8") as f:
         for line in f:
             if "starting process" in line:
                 store_as_command = True
