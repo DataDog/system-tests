@@ -195,3 +195,13 @@ job2-test_merge:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
       when: always
+
+
+job4-test_merge:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  stage: test_stage
+  script:
+    - echo "This job runs in merge request pipelines"
+  only:
+    - merge_requests
