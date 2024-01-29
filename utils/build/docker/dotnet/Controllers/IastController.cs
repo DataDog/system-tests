@@ -317,6 +317,20 @@ namespace weblog
                 return Content($"Error creating connection");
             }                
         }
+
+        [HttpPost("header_injection/test_insecure")]
+        public IActionResult test_insecure_header_injection([FromForm] string test)
+        {
+            Response.Headers.Add("returnedHeaderKey", test);
+            return Content("Ok");
+        }
+        
+        [HttpPost("header_injection/test_secure")]
+        public IActionResult test_secure_header_injection([FromForm] string test)
+        {
+            Response.Headers.Add("returnedHeaderKey", "notTainted");
+            return Content("Ok");
+        }        
         
         [HttpPost("sqli/test_insecure")]
         public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
