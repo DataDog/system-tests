@@ -177,3 +177,10 @@ job1-test_push:
     - echo "This job runs in merge request pipelines"
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
+
+on-pull-requests:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  script: echo 'this should run on pull requests'
+  only:
+    - external_pull_requests
