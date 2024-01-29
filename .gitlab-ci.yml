@@ -176,6 +176,8 @@ job1-test_push:
   script:
     - echo "This job runs in merge request pipelines"
     - git rev-parse HEAD^2 >/dev/null 2>/dev/null && echo "is merge" || echo "regular commit" 
+    - echo "EL COMMIT BRANCH --- $CI_COMMIT_BRANCH"
+    - echo "EL COMMIT MESSAGE --- $CI_COMMIT_MESSAGE"
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
