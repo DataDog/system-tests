@@ -1,35 +1,28 @@
 import kombu
 
 
-async def rabbitmq_produce(queue, message):
-    connection = kombu.Connection("amqp://rabbitmq:5672")
-    channel = connection.channel()
+def rabbitmq_produce(queue, message):
+    conn = kombu.Connection("amqp://rabbitmq:5672")
+    conn.connect()
+    producer = conn.Producer()
 
-    await channel.queue_declare(queue)
-
-    producer = kombu.Producer(channel)
-    producer.publish(message, routing_key=queue)
-
-    channel.close()
-    connection.close()
+    task_queue = kombu.Queue(queue, kombu.Exchange(queue), routing_key=queue)
+    to_publish = {"message": message}
+    producer.publish(
+        to_publish, exchange=task_queue.exchange, routing_key=task_queue.routing_key, declare=[task_queue]
+    )
     return {"result": "ok"}
 
 
-async def rabbitmq_consume(queue, timeout=60):
-    connection = kombu.Connection("amqp://rabbitmq:5672")
-    channel = connection.channel()
+def rabbitmq_consume(queue, timeout=60):
+    conn = kombu.Connection("amqp://rabbitmq:5672")
+    task_queue = kombu.Queue(queue, kombu.Exchange(queue), routing_key=queue)
 
-    await channel.queue_declare(queue)
+    def process_message(body, message):
+        if message is None:
+            return {"error": "Message not received"}
+        message.ack()
+        return {"result": "ok"}
 
-    result = await channel.consume(queue, timeout=timeout)
-    if result is None:
-        return {"error": "Message not received"}
-
-    delivery_info, properties, body = result
-    print({"value": body.decode()})
-
-    channel.basic_ack(delivery_info.delivery_tag)
-
-    channel.close()
-    connection.close()
-    return {"result": "ok"}
+    with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]):
+        conn.drain_events(timeout=timeout)
