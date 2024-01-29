@@ -1,8 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using ApmTestApi.DuckTypes;
 using ApmTestApi.Endpoints;
 using Datadog.Trace.DuckTyping;
+using Microsoft.AspNetCore.Builder;
 
 namespace ApmTestApi.Endpoints;
 

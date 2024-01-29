@@ -1,15 +1,24 @@
-﻿using Datadog.Trace;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Datadog.Trace;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
 
 public abstract class ApmTestApi
 {
-    public static void MapApmEndpoints(WebApplication app)
+    public static void MapApmEndpoints(WebApplication app, ILogger<ApmTestApi>? logger)
     {
+        //app.MapPost("/trace/tracer/stop", StopTracer);
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
         app.MapPost("/trace/span/error", SpanSetError);
@@ -18,6 +27,9 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
         app.MapPost("/trace/stats/flush", FlushTraceStats);
+        
+        _logger = logger;
+        _ = Tracer.Instance;
     }
     
     // Core types
@@ -53,18 +65,8 @@ public abstract class ApmTestApi
 
     private static readonly SpanContextExtractor SpanContextExtractor = new();
 
-    internal readonly ILogger<ApmTestApi>? Logger;
+    private static ILogger<ApmTestApi>? _logger;
 
-    protected ApmTestApi(ILogger<ApmTestApi>? logger)
-    {
-        Logger = logger;
-        
-        // TODO: Remove when the Tracer sets the correct results in the SpanContextPropagator.Instance getter
-        // This should avoid a bug in the SpanContextPropagator.Instance getter where it is populated WITHOUT consulting the TracerSettings.
-        // By instantiating the Tracer first, that faulty getter code path will not be invoked
-        _ = Tracer.Instance;
-    }
-    
     private static IEnumerable<string> GetHeaderValues(IHeaderDictionary headers, string key)
     {
         List<string> values = new List<string>();
@@ -86,8 +88,10 @@ public abstract class ApmTestApi
     
     private static async Task<string> StartSpan(HttpRequest httpRequest)
     {
-        var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerBodyDictionary);
+        var headerRequestBody = await new StreamReader(httpRequest.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
+        
+        _logger?.LogInformation("StartSpan: {HeaderRequestBody}", headerRequestBody);
         
         var creationSettings = new SpanCreationSettings
         {
@@ -187,7 +191,7 @@ public abstract class ApmTestApi
         }
     }
 
-    public static async Task<string> InjectHeaders(HttpRequest request)
+    private static async Task<string> InjectHeaders(HttpRequest request)
     {
         if (GetSpanContextPropagator is null)
         {
@@ -224,14 +228,10 @@ public abstract class ApmTestApi
             SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, injectHeadersReturn["HttpHeaders"], Setter });
         }
         
-        var retuerner = JsonConvert.SerializeObject(new
+        return JsonConvert.SerializeObject(new
         {
             HttpHeaders = injectHeadersReturn["HttpHeaders"]
         });
-
-        Console.WriteLine(retuerner);
-
-        return retuerner;
     }
         
     private static async Task FinishSpan(HttpRequest request)

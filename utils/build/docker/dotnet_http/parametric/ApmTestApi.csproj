@@ -6,14 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <UserSecretsId>f56b479c-4bfa-4286-bb36-96a6273695e3</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
+    <Configuration Condition="'$(Configuration)' == ''">Development</Configuration>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
+    <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" Condition="'$(Configuration)' == 'Release'" />
   </ItemGroup>
 
 </Project>
