@@ -21,4 +21,6 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
     else
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
     fi
+else
+    echo "The commit message $CI_COMMIT_MESSAGE doesn't contain the PR number"
 fi
