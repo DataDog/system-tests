@@ -20,6 +20,8 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "The PR $PR_NUMBER doesn't contain the 'build-buddies-images' label "
     else
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
+        echo $DD_DOCKER_LOGIN_PASS | sudo docker login --username $DD_DOCKER_LOGIN --password-stdin
+        PUSH_IMAGES=true ./utils/build/build_tracer_buddies.sh
     fi
 else
     echo "The commit message $CI_COMMIT_MESSAGE doesn't contain the PR number."
