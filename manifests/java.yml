@@ -839,19 +839,7 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
-          "*": missing_feature (Endpoint not implemented)
-          spring-boot: v0.1 # real version not known
-        Test_JavaKafka:
-          "*": missing_feature (Endpoint not implemented)
-          spring-boot: v0.1 # real version not known
-        Test_NodeJSKafka:
-          "*": missing_feature (Endpoint not implemented)
-          spring-boot: v0.1 # real version not known
-        Test_PythonKafka:
-          "*": missing_feature (Endpoint not implemented)
-          spring-boot: v0.1 # real version not known
-        Test_RubyKafka:
+        Test_Kafka:
           "*": missing_feature (Endpoint not implemented)
           spring-boot: v0.1 # real version not known
       test_rabbitmq.py:
