@@ -96,7 +96,6 @@ class Test_AppSecEventSpanTags:
             headers={
                 "User-Agent": "Arachni/v1",
                 "Content-Type": "text/plain",
-                "X-Amzn-Trace-Id": "Root=1-65ae48bc-04fb551979979b6c57973027",
             },
         )
 
@@ -126,15 +125,23 @@ class Test_AppSecEventSpanTags:
         interfaces.library.validate_spans(self.r, validate_request_headers)
         interfaces.library.validate_spans(self.r, validate_response_headers)
 
+    def setup_test_x_amzn_trace_id_header_collection(self):
+        self.r = weblog.get(
+            "/headers",
+            headers={
+                "X-Amzn-Trace-Id": "Root=1-65ae48bc-04fb551979979b6c57973027",
+            },
+        )
+
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="ruby", reason="Not implemented yet")
     @missing_feature(library="php", reason="Not implemented yet")
     @missing_feature(library="cpp", reason="Not implemented yet")
-    def test_extra_header_collection(self):
+    def test_x_amzn_trace_id_header_collection(self):
         """
-        Collect extra headers when AppSec is enabled.
+        Collect X-Amzn-Trace-Id when appsec is enabled.
         """
 
         def assertHeaderInSpanMeta(span, header):
