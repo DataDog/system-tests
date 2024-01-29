@@ -173,5 +173,5 @@ check_merge_labels:
   script:  
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
-    - if: $CI_PIPELINE_SOURCE == "push" #&& $CI_COMMIT_BRANCH == "robertomonteromiguel/auto_generate_buddies"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "robertomonteromiguel/auto_generate_buddies"
 
