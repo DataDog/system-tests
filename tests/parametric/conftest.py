@@ -202,6 +202,8 @@ def dotnet_library_factory():
         container_img="""
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
 RUN apt-get update && apt-get install -y dos2unix --no-install-recommends
 RUN apt-get update && apt-get install -y curl
 USER root
@@ -224,13 +226,12 @@ ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY  /utils/build/docker/dotnet_http/install_ddtrace.sh  /utils/build/docker/dotnet_http/query-versions.fsx binaries* /binaries/
+COPY install_ddtrace.sh query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 RUN ls /binaries
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
