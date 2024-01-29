@@ -181,6 +181,7 @@ job1-test_push:
 on-pull-requests:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
+  stage: test_stage
   script: echo 'this should run on pull requests'
   only:
     - external_pull_requests
