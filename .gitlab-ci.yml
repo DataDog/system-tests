@@ -166,3 +166,10 @@ job1-test_merge:
     - echo "This job runs in merge request pipelines"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+job1-test_push:
+  stage: test_stage
+  script:
+    - echo "This job runs in merge request pipelines"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
