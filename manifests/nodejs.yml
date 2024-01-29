@@ -50,7 +50,7 @@ tests/:
           TestLDAPInjection:
             '*': missing_feature
             express4: v4.1.0
-            express4-typsecript: v4.1.0
+            express4-typescript: v4.1.0
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': missing_feature
@@ -62,7 +62,10 @@ tests/:
             express4: v4.3.0
             express4-typescript: v4.3.0
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection:
+            '*': missing_feature
+            express4: v4.17.0
+            express4-typescript: v4.17.0
         test_path_traversal.py:
           TestPathTraversal:
             '*': missing_feature
@@ -85,7 +88,10 @@ tests/:
             '*': missing_feature
             express4: v4.3.0
             express4-typescript: v4.3.0
-          TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedRedirect:
+            '*': missing_feature
+            express4: v4.3.0
+            express4-typescript: v4.3.0
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
