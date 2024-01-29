@@ -291,7 +291,16 @@ def dsm():
         consume_thread.join()
         logging.info("[sqs] Returning response")
         return Response("ok")
-
+    elif integration == "rabbitmq":
+        timeout = int(flask_request.args.get("timeout", 60))
+        produce_thread = threading.Thread(target=rabbitmq_produce, args=(topic, "Hello, RabbitMQ from DSM python!"))
+        consume_thread = threading.Thread(target=rabbitmq_consume, args=(topic, timeout))
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[RabbitMQ] Returning response")
+        return Response("ok")
     return Response(f"Integration is not supported: {integration}", 406)
 
 

@@ -15,7 +15,7 @@ async def rabbitmq_produce(queue, message):
     return {"result": "ok"}
 
 
-async def rabbitmq_consume(queue, timeout):
+async def rabbitmq_consume(queue, timeout=60):
     connection = kombu.Connection("amqp://rabbitmq:5672")
     channel = connection.channel()
 
