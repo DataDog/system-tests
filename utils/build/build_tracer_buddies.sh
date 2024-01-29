@@ -10,10 +10,7 @@ docker buildx build --load --progress=plain -f utils/build/docker/ruby/rails70.D
 docker buildx build --load --progress=plain -f utils/build/docker/golang/net-http.Dockerfile -t datadog/system-tests:golang_buddy-v0 .
 
 
-if [ -z "$PUSH_IMAGES" ]
-then
-      echo "Skip pushing buddies images"
-else
+if [ "$1" = "--push" ]; then
       docker push datadog/system-tests:python_buddy-v0
       docker push datadog/system-tests:nodejs_buddy-v0
       docker push datadog/system-tests:java_buddy-v0
