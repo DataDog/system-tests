@@ -59,6 +59,7 @@ def _check_telemetry_response_from_agent():
             logging.warning(f"Agent answered {code} on {filename}, it may cause telemetry issues")
             return
 
+
 def get_all_iast_events():
     spans = [span[2] for span in interfaces.library.get_spans()]
     assert spans, "No spans found"
@@ -69,11 +70,13 @@ def get_all_iast_events():
 
     return iast_events
 
+
 def get_iast_sources(iast_events):
     sources = [event.get("sources") for event in iast_events if event.get("sources")]
     assert sources, "No sources found"
     sources = sum(sources, [])  # set all the sources in a single list
     return sources
+
 
 class BaseSinkTestWithoutTelemetry:
     vulnerability_type = None
