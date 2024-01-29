@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature
+from utils import context, coverage, missing_feature, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
+@features.iast_sink_command_injection
 @coverage.basic
 class TestCommandInjection(BaseSinkTest):
     """Test command injection detection."""
@@ -17,7 +18,7 @@ class TestCommandInjection(BaseSinkTest):
     data = {"cmd": "ls"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.CmdExamples",
-        "nodejs": "iast/index.js",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 

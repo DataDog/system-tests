@@ -11,6 +11,8 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
+
+from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
@@ -24,6 +26,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
+    ElasticMQContainer,
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
@@ -152,10 +155,6 @@ class _Scenario:
         return ""
 
     @property
-    def php_appsec(self):
-        return ""
-
-    @property
     def tracer_sampling_rate(self):
         return 0
 
@@ -236,6 +235,7 @@ class _DockerScenario(_Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(name, doc=doc)
 
@@ -269,6 +269,9 @@ class _DockerScenario(_Scenario):
 
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
+
+        if include_elasticmq:
+            self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
     def configure(self, config):
         super().configure(config)
@@ -326,6 +329,7 @@ class EndToEndScenario(_DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(
             name,
@@ -339,6 +343,7 @@ class EndToEndScenario(_DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
+            include_elasticmq=include_elasticmq,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -363,11 +368,18 @@ class EndToEndScenario(_DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python is supported
+            # so far, only python, nodejs, java, ruby and golang are supported
+            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+
             self.buddies += [
                 BuddyContainer(
-                    "python_buddy", "datadog/system-tests:python_buddy-v0", self.host_log_folder, proxy_port=9001
-                ),
+                    f"{language}_buddy",
+                    f"datadog/system-tests:{language}_buddy-v0",
+                    self.host_log_folder,
+                    proxy_port=port,
+                    environment=weblog_env,
+                )
+                for language, port in supported_languages
             ]
 
             self._required_containers += self.buddies
@@ -406,6 +418,18 @@ class EndToEndScenario(_DockerScenario):
             else:
                 self.library_interface_timeout = 40
 
+    def session_start(self):
+        super().session_start()
+        try:
+            code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
+            if code:
+                message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
+            else:
+                message = stdout.decode()
+        except BaseException as e:
+            message = f"Unexpected exception {e}"
+        logger.stdout(f"Weblog system: {message}")
+
     def print_test_context(self):
         from utils import weblog
 
@@ -415,9 +439,6 @@ class EndToEndScenario(_DockerScenario):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Agent: {self.agent_version}")
-
-        if self.library == "php":
-            logger.stdout(f"AppSec: {self.weblog_container.php_appsec}")
 
         if self.weblog_container.libddwaf_version:
             logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
@@ -500,6 +521,16 @@ class EndToEndScenario(_DockerScenario):
     def post_setup(self):
         from utils import interfaces
 
+        try:
+            self._wait_and_stop_containers()
+        finally:
+            self.close_targets()
+
+        interfaces.library_dotnet_managed.load_data()
+
+    def _wait_and_stop_containers(self):
+        from utils import interfaces
+
         if self.replay:
 
             logger.terminal.write_sep("-", "Load all data from logs")
@@ -546,10 +577,6 @@ class EndToEndScenario(_DockerScenario):
 
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
-        self.close_targets()
-
-        interfaces.library_dotnet_managed.load_data()
-
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
@@ -578,10 +605,6 @@ class EndToEndScenario(_DockerScenario):
     @property
     def weblog_variant(self):
         return self.weblog_container.weblog_variant
-
-    @property
-    def php_appsec(self):
-        return self.weblog_container.php_appsec
 
     @property
     def tracer_sampling_rate(self):
@@ -623,6 +646,15 @@ class EndToEndScenario(_DockerScenario):
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
 
         return result
+
+    @property
+    def components(self):
+        return {
+            "agent": self.agent_version,
+            "library": self.library.version,
+            "libddwaf": self.weblog_container.libddwaf_version,
+            "appsec_rules": self.appsec_rules_version,
+        }
 
 
 class OpenTelemetryScenario(_DockerScenario):
@@ -855,18 +887,19 @@ class OnBoardingScenario(_Scenario):
 
         try:
             for provision_vm in self.provision_vms:
-                # Manage common dd software components for the scenario
-                for dd_package_name in dd_package_names:
-                    # All the tested machines should have the same version of the DD components
-                    if dd_package_name in self.onboarding_components and self.onboarding_components[
-                        dd_package_name
-                    ] != provision_vm.get_component(dd_package_name):
-                        self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
-                        raise ValueError(
-                            f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
-                        )
+                # Manage common dd software components for the scenario if it's not a skipped test
+                if provision_vm.pytestmark is None:
+                    for dd_package_name in dd_package_names:
+                        # All the tested machines should have the same version of the DD components
+                        if dd_package_name in self.onboarding_components and self.onboarding_components[
+                            dd_package_name
+                        ] != provision_vm.get_component(dd_package_name):
+                            self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
+                            raise ValueError(
+                                f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
+                            )
 
-                    self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
+                        self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
                 # Manage specific information for each parametrized test
                 test_metadata = {
                     "vm": provision_vm.ec2_data["name"],
@@ -881,6 +914,21 @@ class OnBoardingScenario(_Scenario):
         except Exception as ex:
             logger.error("Error filling the context components")
             logger.exception(ex)
+
+    def extract_debug_info_before_close(self):
+        """ Extract debug info for each machine before shutdown. We connect to machines using ssh"""
+        from utils.onboarding.debug_vm import debug_info_ssh
+        from utils.onboarding.pulumi_ssh import PulumiSSH
+
+        for provision_vm in self.provision_vms:
+            if provision_vm.pytestmark is None:
+                debug_info_ssh(
+                    provision_vm.name,
+                    provision_vm.ip,
+                    provision_vm.ec2_data["user"],
+                    PulumiSSH.pem_file,
+                    self.host_log_folder,
+                )
 
     def _start_pulumi(self):
         from pulumi import automation as auto
@@ -902,9 +950,9 @@ class OnBoardingScenario(_Scenario):
             )
             self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
-        except:
-            self.close_targets()
-            raise
+        except Exception as pulumi_exception:  #
+            logger.error("Exception launching onboarding provision infraestructure")
+            logger.exception(pulumi_exception)
 
     def _get_warmups(self):
         return [self._start_pulumi]
@@ -915,6 +963,7 @@ class OnBoardingScenario(_Scenario):
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
+        self.extract_debug_info_before_close()
         self.close_targets()
 
     def close_targets(self):
@@ -964,14 +1013,6 @@ class ParametricScenario(_Scenario):
         super().configure(config)
         assert "TEST_LIBRARY" in os.environ
 
-        # For some tracers we need a env variable present to use custom build of the tracer
-        lang_custom_build_param = {
-            "python": "PYTHON_DDTRACE_PACKAGE",
-            "nodejs": "NODEJS_DDTRACE_MODULE",
-            "ruby": "RUBY_DDTRACE_SHA",
-        }
-        build_param = os.getenv(lang_custom_build_param.get(os.getenv("TEST_LIBRARY"), ""), "")
-
         # get tracer version info building and executing the ddtracer-version.docker file
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
@@ -986,8 +1027,7 @@ class ParametricScenario(_Scenario):
                         "ddtracer_version",
                         "-f",
                         f"{tracer_version_dockerfile}",
-                        "--build-arg",
-                        f"BUILD_MODULE={build_param}",
+                        "--quiet",
                     ],
                     stdout=subprocess.DEVNULL,
                     # stderr=subprocess.DEVNULL,
@@ -1007,6 +1047,11 @@ class ParametricScenario(_Scenario):
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
         logger.stdout(f"Library: {self.library}")
 
+    def print_test_context(self):
+        super().print_test_context()
+
+        logger.stdout(f"Library: {self.library}")
+
     @property
     def library(self):
         return self._library
@@ -1019,8 +1064,9 @@ class scenarios:
 
     default = EndToEndScenario(
         "DEFAULT",
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
         include_postgres_db=True,
-        doc="Default scenario, spwan tracer and agent, and run most of exisiting tests",
+        doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
     )
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
@@ -1030,7 +1076,12 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
+        weblog_env={
+            "DD_DBM_PROPAGATION_MODE": "full",
+            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
@@ -1038,13 +1089,21 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
-        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
+        include_elasticmq=True,
+        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
     )
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
+        weblog_env={
+            "DD_TRACE_API_VERSION": "v0.4",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_kafka=True,
         include_buddies=True,
+        include_elasticmq=True,
+        include_rabbitmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
 
@@ -1146,7 +1205,11 @@ class scenarios:
         doc="Appsec rule file with some errors",
     )
     appsec_disabled = EndToEndScenario(
-        "APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"}, appsec_enabled=False, doc="Disable appsec"
+        "APPSEC_DISABLED",
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
+        appsec_enabled=False,
+        include_postgres_db=True,
+        doc="Disable appsec and test DBM setting integration outcome when disabled",
     )
     appsec_low_waf_timeout = EndToEndScenario(
         "APPSEC_LOW_WAF_TIMEOUT", weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"}, doc="Appsec with a very low WAF timeout"
@@ -1213,12 +1276,42 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_no_response_body = EndToEndScenario(
+        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_with_sampling = EndToEndScenario(
+        "APPSEC_API_SECURITY_WITH_SAMPLING",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+        },
+        doc="""
+        Scenario for API Security feature, testing api security sampling rate.
         """,
     )
 
@@ -1326,28 +1419,27 @@ class scenarios:
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
 
-    library_conf_custom_headers_short = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2"), doc=""
+    library_conf_custom_header_tags = EndToEndScenario(
+        "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
+        additional_trace_header_tags=(VALID_CONFIGS),
+        doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
-    library_conf_custom_headers_long = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
-        additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
-        doc="",
+    library_conf_custom_header_tags_invalid = EndToEndScenario(
+        "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
+        additional_trace_header_tags=(INVALID_CONFIGS),
+        doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
+
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
-    onboarding_host = OnBoardingScenario("ONBOARDING_HOST", doc="")
-    onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER", doc="")
-    onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL", doc="")
-    onboarding_container_auto_install = OnBoardingScenario("ONBOARDING_CONTAINER_AUTO_INSTALL", doc="")
+    onboarding_host_install_manual = OnBoardingScenario("ONBOARDING_HOST_INSTALL_MANUAL", doc="")
+    onboarding_container_install_manual = OnBoardingScenario("ONBOARDING_CONTAINER_INSTALL_MANUAL", doc="")
+    onboarding_host_install_script = OnBoardingScenario("ONBOARDING_HOST_INSTALL_SCRIPT", doc="")
+    onboarding_container_install_script = OnBoardingScenario("ONBOARDING_CONTAINER_INSTALL_SCRIPT", doc="")
     # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
     onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
     onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
-    onboarding_host_auto_install_uninstall = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL", doc="")
-    onboarding_container_auto_install_uninstall = OnBoardingScenario(
-        "ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL", doc=""
-    )
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",

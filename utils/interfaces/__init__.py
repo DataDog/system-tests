@@ -19,3 +19,7 @@ open_telemetry = OpenTelemetryInterfaceValidator()
 postgres = _PostgresStdout()
 
 python_buddy = LibraryInterfaceValidator("python_buddy")
+nodejs_buddy = LibraryInterfaceValidator("nodejs_buddy")
+java_buddy = LibraryInterfaceValidator("java_buddy")
+ruby_buddy = LibraryInterfaceValidator("ruby_buddy")
+golang_buddy = LibraryInterfaceValidator("golang_buddy")

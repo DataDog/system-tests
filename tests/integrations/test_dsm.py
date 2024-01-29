@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features
 from utils.tools import logger
 
 
+@features.datastreams_monitoring_support_for_kafka
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -37,6 +38,7 @@ class Test_DsmKafka:
         )
 
 
+@features.datastreams_monitoring_support_for_http
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -52,6 +54,7 @@ class Test_DsmHttp:
         )
 
 
+@features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -101,6 +104,7 @@ class Test_DsmRabbitmq:
         )
 
 
+@features.datastreams_monitoring_support_for_rabbitmq_topicexchange
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
@@ -136,6 +140,7 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
 
+@features.datastreams_monitoring_support_for_rabbitmq_fanout
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
@@ -171,6 +176,48 @@ class Test_DsmRabbitmq_FanoutExchange:
         )
 
 
+@features.datastreams_monitoring_support_for_sqs
+@scenarios.integrations
+class Test_DsmSQS:
+    """ Verify DSM stats points for AWS Sqs Service """
+
+    def setup_dsm_sqs(self):
+        self.r = weblog.get("/dsm?integration=sqs")
+
+    @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being receieved.")
+    def test_dsm_sqs(self):
+        assert self.r.text == "ok"
+
+        language_hashes = {
+            "nodejs": {
+                "producer": 2931833227331067675,
+                "consumer": 271115008390912609,
+                "topic": "dsm-system-tests-queue",
+            },
+            "java": {
+                "producer": 16307892913751934142,
+                "consumer": 15549836665988044996,
+                "topic": "dsm-system-tests-queue-java",
+            },
+            "default": {
+                "producer": 7228682205928812513,
+                "consumer": 3767823103515000703,
+                "topic": "dsm-system-tests-queue",
+            },
+        }
+
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        topic = language_hashes.get(context.library.library, language_hashes.get("default"))["topic"]
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{topic}", "type:sqs"),
+        )
+
+
 class DsmHelper:
     @staticmethod
     def is_tags_included(actual_tags, expected_tags):
@@ -197,7 +244,7 @@ class DsmHelper:
                     observed_parent_hash = stats_point["ParentHash"]
                     observed_tags = tuple(stats_point["EdgeTags"])
 
-                    logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
+                    logger.info(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
                     if (
                         observed_hash == hash_
                         and observed_parent_hash == parent_hash

@@ -264,6 +264,10 @@ This endpoint accept a mandatory parameter `url`. It'll make a call to these url
 This endpoint executes database queries for [DBM supported libraries](https://docs.datadoghq.com/database_monitoring/guide/connect_dbm_and_apm/?tab=go#before-you-begin). A 200 response is returned if the query
 is executed successfully.
 
+Expected SQL query:
+- For SqlServer: `SELECT @@version`
+- For PostgreSQL & MySQL: `SELECT version()`
+
 Expected query params:
   - `integration`: Name of DBM supported library
     - Possible Values: `psycopg`
@@ -289,7 +293,7 @@ be returned.
 
 Expected query params:
   - `integration`: Name of messaging tech
-    - Possible Values: `kafka`, `rabbitmq`
+    - Possible Values: `kafka`, `rabbitmq`, `sqs`
 
 ### GET /user_login_success_event
 

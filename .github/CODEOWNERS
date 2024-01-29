@@ -15,6 +15,5 @@
 /manifests/java.yml @DataDog/asm-java @DataDog/apm-java @DataDog/system-tests-core
 /manifests/nodejs.yml @DataDog/apm-js @DataDog/asm-js @DataDog/system-tests-core
 /manifests/php.yml @DataDog/apm-php @DataDog/asm-php @DataDog/system-tests-core
-/manifests/php_appsec.yml @DataDog/asm-php @DataDog/system-tests-core
 /manifests/python.yml @DataDog/apm-python @DataDog/asm-python @DataDog/system-tests-core
 /manifests/ruby.yml @DataDog/apm-ruby @DataDog/asm-ruby @DataDog/system-tests-core

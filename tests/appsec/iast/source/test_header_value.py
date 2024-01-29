@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, bug, missing_feature
+from utils import context, coverage, bug, missing_feature, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
 @coverage.basic
+@features.iast_source_header_value
 class TestHeaderValue(BaseSourceTest):
     """Verify that request headers are tainted"""
 

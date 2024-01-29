@@ -17,7 +17,6 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_simple_trace(self, test_agent, test_library):
         """
             Perform two traces
@@ -56,9 +55,7 @@ class Test_Otel_Tracer:
         assert child_span["resource"] == "child"
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")

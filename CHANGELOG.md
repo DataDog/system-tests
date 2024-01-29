@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+### December 2023 (75 PR merged)
+
+* 2023-12-26 [Remove legacy coverage decorator](https://github.com/DataDog/system-tests/pull/1961) by @cbeauchesne (Testing coverage is not dependant of system-tests only, so it's now declared directly in Feature Parity Dashbaord)
+* 2023-12-27 Declare lot of features ID ([1](https://github.com/DataDog/system-tests/pull/1968), [2](https://github.com/DataDog/system-tests/pull/1952), [3](https://github.com/DataDog/system-tests/pull/1967), [4](https://github.com/DataDog/system-tests/pull/1928), [5](https://github.com/DataDog/system-tests/pull/1915), [6](https://github.com/DataDog/system-tests/pull/1910), [7](https://github.com/DataDog/system-tests/pull/1901)) by @cbeauchesne
+* 2023-12-01 [Add "features" decorator](https://github.com/DataDog/system-tests/pull/1883), and [ensure in CI that all tests has a features decorator](https://github.com/DataDog/system-tests/pull/1923) by @cbeauchesne
+* 2023-12-27 Parametric: allow to test dev version for [python](https://github.com/DataDog/system-tests/pull/1959), [java](https://github.com/DataDog/system-tests/pull/1937), [nodejs](https://github.com/DataDog/system-tests/pull/1941) and [golang](https://github.com/DataDog/system-tests/pull/1948) by @robertomonteromiguel
+
+### November 2023 (78 PR merged)
+
+* 2023-11-23 [[PHP] Support unified package](https://github.com/DataDog/system-tests/pull/1862) by @Anilm3
+* 2023-11-07 [Sleep mode for all scenarios](https://github.com/DataDog/system-tests/pull/1794) by @robertomonteromiguel
+* 2023-11-07 [[Tracing] Add endpoints to Python Weblog application related to Kafka Producer and Consumer calls](https://github.com/DataDog/system-tests/pull/1783) by @wantsui
+
 ### October 2023 (100 PR merged)
 
 * 2023-10-09 [New python/FastAPI variant](https://github.com/DataDog/system-tests/pull/1663) by @christophe-papazian

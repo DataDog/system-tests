@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, bug, missing_feature, coverage
+from utils import weblog, context, bug, missing_feature, coverage, features
 from .._test_iast_fixtures import BaseSinkTest, assert_iast_vulnerability
 
 
@@ -11,7 +11,10 @@ def _expected_location():
         return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
     if context.library.library == "nodejs":
-        return "iast/index.js"
+        if context.weblog_variant == "express4":
+            return "iast/index.js"
+        if context.weblog_variant == "express4-typescript":
+            return "iast.ts"
 
     if context.library.library == "python":
         if context.library.version >= "1.12.0":
@@ -32,6 +35,7 @@ def _expected_evidence():
 
 
 @coverage.basic
+@features.weak_hash_vulnerability_detection
 class TestWeakHash(BaseSinkTest):
     """Verify weak hash detection."""
 
