@@ -16,7 +16,6 @@ class Test_TrustBoundaryViolation(BaseSinkTest):
     insecure_endpoint = "/iast/trust-boundary-violation/test_insecure"
     secure_endpoint = "/iast/trust-boundary-violation/test_secure"
     params = {"username": "shaquille_oatmeal", "password": "123456"}
-    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="java", reason="Metrics implemented")
