@@ -170,11 +170,10 @@ check_merge_labels:
     - apt-get update && apt-get install -y jq
     - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login --with-decryption --query "Parameter.Value" --out text) 
-    - docker login -u $DOCKER_LOGIN -p $(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
   script:  
 
     - ./utils/scripts/get_pr_merged_labels.sh
-
     - echo "This job runs in merge request pipelines"
     - echo "EL COMMIT BRANCH --- $CI_COMMIT_BRANCH"
     - echo "EL COMMIT MESSAGE --- $CI_COMMIT_MESSAGE"
