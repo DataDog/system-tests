@@ -174,7 +174,7 @@ check_merge_labels:
   script:  
 
     - ./utils/scripts/get_pr_merged_labels.sh
-    - echo "This job runs in merge request pipelines.."
+    - echo "This job runs in merge request pipelines...."
     - echo "EL COMMIT BRANCH --- $CI_COMMIT_BRANCH"
     - echo "EL COMMIT MESSAGE --- $CI_COMMIT_MESSAGE"
   rules:
