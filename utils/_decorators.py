@@ -1,5 +1,6 @@
 import inspect
 import pytest
+import semantic_version as semver
 
 from utils._context.core import context
 
@@ -187,8 +188,12 @@ def released(
                 return declaration
 
             # declaration must be now a version number
-            if tested_version >= declaration:
-                return None
+            if declaration.startswith("v"):
+                if tested_version >= declaration:
+                    return None
+            else:
+                if semver.Version(str(tested_version)) in semver.NpmSpec(declaration):
+                    return None
 
             return (
                 f"missing_feature for {component_name}: "
