@@ -14,6 +14,12 @@ WORKDIR /usr/app
 
 EXPOSE 7777
 
+ENV PGUSER=system_tests_user
+ENV PGPASSWORD=system_tests
+ENV PGDATABASE=system_tests
+ENV PGHOST=postgres
+ENV PGPORT=5433
+
 ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup

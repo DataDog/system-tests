@@ -15,7 +15,10 @@ from utils import coverage, interfaces, weblog, features, context
 class Test_HardcodedSecrets:
     """Test Hardcoded secrets detection."""
 
-    location_map = {"nodejs": "iast/index.js", "java": "com.datadoghq.system_tests.springboot.AppSecIast"}
+    location_map = {
+        "java": "com.datadoghq.system_tests.springboot.AppSecIast",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+    }
 
     def setup_hardcoded_secrets_exec(self):
         self.r_hardcoded_secrets_exec = weblog.get("/iast/hardcoded_secrets/test_insecure")
