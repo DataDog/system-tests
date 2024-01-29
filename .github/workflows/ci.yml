@@ -76,7 +76,6 @@ jobs:
     secrets: inherit
 
   main:
-    if: ${{ false }}  # disable for now3-10
     runs-on: ubuntu-latest
     needs:
     - lint
