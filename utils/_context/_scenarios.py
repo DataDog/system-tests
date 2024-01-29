@@ -1264,12 +1264,13 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        DD_API_SECURITY_ENABLED is set to true.
         """,
     )
 
@@ -1278,20 +1279,25 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        DD_API_SECURITY_ENABLED is set to true.
         """,
     )
 
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_TRACE_DEBUG": "false",},
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+        },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
