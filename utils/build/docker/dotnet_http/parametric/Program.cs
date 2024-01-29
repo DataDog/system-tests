@@ -13,7 +13,7 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 
 // Map endpoints
-app.MapApmEndpoints();
+ApmTestApi.Endpoints.ApmTestApi.MapApmEndpoints(app);
 
 if (int.TryParse(Environment.GetEnvironmentVariable("APM_TEST_CLIENT_SERVER_PORT"), out var port))
 {

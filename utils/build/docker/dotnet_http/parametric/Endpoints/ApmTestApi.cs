@@ -1,15 +1,14 @@
 ﻿using Datadog.Trace;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Diagnostics;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
 
-public static class ApmTestApi
+public abstract class ApmTestApi
 {
-    public static void MapApmEndpoints(this WebApplication app)
+    public static void MapApmEndpoints(WebApplication app)
     {
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
@@ -47,17 +46,19 @@ public static class ApmTestApi
     private static readonly MethodInfo SpanContextPropagatorInject = GenerateInjectMethod()!;
 
     // StatsAggregator flush methods
-    internal static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
-    internal static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
+    private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    internal static readonly Dictionary<ulong, ISpan> Spans = new();
-    
-    internal static readonly Dictionary<ulong, Activity> Activities = new();
+    private static readonly Dictionary<ulong, ISpan> Spans = new();
 
     private static readonly SpanContextExtractor SpanContextExtractor = new();
 
-    static ApmTestApi()
+    internal readonly ILogger<ApmTestApi>? Logger;
+
+    protected ApmTestApi(ILogger<ApmTestApi>? logger)
     {
+        Logger = logger;
+        
         // TODO: Remove when the Tracer sets the correct results in the SpanContextPropagator.Instance getter
         // This should avoid a bug in the SpanContextPropagator.Instance getter where it is populated WITHOUT consulting the TracerSettings.
         // By instantiating the Tracer first, that faulty getter code path will not be invoked
@@ -248,7 +249,7 @@ public static class ApmTestApi
 
         await Tracer.Instance.ForceFlushAsync();
         Spans.Clear();
-        Activities.Clear();
+        ApmTestApiOtel.Activities.Clear();
     }
 
     private static async Task FlushTraceStats()

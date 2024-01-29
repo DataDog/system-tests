@@ -23,7 +23,7 @@ ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY /install_ddtrace.sh /query-versions.fsx binaries* /binaries/
+COPY utilsuild\docker\dotnet_http\install_ddtrace.sh utilsuild\docker\dotnet_http\query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
