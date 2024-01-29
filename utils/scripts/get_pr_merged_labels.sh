@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Check the commit message to figure out if we are merging a PR.
-#We extract the PR number and using GitHub API we check the PR labes.
+#We extract the PR number and using GitHub API we check the PR labels.
 #If the PR contains the label "build-buddies-images" we launch the build and push process
 
 PR_PATTERN='#[0-9]+'
@@ -14,7 +14,7 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GH_TOKEN" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
-    https://api.github.com/repos/DataDog/system-tests/issues/$PR_NUMBER/labels);
+    "https://api.github.com/repos/DataDog/system-tests/issues/$PR_NUMBER/labels");
 
     echo "We found PR labels: $PR_DATA"    
 
@@ -25,7 +25,7 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "The PR $PR_NUMBER doesn't contain the 'build-buddies-images' label "
     else
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
-        echo $DOCKER_LOGIN_PASS | docker login --username $DOCKER_LOGIN --password-stdin
+        echo "$DOCKER_LOGIN_PASS" | docker login --username $DOCKER_LOGIN --password-stdin
         PUSH_IMAGES=true ./utils/build/build_tracer_buddies.sh
     fi
 else
