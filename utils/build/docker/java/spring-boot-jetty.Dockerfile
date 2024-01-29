@@ -27,5 +27,6 @@ RUN chmod +x /app/app.sh
 
 ENV APP_EXTRA_ARGS="--server.port=7777"
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 
 CMD [ "/app/app.sh" ]
