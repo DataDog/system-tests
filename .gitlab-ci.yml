@@ -175,6 +175,7 @@ job1-test_push:
   stage: test_stage
   script:
     - echo "This job runs in merge request pipelines"
+    - git rev-parse "HEAD^2" >nul 2>nul && echo "is merge" || echo "regular commit"
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
