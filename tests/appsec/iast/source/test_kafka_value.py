@@ -15,7 +15,6 @@ class TestKafkaValue(BaseSourceTest):
     endpoint = "/iast/source/kafkavalue/test"
     requests_kwargs = [{"method": "GET"}]
     source_type = "kafka.message.value"
-    source_names = ["value"]
     source_value = "hello value!"
 
     def get_sources(self, request):
