@@ -185,3 +185,13 @@ on-pull-requests:
   script: echo 'this should run on pull requests'
   only:
     - external_pull_requests
+
+job2-test_merge:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  stage: test_stage
+  script:
+    - echo "This job runs in merge request pipelines"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
+      when: always
