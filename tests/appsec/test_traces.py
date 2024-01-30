@@ -122,7 +122,7 @@ class Test_AppSecEventSpanTags:
     def setup_test_x_amzn_trace_id_header_collection(self):
         self.r2 = weblog.get("/headers", headers={"X-Amzn-Trace-Id": "Root=1-65ae48bc-04fb551979979b6c57973027",},)
 
-    @missing_feature(library="go", reason="Not implemented yet")
+    @missing_feature(library="golang", reason="Not implemented yet")
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
