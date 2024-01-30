@@ -266,8 +266,10 @@ app.get('/sqs/consume', (req, res) => {
 
 app.get('/rabbitmq/produce', (req, res) => {
   const queue = req.query.queue
+  const exchange = 'systemTestDirectExchangeContextPropagation'
+  const routingKey = 'systemTestDirectRoutingKeyContextPropagation'
 
-  rabbitmqProduce(queue, 'NodeJS Produce Context Propagation Test RabbitMQ')
+  rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
     .then(() => {
       res.status(200).send('produce ok')
     })

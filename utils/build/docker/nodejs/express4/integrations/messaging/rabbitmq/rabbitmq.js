@@ -7,7 +7,7 @@ async function rabbitmqProduce (queue, exchange, routingKey, message) {
   await channel.assertExchange(exchange)
   await channel.assertQueue(queue)
   await channel.bindQueue(queue, exchange, routingKey)
-  channel.publish(exchange, 'routingKey', Buffer.from(message))
+  channel.publish(exchange, routingKey, Buffer.from(message))
 
   await channel.close()
   await connection.close()
