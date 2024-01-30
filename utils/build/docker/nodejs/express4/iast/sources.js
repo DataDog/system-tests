@@ -97,7 +97,7 @@ function init (app, tracer) {
       })
       await producer.disconnect()
 
-      const consumer = kafka.consumer({ groupId: 'testgroup1' })
+      const consumer = kafka.consumer({ groupId: 'testgroup2' })
 
       await consumer.connect()
       await consumer.subscribe({ topic: 'iast-system-tests-queue', fromBeginning: true })
@@ -135,7 +135,7 @@ function init (app, tracer) {
       })
       await producer.disconnect()
 
-      const consumer = kafka.consumer({ groupId: 'testgroup1' })
+      const consumer = kafka.consumer({ groupId: 'testgroup2' })
 
       await consumer.connect()
       await consumer.subscribe({ topic: 'iast-system-tests-queue', fromBeginning: true })
