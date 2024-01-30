@@ -36,7 +36,9 @@ class _Test_RabbitMQ:
                 if not operation_found:
                     continue
 
-                if queue.lower() not in span.get("resource").lower():
+                meta = span.get("meta")
+                component = meta.get("component", "")
+                if queue.lower() not in span.get("resource").lower() and queue.lower() not in meta.get(f"{component}.routing_key", "").lower():
                     continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")

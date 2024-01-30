@@ -311,14 +311,18 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
+          "*": irrelevant
           express4: v0.1 # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
+          "*": irrelevant
           express4: v0.1 # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": irrelevant
           express4: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
           express4: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
@@ -338,11 +342,13 @@ tests/:
         '*': v4.4.0
         nextjs: missing_feature (missing endpoint)
       Test_DsmRabbitmq:
+        "*": irrelevant
         express4: v0.1 # real version not known
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
-      Test_DsmSQS: 
-        '*': missing_feature
+      Test_DsmSQS:
+        "*": irrelevant
+        express4: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature

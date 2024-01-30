@@ -198,7 +198,6 @@ app.get('/dsm', (req, res) => {
             console.error(error)
             res.status(500).send('Internal Server Error during RabbitMQ DSM consume')
           })
-        res.status(200).send('produce ok')
       })
       .catch((error) => {
         console.error(error)
