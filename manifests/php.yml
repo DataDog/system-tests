@@ -191,6 +191,7 @@ tests/:
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature

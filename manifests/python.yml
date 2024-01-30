@@ -489,6 +489,7 @@ tests/:
         flask-poc: v1.20.3
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: v2.6.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature
