@@ -129,6 +129,7 @@ class Test_AppSecEventSpanTags:
     @missing_feature(library="ruby", reason="Not implemented yet")
     @missing_feature(library="php", reason="Not implemented yet")
     @missing_feature(library="cpp", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.1.0")
     def test_x_amzn_trace_id_header_collection(self):
         """
         Collect X-Amzn-Trace-Id when appsec is enabled.
