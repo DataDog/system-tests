@@ -438,6 +438,7 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
+    @flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -455,6 +456,7 @@ class Test_Blocking_request_headers:
 @coverage.good
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
+@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
