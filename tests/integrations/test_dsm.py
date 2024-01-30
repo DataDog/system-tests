@@ -66,15 +66,22 @@ class Test_DsmRabbitmq:
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
+        if context.library == "nodejs":
+            producer_hash = 1917557401102907424
+            consumer_hash = 8420052766055045030
+        else:
+            producer_hash = 6176024609184775446
+            consumer_hash = 1648106384315938543
+
         DsmHelper.assert_checkpoint_presence(
-            hash_=6176024609184775446,
+            hash_=producer_hash,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=1648106384315938543,
-            parent_hash=6176024609184775446,
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
             tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
         )
 
