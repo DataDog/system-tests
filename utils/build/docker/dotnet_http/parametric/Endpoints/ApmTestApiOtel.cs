@@ -1,27 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using ApmTestApi.DuckTypes;
-using ApmTestApi.Endpoints;
+using Newtonsoft.Json;
 using Datadog.Trace.DuckTyping;
-using Microsoft.AspNetCore.Builder;
 
 namespace ApmTestApi.Endpoints;
 
-public abstract class ApmTestApiOtel
+public abstract class ApmTestApiOtel : ApmTestApi
 {
     public static void MapApmOtelEndpoints(WebApplication app)
     {
-        /*app.MapPost("/trace/otel/start_span", OtelStartSpan);
-        app.MapPost("/trace/otel/end_span", OtelEndSpan);*/
-        
-        /*app.MapPost("/trace/span/error", SpanSetError);
-        app.MapPost("/trace/span/set_meta", SpanSetMeta);
-        app.MapPost("/trace/span/set_metric", SpanSetMetric);
-        app.MapPost("/trace/span/finish", FinishSpan);
-        app.MapPost("/trace/span/flush", FlushSpans);
-        app.MapPost("/trace/stats/flush", FlushTraceStats);*/
+        app.MapPost("/trace/otel/start_span", OtelStartSpan);
+        app.MapPost("/trace/otel/end_span", OtelEndSpan);
+        app.MapPost("/trace/otel/flush", OtelFlushSpans);
+        app.MapPost("/trace/otel/is_recording", OtelIsRecording);
+        app.MapPost("/trace/otel/span_context", OtelSpanContext);
+        app.MapPost("/trace/otel/set_status", OtelSetStatus);
+        app.MapPost("/trace/otel/set_name", OtelSetName);
+        app.MapPost("/trace/otel/set_attributes", OtelSetAttributes);
+        app.MapPost("/trace/otel/tracer/flush_stats", OtelFlushTraceStats);
     }
     
     private static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
@@ -37,40 +34,50 @@ public abstract class ApmTestApiOtel
         throw new ApplicationException($"Activity not found with span id {spanId}.");
     }
 
-    /*public Task OtelStartSpan(HttpRequest request)
+    private static async Task<string> OtelStartSpan(HttpRequest request)
     {
-        // Logger?.LogInformation($"OtelStartSpan: {{Request}}", request.Body.ToString());
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var requestBodyDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
+
+        _logger.LogInformation($"OtelStartSpan: {{HeaderRequestBody}}", headerRequestBody);
 
         ActivityContext? localParentContext = null;
         ActivityContext? remoteParentContext = null;
 
         // try getting parent context from parent id (local parent)
-        if (
-            request is { HasParentId: true, ParentId: > 0 })
+        if (requestBodyDictionary!.TryGetValue("parent_id", out var parentId))
         {
-            var parentActivity = FindActivity(request.ParentId);
-            localParentContext = parentActivity.Context;
+            var longParentId = Convert.ToUInt64(parentId);
+            
+            if (longParentId > 0 )
+            {
+                var parentActivity = FindActivity(longParentId);
+                localParentContext = parentActivity.Context;
+            }
         }
 
         // try extracting parent context from headers (remote parent)
-        if (request.HttpHeaders?.HttpHeaders is { Count: > 0 } headers)
+        if (request.Headers.Count > 0)
         {
-            var extractedContext = _spanContextExtractor.Extract(headers, getter: GetHeaderValues)
-                                                        .DuckCast<IDuckSpanContext>();
+            var extractedContext = _spanContextExtractor.Extract(
+                    request.Headers, 
+                    getter: GetHeaderValues);
 
-            Logger.LogInformation("Extracted SpanContext: {ParentContext}", extractedContext);
+            var duckSpanContext = DuckType.Create<IDuckSpanContext>(extractedContext);
+            
+            _logger?.LogInformation("Extracted SpanContext: {ParentContext}", extractedContext);
 
             if (extractedContext is not null)
             {
-                var parentTraceId = ActivityTraceId.CreateFromString(extractedContext.RawTraceId);
-                var parentSpanId = ActivitySpanId.CreateFromString(extractedContext.RawSpanId);
-                var flags = extractedContext.SamplingPriority > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
+                var parentTraceId = ActivityTraceId.CreateFromString(duckSpanContext?.RawTraceId);
+                var parentSpanId = ActivitySpanId.CreateFromString(duckSpanContext?.RawSpanId);
+                var flags = duckSpanContext?.SamplingPriority > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
 
                 remoteParentContext = new ActivityContext(
                     parentTraceId,
                     parentSpanId,
                     flags,
-                    extractedContext.AdditionalW3CTraceState,
+                    duckSpanContext?.AdditionalW3CTraceState,
                     isRemote: true);
             }
         }
@@ -84,17 +91,17 @@ public abstract class ApmTestApiOtel
         }
 
         DateTimeOffset startTime = default;
-        if (request.HasTimestamp)
+        if (requestBodyDictionary.TryGetValue("timestamp", out var timestamp))
         {
-            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(request.Timestamp);
+            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds((double)timestamp);
         }
 
         var parentContext = localParentContext ?? remoteParentContext ?? default;
 
         var kind = ActivityKind.Internal;
-        if (request.HasSpanKind)
+        if (requestBodyDictionary.TryGetValue("span_kind", out var spanKind))
         {
-            switch (request.SpanKind)
+            switch (spanKind)
             {
                 case 1:
                     kind = ActivityKind.Internal;
@@ -117,8 +124,8 @@ public abstract class ApmTestApiOtel
             }
         }
 
-        var activity = ApmTestClientActivitySource.StartActivity(
-            request.Name,
+        var activity = ApmTestApiActivitySource.StartActivity(
+            (string)requestBodyDictionary["name"],
             kind,
             parentContext,
             tags: null,
@@ -133,12 +140,12 @@ public abstract class ApmTestApiOtel
         activity.ActivityTraceFlags = ActivityTraceFlags.Recorded;
 
         // add necessary tags to the activity
-        if (request.Attributes != null)
+        if (requestBodyDictionary.TryGetValue("attributes", out var attributes))
         {
-            SetTag(activity, request.Attributes);
+            SetTag(activity, attributes);
         }
 
-        Logger.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
+        _logger?.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
 
         ulong traceId = ulong.Parse(activity.TraceId.ToString().AsSpan(16, 16), NumberStyles.HexNumber);
         ulong spanId = ulong.Parse(activity.SpanId.ToString(), NumberStyles.HexNumber);
@@ -148,31 +155,171 @@ public abstract class ApmTestApiOtel
             throw new ApplicationException("Failed to add activity to dictionary.");
         }
 
-        var result = new OtelStartSpanReturn
-                     {
-                         TraceId = traceId,
-                         SpanId = spanId
-                     };
-
-        Logger.LogInformation("OtelStartSpanReturn: {Result}", result);
-        return Task.FromResult(result);
+        var result = JsonConvert.SerializeObject(new
+        {
+            trace_id = traceId,
+            span_id = spanId,
+        });
+        
+        _logger?.LogInformation("OtelStartSpanReturn: {Result}", result);
+        return result;
     }
 
-    public Task OtelEndSpan(HttpRequest request)
+    private static async Task OtelEndSpan(HttpRequest request)
     {
-        Logger?.LogInformation("OtelEndSpan: {Request}", request.Body.ToString());
+        var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
 
-        var activity = FindActivity(request.Id);
+        _logger.LogInformation("OtelEndSpan: {HeaderRequestBody}", requestBody );
 
-        if (request.HasTimestamp)
+        var activity = FindActivity(Convert.ToUInt64(await FindBodyKeyValue(request, "span_id")));
+        var timestamp = await FindBodyKeyValue(request, "timestamp");
+
+        if (String.IsNullOrEmpty(timestamp))
         {
-            DateTimeOffset timestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(request.Timestamp);
-            activity.SetEndTime(timestamp.UtcDateTime);
+            DateTime convertedTimestamp = (new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToDouble(timestamp)));
+            activity.SetEndTime(convertedTimestamp.ToUniversalTime());
         }
 
         activity.Stop();
 
-        Logger.LogInformation("OtelEndSpanReturn");
-        return Task.FromResult();
-    } */
+        _logger.LogInformation("OtelEndSpanReturn");
+    } 
+    
+    public static async Task<string> OtelIsRecording(HttpRequest request)
+    {
+        _logger.LogInformation("OtelIsRecording: {Request}", request);
+
+        var activity = FindActivity(Convert.ToUInt64(await FindBodyKeyValue(request, "span_id")));
+
+        var result = JsonConvert.SerializeObject(new
+        {
+            is_recording = activity.IsAllDataRequested
+        });
+
+        _logger.LogInformation("OtelIsRecordingReturn: {Result}", result);
+        
+        return result;
+    }
+
+    public static async Task<string> OtelSpanContext(HttpRequest request)
+    {
+        _logger.LogInformation("OtelSpanContext: {Request}", request);
+
+        var activity = FindActivity(Convert.ToUInt64(await FindBodyKeyValue(request, "span_id")));
+
+        var result = JsonConvert.SerializeObject(new
+        {
+             trace_id = activity.TraceId.ToString(),
+             spand_id = activity.SpanId.ToString(),
+             trace_flags = ((int)activity.ActivityTraceFlags).ToString("x2"),
+             trace_state = activity.TraceStateString ?? "",
+             remote = activity.HasRemoteParent
+         });
+
+        _logger.LogInformation("OtelSpanContextReturn: {Result}", result);
+        return result;
+    }
+
+    public static async Task OtelSetStatus(HttpRequest request)
+    {
+        _logger.LogInformation("OtelSetStatus: {Request}", request);
+
+        var code = await FindBodyKeyValue(request, "code");
+
+        if (Enum.TryParse(code, ignoreCase: true, out ActivityStatusCode statusCode))
+        {
+            var activity = FindActivity(Convert.ToUInt64(await FindBodyKeyValue(request, "span_id")));
+            activity.SetStatus(statusCode, await FindBodyKeyValue(request, "description"));
+        }
+        else
+        {
+            throw new ApplicationException($"Invalid value for ActivityStatusCode: {code}");
+        }
+
+        _logger.LogInformation("OtelSetStatusReturn");
+    }
+
+    public static async Task OtelSetName(HttpRequest request)
+    {
+        _logger.LogInformation("OtelSetName: {Request}", request);
+
+        var activity = FindActivity(Convert.ToUInt64(FindBodyKeyValue(request, "span_id")));
+        activity.DisplayName = await FindBodyKeyValue(request, "name") ?? string.Empty;
+
+        _logger.LogInformation("OtelSetNameReturn");
+    }
+
+    private static object? GetValue(AttrVal value)
+    {
+        return value.ValCase switch
+        {
+            AttrVal.ValOneofCase.BoolVal => value.BoolVal,
+            AttrVal.ValOneofCase.StringVal => value.StringVal,
+            AttrVal.ValOneofCase.DoubleVal => value.DoubleVal,
+            AttrVal.ValOneofCase.IntegerVal => value.IntegerVal,
+            AttrVal.ValOneofCase.None => null,
+            _ => throw new ArgumentOutOfRangeException("Enum value out of range"),
+        };
+    }
+
+    public static async Task OtelSetAttributes(HttpRequest request)
+    {
+        _logger.LogInformation("OtelSetAttributes: {Request}", request);
+
+        var activity = FindActivity(Convert.ToUInt64(FindBodyKeyValue(request, "span_id")));
+        var attributes = await FindBodyKeyValue(request, "attributes");
+        
+        SetTag(activity, attributess);
+
+        _logger.LogInformation("OtelSetAttributesReturn");
+    }
+
+    private static void SetTag(Activity activity, Attributes attributes)
+    {
+        foreach ((string key, ListVal values) in attributes.KeyVals)
+        {
+            var valuesList = values.Val.ToList();
+            if (valuesList.Count == 1)
+            {
+                var value = GetValue(valuesList[0]);
+                if (value is not null)
+                {
+                    activity.SetTag(key, value);
+                }
+            }
+            else if (valuesList.Count > 1)
+            {
+                var toAdd = new List<object>();
+                foreach (var value in valuesList)
+                {
+                    var valueToAdd = GetValue(value) ?? throw new InvalidOperationException("Null value in attribute array");
+                    toAdd.Add(valueToAdd);
+                }
+                activity.SetTag(key, toAdd);
+            }
+        }
+    }
+
+    private static async Task<string> OtelFlushSpans(HttpRequest request)
+    {
+        _logger.LogInformation("OtelFlushSpans: {Request}", request);
+
+        await FlushSpans();
+
+        _logger.LogInformation("OtelFlushSpansReturn");
+        
+        return JsonConvert.SerializeObject(new
+        {
+            success = true,
+        });
+    }
+
+    private static async Task OtelFlushTraceStats(HttpRequest request)
+    {
+        _logger.LogInformation("OtelFlushTraceStats: {Request}", request);
+
+        await FlushTraceStats();
+
+        _logger.LogInformation("OtelFlushTraceStatsReturn");
+    }
 }

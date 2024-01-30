@@ -16,9 +16,9 @@ namespace ApmTestApi.Endpoints;
 
 public abstract class ApmTestApi
 {
-    public static void MapApmEndpoints(WebApplication app, ILogger<ApmTestApi>? logger)
+    public static void MapApmTraceEndpoints(WebApplication app, ILogger<ApmTestApi> logger)
     {
-        //app.MapPost("/trace/tracer/stop", StopTracer);
+        app.MapPost("/trace/tracer/stop", StopTracer);
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
         app.MapPost("/trace/span/error", SpanSetError);
@@ -26,7 +26,7 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
-        app.MapPost("/trace/stats/flush", FlushTraceStats);
+        app.MapPost("/trace/trace/flush/stat", FlushTraceStats);
         
         _logger = logger;
         _ = Tracer.Instance;
@@ -63,11 +63,11 @@ public abstract class ApmTestApi
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
 
-    private static readonly SpanContextExtractor SpanContextExtractor = new();
+    internal static ILogger<ApmTestApi> _logger;
 
-    private static ILogger<ApmTestApi>? _logger;
+    internal static readonly SpanContextExtractor _spanContextExtractor = new();
 
-    private static IEnumerable<string> GetHeaderValues(IHeaderDictionary headers, string key)
+    internal static IEnumerable<string> GetHeaderValues(IHeaderDictionary headers, string key)
     {
         List<string> values = new List<string>();
         foreach (var kvp in headers)
@@ -85,24 +85,27 @@ public abstract class ApmTestApi
     {
         await Tracer.Instance.ForceFlushAsync();
     }
-    
-    private static async Task<string> StartSpan(HttpRequest httpRequest)
+
+    private static async Task<string> StartSpan(HttpRequest request)
     {
-        var headerRequestBody = await new StreamReader(httpRequest.Body).ReadToEndAsync();
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
         var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
-        
+
         _logger?.LogInformation("StartSpan: {HeaderRequestBody}", headerRequestBody);
-        
+
         var creationSettings = new SpanCreationSettings
         {
             FinishOnClose = false,
         };
 
-        creationSettings.Parent = SpanContextExtractor.Extract(
-            httpRequest.Headers,
-            getter: GetHeaderValues);
+        if (request.Headers.Count > 0) 
+        {
+            creationSettings.Parent = _spanContextExtractor.Extract(
+                request.Headers,
+                getter: GetHeaderValues);
+        }
 
-        if (parsedDictionary!.TryGetValue("parentId", out var parentId))
+        if (parsedDictionary!.TryGetValue("parent_id", out var parentId))
         {
             var longParentId = Convert.ToUInt64(parentId);
             
@@ -240,7 +243,7 @@ public abstract class ApmTestApi
         span.Finish();
     }
 
-    private static async Task FlushSpans()
+    internal static async Task FlushSpans()
     {
         if (Tracer.Instance is null)
         {
@@ -252,7 +255,7 @@ public abstract class ApmTestApi
         ApmTestApiOtel.Activities.Clear();
     }
 
-    private static async Task FlushTraceStats()
+    internal static async Task FlushTraceStats()
     {
         if (GetTracerManager is null)
         {
@@ -311,7 +314,7 @@ public abstract class ApmTestApi
         return null;
     }
 
-    private static async Task<string?> FindBodyKeyValue(HttpRequest httpRequest,string keyToFind)
+    internal static async Task<string?> FindBodyKeyValue(HttpRequest httpRequest,string keyToFind)
     {
         var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
         var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);

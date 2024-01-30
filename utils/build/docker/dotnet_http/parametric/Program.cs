@@ -16,7 +16,8 @@ app.UseHttpsRedirection();
 var logger = app.Services.GetRequiredService<ILogger<ApmTestApi.Endpoints.ApmTestApi>>();
 
 // Map endpoints
-ApmTestApi.Endpoints.ApmTestApi.MapApmEndpoints(app, logger);
+ApmTestApi.Endpoints.ApmTestApi.MapApmTraceEndpoints(app, logger);
+ApmTestApi.Endpoints.ApmTestApiOtel.MapApmOtelEndpoints(app);
 
 if (int.TryParse(Environment.GetEnvironmentVariable("APM_TEST_CLIENT_SERVER_PORT"), out var port))
 {
