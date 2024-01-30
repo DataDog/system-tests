@@ -191,7 +191,7 @@ def produce_kafka_message():
     message = b"Distributed Tracing Test from Python for Kafka!"
     output = kafka_produce(topic, message)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
@@ -205,7 +205,7 @@ def consume_kafka_message():
     timeout = int(flask_request.args.get("timeout", 60))
     output = kafka_consume(topic, "apm_test", timeout)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
@@ -216,7 +216,7 @@ def produce_sqs_message():
     message = "Hello from Python SQS"
     output = sqs_produce(queue, message)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
@@ -227,7 +227,7 @@ def consume_sqs_message():
     timeout = int(flask_request.args.get("timeout", 60))
     output = sqs_consume(queue, timeout)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
@@ -238,7 +238,7 @@ def produce_rabbitmq_message():
     message = "Hello from Python RabbitMQ Context Propagation Test"
     output = rabbitmq_produce(queue, message)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
@@ -249,7 +249,7 @@ def consume_rabbitmq_message():
     timeout = int(flask_request.args.get("timeout", 60))
     output = rabbitmq_consume(queue, timeout)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
