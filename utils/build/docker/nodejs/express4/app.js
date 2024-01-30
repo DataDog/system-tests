@@ -187,8 +187,10 @@ app.get('/dsm', (req, res) => {
     const queue = 'dsm-system-tests-queue'
     const message = 'hello from SQS DSM JS'
     const timeout = req.query.timeout ?? 5
+    const exchange = 'systemTestDirectExchange'
+    const routingKey = 'systemTestDirectRoutingKey'
 
-    rabbitmqProduce(queue, message)
+    rabbitmqProduce(queue, exchange, routingKey, message)
       .then(() => {
         rabbitmqConsume(queue, timeout * 1000)
           .then(() => {

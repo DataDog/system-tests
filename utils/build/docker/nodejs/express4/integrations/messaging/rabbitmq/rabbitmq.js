@@ -1,11 +1,13 @@
 const amqplib = require('amqplib')
 
-async function rabbitmqProduce (queue, message) {
+async function rabbitmqProduce (queue, exchange, routingKey, message) {
   const connection = await amqplib.connect('amqp://rabbitmq:5672')
   const channel = await connection.createChannel()
 
+  await channel.assertExchange(exchange)
   await channel.assertQueue(queue)
-  channel.sendToQueue(queue, Buffer.from(message))
+  await channel.bindQueue(queue, exchange, routingKey)
+  channel.publish(exchange, 'routingKey', Buffer.from(message))
 
   await channel.close()
   await connection.close()
