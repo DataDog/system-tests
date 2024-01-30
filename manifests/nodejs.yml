@@ -346,10 +346,10 @@ tests/:
         express4: v5.3.0
       Test_DsmRabbitmq_FanoutExchange:
         "*": irrelevant
-        express4: v5.3.0
+        express4: missing_feature
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
-        express4: v5.3.0
+        express4: missing_feature
       Test_DsmSQS:
         "*": irrelevant
         express4: v5.2.0

@@ -69,14 +69,14 @@ class Test_DsmRabbitmq:
         if context.library == "nodejs":
             producer_hash = 1917557401102907424
             consumer_hash = 8420052766055045030
+            edge_tags = ("direction:out", "exchange:", "has_routing_key:true", "type:rabbitmq")
         else:
             producer_hash = 6176024609184775446
             consumer_hash = 1648106384315938543
+            edge_tags = ("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq")
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash,
-            parent_hash=0,
-            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
+            hash_=producer_hash, parent_hash=0, tags=edge_tags,
         )
 
         DsmHelper.assert_checkpoint_presence(
