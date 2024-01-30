@@ -292,7 +292,7 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v3.9.0
     test_shell_execution.py:
-      Test_ShellExecution: missing_feature
+      Test_ShellExecution: v5.3.0
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
