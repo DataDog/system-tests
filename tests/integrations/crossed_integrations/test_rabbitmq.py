@@ -27,7 +27,12 @@ class _Test_RabbitMQ:
                 if span["meta"].get("span.kind") != span_kind:
                     continue
 
-                if operation.lower() not in span.get("resource").lower():
+                operation_found = False
+                for op in operation:
+                    if op.lower() in span.get("resource").lower() or op.lower() in span.get("name").lower():
+                        operation_found = True
+
+                if not operation_found:
                     continue
 
                 if queue.lower() not in span.get("resource").lower():
@@ -70,10 +75,13 @@ class _Test_RabbitMQ:
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
-            interfaces.library, span_kind="producer", queue=self.WEBLOG_TO_BUDDY_QUEUE, operation="basic.publish",
+            interfaces.library, span_kind="producer", queue=self.WEBLOG_TO_BUDDY_QUEUE, operation=["publish"],
         )
         consumer_span = self.get_span(
-            self.buddy_interface, span_kind="consumer", queue=self.WEBLOG_TO_BUDDY_QUEUE, operation="basic.deliver",
+            self.buddy_interface,
+            span_kind="consumer",
+            queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            operation=["deliver", "receive"],
         )
 
         # Both producer and consumer spans should be part of the same trace
@@ -115,10 +123,13 @@ class _Test_RabbitMQ:
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
-            self.buddy_interface, span_kind="producer", queue=self.BUDDY_TO_WEBLOG_QUEUE, operation="basic.publish",
+            self.buddy_interface, span_kind="producer", queue=self.BUDDY_TO_WEBLOG_QUEUE, operation=["publish"],
         )
         consumer_span = self.get_span(
-            interfaces.library, span_kind="consumer", queue=self.BUDDY_TO_WEBLOG_QUEUE, operation="basic.deliver",
+            interfaces.library,
+            span_kind="consumer",
+            queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            operation=["deliver", "receive"],
         )
 
         # Both producer and consumer spans should be part of the same trace
@@ -133,13 +144,18 @@ class _Test_RabbitMQ:
         """
 
         # Check that the producer did not created any consumer span
-        assert self.get_span(producer_interface, span_kind="consumer", queue=queue, operation="basic.deliver") is None
+        assert (
+            self.get_span(producer_interface, span_kind="consumer", queue=queue, operation=["deliver", "receive"])
+            is None
+        )
 
         # Check that the consumer did not created any producer span
-        assert self.get_span(consumer_interface, span_kind="producer", queue=queue, operation="basic.publish") is None
+        assert self.get_span(consumer_interface, span_kind="producer", queue=queue, operation=["publish"],) is None
 
-        producer_span = self.get_span(producer_interface, span_kind="producer", queue=queue, operation="basic.publish")
-        consumer_span = self.get_span(consumer_interface, span_kind="consumer", queue=queue, operation="basic.deliver")
+        producer_span = self.get_span(producer_interface, span_kind="producer", queue=queue, operation=["publish"],)
+        consumer_span = self.get_span(
+            consumer_interface, span_kind="consumer", queue=queue, operation=["deliver", "receive"]
+        )
         # check that both consumer and producer spans exists
         assert producer_span is not None
         assert consumer_span is not None
