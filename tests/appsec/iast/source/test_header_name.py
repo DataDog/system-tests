@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, bug, features
+from utils import context, coverage, missing_feature, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
@@ -18,10 +18,20 @@ class TestHeaderName(BaseSourceTest):
     source_type = "http.request.header.name"
     source_value = None
 
-    @bug(library="java", reason="Not working as expected")
+    @missing_feature(context.library < "java@1.16.0", reason="Not working as expected")
+    @missing_feature(
+        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
+        reason="Metrics not implemented",
+    )
+    @missing_feature(context.weblog_variant in ("jersey-grizzly2", "vertx4"), reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @bug(library="java", reason="Not working as expected")
+    @missing_feature(context.library < "java@1.16.0", reason="Not working as expected")
+    @missing_feature(
+        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
+        reason="Metrics not implemented",
+    )
+    @missing_feature(context.weblog_variant in ("jersey-grizzly2", "vertx4"), reason="Metrics not implemented")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()
