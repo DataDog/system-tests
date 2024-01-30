@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
+from tests.integrations.crossed_integrations.test_kafka import _java_buddy
 from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -31,6 +31,7 @@ class _Test_RabbitMQ:
                 for op in operation:
                     if op.lower() in span.get("resource").lower() or op.lower() in span.get("name").lower():
                         operation_found = True
+                        break
 
                 if not operation_found:
                     continue
@@ -60,8 +61,8 @@ class _Test_RabbitMQ:
     def test_produce(self):
         """Check that a message produced to RabbitMQ is correctly ingested by a Datadog tracer"""
 
-        assert self.production_response.status_code == 200
-        assert self.consume_response.status_code == 200
+        assert self.production_response.status_code == 200, self.production_response.text
+        assert self.consume_response.status_code == 200, self.consume_response.text
 
         # The weblog is the producer, the buddy is the consumer
         self.validate_rabbitmq_spans(
@@ -108,8 +109,8 @@ class _Test_RabbitMQ:
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
 
-        assert self.production_response.status_code == 200
-        assert self.consume_response.status_code == 200
+        assert self.production_response.status_code == 200, self.production_response.text
+        assert self.consume_response.status_code == 200, self.consume_response.text
 
         # The buddy is the producer, the weblog is the consumer
         self.validate_rabbitmq_spans(
