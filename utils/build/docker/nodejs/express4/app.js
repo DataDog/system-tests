@@ -192,7 +192,7 @@ app.get('/dsm', (req, res) => {
       .then(() => {
         rabbitmqConsume(queue, timeout * 1000)
           .then(() => {
-            res.status(200).send('DSM ok')
+            res.status(200).send('ok')
           })
           .catch((error) => {
             console.error(error)
