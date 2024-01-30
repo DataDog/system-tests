@@ -189,7 +189,7 @@ class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
 
     def setup_dsm_sqs(self):
-        self.r = weblog.get("/dsm?integration=sqs")
+        self.r = weblog.get("/dsm?integration=sqs&timeout=60", timeout=61)
 
     @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being receieved.")
     def test_dsm_sqs(self):
