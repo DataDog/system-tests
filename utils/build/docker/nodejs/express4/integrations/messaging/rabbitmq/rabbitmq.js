@@ -1,18 +1,18 @@
-const { connect } = require('amqplib')
+const amqplib = require('amqplib')
 
 async function rabbitmqProduce (queue, message) {
-  const connection = await connect('amqp://rabbitmq:5672')
+  const connection = await amqplib.connect('amqp://rabbitmq:5672')
   const channel = await connection.createChannel()
 
   await channel.assertQueue(queue)
-  await channel.sendToQueue(queue, Buffer.from(message))
+  channel.sendToQueue(queue, Buffer.from(message))
 
   await channel.close()
   await connection.close()
 }
 
 async function rabbitmqConsume (queue, timeout) {
-  const connection = await connect('amqp://rabbitmq:5672')
+  const connection = await amqplib.connect('amqp://rabbitmq:5672')
   const channel = await connection.createChannel()
 
   await channel.assertQueue(queue)

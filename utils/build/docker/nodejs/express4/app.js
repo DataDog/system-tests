@@ -14,7 +14,7 @@ const { spawnSync } = require('child_process')
 
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
-// const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
+const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 iast.initData().catch(() => {})
 
@@ -263,32 +263,32 @@ app.get('/sqs/consume', (req, res) => {
     })
 })
 
-// app.get('/rabbitmq/produce', (req, res) => {
-//   const queue = req.query.queue
+app.get('/rabbitmq/produce', (req, res) => {
+  const queue = req.query.queue
 
-//   rabbitmqProduce(queue, 'NodeJS Produce Context Propagation Test RabbitMQ')
-//     .then(() => {
-//       res.status(200).send('produce ok')
-//     })
-//     .catch((error) => {
-//       console.error(error)
-//       res.status(500).send('Internal Server Error during SQS produce')
-//     })
-// })
+  rabbitmqProduce(queue, 'NodeJS Produce Context Propagation Test RabbitMQ')
+    .then(() => {
+      res.status(200).send('produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error during RabbitMQ produce')
+    })
+})
 
-// app.get('/rabbitmq/consume', (req, res) => {
-//   const queue = req.query.queue
-//   const timeout = parseInt(req.query.timeout) ?? 5
+app.get('/rabbitmq/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
 
-//   rabbitmqConsume(queue, timeout * 1000)
-//     .then(() => {
-//       res.status(200).send('consume ok')
-//     })
-//     .catch((error) => {
-//       console.error(error)
-//       res.status(500).send('Internal Server Error during SQS consume')
-//     })
-// })
+  rabbitmqConsume(queue, timeout * 1000)
+    .then(() => {
+      res.status(200).send('consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error during RabbitMQ consume')
+    })
+})
 
 app.get('/load_dependency', (req, res) => {
   console.log('Load dependency endpoint')
