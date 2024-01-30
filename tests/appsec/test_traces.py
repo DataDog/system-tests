@@ -91,7 +91,7 @@ class Test_AppSecEventSpanTags:
         interfaces.library.validate_spans(validator=validate_custom_span_tags)
 
     def setup_header_collection(self):
-        self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain",},)
+        self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
     @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="a PR was not included in the release")
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
