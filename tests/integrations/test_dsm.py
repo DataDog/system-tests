@@ -69,9 +69,12 @@ class Test_DsmRabbitmq:
         if context.library == "nodejs":
             producer_hash = 5080618047473654667
             consumer_hash = 12436096712734841122
+            # node does not have access to the queue argument and defaults to using the routing key
+            edge_tags = ("direction:in", "topic:systemTestDirectRoutingKey", "type:rabbitmq")
         else:
             producer_hash = 6176024609184775446
             consumer_hash = 1648106384315938543
+            edge_tags = ("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq")
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash,
@@ -80,9 +83,7 @@ class Test_DsmRabbitmq:
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash,
-            parent_hash=producer_hash,
-            tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
         )
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
