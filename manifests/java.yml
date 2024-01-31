@@ -847,6 +847,10 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": missing_feature (Endpoint not implemented)
           spring-boot: v0.1 # real version not known
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          spring-boot: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)

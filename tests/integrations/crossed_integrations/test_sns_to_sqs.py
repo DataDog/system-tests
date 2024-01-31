@@ -201,22 +201,22 @@ class _Test_SNS:
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_SNS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SNS):
+class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = _python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_propagation_via_message_attributes_weblog_to_buddy"
-    WEBLOG_TO_BUDDY_TOPIC = "Test_SNS_propagation_via_message_attributes_weblog_to_buddy_topic"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_propagation_via_message_attributes_buddy_to_weblog"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_SNS_propagation_via_message_attributes_buddy_to_weblog_topic"
+    WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy_topic"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog_topic"
 
 
 # @scenarios.crossed_tracing_libraries
 # @features.aws_sns_span_creationcontext_propagation_via_xray_header_with_dd_trace
-# class Test_SNS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SNS):
+# class Test_SNS_Propagation_VIA_AWS_XRAY_HEADERS(_Test_SNS):
 #     buddy_interface = interfaces.java_buddy
 #     buddy = _java_buddy
-#     WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_propagation_via_aws_xray_header_weblog_to_buddy"
-#     BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_propagation_via_aws_xray_header_buddy_to_weblog"
+#     WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_Propagation_via_aws_xray_header_weblog_to_buddy"
+#     BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_Propagation_via_aws_xray_header_buddy_to_weblog"
 
 #     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
 #     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")

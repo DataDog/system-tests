@@ -156,12 +156,12 @@ app.get('/dsm', (req, res) => {
           })
           .catch((error) => {
             console.log(error)
-            res.status(500).send('Internal Server Error during Kafka consume')
+            res.status(500).send('[Kafka] Internal Server Error during Kafka consume')
           })
       })
       .catch((error) => {
         console.log(error)
-        res.status(500).send('Internal Server Error during Kafka produce')
+        res.status(500).send('[Kafka] Internal Server Error during Kafka produce')
       })
   } else if (integration === 'sqs') {
     const queue = 'dsm-system-tests-queue'
@@ -176,15 +176,36 @@ app.get('/dsm', (req, res) => {
           })
           .catch((error) => {
             console.log(error)
-            res.status(500).send('Internal Server Error during SQS consume')
+            res.status(500).send('[SQS] Internal Server Error during DSM SQS consume')
           })
       })
       .catch((error) => {
         console.log(error)
-        res.status(500).send('Internal Server Error during SQS produce')
+        res.status(500).send('[SQS] Internal Server Error during DSM SQS produce')
+      })
+  } else if (integration === 'sns') {
+    const queue = 'dsm-system-tests-queue-sns'
+    const topic = 'dsm-system-tests-topic-sns'
+    const message = 'hello from SNS DSM JS'
+    const timeout = req.query.timeout ?? 5
+
+    snsPublish(queue, topic, message)
+      .then(() => {
+        snsConsume(queue, timeout)
+          .then(() => {
+            res.send('ok')
+          })
+          .catch((error) => {
+            console.log(error)
+            res.status(500).send('[SNS->SQS] Internal Server Error during DSM SQS consume from SNS')
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+        res.status(500).send('[SNS->SQS] Internal Server Error during DSM SNS publish')
       })
   } else {
-    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, SQS]')
+    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, SQS, SNS]')
   }
 })
 

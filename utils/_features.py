@@ -1926,3 +1926,13 @@ class features:
         """
         pytest.mark.features(feature_id=270)(test_object)
         return test_object
+
+    @staticmethod
+    def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-SNS][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=271
+        """
+        pytest.mark.features(feature_id=271)(test_object)
+        return test_object
