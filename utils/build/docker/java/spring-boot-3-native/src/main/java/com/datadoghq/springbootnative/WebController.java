@@ -1,5 +1,6 @@
 package com.datadoghq.springbootnative;
 
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.net.HttpURLConnection;
@@ -133,9 +134,9 @@ public class WebController {
     public HashMap<String, String> response_headers;
   }
 
-
+  @RegisterReflectionForBinding({ShellExecutionRequest.class, ShellExecutionRequest.Options.class})
   @PostMapping(value = "/shell_execution", consumes = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<String> shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
+  String shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
     Process p;
     if (request.options.shell) {
       throw new RuntimeException("Not implemented");
@@ -148,7 +149,7 @@ public class WebController {
     }
     p.waitFor(10, TimeUnit.SECONDS);
     final int exitCode = p.exitValue();
-    return new ResponseEntity<>("OK: " + exitCode, HttpStatus.OK);
+    return "OK: " + exitCode;
   }
 
   private static class ShellExecutionRequest {

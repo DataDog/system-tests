@@ -788,6 +788,7 @@ tests/:
         play: missing_feature (endpoint not implemented)
         ratpack: missing_feature (endpoint not implemented)
         resteasy-netty3: missing_feature (endpoint not implemented)
+        spring-boot-3-native: missing_feature (disabled on GraalVM)
         vertx3: missing_feature (endpoint not implemented)
         vertx4: missing_feature (endpoint not implemented)
     test_traces.py:
