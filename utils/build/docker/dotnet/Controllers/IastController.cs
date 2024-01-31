@@ -197,6 +197,22 @@ namespace weblog
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
+        }        
+        
+        [HttpGet("hstsmissing/test_insecure")]
+        public IActionResult test_insecure_hstsmissing()
+        {
+            Response.Headers.Add("Strict-Transport-Security", "max-age=-3153");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
+        }
+
+        [HttpGet("hstsmissing/test_secure")]
+        public IActionResult test_secure_hstsmissing()
+        {
+            Response.Headers.Append("Strict-Transport-Security", "max-age=31536000");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
         }
         
         [HttpGet("no-samesite-cookie/test_insecure")]

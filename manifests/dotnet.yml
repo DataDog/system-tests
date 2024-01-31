@@ -28,7 +28,7 @@ tests/:
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py: 
-          Test_HstsMissingHeader: missing_feature
+          Test_HstsMissingHeader: v2.44.0
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
         test_ldap_injection.py:
