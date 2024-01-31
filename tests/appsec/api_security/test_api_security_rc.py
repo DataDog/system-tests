@@ -55,11 +55,14 @@ class Test_API_Security_RC_ASM_DD_scanners:
 
     def setup_request_method(self):
         interfaces.library.wait_for_remote_config_request()
-        self.request = weblog.get("/tag_value/api_rc_scanner/200?mail=systemtestmail@datadoghq.com")
+        self.request = weblog.post(
+            "/tag_value/api_rc_scanner/200",
+            data={"mail": "systemtestmail@datadoghq.com"}
+        )
 
     def test_request_method(self):
         """can provide custom req.querytest schema"""
-        schema = get_schema(self.request, "req.querytest")
+        schema = get_schema(self.request, "req.bodytest")
         EXPECTED_MAIL_SCHEMA = [8, {"category": "pii", "type": "email"}]
 
         assert self.request.status_code == 200
