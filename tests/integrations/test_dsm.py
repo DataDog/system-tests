@@ -197,7 +197,7 @@ class Test_DsmSQS:
 
         language_hashes = {
             "nodejs": {
-                "producer": 2931833227331067675,
+                "producer": 18206246330825886989,
                 "consumer": 271115008390912609,
                 "topic": "dsm-system-tests-queue",
             },
