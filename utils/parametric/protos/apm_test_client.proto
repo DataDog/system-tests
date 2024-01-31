@@ -139,6 +139,7 @@ message OtelStartSpanArgs {
   optional string resource = 5;
   optional string type = 6;
   optional int64 timestamp = 7;
+  repeated SpanLink span_links = 11;
   optional DistributedHTTPHeaders http_headers = 10;
   Attributes attributes = 8;
 }

@@ -98,6 +98,7 @@ def validate_spans(expected_spans):
 @features.debugger
 @scenarios.debugger_probes_status
 class Test_Debugger_Probe_Statuses:
+    @missing_feature(context.library >= "java@1.27", reason="Sending probe status to DEBUGGER track")
     def test_method_probe_status(self):
         expected_probes = {
             "loga0cf2-meth-45cf-9f39-591received": "RECEIVED",
@@ -112,6 +113,7 @@ class Test_Debugger_Probe_Statuses:
 
         validate_probes(expected_probes)
 
+    @missing_feature(context.library >= "java@1.27", reason="Sending probe status to DEBUGGER track")
     def test_line_probe_status(self):
         expected_probes = {
             "loga0cf2-line-45cf-9f39-59installed": "INSTALLED",

@@ -9,7 +9,6 @@ from utils import (
     ValidationError,
     bug,
     context,
-    coverage,
     interfaces,
     irrelevant,
     missing_feature,
@@ -30,6 +29,7 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
     ASM_DD_EXPECTED_REQUESTS = json.load(f)
 
 
+@features.agent_remote_configuration
 class Test_Agent:
     """misc test on agent/remote config features"""
 
@@ -48,13 +48,14 @@ class Test_Agent:
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
+@features.remote_config_object_supported
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
     @bug(context.library >= "nodejs@3.14.1")
-    @bug(context.library == "php" and context.php_appsec >= "0.10.0")
+    @bug(context.library == "php")
     def test_schemas(self):
         """Test all library schemas"""
         interfaces.library.assert_schemas()
@@ -236,7 +237,6 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
 @features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
@@ -245,6 +245,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
     python_request_number = 0
 
+    @bug(context.library >= "php@0.95.0", reason="Since the unified package (ddtracer + appsec) ")
     @bug(context.library == "python@1.9.2")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(
@@ -280,8 +281,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         interfaces.library.validate_remote_configuration(validator=validate)
 
 
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
+@features.remote_config_object_supported
 class Test_RemoteConfigurationExtraServices:
     """Tests that extra services are sent in the RC message"""
 
@@ -322,8 +323,8 @@ class Test_RemoteConfigurationExtraServices:
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging
+@features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -352,8 +353,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd
+@features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -385,7 +386,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features_nocache
 @features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
@@ -412,8 +412,8 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging_nocache
+@features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -439,8 +439,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd_nocache
+@features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 

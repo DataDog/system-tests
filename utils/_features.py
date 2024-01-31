@@ -1250,10 +1250,9 @@ class features:
         return test_object
 
     @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_py(test_object):
+    def kafkaspan_creationcontext_propagation_with_dd_trace(test_object):
         """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-py
-
+        [Kafka][Span Creation][Context Propagation] with dd-trace
         https://feature-parity.us1.prod.dog/#/?feature=192
         """
         pytest.mark.features(feature_id=192)(test_object)
@@ -1830,37 +1829,100 @@ class features:
         return test_object
 
     @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_js(test_object):
+    def decisionless_extraction(test_object):
         """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-js
-        https://feature-parity.us1.prod.dog/#/?feature=259
+        Sampling behavior when extracted trace context does not convey a sampling decision
+        https://feature-parity.us1.prod.dog/#/?feature=261
         """
-        pytest.mark.features(feature_id=259)(test_object)
+        pytest.mark.features(feature_id=261)(test_object)
         return test_object
 
     @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_java(test_object):
+    def semantic_core_validations(test_object):
         """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-java
-        https://feature-parity.us1.prod.dog/#/?feature=256
+        Semantic Core Validations
+
+        https://feature-parity.us1.prod.dog/#/?feature=262
         """
-        pytest.mark.features(feature_id=256)(test_object)
+        pytest.mark.features(feature_id=262)(test_object)
         return test_object
 
     @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_rb(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(test_object):
         """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-rb
-        https://feature-parity.us1.prod.dog/#/?feature=257
+        [AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=263
         """
-        pytest.mark.features(feature_id=257)(test_object)
+        pytest.mark.features(feature_id=263)(test_object)
         return test_object
 
     @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_go(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
         """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-go
-        https://feature-parity.us1.prod.dog/#/?feature=258
+        [AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=264
         """
-        pytest.mark.features(feature_id=258)(test_object)
+        pytest.mark.features(feature_id=264)(test_object)
+        return test_object
+
+    @staticmethod
+    def agent_remote_configuration(test_object):
+        """
+        Agent supports remote configuration
+
+        https://feature-parity.us1.prod.dog/#/?feature=265
+        """
+        pytest.mark.features(feature_id=265)(test_object)
+        return test_object
+
+    @staticmethod
+    def data_integrity(test_object):
+        """
+        Data integrity
+
+        https://feature-parity.us1.prod.dog/#/?feature=266
+        """
+        pytest.mark.features(feature_id=266)(test_object)
+        return test_object
+
+    @staticmethod
+    def library_scrubbing(test_object):
+        """
+        Library scrubbing
+
+        https://feature-parity.us1.prod.dog/#/?feature=267
+        """
+        pytest.mark.features(feature_id=267)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_sqs(test_object):
+        """
+        DataStreams Monitoring support for AWS SQS
+
+        https://feature-parity.us1.prod.dog/#/?feature=268
+        """
+        pytest.mark.features(feature_id=268)(test_object)
+        return test_object
+
+    @staticmethod
+    def api_security_configuration(test_object):
+        """
+        Schema extraction for API Security
+
+        https://feature-parity.us1.prod.dog/#/?feature=269
+        """
+        pytest.mark.features(feature_id=269)(test_object)
+        return test_object
+
+    @staticmethod
+    def rabbitmq_span_creationcontext_propagation_with_dd_trace(test_object):
+        """
+        [RabbitMQ][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=270
+        """
+        pytest.mark.features(feature_id=270)(test_object)
         return test_object

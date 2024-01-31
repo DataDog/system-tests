@@ -4,7 +4,7 @@
 
 """Misc checks around data integrity during components' lifetime"""
 import socket
-from utils import interfaces, coverage, scenarios
+from utils import interfaces, scenarios, features
 
 
 def is_ip(value):
@@ -15,8 +15,8 @@ def is_ip(value):
         return False
 
 
-@coverage.good
 @scenarios.todo
+@features.library_scrubbing
 class Test_NoIpIsReported:
     """ Used to check that no IP is reported by agent """
 

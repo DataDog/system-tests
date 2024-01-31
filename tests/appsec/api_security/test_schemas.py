@@ -4,7 +4,6 @@
 
 from utils import (
     context,
-    coverage,
     interfaces,
     missing_feature,
     rfc,
@@ -51,7 +50,6 @@ def equal_value(t1, t2):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Headers:
@@ -72,7 +70,6 @@ class Test_Schema_Request_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Cookies:
@@ -96,7 +93,6 @@ class Test_Schema_Request_Cookies:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Query_Parameters:
@@ -117,7 +113,6 @@ class Test_Schema_Request_Query_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Path_Parameters:
@@ -139,7 +134,6 @@ class Test_Schema_Request_Path_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Json_Body:
@@ -147,7 +141,7 @@ class Test_Schema_Request_Json_Body:
 
     def setup_request_method(self):
         payload = {
-            "main": [{"key": "id001", "value": 1345}, {"value": 1567, "key": "id002"}],
+            "main": [{"key": "id001", "value": 1345.67}, {"value": 1567.89, "key": "id002"}],
             "nullable": None,
         }
         self.request = weblog.post("/tag_value/api_match_AS004/200", json=payload)
@@ -156,11 +150,10 @@ class Test_Schema_Request_Json_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}],)
+        assert contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}],)
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_FormUrlEncoded_Body:
@@ -197,7 +190,6 @@ class Test_Schema_Request_FormUrlEncoded_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Headers:
@@ -217,7 +209,6 @@ class Test_Schema_Response_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Body:
@@ -243,7 +234,35 @@ class Test_Schema_Response_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
+@scenarios.appsec_api_security_no_response_body
+@features.api_security_schemas
+class Test_Schema_Response_Body_env_var:
+    """
+    Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
+    Check that response headers are still parsed but not response body
+    """
+
+    def setup_request_method(self):
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200?X-option=test_value",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234,},
+        )
+
+    def test_request_method(self):
+        """can provide response body schema"""
+        assert self.request.status_code == 200
+
+        headers_schema = get_schema(self.request, "res.headers")
+        assert isinstance(headers_schema, list)
+        assert len(headers_schema) == 1
+        assert isinstance(headers_schema[0], dict)
+        assert "x-option" in headers_schema[0]
+
+        body_schema = get_schema(self.request, "res.body")
+        assert body_schema is None
+
+
+@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Scanners:

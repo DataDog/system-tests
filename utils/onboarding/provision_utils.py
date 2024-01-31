@@ -2,6 +2,7 @@ import os
 import yaml
 from yamlinclude import YamlIncludeConstructor
 from utils._context.virtual_machines import TestedVirtualMachine
+from utils.tools import logger
 
 
 class ProvisionMatrix:
@@ -246,6 +247,7 @@ class ProvisionParser:
 
         # Open the file associated with the scenario and lang.
         main_scenario = "container" if self.is_container else "host"
+
         provision_file = (
             "tests/onboarding/infra_provision/provision_onboarding_"
             + main_scenario
@@ -253,6 +255,20 @@ class ProvisionParser:
             + self.provision_filter.language
             + ".yml"
         )
+
+        provision_file_alternative = (
+            "tests/onboarding/infra_provision/provision_"
+            + self.provision_filter.provision_scenario.lower()
+            + "_"
+            + self.provision_filter.language
+            + ".yml"
+        )
+
+        if os.path.isfile(provision_file_alternative):
+            provision_file = provision_file_alternative
+            self.is_auto_install = False
+
+        logger.info(f"Loading onboarding provision file [{provision_file}]")
         with open(provision_file, encoding="utf-8") as f:
             config_data = yaml.load(f, Loader=yaml.FullLoader)
         return config_data

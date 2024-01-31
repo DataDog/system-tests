@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, coverage, features
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -542,6 +542,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
 
+@features.telemetry_instrumentation
 class Test_APMOnboardingInstallID:
     """Tests that APM onboarding install information is correctly propagated"""
 
@@ -659,7 +660,6 @@ class Test_MessageBatch:
 
 
 @features.telemetry_api_v2_implemented
-@coverage.basic
 class Test_Log_Generation:
     """Assert that logs reported by default, and not reported when logs generation is disabled in telemetry"""
 

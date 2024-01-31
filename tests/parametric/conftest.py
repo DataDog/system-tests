@@ -109,11 +109,12 @@ def python_library_factory() -> APMLibraryTestServer:
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
 WORKDIR /app
 RUN pyenv global 3.9.11
-RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0 requests
+RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+ENV DD_PATCH_MODULES="fastapi:false"
 """,
-        container_cmd="python3.9 -m apm_test_client".split(" "),
+        container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
@@ -289,14 +290,14 @@ def php_library_factory() -> APMLibraryTestServer:
         container_tag="php-test-library",
         container_img=f"""
 FROM datadog/dd-trace-ci:php-8.2_buster
-WORKDIR /tmp
+WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
 ADD {php_reldir}/composer.lock .
 RUN composer install
-ADD {php_reldir}/install.sh .
+ADD {php_reldir}/../common/install_ddtrace.sh .
 COPY binaries /binaries
-RUN ./install.sh
+RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 ADD {php_reldir}/server.php .
 """,
         container_cmd=["php", "server.php"],
@@ -558,6 +559,16 @@ class _TestAgentAPI:
         )
         assert resp.status_code == 202
 
+    def raw_telemetry(self, clear=False, **kwargs):
+        raw_reqs = self.requests()
+        reqs = []
+        for req in raw_reqs:
+            if req["url"].endswith("/telemetry/proxy/api/v2/apmtelemetry"):
+                reqs.append(req)
+        if clear:
+            self.clear()
+        return reqs
+
     def telemetry(self, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
         if clear:
@@ -727,6 +738,7 @@ class _TestAgentAPI:
     def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
+        capabilities_seen = set()
         for i in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
@@ -737,11 +749,13 @@ class _TestAgentAPI:
                 for req in rc_reqs:
                     raw_caps = req["body"]["client"].get("capabilities")
                     if raw_caps:
-                        int_capabilities = int.from_bytes(base64.b64decode(raw_caps), byteorder="big")
+                        decoded_capabilities = base64.b64decode(raw_caps)
+                        int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+                        capabilities_seen.add(remoteconfig.human_readable_capabilities(int_capabilities))
                         if all((int_capabilities >> c) & 1 for c in capabilities):
                             return int_capabilities
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig capabilities found, got requests %r" % rc_reqs)
+        raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
     def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""

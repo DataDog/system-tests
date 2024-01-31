@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, features
+from utils import context, missing_feature, features, bug
 from .._test_iast_fixtures import BaseSinkTest
 
 
-@coverage.basic
 @features.iast_sink_sql_injection
 class TestSqlInjection(BaseSinkTest):
     """Verify SQL injection detection."""
@@ -18,18 +17,26 @@ class TestSqlInjection(BaseSinkTest):
     data = {"username": "shaquille_oatmeal", "password": "123456"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SqlExamples",
-        "nodejs": "iast/index.js",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @bug(
+        context.library < "nodejs@5.3.0",
+        weblog_variant="express4-typescript",
+        reason="Incorrect vulnerability location",
+    )
+    def test_insecure(self):
+        super().test_insecure()
+
+    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()

@@ -249,7 +249,7 @@ jobs:
       if: matrix.variant.library == 'python' && contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
       run: |
         docker buildx build --load --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v0 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v1 .
         docker buildx build --load --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
         docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v2 .
         docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v1 .
@@ -269,10 +269,12 @@ jobs:
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+    
+      # quick and dirty fix, because we can't test for now the PHP released tracer
+    - name: Load PHP library binary (skipping release tests, use snapshot instead)
+      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
 
-    - name: Load library PHP appsec binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -426,6 +428,18 @@ jobs:
       run: ./run.sh APPSEC_API_SECURITY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      run: |
+        ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING
+        cat ./logs_appsec_api_security_with_sampling/tests.log 2>/dev/null | grep "API SECURITY" || true
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
@@ -513,6 +527,9 @@ jobs:
         ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
         ./run.sh APPSEC_WAF_TELEMETRY --replay
         ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
+        ./run.sh APPSEC_API_SECURITY --replay
+        ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY --replay
+        ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING --replay
         ./run.sh SAMPLING --replay
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
         ./run.sh DEBUGGER_PROBES_STATUS --replay
