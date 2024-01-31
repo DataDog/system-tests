@@ -411,7 +411,6 @@ class Test_FullGrpc:
         assert False, "Need to write a test"
 
 
-@coverage.good
 @scenarios.graphql_appsec
 @features.graphql_threats_detection
 class Test_GraphQL:
