@@ -1,5 +1,12 @@
-ami: !include tests/onboarding/infra_provision/includes/provision_ami.yml
-  
+#ami: !include tests/onboarding/infra_provision/includes/provision_ami.yml
+ami:
+  - name: ubuntu-x86-22.04
+  # ami_id: ami-0557a15b87f6559cf
+    ami_id: ami-007855ac798b5175e
+    instance_type: t2.medium
+    user: ubuntu
+    os_type: linux
+    os_distro: deb
 init-config:
   install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
 
