@@ -60,7 +60,13 @@ ignored_processes:
             with open(temp_file_path, "w") as host_config_file:
                 host_config_file.write(test_conf_content)
             SCPClient(ssh_client.get_transport()).put(temp_file_path, file_name)
-            ssh_client.exec_command(f"sudo cp {file_name} /etc/datadog-agent/inject/host_config.yaml")
+            logger.info(f"Using config {file_name}")
+            # Copy config file and read out to force wait command execution
+            _, stdout, stderr = ssh_client.exec_command(
+                f"sudo cp {file_name} /etc/datadog-agent/inject/host_config.yaml"
+            )
+            stdout.channel.set_combine_stderr(True)
+            output = stdout.readlines()
         else:
             # We'll use env variables instead of injection config yml
             for key in config:
@@ -70,7 +76,7 @@ ignored_processes:
 
         log_local_path = scenarios.onboarding_host_block_list.host_log_folder + f"/{unique_log_name}"
 
-        stdin, stdout, stderr = ssh_client.exec_command(command_with_config)
+        _, stdout, stderr = ssh_client.exec_command(command_with_config)
         logger.info("Command output:")
         logger.info(stdout.readlines())
         logger.info("Command err output:")
@@ -198,7 +204,11 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
                 ), f"The command {command} was not instrumented, but it should be instrumented!"
 
     def _create_remote_executable_script(self, ssh_client, script_path, content="#!/bin/bash \\n echo 'Hey!'"):
-        ssh_client.exec_command(f"sudo sh -c 'echo \"${content}\" > {script_path}' && sudo chmod 755 {script_path}")
+        _, stdout, stderr = ssh_client.exec_command(
+            f"sudo sh -c 'echo \"${content}\" > {script_path}' && sudo chmod 755 {script_path}"
+        )
+        stdout.channel.set_combine_stderr(True)
+        output = stdout.readlines()
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
