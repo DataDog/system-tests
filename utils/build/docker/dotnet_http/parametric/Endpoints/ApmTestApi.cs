@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Datadog.Trace;
+﻿using Datadog.Trace;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
@@ -18,6 +10,9 @@ public abstract class ApmTestApi
 {
     public static void MapApmTraceEndpoints(WebApplication app, ILogger<ApmTestApi> logger)
     {
+        _logger = logger;
+        _ = Tracer.Instance;
+
         app.MapPost("/trace/tracer/stop", StopTracer);
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
@@ -26,10 +21,6 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
-        app.MapPost("/trace/trace/flush/stat", FlushTraceStats);
-        
-        _logger = logger;
-        _ = Tracer.Instance;
     }
     
     // Core types
