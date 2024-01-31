@@ -1,11 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import context, missing_feature, coverage, flaky, features
+from utils import context, missing_feature, flaky, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
-@coverage.basic
 @features.weak_cipher_detection
 class TestWeakCipher(BaseSinkTest):
     """Verify weak cipher detection."""
@@ -25,11 +24,11 @@ class TestWeakCipher(BaseSinkTest):
     def test_secure(self):
         super().test_secure()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()

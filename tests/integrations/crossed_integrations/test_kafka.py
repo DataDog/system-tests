@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils._weblog import _Weblog
 from utils.tools import logger
 
@@ -200,7 +200,6 @@ class _Test_Kafka:
 
 
 @scenarios.crossed_tracing_libraries
-@coverage.basic
 @features.kafkaspan_creationcontext_propagation_with_dd_trace
 class Test_Kafka(_Test_Kafka):
     buddy_interface = interfaces.java_buddy
