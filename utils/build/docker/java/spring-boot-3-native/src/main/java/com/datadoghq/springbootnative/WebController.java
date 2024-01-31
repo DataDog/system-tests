@@ -1,19 +1,24 @@
 package com.datadoghq.springbootnative;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.HashMap;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class WebController {
@@ -126,5 +131,33 @@ public class WebController {
     public int status_code;
     public HashMap<String, String> request_headers;
     public HashMap<String, String> response_headers;
+  }
+
+
+  @PostMapping(value = "/shell_execution", consumes = MediaType.APPLICATION_JSON_VALUE)
+  ResponseEntity<String> shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
+    Process p;
+    if (request.options.shell) {
+      throw new RuntimeException("Not implemented");
+    } else {
+      final String[] args = request.args.split("\\s+");
+      final String[] command = new String[args.length + 1];
+      command[0] = request.command;
+      System.arraycopy(args, 0, command, 1, args.length);
+      p = new ProcessBuilder(command).start();
+    }
+    p.waitFor(10, TimeUnit.SECONDS);
+    final int exitCode = p.exitValue();
+    return new ResponseEntity<>("OK: " + exitCode, HttpStatus.OK);
+  }
+
+  private static class ShellExecutionRequest {
+    public String command;
+    public String args;
+    public Options options;
+
+    static class Options {
+      public boolean shell;
+    }
   }
 }
