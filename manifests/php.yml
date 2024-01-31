@@ -168,11 +168,7 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka: missing_feature
-        Test_JavaKafka: missing_feature
-        Test_NodeJSKafka: missing_feature
-        Test_PythonKafka: missing_feature
-        Test_RubyKafka: missing_feature
+        Test_Kafka: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation: missing_feature
       test_sqs.py:
@@ -195,6 +191,7 @@ tests/:
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature

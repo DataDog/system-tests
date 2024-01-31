@@ -26,7 +26,7 @@ tests/:
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
-          TestHeaderInjection: missing_feature
+          TestHeaderInjection: v2.46.0
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: v2.44.0
         test_insecure_cookie.py:
@@ -198,11 +198,7 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka: missing_feature
-        Test_JavaKafka: missing_feature
-        Test_NodeJSKafka: missing_feature
-        Test_PythonKafka: missing_feature
-        Test_RubyKafka: missing_feature
+        Test_Kafka: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation: missing_feature
       test_sqs.py:
@@ -223,6 +219,7 @@ tests/:
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v2.33.0
       TestDynamicConfigV2: v2.44.0

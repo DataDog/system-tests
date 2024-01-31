@@ -454,19 +454,7 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
-          '*': missing_feature (missing endpoint on weblog)
-          flask-poc: v0.1 # real version unknown
-        Test_JavaKafka:
-          '*': missing_feature (missing endpoint on weblog)
-          flask-poc: v0.1 # real version unknown
-        Test_NodeJSKafka:
-          '*': missing_feature (missing endpoint on weblog)
-          flask-poc: v0.1 # real version unknown
-        Test_PythonKafka:
-          '*': missing_feature (missing endpoint on weblog)
-          flask-poc: v0.1 # real version unknown
-        Test_RubyKafka:
+        Test_Kafka:
           '*': missing_feature (missing endpoint on weblog)
           flask-poc: v0.1 # real version unknown
       test_rabbitmq.py:
@@ -506,6 +494,7 @@ tests/:
         flask-poc: v1.20.3
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: v2.6.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature

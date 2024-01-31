@@ -205,19 +205,7 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
-          "*": missing_feature (Only requires one server -  rails70)
-          rails70: v0.1 # real version unknown
-        Test_JavaKafka:
-          "*": missing_feature (Only requires one server -  rails70)
-          rails70: v0.1 # real version unknown
-        Test_NodeJSKafka:
-          "*": missing_feature (Only requires one server -  rails70)
-          rails70: v0.1 # real version unknown
-        Test_PythonKafka:
-          "*": missing_feature (Only requires one server -  rails70)
-          rails70: v0.1 # real version unknown
-        Test_RubyKafka:
+        Test_Kafka:
           "*": missing_feature (Only requires one server -  rails70)
           rails70: v0.1 # real version unknown
       test_rabbitmq.py:
@@ -243,6 +231,7 @@ tests/:
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.13.0
       TestDynamicConfigV2: missing_feature

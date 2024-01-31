@@ -288,7 +288,7 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v3.9.0
     test_shell_execution.py:
-      Test_ShellExecution: missing_feature
+      Test_ShellExecution: v5.3.0
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
@@ -310,19 +310,7 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
-          '*': missing_feature (Endpoint not implemented)
-          express4: v0.1 # real version not known
-        Test_JavaKafka:
-          '*': missing_feature (Endpoint not implemented)
-          express4: v0.1 # real version not known
-        Test_NodeJSKafka:
-          '*': missing_feature (Endpoint not implemented)
-          express4: v0.1 # real version not known
-        Test_PythonKafka:
-          '*': missing_feature (Endpoint not implemented)
-          express4: v0.1 # real version not known
-        Test_RubyKafka:
+        Test_Kafka:
           '*': missing_feature (Endpoint not implemented)
           express4: v0.1 # real version not known
       test_rabbitmq.py:
@@ -359,9 +347,10 @@ tests/:
         '*': missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v4.11.0
-      TestDynamicConfigV2: missing_feature
+      TestDynamicConfigV2: v4.23.0
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature

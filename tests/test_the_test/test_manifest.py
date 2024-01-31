@@ -1,8 +1,31 @@
 from functools import lru_cache
+import os
 
 from manifests.parser.core import validate_manifest_files, load
 
 from utils import scenarios
+
+
+def get_variants_map():
+    result = {}
+
+    for folder in os.listdir("utils/build/docker"):
+        folder_path = os.path.join("utils/build/docker/", folder)
+        if not os.path.isdir(folder_path):
+            continue
+
+        result[folder] = ["*"]
+        for file in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, file)
+            if os.path.isdir(file_path):
+                continue
+            if not file.endswith(".Dockerfile"):
+                continue
+
+            variant = file[: -len(".Dockerfile")]
+            result[folder].append(variant)
+
+    return result
 
 
 @scenarios.test_the_test
@@ -31,6 +54,8 @@ def test_content():
 
     manifest = load()
 
+    variants_map = get_variants_map()
+
     for nodeid in sorted(manifest):
         component = list(manifest[nodeid])[0]  # blame the first one
 
@@ -48,6 +73,14 @@ def test_content():
             assert (
                 f"class {klass}" in content
             ), f"In {component} manifest, class {klass} is declared in {file}, but does not exists"
+
+        # check variant names
+        for component, declaration in manifest[nodeid].items():
+            if isinstance(declaration, str):
+                continue
+
+            for variant in declaration:
+                assert variant in variants_map[component], f"Variant {variant} does not exists for {component}"
 
 
 test_content()

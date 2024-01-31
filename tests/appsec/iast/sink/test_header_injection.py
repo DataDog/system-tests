@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, features, missing_feature
+from utils import context, features, missing_feature
 from .._test_iast_fixtures import BaseSinkTest
 
 
 @features.iast_sink_header_injection
-@coverage.basic
 class TestHeaderInjection(BaseSinkTest):
     """Verify Header injection detection"""
 
@@ -19,6 +18,7 @@ class TestHeaderInjection(BaseSinkTest):
     location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
