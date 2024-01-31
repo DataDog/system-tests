@@ -67,8 +67,8 @@ class Test_DsmRabbitmq:
         assert self.r.text == "ok"
 
         if context.library == "nodejs":
-            producer_hash = 1917557401102907424
-            consumer_hash = 8420052766055045030
+            producer_hash = 5080618047473654667
+            consumer_hash = 12436096712734841122
         else:
             producer_hash = 6176024609184775446
             consumer_hash = 1648106384315938543
