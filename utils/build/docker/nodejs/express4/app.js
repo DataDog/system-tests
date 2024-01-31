@@ -1,7 +1,8 @@
 'use strict'
 
 const tracer = require('dd-trace').init({
-  debug: true
+  debug: true,
+  flushInterval: 0
 })
 
 const app = require('express')()
