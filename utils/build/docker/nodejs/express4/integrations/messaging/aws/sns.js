@@ -6,11 +6,11 @@ let QueueUrl
 const snsPublish = (queue, topic, message) => {
   // Create an SQS client
   const sns = new AWS.SNS({
-    endpoint: 'http://localstack:4566',
+    endpoint: 'http://localstack-main:4566',
     region: 'us-east-1'
   })
   const sqs = new AWS.SQS({
-    endpoint: 'http://localstack:4566',
+    endpoint: 'http://localstack-main:4566',
     region: 'us-east-1'
   })
 
@@ -79,11 +79,11 @@ const snsPublish = (queue, topic, message) => {
 const snsConsume = async (queue, timeout) => {
   // Create an SQS client
   const sqs = new AWS.SQS({
-    endpoint: 'http://localstack:4566',
+    endpoint: 'http://localstack-main:4566',
     region: 'us-east-1'
   })
 
-  const queueUrl = `http://localstack:4566/000000000000/${queue}`
+  const queueUrl = `http://localstack-main:4566/000000000000/${queue}`
 
   return new Promise((resolve, reject) => {
     sqs.receiveMessage({

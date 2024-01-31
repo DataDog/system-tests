@@ -753,7 +753,7 @@ class LocalstackContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="localstack/localstack:3.0.2",
-            name="localstack",
+            name="localstack-main",
             environment={
                 "LOCALSTACK_SERVICES": "sqs,sns,xray",
                 "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",

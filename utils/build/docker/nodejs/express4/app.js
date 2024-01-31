@@ -238,6 +238,7 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
+  console.log('sqs produce')
 
   sqsProduce(queue)
     .then(() => {
@@ -252,6 +253,7 @@ app.get('/sqs/produce', (req, res) => {
 app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
+  console.log('sqs consume')
 
   sqsConsume(queue, timeout)
     .then(() => {
