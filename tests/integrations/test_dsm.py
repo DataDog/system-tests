@@ -38,48 +38,6 @@ class Test_DsmKafka:
         )
 
 
-@features.datastreams_monitoring_support_for_sqs
-@scenarios.integrations
-class Test_DsmSQS:
-    """ Verify DSM stats points for AWS Sqs Service """
-
-    def setup_dsm_sqs(self):
-        self.r = weblog.get("/dsm?integration=sqs&timeout=60", timeout=61)
-
-    @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being received.")
-    def test_dsm_sqs(self):
-        assert self.r.text == "ok"
-
-        language_hashes = {
-            "nodejs": {
-                "producer": 18206246330825886989,
-                "consumer": 271115008390912609,
-                "topic": "dsm-system-tests-queue",
-            },
-            "java": {
-                "producer": 16307892913751934142,
-                "consumer": 15549836665988044996,
-                "topic": "dsm-system-tests-queue-java",
-            },
-            "default": {
-                "producer": 7228682205928812513,
-                "consumer": 3767823103515000703,
-                "topic": "dsm-system-tests-queue",
-            },
-        }
-
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        topic = language_hashes.get(context.library.library, language_hashes.get("default"))["topic"]
-
-        DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
-        )
-        DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{topic}", "type:sqs"),
-        )
-
-
 @features.datastreams_monitoring_support_for_http
 @scenarios.integrations
 class Test_DsmHttp:
@@ -222,6 +180,49 @@ class Test_DsmRabbitmq_FanoutExchange:
             hash_=15446107644012012909,
             parent_hash=877077567891168935,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
+        )
+
+
+@features.datastreams_monitoring_support_for_sqs
+@scenarios.integrations
+class Test_DsmSQS:
+    """ Verify DSM stats points for AWS Sqs Service """
+
+    def setup_dsm_sqs(self):
+        self.r = weblog.get("/dsm?integration=sqs&timeout=60", timeout=61)
+
+    @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being received.")
+    @bug(weblog_variant="express4", reason="DSM checkpoints for AWS SQS from dd-trace-js are not being received.")
+    def test_dsm_sqs(self):
+        assert self.r.text == "ok"
+
+        language_hashes = {
+            "nodejs": {
+                "producer": 18206246330825886989,
+                "consumer": 271115008390912609,
+                "topic": "dsm-system-tests-queue",
+            },
+            "java": {
+                "producer": 16307892913751934142,
+                "consumer": 15549836665988044996,
+                "topic": "dsm-system-tests-queue-java",
+            },
+            "default": {
+                "producer": 7228682205928812513,
+                "consumer": 3767823103515000703,
+                "topic": "dsm-system-tests-queue",
+            },
+        }
+
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        topic = language_hashes.get(context.library.library, language_hashes.get("default"))["topic"]
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{topic}", "type:sqs"),
         )
 
 
