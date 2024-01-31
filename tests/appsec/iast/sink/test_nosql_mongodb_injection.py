@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, scenarios, features
+from utils import context, missing_feature, scenarios, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
 @features.iast_sink_mongodb_injection
-@coverage.basic
 class TestNoSqlMongodbInjection(BaseSinkTest):
     """Verify NoSQL injection detection in mongodb database."""
 
