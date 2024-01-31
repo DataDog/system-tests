@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, bug, missing_feature, features
+from utils import context, bug, missing_feature, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
-@coverage.basic
 @features.iast_source_cookie_name
 class TestCookieName(BaseSourceTest):
     """Verify that request cookies are tainted"""

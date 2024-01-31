@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, bug, weblog, features
+from utils import context, missing_feature, bug, weblog, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
 @features.iast_sink_samesite_cookie
-@coverage.basic
 class TestNoSamesiteCookie(BaseSinkTest):
     """Test No SameSite cookie detection."""
 

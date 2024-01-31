@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, features, bug
+from utils import context, missing_feature, features, bug
 from .._test_iast_fixtures import BaseSinkTest
 
 
-@coverage.basic
 @features.iast_sink_sql_injection
 class TestSqlInjection(BaseSinkTest):
     """Verify SQL injection detection."""

@@ -2,13 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, irrelevant, missing_feature, bug, coverage, features
+from utils import weblog, context, interfaces, irrelevant, missing_feature, bug, features
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@coverage.good
 @features.appsec_logs
 class Test_Standardization:
     """AppSec logs should be standardized"""
