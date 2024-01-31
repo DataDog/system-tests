@@ -287,6 +287,16 @@ function initRoutes (app, tracer) {
     res.send('OK')
   })
 
+  app.get('/iast/weak_randomness/test_insecure', (req, res) => {
+    const randomNumber = Math.random()
+    res.send(`OK:${randomNumber}`)
+  })
+
+  app.get('/iast/weak_randomness/test_secure', (req, res) => {
+    const randomBytes = crypto.randomBytes(256).toString('hex')
+    res.send(`OK:${randomBytes}`)
+  })
+
   require('./sources')(app, tracer)
 }
 

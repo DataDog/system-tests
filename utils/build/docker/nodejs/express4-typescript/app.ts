@@ -6,17 +6,23 @@ const tracer = require('dd-trace').init({ debug: true });
 
 const app = require('express')();
 const axios = require('axios');
-const fs = require('fs');
 const passport = require('passport')
 const { Kafka } = require("kafkajs")
 const { spawnSync } = require('child_process');
+
+const iast = require('./iast')
+
+iast.initData().catch(() => {})
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
 
+iast.initMiddlewares(app)
+
 require('./auth')(app, passport, tracer)
+iast.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
@@ -193,11 +199,18 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
 });
 
 app.post('/shell_execution', (req: Request, res: Response) => {
-  const options = { shell: req?.body?.options?.shell ? true : false}
-  const args = req?.body?.args.split(' ')
+  const options = { shell: !!req?.body?.options?.shell }
+  const reqArgs = req?.body?.args
+
+  let args
+  if (typeof reqArgs === 'string') {
+    args = reqArgs.split(' ')
+  } else {
+    args = reqArgs
+  }
 
   const response = spawnSync(req?.body?.command, args, options)
-  
+
   res.send(response)
 })
 

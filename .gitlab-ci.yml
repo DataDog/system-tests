@@ -5,6 +5,7 @@ stages:
   - python_tracer
   - dotnet_tracer
   - parse_results
+  - before_tests
 
 .base_job_onboarding:
   only:
@@ -36,7 +37,7 @@ stages:
     - REPORTS_PATH="reports/$ONBOARDING_FILTER_ENV/$TEST_LIBRARY/$ONBOARDING_FILTER_WEBLOG"
     - mkdir -p "$REPORTS_PATH"
     - cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/
-    - cp logs_"${SCENARIO_SUFIX}"/report.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
+    - cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
   artifacts:
       when: always
       paths:
@@ -46,7 +47,7 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
     
-onboarding_nodejs:
+.onboarding_nodejs:
   extends: .base_job_onboarding
   stage: nodejs_tracer
   allow_failure: true
@@ -81,7 +82,7 @@ onboarding_java:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL]
+          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-buildpack,test-app-java-alpine]
           SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL]
@@ -123,7 +124,7 @@ onboarding_dotnet:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL] 
+          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL,ONBOARDING_HOST_BLOCK_LIST] 
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
@@ -159,3 +160,17 @@ onboarding_parse_results:
     - export GITHUB_MAIL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-mail --with-decryption --query "Parameter.Value" --out text) 
   script:
       - sh utils/scripts/push_reports_dashboard.sh
+
+check_merge_labels:
+  image: registry.ddbuild.io/images/ci_docker_base
+  tags: ["runner:docker"]
+  stage: before_tests
+  before_script:
+    - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text) 
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text) 
+  script:  
+    - ./utils/scripts/get_pr_merged_labels.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+

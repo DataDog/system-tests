@@ -34,7 +34,7 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 ### Installation
 
-Make sure you're in the `root` directory before running these commands.
+Make sure you're in the root of the repository before running these commands.
 
 The following dependencies are required to run the tests locally:
 
@@ -50,10 +50,10 @@ then, run the following command, which will create a Python virtual environment 
 
 ### Running the tests
 
-Run all the tests:
+Run all the tests for a particular tracer library:
 
 ```sh
-./run.sh PARAMETRIC
+TEST_LIBRARY=dotnet ./run.sh PARAMETRIC
 ```
 
 Run a specific test (`test_metrics_msgpack_serialization_TS001`):
@@ -156,6 +156,12 @@ gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", 
 2. Clone the dd-trace-rb repo inside binaries
 
 #### C++
+
+There is two ways for running the C++ library tests with a custom tracer:
+1. Create a file `cpp-load-from-git` in `binaries/`. Content examples:
+    * `https://github.com/DataDog/dd-trace-cpp@main`
+    * `https://github.com/DataDog/dd-trace-cpp@<COMMIT HASH>`
+2. Clone the dd-trace-cpp repo inside `binaries`
 
 The parametric shared tests can be run against the C++ library,
 [dd-trace-cpp][1], this way:

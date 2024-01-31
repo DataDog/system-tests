@@ -37,7 +37,7 @@ def load():
     """
     Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
-    
+
     Data example:
 
     {
@@ -58,7 +58,6 @@ def load():
         "golang",
         "java",
         "nodejs",
-        "php_appsec",
         "php",
         "python",
         "python_otel",
@@ -81,7 +80,7 @@ def assert_key_order(obj: dict, path=""):
         elif not last_key.endswith("/") and key.endswith("/"):  # folder must be before files
             raise ValueError(f"Folders must be placed before files at {path}/{last_key}")
         else:  # otherwise, it must be sorted
-            assert last_key < key, f"Order is not respcted at {path} ({last_key} < {key})"
+            assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
 
         if isinstance(obj[key], dict):
             assert_key_order(obj[key], f"{path}.{key}")

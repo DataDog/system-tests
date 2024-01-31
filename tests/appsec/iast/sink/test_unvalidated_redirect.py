@@ -19,7 +19,10 @@ def _expected_location():
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
     if context.library.library == "nodejs":
-        return "iast/index.js"
+        if context.weblog_variant == "express4":
+            return "iast/index.js"
+        if context.weblog_variant == "express4-typescript":
+            return "iast.ts"
 
 
 @coverage.basic
@@ -44,6 +47,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
 
 
 @coverage.basic
+@features.iast_sink_unvalidatedheader
 class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection threw header."""
 

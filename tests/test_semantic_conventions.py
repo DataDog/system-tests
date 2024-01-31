@@ -319,6 +319,7 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
+@features.data_integrity
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

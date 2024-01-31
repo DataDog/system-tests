@@ -36,6 +36,8 @@ public class AppSecIast {
     private final XPathExamples xPathExamples;
     private final XSSExamples xssExamples;
 
+    private final HardcodedSecretExamples hardcodedSecretExamples;
+
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
@@ -46,6 +48,12 @@ public class AppSecIast {
         this.weakRandomnessExamples = new WeakRandomnessExamples();
         this.xPathExamples = new XPathExamples();
         this.xssExamples = new XSSExamples();
+        this.hardcodedSecretExamples = new HardcodedSecretExamples();
+    }
+
+    @RequestMapping("/hardcoded_secrets/test_insecure")
+    String hardcodedSecrets() {
+        return hardcodedSecretExamples.SECRET;
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")

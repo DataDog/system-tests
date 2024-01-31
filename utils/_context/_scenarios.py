@@ -26,6 +26,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
+    ElasticMQContainer,
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
@@ -154,10 +155,6 @@ class _Scenario:
         return ""
 
     @property
-    def php_appsec(self):
-        return ""
-
-    @property
     def tracer_sampling_rate(self):
         return 0
 
@@ -238,6 +235,7 @@ class _DockerScenario(_Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(name, doc=doc)
 
@@ -271,6 +269,9 @@ class _DockerScenario(_Scenario):
 
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
+
+        if include_elasticmq:
+            self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
     def configure(self, config):
         super().configure(config)
@@ -328,6 +329,7 @@ class EndToEndScenario(_DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(
             name,
@@ -341,6 +343,7 @@ class EndToEndScenario(_DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
+            include_elasticmq=include_elasticmq,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -365,11 +368,18 @@ class EndToEndScenario(_DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python is supported
+            # so far, only python, nodejs, java, ruby and golang are supported
+            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+
             self.buddies += [
                 BuddyContainer(
-                    "python_buddy", "datadog/system-tests:python_buddy-v0", self.host_log_folder, proxy_port=9001
-                ),
+                    f"{language}_buddy",
+                    f"datadog/system-tests:{language}_buddy-v0",
+                    self.host_log_folder,
+                    proxy_port=port,
+                    environment=weblog_env,
+                )
+                for language, port in supported_languages
             ]
 
             self._required_containers += self.buddies
@@ -429,9 +439,6 @@ class EndToEndScenario(_DockerScenario):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Agent: {self.agent_version}")
-
-        if self.library == "php":
-            logger.stdout(f"AppSec: {self.weblog_container.php_appsec}")
 
         if self.weblog_container.libddwaf_version:
             logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
@@ -514,6 +521,16 @@ class EndToEndScenario(_DockerScenario):
     def post_setup(self):
         from utils import interfaces
 
+        try:
+            self._wait_and_stop_containers()
+        finally:
+            self.close_targets()
+
+        interfaces.library_dotnet_managed.load_data()
+
+    def _wait_and_stop_containers(self):
+        from utils import interfaces
+
         if self.replay:
 
             logger.terminal.write_sep("-", "Load all data from logs")
@@ -548,10 +565,6 @@ class EndToEndScenario(_DockerScenario):
 
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
-        self.close_targets()
-
-        interfaces.library_dotnet_managed.load_data()
-
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
@@ -580,10 +593,6 @@ class EndToEndScenario(_DockerScenario):
     @property
     def weblog_variant(self):
         return self.weblog_container.weblog_variant
-
-    @property
-    def php_appsec(self):
-        return self.weblog_container.php_appsec
 
     @property
     def tracer_sampling_rate(self):
@@ -631,7 +640,6 @@ class EndToEndScenario(_DockerScenario):
         return {
             "agent": self.agent_version,
             "library": self.library.version,
-            "php_appsec": self.php_appsec,
             "libddwaf": self.weblog_container.libddwaf_version,
             "appsec_rules": self.appsec_rules_version,
         }
@@ -856,6 +864,10 @@ class OnBoardingScenario(_Scenario):
     def weblog_variant(self):
         return self._weblog
 
+    def session_start(self):
+        super().session_start()
+        self.fill_context()
+
     def fill_context(self):
         # fix package name for nodejs -> js
         if self._library.library == "nodejs":
@@ -878,7 +890,7 @@ class OnBoardingScenario(_Scenario):
                             raise ValueError(
                                 f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
                             )
-
+                        logger.stdout(f"{dd_package_name}: {provision_vm.get_component(dd_package_name)}")
                         self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
                 # Manage specific information for each parametrized test
                 test_metadata = {
@@ -936,10 +948,6 @@ class OnBoardingScenario(_Scenario):
 
     def _get_warmups(self):
         return [self._start_pulumi]
-
-    def post_setup(self):
-        """ Fill context with the installed components information and parametrized test metadata"""
-        self.fill_context()
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
@@ -1056,7 +1064,12 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
+        weblog_env={
+            "DD_DBM_PROPAGATION_MODE": "full",
+            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
@@ -1064,13 +1077,21 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
+        include_elasticmq=True,
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
     )
 
     crossed_tracing_libraries = EndToEndScenario(
         "CROSSED_TRACING_LIBRARIES",
+        weblog_env={
+            "DD_TRACE_API_VERSION": "v0.4",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_kafka=True,
         include_buddies=True,
+        include_elasticmq=True,
+        include_rabbitmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
 
@@ -1246,12 +1267,42 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_no_response_body = EndToEndScenario(
+        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_with_sampling = EndToEndScenario(
+        "APPSEC_API_SECURITY_WITH_SAMPLING",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+        },
+        doc="""
+        Scenario for API Security feature, testing api security sampling rate.
         """,
     )
 
@@ -1380,6 +1431,8 @@ class scenarios:
     # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
     onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
     onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
+    # Onboarding block list scenarios
+    onboarding_host_block_list = OnBoardingScenario("ONBOARDING_HOST_BLOCK_LIST", doc="")
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
