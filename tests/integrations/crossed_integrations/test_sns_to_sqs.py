@@ -7,11 +7,13 @@ from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
 
-class _Test_SQS:
-    """Test sqs compatibility with inputted datadog tracer"""
+class _Test_SNS:
+    """Test sns compatibility with inputted datadog tracer"""
 
     BUDDY_TO_WEBLOG_QUEUE = None
+    BUDDY_TO_WEBLOG_TOPIC = None
     WEBLOG_TO_BUDDY_QUEUE = None
+    WEBLOG_TO_BUDDY_TOPIC = None
     buddy = None
     buddy_interface = None
 
@@ -61,23 +63,27 @@ class _Test_SQS:
 
     def setup_produce(self):
         """
-        send request A to weblog : this request will produce a sqs message
-        send request B to library buddy, this request will consume sqs message
+        send request A to weblog : this request will produce a sns message
+        send request B to library buddy, this request will consume sns message
         """
 
-        self.production_response = weblog.get("/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE}, timeout=60)
+        self.production_response = weblog.get(
+            "/sns/produce",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC},
+            timeout=60,
+        )
         self.consume_response = self.buddy.get(
-            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
+            "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
 
     def test_produce(self):
-        """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
+        """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
 
         assert self.production_response.status_code == 200
         assert self.consume_response.status_code == 200
 
         # The weblog is the producer, the buddy is the consumer
-        self.validate_sqs_spans(
+        self.validate_sns_spans(
             producer_interface=interfaces.library,
             consumer_interface=self.buddy_interface,
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
@@ -107,18 +113,20 @@ class _Test_SQS:
 
     def setup_consume(self):
         """
-        send request A to library buddy : this request will produce a sqs message
-        send request B to weblog, this request will consume sqs message
+        send request A to library buddy : this request will produce a sns message
+        send request B to weblog, this request will consume sns message
 
-        request A: GET /library_buddy/produce_sqs_message
-        request B: GET /weblog/consume_sqs_message
+        request A: GET /library_buddy/produce_sns_message
+        request B: GET /weblog/consume_sns_message
         """
 
         self.production_response = self.buddy.get(
-            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE}, timeout=60
+            "/sns/produce",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC},
+            timeout=60,
         )
         self.consume_response = weblog.get(
-            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
+            "/sns/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
         )
 
     def test_consume(self):
@@ -128,7 +136,7 @@ class _Test_SQS:
         assert self.consume_response.status_code == 200
 
         # The buddy is the producer, the weblog is the consumer
-        self.validate_sqs_spans(
+        self.validate_sns_spans(
             producer_interface=self.buddy_interface,
             consumer_interface=interfaces.library,
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
@@ -156,9 +164,9 @@ class _Test_SQS:
         # asserting on direct parent/child relationships
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_sqs_spans(self, producer_interface, consumer_interface, queue):
+    def validate_sns_spans(self, producer_interface, consumer_interface, queue):
         """
-        Validates production/consumption of sqs message.
+        Validates production/consumption of sns message.
         It works the same for both test_produce and test_consume
         """
 
@@ -192,32 +200,34 @@ class _Test_SQS:
 
 
 @scenarios.crossed_tracing_libraries
-@features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
+@features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
+class Test_SNS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = _python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
+    WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_propagation_via_message_attributes_weblog_to_buddy"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_SNS_propagation_via_message_attributes_weblog_to_buddy_topic"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_propagation_via_message_attributes_buddy_to_weblog"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_SNS_propagation_via_message_attributes_buddy_to_weblog_topic"
 
 
-@scenarios.crossed_tracing_libraries
-@features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
-    buddy_interface = interfaces.java_buddy
-    buddy = _java_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_aws_xray_header_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_aws_xray_header_buddy_to_weblog"
+# @scenarios.crossed_tracing_libraries
+# @features.aws_sns_span_creationcontext_propagation_via_xray_header_with_dd_trace
+# class Test_SNS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SNS):
+#     buddy_interface = interfaces.java_buddy
+#     buddy = _java_buddy
+#     WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_propagation_via_aws_xray_header_weblog_to_buddy"
+#     BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_propagation_via_aws_xray_header_buddy_to_weblog"
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-    def test_produce_trace_equality(self):
-        super().test_produce_trace_equality()
+#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+#     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
+#     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
+#     def test_produce_trace_equality(self):
+#         super().test_produce_trace_equality()
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-    def test_consume_trace_equality(self):
-        super().test_consume_trace_equality()
+#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
+#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+#     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
+#     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
+#     def test_consume_trace_equality(self):
+#         super().test_consume_trace_equality()

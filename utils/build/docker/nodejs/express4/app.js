@@ -13,7 +13,8 @@ const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
-const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
+const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
+const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 
 iast.initData().catch(() => {})
 
@@ -167,9 +168,9 @@ app.get('/dsm', (req, res) => {
     const message = 'hello from SQS DSM JS'
     const timeout = req.query.timeout ?? 5
 
-    produceMessage(queue, message)
+    sqsProduce(queue, message)
       .then(() => {
-        consumeMessage(queue, timeout)
+        sqsConsume(queue, timeout)
           .then(() => {
             res.send('ok')
           })
@@ -192,7 +193,7 @@ app.get('/kafka/produce', (req, res) => {
 
   kafkaProduce(topic, 'Hello from Kafka JS')
     .then(() => {
-      res.status(200).send('produce ok')
+      res.status(200).send('[Kafka] produce ok')
     })
     .catch((error) => {
       console.error(error)
@@ -206,7 +207,7 @@ app.get('/kafka/consume', (req, res) => {
 
   kafkaConsume(topic, timeout)
     .then(() => {
-      res.status(200).send('consume ok')
+      res.status(200).send('[Kafka] consume ok')
     })
     .catch((error) => {
       console.error(error)
@@ -217,13 +218,13 @@ app.get('/kafka/consume', (req, res) => {
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
 
-  produceMessage(queue)
+  sqsProduce(queue)
     .then(() => {
-      res.status(200).send('produce ok')
+      res.status(200).send('[SQS] produce ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during SQS produce')
+      res.status(500).send('[SQS] Internal Server Error during SQS produce')
     })
 })
 
@@ -231,13 +232,41 @@ app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
 
-  consumeMessage(queue, timeout)
+  sqsConsume(queue, timeout)
     .then(() => {
-      res.status(200).send('consume ok')
+      res.status(200).send('[SQS] consume ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during SQS consume')
+      res.status(500).send('[SQS] Internal Server Error during SQS consume')
+    })
+})
+
+app.get('/sns/produce', (req, res) => {
+  const queue = req.query.queue
+  const topic = req.query.topic
+
+  snsPublish(queue, topic)
+    .then(() => {
+      res.status(200).send('[SNS] publish ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[SNS] Internal Server Error during SNS publish')
+    })
+})
+
+app.get('/sns/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  snsConsume(queue, timeout)
+    .then(() => {
+      res.status(200).send('[SNS->SQS] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[SNS->SQS] Internal Server Error during SQS consume from SNS')
     })
 })
 

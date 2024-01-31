@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk')
 
-const produceMessage = (queue, message) => {
+const sqsProduce = (queue, message) => {
   // Create an SQS client
   const sqs = new AWS.SQS({
     endpoint: 'http://elasticmq:9324',
@@ -41,7 +41,7 @@ const produceMessage = (queue, message) => {
   })
 }
 
-const consumeMessage = async (queue, timeout) => {
+const sqsConsume = async (queue, timeout) => {
   // Create an SQS client
   const sqs = new AWS.SQS({
     endpoint: 'http://elasticmq:9324',
@@ -83,6 +83,6 @@ const consumeMessage = async (queue, timeout) => {
 }
 
 module.exports = {
-  produceMessage,
-  consumeMessage
+  sqsProduce,
+  sqsConsume
 }

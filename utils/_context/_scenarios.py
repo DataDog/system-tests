@@ -27,6 +27,7 @@ from utils._context.containers import (
     RabbitMqContainer,
     MySqlContainer,
     ElasticMQContainer,
+    LocalstackContainer,
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
@@ -236,6 +237,7 @@ class _DockerScenario(_Scenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_elasticmq=False,
+        include_localstack=False,
     ) -> None:
         super().__init__(name, doc=doc)
 
@@ -272,6 +274,9 @@ class _DockerScenario(_Scenario):
 
         if include_elasticmq:
             self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+
+        if include_localstack:
+            self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
 
     def configure(self, config):
         super().configure(config)
@@ -330,6 +335,7 @@ class EndToEndScenario(_DockerScenario):
         include_sqlserver=False,
         include_buddies=False,
         include_elasticmq=False,
+        include_localstack=False,
     ) -> None:
         super().__init__(
             name,
@@ -344,6 +350,7 @@ class EndToEndScenario(_DockerScenario):
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
             include_elasticmq=include_elasticmq,
+            include_localstack=include_localstack,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -1078,6 +1085,7 @@ class scenarios:
         include_mysql_db=True,
         include_sqlserver=True,
         include_elasticmq=True,
+        include_localstack=True,
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
     )
 
@@ -1091,6 +1099,7 @@ class scenarios:
         include_kafka=True,
         include_buddies=True,
         include_elasticmq=True,
+        include_localstack=True,
         include_rabbitmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
