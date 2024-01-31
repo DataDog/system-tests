@@ -4,7 +4,6 @@
 
 from utils import (
     context,
-    coverage,
     interfaces,
     missing_feature,
     rfc,
