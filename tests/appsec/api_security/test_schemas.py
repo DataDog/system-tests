@@ -4,7 +4,6 @@
 
 from utils import (
     context,
-    coverage,
     interfaces,
     missing_feature,
     rfc,
@@ -51,7 +50,6 @@ def equal_value(t1, t2):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Headers:
@@ -72,7 +70,6 @@ class Test_Schema_Request_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Cookies:
@@ -96,7 +93,6 @@ class Test_Schema_Request_Cookies:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Query_Parameters:
@@ -117,7 +113,6 @@ class Test_Schema_Request_Query_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Path_Parameters:
@@ -139,7 +134,6 @@ class Test_Schema_Request_Path_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Json_Body:
@@ -160,7 +154,6 @@ class Test_Schema_Request_Json_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_FormUrlEncoded_Body:
@@ -197,7 +190,6 @@ class Test_Schema_Request_FormUrlEncoded_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Headers:
@@ -217,7 +209,6 @@ class Test_Schema_Response_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Body:
@@ -243,7 +234,6 @@ class Test_Schema_Response_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security_no_response_body
 @features.api_security_schemas
 class Test_Schema_Response_Body_env_var:
@@ -273,7 +263,6 @@ class Test_Schema_Response_Body_env_var:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Scanners:
