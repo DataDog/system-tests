@@ -230,7 +230,8 @@ class Test_Meta:
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
-    @bug(library="java", reason="language tag implemented but not for all spans")
+    # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
+    @bug(context.library < "java@1.1.0", reason="language tag implemented but not for all spans")
     @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
@@ -321,15 +322,10 @@ class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
     @bug(library="cpp", reason="Not implemented")
+    @bug(context.library >= "java@1.3.0", reason="process_id set as tag, not metric")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
-
-        def validator(span):
-            if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
-
+        spans = [s for _, s in interfaces.library.get_root_spans()]
+        assert spans, "Did not recieve any root spans to validate."
+        for span in spans:
             assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"
-
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
-        # checking that we have at least one root span
-        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
