@@ -239,8 +239,9 @@ def consume_sqs_message():
 @app.route("/rabbitmq/produce")
 def produce_rabbitmq_message():
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
+    exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
     message = "Hello from Python RabbitMQ Context Propagation Test"
-    output = rabbitmq_produce(queue, message)
+    output = rabbitmq_produce(queue, exchange, message)
     if "error" in output:
         return output, 400
     else:
@@ -250,8 +251,9 @@ def produce_rabbitmq_message():
 @app.route("/rabbitmq/consume")
 def consume_rabbitmq_message():
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
+    exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = rabbitmq_consume(queue, timeout)
+    output = rabbitmq_consume(queue, exchange, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -297,8 +299,10 @@ def dsm():
         return Response("ok")
     elif integration == "rabbitmq":
         timeout = int(flask_request.args.get("timeout", 60))
-        produce_thread = threading.Thread(target=rabbitmq_produce, args=(topic, "Hello, RabbitMQ from DSM python!"))
-        consume_thread = threading.Thread(target=rabbitmq_consume, args=(topic, timeout))
+        produce_thread = threading.Thread(
+            target=rabbitmq_produce, args=(topic, topic, "Hello, RabbitMQ from DSM python!")
+        )
+        consume_thread = threading.Thread(target=rabbitmq_consume, args=(topic, topic, timeout))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()

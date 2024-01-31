@@ -1,20 +1,20 @@
 import kombu
 
 
-def rabbitmq_produce(queue, message):
+def rabbitmq_produce(queue, exchange, message):
     conn = kombu.Connection("amqp://rabbitmq:5672")
     conn.connect()
     producer = conn.Producer()
 
-    task_queue = kombu.Queue(queue, kombu.Exchange(queue), routing_key=queue)
+    task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
     to_publish = {"message": message}
     producer.publish(to_publish, exchange=task_queue.exchange, routing_key=task_queue.routing_key, declare=[task_queue])
     return {"result": "ok"}
 
 
-def rabbitmq_consume(queue, timeout=60):
+def rabbitmq_consume(queue, exchange, timeout=60):
     conn = kombu.Connection("amqp://rabbitmq:5672")
-    task_queue = kombu.Queue(queue, kombu.Exchange(queue), routing_key=queue)
+    task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
     messages = []
 
     def process_message(body, message):

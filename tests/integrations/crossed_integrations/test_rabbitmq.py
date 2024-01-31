@@ -12,11 +12,13 @@ class _Test_RabbitMQ:
 
     BUDDY_TO_WEBLOG_QUEUE = None
     WEBLOG_TO_BUDDY_QUEUE = None
+    WEBLOG_TO_BUDDY_EXCHANGE = None
+    BUDDY_TO_WEBLOG_EXCHANGE = None
     buddy = None
     buddy_interface = None
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, operation):
+    def get_span(cls, interface, span_kind, queue, exchange, operation):
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -40,6 +42,7 @@ class _Test_RabbitMQ:
                 component = meta.get("component", "")
                 if (
                     queue.lower() not in span.get("resource").lower()
+                    and exchange.lower() not in span.get("resource").lower()
                     and queue.lower() not in meta.get(f"{component}.routing_key", "").lower()
                 ):
                     continue
@@ -57,10 +60,14 @@ class _Test_RabbitMQ:
         """
 
         self.production_response = weblog.get(
-            "/rabbitmq/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE}, timeout=60
+            "/rabbitmq/produce",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE},
+            timeout=60,
         )
         self.consume_response = self.buddy.get(
-            "/rabbitmq/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
+            "/rabbitmq/consume",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE, "timeout": 60},
+            timeout=61,
         )
 
     def test_produce(self):
@@ -74,6 +81,7 @@ class _Test_RabbitMQ:
             producer_interface=interfaces.library,
             consumer_interface=self.buddy_interface,
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            exchange=self.WEBLOG_TO_BUDDY_EXCHANGE,
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
@@ -81,12 +89,17 @@ class _Test_RabbitMQ:
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
-            interfaces.library, span_kind="producer", queue=self.WEBLOG_TO_BUDDY_QUEUE, operation=["publish"],
+            interfaces.library,
+            span_kind="producer",
+            queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            exchange=self.WEBLOG_TO_BUDDY_EXCHANGE,
+            operation=["publish"],
         )
         consumer_span = self.get_span(
             self.buddy_interface,
             span_kind="consumer",
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            exchange=self.WEBLOG_TO_BUDDY_EXCHANGE,
             operation=["deliver", "receive"],
         )
 
@@ -105,10 +118,14 @@ class _Test_RabbitMQ:
         """
 
         self.production_response = self.buddy.get(
-            "/rabbitmq/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE}, timeout=60
+            "/rabbitmq/produce",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "exchange": self.BUDDY_TO_WEBLOG_EXCHANGE},
+            timeout=60,
         )
         self.consume_response = weblog.get(
-            "/rabbitmq/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
+            "/rabbitmq/consume",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE, "timeout": 60},
+            timeout=61,
         )
 
     def test_consume(self):
@@ -122,6 +139,7 @@ class _Test_RabbitMQ:
             producer_interface=self.buddy_interface,
             consumer_interface=interfaces.library,
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            exchange=self.BUDDY_TO_WEBLOG_EXCHANGE,
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
@@ -129,12 +147,17 @@ class _Test_RabbitMQ:
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
-            self.buddy_interface, span_kind="producer", queue=self.BUDDY_TO_WEBLOG_QUEUE, operation=["publish"],
+            self.buddy_interface,
+            span_kind="producer",
+            queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            exchange=self.BUDDY_TO_WEBLOG_EXCHANGE,
+            operation=["publish"],
         )
         consumer_span = self.get_span(
             interfaces.library,
             span_kind="consumer",
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            exchange=self.BUDDY_TO_WEBLOG_EXCHANGE,
             operation=["deliver", "receive"],
         )
 
@@ -143,7 +166,7 @@ class _Test_RabbitMQ:
         # asserting on direct parent/child relationships
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_rabbitmq_spans(self, producer_interface, consumer_interface, queue):
+    def validate_rabbitmq_spans(self, producer_interface, consumer_interface, queue, exchange):
         """
         Validates production/consumption of RabbitMQ message.
         It works the same for both test_produce and test_consume
@@ -151,16 +174,29 @@ class _Test_RabbitMQ:
 
         # Check that the producer did not created any consumer span
         assert (
-            self.get_span(producer_interface, span_kind="consumer", queue=queue, operation=["deliver", "receive"])
+            self.get_span(
+                producer_interface,
+                span_kind="consumer",
+                queue=queue,
+                exchange=exchange,
+                operation=["deliver", "receive"],
+            )
             is None
         )
 
         # Check that the consumer did not created any producer span
-        assert self.get_span(consumer_interface, span_kind="producer", queue=queue, operation=["publish"],) is None
+        assert (
+            self.get_span(
+                consumer_interface, span_kind="producer", queue=queue, exchange=exchange, operation=["publish"],
+            )
+            is None
+        )
 
-        producer_span = self.get_span(producer_interface, span_kind="producer", queue=queue, operation=["publish"],)
+        producer_span = self.get_span(
+            producer_interface, span_kind="producer", queue=queue, exchange=exchange, operation=["publish"],
+        )
         consumer_span = self.get_span(
-            consumer_interface, span_kind="consumer", queue=queue, operation=["deliver", "receive"]
+            consumer_interface, span_kind="consumer", queue=queue, exchange=exchange, operation=["deliver", "receive"]
         )
         # check that both consumer and producer spans exists
         assert producer_span is not None
@@ -179,4 +215,6 @@ class Test_RabbitMQ_Trace_Context_Propagation(_Test_RabbitMQ):
     buddy_interface = interfaces.java_buddy
     buddy = _java_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_RabbitMQ_Propagation_weblog_to_buddy"
+    WEBLOG_TO_BUDDY_EXCHANGE = "Test_RabbitMQ_Propagation_weblog_to_buddy_exchange"
     BUDDY_TO_WEBLOG_QUEUE = "Test_RabbitMQ_Propagation_buddy_to_weblog"
+    BUDDY_TO_WEBLOG_EXCHANGE = "Test_RabbitMQ_Propagation_buddy_to_weblog_exchange"
