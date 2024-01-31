@@ -4,6 +4,7 @@ from utils.tools import logger
 from datetime import datetime, timedelta
 
 from utils.onboarding.pulumi_utils import remote_install
+from utils._context.library_version import Version
 
 
 class TestedVirtualMachine:
@@ -291,14 +292,17 @@ class TestedVirtualMachine:
 
     def get_component(self, component_name):
         if component_name is None or self.components is None or not component_name in self.components:
-            return None
+            return Version("0.0.0", component_name)
 
         raw_version = self.components[component_name]
         # Workaround clean "Epoch" from debian packages.
         # The format is: [epoch:]upstream_version[-debian_revision]
         if ":" in raw_version:
             raw_version = raw_version.split(":")[1]
-        return raw_version.strip()
+
+        if raw_version.strip() == "":
+            return Version("0.0.0", component_name)
+        return Version(raw_version.strip(), component_name)
 
     def _configure_ami(self):
         """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""

@@ -293,7 +293,7 @@ be returned.
 
 Expected query params:
   - `integration`: Name of messaging tech
-    - Possible Values: `kafka`, `rabbitmq`
+    - Possible Values: `kafka`, `rabbitmq`, `sqs`
 
 ### GET /user_login_success_event
 

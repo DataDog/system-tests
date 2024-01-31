@@ -4,7 +4,7 @@
   "properties": {
     "Version": { "type": "string", "minLength": 1 },
     "Env": { "type": "string", "minLength": 1 },
-    "Hostname": { "type": "string", "minLength": 1 },
+    "Hostname": { "type": "string" },
     "Stats": {
       "type": "array",
       "items": {

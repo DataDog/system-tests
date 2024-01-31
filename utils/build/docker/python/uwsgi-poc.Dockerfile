@@ -2,6 +2,8 @@ FROM datadog/system-tests:uwsgi-poc.base-v1
 
 WORKDIR /app
 
+RUN pip install boto3
+
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
@@ -12,8 +14,6 @@ ENV FLASK_APP=app.py
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
-
-RUN pip install boto3
 
 # docker startup
 # note, only thread mode is supported

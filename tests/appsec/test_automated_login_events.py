@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios, coverage, rfc, bug, features
+from utils import weblog, interfaces, context, missing_feature, scenarios, rfc, bug, features
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
-@coverage.good
 @features.user_monitoring
 class Test_Login_Events:
     "Test login success/failure use cases"
@@ -254,7 +253,6 @@ class Test_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
-@coverage.good
 @scenarios.appsec_auto_events_extended
 @features.user_monitoring
 @bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")

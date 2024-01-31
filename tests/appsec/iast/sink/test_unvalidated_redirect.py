@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, irrelevant, features
+from utils import context, irrelevant, features
 from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
@@ -19,10 +19,12 @@ def _expected_location():
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
     if context.library.library == "nodejs":
-        return "iast/index.js"
+        if context.weblog_variant == "express4":
+            return "iast/index.js"
+        if context.weblog_variant == "express4-typescript":
+            return "iast.ts"
 
 
-@coverage.basic
 @features.iast_sink_unvalidatedredirect
 class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection."""
@@ -43,7 +45,6 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
         super().test_secure()
 
 
-@coverage.basic
 @features.iast_sink_unvalidatedheader
 class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection threw header."""

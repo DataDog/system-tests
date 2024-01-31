@@ -1,11 +1,13 @@
 const AWS = require('aws-sdk')
 
-const produceMessage = (queue) => {
+const produceMessage = (queue, message) => {
   // Create an SQS client
   const sqs = new AWS.SQS({
     endpoint: 'http://elasticmq:9324',
     region: 'us-east-1'
   })
+
+  const messageToSend = message ?? 'Hello from SQS JavaScript injection'
 
   return new Promise((resolve, reject) => {
     sqs.createQueue({
@@ -19,7 +21,7 @@ const produceMessage = (queue) => {
         const produce = () => {
           sqs.sendMessage({
             QueueUrl: `http://elasticmq:9324/000000000000/${queue}`,
-            MessageBody: 'Hello from SQS JavaScript injection'
+            MessageBody: messageToSend
           }, (err, data) => {
             if (err) {
               console.log(err)

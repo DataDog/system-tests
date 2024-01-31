@@ -15,4 +15,17 @@ fi
 if [[ -z ${1:-} ]]; then
 	set -- .
 fi
-exec docker run -it --rm --user="$(id -u):$(id -g)" --workdir "$(pwd)" -v "$(pwd):$(pwd)" "${IMAGE}" black "$@"
+
+# Run as the current user, but only if docker is not "rootless".
+# To determine whether docker is rootless, examine the permissions of the file
+# referred to by DOCKER_HOST. If it's owned by the current user, then assume
+# that docker is rootless.
+DOCKER_HOST="${DOCKER_HOST:-}"
+if [[ "${DOCKER_HOST}" == unix://* && -O "${DOCKER_HOST#unix://}" ]]; then
+  user_arg=""
+else
+  user_arg="--user=$(id -u):$(id -g)"
+fi
+
+# shellcheck disable=SC2086
+exec docker run -it --rm $user_arg --workdir "$(pwd)" -v "$(pwd):$(pwd)" "${IMAGE}" black "$@"

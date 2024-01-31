@@ -4,10 +4,9 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, coverage, scenarios, features
+from utils import weblog, context, interfaces, irrelevant, scenarios, features
 
 
-@coverage.good
 @features.support_in_app_waf_metrics_report
 class Test_Monitoring:
     """Support In-App WAF monitoring tags and metrics"""

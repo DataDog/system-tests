@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, scenarios, features
+from utils import context, missing_feature, scenarios, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
 @features.iast_sink_mongodb_injection
-@coverage.basic
 class TestNoSqlMongodbInjection(BaseSinkTest):
     """Verify NoSQL injection detection in mongodb database."""
 
@@ -16,7 +15,7 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
     insecure_endpoint = "/iast/mongodb-nosql-injection/test_insecure"
     secure_endpoint = "/iast/mongodb-nosql-injection/test_secure"
     data = {"key": "somevalue"}
-    location_map = {"nodejs": "iast/index.js"}
+    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
     @scenarios.integrations
     def test_insecure(self):
