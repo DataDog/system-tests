@@ -25,7 +25,6 @@ def get_schema(request, address):
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
-@coverage.basic
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_RC_ASM_DD_processors:
@@ -46,7 +45,6 @@ class Test_API_Security_RC_ASM_DD_processors:
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
-@coverage.basic
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_RC_ASM_DD_scanners:
@@ -82,7 +80,6 @@ class Test_API_Security_RC_ASM_DD_scanners:
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
-@coverage.basic
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner:
