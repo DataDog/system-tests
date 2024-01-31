@@ -1,7 +1,5 @@
 
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 RUN apt-get update && apt-get install -y dos2unix --no-install-recommends
 RUN apt-get update && apt-get install -y curl
@@ -10,6 +8,20 @@ WORKDIR /app
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# ensure that the Datadog.Trace.dlls are installed from /binaries
+COPY install_ddtrace.sh query-versions.fsx binaries* /binaries/
+RUN dos2unix /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh
+
+# restore nuget packages
+COPY ["ApmTestApi.csproj", "nuget.config", "*.nupkg", "./"]
+RUN dotnet restore "./././ApmTestApi.csproj"
+
+# build and publish
+COPY . ./
+RUN dotnet publish --no-restore --configuration Release --output out
+WORKDIR /app/out
 
 # Set up automatic instrumentation (required for OpenTelemetry tests),
 # but don't enable it globally
@@ -24,29 +36,4 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
-# ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY install_ddtrace.sh query-versions.fsx binaries* /binaries/
-RUN dos2unix /binaries/install_ddtrace.sh
-RUN /binaries/install_ddtrace.sh
-
-RUN ls /binaries
-
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-
-# restore nuget packages
-COPY ["ApmTestApi.csproj", "nuget.config", "*.nupkg", "./"]
-RUN dotnet restore "./././ApmTestApi.csproj"
-
-COPY . .
-WORKDIR "/src/."
-RUN dotnet build "./ApmTestApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./ApmTestApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "ApmTestApi.dll"]

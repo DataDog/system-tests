@@ -6,12 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <UserSecretsId>f56b479c-4bfa-4286-bb36-96a6273695e3</UserSecretsId>
-    <DockerfileContext>.</DockerfileContext>
     <Configuration Condition="'$(Configuration)' == ''">Development</Configuration>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="LucasP.DuckTyping" Version="0.1.0" />
     <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
