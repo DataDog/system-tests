@@ -67,8 +67,19 @@ class Test_API_Security_RC_ASM_DD_scanners:
         assert isinstance(schema, list)
         assert "mail" in schema[0]
         isinstance(schema[0]["mail"], list)
-        assert len(schema[0]["mail"]) == len(EXPECTED_MAIL_SCHEMA)
-        assert schema[0]["mail"][1] == EXPECTED_MAIL_SCHEMA[1]
+        assert len(schema[0]["mail"]) == 2
+        # value should be parsed either as a string or as a string array
+        if "len" in schema[0]["mail"][1]:
+            # as an array of string
+            assert isinstance(schema[0]["mail"][0], list)
+            element = schema[0]["mail"][0][0]
+            assert len(element) == 2
+            assert element[0] == 8
+            assert element[1] == EXPECTED_MAIL_SCHEMA[1]
+        else:
+            # as a string
+            assert schema[0]["mail"][0] == 8
+            assert schema[0]["mail"][1] == EXPECTED_MAIL_SCHEMA[1]
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
