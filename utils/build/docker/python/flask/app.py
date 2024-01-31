@@ -27,6 +27,11 @@ from integrations.messaging.kafka import kafka_produce
 
 import ddtrace
 
+from ddtrace import config
+
+# enable botocore distributed tracing
+config.botocore.propagation_enabled = True
+
 ddtrace.patch_all()
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils

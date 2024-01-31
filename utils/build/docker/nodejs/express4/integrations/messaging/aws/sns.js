@@ -25,7 +25,7 @@ const snsPublish = (queue, topic, message) => {
 
       TopicArn = data.TopicArn
 
-      sqs.createQueue({ QueueName: queue }, (err, res) => {
+      sqs.createQueue({ QueueName: queue }, (err, data) => {
         if (err) {
           console.log(err)
           reject(err)
@@ -39,9 +39,11 @@ const snsPublish = (queue, topic, message) => {
             reject(err)
           }
 
+          const QueueArn = data.Attributes.QueueArn
+
           const subParams = {
             Protocol: 'sqs',
-            Endpoint: data.Attributes.QueueArn,
+            Endpoint: QueueArn,
             TopicArn
           }
 
