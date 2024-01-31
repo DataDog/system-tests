@@ -70,7 +70,11 @@ ignored_processes:
 
         log_local_path = scenarios.onboarding_host_block_list.host_log_folder + f"/{unique_log_name}"
 
-        ssh_client.exec_command(command_with_config)
+        stdin, stdout, stderr = ssh_client.exec_command(command_with_config)
+        logger.info("Command output:")
+        logger.info(stdout.readlines())
+        logger.info("Command err output:")
+        logger.info(stderr.readlines())
 
         scp = SCPClient(ssh_client.get_transport())
 
