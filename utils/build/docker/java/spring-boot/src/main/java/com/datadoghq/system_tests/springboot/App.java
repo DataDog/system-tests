@@ -69,6 +69,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
@@ -664,6 +665,33 @@ public class App {
         parentSpan.finish(nowMicros + 2*tenSecMicros);
 
         return "OK";
+    }
+
+    @PostMapping(value = "/shell_execution", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<String> shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
+        Process p;
+        if (request.options.shell) {
+            throw new RuntimeException("Not implemented");
+        } else {
+            final String[] args = request.args.split("\\s+");
+            final String[] command = new String[args.length + 1];
+            command[0] = request.command;
+            System.arraycopy(args, 0, command, 1, args.length);
+            p = new ProcessBuilder(command).start();
+        }
+        p.waitFor(10, TimeUnit.SECONDS);
+        final int exitCode = p.exitValue();
+        return new ResponseEntity<>("OK: " + exitCode, HttpStatus.OK);
+    }
+
+    private static class ShellExecutionRequest {
+        public String command;
+        public String args;
+        public Options options;
+
+        static class Options {
+            public boolean shell;
+        }
     }
 
     @EventListener(ApplicationReadyEvent.class)
