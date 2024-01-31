@@ -7,7 +7,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.20.0
 	google.golang.org/grpc v1.57.1
 	google.golang.org/protobuf v1.30.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20240117151307-eea49ce84836
+	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20240130184619-8c4834f24951
 )
 
 require (
@@ -21,7 +21,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.5.0 // indirect
+	github.com/ebitengine/purego v0.5.2 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
