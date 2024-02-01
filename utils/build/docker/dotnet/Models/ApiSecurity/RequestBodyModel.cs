@@ -14,5 +14,5 @@ public class KeyValueItem
 {
     public string key { get; set; }
 
-    public int value { get; set; }
+    public double value { get; set; }
 }
