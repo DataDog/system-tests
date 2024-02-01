@@ -3,13 +3,13 @@ module weblog
 go 1.20
 
 require (
-	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240201093249-2c96377d4f3d
-	github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1 v0.0.0-20240201093249-2c96377d4f3d
-	github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin v0.0.0-20240201093249-2c96377d4f3d
-	github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5 v0.0.0-20240201093249-2c96377d4f3d
-	github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc v0.0.0-20240201093249-2c96377d4f3d
-	github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4 v0.0.0-20240201093249-2c96377d4f3d
-	github.com/DataDog/dd-trace-go/v2/contrib/net/http v0.0.0-20240201093249-2c96377d4f3d
+	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240201094918-106f6bfbbea2
+	github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1 v0.0.0-20240201094918-106f6bfbbea2
+	github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin v0.0.0-20240201094918-106f6bfbbea2
+	github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5 v0.0.0-20240201094918-106f6bfbbea2
+	github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc v0.0.0-20240201094918-106f6bfbbea2
+	github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4 v0.0.0-20240201094918-106f6bfbbea2
+	github.com/DataDog/dd-trace-go/v2/contrib/net/http v0.0.0-20240201094918-106f6bfbbea2
 	github.com/IBM/sarama v1.40.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.0.10
