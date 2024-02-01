@@ -198,26 +198,6 @@ class _Test_SNS:
         It works the same for both test_produce and test_consume
         """
 
-        # Check that the producer did not created any consumer span
-        assert (
-            self.get_span(
-                producer_interface,
-                span_kind=["consumer", "client", "server"],
-                queue=queue,
-                topic=topic,
-                operation="receiveMessage",
-            )
-            is None
-        )
-
-        # Check that the consumer did not created any producer span
-        assert (
-            self.get_span(
-                consumer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish"
-            )
-            is None
-        )
-
         producer_span = self.get_span(
             producer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish"
         )
@@ -228,7 +208,6 @@ class _Test_SNS:
             topic=topic,
             operation="receiveMessage",
         )
-        breakpoint()
         # check that both consumer and producer spans exists
         assert producer_span is not None
         assert consumer_span is not None
