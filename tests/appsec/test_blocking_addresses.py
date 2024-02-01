@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
-import logging
 from utils import (
     bug,
     context,

@@ -61,7 +61,7 @@ jobs:
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
 
       - name: Run GRAPHQL_APPSEC scenario
-        run: ./run.sh +S GRAPHQL_APPSEC
+        run: ./run.sh GRAPHQL_APPSEC
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

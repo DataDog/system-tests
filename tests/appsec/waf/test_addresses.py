@@ -437,6 +437,35 @@ class Test_GraphQL:
         assert self.r_no_attack.status_code == 200  # There is no attack here!
         interfaces.library.assert_no_appsec_event(self.r_no_attack)
 
+    def base_test_request_monitor_attack(self, resolversKeyPath, allResolversKeyPath):
+        """Verify that the request triggered a directive attack event"""
+
+        assert self.r_attack.status_code == 200  # This attack is never blocking
+
+        failures = []
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack, rule="monitor-resolvers", key_path=resolversKeyPath, value="testattack", full_trace=True
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack,
+                rule="monitor-all-resolvers",
+                key_path=allResolversKeyPath,
+                value="testattack",
+                full_trace=True,
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        # At least one of the two assertions should have passed...
+        if len(failures) >= 2:
+            raise ExceptionGroup(f"At least one rule should have triggered\n- {failures[0]}\n- {failures[1]}", failures)
+
     def setup_request_monitor_attack(self):
         """Set up a request with a resolver-targeted attack"""
 
@@ -453,37 +482,7 @@ class Test_GraphQL:
         )
 
     def test_request_monitor_attack(self):
-        """Verify that the request triggered a resolver attack event"""
-
-        assert self.r_attack.status_code == 200  # This attack is never blocking
-
-        failures = []
-
-        try:
-            interfaces.library.assert_waf_attack(
-                self.r_attack,
-                rule="monitor-resolvers",
-                key_path=["userByName", "name"],
-                value="testattack",
-                full_trace=True,
-            )
-        except ValueError as e:
-            failures.append(e)
-
-        try:
-            interfaces.library.assert_waf_attack(
-                self.r_attack,
-                rule="monitor-all-resolvers",
-                key_path=["userByName", "0", "name"],
-                value="testattack",
-                full_trace=True,
-            )
-        except ValueError as e:
-            failures.append(e)
-
-        # At least one of the two assertions should have passed...
-        if len(failures) >= 2:
-            raise ExceptionGroup(f"At least one rule should have triggered\n- {failures[0]}\n- {failures[1]}", failures)
+        self.base_test_request_monitor_attack(["userByName", "name"], ["userByName", "0", "name"])
 
     def setup_request_monitor_attack_directive(self):
         """Set up a request with a directive-targeted attack"""
@@ -501,37 +500,7 @@ class Test_GraphQL:
         )
 
     def test_request_monitor_attack_directive(self):
-        """Verify that the request triggered a directive attack event"""
-
-        assert self.r_attack.status_code == 200  # This attack is never blocking
-
-        failures = []
-
-        try:
-            interfaces.library.assert_waf_attack(
-                self.r_attack,
-                rule="monitor-resolvers",
-                key_path=["userByName", "case", "format"],
-                value="testattack",
-                full_trace=True,
-            )
-        except ValueError as e:
-            failures.append(e)
-
-        try:
-            interfaces.library.assert_waf_attack(
-                self.r_attack,
-                rule="monitor-all-resolvers",
-                key_path=["userByName", "0", "case", "format"],
-                value="testresolver",
-                full_trace=True,
-            )
-        except ValueError as e:
-            failures.append(e)
-
-        # At least one of the two assertions should have passed...
-        if len(failures) >= 2:
-            raise ExceptionGroup(f"At least one rule should have triggered\n- {failures[0]}\n- {failures[1]}", failures)
+        self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
 
 
 @features.appsec_request_blocking
