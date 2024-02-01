@@ -1,5 +1,5 @@
 ami: !include tests/onboarding/infra_provision/includes/provision_ami.yml
-  
+
 init-config:
   install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
 
@@ -10,9 +10,6 @@ prepare-repos:
 
 agent:
   install: !include tests/onboarding/infra_provision/includes/provision_agent.yml
-
-autoinjection_install_script:
-  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_script.yml
 
 autoinjection_install_manual:
   install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_manual.yml
