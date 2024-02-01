@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
+from tests.integrations.crossed_integrations.test_kafka import _nodejs_buddy, _java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -189,8 +189,8 @@ class _Test_SQS:
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
-    buddy_interface = interfaces.python_buddy
-    buddy = _python_buddy
+    buddy_interface = interfaces.nodejs_buddy
+    buddy = _nodejs_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
 
