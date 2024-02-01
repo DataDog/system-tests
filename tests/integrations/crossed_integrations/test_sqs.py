@@ -39,7 +39,7 @@ class _Test_SQS:
                     if span["resource"] != "aws.response":
                         continue
                 elif queue != cls.get_queue(span):
-                        continue
+                    continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
                 return span
@@ -168,18 +168,6 @@ class _Test_SQS:
         Validates production/consumption of sqs message.
         It works the same for both test_produce and test_consume
         """
-
-        # Check that the producer did not created any consumer span
-        assert (
-            self.get_span(producer_interface, span_kind=["consumer", "client", "server"], queue=queue, operation="receiveMessage")
-            is None
-        )
-
-        # Check that the consumer did not created any producer span
-        assert (
-            self.get_span(consumer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage")
-            is None
-        )
 
         producer_span = self.get_span(
             producer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage"

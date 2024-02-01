@@ -51,35 +51,41 @@ const sqsConsume = async (queue, timeout) => {
   const queueUrl = `http://elasticmq:9324/000000000000/${queue}`
 
   return new Promise((resolve, reject) => {
-    sqs.receiveMessage({
-      QueueUrl: queueUrl,
-      MaxNumberOfMessages: 1
-    }, (err, response) => {
-      if (err) {
-        console.error('[SQS] Error receiving message: ', err)
-        reject(err)
-      }
-
-      try {
-        console.log(`[SQS] Received the following ${response}`)
-        if (response && response.Messages && response.Messages.length > 0) {
-          for (const message of response.Messages) {
-            const consumedMessage = message.Body
-            console.log('[SQS] Consumed the following: ' + consumedMessage)
-          }
-          resolve()
-        } else {
-          console.log('[SQS] No messages received')
+    const receiveMessage = () => {
+      sqs.receiveMessage({
+        QueueUrl: queueUrl,
+        MaxNumberOfMessages: 1,
+        MessageAttributeNames: ['.*']
+      }, (err, response) => {
+        if (err) {
+          console.error('[SQS] Error receiving message: ', err)
+          reject(err)
         }
-      } catch (error) {
-        console.error('[SQS] Error while consuming messages: ', error)
-        reject(error)
-      }
-    })
+
+        try {
+          console.log(`[SQS] Received the following ${response}`)
+          if (response && response.Messages && response.Messages.length > 0) {
+            for (const message of response.Messages) {
+              const consumedMessage = message.Body
+              console.log('[SQS] Consumed the following: ' + consumedMessage)
+            }
+            resolve()
+          } else {
+            console.log('[SQS] No messages received')
+            receiveMessage()
+          }
+        } catch (error) {
+          console.error('[SQS] Error while consuming messages: ', error)
+          reject(error)
+        }
+      })
+    }
     setTimeout(() => {
       console.error('[SQS] TimeoutError: Message not received')
       reject(new Error('[SQS] Message not received'))
     }, timeout) // Set a timeout of n seconds for message reception
+
+    receiveMessage()
   })
 }
 

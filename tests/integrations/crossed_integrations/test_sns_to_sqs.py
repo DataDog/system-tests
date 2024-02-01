@@ -222,7 +222,11 @@ class _Test_SNS:
             producer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish"
         )
         consumer_span = self.get_span(
-            consumer_interface, span_kind=["consumer", "client", "server"], queue=queue, topic=topic, operation="receiveMessage"
+            consumer_interface,
+            span_kind=["consumer", "client", "server"],
+            queue=queue,
+            topic=topic,
+            operation="receiveMessage",
         )
         breakpoint()
         # check that both consumer and producer spans exists

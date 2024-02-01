@@ -64,7 +64,7 @@ const snsPublish = (queue, topic, message) => {
                 console.log(data)
                 resolve()
               })
-              console.log('[SNS->SQS]Published a message from JavaScript SNS')
+              console.log('[SNS->SQS] Published a message from JavaScript SNS')
             }
 
             // Start producing messages
@@ -89,7 +89,8 @@ const snsConsume = async (queue, timeout) => {
     sqs.receiveMessage({
       QueueUrl: queueUrl,
       MaxNumberOfMessages: 1,
-      MessageAttributeNames: ['.*']
+      MessageAttributeNames: ['.*'],
+      WaitTimeSeconds: timeout / 1000
     }, (err, response) => {
       if (err) {
         console.error('[SNS->SQS] Error receiving message: ', err)
