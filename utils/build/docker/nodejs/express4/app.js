@@ -255,7 +255,7 @@ app.get('/sqs/consume', (req, res) => {
   const timeout = parseInt(req.query.timeout) ?? 5
   console.log('sqs consume')
 
-  sqsConsume(queue, timeout)
+  sqsConsume(queue, timeout * 1000)
     .then(() => {
       res.status(200).send('[SQS] consume ok')
     })
@@ -283,7 +283,7 @@ app.get('/sns/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
 
-  snsConsume(queue, timeout)
+  snsConsume(queue, timeout * 1000)
     .then(() => {
       res.status(200).send('[SNS->SQS] consume ok')
     })
