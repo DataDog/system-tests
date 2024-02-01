@@ -18,7 +18,7 @@ class _Test_SNS:
     buddy_interface = None
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, operation):
+    def get_span(cls, interface, span_kind, queue, topic, operation):
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -36,7 +36,13 @@ class _Test_SNS:
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
-                if queue != cls.get_queue(span):
+                if operation.lower() == "publish":
+                    if topic != cls.get_topic(span):
+                        continue
+                elif operation.lower() == "receivemessage":
+                    if queue != cls.get_queue(span):
+                        continue
+                else:
                     continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
@@ -60,6 +66,22 @@ class _Test_SNS:
                 logger.error(f"could not extract queue from this span:\n{span}")
 
         return queue
+    
+    @staticmethod
+    def get_topic(span) -> str | None:
+        """Extracts the queue from a span by trying various fields"""
+        topic = span["meta"].get("topicname", None)  # this is in nodejs, java, python
+
+        if topic is None:
+            if "aws.sns.topic_arn" in span["meta"]:
+                topic = span["meta"]["aws.sns.topic_arn"].split(":")[-1]
+            # elif "messaging.url" in span["meta"]:
+            #     topic = span["meta"]["messaging.url"].split("/")[-1]
+
+            if topic is None:
+                logger.error(f"could not extract topic from this span:\n{span}")
+
+        return topic
 
     def setup_produce(self):
         """
@@ -86,6 +108,7 @@ class _Test_SNS:
             producer_interface=interfaces.library,
             consumer_interface=self.buddy_interface,
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            topic=self.WEBLOG_TO_BUDDY_TOPIC
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
@@ -96,12 +119,14 @@ class _Test_SNS:
             interfaces.library,
             span_kind=["producer", "client"],
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
-            operation="sendMessage",
+            topic=self.WEBLOG_TO_BUDDY_TOPIC,
+            operation="publish",
         )
         consumer_span = self.get_span(
             self.buddy_interface,
             span_kind=["consumer", "client"],
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            topic=self.WEBLOG_TO_BUDDY_TOPIC,
             operation="receiveMessage",
         )
 
@@ -139,6 +164,7 @@ class _Test_SNS:
             producer_interface=self.buddy_interface,
             consumer_interface=interfaces.library,
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            topic=self.BUDDY_TO_WEBLOG_TOPIC
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
@@ -149,12 +175,14 @@ class _Test_SNS:
             self.buddy_interface,
             span_kind=["producer", "client"],
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
-            operation="sendMessage",
+            topic=self.BUDDY_TO_WEBLOG_TOPIC,
+            operation="publish",
         )
         consumer_span = self.get_span(
             interfaces.library,
             span_kind=["consumer", "client"],
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            topic=self.BUDDY_TO_WEBLOG_TOPIC,
             operation="receiveMessage",
         )
 
@@ -163,7 +191,7 @@ class _Test_SNS:
         # asserting on direct parent/child relationships
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_sns_spans(self, producer_interface, consumer_interface, queue):
+    def validate_sns_spans(self, producer_interface, consumer_interface, queue, topic):
         """
         Validates production/consumption of sns message.
         It works the same for both test_produce and test_consume
@@ -171,21 +199,21 @@ class _Test_SNS:
 
         # Check that the producer did not created any consumer span
         assert (
-            self.get_span(producer_interface, span_kind=["consumer", "client"], queue=queue, operation="receiveMessage")
+            self.get_span(producer_interface, span_kind=["consumer", "client"], queue=queue, topic=topic, operation="receiveMessage")
             is None
         )
 
         # Check that the consumer did not created any producer span
         assert (
-            self.get_span(consumer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage")
+            self.get_span(consumer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish")
             is None
         )
 
         producer_span = self.get_span(
-            producer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage"
+            producer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish"
         )
         consumer_span = self.get_span(
-            consumer_interface, span_kind=["consumer", "client"], queue=queue, operation="receiveMessage"
+            consumer_interface, span_kind=["consumer", "client"], queue=queue, topic=topic, operation="receiveMessage"
         )
         # check that both consumer and producer spans exists
         assert producer_span is not None
