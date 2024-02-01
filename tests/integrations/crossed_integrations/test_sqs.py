@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
-from utils import interfaces, scenarios, coverage, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
 
@@ -198,7 +198,6 @@ class _Test_SQS:
 
 
 @scenarios.crossed_tracing_libraries
-@coverage.basic
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy_interface = interfaces.python_buddy
@@ -208,7 +207,6 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 
 
 @scenarios.crossed_tracing_libraries
-@coverage.basic
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy_interface = interfaces.java_buddy

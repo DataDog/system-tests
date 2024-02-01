@@ -6,6 +6,10 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: missing_feature
+        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -50,7 +54,7 @@ tests/:
           TestLDAPInjection:
             '*': missing_feature
             express4: v4.1.0
-            express4-typsecript: v4.1.0
+            express4-typescript: v4.1.0
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': missing_feature
@@ -62,7 +66,10 @@ tests/:
             express4: v4.3.0
             express4-typescript: v4.3.0
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection:
+            '*': missing_feature
+            express4: v4.17.0
+            express4-typescript: v4.17.0
         test_path_traversal.py:
           TestPathTraversal:
             '*': missing_feature
@@ -85,7 +92,10 @@ tests/:
             '*': missing_feature
             express4: v4.3.0
             express4-typescript: v4.3.0
-          TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedRedirect:
+            '*': missing_feature
+            express4: v4.3.0
+            express4-typescript: v4.3.0
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
@@ -282,7 +292,7 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v3.9.0
     test_shell_execution.py:
-      Test_ShellExecution: missing_feature
+      Test_ShellExecution: v5.3.0
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
@@ -304,30 +314,19 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
-          '*': missing_feature (Endpoint not implemented)
-          express4: v0.1 # real version not known
-        Test_JavaKafka:
-          '*': missing_feature (Endpoint not implemented)
-          express4: v0.1 # real version not known
-        Test_NodeJSKafka:
-          '*': missing_feature (Endpoint not implemented)
-          express4: v0.1 # real version not known
-        Test_PythonKafka:
-          '*': missing_feature (Endpoint not implemented)
-          express4: v0.1 # real version not known
-        Test_RubyKafka:
-          '*': missing_feature (Endpoint not implemented)
+        Test_Kafka:
+          "*": irrelevant
           express4: v0.1 # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          express4: v0.1 # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
           express4: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
           express4: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
@@ -346,16 +345,24 @@ tests/:
       Test_DsmKafka:
         '*': v4.4.0
         nextjs: missing_feature (missing endpoint)
-      Test_DsmRabbitmq: missing_feature
-      Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
-      Test_DsmSQS: 
-        '*': missing_feature
+      Test_DsmRabbitmq:
+        "*": irrelevant
+        express4: v5.3.0
+      Test_DsmRabbitmq_FanoutExchange:
+        "*": irrelevant
+        express4: missing_feature
+      Test_DsmRabbitmq_TopicExchange:
+        "*": irrelevant
+        express4: missing_feature
+      Test_DsmSQS:
+        "*": irrelevant
+        express4: v5.2.0
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v4.11.0
-      TestDynamicConfigV2: missing_feature
+      TestDynamicConfigV2: v4.23.0
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature

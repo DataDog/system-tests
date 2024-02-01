@@ -2,7 +2,7 @@ FROM datadog/system-tests:uwsgi-poc.base-v1
 
 WORKDIR /app
 
-RUN pip install boto3
+RUN pip install boto3 kombu
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

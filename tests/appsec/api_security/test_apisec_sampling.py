@@ -1,5 +1,4 @@
 from utils import (
-    coverage,
     features,
     interfaces,
     rfc,
@@ -23,7 +22,6 @@ def get_schema(request, address):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security_with_sampling
 @features.api_security_configuration
 class Test_API_Security_sampling:

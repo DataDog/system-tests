@@ -2,12 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import bug, context, coverage, interfaces, weblog, features, irrelevant, rfc
+from utils import bug, context, interfaces, weblog, features, irrelevant, rfc
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
 @features.appsec_shell_execution_tracing
-@coverage.basic
+@bug(context.library < "java@1.29.0", reason="https://datadoghq.atlassian.net/browse/APPSEC-10243")
 class Test_ShellExecution:
     """Test shell execution tracing"""
 
