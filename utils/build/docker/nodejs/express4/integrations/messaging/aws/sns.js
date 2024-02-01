@@ -64,7 +64,7 @@ const snsPublish = (queue, topic, message) => {
                 console.log(data)
                 resolve()
               })
-              console.log('Published a message from JavaScript SNS')
+              console.log('[SNS->SQS]Published a message from JavaScript SNS')
             }
 
             // Start producing messages
@@ -97,8 +97,8 @@ const snsConsume = async (queue, timeout) => {
       }
 
       try {
-        console.log(response)
-        if (response && response.Messages) {
+        console.log(`[SNS->SQS] Received the following response: ${response}`)
+        if (response && response.Messages && response.Messages.length > 0) {
           for (const message of response.Messages) {
             const consumedMessage = message.Body
             console.log('[SNS->SQS] Consumed the following: ' + consumedMessage)

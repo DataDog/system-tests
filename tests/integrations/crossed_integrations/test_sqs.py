@@ -38,8 +38,7 @@ class _Test_SQS:
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
                         continue
-                else:
-                    if queue != cls.get_queue(span):
+                elif queue != cls.get_queue(span):
                         continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")

@@ -31,7 +31,7 @@ const sqsProduce = (queue, message) => {
               resolve()
             }
           })
-          console.log('Produced a message')
+          console.log('[SQS] Produced a message')
         }
 
         // Start producing messages
@@ -56,28 +56,29 @@ const sqsConsume = async (queue, timeout) => {
       MaxNumberOfMessages: 1
     }, (err, response) => {
       if (err) {
-        console.error('Error receiving message: ', err)
+        console.error('[SQS] Error receiving message: ', err)
         reject(err)
       }
 
       try {
-        console.log(response)
-        if (response && response.Messages) {
+        console.log(`[SQS] Received the following ${response}`)
+        if (response && response.Messages && response.Messages.length > 0) {
           for (const message of response.Messages) {
             const consumedMessage = message.Body
-            console.log('Consumed the following: ' + consumedMessage)
+            console.log('[SQS] Consumed the following: ' + consumedMessage)
           }
           resolve()
         } else {
-          console.log('No messages received')
+          console.log('[SQS] No messages received')
         }
       } catch (error) {
-        console.error('Error while consuming messages: ', error)
+        console.error('[SQS] Error while consuming messages: ', error)
         reject(error)
       }
     })
     setTimeout(() => {
-      reject(new Error('Message not received'))
+      console.error('[SQS] TimeoutError: Message not received')
+      reject(new Error('[SQS] Message not received'))
     }, timeout) // Set a timeout of n seconds for message reception
   })
 }
