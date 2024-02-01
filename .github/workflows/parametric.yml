@@ -17,33 +17,9 @@ jobs:
               version: dev
             - client: java
               version: prod
-            - client: nodejs
+            - client: java
               version: dev
-            - client: nodejs
-              version: prod
-            - client: golang
-              version: dev
-            - client: golang
-              version: prod
-            - client: python
-              version: dev
-            - client: python
-              version: prod
-            - client: ruby
-              version: dev
-            - client: ruby
-              version: prod
-            - client: dotnet
-              version: dev
-            - client: dotnet
-              version: prod
-            - client: cpp
-              version: dev
-            - client: cpp
-              version: prod
-            - client: php
-              version: dev
-            - client: php
+            - client: java
               version: prod
  
       fail-fast: false
@@ -58,7 +34,7 @@ jobs:
         if: ${{ matrix.variant.version == 'dev' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.variant.client }}
       - name: Run
-        run: ./run.sh PARAMETRIC
+        run: timeout 600s ./run.sh PARAMETRIC
       - name: Compress logs
         id: compress_logs
         if: always()

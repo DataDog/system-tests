@@ -399,12 +399,15 @@ _libs: Dict[str, ClientLibraryServerFactory] = {
 
 
 def get_open_port():
+    logger.stdout("RMM: GET OPEN PORT")
     # Not very nice and also not 100% correct but it works for now.
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(("", 0))
     s.listen(1)
     port = s.getsockname()[1]
+    logger.stdout("RMM: BEFORE CLOSE OPEN PORT")
     s.close()
+    logger.stdout("RMM: RETURN OPEN PORT")
     return port
 
 
@@ -416,17 +419,23 @@ def apm_test_server_definition() -> APMLibraryTestServer:
 
 
 def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer,) -> str:
+    logger.stdout("RMM: build_apm_test_server_image INIT")
     log_path = f"{context.scenario.host_log_folder}/outputs/docker_build_log.log"
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    logger.stdout("RMM: build_apm_test_server_image 2")
     log_file = open(log_path, "w+")
+    logger.stdout("RMM: build_apm_test_server_image 3")
     # Write dockerfile to the build directory
     # Note that this needs to be done as the context cannot be
     # specified if Dockerfiles are read from stdin.
     dockf_path = os.path.join(apm_test_server_definition.container_build_dir, "Dockerfile")
     with open(dockf_path, "w") as dockf:
+        logger.stdout("RMM: build_apm_test_server_image 4")
         dockf.write(apm_test_server_definition.container_img)
+        logger.stdout("RMM: build_apm_test_server_image 5")
     # Build the container
     docker = shutil.which("docker")
+    logger.stdout("RMM: build_apm_test_server_image 6")
     root_path = ".."
     cmd = [
         docker,
@@ -438,12 +447,14 @@ def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer
         dockf_path,
         apm_test_server_definition.container_build_context,
     ]
+    logger.stdout("RMM: build_apm_test_server_image 7")
     log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
+    logger.stdout("RMM: build_apm_test_server_image 8")
     log_file.flush()
-
+    logger.stdout("RMM: build_apm_test_server_image 9")
     env = os.environ.copy()
     env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
-
+    logger.stdout("RMM: build_apm_test_server_image 10")
     p = subprocess.run(
         cmd,
         cwd=root_path,
@@ -454,12 +465,16 @@ def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer
         env=env,
         timeout=default_subprocess_run_timeout,
     )
-
+    logger.stdout("RMM: build_apm_test_server_image 11")
     failure_text: str = None
     if p.returncode != 0:
+        logger.stdout("RMM: build_apm_test_server_image 12")
         log_file.seek(0)
+        logger.stdout("RMM: build_apm_test_server_image 13")
         failure_text = "".join(log_file.readlines())
+        logger.stdout("RMM: build_apm_test_server_image 14")
     log_file.close()
+    logger.stdout("RMM: build_apm_test_server_image 15")
 
     return failure_text
 
@@ -471,38 +486,59 @@ def apm_test_server_image(
     """Session level definition of the library test server with the Docker image built"""
     # all this is only needed since xdist will execute session scopes once for every worker
     # and here we want to make sure that we build the Docker image once and only once
+    logger.stdout("RMM: apm_test_server_image INIT")
     failure_text: str = None
     if worker_id == "master":
         # not executing with multiple workers just build the image
+        logger.stdout("RMM: apm_test_server_image 1")
         failure_text = build_apm_test_server_image(apm_test_server_definition)
+        logger.stdout("RMM: apm_test_server_image 2")
     else:
         # get the temp directory shared by all workers
+        logger.stdout("RMM: apm_test_server_image 3")
         root_tmp_dir = tmp_path_factory.getbasetemp().parent
+        logger.stdout("RMM: apm_test_server_image 4")
         fn = root_tmp_dir / apm_test_server_definition.container_tag
+        logger.stdout("RMM: apm_test_server_image 5")
         with FileLock(str(fn) + ".lock"):
+            logger.stdout("RMM: apm_test_server_image 6")
             if not fn.is_file():
+                logger.stdout("RMM: apm_test_server_image 7")
                 failure_text = build_apm_test_server_image(apm_test_server_definition)
+                logger.stdout("RMM: apm_test_server_image 8")
                 if failure_text == None:
+                    logger.stdout("RMM: apm_test_server_image 9")
                     fn.write_text("success")
+                    logger.stdout("RMM: apm_test_server_image 10")
                 else:
+                    logger.stdout("RMM: apm_test_server_image 11")
                     fn.write_text("failure")
+                    logger.stdout("RMM: apm_test_server_image 12")
+                logger.stdout("RMM: apm_test_server_image 13")
             else:
+                logger.stdout("RMM: apm_test_server_image 14")
                 if fn.read_text() == "failure":
+                    logger.stdout("RMM: apm_test_server_image 15")
                     failure_text = "Failed to build docker image. See output from other worker."
+                logger.stdout("RMM: apm_test_server_image 16")
 
     if failure_text != None:
+        logger.stdout("RMM: apm_test_server_image 17")
         pytest.fail(failure_text, pytrace=False)
 
+    logger.stdout("RMM: apm_test_server_image 18")
     yield apm_test_server_definition
 
 
 @pytest.fixture
 def apm_test_server(request, library_env, test_id, apm_test_server_image):
     """Request level definition of the library test server with the session Docker image built"""
+    logger.stdout("RMM: apm_test_server INIT")
     new_env = dict(library_env)
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
-
+    logger.stdout("RMM: apm_test_server 1")
     new_env.update(apm_test_server_image.env)
+    logger.stdout("RMM: apm_test_server 2")
     yield dataclasses.replace(
         apm_test_server_image,
         container_name="%s-%s" % (apm_test_server_image.container_name, test_id),
@@ -513,20 +549,29 @@ def apm_test_server(request, library_env, test_id, apm_test_server_image):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
+    logger.stdout("RMM: pytest_runtest_makereport INIT")
     outcome = yield
     report = outcome.get_result()
+    logger.stdout("RMM: pytest_runtest_makereport FINISH")
 
 
 @pytest.fixture
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
+    logger.stdout("RMM: test_server_log_file INIT")
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
+    logger.stdout("RMM: test_server_log_file 1")
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    logger.stdout("RMM: test_server_log_file 2")
     with open(log_path, "w+") as f:
+        logger.stdout("RMM: test_server_log_file 3")
         yield f
+        logger.stdout("RMM: test_server_log_file 4")
         f.seek(0)
+        logger.stdout("RMM: test_server_log_file 5")
         request.node._report_sections.append(
             ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
         )
+        logger.stdout("RMM: test_server_log_file 6")
 
 
 class _TestAgentAPI:
@@ -534,75 +579,124 @@ class _TestAgentAPI:
         self._base_url = base_url
         self._session = requests.Session()
         self._pytest_request = pytest_request
+        logger.stdout("RMM: _TestAgentAPI.init 1")
         self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
+        logger.stdout("RMM: _TestAgentAPI.init 2")
         os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
+        logger.stdout("RMM: _TestAgentAPI.init 3")
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
 
     def _write_log(self, type, json_trace):
+        logger.stdout("RMM: _TestAgentAPI._write_log 1")
         with open(self.log_path, "a") as log:
+            logger.stdout("RMM: _TestAgentAPI._write_log 2")
             log.write(f"\n{type}>>>>\n")
+            logger.stdout("RMM: _TestAgentAPI._write_log 3")
             log.write(json.dumps(json_trace))
+            logger.stdout("RMM: _TestAgentAPI._write_log 4")
 
     def traces(self, clear=False, **kwargs):
+        logger.stdout("RMM: _TestAgentAPI.traces 1")
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
+        logger.stdout("RMM: _TestAgentAPI.traces 2")
         if clear:
+            logger.stdout("RMM: _TestAgentAPI.traces 3")
             self.clear()
+            logger.stdout("RMM: _TestAgentAPI.traces 4")
+        logger.stdout("RMM: _TestAgentAPI.traces 5")
         json = resp.json()
+        logger.stdout("RMM: _TestAgentAPI.traces 6")
         self._write_log("traces", json)
+        logger.stdout("RMM: _TestAgentAPI.traces 7")
         return json
 
     def set_remote_config(self, path, payload):
+        logger.stdout("RMM: _TestAgentAPI.set_remote_config 1")
         resp = self._session.post(
             self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,}
         )
+        logger.stdout("RMM: _TestAgentAPI.set_remote_config 2")
         assert resp.status_code == 202
+        logger.stdout("RMM: _TestAgentAPI.set_remote_config 3")
 
     def raw_telemetry(self, clear=False, **kwargs):
+        logger.stdout("RMM: _TestAgentAPI.raw_telemetry 1")
         raw_reqs = self.requests()
+        logger.stdout("RMM: _TestAgentAPI.raw_telemetry 2")
         reqs = []
         for req in raw_reqs:
             if req["url"].endswith("/telemetry/proxy/api/v2/apmtelemetry"):
                 reqs.append(req)
+        logger.stdout("RMM: _TestAgentAPI.raw_telemetry 3")
         if clear:
+            logger.stdout("RMM: _TestAgentAPI.raw_telemetry 4")
             self.clear()
+            logger.stdout("RMM: _TestAgentAPI.raw_telemetry 5")
+        logger.stdout("RMM: _TestAgentAPI.raw_telemetry 6")
         return reqs
 
     def telemetry(self, clear=False, **kwargs):
+        logger.stdout("RMM: _TestAgentAPI.telemetry 1")
         resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
+        logger.stdout("RMM: _TestAgentAPI.telemetry 2")
         if clear:
+            logger.stdout("RMM: _TestAgentAPI.telemetry 3")
             self.clear()
+            logger.stdout("RMM: _TestAgentAPI.telemetry 4")
+        logger.stdout("RMM: _TestAgentAPI.telemetry 5")
         return resp.json()
 
     def tracestats(self, **kwargs):
+        logger.stdout("RMM: _TestAgentAPI.tracestats 1")
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
+        logger.stdout("RMM: _TestAgentAPI.tracestats 2")
         json = resp.json()
+        logger.stdout("RMM: _TestAgentAPI.tracestats 3")
         self._write_log("tracestats", json)
+        logger.stdout("RMM: _TestAgentAPI.tracestats 4")
         return json
 
     def requests(self, **kwargs) -> List[AgentRequest]:
+        logger.stdout("RMM: _TestAgentAPI.requests 1")
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
+        logger.stdout("RMM: _TestAgentAPI.requests 2")
         json = resp.json()
+        logger.stdout("RMM: _TestAgentAPI.requests 3")
         self._write_log("requests", json)
+        logger.stdout("RMM: _TestAgentAPI.requests 4")
         return json
 
     def rc_requests(self):
+        logger.stdout("RMM: _TestAgentAPI.rc_requests 1")
         reqs = self.requests()
+        logger.stdout("RMM: _TestAgentAPI.rc_requests 2")
         rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        logger.stdout("RMM: _TestAgentAPI.rc_requests 3")
         for r in rc_reqs:
+            logger.stdout("RMM: _TestAgentAPI.rc_requests 4")
             r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+            logger.stdout("RMM: _TestAgentAPI.rc_requests 5")
+        logger.stdout("RMM: _TestAgentAPI.rc_requests 6")
         return rc_reqs
 
     def get_tracer_flares(self, **kwargs):
+        logger.stdout("RMM: _TestAgentAPI.get_tracer_flares 1")
         resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
+        logger.stdout("RMM: _TestAgentAPI.get_tracer_flares 2")
         json = resp.json()
+        logger.stdout("RMM: _TestAgentAPI.get_tracer_flares 3")
         self._write_log("tracerflares", json)
+        logger.stdout("RMM: _TestAgentAPI.get_tracer_flares 4")
         return json
 
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
+        logger.stdout("RMM: _TestAgentAPI.v06_stats_requests 1")
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
+        logger.stdout("RMM: _TestAgentAPI.v06_stats_requests 2")
         requests = []
+
         for raw in raw_requests:
             requests.append(
                 AgentRequestV06Stats(
@@ -612,34 +706,49 @@ class _TestAgentAPI:
                     body=decode_v06_stats(base64.b64decode(raw["body"])),
                 )
             )
+        logger.stdout("RMM: _TestAgentAPI.v06_stats_requests 3")
         return requests
 
     def clear(self, **kwargs) -> None:
+        logger.stdout("RMM: _TestAgentAPI.clear 1")
         self._session.get(self._url("/test/session/clear"), **kwargs)
+        logger.stdout("RMM: _TestAgentAPI.clear 2")
 
     def info(self, **kwargs):
+        logger.stdout("RMM: _TestAgentAPI.info 1")
         resp = self._session.get(self._url("/info"), **kwargs)
+        logger.stdout("RMM: _TestAgentAPI.info 2")
         json = resp.json()
         self._write_log("info", json)
+        logger.stdout("RMM: _TestAgentAPI.info 3")
         return json
 
     @contextlib.contextmanager
     def snapshot_context(self, token, ignores=None):
+        logger.stdout("RMM: _TestAgentAPI.snapshot_context 1")
         ignores = ignores or []
         try:
+            logger.stdout("RMM: _TestAgentAPI.snapshot_context 2")
             resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
+            logger.stdout("RMM: _TestAgentAPI.snapshot_context 3")
             if resp.status_code != 200:
+                logger.stdout("RMM: _TestAgentAPI.snapshot_context 4")
                 # The test agent returns nice error messages we can forward to the user.
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
         except Exception as e:
+            logger.stdout("RMM: _TestAgentAPI.snapshot_context 5")
             pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
         else:
+            logger.stdout("RMM: _TestAgentAPI.snapshot_context 6")
             yield self
+            logger.stdout("RMM: _TestAgentAPI.snapshot_context 7")
             # Query for the results of the test.
             resp = self._session.get(
                 self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
             )
+            logger.stdout("RMM: _TestAgentAPI.snapshot_context 8")
             if resp.status_code != 200:
+                logger.stdout("RMM: _TestAgentAPI.snapshot_context 9")
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
     def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
@@ -649,19 +758,27 @@ class _TestAgentAPI:
 
         Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
         """
+        logger.stdout("RMM: _TestAgentAPI.wait_for_num_traces 1")
         num_received = None
         for i in range(wait_loops):
             try:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_num_traces 2")
                 traces = self.traces(clear=False)
+                logger.stdout("RMM: _TestAgentAPI.wait_for_num_traces 3")
             except requests.exceptions.RequestException:
                 pass
             else:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_num_traces 4")
                 num_received = len(traces)
                 if num_received == num:
                     if clear:
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_num_traces 5")
                         self.clear()
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_num_traces 6")
                     return sorted(traces, key=lambda trace: trace[0]["start"])
+            logger.stdout("RMM: _TestAgentAPI.wait_for_num_traces 7")
             time.sleep(0.1)
+        logger.stdout("RMM: _TestAgentAPI.wait_for_num_traces 8")
         raise ValueError(
             "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
         )
@@ -673,105 +790,157 @@ class _TestAgentAPI:
 
         Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
         """
+        logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 1")
         num_received = None
         for i in range(wait_loops):
             try:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 2")
                 traces = self.traces(clear=False)
+                logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 3")
             except requests.exceptions.RequestException:
                 pass
             else:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 4")
                 num_received = 0
                 for trace in traces:
                     num_received += len(trace)
                 if num_received == num:
                     if clear:
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 5")
                         self.clear()
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 6")
+                    logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 7")
                     return sorted(traces, key=lambda trace: trace[0]["start"])
+            logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 8")
             time.sleep(0.1)
+            logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 9")
+        logger.stdout("RMM: _TestAgentAPI.wait_for_num_spans 10")
         raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
 
     def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
+        logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 1")
         for i in range(wait_loops):
             try:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 2")
                 events = self.telemetry(clear=False)
+                logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 3")
             except requests.exceptions.RequestException:
                 pass
             else:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 4")
                 for event in events:
                     if event["request_type"] == "message-batch":
                         for message in event["payload"]:
                             if message["request_type"] == event_name:
                                 if clear:
+                                    logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 5")
                                     self.clear()
+                                    logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 6")
                                 return message
                     elif event["request_type"] == event_name:
                         if clear:
+                            logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 7")
                             self.clear()
+                            logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 8")
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 9")
                         return event
+            logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 10")
             time.sleep(0.01)
+        logger.stdout("RMM: _TestAgentAPI.wait_for_telemetry_event 11")
         raise AssertionError("Telemetry event %r not found" % event_name)
 
     def wait_for_rc_apply_state(
         self, product: str, state: remoteconfig.APPLY_STATUS, clear: bool = False, wait_loops: int = 100
     ):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 1")
         rc_reqs = []
         for i in range(wait_loops):
             try:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 2")
                 rc_reqs = self.rc_requests()
+                logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 3")
             except requests.exceptions.RequestException:
                 pass
             else:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 4")
                 # Look for the given apply state in the requests.
                 for req in rc_reqs:
+                    logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 5")
                     if req["body"]["client"]["state"].get("config_states") is None:
                         continue
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
                         if cfg_state["product"] == product and cfg_state["apply_state"] == state:
                             if clear:
+                                logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 6")
                                 self.clear()
+                                logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 7")
+                            logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 8")
                             return cfg_state
+            logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 9")
             time.sleep(0.01)
+        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_apply_state 10")
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
     def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 1")
         rc_reqs = []
         capabilities_seen = set()
         for i in range(wait_loops):
             try:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 2")
                 rc_reqs = self.rc_requests()
+                logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 3")
             except requests.exceptions.RequestException:
                 pass
             else:
                 # Look for capabilities in the requests.
+                logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 4")
                 for req in rc_reqs:
+                    logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 5")
                     raw_caps = req["body"]["client"].get("capabilities")
                     if raw_caps:
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 6")
                         decoded_capabilities = base64.b64decode(raw_caps)
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 7")
                         int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 8")
                         capabilities_seen.add(remoteconfig.human_readable_capabilities(int_capabilities))
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 9")
                         if all((int_capabilities >> c) & 1 for c in capabilities):
+                            logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 10")
                             return int_capabilities
+            logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 11")
             time.sleep(0.01)
+        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 12")
         raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
     def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
+        logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 1")
         for i in range(wait_loops):
             try:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 2")
                 tracer_flares = self.get_tracer_flares()
+                logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 3")
             except requests.exceptions.RequestException:
                 pass
             else:
+                logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 4")
                 # Look for the given case_id in the tracer-flares.
                 for tracer_flare in tracer_flares:
                     if case_id is None or tracer_flare["case_id"] == case_id:
                         if clear:
+                            logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 5")
                             self.clear()
+                            logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 6")
+                        logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 7")
                         return tracer_flare
+            logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 8")
             time.sleep(0.01)
+        logger.stdout("RMM: _TestAgentAPI.wait_for_tracer_flare 9")
         raise AssertionError("No tracer-flare received")
 
 
@@ -786,6 +955,7 @@ def docker_run(
     log_file: TextIO,
     network_name: str,
 ) -> Generator[None, None, None]:
+    logger.stdout("RMM: docker_run 1")
     _cmd: List[str] = [
         shutil.which("docker"),
         "run",
@@ -794,23 +964,31 @@ def docker_run(
         "--name=%s" % name,
         "--network=%s" % network_name,
     ]
+    logger.stdout("RMM: docker_run 2")
     for k, v in env.items():
         _cmd.extend(["-e", "%s=%s" % (k, v)])
     for k, v in volumes:
         _cmd.extend(["-v", "%s:%s" % (k, v)])
     for k, v in ports:
         _cmd.extend(["-p", "%s:%s" % (k, v)])
+    logger.stdout("RMM: docker_run 3")
     _cmd += [image]
     _cmd.extend(cmd)
-
+    logger.stdout("RMM: docker_run 4")
     log_file.write("$ " + " ".join(_cmd) + "\n")
+    logger.stdout("RMM: docker_run 5")
     log_file.flush()
+    logger.stdout("RMM: docker_run 6")
     docker = shutil.which("docker")
+    logger.stdout("RMM: docker_run 7")
 
     # Run the docker container
     r = subprocess.run(_cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout)
+    logger.stdout("RMM: docker_run 8")
     if r.returncode != 0:
+        logger.stdout("RMM: docker_run 9")
         log_file.flush()
+        logger.stdout("RMM: docker_run 10")
         pytest.fail(
             "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file.name),
             pytrace=False,
@@ -823,34 +1001,47 @@ def docker_run(
         "-f",
         name,
     ]
+    logger.stdout("RMM: docker_run 11")
     docker_logs = subprocess.Popen(_cmd, stdout=log_file, stderr=log_file)
+    logger.stdout("RMM: docker_run 12")
     try:
         yield
     finally:
+        logger.stdout("RMM: docker_run 13")
         docker_logs.kill()
         _cmd = [docker, "kill", name]
+        logger.stdout("RMM: docker_run 14")
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
+        logger.stdout("RMM: docker_run 15")
         log_file.flush()
+        logger.stdout("RMM: docker_run 16")
         subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
+        logger.stdout("RMM: docker_run 17")
 
 
 @pytest.fixture(scope="session")
 def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
+    logger.stdout("RMM: docker 1")
     r = subprocess.run(
         ["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=default_subprocess_run_timeout
     )
+    logger.stdout("RMM: docker 2")
     if r.returncode != 0:
+        logger.stdout("RMM: docker 3")
         pytest.fail(
             "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again."
         )
+    logger.stdout("RMM: docker 4")
     return shutil.which("docker")
 
 
 @pytest.fixture()
 def docker_network_log_file(request) -> TextIO:
+    logger.stdout("RMM: docker_network_log_file 1")
     with tempfile.NamedTemporaryFile(mode="w+") as f:
+        logger.stdout("RMM: docker_network_log_file 2")
         yield f
 
 
@@ -868,14 +1059,20 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
         "inspect",
         docker_network_name,
     ]
+    logger.stdout("RMM: docker_network 1")
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
+    logger.stdout("RMM: docker_network 2")
     docker_network_log_file.flush()
+    logger.stdout("RMM: docker_network 3")
     r = subprocess.run(cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout)
+    logger.stdout("RMM: docker_network 4")
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
+        logger.stdout("RMM: docker_network 5")
         pytest.fail(
             "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
         )
     elif r.returncode == 1:
+        logger.stdout("RMM: docker_network 7")
         cmd = [
             shutil.which("docker"),
             "network",
@@ -884,30 +1081,40 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
             "bridge",
             docker_network_name,
         ]
+        logger.stdout("RMM: docker_network 8")
         docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
         docker_network_log_file.flush()
+        logger.stdout("RMM: docker_network 9")
         r = subprocess.run(
             cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
         )
+        logger.stdout("RMM: docker_network 10")
         if r.returncode != 0:
+            logger.stdout("RMM: docker_network 11")
             pytest.fail(
                 "Could not create docker network %r, see the log file %r"
                 % (docker_network_name, docker_network_log_file.name),
                 pytrace=False,
             )
+    logger.stdout("RMM: docker_network 12")
     yield docker_network_name
+    logger.stdout("RMM: docker_network 13")
     cmd = [
         shutil.which("docker"),
         "network",
         "rm",
         docker_network_name,
     ]
+    logger.stdout("RMM: docker_network 14")
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
+    logger.stdout("RMM: docker_network 15")
     r = subprocess.run(
         cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
     )
+    logger.stdout("RMM: docker_network 16")
     if r.returncode != 0:
+        logger.stdout("RMM: docker_network 17")
         pytest.fail(
             "Failed to remove docker network %r, see the log file %r"
             % (docker_network_name, docker_network_log_file.name),
@@ -922,12 +1129,19 @@ def test_agent_port() -> str:
 
 @pytest.fixture
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
+    logger.stdout("RMM: test_agent_log_file 1")
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
+    logger.stdout("RMM: test_agent_log_file 2")
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    logger.stdout("RMM: test_agent_log_file 3")
     with open(log_path, "w+") as f:
+        logger.stdout("RMM: test_agent_log_file 4")
         yield f
+        logger.stdout("RMM: test_agent_log_file 5")
         f.seek(0)
+        logger.stdout("RMM: test_agent_log_file 6")
         agent_output = ""
+        logger.stdout("RMM: test_agent_log_file 7")
         for line in f.readlines():
             # Remove log lines that are not relevant to the test
             if "GET /test/session/traces" in line:
@@ -939,7 +1153,9 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
             if "GET /test/session/apmtelemetry" in line:
                 continue
             agent_output += line
+        logger.stdout("RMM: test_agent_log_file 8")
         request.node._report_sections.append(("teardown", f"Test Agent Output", agent_output))
+        logger.stdout("RMM: test_agent_log_file 9")
 
 
 @pytest.fixture
@@ -963,8 +1179,9 @@ def test_agent(
     # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
-
+    logger.stdout("RMM: test_agent 1")
     test_agent_external_port = get_open_port()
+    logger.stdout("RMM: test_agent 2")
     with docker_run(
         image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.15.0",
         name=test_agent_container_name,
@@ -975,38 +1192,57 @@ def test_agent(
         log_file=test_agent_log_file,
         network_name=docker_network,
     ):
+        logger.stdout("RMM: test_agent 3")
         client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
+        logger.stdout("RMM: test_agent 4")
         # Wait for the agent to start (potentially have to pull the image from the registry)
         for i in range(30):
             try:
+                logger.stdout("RMM: test_agent 5")
                 resp = client.info()
+                logger.stdout("RMM: test_agent 6")
             except requests.exceptions.ConnectionError:
                 time.sleep(0.5)
             else:
+                logger.stdout("RMM: test_agent 7")
                 if resp["version"] != "test":
+                    logger.stdout("RMM: test_agent 8")
                     pytest.fail(
                         "Agent version %r is running instead of the test agent. Stop the agent on port %r and try again."
                         % (resp["version"], test_agent_port)
                     )
                 break
+
         else:
+            logger.stdout("RMM: test_agent 10")
             with open(test_agent_log_file.name) as f:
                 logger.error(f"Could not connect to test agent: {f.read()}")
+            logger.stdout("RMM: test_agent 11")
             pytest.fail(
                 "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False
             )
-
+        logger.stdout("RMM: test_agent 12")
         # If the snapshot mark is on the test case then do a snapshot test
         marks = [m for m in request.node.iter_markers(name="snapshot")]
+        logger.stdout("RMM: test_agent 13")
         assert len(marks) < 2, "Multiple snapshot marks detected"
+        logger.stdout("RMM: test_agent 14")
         if marks:
+            logger.stdout("RMM: test_agent 15")
             snap = marks[0]
+            logger.stdout("RMM: test_agent 16")
             assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
+            logger.stdout("RMM: test_agent 17")
             if "token" not in snap.kwargs:
+                logger.stdout("RMM: test_agent 18")
                 snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
+                logger.stdout("RMM: test_agent 19")
+            logger.stdout("RMM: test_agent 20")
             with client.snapshot_context(**snap.kwargs):
+                logger.stdout("RMM: test_agent 21")
                 yield client
         else:
+            logger.stdout("RMM: test_agent 22")
             yield client
 
 
@@ -1020,6 +1256,7 @@ def test_server(
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
 ):
+    logger.stdout("RMM: test_server 1")
     env = {
         "DD_TRACE_DEBUG": "true",
         "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
@@ -1028,11 +1265,17 @@ def test_server(
         "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
     }
     test_server_env = {}
+    logger.stdout("RMM: test_server 2")
     for k, v in apm_test_server.env.items():
         # Don't set `None` env vars.
+        logger.stdout("RMM: test_server 3")
         if v is not None:
+            logger.stdout("RMM: test_server 4")
             test_server_env[k] = v
+            logger.stdout("RMM: test_server 5")
+    logger.stdout("RMM: test_server 6")
     env.update(test_server_env)
+    logger.stdout("RMM: test_server 7")
 
     with docker_run(
         image=apm_test_server.container_tag,
@@ -1044,6 +1287,7 @@ def test_server(
         log_file=test_server_log_file,
         network_name=docker_network,
     ):
+        logger.stdout("RMM: test_server 8")
         yield apm_test_server
 
 
@@ -1054,11 +1298,19 @@ def test_server_timeout() -> int:
 
 @pytest.fixture
 def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
+    logger.stdout("RMM: test_library 1")
     if test_server.protocol == "grpc":
+        logger.stdout("RMM: test_library 2")
         client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
+        logger.stdout("RMM: test_library 3")
     elif test_server.protocol == "http":
+        logger.stdout("RMM: test_library 4")
         client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
+        logger.stdout("RMM: test_library 5")
     else:
+        logger.stdout("RMM: test_library 6")
         raise ValueError("interface %s not supported" % test_server.protocol)
+    logger.stdout("RMM: test_library 7")
     tracer = APMLibrary(client, test_server.lang)
+    logger.stdout("RMM: test_library 8")
     yield tracer
