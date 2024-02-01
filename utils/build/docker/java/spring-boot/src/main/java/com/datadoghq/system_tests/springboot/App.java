@@ -351,10 +351,10 @@ public class App {
     }
 
     @RequestMapping("/rabbitmq/produce")
-    ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue) {
+    ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         try {
-            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test", queue);
+            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test", queue, exchange);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start producing message...");
             e.printStackTrace();
@@ -364,12 +364,16 @@ public class App {
     }
 
     @RequestMapping("/rabbitmq/consume")
-    ResponseEntity<String> rabbitmqConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> rabbitmqConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String exchange,
+        @RequestParam(required = false) Integer timeout
+    ) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = rabbitmq.startConsumingMessagesWithQueue(queue, timeout).get();
+            consumed = rabbitmq.startConsumingMessagesWithQueue(queue, exchange, timeout).get();
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start consuming message...");
