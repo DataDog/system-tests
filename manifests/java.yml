@@ -781,7 +781,16 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_shell_execution.py:
-      Test_ShellExecution: missing_feature
+      Test_ShellExecution:
+        '*': v1.2.0
+        akka-http: missing_feature (endpoint not implemented)
+        jersey-grizzly2: missing_feature (endpoint not implemented)
+        play: missing_feature (endpoint not implemented)
+        ratpack: missing_feature (endpoint not implemented)
+        resteasy-netty3: missing_feature (endpoint not implemented)
+        spring-boot-3-native: missing_feature (disabled on GraalVM)
+        vertx3: missing_feature (endpoint not implemented)
+        vertx4: missing_feature (endpoint not implemented)
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0
