@@ -103,7 +103,7 @@ class _Test_SQS:
         )
         consumer_span = self.get_span(
             self.buddy_interface,
-            span_kind=["consumer", "client"],
+            span_kind=["consumer", "client", "server"],
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
             operation="receiveMessage",
         )
@@ -154,7 +154,7 @@ class _Test_SQS:
         )
         consumer_span = self.get_span(
             interfaces.library,
-            span_kind=["consumer", "client"],
+            span_kind=["consumer", "client", "server"],
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
             operation="receiveMessage",
         )
@@ -172,7 +172,7 @@ class _Test_SQS:
 
         # Check that the producer did not created any consumer span
         assert (
-            self.get_span(producer_interface, span_kind=["consumer", "client"], queue=queue, operation="receiveMessage")
+            self.get_span(producer_interface, span_kind=["consumer", "client", "server"], queue=queue, operation="receiveMessage")
             is None
         )
 
@@ -186,7 +186,7 @@ class _Test_SQS:
             producer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage"
         )
         consumer_span = self.get_span(
-            consumer_interface, span_kind=["consumer", "client"], queue=queue, operation="receiveMessage"
+            consumer_interface, span_kind=["consumer", "client", "server"], queue=queue, operation="receiveMessage"
         )
         # check that both consumer and producer spans exists
         assert producer_span is not None

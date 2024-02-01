@@ -125,7 +125,7 @@ class _Test_SNS:
         )
         consumer_span = self.get_span(
             self.buddy_interface,
-            span_kind=["consumer", "client"],
+            span_kind=["consumer", "client", "server"],
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
             operation="receiveMessage",
@@ -181,7 +181,7 @@ class _Test_SNS:
         )
         consumer_span = self.get_span(
             interfaces.library,
-            span_kind=["consumer", "client"],
+            span_kind=["consumer", "client", "server"],
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
             operation="receiveMessage",
@@ -202,7 +202,7 @@ class _Test_SNS:
         assert (
             self.get_span(
                 producer_interface,
-                span_kind=["consumer", "client"],
+                span_kind=["consumer", "client", "server"],
                 queue=queue,
                 topic=topic,
                 operation="receiveMessage",
@@ -222,8 +222,9 @@ class _Test_SNS:
             producer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish"
         )
         consumer_span = self.get_span(
-            consumer_interface, span_kind=["consumer", "client"], queue=queue, topic=topic, operation="receiveMessage"
+            consumer_interface, span_kind=["consumer", "client", "server"], queue=queue, topic=topic, operation="receiveMessage"
         )
+        breakpoint()
         # check that both consumer and producer spans exists
         assert producer_span is not None
         assert consumer_span is not None
