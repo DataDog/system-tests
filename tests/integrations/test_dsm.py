@@ -66,6 +66,10 @@ class Test_DsmRabbitmq:
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
+        # Hashes are created by applying the FNV-1 algorithm on
+        # checkpoint strings (e.g. service:foo)
+        # There is currently no FNV-1 library availble for node.js
+        # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
             producer_hash = 5080618047473654667
             consumer_hash = 12436096712734841122
