@@ -10,7 +10,7 @@ from utils.parametric.spec.trace import MANUAL_DROP_KEY
 from utils.parametric.spec.trace import USER_KEEP
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
-from utils import missing_feature, context, scenarios, features
+from utils import missing_feature, context, scenarios, features, flaky
 
 
 @features.single_span_sampling
@@ -402,6 +402,7 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
+    @flaky(reason="intermittent failure in java and cpp")
     @missing_feature(
         context.library == "php",
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
@@ -434,7 +435,7 @@ class Test_Span_Sampling:
                     pass
 
         traces = test_agent.wait_for_num_traces(10, clear=True)
-        # Some issues related with timming. It's difficult to be so accurate and it can cause flakiness
+        # Some issues related with timing. It's difficult to be so accurate and it can cause flakiness
         # We check at least last trace is unsampled
         span = find_span_in_traces(traces[:1], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0

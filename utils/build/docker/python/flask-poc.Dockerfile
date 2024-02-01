@@ -2,6 +2,8 @@ FROM datadog/system-tests:flask-poc.base-v2
 
 WORKDIR /app
 
+RUN pip install boto3
+
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
@@ -15,8 +17,6 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 
 # docker startup
 # FIXME: Ensure gevent patching occurs before ddtrace
-
-RUN pip install boto3
 
 ENV FLASK_APP=app.py
 CMD ./app.sh

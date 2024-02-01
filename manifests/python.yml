@@ -6,6 +6,13 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_apisec_sampling.py:
+        Test_API_Security_sampling:
+          '*': missing_feature
+          django-poc: v2.5.0
+          fastapi: v2.5.0
+          flask-poc: v2.5.0
+          python3.12: v2.5.0
       test_schemas.py:
         Test_Scanners:
           '*': missing_feature
@@ -75,7 +82,7 @@ tests/:
             fastapi: missing_feature
             python3.12: missing_feature
         test_hardcoded_secrets.py:
-          Test_HardcodedSecrets: missing_feature            
+          Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -447,21 +454,12 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
+        Test_Kafka:
           '*': missing_feature (missing endpoint on weblog)
           flask-poc: v0.1 # real version unknown
-        Test_JavaKafka:
-          '*': missing_feature (missing endpoint on weblog)
-          flask-poc: v0.1 # real version unknown
-        Test_NodeJSKafka:
-          '*': missing_feature (missing endpoint on weblog)
-          flask-poc: v0.1 # real version unknown
-        Test_PythonKafka:
-          '*': missing_feature (missing endpoint on weblog)
-          flask-poc: v0.1 # real version unknown
-        Test_RubyKafka:
-          '*': missing_feature (missing endpoint on weblog)
-          flask-poc: v0.1 # real version unknown
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -491,13 +489,26 @@ tests/:
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSQS:
+        '*': missing_feature
+        flask-poc: v1.20.3
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: v2.6.0
+      TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_sampling_delegation.py:
+      Test_Decisionless_Extraction: >-
+        missing_feature
+        (The "_sampling_priority_v1" numeric tag is missing from the local
+        root span when the trace was extracted without a sampling decision.
+        See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782691947?pr=2005>.)
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_telemetry.py:
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
       Test_TelemetryInstallSignature: v2.5.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # TODO what is the earliest version?

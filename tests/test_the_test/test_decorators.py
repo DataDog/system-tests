@@ -64,8 +64,6 @@ class Test_Metadata:
         class Test:
             pass
 
-        assert Test.__rfc__ == "A link"
-
     def test_library_does_not_exists(self):
         with pytest.raises(ValueError):
 

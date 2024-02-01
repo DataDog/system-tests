@@ -864,6 +864,10 @@ class OnBoardingScenario(_Scenario):
     def weblog_variant(self):
         return self._weblog
 
+    def session_start(self):
+        super().session_start()
+        self.fill_context()
+
     def fill_context(self):
         # fix package name for nodejs -> js
         if self._library.library == "nodejs":
@@ -886,7 +890,7 @@ class OnBoardingScenario(_Scenario):
                             raise ValueError(
                                 f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
                             )
-
+                        logger.stdout(f"{dd_package_name}: {provision_vm.get_component(dd_package_name)}")
                         self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
                 # Manage specific information for each parametrized test
                 test_metadata = {
@@ -944,10 +948,6 @@ class OnBoardingScenario(_Scenario):
 
     def _get_warmups(self):
         return [self._start_pulumi]
-
-    def post_setup(self):
-        """ Fill context with the installed components information and parametrized test metadata"""
-        self.fill_context()
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
@@ -1064,7 +1064,12 @@ class scenarios:
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "full", "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1"},
+        weblog_env={
+            "DD_DBM_PROPAGATION_MODE": "full",
+            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+            "AWS_ACCESS_KEY_ID": "my-access-key",
+            "AWS_SECRET_ACCESS_KEY": "my-access-key",
+        },
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
@@ -1072,6 +1077,7 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
+        include_elasticmq=True,
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
     )
 
@@ -1085,6 +1091,7 @@ class scenarios:
         include_kafka=True,
         include_buddies=True,
         include_elasticmq=True,
+        include_rabbitmq=True,
         doc="Spawns a buddy for each supported language of APM",
     )
 
@@ -1257,12 +1264,13 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        DD_API_SECURITY_ENABLED is set to true.
         """,
     )
 
@@ -1271,13 +1279,27 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_with_sampling = EndToEndScenario(
+        "APPSEC_API_SECURITY_WITH_SAMPLING",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+        },
+        doc="""
+        Scenario for API Security feature, testing api security sampling rate.
         """,
     )
 
@@ -1406,6 +1428,8 @@ class scenarios:
     # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
     onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
     onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
+    # Onboarding block list scenarios
+    onboarding_host_block_list = OnBoardingScenario("ONBOARDING_HOST_BLOCK_LIST", doc="")
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
