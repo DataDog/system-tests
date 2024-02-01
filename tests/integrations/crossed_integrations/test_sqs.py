@@ -34,8 +34,13 @@ class _Test_SQS:
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
-                if queue != cls.get_queue(span):
-                    continue
+                if operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
+                    # for nodejs we propagate from aws.response span which does not have the queue included on the span
+                    if span["resource"] != "aws.response":
+                        continue
+                else:
+                    if queue != cls.get_queue(span):
+                        continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
                 return span
@@ -85,6 +90,9 @@ class _Test_SQS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(
+        library="java", reason="Expected to fail, Java defaults to using XRay headers to propagate context"
+    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(

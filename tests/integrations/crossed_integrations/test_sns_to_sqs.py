@@ -39,10 +39,11 @@ class _Test_SNS:
                 if operation.lower() == "publish":
                     if topic != cls.get_topic(span):
                         continue
-                elif operation.lower() == "receivemessage":
-                    if queue != cls.get_queue(span):
+                elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
+                    # for nodejs we propagate from aws.response span which does not have the queue included on the span
+                    if span["resource"] != "aws.response":
                         continue
-                else:
+                elif queue != cls.get_queue(span):
                     continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
