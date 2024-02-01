@@ -14,9 +14,12 @@ from utils.onboarding.injection_log_parser import command_injection_skipped
 class _OnboardingBlockListBaseTest:
     """ Base class to test the block list on auto instrumentation"""
 
-    env_vars_config_file_mapper = {
-        "DD_JAVA_IGNORED_ARGS": "java_ignored_args",
-        "DD_IGNORED_PROCESSES": "ignored_processes",
+    env_vars_config_mapper = {
+        "java": "DD_JAVA_IGNORED_ARGS",
+        "dotnet": "DD_DOTNET_IGNORED_ARGS",
+        "python": "DD_PYTHON_IGNORED_ARGS",
+        "nodejs": "DD_NODE_IGNORED_ARGS",
+        "ruby": "DD_RUBY_IGNORED_ARGS",
     }
 
     yml_config_template = """
@@ -28,6 +31,16 @@ env: dev
 config_sources: BASIC
 ignored_processes: 
 - DD_IGNORED_PROCESSES
+java_ignored_args:
+- DD_JAVA_IGNORED_ARGS
+dotnet_ignored_args:
+- DD_DOTNET_IGNORED_ARGS
+python_ignored_args:
+- DD_PYTHON_IGNORED_ARGS
+node_ignored_args:
+- DD_NODE_IGNORED_ARGS
+ruby_ignored_args:
+- DD_RUBY_IGNORED_ARGS
 """
 
     def _ssh_connect(self, ip, user):
@@ -70,7 +83,7 @@ ignored_processes:
         else:
             # We'll use env variables instead of injection config yml
             for key in config:
-                command_with_config = f"{key}={config[key]} {command_with_config}"
+                command_with_config = f"{key}='{config[key]}' {command_with_config}"
 
         logger.info(f"Executing command: [{command_with_config}] associated with log file: [{unique_log_name}]")
 
@@ -137,6 +150,78 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
                 "skip": True,
             },
             {"ignored_args": "-Dtest=testXX", "command": "java -jar test.jar -Dtest=test", "skip": False},
+            {
+                "ignored_args": "-Dtest=test -Dtest2=test2",
+                "command": "java -jar test.jar -Dtest2=test2 -Dtest=test",
+                "skip": True,
+            },
+            {
+                "ignored_args": "-Dtest=test -Dtest2=test2",
+                "command": "java -jar test.jar -Dtest2=test3 -Dtest=test",
+                "skip": False,
+            },
+        ],
+        "dotnet": [
+            {"ignored_args": "/Users/user/Pictures", "command": "dotnet run -- -p /Users/user/Pictures", "skip": True},
+            {
+                "ignored_args": "/Users/user/PicturesXXX",
+                "command": "dotnet run -- -p /Users/user/Pictures",
+                "skip": False,
+            },
+            {
+                "ignored_args": "/MySetting:SomeValue=123",
+                "command": "dotnet run /MySetting:SomeValue=123",
+                "skip": True,
+            },
+        ],
+        "python": [
+            {"ignored_args": "", "command": "python myscript.py arg1 arg2 arg3", "skip": False},
+            {"ignored_args": "arg1", "command": "python myscript.py arg1 arg2 arg3", "skip": True},
+            {"ignored_args": "arg1 arg2,arg44", "command": "python myscript.py arg1 arg2 arg3", "skip": True},
+            {"ignored_args": "arg1 arg22,arg44", "command": "python myscript.py arg1 arg2 arg3", "skip": False},
+            {"ignored_args": "--dosomething yes", "command": "python myscript.py --dosomething yes", "skip": True},
+            {"ignored_args": "--dosomething yes", "command": "python myscript.py --dosomething no", "skip": False},
+        ],
+        "nodejs": [
+            {"ignored_args": "", "command": "node example.js -a -b -c", "skip": False},
+            {"ignored_args": "-c", "command": "node example.js -a -b -c", "skip": True},
+            {"ignored_args": "-a -c", "command": "node example.js -a -b -c", "skip": True},
+            {"ignored_args": "-a -b -c", "command": "node example.js -a -b -c", "skip": True},
+            {"ignored_args": "-a -g -c", "command": "node example.js -a -b -c", "skip": False},
+            {"ignored_args": "", "command": "node example.js -f --custom Override", "skip": False},
+            {"ignored_args": "--custom", "command": "node example.js -f --custom Override", "skip": True},
+            {"ignored_args": "--custom Override", "command": "node example.js -f --custom Override", "skip": True},
+        ],
+        "ruby": [
+            {"ignored_args": "", "command": "ruby my_cat.rb test1 test2", "skip": False},
+            {"ignored_args": "test1", "command": "ruby my_cat.rb test1 test2", "skip": True},
+            {"ignored_args": "test3,test2", "command": "ruby my_cat.rb test1 test2", "skip": True},
+            {"ignored_args": "test1 test2", "command": "ruby my_cat.rb test1 test2", "skip": True},
+            {"ignored_args": "test3 test2", "command": "ruby my_cat.rb test1 test2", "skip": False},
+            {"ignored_args": "test1,test2", "command": "ruby names.rb --name pepe", "skip": False},
+            {"ignored_args": "--name", "command": "ruby names.rb --name pepe", "skip": True},
+            {"ignored_args": "--name pepe", "command": "ruby names.rb --name pepe", "skip": True},
+            {"ignored_args": "--name paco", "command": "ruby names.rb --name pepe", "skip": False},
+            {
+                "ignored_args": "",
+                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
+                "skip": False,
+            },
+            {
+                "ignored_args": "--with-pg-config",
+                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
+                "skip": False,
+            },
+            {
+                "ignored_args": "--with-pg-config=/path/to/pg_config",
+                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
+                "skip": True,
+            },
+            {
+                "ignored_args": "--with-pg-config=/home/to/pg_config",
+                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
+                "skip": False,
+            },
         ],
     }
 
@@ -248,8 +333,16 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         if onboardig_vm.language in self.user_args_commands:
             ssh_client = self._ssh_connect(onboardig_vm.ip, onboardig_vm.ec2_data["user"])
             for test_config in self.user_args_commands[onboardig_vm.language]:
-                args_config = {"DD_JAVA_IGNORED_ARGS": test_config["ignored_args"]}
-                local_log_file = self._execute_remote_command(ssh_client, test_config["command"], config=args_config)
-                assert test_config["skip"] == command_injection_skipped(
-                    test_config["command"], local_log_file
-                ), f"The command {test_config['command']} with ignored args {test_config['ignored_args']} should skip [{test_config['skip']}]!"
+                for use_injection_file_config in [True, False]:
+                    # Apply the configuration from yml file or from env variables
+                    language_ignored_args_key = self.env_vars_config_mapper[onboardig_vm.language]
+                    args_config = {language_ignored_args_key: test_config["ignored_args"]}
+                    local_log_file = self._execute_remote_command(
+                        ssh_client,
+                        test_config["command"],
+                        config=args_config,
+                        use_injection_config=use_injection_file_config,
+                    )
+                    assert test_config["skip"] == command_injection_skipped(
+                        test_config["command"], local_log_file
+                    ), f"The command {test_config['command']} with ignored args {test_config['ignored_args']} should skip [{test_config['skip']}]!"
