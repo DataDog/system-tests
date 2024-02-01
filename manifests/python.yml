@@ -6,6 +6,20 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: 
+          '*': missing_feature
+          django-poc: v2.6.0dev
+          fastapi: v2.6.0dev
+          flask-poc: v2.6.0dev
+          python3.12: v2.6.0dev
+        Test_API_Security_RC_ASM_DD_scanners: 
+          '*': missing_feature
+          django-poc: v2.6.0dev
+          fastapi: v2.6.0dev
+          flask-poc: v2.6.0dev
+          python3.12: v2.6.0dev
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
         Test_API_Security_sampling:
           '*': missing_feature
