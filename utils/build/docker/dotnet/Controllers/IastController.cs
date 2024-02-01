@@ -135,6 +135,21 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
+        
+        [HttpGet("/iast/source/path/test")]
+        public IActionResult pathTest()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Request.Path);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
 
         [HttpGet("insecure_cipher/test_insecure_algorithm")]
         public IActionResult test_insecure_weakCipher()

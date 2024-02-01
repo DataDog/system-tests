@@ -84,7 +84,7 @@ tests/:
         test_parameter_value.py:
           TestParameterValue: v2.28.0
         test_path.py:
-          TestPath: missing_feature
+          TestPath: v2.39.0
         test_uri.py:
           TestURI: irrelevant     
     waf/:
