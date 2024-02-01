@@ -902,9 +902,16 @@ class _TestAgentAPI:
                     logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 5")
                     raw_caps = req["body"]["client"].get("capabilities")
                     if raw_caps:
-                        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 6")
-                        decoded_capabilities = base64.b64decode(raw_caps)
-                        logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 7")
+                        # Capabilities can be a base64 encoded string or an array of numbers. This is due
+                        # to the Go json library used in the trace agent accepting and being able to decode
+                        # both: https://go.dev/play/p/fkT5Q7GE5VD
+
+                        # byte-array:
+                        if isinstance(raw_caps, list):
+                            decoded_capabilities = bytes(raw_caps)
+                        # base64-encoded string:
+                        else:
+                            decoded_capabilities = base64.b64decode(raw_caps)
                         int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
                         logger.stdout("RMM: _TestAgentAPI.wait_for_rc_capabilities 8")
                         capabilities_seen.add(remoteconfig.human_readable_capabilities(int_capabilities))
