@@ -7,7 +7,7 @@ public class RequestBodyModel
 {
     public KeyValueItem[] main { get; set; }
 
-    public object? nullable { get; set; }
+    public string? nullable { get; set; }
 }
 
 public class KeyValueItem
