@@ -66,7 +66,7 @@ class _Test_SNS:
                 logger.error(f"could not extract queue from this span:\n{span}")
 
         return queue
-    
+
     @staticmethod
     def get_topic(span) -> str | None:
         """Extracts the queue from a span by trying various fields"""
@@ -108,7 +108,7 @@ class _Test_SNS:
             producer_interface=interfaces.library,
             consumer_interface=self.buddy_interface,
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
-            topic=self.WEBLOG_TO_BUDDY_TOPIC
+            topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
@@ -164,7 +164,7 @@ class _Test_SNS:
             producer_interface=self.buddy_interface,
             consumer_interface=interfaces.library,
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
-            topic=self.BUDDY_TO_WEBLOG_TOPIC
+            topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
@@ -199,13 +199,21 @@ class _Test_SNS:
 
         # Check that the producer did not created any consumer span
         assert (
-            self.get_span(producer_interface, span_kind=["consumer", "client"], queue=queue, topic=topic, operation="receiveMessage")
+            self.get_span(
+                producer_interface,
+                span_kind=["consumer", "client"],
+                queue=queue,
+                topic=topic,
+                operation="receiveMessage",
+            )
             is None
         )
 
         # Check that the consumer did not created any producer span
         assert (
-            self.get_span(consumer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish")
+            self.get_span(
+                consumer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish"
+            )
             is None
         )
 
