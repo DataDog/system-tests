@@ -175,12 +175,36 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
             },
         ],
         "python": [
-            {"ignored_args": "", "command": "python myscript.py arg1 arg2 arg3", "skip": False},
-            {"ignored_args": "arg1", "command": "python myscript.py arg1 arg2 arg3", "skip": True},
-            {"ignored_args": "arg1 arg2,arg44", "command": "python myscript.py arg1 arg2 arg3", "skip": True},
-            {"ignored_args": "arg1 arg22,arg44", "command": "python myscript.py arg1 arg2 arg3", "skip": False},
-            {"ignored_args": "--dosomething yes", "command": "python myscript.py --dosomething yes", "skip": True},
-            {"ignored_args": "--dosomething yes", "command": "python myscript.py --dosomething no", "skip": False},
+            {
+                "ignored_args": "",
+                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "skip": False,
+            },
+            {
+                "ignored_args": "arg1",
+                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "skip": True,
+            },
+            {
+                "ignored_args": "arg1 arg2,arg44",
+                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "skip": True,
+            },
+            {
+                "ignored_args": "arg1 arg22,arg44",
+                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "skip": False,
+            },
+            {
+                "ignored_args": "--dosomething yes",
+                "command": "/home/datadog/.pyenv/shims/python myscript.py --dosomething yes",
+                "skip": True,
+            },
+            {
+                "ignored_args": "--dosomething yes",
+                "command": "/home/datadog/.pyenv/shims/python myscript.py --dosomething no",
+                "skip": False,
+            },
         ],
         "nodejs": [
             {"ignored_args": "", "command": "node example.js -a -b -c", "skip": False},
