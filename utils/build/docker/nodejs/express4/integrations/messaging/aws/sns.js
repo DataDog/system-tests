@@ -25,13 +25,13 @@ const snsPublish = (queue, topic, message) => {
 
       TopicArn = data.TopicArn
 
-      sqs.createQueue({ QueueName: queue }, (err, data) => {
+      sqs.createQueue({ QueueName: queue }, (err) => {
         if (err) {
           console.log(err)
           reject(err)
         }
 
-        QueueUrl = data.QueueUrl
+        QueueUrl = `http://localstack-main:4566/000000000000/${queue}`
 
         sqs.getQueueAttributes({ QueueUrl, AttributeNames: ['All'] }, (err, data) => {
           if (err) {
@@ -55,7 +55,7 @@ const snsPublish = (queue, topic, message) => {
 
             // Send messages to the queue
             const produce = () => {
-              sns.publish({ TopicArn, MessageBody: messageToSend }, (err, data) => {
+              sns.publish({ TopicArn, Message: messageToSend }, (err, data) => {
                 if (err) {
                   console.log(err)
                   reject(err)
