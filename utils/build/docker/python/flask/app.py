@@ -34,15 +34,12 @@ from ddtrace import config
 # enable botocore distributed tracing
 config.botocore.propagation_enabled = True
 
-ddtrace.patch_all()
+ddtrace.patch_all(kombu=True)
 
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace import Pin, patch, tracer
+from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-
-# Patch kombu since its not patched automatically
-patch(kombu=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
