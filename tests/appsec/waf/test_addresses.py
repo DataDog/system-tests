@@ -1,7 +1,6 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from exceptiongroup import ExceptionGroup
 import json
 from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
 
@@ -464,7 +463,7 @@ class Test_GraphQL:
 
         # At least one of the two assertions should have passed...
         if len(failures) >= 2:
-            raise ExceptionGroup(f"At least one rule should have triggered\n- {failures[0]}\n- {failures[1]}", failures)
+            raise ValueError(f"At least one rule should have triggered - {failures[0]}- {failures[1]}")
 
     def setup_request_monitor_attack(self):
         """Set up a request with a resolver-targeted attack"""
