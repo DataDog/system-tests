@@ -38,6 +38,9 @@ class _Test_SQS:
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
                         continue
+                    # this is a bit hacky. The only way we can identify the NodeJS 'aws.response' span is by using pathway hash
+                    if span["meta"].get("pathway.hash", "") in ["3798979665392115457", "476120775804749364"]:
+                        continue
                 elif queue != cls.get_queue(span):
                     continue
 
