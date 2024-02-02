@@ -29,18 +29,17 @@ output_paths:
   - file:///tmp/host_injection.log
 env: dev
 config_sources: BASIC
-ignored_processes: 
-- DD_IGNORED_PROCESSES
-java_ignored_args:
-- DD_JAVA_IGNORED_ARGS
-dotnet_ignored_args:
-- DD_DOTNET_IGNORED_ARGS
-python_ignored_args:
-- DD_PYTHON_IGNORED_ARGS
-node_ignored_args:
-- DD_NODE_IGNORED_ARGS
-ruby_ignored_args:
-- DD_RUBY_IGNORED_ARGS
+ignored_arguments:
+    - Java:
+        - DD_JAVA_IGNORED_ARGS
+    - DotNet:
+        - DD_DOTNET_IGNORED_ARGS
+    - Python:
+        - DD_PYTHON_IGNORED_ARGS
+    - Node:
+        - DD_NODE_IGNORED_ARGS
+    - Ruby:
+        - DD_RUBY_IGNORED_ARGS
 """
 
     def _ssh_connect(self, ip, user):
