@@ -167,7 +167,7 @@ elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
 
     if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet@sha256:43ce525afb91024d4d7a8e43c250fcc6f974d650adbe507ed0d23be7367f5526 .
     elif [ $VERSION = 'prod' ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest .
     else
