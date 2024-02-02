@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
           variant:
-            #Updated with dev version 
+            #Updated with dev version..
             - client: java
               version: dev
             - client: java
