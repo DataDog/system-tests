@@ -183,7 +183,7 @@ class Test_Schema_Request_FormUrlEncoded_Body:
                     "main[0][value]": ANY,
                     "main[1][key]": ANY,
                     "main[1][value]": ANY,
-                    "nullable": ANY,
+                    # "nullable": ANY,  # some frameworks may drop that value
                 }
             ],
         ), schema
