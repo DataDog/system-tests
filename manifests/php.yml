@@ -221,6 +221,7 @@ tests/:
       Test_Trace_Sampling_Globs: v0.96.0
       Test_Trace_Sampling_Resource: v0.96.0
       Test_Trace_Sampling_Tags: v0.96.0
+      Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
