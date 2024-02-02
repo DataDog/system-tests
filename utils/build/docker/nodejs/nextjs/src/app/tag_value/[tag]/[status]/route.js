@@ -30,8 +30,8 @@ export async function GET (request, { params }) {
 export const OPTIONS = GET
 export const POST = GET
 
-// somehow this function works but only when formData() is called before json()
-// i don't want to know why
+// this function works but only when formData() is called before json()
+// because formData doesn't try to read the body if it's not has form data headers
 async function getBody (request) {
   try {
     return Object.fromEntries(await request.formData())
