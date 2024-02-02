@@ -93,7 +93,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         DateTimeOffset startTime = default;
         if (requestBodyDictionary.TryGetValue("timestamp", out var timestamp))
         {
-            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToDouble(timestamp));
+            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
         }
 
         var parentContext = localParentContext ?? remoteParentContext ?? default;
@@ -102,7 +102,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         if (requestBodyDictionary.TryGetValue("span_kind", out var spanKind))
         {
-            switch (spanKind)
+            switch (Convert.ToInt64(spanKind))
             {
                 case 1:
                     kind = ActivityKind.Internal;
@@ -133,8 +133,6 @@ public abstract class ApmTestApiOtel : ApmTestApi
             links: null,
             startTime);
         
-        _logger.LogInformation("OtelStartSpan activity activity: {Activity}", JsonConvert.SerializeObject(activity));
-
         if (activity is null)
         {
             throw new ApplicationException("Failed to start activity. Make sure there are listeners registered.");
@@ -171,21 +169,17 @@ public abstract class ApmTestApiOtel : ApmTestApi
     private static async Task OtelEndSpan(HttpRequest request)
     {
         var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(requestBody);
+        var parsedBody = JsonConvert.DeserializeObject<Dictionary<string, string>>(requestBody);
 
-        _logger.LogInformation("OtelEndSpan: {HeaderRequestBody}", requestBody );
-        var id = parsedDictionary?["id"];
-  
-        var activity = FindActivity(id);
-        
-        _logger.LogInformation("OtelEndSpan: {Activity}", JsonConvert.SerializeObject(activity));
-        
-        var timestamp = parsedDictionary?["timestamp"];
+        _logger.LogInformation("OtelEndSpan: {HeaderRequestBody}", request);
 
-        if (String.IsNullOrEmpty(timestamp))
+        var activity = FindActivity(parsedBody?["id"]);
+        var timestamp = parsedBody?["timestamp"];
+
+        if (!String.IsNullOrEmpty(timestamp))
         {
-            DateTime convertedTimestamp = (new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToDouble(timestamp)));
-            activity.SetEndTime(convertedTimestamp.ToUniversalTime());
+            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
+            activity.SetEndTime(convertedTimestamp.UtcDateTime);
         }
 
         activity.Stop();
@@ -195,10 +189,13 @@ public abstract class ApmTestApiOtel : ApmTestApi
     
     private static async Task<string> OtelIsRecording(HttpRequest request)
     {
+        var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedBody = JsonConvert.DeserializeObject<Dictionary<string, string>>(requestBody);
+        
         _logger.LogInformation("OtelIsRecording: {Request}", request);
 
-        var activity = FindActivity(await FindBodyKeyValue(request, "span_id"));
-
+        var activity = FindActivity(parsedBody?["id"]);
+        
         var result = JsonConvert.SerializeObject(new
         {
             is_recording = activity.IsAllDataRequested
@@ -211,9 +208,12 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
     private static async Task<string> OtelSpanContext(HttpRequest request)
     {
-        _logger.LogInformation("OtelSpanContext: {Request}", request);
+        var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedBody = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
+        
+        _logger.LogInformation("OtelSpanContext: {Request}", parsedBody);
 
-        var activity = FindActivity(await FindBodyKeyValue(request, "span_id"));
+        var activity = FindActivity(parsedBody?["id"]);
 
         var result = JsonConvert.SerializeObject(new
         {
@@ -230,14 +230,17 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
     private static async Task OtelSetStatus(HttpRequest request)
     {
-        _logger.LogInformation("OtelSetStatus: {Request}", request);
+        var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedBody = JsonConvert.DeserializeObject<Dictionary<string, string>>(requestBody);
+        
+        _logger.LogInformation("OtelSetStatus: {Request}", requestBody);
 
         var code = await FindBodyKeyValue(request, "code");
 
         if (Enum.TryParse(code, ignoreCase: true, out ActivityStatusCode statusCode))
         {
-            var activity = FindActivity(await FindBodyKeyValue(request, "span_id"));
-            activity.SetStatus(statusCode, await FindBodyKeyValue(request, "description"));
+            var activity = FindActivity(parsedBody?["id"]);
+            activity.SetStatus(statusCode,  parsedBody?["description"]);
         }
         else
         {
@@ -251,7 +254,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     {
         _logger.LogInformation("OtelSetName: {Request}", request);
 
-        var activity = FindActivity(await FindBodyKeyValue(request, "span_id"));
+        var activity = FindActivity(await FindBodyKeyValue(request, "id"));
         activity.DisplayName = await FindBodyKeyValue(request, "name") ?? string.Empty;
 
         _logger.LogInformation("OtelSetNameReturn");
@@ -259,15 +262,13 @@ public abstract class ApmTestApiOtel : ApmTestApi
     
     private static async Task OtelSetAttributes(HttpRequest request)
     {
-        _logger.LogInformation("OtelSetAttributes: {Request}", request);
+        var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedBody = JsonConvert.DeserializeObject<Dictionary<string, Object>>(requestBody);
 
-        var activity = FindActivity(await FindBodyKeyValue(request, "span_id"));
-        var attributes = await FindBodyKeyValue(request, "attributes");
-        
-        _logger?.LogInformation("attributes: {Attributes}", attributes);
+        _logger.LogInformation("OtelSetAttributes: {RequestBody}", requestBody);
 
-        await SetTag(activity, attributes);
-        
+        await SetTag(FindActivity(parsedBody?["span_id"].ToString()), parsedBody?["attributes"].ToString());
+
         _logger?.LogInformation("OtelSetAttributesReturn");
     }
 
@@ -296,12 +297,32 @@ public abstract class ApmTestApiOtel : ApmTestApi
     
     private static async Task SetTag(Activity activity, string? attributes)
     {
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(attributes);
-
-        if (parsedDictionary != null)
-            foreach ((string key, object value) in parsedDictionary)
+        var parsedAttributes = JsonConvert.DeserializeObject<Dictionary<string, Object>>(attributes!);
+        
+        foreach ((var key, Object values) in parsedAttributes!)
+        {
+            var valuesList = (values.ToString() ?? string.Empty).ToList();
+            
+            if (valuesList.Count == 1)
             {
-                activity.AddTag(key, value);
+                var value = valuesList[0].ToString();
+                
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    activity.SetTag(key, valuesList[0]);
+                }
             }
+            else if (valuesList.Count > 1)
+            {
+                var toAdd = new List<object>();
+                foreach (var value in valuesList)
+                {
+                    var valueToAdd = !string.IsNullOrWhiteSpace(value.ToString()) ? value : throw new InvalidOperationException("Null value in attribute array");
+                    toAdd.Add(valueToAdd);
+                }
+                
+                activity.SetTag(key, toAdd);
+            }
+        }
     }
 }

@@ -6,9 +6,6 @@ RUN apt-get update && apt-get install -y curl
 USER root
 WORKDIR /app
 
-# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-
 # ensure that the Datadog.Trace.dlls are installed from /binaries
 COPY install_ddtrace.sh query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
@@ -22,6 +19,9 @@ RUN dotnet restore "./././ApmTestApi.csproj"
 COPY . ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /app/out
+
+# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # Set up automatic instrumentation (required for OpenTelemetry tests),
 # but don't enable it globally

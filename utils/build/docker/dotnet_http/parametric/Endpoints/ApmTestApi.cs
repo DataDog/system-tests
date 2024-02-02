@@ -305,11 +305,11 @@ public abstract class ApmTestApi
         return null;
     }
 
-    internal static async Task<string?> FindBodyKeyValue(HttpRequest httpRequest,string keyToFind)
+    internal static async Task<string?> FindBodyKeyValue(HttpRequest httpRequest, string keyToFind)
     {
         var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
         var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
-        var keyFound =parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
+        var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
 
         return keyFound ? foundValue : String.Empty;
     }
