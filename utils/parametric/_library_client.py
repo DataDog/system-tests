@@ -16,6 +16,7 @@ from utils.parametric.protos import apm_test_client_pb2_grpc
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.parametric.spec.otel_trace import convert_to_proto
 
+
 class StartSpanResponse(TypedDict):
     span_id: int
     trace_id: int
