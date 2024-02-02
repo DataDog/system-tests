@@ -1008,9 +1008,9 @@ def docker_run(
         "-f",
         name,
     ]
-    logger.stdout("RMM: docker_run 11")
+    logger.stdout(f"RMM: docker_run 0BEFORE {_cmd} ---- {log_file}")
     docker_logs = subprocess.Popen(_cmd, stdout=log_file, stderr=log_file)
-    logger.stdout("RMM: docker_run 12")
+    logger.stdout(f"RMM: docker_run 0AFTER  {_cmd} ---- {log_file}")
     try:
         yield
     finally:
@@ -1021,12 +1021,12 @@ def docker_run(
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         logger.stdout("RMM: docker_run 15")
         log_file.flush()
-        logger.stdout("RMM: docker_run: BEFORE ")
+        logger.stdout(f"RMM: docker_run: BEFORE: {log_file}")
         logger.stdout(f"RMM: docker_run: CMD {_cmd}")
         logger.stdout(f"RMM: docker_run: LOG {log_file}")
         logger.stdout(f"RMM: docker_run: TIMEOUT {default_subprocess_run_timeout}")
         subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
-        logger.stdout("RMM: docker_run: AFTER ")
+        logger.stdout(f"RMM: docker_run: AFTER: {log_file} ")
 
 
 @pytest.fixture(scope="session")
