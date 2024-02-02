@@ -1025,7 +1025,10 @@ def docker_run(
         logger.stdout(f"RMM: docker_run: CMD {_cmd}")
         logger.stdout(f"RMM: docker_run: LOG {log_file}")
         logger.stdout(f"RMM: docker_run: TIMEOUT {default_subprocess_run_timeout}")
-        subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
+        try:
+            subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
+        except subprocess.TimeoutExpired:
+            logger.stdout(f"RMM Timeout for {cmd}  -  {log_file}")
         logger.stdout(f"RMM: docker_run: AFTER: {log_file} ")
 
 
