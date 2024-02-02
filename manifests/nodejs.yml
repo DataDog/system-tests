@@ -190,7 +190,7 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v3.19.0
-        Test_CustomBlockingResponse: missing_feature
+        Test_CustomBlockingResponse: v5.4.0
       test_custom_rules.py:
         Test_CustomRules: v4.1.0
       test_exclusions.py:
