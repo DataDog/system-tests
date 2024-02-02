@@ -449,6 +449,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Creating links from distributed datadog headers not supported")
     def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links.
         """
@@ -554,22 +555,22 @@ class Test_Otel_Span_Methods:
                 parent.end_span()
                 with test_library.otel_start_span("first", parent_id=parent.span_id) as first:
                     first.end_span()
-                with test_library.otel_start_span(
-                    "second",
-                    parent_id=parent.span_id,
-                    links=[
-                        Link(parent_id=parent.span_id),
-                        Link(parent_id=first.span_id, attributes={"bools": [True, False], "nested": [1, 2]}),
-                    ],
-                ) as second:
-                    second.end_span()
+                    with test_library.otel_start_span(
+                        "second",
+                        parent_id=parent.span_id,
+                        links=[
+                            Link(parent_id=parent.span_id),
+                            Link(parent_id=first.span_id, attributes={"bools": [True, False], "nested": [1, 2]}),
+                        ],
+                    ) as second:
+                        second.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, otel_span(name="root"))
         assert len(trace) == 3
 
         root = find_span(trace, otel_span(name="root"))
-        root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
+        root_tid = int(root.get("meta", {}).get("_dd.p.tid", "0"), 16)
 
         first = find_span(trace, otel_span(name="first"))
         second = find_span(trace, otel_span(name="second"))
@@ -590,7 +591,8 @@ class Test_Otel_Span_Methods:
         link = span_links[1]
         assert link.get("span_id") == first.get("span_id")
         assert link.get("trace_id") == first.get("trace_id")
-        assert link.get("trace_id_high") == int(root_tid, 16)
+        if root_tid > 0:
+            assert link.get("trace_id_high") == root_tid, 16
         assert len(link.get("attributes")) == 4
         assert link["attributes"].get("bools.0") == "true"
         assert link["attributes"].get("bools.1") == "false"

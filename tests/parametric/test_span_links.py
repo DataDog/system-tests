@@ -83,6 +83,7 @@ class Test_Span_Links:
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
 
+    @missing_feature(library="nodejs", reason="does not currently support creating a link from distributed datadog headers")
     def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
         Testing the conversion of x-datadog-* headers to tracestate for

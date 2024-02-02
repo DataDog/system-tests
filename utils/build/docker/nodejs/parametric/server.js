@@ -75,6 +75,7 @@ app.post('/trace/span/start', (req, res) => {
   for (const [key, value] of http_headers) {
       convertedHeaders[key.toLowerCase()] = value
   }
+  
   const extracted = tracer.extract('http_headers', convertedHeaders)
   if (extracted !== null) parent = extracted
 
@@ -85,30 +86,35 @@ app.post('/trace/span/start', (req, res) => {
     tags: {
         service: request.service
     }
-})
-
+  })
+  
   for (const link of request.links || []) {
     const linkParentId = link.parent_id;
     if (linkParentId) {
-      const linkParent = spans[linkParentId];
-      span.addLink(linkParent.context(), link.attributes);
+      const linkParentSpan = spans[linkParentId];
+      span.addLink(linkParentSpan.context(), link.attributes);
     } else {
       const linkHeaders = link.http_headers || {};
-      const linkExtracted = tracer.extract('http_headers', linkHeaders);
+      const convertedLinkHeaders = {}
+      for (const [key, value] of linkHeaders) {
+        convertedLinkHeaders[key.toLowerCase()] = value
+      }
+      const linkExtracted = tracer.extract('http_headers', convertedLinkHeaders);
       if (linkExtracted) {
         span.addLink(linkExtracted, link.attributes);
       }
     }
   }
-
+  
+  spans[span.context().toSpanId()] = span
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
 });
 
 app.post('/trace/span/add_link', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
-  linked_span = spans[request.parent_id]
-  span.addLink(linked_span.context, request.attributes)
+  const linked_span = spans[request.parent_id]
+  span.addLink(linked_span.context(), request.attributes)
   res.json({});
 });
 
@@ -176,7 +182,7 @@ app.post('/trace/otel/start_span', (req, res) => {
       } else {
         const linkHeaders = Object.fromEntries(link.http_headers.map(([k, v]) => [k.toLowerCase(), v]));
         const extractedContext = tracer.extract('http_headers', linkHeaders)
-        spanContext = OtelSpanContext(extractedContext)
+        spanContext = new OtelSpanContext(extractedContext)
       }
       return {context: spanContext, attributes: link.attributes}
     });  
