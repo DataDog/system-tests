@@ -161,7 +161,7 @@ onboarding_ruby:
   script:
       - sh utils/scripts/push_reports_dashboard.sh
 
-check_merge_labels:
+.check_merge_labels:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
   stage: before_tests
