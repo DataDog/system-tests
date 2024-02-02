@@ -77,6 +77,11 @@ class _Test_SQS:
             "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
 
+    @missing_feature(
+        library="java",
+        reason="Expected to fail, Java defaults to using Xray headers to propagate context. \
+        NodeJS cannot extract from Xray and will not create an 'aws.response' span if no context is extracted.",
+    )
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
 
@@ -93,7 +98,7 @@ class _Test_SQS:
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
-        library="java", reason="Expected to fail, Java defaults to using XRay headers to propagate context"
+        library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
     )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
