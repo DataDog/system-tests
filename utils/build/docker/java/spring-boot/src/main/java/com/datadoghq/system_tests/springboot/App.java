@@ -69,6 +69,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
@@ -350,10 +351,10 @@ public class App {
     }
 
     @RequestMapping("/rabbitmq/produce")
-    ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue) {
+    ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         try {
-            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test", queue);
+            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test", queue, exchange);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start producing message...");
             e.printStackTrace();
@@ -363,12 +364,16 @@ public class App {
     }
 
     @RequestMapping("/rabbitmq/consume")
-    ResponseEntity<String> rabbitmqConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> rabbitmqConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String exchange,
+        @RequestParam(required = false) Integer timeout
+    ) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = rabbitmq.startConsumingMessagesWithQueue(queue, timeout).get();
+            consumed = rabbitmq.startConsumingMessagesWithQueue(queue, exchange, timeout).get();
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start consuming message...");
@@ -664,6 +669,33 @@ public class App {
         parentSpan.finish(nowMicros + 2*tenSecMicros);
 
         return "OK";
+    }
+
+    @PostMapping(value = "/shell_execution", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<String> shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
+        Process p;
+        if (request.options.shell) {
+            throw new RuntimeException("Not implemented");
+        } else {
+            final String[] args = request.args.split("\\s+");
+            final String[] command = new String[args.length + 1];
+            command[0] = request.command;
+            System.arraycopy(args, 0, command, 1, args.length);
+            p = new ProcessBuilder(command).start();
+        }
+        p.waitFor(10, TimeUnit.SECONDS);
+        final int exitCode = p.exitValue();
+        return new ResponseEntity<>("OK: " + exitCode, HttpStatus.OK);
+    }
+
+    private static class ShellExecutionRequest {
+        public String command;
+        public String args;
+        public Options options;
+
+        static class Options {
+            public boolean shell;
+        }
     }
 
     @EventListener(ApplicationReadyEvent.class)
