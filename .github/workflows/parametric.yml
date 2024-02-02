@@ -17,11 +17,7 @@ jobs:
               version: dev
             - client: java
               version: prod
-            - client: java
-              version: dev
-            - client: java
-              version: prod
- 
+
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.client }}
