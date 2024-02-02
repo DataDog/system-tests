@@ -11,18 +11,18 @@ tests/:
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+        Test_API_Security_sampling: v2.46.0
       test_schemas.py:
         Test_Scanners: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
-        Test_Schema_Request_Headers: missing_feature
-        Test_Schema_Request_Json_Body: missing_feature
-        Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
-        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Request_Cookies: v2.46.0
+        Test_Schema_Request_FormUrlEncoded_Body: v2.46.0
+        Test_Schema_Request_Headers: v2.46.0
+        Test_Schema_Request_Json_Body: v2.46.0
+        Test_Schema_Request_Path_Parameters: v2.46.0
+        Test_Schema_Request_Query_Parameters: v2.46.0
+        Test_Schema_Response_Body: v2.46.0
         Test_Schema_Response_Body_env_var: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Headers: v2.46.0
     iast/:
       sink/:
         test_command_injection.py:

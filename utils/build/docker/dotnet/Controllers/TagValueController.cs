@@ -80,8 +80,20 @@ namespace weblog
 
         [HttpPost("api_match_AS00{tag_value}/{status_code}")]
         // ReSharper disable once InconsistentNaming, system tests demand it
-        public IActionResult ApiSecurity([FromRoute(Name = "tag_value")] int tagValue,
-            [FromRoute(Name = "status_code")] int statusCode, RequestBodyModel bodyModel,
+        public IActionResult ApiSecurityForm([FromRoute(Name = "tag_value")] int tagValue,
+            [FromRoute(Name = "status_code")] int statusCode, [FromForm]RequestBodyModel bodyModel,
+            [FromQuery(Name = "x-option")] string? xOption)
+        {
+            HttpContext.Response.StatusCode = statusCode;
+            Response.Headers["x-option"] = xOption;
+            return Content("Ok");
+        }
+        
+        [HttpPost("api_match_AS00{tag_value}/{status_code}")]
+        [Consumes("application/json")]
+        // ReSharper disable once InconsistentNaming, system tests demand it
+        public IActionResult ApiSecurityJson([FromRoute(Name = "tag_value")] int tagValue,
+            [FromRoute(Name = "status_code")] int statusCode, [FromBody]RequestBodyModel bodyModel,
             [FromQuery(Name = "x-option")] string? xOption)
         {
             HttpContext.Response.StatusCode = statusCode;
