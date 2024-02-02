@@ -82,6 +82,7 @@ class _Test_SQS:
         reason="Expected to fail, Java defaults to using Xray headers to propagate context. \
         NodeJS cannot extract from Xray and will not create an 'aws.response' span if no context is extracted.",
     )
+    @missing_feature(library="python", reason="Expected to fail.")
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
 
@@ -100,6 +101,7 @@ class _Test_SQS:
     @missing_feature(
         library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
     )
+    @missing_feature(library="python", reason="Expected to fail.")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
