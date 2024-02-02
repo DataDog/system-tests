@@ -14,6 +14,7 @@ const { spawnSync } = require('child_process')
 
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
+const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 iast.initData().catch(() => {})
 
@@ -182,8 +183,30 @@ app.get('/dsm', (req, res) => {
         console.log(error)
         res.status(500).send('Internal Server Error during SQS produce')
       })
+  } else if (integration === 'rabbitmq') {
+    const queue = 'dsm-system-tests-queue'
+    const message = 'hello from SQS DSM JS'
+    const timeout = req.query.timeout ?? 5
+    const exchange = 'systemTestDirectExchange'
+    const routingKey = 'systemTestDirectRoutingKey'
+
+    rabbitmqProduce(queue, exchange, routingKey, message)
+      .then(() => {
+        rabbitmqConsume(queue, timeout * 1000)
+          .then(() => {
+            res.status(200).send('ok')
+          })
+          .catch((error) => {
+            console.error(error)
+            res.status(500).send('Internal Server Error during RabbitMQ DSM consume')
+          })
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error during RabbitMQ DSM produce')
+      })
   } else {
-    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, SQS]')
+    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SQS]')
   }
 })
 
@@ -238,6 +261,35 @@ app.get('/sqs/consume', (req, res) => {
     .catch((error) => {
       console.error(error)
       res.status(500).send('Internal Server Error during SQS consume')
+    })
+})
+
+app.get('/rabbitmq/produce', (req, res) => {
+  const queue = req.query.queue
+  const exchange = req.query.exchange
+  const routingKey = 'systemTestDirectRoutingKeyContextPropagation'
+
+  rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
+    .then(() => {
+      res.status(200).send('produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error during RabbitMQ produce')
+    })
+})
+
+app.get('/rabbitmq/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  rabbitmqConsume(queue, timeout * 1000)
+    .then(() => {
+      res.status(200).send('consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error during RabbitMQ consume')
     })
 })
 
