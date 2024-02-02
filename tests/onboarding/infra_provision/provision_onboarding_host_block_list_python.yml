@@ -1,18 +1,4 @@
-ami: 
-  - name: amazon-linux-dotnet
-    ami_id: ami-005b11f8b84489615
-    instance_type: t2.medium
-    user: ec2-user
-    os_type: linux
-    os_distro: rpm
-
-  - name: amazon-linux-2023-arm64
-    ami_id: ami-04c97e62cb19d53f1
-    instance_type: t4g.small
-    user: ec2-user
-    os_type: linux
-    os_distro: rpm
-    os_arch: arm
+ami: !include tests/onboarding/infra_provision/includes/provision_ami.yml
 
 init-config:
   install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
@@ -27,25 +13,32 @@ agent:
 
 autoinjection_install_manual:
   install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_manual.yml
-  uninstall:
-    - os_type: linux
-      command: dd-host-install --uninstall
 
 installation_checks:
-  install: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml
+  install: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml       
 
 language-variants:
-  - name: dotnet
-    version: 6
+  - name: Python_3.8.15
+    version: 3.8.15
     install: 
       - os_type: linux
+        os_distro: deb
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: tests/onboarding/autoinjection/lang/python_install.sh 
+        command: sudo apt-get -y update && sudo sh python_install.sh deb 3.8.15
+
+      - os_type: linux
         os_distro: rpm
-        command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: tests/onboarding/autoinjection/lang/python_install.sh
+        command: sudo sh python_install.sh rpm 3.8.15
 
 weblogs:
-  - name: test-app-dotnet
+  - name: test-app-python
     supported-language-versions:
-      - 6
+      - 3.8.15
     install:
       - os_type: linux
         command: |
@@ -54,4 +47,3 @@ weblogs:
           sudo sh -c 'echo "DD_APM_INSTRUMENTATION_DEBUG=TRUE" >> /etc/environment'
           sudo sh -c 'echo "DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/host_injection.log" >> /etc/environment'
           source /etc/environment
-          

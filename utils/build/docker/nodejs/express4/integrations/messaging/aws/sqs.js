@@ -73,7 +73,7 @@ const consumeMessage = async (queue, timeout) => {
         }
       } catch (error) {
         console.error('Error while consuming messages: ', error)
-        reject(err)
+        reject(error)
       }
     })
     setTimeout(() => {
