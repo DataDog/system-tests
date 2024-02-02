@@ -196,7 +196,7 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
     res.set(k, v && v.toString());
   }
 
-  res.status(parseInt(req.params.status) || 200).send('Value tagged');
+  res.status(parseInt(req.params.status) || 200)
 
   if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body });
