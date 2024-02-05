@@ -318,8 +318,6 @@ function main() {
       for library in "${libraries[@]}"; do
           if [ "${library}" = "dotnet" ]; then
             pytest_numprocesses=1
-        elif [ "${library}" = "java" ]; then
-            pytest_numprocesses=8
           fi
       done
     fi
