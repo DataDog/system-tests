@@ -29,16 +29,18 @@ output_paths:
   - file:///tmp/host_injection.log
 env: dev
 config_sources: BASIC
+ignored_processes: 
+        - DD_IGNORED_PROCESSES
 ignored_arguments:
-    - Java:
+    Java:
         - DD_JAVA_IGNORED_ARGS
-    - DotNet:
+    DotNet:
         - DD_DOTNET_IGNORED_ARGS
-    - Python:
+    Python:
         - DD_PYTHON_IGNORED_ARGS
-    - Node:
+    Node:
         - DD_NODE_IGNORED_ARGS
-    - Ruby:
+    Ruby:
         - DD_RUBY_IGNORED_ARGS
 """
 
@@ -59,11 +61,16 @@ ignored_arguments:
             f"DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/{unique_log_name} {command}"
         )
         if use_injection_config:
+            # Use yml template and replace the key DD_<lang>_IGNORED_ARGS with the value of the config
             test_conf_content = self.yml_config_template
             for key in config:
                 config_values = ""
                 for conf_val in config[key].split(","):
-                    config_values = config_values + " - '" + conf_val + "'\n"
+                    # Fix the indentation
+                    if config_values == "":
+                        config_values = "- '" + conf_val + "'\n"
+                    else:
+                        config_values = config_values + "        - '" + conf_val + "'\n"
                 test_conf_content = test_conf_content.replace("- " + key, config_values)
 
             # Write as local file and the copy by scp to user home. by ssh copy the file to /etc/datadog-agent/inject
