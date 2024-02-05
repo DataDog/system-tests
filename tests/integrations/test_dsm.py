@@ -201,6 +201,7 @@ class Test_DsmSQS:
         assert self.r.text == "ok"
 
         language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {
                 "producer": 18206246330825886989,
                 "consumer": 271115008390912609,
@@ -212,8 +213,8 @@ class Test_DsmSQS:
                 "topic": "dsm-system-tests-queue-java",
             },
             "default": {
-                "producer": 7228682205928812513,
-                "consumer": 3767823103515000703,
+                "producer": 2426795450422055532,
+                "consumer": 15523461852570053161,
                 "topic": "dsm-system-tests-queue",
             },
         }
@@ -242,6 +243,7 @@ class Test_DsmSNS:
         assert self.r.text == "ok"
 
         language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {
                 "producer": 18206246330825886989,
                 "consumer": 271115008390912609,
@@ -250,7 +252,7 @@ class Test_DsmSNS:
             },
             "default": {
                 "producer": 15324339529588163753,
-                "consumer": 3767823103515000703,
+                "consumer": 17483608256829349451,
                 "queue": "dsm-system-tests-queue-sns",
                 "topic": "arn:aws:sns:us-east-1:000000000000:dsm-system-tests-topic-sns",
             },
@@ -265,7 +267,7 @@ class Test_DsmSNS:
             hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sns"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"queue:{queue}", "type:sqs"),
+            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{queue}", "type:sqs"),
         )
 
 

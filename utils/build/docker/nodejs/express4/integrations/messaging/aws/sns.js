@@ -120,11 +120,11 @@ const snsConsume = async (queue, timeout) => {
           reject(err)
         }
       })
-      setTimeout(() => {
-        console.error('[SNS->SQS] TimeoutError: Message not received')
-        reject(new Error('[SNS->SQS] TimeoutError: Message not received'))
-      }, timeout) // Set a timeout of n seconds for message reception
     }
+    setTimeout(() => {
+      console.error('[SNS->SQS] TimeoutError: Message not received')
+      reject(new Error('[SNS->SQS] TimeoutError: Message not received'))
+    }, timeout) // Set a timeout of n seconds for message reception
 
     receiveMessage()
   })

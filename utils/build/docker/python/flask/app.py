@@ -298,6 +298,8 @@ def dsm():
 
     logging.info(f"[DSM] Got request with integration: {integration}")
 
+    response = Response(f"Integration is not supported: {integration}", 406)
+
     if integration == "kafka":
 
         def delivery_report(err, msg):
@@ -315,7 +317,7 @@ def dsm():
         produce_thread.join()
         consume_thread.join()
         logging.info("[kafka] Returning response")
-        return Response("ok")
+        response = Response("ok")
     elif integration == "sqs":
         produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",))
         consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
@@ -324,7 +326,7 @@ def dsm():
         produce_thread.join()
         consume_thread.join()
         logging.info("[sqs] Returning response")
-        return Response("ok")
+        response = Response("ok")
     elif integration == "rabbitmq":
         timeout = int(flask_request.args.get("timeout", 60))
         produce_thread = threading.Thread(
@@ -336,7 +338,7 @@ def dsm():
         produce_thread.join()
         consume_thread.join()
         logging.info("[RabbitMQ] Returning response")
-        return Response("ok")
+        response = Response("ok")
     elif integration == "sns":
         sns_queue = queue + "-sns"
         sns_topic = topic + "-sns"
@@ -349,8 +351,11 @@ def dsm():
         produce_thread.join()
         consume_thread.join()
         logging.info("[SNS->SQS] Returning response")
-        return Response("ok")
-    return Response(f"Integration is not supported: {integration}", 406)
+        response = Response("ok")
+
+    # force flush stats to ensure they're available to agent after test setup is complete
+    tracer.data_streams_processor.interval()
+    return response
 
 
 @app.route("/iast/insecure_hashing/multiple_hash")
