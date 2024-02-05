@@ -86,37 +86,46 @@ const snsConsume = async (queue, timeout) => {
   const queueUrl = `http://localstack-main:4566/000000000000/${queue}`
 
   return new Promise((resolve, reject) => {
-    sqs.receiveMessage({
-      QueueUrl: queueUrl,
-      MaxNumberOfMessages: 1,
-      MessageAttributeNames: ['.*'],
-      WaitTimeSeconds: timeout / 1000
-    }, (err, response) => {
-      if (err) {
-        console.error('[SNS->SQS] Error receiving message: ', err)
-        reject(err)
-      }
-
-      try {
-        console.log(`[SNS->SQS] Received the following response: ${response}`)
-        if (response && response.Messages && response.Messages.length > 0) {
-          for (const message of response.Messages) {
-            const consumedMessage = message.Body
-            console.log('[SNS->SQS] Consumed the following: ' + consumedMessage)
-          }
-          resolve()
-        } else {
-          console.log('[SNS->SQS] No messages received')
+    const receiveMessage = () => {
+      sqs.receiveMessage({
+        QueueUrl: queueUrl,
+        MaxNumberOfMessages: 1,
+        MessageAttributeNames: ['.*']
+      }, (err, response) => {
+        if (err) {
+          console.error('[SNS->SQS] Error receiving message: ', err)
+          reject(err)
         }
-      } catch (error) {
-        console.error('[SNS->SQS] Error while consuming messages: ', error)
-        reject(err)
-      }
-    })
-    setTimeout(() => {
-      console.error('[SNS->SQS] TimeoutError: Message not received')
-      reject(new Error('[SNS->SQS] TimeoutError: Message not received'))
-    }, timeout) // Set a timeout of n seconds for message reception
+
+        try {
+          console.log('[SNS->SQS] Received the following: ')
+          console.log(response)
+          if (response && response.Messages && response.Messages.length > 0) {
+            for (const message of response.Messages) {
+              console.log(message)
+              console.log(message.MessageAttributes)
+              const consumedMessage = message.Body
+              console.log('[SNS->SQS] Consumed the following: ' + consumedMessage)
+            }
+            resolve()
+          } else {
+            console.log('[SNS->SQS] No messages received')
+            setTimeout(() => {
+              receiveMessage()
+            }, 1000)
+          }
+        } catch (error) {
+          console.error('[SNS->SQS] Error while consuming messages: ', error)
+          reject(err)
+        }
+      })
+      setTimeout(() => {
+        console.error('[SNS->SQS] TimeoutError: Message not received')
+        reject(new Error('[SNS->SQS] TimeoutError: Message not received'))
+      }, timeout) // Set a timeout of n seconds for message reception
+    }
+
+    receiveMessage()
   })
 }
 

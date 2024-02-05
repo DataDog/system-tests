@@ -87,7 +87,7 @@ const sqsConsume = async (queue, timeout) => {
     }
     setTimeout(() => {
       console.error('[SQS] TimeoutError: Message not received')
-      reject(new Error('[SQS] Message not received'))
+      reject(new Error('[SQS] TimeoutError: Message not received'))
     }, timeout) // Set a timeout of n seconds for message reception
 
     receiveMessage()

@@ -14,23 +14,23 @@ def sns_produce(queue, topic, message):
 
     try:
         topic = sns.create_topic(Name=topic)
-        sqs.create_queue(QueueName=queue)
+        queue = sqs.create_queue(QueueName=queue)
         topic_arn = topic["TopicArn"]
         sqs_url = queue["QueueUrl"]
         url_parts = sqs_url.split("/")
         sqs_arn = "arn:aws:sqs:{}:{}:{}".format("us-east-1", url_parts[-2], url_parts[-1])
         sns.subscribe(TopicArn=topic_arn, Protocol="sqs", Endpoint=sqs_arn)
-        logging.info(f"[SNS->SQS] Created SNS Topic: {topic} and SQS Queue: {queue}")
+        print(f"[SNS->SQS] Created SNS Topic: {topic} and SQS Queue: {queue}")
     except Exception as e:
-        logging.info(f"[SNS->SQS] Error during Python SNS create topic or SQS create queue: {str(e)}")
+        print(f"[SNS->SQS] Error during Python SNS create topic or SQS create queue: {str(e)}")
 
     try:
         # Send the message to the SNS topic
         sns.publish(TopicArn=topic_arn, Message=message)
-        logging.info("[SNS->SQS] Python SNS messaged published successfully")
+        print("[SNS->SQS] Python SNS messaged published successfully")
         return "SNS Produce ok"
     except Exception as e:
-        logging.info(f"[SNS->SQS] Error during Python SNS publish message: {str(e)}")
+        print(f"[SNS->SQS] Error during Python SNS publish message: {str(e)}")
         return {"error": f"[SNS->SQS] Error during Python SNS publish message: {str(e)}"}
 
 
@@ -50,7 +50,7 @@ def sns_consume(queue, timeout=60):
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     consumed_message = message["Body"]
-                    logging.info("[SNS->SQS] Consumed the following: " + consumed_message)
+                    print("[SNS->SQS] Consumed the following: " + consumed_message)
         except Exception as e:
             logging.warning("[SNS->SQS] " + e)
         time.sleep(1)
