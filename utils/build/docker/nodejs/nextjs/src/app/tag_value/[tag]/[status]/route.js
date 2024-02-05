@@ -41,9 +41,5 @@ async function getBody (request) {
     return await request.json()
   } catch (err) {}
 
-  try {
-    return await request.text()
-  } catch (err) {}
-
   return null
 }
