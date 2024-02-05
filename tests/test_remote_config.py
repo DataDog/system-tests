@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import rfc, coverage, interfaces
+from utils import rfc, interfaces, features
 
 
 @rfc("https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc")
-@coverage.basic
+@features.remote_config_object_supported
 class Test_NoError:
     """A library should apply with no error all remote config payload."""
 

@@ -25,6 +25,7 @@ class StartSpanResponse(TypedDict):
 class Link(TypedDict):
     parent_id: int  # 0 to extract from headers
     attributes: dict
+    http_headers: List[Tuple[str, str]]
 
 
 class APMLibraryClient:
@@ -38,6 +39,7 @@ class APMLibraryClient:
         origin: str,
         http_headers: List[Tuple[str, str]],
         links: List[Link],
+        tags: List[Tuple[str, str]],
     ) -> StartSpanResponse:
         raise NotImplementedError
 
@@ -47,6 +49,7 @@ class APMLibraryClient:
         timestamp: int,
         span_kind: int,
         parent_id: int,
+        links: List[Link],
         http_headers: List[Tuple[str, str]],
         attributes: dict = None,
     ) -> StartSpanResponse:
@@ -135,6 +138,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         origin: str,
         http_headers: Optional[List[Tuple[str, str]]],
         links: Optional[List[Link]],
+        tags: Optional[List[Tuple[str, str]]],
     ):
         resp = self._session.post(
             self._url("/trace/span/start"),
@@ -175,6 +179,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
+        # todo: translate json into list within list
+        # so server.xx do not have to
         return resp.json()["http_headers"]
 
     def trace_flush(self) -> None:
@@ -187,6 +193,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         timestamp: int,
         span_kind: int,
         parent_id: int,
+        links: List[Link],
         http_headers: List[Tuple[str, str]],
         attributes: dict = None,
     ) -> StartSpanResponse:
@@ -197,6 +204,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "timestamp": timestamp,
                 "span_kind": span_kind,
                 "parent_id": parent_id,
+                "links": links,
                 "http_headers": http_headers,
                 "attributes": attributes or {},
             },
@@ -234,6 +242,13 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def otel_flush(self, timeout: int) -> bool:
         resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout}).json()
         return resp["success"]
+
+    def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
+        resp = self._session.post(
+            self._url("/http/client/request"),
+            json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
+        ).json()
+        return resp
 
 
 class _TestSpan:
@@ -301,19 +316,27 @@ class APMLibraryClientGRPC:
         origin: str,
         http_headers: List[Tuple[str, str]],
         links: List[Link],
+        tags: List[Tuple[str, str]],
     ):
         distributed_message = pb.DistributedHTTPHeaders()
         for key, value in http_headers:
             distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
+        pb_tags = []
+        for key, value in tags:
+            pb_tags.append(pb.HeaderTuple(key=key, value=value))
+
         pb_links = []
         for link in links:
             pb_link = pb.SpanLink()
-            if (link.get("parent_id") or 0) == 0:
+            if link.get("parent_id") > 0:
                 pb_link.parent_id = link["parent_id"]
             else:
-                pb_link.http_headers = distributed_message
-                distributed_message = pb.DistributedHTTPHeaders()
+                link_headers = pb.DistributedHTTPHeaders()
+                for key, value in link.http_headers:
+                    link_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
+                pb_link.http_headers = link_headers
+
             pb_link.attributes = convert_to_proto(link["attributes"])
             pb_links.append(pb_link)
 
@@ -327,6 +350,7 @@ class APMLibraryClientGRPC:
                 origin=origin,
                 http_headers=distributed_message,
                 span_links=pb_links,
+                span_tags=pb_tags,
             )
         )
         return {
@@ -340,6 +364,7 @@ class APMLibraryClientGRPC:
         timestamp: int,
         span_kind: int,
         parent_id: int,
+        links: List[Link],
         http_headers: List[Tuple[str, str]],
         attributes: dict = None,
     ):
@@ -347,12 +372,23 @@ class APMLibraryClientGRPC:
         for key, value in http_headers:
             distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
+        pb_links = []
+        for link in links:
+            pb_link = pb.SpanLink(attributes=convert_to_proto(link.get("attributes")))
+            if link.get("parent_id") is not None:
+                pb_link.parent_id = link["parent_id"]
+            else:
+                for key, value in link["http_headers"]:
+                    pb_link.http_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
+            pb_links.append(pb_link)
+
         resp = self._client.OtelStartSpan(
             pb.OtelStartSpanArgs(
                 name=name,
                 timestamp=timestamp,
                 span_kind=span_kind,
                 parent_id=parent_id,
+                span_links=pb_links,
                 attributes=convert_to_proto(attributes),
                 http_headers=distributed_message,
             )
@@ -452,6 +488,7 @@ class APMLibrary:
         origin: str = "",
         http_headers: Optional[List[Tuple[str, str]]] = None,
         links: Optional[List[Link]] = None,
+        tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
             name=name,
@@ -462,6 +499,7 @@ class APMLibrary:
             origin=origin,
             http_headers=http_headers if http_headers is not None else [],
             links=links if links is not None else [],
+            tags=tags if tags is not None else [],
         )
         span = _TestSpan(self._client, resp["span_id"])
         yield span
@@ -474,6 +512,7 @@ class APMLibrary:
         timestamp: int = 0,
         span_kind: int = 0,
         parent_id: int = 0,
+        links: Optional[List[Link]] = None,
         attributes: dict = None,
         http_headers: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestOtelSpan, None, None]:
@@ -482,6 +521,7 @@ class APMLibrary:
             timestamp=timestamp,
             span_kind=span_kind,
             parent_id=parent_id,
+            links=links if links is not None else [],
             attributes=attributes,
             http_headers=http_headers if http_headers is not None else [],
         )

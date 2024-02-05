@@ -5,23 +5,136 @@ tests/:
     test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
+    api_security/:
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: missing_feature
+        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+      test_apisec_sampling.py:
+        Test_API_Security_sampling: missing_feature
+      test_schemas.py:
+        Test_Scanners: missing_feature
+        Test_Schema_Request_Cookies: v0.94.0
+        Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
+        Test_Schema_Request_Headers: v0.94.0
+        Test_Schema_Request_Json_Body: missing_feature
+        Test_Schema_Request_Path_Parameters: missing_feature
+        Test_Schema_Request_Query_Parameters: v0.94.0
+        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
+        Test_Schema_Response_Headers: v0.94.0
     iast/:
       sink/:
+        test_command_injection.py:
+          TestCommandInjection: missing_feature
+        test_hardcoded_secrets.py:
+          Test_HardcodedSecrets: missing_feature
+        test_header_injection.py:
+          TestHeaderInjection: missing_feature
+        test_hsts_missing_header.py:
+          Test_HstsMissingHeader: missing_feature
+        test_insecure_cookie.py:
+          TestInsecureCookie: missing_feature
+        test_ldap_injection.py:
+          TestLDAPInjection: missing_feature
+        test_no_httponly_cookie.py:
+          TestNoHttponlyCookie: missing_feature
+        test_no_samesite_cookie.py:
+          TestNoSamesiteCookie: missing_feature
+        test_nosql_mongodb_injection.py:
+          TestNoSqlMongodbInjection: missing_feature
+        test_path_traversal.py:
+          TestPathTraversal: missing_feature
+        test_sql_injection.py:
+          TestSqlInjection: missing_feature
+        test_ssrf.py:
+          TestSSRF: missing_feature
+        test_trust_boundary_violation.py:
+          Test_TrustBoundaryViolation: missing_feature
+        test_unvalidated_redirect.py:
+          TestUnvalidatedHeader: missing_feature
+          TestUnvalidatedRedirect: missing_feature
+        test_unvalidated_redirect_forward.py:
+          TestUnvalidatedForward: missing_feature
+        test_weak_cipher.py:
+          TestWeakCipher: missing_feature
+        test_weak_hash.py:
+          TestWeakHash: missing_feature
+        test_weak_randomness.py:
+          TestWeakRandomness: missing_feature
+        test_xcontent_sniffing.py:
+          Test_XContentSniffing: missing_feature
+        test_xpath_injection.py:
+          TestXPathInjection: missing_feature
         test_xss.py:
           TestXSS:
             '*': missing_feature
+      source/:
+        test_body.py:
+          TestRequestBody: missing_feature
+        test_cookie_name.py:
+          TestCookieName: missing_feature
+        test_cookie_value.py:
+          TestCookieValue: missing_feature
+        test_header_name.py:
+          TestHeaderName: missing_feature
+        test_header_value.py:
+          TestHeaderValue: missing_feature
+        test_multipart.py:
+          TestMultipart: missing_feature
+        test_parameter_name.py:
+          TestParameterName: missing_feature
+        test_parameter_value.py:
+          TestParameterValue: missing_feature
+        test_path.py:
+          TestPath: missing_feature
+        test_uri.py:
+          TestURI: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: missing_feature
+        Test_BodyRaw: v0.68.3
+        Test_BodyUrlEncoded: v0.68.3
         Test_BodyXml: missing_feature
         Test_ClientIP: missing_feature
-        Test_Headers: v0.68.3  # probably sooner, but was flaky 
+        Test_Cookies: v0.68.3
+        Test_FullGrpc: missing_feature
+        Test_GraphQL: missing_feature
+        Test_Headers: v0.68.3
+        Test_Lambda: missing_feature
         Test_Method: missing_feature
+        Test_PathParams: v0.71.0
+        Test_UrlQuery: v0.68.3
+        Test_UrlQueryKey: v0.74.0
         Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
+        Test_gRPC: missing_feature
+      test_blocking.py:
+        Test_Blocking: v0.86.0
+        Test_CustomBlockingResponse: v0.86.0
+      test_custom_rules.py:
+        Test_CustomRules: v0.87.2
+      test_exclusions.py:
+        Test_Exclusions: v0.86.0
+      test_miscs.py:
+        Test_404: v0.1.0
+        Test_CorrectOptionProcessing: v0.1.0
+        Test_MultipleAttacks: v0.1.0
+        Test_MultipleHighlight: v0.2.0
+      test_reports.py:
+        Test_Monitoring: v0.73.0
       test_rules.py:
-        Test_CommandInjection: v0.68.3  # probably sooner, but was flaky
-        Test_NoSqli: v0.68.3  # probably sooner, but was flaky
-        Test_SQLI: v0.68.3  # probably sooner, but was flaky
+        Test_CommandInjection: v0.68.3
+        Test_HttpProtocol: v0.68.3
+        Test_JavaCodeInjection: v0.68.3
+        Test_JsInjection: v0.68.3
+        Test_LFI: v0.68.3
+        Test_NoSqli: v0.68.3
+        Test_PhpCodeInjection: v0.68.3
+        Test_RFI: v0.68.3
+        Test_SQLI: v0.68.3
+        Test_SSRF: v0.68.3
+        Test_Scanners: v0.68.3
+        Test_XSS: v0.68.3
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
     test_PII.py:
@@ -34,6 +147,7 @@ tests/:
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
       Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
       Test_Blocking_response_status: irrelevant (On php it is not possible change the status code once its header is sent)
+      Test_Suspicious_Request_Blocking: missing_feature (v0.86.0 but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
     test_identify.py:
@@ -42,9 +156,11 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
-      Test_Info: v0.68.3  # probably 0.68.2, vut was flaky
+      Test_Info: v0.68.3  # probably 0.68.2, but was flaky
     test_shell_execution.py:
-      Test_ShellExecution: missing_feature
+      Test_ShellExecution: v0.95.0
+    test_traces.py:
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
@@ -54,8 +170,16 @@ tests/:
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
-    test_crossed_integrations.py:
-      Test_PythonKafka: missing_feature
+    crossed_integrations/:
+      test_kafka.py:
+        Test_Kafka: missing_feature
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -68,13 +192,40 @@ tests/:
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
-    test_otel_span_methods.py: missing_feature
+      TestDynamicConfigV2: missing_feature
+    test_otel_span_methods.py:
+        Test_Otel_Span_Methods: v0.94.0
+    test_otel_span_with_w3c.py:
+        Test_Otel_Span_With_W3c: v0.94.0
+    test_otel_tracer.py:
+        Test_Otel_Tracer: v0.94.0
+    test_sampling_delegation.py:
+      Test_Decisionless_Extraction: >-
+        missing_feature
+        (The sampling priority chosen when the trace was extracted without a
+        sampling decision is not consistent with the tracer's configuration.
+        See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
     test_span_links.py: missing_feature
+    test_telemetry.py:
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
+      Test_TelemetryInstallSignature: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
+      Test_Trace_Sampling_Globs: v0.96.0
+      Test_Trace_Sampling_Resource: v0.96.0
+      Test_Trace_Sampling_Tags: v0.96.0
+      Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
+    test_tracer_flare.py:
+      TestTracerFlareV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
@@ -90,8 +241,14 @@ tests/:
     Test_Propagate_Legacy: v0.85.0
   test_library_conf.py:
     Test_HeaderTags: v0.68.2
-    Test_HeaderTagsLongFormat: missing_feature
-    Test_HeaderTagsShortFormat: v0.74.0
+    Test_HeaderTags_Colon_Leading: v0.74.0
+    Test_HeaderTags_Colon_Trailing: v0.74.0
+    Test_HeaderTags_Long: missing_feature
+    Test_HeaderTags_Short: v0.74.0
+    Test_HeaderTags_Whitespace_Header: v0.74.0
+    Test_HeaderTags_Whitespace_Tag: missing_feature
+    Test_HeaderTags_Whitespace_Val_Long: missing_feature
+    Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_sampling_rates.py:

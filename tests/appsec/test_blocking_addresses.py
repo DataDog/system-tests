@@ -6,7 +6,6 @@ import json
 from utils import (
     bug,
     context,
-    coverage,
     interfaces,
     irrelevant,
     missing_feature,
@@ -14,11 +13,12 @@ from utils import (
     scenarios,
     weblog,
     flaky,
+    features,
 )
 
 
-@coverage.basic
 @scenarios.appsec_blocking
+@features.appsec_request_blocking
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -90,7 +90,8 @@ class Test_BlockingAddresses:
     def setup_cookies(self):
         self.c_req = weblog.get("/", headers={"Cookie": "mycookie=jdfoSDGFkivRG_234"})
 
-    @missing_feature(context.library < "nodejs@14.16.0", reason="Not supported yet")
+    @missing_feature(context.library < "nodejs@4.16.0", reason="Not supported yet")
+    @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
     def test_cookies(self):
         """can block on server.request.cookies"""
 
@@ -228,7 +229,7 @@ def _assert_custom_event_tag_absence():
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -267,7 +268,7 @@ class Test_Blocking_request_method:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -316,7 +317,7 @@ class Test_Blocking_request_uri:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
@@ -357,7 +358,7 @@ class Test_Blocking_request_path_params:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -401,7 +402,7 @@ class Test_Blocking_request_query:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -445,7 +446,7 @@ class Test_Blocking_request_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -489,7 +490,7 @@ class Test_Blocking_request_cookies:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
@@ -548,7 +549,7 @@ class Test_Blocking_request_body:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_response_blocking
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
@@ -572,7 +573,7 @@ class Test_Blocking_response_status:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_response_blocking
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
@@ -597,25 +598,25 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implemented
+@features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        # TODO
+        assert False, "TODO"
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
-        # TODO
+        assert False, "TODO"
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
-        # TODO
+        assert False, "TODO"
 
 
 @scenarios.appsec_blocking
-@coverage.good
+@features.appsec_request_blocking
 class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 

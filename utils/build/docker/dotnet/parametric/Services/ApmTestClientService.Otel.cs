@@ -74,9 +74,35 @@ public partial class ApmTestClientService
 
         var parentContext = localParentContext ?? remoteParentContext ?? default;
 
+        var kind = ActivityKind.Internal;
+        if (request.HasSpanKind)
+        {
+            switch (request.SpanKind)
+            {
+                case 1:
+                    kind = ActivityKind.Internal;
+                    break;
+                case 2:
+                    kind = ActivityKind.Server;
+                    break;
+                case 3:
+                    kind = ActivityKind.Client;
+                    break;
+                case 4:
+                    kind = ActivityKind.Producer;
+                    break;
+                case 5:
+                    kind = ActivityKind.Consumer;
+                    break;
+                default:
+                    kind = ActivityKind.Internal; // this is the default in Activity
+                    break;
+            }
+        }
+
         var activity = ApmTestClientActivitySource.StartActivity(
             request.Name,
-            ActivityKind.Internal,
+            kind,
             parentContext,
             tags: null,
             links: null,

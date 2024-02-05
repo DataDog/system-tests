@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   get  '/waf/*other' => 'system_test#waf'
   post '/waf/*other' => 'system_test#waf'
 
+  get '/kafka/produce' => 'system_test#kafka_produce'
+  get '/kafka/consume' => 'system_test#kafka_consume'
+
   get '/params/:value' => 'system_test#handle_path_params'
   get '/spans' => 'system_test#generate_spans'
   get '/status' => 'system_test#status'

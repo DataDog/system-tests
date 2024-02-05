@@ -3,9 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import coverage
+from utils import features
 
 
-@coverage.not_implemented
+@features.appsec_scrubbing
 class Test_Scrubbing:
     """Appsec scrubs all sensitive data"""
+
+    def test_main(self):
+        assert False, "Test not implemented"

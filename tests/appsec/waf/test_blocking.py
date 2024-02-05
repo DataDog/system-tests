@@ -1,6 +1,6 @@
 import os.path
 
-from utils import coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky
+from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
 
 
@@ -44,8 +44,8 @@ JSON_CONTENT_TYPES = {
 }
 
 
-@coverage.basic
 @scenarios.appsec_blocking
+@features.appsec_blocking_action
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
 
@@ -202,8 +202,8 @@ class Test_Blocking:
 
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
-@coverage.basic
 @scenarios.appsec_blocking
+@features.appsec_blocking_action
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""

@@ -1,59 +1,48 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
-IS_APACHE=$1
-
-echo "Loading install script"
-curl -Lf -o /tmp/dd-library-php-setup.php \
-  https://raw.githubusercontent.com/DataDog/dd-appsec-php/installer/dd-library-php-setup.php
+IS_APACHE=${1:-0}
 
 cd /binaries
 
-BINARIES_APPSEC_N=$(find . -name 'dd-appsec-php-*.tar.gz' | wc -l)
-BINARIES_TRACER_N=$(find . -name 'datadog-php-tracer*.tar.gz' | wc -l)
-INSTALLER_ARGS=()
-if [[ $BINARIES_APPSEC_N -eq 1 ]]; then
-  INSTALLER_ARGS+=(--appsec-file /binaries/dd-appsec-php-*.tar.gz)
-elif [[ $BINARIES_APPSEC_N -gt 1 ]]; then
-  echo "Too many appsec packages in /binaries" >&2
+PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-linux-gnu.tar.gz')
+SETUP=/binaries/datadog-setup.php
+ENABLE_APPSEC_ARG="--enable-appsec"
+#Parametric tests don't need appsec
+[ ! -z ${NO_EXTRACT_VERSION+x} ] && ENABLE_APPSEC_ARG=""
+
+if [ "$PKG" != "" ] && [ ! -f "$SETUP" ]; then
+  echo "local install failed: package located in /binaries but datadog-setup.php not present, please include it"
   exit 1
-else
-  INSTALLER_ARGS+=(--appsec-version $APPSEC_VERSION)
 fi
 
-if [[ $BINARIES_TRACER_N -eq 1 ]]; then
-  INSTALLER_ARGS+=(--tracer-file /binaries/datadog-php-tracer*.tar.gz)
-elif [[ $BINARIES_TRACER_N -gt 1 ]]; then
-  echo "Too many appsec packages in /binaries" >&2
-  exit 1
-else
-  INSTALLER_ARGS+=(--tracer-version $TRACER_VERSION)
+if [ "$PKG" == "" ]; then
+  #Download latest release
+  curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
+  SETUP=datadog-setup.php
+  unset PKG
 fi
 
-echo "Install args are ${INSTALLER_ARGS[@]}"
-
-export DD_APPSEC_ENABLED=0
+echo "Installing php package ${PKG-"{default}"} with setup script $SETUP"
 if [[ $IS_APACHE -eq 0 ]]; then
-  php /tmp/dd-library-php-setup.php \
-    "${INSTALLER_ARGS[@]}"\
-    --php-bin all
+      php $SETUP --php-bin all ${PKG+"--file=$PKG"} $ENABLE_APPSEC_ARG
 else
-  PHP_INI_SCAN_DIR="/etc/php" php /tmp/dd-library-php-setup.php \
-    "${INSTALLER_ARGS[@]}"\
-    --php-bin all
-fi
+      PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"} $ENABLE_APPSEC_ARG
+ fi
 
+#Ensure parametric test compatibility
+[ ! -z ${NO_EXTRACT_VERSION+x} ] && exit 0
+
+#Extract version info
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
-  ./SYSTEM_TESTS_LIBRARY_VERSION
-
-php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
-  ./SYSTEM_TESTS_PHP_APPSEC_VERSION
+  /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
-appsec_version=$(<./SYSTEM_TESTS_PHP_APPSEC_VERSION)
-rule_file="/opt/datadog/dd-library/appsec-${appsec_version}/etc/dd-appsec/recommended.json"
+library_version=$(<././SYSTEM_TESTS_LIBRARY_VERSION)
+rule_file="/opt/datadog/dd-library/${library_version}/etc/recommended.json"
+
 jq -r '.metadata.rules_version // "1.2.5"' "${rule_file}" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;

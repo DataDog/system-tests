@@ -1,7 +1,7 @@
-from utils import context, coverage, interfaces, scenarios, weblog, bug
+from utils import context, interfaces, scenarios, weblog, bug, features
 
 
-@coverage.basic
+@features.appsec_user_blocking
 @scenarios.appsec_blocking_full_denylist
 class Test_UserBlocking_FullDenylist:
     NOT_BLOCKED_USER = "regularUser"

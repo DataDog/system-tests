@@ -2,15 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, bug, missing_feature, scenarios
+from utils import weblog, context, interfaces, bug, missing_feature, scenarios, features
 
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@coverage.basic
 @scenarios.appsec_corrupted_rules
+@features.threats_configuration
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
 
@@ -34,8 +34,8 @@ class Test_CorruptedRules:
         interfaces.library.assert_no_appsec_event(self.r_2)
 
 
-@coverage.basic
 @scenarios.appsec_missing_rules
+@features.threats_configuration
 class Test_MissingRules:
     """AppSec do not report anything if rule file is missing"""
 
@@ -65,8 +65,8 @@ class Test_MissingRules:
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@coverage.good
 @scenarios.appsec_custom_rules
+@features.threats_configuration
 class Test_ConfRuleSet:
     """AppSec support env var DD_APPSEC_RULES"""
 
@@ -86,8 +86,9 @@ class Test_ConfRuleSet:
         stdout.assert_absence("WAF initialization failed")
 
 
-@coverage.basic
 @scenarios.appsec_custom_rules
+@features.threats_configuration
+@features.serialize_waf_rules_without_limiting_their_sizes
 class Test_NoLimitOnWafRules:
     """ Serialize WAF rules without limiting their sizes """
 

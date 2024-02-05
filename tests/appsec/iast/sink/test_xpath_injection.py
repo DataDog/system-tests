@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage
+from utils import features
 from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
-@coverage.basic
+@features.iast_sink_xpathinjection
 class TestXPathInjection(BaseSinkTestWithoutTelemetry):
     """Test xpath injection detection."""
 

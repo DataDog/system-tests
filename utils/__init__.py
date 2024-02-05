@@ -8,5 +8,5 @@ from utils._context.core import context
 from utils._context._scenarios import scenarios
 from utils._decorators import bug, irrelevant, missing_feature, rfc, flaky
 from utils import interfaces
-from utils import coverage
 from utils.interfaces._core import ValidationError
+from utils._features import features

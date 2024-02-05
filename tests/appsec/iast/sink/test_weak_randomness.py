@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage
+from utils import features
 from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
-@coverage.basic
+@features.iast_sink_weakrandomness
 class TestWeakRandomness(BaseSinkTestWithoutTelemetry):
     """Test weak randomness detection."""
 
@@ -18,4 +18,5 @@ class TestWeakRandomness(BaseSinkTestWithoutTelemetry):
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples",
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
     }

@@ -4,11 +4,11 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, coverage
+from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, features
 from .utils import rules
 
 
-@coverage.good
+@features.waf_rules
 class Test_Scanners:
     """ Appsec WAF tests on scanners rules """
 
@@ -24,7 +24,7 @@ class Test_Scanners:
         interfaces.library.assert_waf_attack(self.r_3, rules.security_scanner.crs_913_120)
 
 
-@coverage.good
+@features.waf_rules
 class Test_HttpProtocol:
     """ Appsec WAF tests on HTTP protocol rules """
 
@@ -47,7 +47,7 @@ class Test_HttpProtocol:
         interfaces.library.assert_waf_attack(self.r_2, rules.http_protocol_violation.crs_921_160)
 
 
-@coverage.good
+@features.waf_rules
 class Test_LFI:
     """ Appsec WAF tests on LFI rules """
 
@@ -87,7 +87,7 @@ class Test_LFI:
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
 
 
-@coverage.good
+@features.waf_rules
 class Test_RFI:
     """ Appsec WAF tests on RFI rules """
 
@@ -101,7 +101,7 @@ class Test_RFI:
         interfaces.library.assert_waf_attack(self.r_2, rules.rfi.crs_931_120)
 
 
-@coverage.good
+@features.waf_rules
 class Test_CommandInjection:
     """ Appsec WAF tests on Command injection rules """
 
@@ -123,7 +123,7 @@ class Test_CommandInjection:
         interfaces.library.assert_waf_attack(self.r_6, rules.command_injection.sqr_000_010)
 
 
-@coverage.good
+@features.waf_rules
 class Test_PhpCodeInjection:
     """ Appsec WAF tests on PHP injection rules """
 
@@ -155,7 +155,7 @@ class Test_PhpCodeInjection:
         interfaces.library.assert_waf_attack(self.r_8, rules.php_code_injection.crs_933_170)
 
 
-@coverage.good
+@features.waf_rules
 class Test_JsInjection:
     """ Appsec WAF tests on Js Injection rules """
 
@@ -169,7 +169,7 @@ class Test_JsInjection:
         interfaces.library.assert_waf_attack(self.r_2, rules.js_code_injection.sqr_000_002)
 
 
-@coverage.good
+@features.waf_rules
 class Test_XSS:
     """ Appsec WAF tests on XSS rules """
 
@@ -202,7 +202,7 @@ class Test_XSS:
         interfaces.library.assert_waf_attack(self.r_xss2, rules.xss)
 
 
-@coverage.good
+@features.waf_rules
 class Test_SQLI:
     """ Appsec WAF tests on SQLI rules """
 
@@ -250,7 +250,7 @@ class Test_SQLI:
         interfaces.library.assert_waf_attack(self.r_6, "crs-942-140")
 
 
-@coverage.good
+@features.waf_rules
 class Test_NoSqli:
     """ Appsec WAF tests on NoSQLi rules """
 
@@ -278,7 +278,7 @@ class Test_NoSqli:
         interfaces.library.assert_waf_attack(self.r_4, rules.nosql_injection)
 
 
-@coverage.good
+@features.waf_rules
 class Test_JavaCodeInjection:
     """ Appsec WAF tests on Java code injection rules """
 
@@ -294,7 +294,7 @@ class Test_JavaCodeInjection:
         interfaces.library.assert_waf_attack(self.r_3, rules.java_code_injection.crs_944_130)
 
 
-@coverage.good
+@features.waf_rules
 class Test_SSRF:
     """ Appsec WAF tests on SSRF rules """
 
@@ -307,7 +307,7 @@ class Test_SSRF:
 
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@coverage.good
+@features.waf_rules
 class Test_DiscoveryScan:
     """AppSec WAF Tests on Discovery Scan rules"""
 

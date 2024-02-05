@@ -1,60 +1,27 @@
 ami: !include tests/onboarding/infra_provision/includes/provision_ami.yml
 
 init-config:
-  install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml
+  install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
+
+init-dd-config-distro: !include tests/onboarding/infra_provision/includes/provision_init_dd_config_distro.yml
 
 prepare-repos:
   install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
 
-agent: !include tests/onboarding/infra_provision/includes/provision_agent.yml
+agent:
+  install: !include tests/onboarding/infra_provision/includes/provision_agent.yml
 
-agent_auto_install:
-  - env: dev
-    install:
+autoinjection_install_script:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_script.yml
+
+autoinjection_install_manual:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_manual.yml
+  uninstall:
     - os_type: linux
-      copy_files:
-          - name: copy-auto-install-script
-            local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-      command: bash execute_install_script_dev.sh python --inject-mode host 
-  - env: prod
-    install:
-    - os_type: linux
-      command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_INSTRUMENTATION_LANGUAGES=python DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+      command: dd-host-install --uninstall
 
-autoinjection:
-#Copy tests/onboarding/autoinjection/host_config.yaml to /etc/datadog-agent/inject/host_config.yaml to enable debug (Disabled for timing reasons)
-  - env: prod
-    install: 
-      - os_type: linux
-        os_distro: deb
-        command: |
-          sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-python
-          dd-host-install
-
-      - os_type: linux
-        os_distro: rpm
-        command: |
-          sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-python
-          dd-host-install
-    uninstall: 
-      - os_type: linux 
-        command: dd-host-install --uninstall
-  - env: dev
-    install: 
-      - os_type: linux
-        os_distro: deb
-        command: |
-          sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-python
-          dd-host-install
-
-      - os_type: linux
-        os_distro: rpm
-        command: |         
-          sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-python
-          dd-host-install
-    uninstall: 
-      - os_type: linux 
-        command: dd-host-install --uninstall
+installation_checks:
+  install: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml        
 language-variants:
   - name: Python_3.8.15
     version: 3.8.15
@@ -81,7 +48,7 @@ weblogs:
       - os_type: linux
         copy_files:
           - name: copy-service
-            local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python.service
+            local_path: tests/onboarding/weblog/python/test-app-python-django/test-app.service
 
           - name: copy-run-weblog-script
             local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python_run.sh
@@ -92,6 +59,24 @@ weblogs:
         command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh
     uninstall: 
       - os_type: linux
-        command: sudo systemctl stop test-app-python.service
+        command: sudo systemctl stop test-app.service
 
-installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml
+  - name: test-app-python-gunicorn
+    supported-language-versions:
+      - 3.8.15
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-service
+            local_path: tests/onboarding/weblog/python/test-app-python-django-gunicorn/test-app.service
+
+          - name: copy-run-weblog-script
+            local_path: tests/onboarding/weblog/python/test-app-python-django-gunicorn/test-app-python-gunicorn_run.sh
+
+          - name: copy-python-app
+            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django-gunicorn
+
+        command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python-gunicorn_run.sh
+    uninstall: 
+      - os_type: linux
+        command: sudo systemctl stop test-app.service

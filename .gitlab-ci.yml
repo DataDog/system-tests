@@ -5,6 +5,7 @@ stages:
   - python_tracer
   - dotnet_tracer
   - parse_results
+  - before_tests
 
 .base_job_onboarding:
   only:
@@ -35,8 +36,8 @@ stages:
     - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
     - REPORTS_PATH="reports/$ONBOARDING_FILTER_ENV/$TEST_LIBRARY/$ONBOARDING_FILTER_WEBLOG"
     - mkdir -p "$REPORTS_PATH"
-    - cp logs_"${SCENARIO_SUFIX}"/*.log $REPORTS_PATH/
-    - cp logs_"${SCENARIO_SUFIX}"/report.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
+    - cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/
+    - cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
   artifacts:
       when: always
       paths:
@@ -58,11 +59,15 @@ onboarding_nodejs:
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL] 
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST] 
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
+          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL] 
+         
   script:
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
+      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
       
 onboarding_java:
   extends: .base_job_onboarding
@@ -77,13 +82,13 @@ onboarding_java:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [ONBOARDING_HOST, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_UNINSTALL, ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL]
+          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-buildpack,test-app-java-alpine]
-          SCENARIO: [ONBOARDING_CONTAINER, ONBOARDING_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL]
+          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL]
   script:
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
 onboarding_python:
   extends: .base_job_onboarding
@@ -98,10 +103,13 @@ onboarding_python:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL] 
+          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST] 
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python-django-alpine]
+          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL] 
   script:
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
+      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
 
 onboarding_dotnet:
   extends: .base_job_onboarding
@@ -116,10 +124,10 @@ onboarding_dotnet:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL] 
+          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL,ONBOARDING_HOST_BLOCK_LIST] 
   script:
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
 onboarding_ruby:
   extends: .base_job_onboarding
@@ -132,12 +140,12 @@ onboarding_ruby:
     TEST_LIBRARY: "ruby"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [prod]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby] 
-          SCENARIO: [ONBOARDING_HOST, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_UNINSTALL, ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL,ONBOARDING_CONTAINER,ONBOARDING_CONTAINER_UNINSTALL,ONBOARDING_CONTAINER_AUTO_INSTALL,ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL] 
+          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL, ONBOARDING_CONTAINER_INSTALL_MANUAL,ONBOARDING_CONTAINER_UNINSTALL,ONBOARDING_CONTAINER_INSTALL_SCRIPT,ONBOARDING_HOST_BLOCK_LIST] 
   script:
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
@@ -152,3 +160,17 @@ onboarding_parse_results:
     - export GITHUB_MAIL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-mail --with-decryption --query "Parameter.Value" --out text) 
   script:
       - sh utils/scripts/push_reports_dashboard.sh
+
+check_merge_labels:
+  image: registry.ddbuild.io/images/ci_docker_base
+  tags: ["runner:docker"]
+  stage: before_tests
+  before_script:
+    - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text) 
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text) 
+  script:  
+    - ./utils/scripts/get_pr_merged_labels.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+

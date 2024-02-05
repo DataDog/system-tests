@@ -1,20 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import (
-    weblog,
-    bug,
-    context,
-    coverage,
-    interfaces,
-    irrelevant,
-    missing_feature,
-    rfc,
-    scenarios,
-)
+from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
 
 
-@coverage.basic
+@features.appsec_request_blocking
 class Test_UrlQueryKey:
     """Appsec supports keys on server.request.query"""
 
@@ -27,7 +17,7 @@ class Test_UrlQueryKey:
         interfaces.library.assert_waf_attack(self.r, pattern="$eq", address="server.request.query")
 
 
-@coverage.good
+@features.appsec_request_blocking
 class Test_UrlQuery:
     """Appsec supports values on server.request.query"""
 
@@ -58,7 +48,7 @@ class Test_UrlQuery:
         )
 
 
-@coverage.basic
+@features.appsec_request_blocking
 class Test_UrlRaw:
     """Appsec supports server.request.uri.raw"""
 
@@ -70,7 +60,7 @@ class Test_UrlRaw:
         interfaces.library.assert_waf_attack(self.r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@coverage.good
+@features.appsec_request_blocking
 class Test_Headers:
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -138,7 +128,7 @@ class Test_Headers:
         interfaces.library.assert_no_appsec_event(self.r_wk_2)
 
 
-@coverage.good
+@features.appsec_request_blocking
 class Test_Cookies:
     """Appsec supports server.request.cookies"""
 
@@ -236,7 +226,7 @@ class Test_Cookies:
         interfaces.library.assert_waf_attack(self.r_cwsc2cc, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@coverage.basic
+@features.appsec_request_blocking
 class Test_BodyRaw:
     """Appsec supports <body>"""
 
@@ -249,8 +239,8 @@ class Test_BodyRaw:
         interfaces.library.assert_waf_attack(self.r, address="server.request.body")
 
 
-@coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@features.appsec_request_blocking
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
 
@@ -276,8 +266,8 @@ class Test_BodyUrlEncoded:
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@features.appsec_request_blocking
 class Test_BodyJson:
     """Appsec supports <JSON encoded body>"""
 
@@ -312,7 +302,7 @@ class Test_BodyJson:
 
 
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
-@coverage.basic
+@features.appsec_request_blocking
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""
 
@@ -344,17 +334,23 @@ class Test_BodyXml:
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
 
 
-@coverage.not_implemented
+@features.appsec_request_blocking
 class Test_Method:
     """Appsec supports server.request.method"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
+@features.appsec_request_blocking
 class Test_ClientIP:
     """Appsec supports server.request.client_ip"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.good
+
+@features.appsec_request_blocking
 class Test_ResponseStatus:
     """Appsec supports values on server.response.status"""
 
@@ -371,7 +367,7 @@ class Test_ResponseStatus:
         interfaces.library.assert_waf_attack(self.r, pattern="404", address="server.response.status")
 
 
-@coverage.basic
+@features.appsec_request_blocking
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""
 
@@ -385,7 +381,8 @@ class Test_PathParams:
         )
 
 
-@coverage.basic
+@features.appsec_request_blocking
+@features.grpc_threats_management
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""
 
@@ -403,16 +400,27 @@ class Test_gRPC:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
-@coverage.not_implemented
+@features.appsec_request_blocking
+@features.grpc_threats_management
 class Test_FullGrpc:
     """Full gRPC support"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
+@features.appsec_request_blocking
+@features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""
 
+    def test_main(self):
+        assert False, "Need to write a test"
 
-@coverage.not_implemented
+
+@features.appsec_request_blocking
 class Test_Lambda:
     """Lambda support"""
+
+    def test_main(self):
+        assert False, "Need to write a test"

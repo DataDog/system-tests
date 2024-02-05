@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, missing_feature, bug
+from utils import context, missing_feature, bug, features
 from .._test_iast_fixtures import BaseSourceTest
 
 
-@coverage.basic
+@features.iast_source_request_parameter_name
 class TestParameterName(BaseSourceTest):
     """Verify that request parameters are tainted"""
 
@@ -46,10 +46,26 @@ class TestParameterName(BaseSourceTest):
         super().test_source_reported()
 
     @missing_feature(library="dotnet", reason="Not implemented")
-    @bug(library="java", reason="Not working as expected")
+    @missing_feature(context.library < "java@1.16.0", reason="Metrics not implemented")
+    @missing_feature(
+        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
+        reason="Metrics not implemented",
+    )
+    @missing_feature(
+        context.weblog_variant in ("akka-http", "jersey-grizzly2", "resteasy-netty3", "vertx4"),
+        reason="Metrics not implemented",
+    )
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @bug(library="java", reason="Not working as expected")
+    @missing_feature(context.library < "java@1.16.0", reason="Metrics not implemented")
+    @missing_feature(
+        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
+        reason="Metrics not implemented",
+    )
+    @missing_feature(
+        context.weblog_variant in ("akka-http", "jersey-grizzly2", "resteasy-netty3", "vertx4"),
+        reason="Metrics not implemented",
+    )
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

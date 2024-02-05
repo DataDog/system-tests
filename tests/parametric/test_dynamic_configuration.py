@@ -1,17 +1,14 @@
 """
 Test the dynamic configuration via Remote Config (RC) feature of the APM libraries.
-
-TODO:
- - test case for new version of config, ensure it doesn't break libraries
- - test no config change = no telemetry event
 """
 import json
 from typing import Any
 from typing import Dict
 from typing import List
 
-from utils.parametric.spec.trace import Span
-from utils import context, missing_feature, rfc, scenarios
+from utils.parametric.spec.remoteconfig import Capabilities
+from utils.parametric.spec.trace import Span, assert_trace_has_tags
+from utils import context, missing_feature, irrelevant, rfc, scenarios, features
 
 import pytest
 
@@ -100,15 +97,127 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
 ENV_SAMPLING_RULE_RATE = 0.55
 
 
+@scenarios.parametric
+@features.dynamic_configuration
+class TestDynamicConfigHeaderTags:
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2,Content-Length:content_length_env",
+            },
+        ],
+    )
+    def test_tracing_client_http_header_tags(
+        self, library_env, test_agent, test_library, test_agent_hostname, test_agent_port
+    ):
+        """Ensure the tracing http header tags can be set via RC.
+
+        Testing is done using a http client request RPC and asserting the span tags.
+
+        Requests are made to the test agent.
+        """
+
+        # Test without RC.
+        test_library.http_client_request(
+            method="GET",
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
+        )
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
+        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+
+        # Set and test with RC.
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_header_tags": [
+                    {"header": "X-Test-Header", "tag_name": "test_header_rc"},
+                    {"header": "X-Test-Header-2", "tag_name": "test_header_rc2"},
+                    {"header": "Content-Length", "tag_name": ""},
+                ]
+            },
+        )
+        test_library.http_client_request(
+            method="GET",
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
+        )
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_rc2"] == "test-value-2"
+        assert trace[0][0]["meta"]["http.request.headers.content-length"] == "0"
+        assert (
+            trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
+        ), "response content-length header tag value matches the header value set by the server"
+        assert "test_header_env" not in trace[0][0]["meta"]
+        assert "test_header_env2" not in trace[0][0]["meta"]
+
+        # Unset RC.
+        set_and_wait_rc(test_agent, config_overrides={})
+        test_library.http_client_request(
+            method="GET",
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
+        )
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
+        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+
+
+@scenarios.parametric
+@features.dynamic_configuration
+class TestDynamicConfigTracingEnabled:
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the tracing enabled capability."""
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
+
+    @parametrize(
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+    )
+    def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
+        if library_env.get("DD_TRACE_ENABLED", True):
+            with test_library:
+                with test_library.start_span("test"):
+                    pass
+            test_agent.wait_for_num_traces(num=1, clear=True)
+            assert True, (
+                "DD_TRACE_ENABLED=true and unset results in a trace being sent."
+                "wait_for_num_traces does not raise an exception."
+            )
+
+        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        with test_library:
+            with test_library.start_span("test"):
+                pass
+        with pytest.raises(ValueError, "no traces are sent after RC response with tracing_enabled: false"):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        set_and_wait_rc(test_agent, config_overrides={})
+        with test_library:
+            with test_library.start_span("test"):
+                pass
+        with pytest.raises(
+            ValueError,
+            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting",
+        ):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
+@features.dynamic_configuration
 class TestDynamicConfigV1:
     """Tests covering the v1 release of the dynamic configuration feature.
 
     v1 includes support for:
         - tracing_sampling_rate
         - log_injection_enabled
-        - tracing_header_tags
     """
 
     @parametrize("library_env", [{"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"}])
@@ -272,69 +381,66 @@ class TestDynamicConfigV1:
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
-    @missing_feature(context.library in ["java", "dotnet", "python_http", "golang"], reason="RPC not implemented yet")
+
+@rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
+@scenarios.parametric
+@features.dynamic_configuration
+class TestDynamicConfigV2:
     @parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2,Content-Length:content_length_env",
-            },
-        ],
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
     )
-    def test_tracing_client_http_header_tags(
-        self, library_env, test_agent, test_library, test_agent_hostname, test_agent_port
-    ):
-        """Ensure the tracing http header tags can be set via RC.
+    def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
+        expected_local_tags = {}
+        if "DD_TAGS" in library_env:
+            expected_local_tags = dict([p.split(":") for p in library_env["DD_TAGS"].split(",")])
 
-        Testing is done using a http client request RPC and asserting the span tags.
+        # Ensure tags are applied from the env
+        with test_library:
+            with test_library.start_span("test") as span:
+                with test_library.start_span("test2", parent_id=span.span_id):
+                    pass
+        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert_trace_has_tags(traces[0], expected_local_tags)
 
-        Requests are made to the test agent.
+        # Ensure local tags are overridden and RC tags applied.
+        set_and_wait_rc(test_agent, config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]})
+        with test_library:
+            with test_library.start_span("test") as span:
+                with test_library.start_span("test2", parent_id=span.span_id):
+                    pass
+        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
+
+        # Ensure previous tags are restored.
+        set_and_wait_rc(test_agent, config_overrides={})
+        with test_library:
+            with test_library.start_span("test") as span:
+                with test_library.start_span("test2", parent_id=span.span_id):
+                    pass
+        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert_trace_has_tags(traces[0], expected_local_tags)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_sample_rate(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the trace sampling rate capability.
         """
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RATE])
 
-        # Test without RC.
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
-        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+    @irrelevant(library="golang", reason="The Go tracer doesn't support automatic logs injection")
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_logs_injection(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the logs injection capability.
+        """
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_LOGS_INJECTION])
 
-        # Set and test with RC.
-        set_and_wait_rc(
-            test_agent,
-            config_overrides={
-                "tracing_header_tags": [
-                    {"header": "X-Test-Header", "tag_name": "test_header_rc",},
-                    {"header": "X-Test-Header-2", "tag_name": "test_header_rc2",},
-                    {"header": "Content-Length", "tag_name": "",},
-                ]
-            },
-        )
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_rc2"] == "test-value-2"
-        assert trace[0][0]["meta"]["http.request.headers.content-length"] == "0"
-        assert trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
-        assert "test_header_env" not in trace[0][0]["meta"]
-        assert "test_header_env2" not in trace[0][0]["meta"]
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_http_header_tags(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the http header tags capability.
+        """
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_HTTP_HEADER_TAGS])
 
-        # Unset RC.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_header_tags": None})
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
-        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_tracing_custom_tags(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the custom tags capability.
+        """
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_CUSTOM_TAGS])
