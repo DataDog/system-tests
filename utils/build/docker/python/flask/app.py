@@ -355,6 +355,11 @@ def dsm():
 
     # force flush stats to ensure they're available to agent after test setup is complete
     tracer.data_streams_processor.periodic()
+    # force reset DSM context
+    try:
+        del tracer.data_streams_processor._current_context
+    except AttributeError:
+        pass
     return response
 
 

@@ -204,7 +204,7 @@ class Test_DsmSQS:
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {
                 "producer": 18206246330825886989,
-                "consumer": 271115008390912609,
+                "consumer": 5236533131035234664,
                 "topic": "dsm-system-tests-queue",
             },
             "java": {
@@ -213,8 +213,8 @@ class Test_DsmSQS:
                 "topic": "dsm-system-tests-queue-java",
             },
             "default": {
-                "producer": 2426795450422055532,
-                "consumer": 15523461852570053161,
+                "producer": 7228682205928812513,
+                "consumer": 3767823103515000703,
                 "topic": "dsm-system-tests-queue",
             },
         }
@@ -244,24 +244,14 @@ class Test_DsmSNS:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {
-                "producer": 18206246330825886989,
-                "consumer": 271115008390912609,
-                "queue": "dsm-system-tests-queue-sns",
-                "topic": "dsm-system-tests-topic-sns",
-            },
-            "default": {
-                "producer": 15324339529588163753,
-                "consumer": 17483608256829349451,
-                "queue": "dsm-system-tests-queue-sns",
-                "topic": "arn:aws:sns:us-east-1:000000000000:dsm-system-tests-topic-sns",
-            },
+            "nodejs": {"producer": 1231913865272259685, "consumer": 6273982990684090851,},
+            "default": {"producer": 15324339529588163753, "consumer": 17483608256829349451,},
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        topic = language_hashes.get(context.library.library, language_hashes.get("default"))["topic"]
-        queue = language_hashes.get(context.library.library, language_hashes.get("default"))["queue"]
+        topic = "arn:aws:sns:us-east-1:000000000000:dsm-system-tests-topic-sns"
+        queue = "dsm-system-tests-queue-sns"
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sns"),
