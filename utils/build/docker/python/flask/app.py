@@ -354,7 +354,7 @@ def dsm():
         response = Response("ok")
 
     # force flush stats to ensure they're available to agent after test setup is complete
-    tracer.data_streams_processor.interval()
+    tracer.data_streams_processor.periodic()
     return response
 
 
