@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 option java_package = "com.datadoghq.client";
+//option go_package = "./";
 option csharp_namespace = "ApmTestClient";
 
 // Interface of APM clients to be used for shared testing.
@@ -38,11 +39,12 @@ message StartSpanArgs {
   optional string type = 5;
   optional string origin = 6;
   optional DistributedHTTPHeaders http_headers = 7;
-  repeated SpanLink span_links = 8;
+  repeated HeaderTuple span_tags = 8;
+  repeated SpanLink span_links = 9;
 }
 
 message DistributedHTTPHeaders {
-  repeated HeaderTuple http_headers = 9;
+  repeated HeaderTuple http_headers = 1;
 }
 
 message SpanLink {
