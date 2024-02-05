@@ -2,7 +2,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator
+from typing import Generator, Union
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -18,6 +18,10 @@ from utils.parametric.spec.otel_trace import convert_to_proto
 
 
 class StartSpanResponse(TypedDict):
+    span_id: int
+    trace_id: int
+
+class SpanResponse(TypedDict):
     span_id: int
     trace_id: int
 
@@ -55,7 +59,22 @@ class APMLibraryClient:
     ) -> StartSpanResponse:
         raise NotImplementedError
 
+    def current_span(self) -> Union[SpanResponse, None]:
+        raise NotImplementedError
+
+    def tracestate(self):
+        raise NotImplementedError
+
+    def otel_current_span(self) -> Union[SpanResponse, None]:
+        raise NotImplementedError
+
     def finish_span(self, span_id: int) -> None:
+        raise NotImplementedError
+
+    def add_distributed_tag(self, key: str, value: str) -> None:
+        raise NotImplementedError
+
+    def otel_finish_span(self, span_id: int) -> None:
         raise NotImplementedError
 
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
@@ -73,10 +92,13 @@ class APMLibraryClient:
     def otel_is_recording(self, span_id: int) -> bool:
         raise NotImplementedError
 
-    def otel_get_span_context(self, span_id: int):
+    def otel_get_span_context(self, span_id: int) -> OtelSpanContext:
         raise NotImplementedError
 
     def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
+        raise NotImplementedError
+
+    def span_set_resource(self, span_id: int, resource: str) -> None:
         raise NotImplementedError
 
     def span_set_meta(self, span_id: int, key: str, value: str) -> None:
@@ -86,6 +108,30 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
+        raise NotImplementedError
+
+    def span_name(self, span_id: int):
+        raise NotImplementedError
+
+    def span_resource(self, span_id: int):
+        raise NotImplementedError
+
+    def span_service(self, span_id: int):
+        raise NotImplementedError
+
+    def span_type(self, span_id: int):
+        raise NotImplementedError
+
+    def span_meta(self, span_id: int, key: str):
+        raise NotImplementedError
+
+    def span_metric(self, span_id: int, key: str):
+        raise NotImplementedError
+
+    def otel_get_attribute(self, span_id: int, key: str):
+        raise NotImplementedError
+
+    def otel_get_name(self, span_id: int):
         raise NotImplementedError
 
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
@@ -156,8 +202,21 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp_json = resp.json()
         return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
 
+    def current_span(self) -> Union[SpanResponse, None]:
+        resp_json = self._session.get(self._url("/trace/span/current")).json()
+        if not resp_json:
+            return None
+
+        return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
+
     def finish_span(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
+
+    def otel_finish_span(self, span_id: int) -> None:
+        self._session.post(self._url("/trace/otel/finish_span"), json={"id": span_id,})
+
+    def span_set_resource(self, span_id: int, resource: str) -> None:
+        self._session.post(self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource,})
 
     def span_set_meta(self, span_id: int, key: str, value: str) -> None:
         self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,})
@@ -176,6 +235,18 @@ class APMLibraryClientHTTP(APMLibraryClient):
             self._url("/trace/span/add_link"),
             json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {}},
         )
+
+    def span_meta(self, span_id: int, key: str):
+        resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,})
+        return resp.json()["value"]
+
+    def span_metric(self, span_id: int, key: str):
+        resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,})
+        return resp.json()["value"]
+
+    def span_resource(self, span_id: int):
+        resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,})
+        return resp.json()["resource"]
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
@@ -211,6 +282,21 @@ class APMLibraryClientHTTP(APMLibraryClient):
         ).json()
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
+    def otel_current_span(self) -> Union[SpanResponse, None]:
+        resp_json = self._session.get(self._url("/trace/otel/current_span"), json={}).json()
+        if not resp_json:
+            return None
+
+        return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
+
+    def otel_get_attribute(self, span_id: int, key: str):
+        resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,})
+        return resp.json()["value"]
+
+    def otel_get_name(self, span_id: int):
+        resp = self._session.post(self._url("/trace/otel/get_name"), json={"span_id": span_id,})
+        return resp.json()["name"]
+
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
         self._session.post(self._url("/trace/otel/end_span"), json={"id": span_id, "timestamp": timestamp})
 
@@ -229,7 +315,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp = self._session.post(self._url("/trace/otel/is_recording"), json={"span_id": span_id}).json()
         return resp["is_recording"]
 
-    def otel_get_span_context(self, span_id: int):
+    def otel_get_span_context(self, span_id: int) -> OtelSpanContext:
         resp = self._session.post(self._url("/trace/otel/span_context"), json={"span_id": span_id}).json()
         return OtelSpanContext(
             trace_id=resp["trace_id"],
@@ -256,6 +342,9 @@ class _TestSpan:
         self._client = client
         self.span_id = span_id
 
+    def set_resource(self, resource: str):
+        self._client.span_set_resource(self.span_id, resource)
+
     def set_meta(self, key: str, val: str):
         self._client.span_set_meta(self.span_id, key, val)
 
@@ -267,6 +356,24 @@ class _TestSpan:
 
     def add_link(self, parent_id: int, attributes: dict = None):
         self._client.span_add_link(self.span_id, parent_id, attributes)
+
+    def get_name(self):
+        return self._client.span_name(self.span_id)
+
+    def get_resource(self):
+        return self._client.span_resource(self.span_id)
+
+    def get_service(self):
+        return self._client.span_service(self.span_id)
+
+    def get_type(self):
+        return self._client.span_type(self.span_id)
+
+    def get_meta(self, key: str):
+        return self._client.span_meta(self.span_id, key)
+
+    def get_metric(self, key: str):
+        return self._client.span_metric(self.span_id, key)
 
     def finish(self):
         self._client.finish_span(self.span_id)
@@ -280,6 +387,9 @@ class _TestOtelSpan:
     def set_attributes(self, attributes):
         self._client.otel_set_attributes(self.span_id, attributes)
 
+    def set_attribute(self, key, value):
+        self._client.otel_set_attributes(self.span_id, {key: value})
+
     def set_name(self, name):
         self._client.otel_set_name(self.span_id, name)
 
@@ -292,8 +402,17 @@ class _TestOtelSpan:
     def is_recording(self) -> bool:
         return self._client.otel_is_recording(self.span_id)
 
+    def get_attribute(self, key: str):
+        return self._client.otel_get_attribute(self.span_id, key)
+
+    def get_name(self):
+        return self._client.otel_get_name(self.span_id)
+
     def span_context(self) -> OtelSpanContext:
         return self._client.otel_get_span_context(self.span_id)
+
+    def finish(self):
+        self._client.otel_finish_span(self.span_id)
 
 
 class APMLibraryClientGRPC:
@@ -454,7 +573,7 @@ class APMLibraryClientGRPC:
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=span_id)).is_recording
 
-    def otel_get_span_context(self, span_id: int):
+    def otel_get_span_context(self, span_id: int) -> OtelSpanContext:
         sctx = self._client.OtelSpanContext(pb.OtelSpanContextArgs(span_id=span_id))
         return OtelSpanContext(
             trace_id=sctx.trace_id,
@@ -537,11 +656,32 @@ class APMLibrary:
             "trace_id": resp["trace_id"],
         }
 
+    def current_span(self) -> Union[_TestSpan, None]:
+        resp = self._client.current_span()
+        if resp is None:
+            return None
+        return _TestSpan(self._client, resp["span_id"])
+
+    def tracestate(self):
+        return self._client.tracestate()
+
+    def add_distributed_tag(self, key: str, value: str):
+        self._client.add_distributed_tag(key, value)
+
     def flush(self):
         self._client.trace_flush()
 
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
+
+    def otel_current_span(self) -> Union[_TestOtelSpan, None]:
+        resp = self._client.otel_current_span()
+        if resp is None:
+            return None
+        return _TestOtelSpan(self._client, resp["span_id"])
+
+    def otel_is_recording(self, span_id: int) -> bool:
+        return self._client.otel_is_recording(span_id)
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
