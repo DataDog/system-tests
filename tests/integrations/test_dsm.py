@@ -236,7 +236,7 @@ class Test_DsmSQS:
 class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
-    def setup_dsm_sqs(self):
+    def setup_dsm_sns(self):
         self.r = weblog.get("/dsm?integration=sns&timeout=60", timeout=61)
 
     # @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being received.")
