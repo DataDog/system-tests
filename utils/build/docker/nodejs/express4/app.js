@@ -171,7 +171,7 @@ app.get('/dsm', (req, res) => {
 
     sqsProduce(queue, message)
       .then(() => {
-        sqsConsume(queue, timeout)
+        sqsConsume(queue, timeout * 1000)
           .then(() => {
             res.send('ok')
           })
@@ -192,7 +192,7 @@ app.get('/dsm', (req, res) => {
 
     snsPublish(queue, topic, message)
       .then(() => {
-        snsConsume(queue, timeout)
+        snsConsume(queue, timeout * 1000)
           .then(() => {
             res.send('ok')
           })

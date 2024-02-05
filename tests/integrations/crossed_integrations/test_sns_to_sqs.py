@@ -233,6 +233,9 @@ class Test_SNS_Propagation(_Test_SNS):
     BUDDY_TO_WEBLOG_TOPIC = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog_topic"
 
 
+# we should create a test case for testing AWS SNS propagation with XRay headers, but localstack does not allow Xray header to be
+# propagated unless using the Pro version, which we don't have
+
 # @scenarios.crossed_tracing_libraries
 # @features.aws_sns_span_creationcontext_propagation_via_xray_header_with_dd_trace
 # class Test_SNS_Propagation_VIA_AWS_XRAY_HEADERS(_Test_SNS):
