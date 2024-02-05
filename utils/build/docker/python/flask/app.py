@@ -243,9 +243,9 @@ def consume_sqs_message():
 @app.route("/sns/produce")
 def produce_sns_message():
     queue = flask_request.args.get("queue", "DistributedTracing SNS")
-    queue = flask_request.args.get("topic", "DistributedTracing SNS Topic")
+    topic = flask_request.args.get("topic", "DistributedTracing SNS Topic")
     message = "Hello from Python SNS -> SQS"
-    output = sns_produce(queue, message)
+    output = sns_produce(queue, topic, message)
     if "error" in output:
         return output, 400
     else:
