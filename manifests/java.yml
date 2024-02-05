@@ -79,6 +79,9 @@ tests/:
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol:
+            '*': v1.29.0
         test_ldap_injection.py:
           TestLDAPInjection:
             '*': v1.3.0

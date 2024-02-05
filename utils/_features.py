@@ -1928,6 +1928,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_sink_insecure_auth_protocol(test_object):
+        """
+        IAST Sink: Insecure auth protocol
+
+        https://feature-parity.us1.prod.dog/#/?feature=272
+        """
+        pytest.mark.features(feature_id=272)(test_object)
+        return test_object
+
+    @staticmethod
     def container_auto_installation_script(test_object):
         """
         Agent installation script should allow us to install auto-injection software for containers
@@ -1956,3 +1966,4 @@ class features:
         """
         pytest.mark.features(feature_id=276)(test_object)
         return test_object
+
