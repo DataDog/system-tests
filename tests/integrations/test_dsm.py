@@ -244,7 +244,7 @@ class Test_DsmSNS:
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {"producer": 1231913865272259685, "consumer": 6273982990684090851,},
-            "default": {"producer": 15324339529588163753, "consumer": 17483608256829349451,},
+            "default": {"producer": 5712665980795799642, "consumer": 17643872031898844474,},
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
