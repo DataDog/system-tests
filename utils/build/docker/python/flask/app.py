@@ -340,7 +340,9 @@ def dsm():
     elif integration == "sns":
         sns_queue = queue + "-sns"
         sns_topic = topic + "-sns"
-        produce_thread = threading.Thread(target=sns_produce, args=(sns_queue, sns_topic, "Hello, SNS->SQS from DSM python!",))
+        produce_thread = threading.Thread(
+            target=sns_produce, args=(sns_queue, sns_topic, "Hello, SNS->SQS from DSM python!",)
+        )
         consume_thread = threading.Thread(target=sns_consume, args=(sns_queue,))
         produce_thread.start()
         consume_thread.start()
