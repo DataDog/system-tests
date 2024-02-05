@@ -52,7 +52,7 @@ def sns_consume(queue, timeout=60):
                     consumed_message = message["Body"]
                     print("[SNS->SQS] Consumed the following: " + consumed_message)
         except Exception as e:
-            logging.warning("[SNS->SQS] " + e)
+            logging.warning("[SNS->SQS] " + str(e))
         time.sleep(1)
 
     if not consumed_message:
