@@ -296,9 +296,15 @@ def dsm():
     topic = "dsm-system-tests-topic"
     integration = flask_request.args.get("integration")
 
-    # force reset DSM context
+    # force reset DSM context for global tracer and global DSM processor
     try:
         del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+    try:
+        from ddtrace.internal.datastreams import data_streams_processor
+
+        del data_streams_processor()._current_context.value
     except AttributeError:
         pass
 
