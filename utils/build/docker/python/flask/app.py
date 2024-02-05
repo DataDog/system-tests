@@ -296,6 +296,12 @@ def dsm():
     topic = "dsm-system-tests-topic"
     integration = flask_request.args.get("integration")
 
+    # force reset DSM context
+    try:
+        del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+
     logging.info(f"[DSM] Got request with integration: {integration}")
 
     response = Response(f"Integration is not supported: {integration}", 406)
@@ -355,11 +361,6 @@ def dsm():
 
     # force flush stats to ensure they're available to agent after test setup is complete
     tracer.data_streams_processor.periodic()
-    # force reset DSM context
-    try:
-        del tracer.data_streams_processor._current_context
-    except AttributeError:
-        pass
     return response
 
 
