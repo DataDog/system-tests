@@ -487,7 +487,7 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "ruby", reason="library does not yet implement this default configuration")
     @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
     @irrelevant(context.library == "dotnet", reason="library does not implement this default configuration")
-    @irrelevant(context.library < "golang@1.61.0.dev", reason="Default value was updated in v1.61 (w3c phase 2)")
+    @irrelevant(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
     @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
     @irrelevant(context.library == "php", reason="library does not implement this default configuration")
     @irrelevant(context.library == "python", reason="library does not implement this default configuration")
