@@ -103,7 +103,7 @@ const snsConsume = async (queue, timeout) => {
           if (response && response.Messages && response.Messages.length > 0) {
             for (const message of response.Messages) {
               console.log(message)
-              const messageJSON = JSON.parse(message)
+              const messageJSON = JSON.parse(message.Body)
               console.log(messageJSON)
               const consumedMessage = messageJSON.Message
               console.log('[SNS->SQS] Consumed the following: ' + consumedMessage)
