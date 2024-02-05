@@ -9,8 +9,8 @@ def sns_produce(queue, topic, message):
         The goal of this function is to trigger sqs producer calls
     """
     # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://localstack:4566", region_name="us-east-1")
-    sns = boto3.client("sns", endpoint_url="http://localstack:4566", region_name="us-east-1")
+    sqs = boto3.client("sqs", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
+    sns = boto3.client("sns", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
 
     try:
         topic = sns.create_topic(Name=topic)
@@ -39,14 +39,14 @@ def sns_consume(queue, timeout=60):
         The goal of this function is to trigger sqs consumer calls
     """
     # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://localstack:4566", region_name="us-east-1")
+    sqs = boto3.client("sqs", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
 
     consumed_message = None
     start_time = time.time()
 
     while not consumed_message and time.time() - start_time < timeout:
         try:
-            response = sqs.receive_message(QueueUrl=f"http://localstack:4566/000000000000/{queue}")
+            response = sqs.receive_message(QueueUrl=f"http://localstack-main:4566/000000000000/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     consumed_message = message["Body"]

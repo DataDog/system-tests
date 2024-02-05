@@ -248,14 +248,14 @@ class Test_DsmSNS:
             "nodejs": {
                 "producer": 18206246330825886989,
                 "consumer": 271115008390912609,
-                "queue": "dsm-system-tests-queue",
-                "topic": "dsm-system-tests-topic",
+                "queue": "dsm-system-tests-queue-sns",
+                "topic": "dsm-system-tests-topic-sns",
             },
             "default": {
                 "producer": 7228682205928812513,
                 "consumer": 3767823103515000703,
-                "queue": "dsm-system-tests-queue",
-                "topic": "dsm-system-tests-topic",
+                "queue": "dsm-system-tests-queue-sns",
+                "topic": "dsm-system-tests-topic-sns",
             },
         }
 

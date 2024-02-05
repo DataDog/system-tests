@@ -338,8 +338,10 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         return Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",))
-        consume_thread = threading.Thread(target=sns_consume, args=(queue,))
+        sns_queue = queue + "-sns"
+        sns_topic = topic + "-sns"
+        produce_thread = threading.Thread(target=sns_produce, args=(sns_queue, sns_topic, "Hello, SNS->SQS from DSM python!",))
+        consume_thread = threading.Thread(target=sns_consume, args=(sns_queue,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
