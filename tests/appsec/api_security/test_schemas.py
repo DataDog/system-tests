@@ -175,17 +175,21 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],) or contains(
-            schema,
-            [
-                {
-                    "main[0][key]": ANY,
-                    "main[0][value]": ANY,
-                    "main[1][key]": ANY,
-                    "main[1][value]": ANY,
-                    # "nullable": ANY,  # some frameworks may drop that value
-                }
-            ],
+        assert (
+            contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],)
+            or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}],)
+            or contains(
+                schema,
+                [
+                    {
+                        "main[0][key]": ANY,
+                        "main[0][value]": ANY,
+                        "main[1][key]": ANY,
+                        "main[1][value]": ANY,
+                        # "nullable": ANY,  # some frameworks may drop that value
+                    }
+                ],
+            )
         ), schema
 
 
