@@ -487,6 +487,7 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "ruby", reason="library does not yet implement this default configuration")
     @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
     @irrelevant(context.library == "dotnet", reason="library does not implement this default configuration")
+    @irrelevant(context.library == "golang", reason="library does not implement this default configuration")
     @irrelevant(context.library >= "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
     @irrelevant(context.library == "php", reason="library does not implement this default configuration")
