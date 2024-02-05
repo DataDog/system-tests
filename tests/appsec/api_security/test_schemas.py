@@ -177,7 +177,7 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         assert self.request.status_code == 200
         assert (
             contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],)
-            or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [8]}],)
+            or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}],)
             or contains(
                 schema,
                 [
