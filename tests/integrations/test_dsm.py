@@ -196,7 +196,6 @@ class Test_DsmSQS:
     def setup_dsm_sqs(self):
         self.r = weblog.get("/dsm?integration=sqs&timeout=60", timeout=61)
 
-    @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being received.")
     @bug(weblog_variant="express4", reason="DSM checkpoints for AWS SQS from dd-trace-js are not being received.")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -239,8 +238,6 @@ class Test_DsmSNS:
     def setup_dsm_sns(self):
         self.r = weblog.get("/dsm?integration=sns&timeout=60", timeout=61)
 
-    # @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being received.")
-    # @bug(weblog_variant="express4", reason="DSM checkpoints for AWS SQS from dd-trace-js are not being received.")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
@@ -252,10 +249,10 @@ class Test_DsmSNS:
                 "topic": "dsm-system-tests-topic-sns",
             },
             "default": {
-                "producer": 7228682205928812513,
+                "producer": 15324339529588163753,
                 "consumer": 3767823103515000703,
                 "queue": "dsm-system-tests-queue-sns",
-                "topic": "dsm-system-tests-topic-sns",
+                "topic": "arn:aws:sns:us-east-1:000000000000:dsm-system-tests-topic-sns",
             },
         }
 
