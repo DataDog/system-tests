@@ -1936,3 +1936,13 @@ class features:
         """
         pytest.mark.features(feature_id=271)(test_object)
         return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_sns(test_object):
+        """
+        DataStreams Monitoring support for AWS SNS
+
+        https://feature-parity.us1.prod.dog/#/?feature=273
+        """
+        pytest.mark.features(feature_id=273)(test_object)
+        return test_object

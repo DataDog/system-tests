@@ -901,6 +901,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         spring-boot: v1.13.0
+      Test_DsmSNS:
+        "*": irrelevant
+        spring-boot: missing_endpoint (Not implemented yet)
       Test_DsmSQS:
         "*": irrelevant
         spring-boot: v0.1 # real version not known

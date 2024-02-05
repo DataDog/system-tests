@@ -358,6 +358,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         express4: missing_feature
+      Test_DsmSNS:
+        "*": irrelevant
+        express4: v5.2.0
       Test_DsmSQS:
         "*": irrelevant
         express4: v5.2.0

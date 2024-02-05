@@ -514,6 +514,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         '*': irrelevant
         flask-poc: v2.6.0
+      Test_DsmSNS:
+        '*': irrelevant
+        flask-poc: v1.16.0
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0

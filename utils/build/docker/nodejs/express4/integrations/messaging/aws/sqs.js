@@ -63,16 +63,21 @@ const sqsConsume = async (queue, timeout) => {
         }
 
         try {
-          console.log(`[SQS] Received the following ${response}`)
+          console.log('[SQS] Received the following: ')
+          console.log(response)
           if (response && response.Messages && response.Messages.length > 0) {
             for (const message of response.Messages) {
+              console.log(message)
+              console.log(message.MessageAttributes)
               const consumedMessage = message.Body
               console.log('[SQS] Consumed the following: ' + consumedMessage)
             }
             resolve()
           } else {
             console.log('[SQS] No messages received')
-            receiveMessage()
+            setTimeout(() => {
+              receiveMessage()
+            }, 1000)
           }
         } catch (error) {
           console.error('[SQS] Error while consuming messages: ', error)

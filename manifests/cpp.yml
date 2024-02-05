@@ -102,6 +102,7 @@ tests/:
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:

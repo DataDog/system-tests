@@ -361,6 +361,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
