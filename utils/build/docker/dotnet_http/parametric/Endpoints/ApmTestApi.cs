@@ -58,14 +58,14 @@ public abstract class ApmTestApi
 
     internal static readonly SpanContextExtractor _spanContextExtractor = new();
 
-    internal static IEnumerable<string> GetHeaderValues(IHeaderDictionary headers, string key)
+    internal static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
     {
         List<string> values = new List<string>();
-        foreach (var kvp in headers)
+        foreach (var kvp in headersList)
         {
-            if (string.Equals(key, kvp.Key, StringComparison.OrdinalIgnoreCase))
+            if (kvp.Length == 2 && string.Equals(key, kvp[0], StringComparison.OrdinalIgnoreCase))
             {
-                values.Add(kvp.Value.ToString());
+                values.Add(kvp[1]);
             }
         }
 
@@ -89,10 +89,10 @@ public abstract class ApmTestApi
             FinishOnClose = false,
         };
 
-        if (request.Headers.Count > 0) 
+        if (parsedDictionary!.TryGetValue("http_headers", out var headersList))
         {
             creationSettings.Parent = _spanContextExtractor.Extract(
-                request.Headers,
+                ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>()!,
                 getter: GetHeaderValues);
         }
 
@@ -153,21 +153,26 @@ public abstract class ApmTestApi
         span.SetTag(key, value);
     }
 
-    private static Task SpanSetMetric(HttpRequest request)
+    private static async Task SpanSetMetric(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(FindBodyKeyValue(request, "span_id"))];
-        SetMetric.Invoke(span, new object[] { FindBodyKeyValue(request, "key"), FindBodyKeyValue(request, "value") });
-        return Task.CompletedTask;
+        var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(headerBodyDictionary)!;
+        parsedDictionary.TryGetValue("span_id", out var id);
+        parsedDictionary.TryGetValue("key", out var key);
+        parsedDictionary.TryGetValue("value", out var value);
+
+        var span = Spans[Convert.ToUInt64(id)];
+        SetMetric.Invoke(span, new object[] { key!, Convert.ToDouble(value) });
     }
 
     private static async Task SpanSetError(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(FindBodyKeyValue(request, "span_id"))];
+        var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
         span.Error = true;
 
-        var type = await FindBodyKeyValue(request, "type");
-        var message = await FindBodyKeyValue(request, "message");
-        var stack = await FindBodyKeyValue(request, "stack");
+        var type = await FindBodyKeyValueAsync(request, "type");
+        var message = await FindBodyKeyValueAsync(request, "message");
+        var stack = await FindBodyKeyValueAsync(request, "stack");
 
         if (!string.IsNullOrEmpty(type))
         {
@@ -197,40 +202,38 @@ public abstract class ApmTestApi
             throw new NullReferenceException("SpanContextPropagatorInject is null");
         }
 
-        var injectHeadersReturn = new Dictionary<string, Dictionary<string, HttpHeaders>>();
+        var httpHeaders = new List<string[]>();
 
-        var spanId = await FindBodyKeyValue(request, "span_id");
+        var spanId = await FindBodyKeyValueAsync(request, "span_id");
 
-        if (!string.IsNullOrEmpty(spanId) && Spans.TryGetValue(Convert.ToUInt64(spanId), out var span))
+        if (!string.IsNullOrEmpty(spanId as string) && Spans.TryGetValue(Convert.ToUInt64(spanId), out var span))
         {
-            injectHeadersReturn["HttpHeaders"] = new Dictionary<string, HttpHeaders>();
-            
             SpanContext? contextArg = span.Context as SpanContext;
 
             var spanContextPropagator = GetSpanContextPropagator.GetValue(null);
 
             // Define a function to set headers in HttpRequestHeaders
-            static void Setter(HttpHeaders headers, string key, string value) =>
-                headers.TryAddWithoutValidation(key, value);
+            static void Setter(List<string[]> headers, string key, string value) =>
+                headers.Add(new string[] { key, value });
 
             Console.WriteLine(JsonConvert.SerializeObject(new
             {
-                HttpHeaders = injectHeadersReturn["HttpHeaders"]
+                HttpHeaders = httpHeaders
             }));
 
             // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
-            SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, injectHeadersReturn["HttpHeaders"], Setter });
+            SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, httpHeaders, Setter });
         }
         
         return JsonConvert.SerializeObject(new
         {
-            HttpHeaders = injectHeadersReturn["HttpHeaders"]
+            http_headers = httpHeaders
         });
     }
         
     private static async Task FinishSpan(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(await FindBodyKeyValue(request, "span_id"))];
+        var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
         span.Finish();
     }
 
@@ -291,13 +294,14 @@ public abstract class ApmTestApi
             var genericArgs = method.GetGenericArguments();
 
             // Adjusting for HTTP carrier
-            if (parameters.Length == 2 &&
+            if (parameters.Length == 3 &&
                 genericArgs.Length == 1 &&
                 parameters[0].ParameterType == typeof(SpanContext) &&
-                parameters[1].ParameterType == typeof(IList<ITuple>))
+                parameters[1].ParameterType == genericArgs[0] &&
+                parameters[2].ParameterType.Name == "Action`3")
             {
                 // Adjusting the carrier type for HTTP
-                var carrierType = typeof(List<ITuple>);
+                var carrierType = typeof(List<string[]>);
                 return method.MakeGenericMethod(carrierType);
             }
         }
@@ -305,12 +309,12 @@ public abstract class ApmTestApi
         return null;
     }
 
-    internal static async Task<string?> FindBodyKeyValue(HttpRequest httpRequest, string keyToFind)
+    internal static async Task<string> FindBodyKeyValueAsync(HttpRequest httpRequest, string keyToFind)
     {
         var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
         var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
         var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
 
-        return keyFound ? foundValue : String.Empty;
+        return keyFound ? foundValue! : String.Empty;
     }
 }

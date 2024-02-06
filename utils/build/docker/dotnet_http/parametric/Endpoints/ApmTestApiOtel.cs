@@ -59,10 +59,10 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         // try extracting parent context from headers (remote parent)
-        if (request.Headers.Count > 0)
+        if (requestBodyDictionary!.TryGetValue("http_headers", out var headersList))
         {
             var extractedContext = _spanContextExtractor.Extract(
-                    request.Headers, 
+                    ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>()!,
                     getter: GetHeaderValues).DuckCast<IDuckSpanContext>();
             
             _logger.LogInformation("Extracted SpanContext: {ParentContext}", extractedContext);
@@ -143,7 +143,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         // add necessary tags to the activity
         if (requestBodyDictionary.TryGetValue("attributes", out var attributes))
         {
-            await SetTag(activity, attributes.ToString());
+            SetTag(activity, ((Newtonsoft.Json.Linq.JObject)attributes).ToObject<Dictionary<string,object>>());
         }
 
         _logger.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
@@ -171,7 +171,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
         var parsedBody = JsonConvert.DeserializeObject<Dictionary<string, string>>(requestBody);
 
-        _logger.LogInformation("OtelEndSpan: {HeaderRequestBody}", request);
+        _logger.LogInformation("OtelEndSpan: {HeaderRequestBody}", parsedBody);
 
         var activity = FindActivity(parsedBody?["id"]);
         var timestamp = parsedBody?["timestamp"];
@@ -213,12 +213,12 @@ public abstract class ApmTestApiOtel : ApmTestApi
         
         _logger.LogInformation("OtelSpanContext: {Request}", parsedBody);
 
-        var activity = FindActivity(parsedBody?["id"]);
+        var activity = FindActivity(parsedBody?["span_id"]);
 
         var result = JsonConvert.SerializeObject(new
         {
              trace_id = activity.TraceId.ToString(),
-             spand_id = activity.SpanId.ToString(),
+             span_id = activity.SpanId.ToString(),
              trace_flags = ((int)activity.ActivityTraceFlags).ToString("x2"),
              trace_state = activity.TraceStateString ?? "",
              remote = activity.HasRemoteParent
@@ -235,7 +235,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         
         _logger.LogInformation("OtelSetStatus: {Request}", requestBody);
 
-        var code = await FindBodyKeyValue(request, "code");
+        var code = await FindBodyKeyValueAsync(request, "code");
 
         if (Enum.TryParse(code, ignoreCase: true, out ActivityStatusCode statusCode))
         {
@@ -254,8 +254,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
     {
         _logger.LogInformation("OtelSetName: {Request}", request);
 
-        var activity = FindActivity(await FindBodyKeyValue(request, "id"));
-        activity.DisplayName = await FindBodyKeyValue(request, "name") ?? string.Empty;
+        var activity = FindActivity(await FindBodyKeyValueAsync(request, "id"));
+        activity.DisplayName = await FindBodyKeyValueAsync(request, "name") ?? string.Empty;
 
         _logger.LogInformation("OtelSetNameReturn");
     }
@@ -267,7 +267,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         _logger.LogInformation("OtelSetAttributes: {RequestBody}", requestBody);
 
-        await SetTag(FindActivity(parsedBody?["span_id"].ToString()), parsedBody?["attributes"].ToString());
+        SetTag(FindActivity(parsedBody?["span_id"].ToString()), ((Newtonsoft.Json.Linq.JObject?)parsedBody?["attributes"])?.ToObject<Dictionary<string,object>>());
 
         _logger?.LogInformation("OtelSetAttributesReturn");
     }
@@ -295,32 +295,31 @@ public abstract class ApmTestApiOtel : ApmTestApi
         _logger.LogInformation("OtelFlushTraceStatsReturn");
     }
     
-    private static async Task SetTag(Activity activity, string? attributes)
+    private static void SetTag(Activity activity, Dictionary<string,object>? attributes)
     {
-        var parsedAttributes = JsonConvert.DeserializeObject<Dictionary<string, Object>>(attributes!);
-        
-        foreach ((var key, Object values) in parsedAttributes!)
+        if (attributes is null)
         {
-            var valuesList = (values.ToString() ?? string.Empty).ToList();
-            
-            if (valuesList.Count == 1)
+            return;
+        }
+
+        foreach ((string key, object values) in attributes)
+        {
+            if (values is string
+                || values is bool
+                || values is long
+                || values is double)
             {
-                var value = valuesList[0].ToString();
-                
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    activity.SetTag(key, valuesList[0]);
-                }
+                activity.SetTag(key, values);
             }
-            else if (valuesList.Count > 1)
+            else if (values is System.Collections.IEnumerable valuesList)
             {
                 var toAdd = new List<object>();
                 foreach (var value in valuesList)
                 {
-                    var valueToAdd = !string.IsNullOrWhiteSpace(value.ToString()) ? value : throw new InvalidOperationException("Null value in attribute array");
+                    var valueToAdd = ((Newtonsoft.Json.Linq.JValue)value).Value ?? throw new InvalidOperationException("Null value in attribute array");
                     toAdd.Add(valueToAdd);
                 }
-                
+
                 activity.SetTag(key, toAdd);
             }
         }
