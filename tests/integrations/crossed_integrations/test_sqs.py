@@ -82,7 +82,6 @@ class _Test_SQS:
         reason="Expected to fail, Java defaults to using Xray headers to propagate context. \
         NodeJS cannot extract from Xray and will not create an 'aws.response' span if no context is extracted.",
     )
-    @missing_feature(library="python", reason="Expected to fail.")
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
 
@@ -203,6 +202,10 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy = _nodejs_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
+
+    @missing_feature(library="python", reason="Expected to fail. Python and NodeJS are not compatible at the moment")
+    def test_produce(self):
+        super().test_produce()
 
 
 @scenarios.crossed_tracing_libraries
