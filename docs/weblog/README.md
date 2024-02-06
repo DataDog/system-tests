@@ -162,7 +162,7 @@ Then the response should contain json with the format:
 where payload is the parsed body of the request
 
 
-Make sure to especify the Content-Type header as `application/json`
+Make sure to specify the Content-Type header as `application/json`
 
 #### Example
 
