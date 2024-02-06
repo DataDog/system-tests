@@ -329,7 +329,9 @@ class APMLibraryClientGRPC:
         pb_links = []
         for link in links:
             pb_link = pb.SpanLink()
-            if link.get("parent_id") > 0:
+            if link.get("parent_id") and link.http_headers:
+                raise ValueError("Link cannot have both parent_id and http_headers")
+            elif link.get("parent_id"):
                 pb_link.parent_id = link["parent_id"]
             else:
                 link_headers = pb.DistributedHTTPHeaders()

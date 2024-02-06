@@ -84,8 +84,8 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
     for link in args.links:
-        link_parent_id = link["parent_id"]
-        if link_parent_id != 0:  # we have a parent_id to create link instead
+        link_parent_id = link.get("parent_id", 0)
+        if link_parent_id > 0:  # we have a parent_id to create link instead
             link_parent = spans[link_parent_id]
             span.link_span(link_parent.context, link.get("attributes"))
         else:

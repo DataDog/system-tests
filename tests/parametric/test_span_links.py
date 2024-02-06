@@ -47,29 +47,27 @@ class Test_Span_Links:
         given two valid span (or SpanContext) objects" as specified in the RFC.
         """
         with test_library:
-            with test_library.start_span("root") as parent:
-                with test_library.start_span(
-                    "child",
-                    parent_id=parent.span_id,
-                    links=[Link(parent_id=parent.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
-                ):
-                    pass
+            with test_library.start_span("first") as s1:
+                pass
+            with test_library.start_span(
+                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+            ):
+                pass
 
-        traces = test_agent.wait_for_num_traces(1)
-        assert len(traces[0]) == 2
+        traces = test_agent.wait_for_num_traces(2)
+        assert len(traces[0]) == 1
+        assert len(traces[1]) == 1
 
-        root = traces[0][0]
-        span = traces[0][1]
+        first = traces[0][0]
+        second = traces[1][0]
 
-        assert span["parent_id"] == root["span_id"]
-
-        span_links = span["span_links"]
+        span_links = second["span_links"]
         assert len(span_links) == 1
         link = span_links[0]
-        assert link["span_id"] == root["span_id"]
-        assert link["trace_id"] == root["trace_id"]
-        root_tid = root.get("meta", {}).get("_dd.p.tid", 0)
-        assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
+        assert link["span_id"] == first["span_id"]
+        assert link["trace_id"] == first["trace_id"]
+        first_tid = first.get("meta", {}).get("_dd.p.tid", 0)
+        assert (link.get("trace_id_high") or 0) == int(first_tid, 16)
         assert link["attributes"].get("foo") == "bar"
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
@@ -88,29 +86,27 @@ class Test_Span_Links:
         """
         with test_library:
             # create a span that will be sampled
-            with test_library.start_span("root") as parent:
-                with test_library.start_span(
-                    "child",
-                    parent_id=parent.span_id,
-                    links=[Link(parent_id=parent.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
-                ):
-                    pass
+            with test_library.start_span("first") as s1:
+                pass
+            with test_library.start_span(
+                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+            ):
+                pass
 
-        traces = test_agent.wait_for_num_traces(1)
-        assert len(traces[0]) == 2
+        traces = test_agent.wait_for_num_traces(2)
+        assert len(traces[0]) == 1
+        assert len(traces[1]) == 1
 
-        root = traces[0][0]
-        span = traces[0][1]
+        first = traces[0][0]
+        second = traces[1][0]
 
-        assert span["parent_id"] == root["span_id"]
-
-        span_links = json.loads(span.get("meta", {}).get("_dd.span_links"))
+        span_links = json.loads(second.get("meta", {}).get("_dd.span_links"))
         assert len(span_links) == 1
         link = span_links[0]
-        root_tid = root.get("meta", {}).get("_dd.p.tid") or "0000000000000000"
-        root_t64 = "{:016x}".format(span["trace_id"])
-        assert link.get("trace_id") == f"{root_tid}{root_t64}"
-        assert link.get("span_id") == "{:016x}".format(root["span_id"])
+        first_tid_upper64 = first.get("meta", {}).get("_dd.p.tid", "0000000000000000")
+        first_tid_lower64 = "{:016x}".format(first["trace_id"])
+        assert link.get("trace_id") == f"{first_tid_upper64}{first_tid_lower64}"
+        assert link.get("span_id") == "{:016x}".format(first["span_id"])
         assert link["attributes"].get("foo") == "bar"
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
@@ -131,7 +127,6 @@ class Test_Span_Links:
                 "root",
                 links=[
                     Link(
-                        parent_id=0,
                         attributes={"foo": "bar"},
                         http_headers=[
                             ["x-datadog-trace-id", "1234567890"],
@@ -178,7 +173,6 @@ class Test_Span_Links:
                 "root",
                 links=[
                     Link(
-                        parent_id=0,
                         http_headers=[
                             ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                             ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
@@ -218,26 +212,27 @@ class Test_Span_Links:
         """Test adding a span link from a span to another span.
         """
         with test_library:
-            with test_library.start_span("root") as parent:
-                with test_library.start_span("first", parent_id=parent.span_id) as first:
+            with test_library.start_span("root") as rt:
+                with test_library.start_span("second", parent_id=rt.span_id) as s1:
                     pass
-                with test_library.start_span(
-                    "second", parent_id=parent.span_id, links=[Link(parent_id=parent.span_id)]
-                ) as second:
-                    second.add_link(first.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
 
-        traces = test_agent.wait_for_num_traces(1)
-        assert len(traces[0]) == 3
+            with test_library.start_span("third", links=[Link(parent_id=rt.span_id)]) as s2:
+                s2.add_link(s1.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
+
+        traces = test_agent.wait_for_num_traces(2)
+        assert len(traces[0]) == 2
+        assert len(traces[1]) == 1
 
         root = traces[0][0]
         root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
 
-        first = traces[0][1]
-        span = traces[0][2]
+        second = traces[0][1]
+        third = traces[1][0]
 
-        assert span.get("parent_id") == root.get("span_id")
+        assert second.get("parent_id") == root.get("span_id")
+        assert third.get("parent_id") != root.get("span_id")
 
-        span_links = self._get_span_links(span)
+        span_links = self._get_span_links(third)
         assert len(span_links) == 2
 
         link = span_links[0]
@@ -247,8 +242,8 @@ class Test_Span_Links:
         assert len(link.get("attributes") or {}) == 0
 
         link = span_links[1]
-        assert link.get("span_id") == first.get("span_id")
-        assert link.get("trace_id") == first.get("trace_id")
+        assert link.get("span_id") == second.get("span_id")
+        assert link.get("trace_id") == second.get("trace_id")
         assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
         assert len(link.get("attributes")) == 4
         assert link["attributes"].get("bools.0") == "true"
@@ -266,7 +261,6 @@ class Test_Span_Links:
                 "link_w_manual_keep",
                 links=[
                     Link(
-                        parent_id=0,
                         http_headers=[
                             ["x-datadog-trace-id", "666"],
                             ["x-datadog-parent-id", "777"],
@@ -282,7 +276,6 @@ class Test_Span_Links:
                 "link_w_manual_drop",
                 links=[
                     Link(
-                        parent_id=0,
                         http_headers=[
                             ["traceparent", "00-66645678901234567890123456789012-0000000000000011-01"],
                             ["tracestate", "foo=1,dd=t.dm:-3;s:-1,bar=baz"],
