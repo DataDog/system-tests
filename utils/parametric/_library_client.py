@@ -27,9 +27,11 @@ class SpanResponse(TypedDict):
 
 
 class Link(TypedDict):
+    trace_id: int  # 0 to extract from open/closed spans
     parent_id: int  # 0 to extract from headers
     attributes: dict
     http_headers: List[Tuple[str, str]]
+    tracestate: str
 
 
 class APMLibraryClient:
@@ -74,10 +76,10 @@ class APMLibraryClient:
     def add_distributed_tag(self, key: str, value: str) -> None:
         raise NotImplementedError
 
-    def otel_finish_span(self, span_id: int) -> None:
+    def otel_end_span(self, span_id: int, timestamp: int) -> None:
         raise NotImplementedError
 
-    def otel_end_span(self, span_id: int, timestamp: int) -> None:
+    def otel_get_links(self, span_id: int) -> List[Link]:
         raise NotImplementedError
 
     def otel_set_attributes(self, span_id: int, attributes: dict) -> None:
@@ -95,7 +97,7 @@ class APMLibraryClient:
     def otel_get_span_context(self, span_id: int) -> OtelSpanContext:
         raise NotImplementedError
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict, trace_id: int, tracesate: str) -> None:
         raise NotImplementedError
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
@@ -212,9 +214,6 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def finish_span(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
 
-    def otel_finish_span(self, span_id: int) -> None:
-        self._session.post(self._url("/trace/otel/finish_span"), json={"id": span_id,})
-
     def span_set_resource(self, span_id: int, resource: str) -> None:
         self._session.post(self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource,})
 
@@ -230,10 +229,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
         )
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None) -> None:
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None, trace_id: int = 0, tracesate: str = ""):
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {}},
+            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {}, "trace_id": trace_id, "tracestate": tracesate,},
         )
 
     def span_meta(self, span_id: int, key: str):
@@ -300,6 +299,11 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
         self._session.post(self._url("/trace/otel/end_span"), json={"id": span_id, "timestamp": timestamp})
 
+    def otel_get_links(self, span_id: int):
+        resp_json = self._session.post(self._url("/trace/otel/get_links"), json={"span_id": span_id}).json()
+
+        return resp_json["links"]
+
     def otel_set_attributes(self, span_id: int, attributes) -> None:
         self._session.post(self._url("/trace/otel/set_attributes"), json={"span_id": span_id, "attributes": attributes})
 
@@ -354,8 +358,8 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict = None):
-        self._client.span_add_link(self.span_id, parent_id, attributes)
+    def add_link(self, parent_id: int, attributes: dict = None, trace_id: int = 0, tracestate: str = ""):
+        self._client.span_add_link(self.span_id, parent_id, attributes, trace_id, tracestate)
 
     def get_name(self):
         return self._client.span_name(self.span_id)
@@ -411,8 +415,8 @@ class _TestOtelSpan:
     def span_context(self) -> OtelSpanContext:
         return self._client.otel_get_span_context(self.span_id)
 
-    def finish(self):
-        self._client.otel_finish_span(self.span_id)
+    def get_links(self):
+        return self._client.otel_get_links(self.span_id)
 
 
 class APMLibraryClientGRPC:
@@ -691,3 +695,6 @@ class APMLibrary:
     ):
         """Do an HTTP request with the given method and headers."""
         return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)
+
+    def get_links(self, span_id: int):
+        return self._client.get_links(span_id)

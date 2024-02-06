@@ -64,7 +64,10 @@ function remappedSpanKind($spanKind) {
     }
 }
 
+/** @var \DDTrace\SpanData $closed_spans */
 $closed_spans = $spans = [];
+/** @var Span[] $otelSpans */
+$otelSpans = [];
 /** @var ScopeInterface[] $scopes */
 $scopes = [];
 
@@ -130,6 +133,11 @@ $router->addRoute('POST', '/trace/span/inject_headers', new ClosureRequestHandle
     $headers = \DDTrace\generate_distributed_tracing_headers();
     return jsonResponse(["http_headers" => array_map(null, array_keys($headers), $headers)]);
 }));
+$router->addRoute('POST', '/trace/span/set_resource', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $span->resource = arg($req, 'resource');
+    return jsonResponse([]);
+}));
 $router->addRoute('POST', '/trace/span/set_meta', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
     $span->meta[arg($req, 'key')] = arg($req, 'value');
@@ -150,8 +158,18 @@ $router->addRoute('POST', '/trace/span/error', new ClosureRequestHandler(functio
 $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
     $span = $spans[arg($req, 'span_id')];
     $parent_id = arg($req, 'parent_id');
-    $span->links[] = $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
-    $link->attributes += arg($req, "attributes") ?? [];
+    if (isset($spans[$parent_id]) || isset($closed_spans[$parent_id])) {
+        $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
+        $link->attributes += arg($req, "attributes") ?? [];
+    } else {
+        $link = new \DDTrace\SpanLink();
+        $link->traceId = arg($req, 'trace_id');
+        $link->spanId = arg($req, 'parent_id');
+        $link->attributes = arg($req, 'attributes') ?? [];
+        $link->traceState = arg($req, 'trace_state') ?? "";
+    }
+
+    $span->links[] = $link;
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
@@ -162,12 +180,37 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
     unset($spans[$span_id]);
     return jsonResponse([]);
 }));
+$router->addRoute('POST', '/trace/span/get_resource', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    return jsonResponse([
+        'value' => $span->resource
+    ]);
+}));
+$router->addRoute('POST', '/trace/span/get_meta', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    return jsonResponse([
+        'value' => $span->meta[arg($req, 'key')]
+    ]);
+}));
+$router->addRoute('POST', '/trace/span/get_metric', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    return jsonResponse([
+        'value' => $span->metrics[arg($req, 'key')]
+    ]);
+}));
 $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(function () use (&$spans) {
     \DDTrace\flush();
     dd_trace_internal_fn("synchronous_flush");
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(function (Request $req) use (&$spans, &$scopes) {
+$router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(function () use (&$spans) {
+    $span = \DDTrace\active_span();
+    return jsonResponse([
+        "span_id" => $span->id,
+        "trace_id" => \DDTrace\trace_id()
+    ]);
+}));
+$router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(function (Request $req) use (&$spans, &$otelSpans, &$scopes) {
     $name = arg($req, 'name');
     $timestamp = arg($req, 'timestamp');
     $spanKind = arg($req, 'span_kind');
@@ -210,23 +253,25 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         $spanBuilder->setAttributes($attributes);
     }
 
+    /** @var SDK\Span $span */
     $span = $spanBuilder->startSpan();
     $spanId = $span->getContext()->getSpanId();
     $traceId = $span->getContext()->getTraceId();
     $scopes[$spanId] = $span->activate();
-    $spans[$spanId] = $span;
+    $otelSpans[$spanId] = $span;
+    $spans[$spanId] = $span->getDDSpan();
 
     return jsonResponse([
         'span_id' => $spanId,
         'trace_id' => $traceId
     ]);
 }));
-$router->addRoute('POST', '/trace/otel/end_span', new ClosureRequestHandler(function (Request $req) use (&$spans, &$scopes) {
+$router->addRoute('POST', '/trace/otel/end_span', new ClosureRequestHandler(function (Request $req) use (&$otelSpans, &$scopes) {
     $spanId = arg($req, 'id');
     $timestamp = arg($req, 'timestamp');
 
     /** @var ?Span $span */
-    $span = $spans[$spanId];
+    $span = $otelSpans[$spanId];
     if ($span) {
         $scope = $scopes[$spanId];
         $scope?->detach();
@@ -235,31 +280,31 @@ $router->addRoute('POST', '/trace/otel/end_span', new ClosureRequestHandler(func
 
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/otel/set_attributes', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/otel/set_attributes', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
     $attributes = arg($req, 'attributes');
 
     /** @var ?Span $span */
-    $span = $spans[$spanId];
+    $span = $otelSpans[$spanId];
     if ($span) {
         $span->setAttributes($attributes);
     }
 
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/otel/set_name', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/otel/set_name', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
     $name = arg($req, 'name');
 
     /** @var ?Span $span */
-    $span = $spans[$spanId];
+    $span = $otelSpans[$spanId];
     if ($span) {
         $span->updateName($name);
     }
 
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
     $code = arg($req, 'code');
     $description = arg($req, 'description');
@@ -277,23 +322,23 @@ $router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(fu
     }
 
     /** @var ?Span $span */
-    $span = $spans[$spanId];
+    $span = $otelSpans[$spanId];
     $span?->setStatus($code, $description);
 
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/otel/flush', new ClosureRequestHandler(function (Request $req) {
     \DDTrace\flush();
     dd_trace_internal_fn("synchronous_flush");
      return jsonResponse([
          'success' => true
      ]);
 }));
-$router->addRoute('POST', '/trace/otel/is_recording', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/otel/is_recording', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
 
     /** @var ?Span $span */
-    $span = $spans[$spanId];
+    $span = $otelSpans[$spanId];
     if ($span) {
         return jsonResponse([
             'is_recording' => $span->isRecording()
@@ -302,11 +347,11 @@ $router->addRoute('POST', '/trace/otel/is_recording', new ClosureRequestHandler(
 
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
 
     /** @var ?SDK\Span $span */
-    $span = $spans[$spanId];
+    $span = $otelSpans[$spanId];
     if ($span) {
         $spanContext = $span->getContext();
 
@@ -316,6 +361,58 @@ $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(
             'trace_flags' => $spanContext->getTraceFlags() ? '01' : '00',
             'trace_state' => (string) $spanContext->getTraceState(), // Implements __toString()
             'remote' => $spanContext->isRemote()
+        ]);
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    $span = Span::getCurrent();
+    $spanId = $span->getContext()->getSpanId();
+    $traceId = $span->getContext()->getTraceId();
+
+    if ($spanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $traceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
+        $otelSpans[$spanId] = $span;
+    }
+
+    return jsonResponse([
+        'span_id' => $spanId,
+        'trace_id' => $traceId
+    ]);
+}));
+$router->addRoute('POST', '/trace/otel/get_attribute', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    $spanId = arg($req, 'span_id');
+    $key = arg($req, 'key');
+
+    /** @var ?SDK\Span $span */
+    $span = $otelSpans[$spanId];
+    if ($span) {
+        return jsonResponse([
+            'value' => $span->getAttribute($key)
+        ]);
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/get_links', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    $spanId = arg($req, 'span_id');
+
+    /** @var ?SDK\Span $span */
+    $span = $otelSpans[$spanId];
+    if ($span) {
+        $links = $span->toSpanData()->getLinks();
+        $linksData = [];
+        foreach ($links as $link) {
+            $linksData[] = [
+                'trace_id' => $link->getSpanContext()->getTraceId(),
+                'span_id' => $link->getSpanContext()->getSpanId(),
+                'attributes' => $link->getAttributes(),
+                'tracestate' => (string) $link->getSpanContext()->getTraceState(),
+            ];
+        }
+
+        return jsonResponse([
+            'links' => $linksData
         ]);
     }
 

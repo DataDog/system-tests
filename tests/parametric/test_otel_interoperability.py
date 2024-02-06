@@ -13,6 +13,10 @@ pytestmark = pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
 )
 
+TEST_TRACE_ID = 42
+TEST_SPAN_ID = 3
+TEST_TRACESTATE = "dd=t.dm:-0"
+TEST_ATTRIBUTES = {"arg1": "val1"}
 
 @scenarios.parametric
 class Test_Otel_Interoperability:
@@ -251,22 +255,81 @@ class Test_Otel_Interoperability:
         trace = find_trace_by_root(traces, OtelSpan(resource="my_new_resource2"))
         assert len(trace) == 1
 
+    def test_span_links_basic(self, test_agent, test_library):
+        """
+            - Test that links are set/updated/removed across APIs
+        """
+        with test_library:
+            with test_library.start_span("dd.span") as dd_span:
+                dd_span.add_link(
+                    parent_id=TEST_SPAN_ID,
+                    attributes=TEST_ATTRIBUTES,
+                    trace_id=TEST_TRACE_ID,
+                    tracestate=TEST_TRACESTATE,
+                )
+
+                otel_span = test_library.otel_current_span()
+                otel_span_links = otel_span.get_links()
+
+                assert len(otel_span_links) == 1
+
+                otel_link = otel_span_links[0]
+                assert otel_link["trace_id"] == TEST_TRACE_ID
+                assert otel_link["span_id"] == TEST_SPAN_ID
+                assert otel_link["tracestate"] == TEST_TRACESTATE
+                assert otel_link["attributes"] == TEST_ATTRIBUTES
+
+                dd_span.finish()
+
+    def test_span_links_add(self, test_agent, test_library):
+        """
+            - Test that links are added across APIs
+        """
+        with test_library:
+            with test_library.otel_start_span("otel.span") as otel_span:
+                current_span = test_library.current_span()
+
+                current_span.add_link(
+                    parent_id=TEST_SPAN_ID,
+                    attributes=TEST_ATTRIBUTES,
+                    trace_id=TEST_TRACE_ID,
+                    tracestate=TEST_TRACESTATE,
+                )
+
+                otel_span_links = otel_span.get_links()
+                assert len(otel_span_links) == 1
+
+                otel_link = otel_span_links[0]
+                assert otel_link["trace_id"] == TEST_TRACE_ID
+                assert otel_link["span_id"] == TEST_SPAN_ID
+                assert otel_link["tracestate"] == TEST_TRACESTATE
+                assert otel_link["attributes"] == TEST_ATTRIBUTES
+
+                otel_span.end_span()
+
+
     def do_concurrent_traces_assertions(self, test_agent):
         traces = test_agent.wait_for_num_traces(2)
+
         trace1 = find_trace_by_root(traces, OtelSpan(resource="otel_root"))
         assert len(trace1) == 2
+
         trace2 = find_trace_by_root(traces, Span(name="dd_root"))
         assert len(trace2) == 2
+
         root1 = root_span(trace1)
         root2 = root_span(trace2)
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
+
         child1 = find_span(trace1, OtelSpan(resource="otel_child"))
         child2 = find_span(trace2, Span(name="dd_child"))
         assert child1["resource"] == "otel_child"
         assert child2["name"] == "dd_child"
+
         assert child1["parent_id"] == root1["span_id"]
         assert child2["parent_id"] == root2["span_id"]
+
         assert root1["trace_id"] == child1["trace_id"]
         assert root2["trace_id"] == child2["trace_id"]
         assert root1["trace_id"] != root2["trace_id"]
@@ -280,10 +343,10 @@ class Test_Otel_Interoperability:
                 with test_library.start_span(name="dd_child", parent_id=otel_root.span_id) as dd_child:
                     with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                         with test_library.otel_start_span(name="otel_child", parent_id=dd_root.span_id) as otel_child:
-                            otel_child.finish()
+                            otel_child.end_span()
                         dd_root.finish()
                     dd_child.finish()
-                otel_root.finish()
+                otel_root.end_span()
 
         self.do_concurrent_traces_assertions(test_agent)
 
@@ -296,7 +359,7 @@ class Test_Otel_Interoperability:
                 with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                     with test_library.otel_start_span(name="otel_child", parent_id=otel_root.span_id) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
-                            otel_child.finish()
+                            otel_child.end_span()
 
                             current_span = test_library.current_span()
                             assert current_span.span_id == dd_child.span_id
@@ -308,7 +371,7 @@ class Test_Otel_Interoperability:
 
                     current_span = test_library.current_span()
                     assert current_span.span_id == otel_root.span_id
-                otel_root.finish()
+                otel_root.end_span()
 
         self.do_concurrent_traces_assertions(test_agent)
 
@@ -321,7 +384,7 @@ class Test_Otel_Interoperability:
                 with test_library.otel_start_span("otel_root") as otel_root:
                     with test_library.otel_start_span(name="otel_child", parent_id=otel_root.span_id) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
-                            otel_child.finish()
+                            otel_child.end_span()
 
                             current_span = test_library.current_span()
                             assert current_span.span_id == dd_child.span_id
@@ -333,7 +396,6 @@ class Test_Otel_Interoperability:
 
                     current_span = test_library.current_span()
                     assert current_span.span_id == otel_root.span_id
-                otel_root.finish()
+                otel_root.end_span()
 
         self.do_concurrent_traces_assertions(test_agent)
-
