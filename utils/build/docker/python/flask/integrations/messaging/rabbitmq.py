@@ -1,10 +1,13 @@
 import kombu
 
+from ddtrace import tracer, Pin
+
 
 def rabbitmq_produce(queue, exchange, message):
     conn = kombu.Connection("amqp://rabbitmq:5672")
     conn.connect()
     producer = conn.Producer()
+    Pin.override(producer, tracer=tracer)
 
     task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
     to_publish = {"message": message}
@@ -21,7 +24,8 @@ def rabbitmq_consume(queue, exchange, timeout=60):
         message.ack()
         messages.append(message.payload)
 
-    with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]):
+    with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]) as consumer:
+        Pin.override(consumer, tracer=tracer)
         conn.drain_events(timeout=timeout)
 
     if messages:

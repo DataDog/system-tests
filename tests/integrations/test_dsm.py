@@ -196,15 +196,14 @@ class Test_DsmSQS:
     def setup_dsm_sqs(self):
         self.r = weblog.get("/dsm?integration=sqs&timeout=60", timeout=61)
 
-    @bug(weblog_variant="flask-poc", reason="DSM checkpoints for AWS SQS from dd-trace-py are not being received.")
-    @bug(weblog_variant="express4", reason="DSM checkpoints for AWS SQS from dd-trace-js are not being received.")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
         language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {
                 "producer": 18206246330825886989,
-                "consumer": 271115008390912609,
+                "consumer": 5236533131035234664,
                 "topic": "dsm-system-tests-queue",
             },
             "java": {
