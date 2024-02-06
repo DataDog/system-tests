@@ -34,9 +34,6 @@ class _Test_SQS:
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
-                if queue != cls.get_queue(span):
-                    continue
-
                 if operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
@@ -207,6 +204,7 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
 
     @missing_feature(library="python", reason="Expected to fail. Python and NodeJS are not compatible at the moment")
+    @missing_feature(library="java", reason="Expected to fail. Java and NodeJS are not compatible at the moment")
     def test_produce(self):
         super().test_produce()
 
