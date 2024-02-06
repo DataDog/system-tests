@@ -74,20 +74,40 @@ class Test_DsmRabbitmq:
             producer_hash = 5080618047473654667
             consumer_hash = 12436096712734841122
             # node does not have access to the queue argument and defaults to using the routing key
-            edge_tags = ("direction:in", "topic:systemTestDirectRoutingKey", "type:rabbitmq")
+            edge_tags_in = ("direction:in", "topic:systemTestDirectRoutingKey", "type:rabbitmq")
+            edge_tags_out = (
+                "direction:out",
+                "exchange:systemTestDirectExchange",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            )
+        elif context.library == "rabbitmq":
+            producer_hash = 3519882823224826180
+            consumer_hash = 13984784774671877513
+            edge_tags_in = ("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq")
+            edge_tags_out = (
+                "direction:out",
+                "exchange:systemTestDirectExchange",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            )
         else:
             producer_hash = 6176024609184775446
             consumer_hash = 1648106384315938543
-            edge_tags = ("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq")
+            edge_tags_in = ("direction:in", "topic:dsm-system-tests-queue", "type:rabbitmq")
+            edge_tags_out = (
+                "direction:out",
+                "exchange:dsm-system-tests-queue",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash,
-            parent_hash=0,
-            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
+            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
