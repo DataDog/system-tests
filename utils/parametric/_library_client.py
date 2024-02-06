@@ -39,6 +39,7 @@ class APMLibraryClient:
         origin: str,
         http_headers: List[Tuple[str, str]],
         links: List[Link],
+        tags: List[Tuple[str, str]],
     ) -> StartSpanResponse:
         raise NotImplementedError
 
@@ -137,6 +138,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         origin: str,
         http_headers: Optional[List[Tuple[str, str]]],
         links: Optional[List[Link]],
+        tags: Optional[List[Tuple[str, str]]],
     ):
         resp = self._session.post(
             self._url("/trace/span/start"),
@@ -314,10 +316,15 @@ class APMLibraryClientGRPC:
         origin: str,
         http_headers: List[Tuple[str, str]],
         links: List[Link],
+        tags: List[Tuple[str, str]],
     ):
         distributed_message = pb.DistributedHTTPHeaders()
         for key, value in http_headers:
             distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
+
+        pb_tags = []
+        for key, value in tags:
+            pb_tags.append(pb.HeaderTuple(key=key, value=value))
 
         pb_links = []
         for link in links:
@@ -343,6 +350,7 @@ class APMLibraryClientGRPC:
                 origin=origin,
                 http_headers=distributed_message,
                 span_links=pb_links,
+                span_tags=pb_tags,
             )
         )
         return {
@@ -480,6 +488,7 @@ class APMLibrary:
         origin: str = "",
         http_headers: Optional[List[Tuple[str, str]]] = None,
         links: Optional[List[Link]] = None,
+        tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
             name=name,
@@ -490,6 +499,7 @@ class APMLibrary:
             origin=origin,
             http_headers=http_headers if http_headers is not None else [],
             links=links if links is not None else [],
+            tags=tags if tags is not None else [],
         )
         span = _TestSpan(self._client, resp["span_id"])
         yield span

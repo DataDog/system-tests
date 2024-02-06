@@ -31,17 +31,13 @@ from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
 
-from ddtrace import config
-
-# enable botocore distributed tracing
-config.botocore.propagation_enabled = True
-
-ddtrace.patch_all(kombu=True)
-
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+# Patch kombu since its not patched automatically
+ddtrace.patch_all(kombu=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -296,6 +292,8 @@ def dsm():
     topic = "dsm-system-tests-topic"
     integration = flask_request.args.get("integration")
 
+    logging.info(f"[DSM] Got request with integration: {integration}")
+
     # force reset DSM context for global tracer and global DSM processor
     try:
         del tracer.data_streams_processor._current_context.value
@@ -307,8 +305,6 @@ def dsm():
         del data_streams_processor()._current_context.value
     except AttributeError:
         pass
-
-    logging.info(f"[DSM] Got request with integration: {integration}")
 
     response = Response(f"Integration is not supported: {integration}", 406)
 

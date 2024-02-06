@@ -12,10 +12,10 @@ const passport = require('passport')
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
+const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
+const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
-const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
-const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 
 iast.initData().catch(() => {})
 
@@ -157,12 +157,12 @@ app.get('/dsm', (req, res) => {
           })
           .catch((error) => {
             console.log(error)
-            res.status(500).send('[Kafka] Internal Server Error during Kafka consume')
+            res.status(500).send('[Kafka] Internal Server Error during DSM Kafka consume')
           })
       })
       .catch((error) => {
         console.log(error)
-        res.status(500).send('[Kafka] Internal Server Error during Kafka produce')
+        res.status(500).send('[Kafka] Internal Server Error during DSM Kafka produce')
       })
   } else if (integration === 'sqs') {
     const queue = 'dsm-system-tests-queue'
@@ -220,15 +220,15 @@ app.get('/dsm', (req, res) => {
           })
           .catch((error) => {
             console.error(error)
-            res.status(500).send('Internal Server Error during RabbitMQ DSM consume')
+            res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM consume')
           })
       })
       .catch((error) => {
         console.error(error)
-        res.status(500).send('Internal Server Error during RabbitMQ DSM produce')
+        res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM produce')
       })
   } else {
-    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS]')
+    res.status(400).send('[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS]')
   }
 })
 
@@ -323,11 +323,11 @@ app.get('/rabbitmq/produce', (req, res) => {
 
   rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
     .then(() => {
-      res.status(200).send('produce ok')
+      res.status(200).send('[RabbitMQ] produce ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during RabbitMQ produce')
+      res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ produce')
     })
 })
 
@@ -337,11 +337,11 @@ app.get('/rabbitmq/consume', (req, res) => {
 
   rabbitmqConsume(queue, timeout * 1000)
     .then(() => {
-      res.status(200).send('consume ok')
+      res.status(200).send('[RabbitMQ] consume ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during RabbitMQ consume')
+      res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ consume')
     })
 })
 
@@ -359,7 +359,13 @@ app.all('/tag_value/:tag/:status', (req, res) => {
     res.set(k, v)
   }
 
-  res.status(req.params.status || 200).send('Value tagged')
+  res.status(req.params.status || 200)
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body })
+  } else {
+    res.send('Value tagged')
+  }
 })
 
 app.get('/read_file', (req, res) => {
@@ -421,6 +427,6 @@ require('./auth')(app, passport, tracer)
 require('./graphql')(app)
 
 app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => { })
+  tracer.trace('init.service', () => {})
   console.log('listening')
 })
