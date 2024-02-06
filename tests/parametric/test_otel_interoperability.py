@@ -3,18 +3,18 @@ import pytest
 from ddapm_test_agent.trace import Span, root_span
 from typing import Union
 from utils import bug, missing_feature, irrelevant, context, scenarios
-from utils.parametric.spec.otel_trace import SK_INTERNAL, OtelSpan
+from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER, OtelSpan
 from utils.parametric.spec.trace import find_trace_by_root, find_span
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1",}],
 )
 
-TEST_TRACE_ID = 42
-TEST_SPAN_ID = 3
+TEST_TRACE_ID = "ff0000000000051791e0000000000041"
+TEST_SPAN_ID = "ff00000000000517"
 TEST_TRACESTATE = "dd=t.dm:-0"
 TEST_ATTRIBUTES = {"arg1": "val1"}
 
@@ -29,7 +29,7 @@ class Test_Otel_Interoperability:
                 current_span = test_library.current_span()
 
                 assert current_span is not None
-                assert current_span.span_id == otel_span.span_id
+                assert "{0:x}".format(int(current_span.span_id)) == otel_span.span_id
 
                 otel_span.end_span()
 
@@ -39,12 +39,12 @@ class Test_Otel_Interoperability:
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
-                current_span = test_library.otel_current_span()
+                otel_current_span = test_library.otel_current_span()
 
-                assert current_span is not None
-                assert current_span.span_id == dd_span.span_id
+                assert otel_current_span is not None
+                assert otel_current_span.span_id == "{0:x}".format(int(dd_span.span_id))
 
-                dd_span.end_span()
+                dd_span.finish()
 
     def test_has_ended(self, test_agent, test_library):
         """
@@ -73,18 +73,18 @@ class Test_Otel_Interoperability:
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
+                print("DD span id: " + dd_span.span_id)
                 with test_library.otel_start_span(name="otel_span", span_kind=SK_INTERNAL, parent_id=dd_span.span_id) as otel_span:
+                    print("Otel span id: " + otel_span.span_id)
                     current_span = test_library.current_span()
                     otel_context = otel_span.span_context()
 
-                    assert current_span["trace_id"] == otel_context["trace_id"]
-                    assert current_span["span_id"] == otel_context["span_id"]
-
-                    assert dd_span["trace_id"] == current_span["trace_id"]
-                    assert dd_span["span_id"] == current_span["parent_id"]
+                    assert current_span.trace_id == otel_context.get("trace_id")
+                    assert "{0:x}".format(int(current_span.span_id)) == otel_context.get("span_id")
+                    assert dd_span.span_id == current_span.parent_id
 
                     otel_span.end_span()
-                dd_span.end_span()
+                dd_span.finish()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, Span(name="dd_span"))
@@ -101,25 +101,32 @@ class Test_Otel_Interoperability:
         """
         with test_library:
             with test_library.otel_start_span(name="otel_span", span_kind=SK_INTERNAL) as otel_span:
+                print("Otel span id: " + otel_span.span_id)
                 with test_library.start_span(name="dd_span", parent_id=otel_span.span_id) as dd_span:
+                    print("DD span id: " + dd_span.span_id)
                     current_span = test_library.current_span()
                     otel_context = otel_span.span_context()
 
-                    assert current_span["trace_id"] == otel_context["trace_id"]
-                    assert current_span["span_id"] == otel_context["span_id"]
+                    assert current_span.trace_id == otel_context.get("trace_id")
+                    assert current_span.span_id == dd_span.span_id
+                    if isinstance(current_span.parent_id, int):
+                        assert "{0:x}".format(current_span.parent_id) == otel_span.span_id
+                    else:
+                        assert "{0:x}".format(int(current_span.parent_id)) == otel_span.span_id
 
-                    assert dd_span["trace_id"] == current_span["trace_id"]
-                    assert dd_span["span_id"] == current_span["parent_id"]
+                    dd_span.finish()
 
-                    dd_span.end_span()
+                otel_current_span = test_library.otel_current_span()
+                assert otel_current_span.span_id == otel_span.span_id
+
                 otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="dd_span"))
+        trace = find_trace_by_root(traces, OtelSpan(name="internal"))
         assert len(trace) == 2
 
         root = root_span(trace)
-        span = find_span(trace, OtelSpan(resource="otel_span"))
+        span = find_span(trace, Span(name="dd_span"))
 
         assert span.get("parent_id") == root.get("span_id")
 
@@ -239,17 +246,17 @@ class Test_Otel_Interoperability:
 
                 dd_span.set_resource("my_new_resource")
                 assert dd_span.get_resource() == "my_new_resource"
-                assert otel_span.get_resource() == "my_new_resource"
+                assert otel_span.get_name() == "my_new_resource"
 
-                otel_span.set_resource("my_new_resource2")
+                otel_span.set_name("my_new_resource2")
                 assert dd_span.get_resource() == "my_new_resource2"
-                assert otel_span.get_resource() == "my_new_resource2"
+                assert otel_span.get_name() == "my_new_resource2"
 
                 dd_span.finish()
 
-                otel_span.set_resource("my_new_resource3")
+                otel_span.set_name("my_new_resource3")
                 assert dd_span.get_resource() == "my_new_resource2"
-                assert otel_span.get_resource() == "my_new_resource2"
+                assert otel_span.get_name() == "my_new_resource2"
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, OtelSpan(resource="my_new_resource2"))
@@ -281,6 +288,8 @@ class Test_Otel_Interoperability:
 
                 dd_span.finish()
 
+                # TODO: Add span
+
     def test_span_links_add(self, test_agent, test_library):
         """
             - Test that links are added across APIs
@@ -311,7 +320,7 @@ class Test_Otel_Interoperability:
     def do_concurrent_traces_assertions(self, test_agent):
         traces = test_agent.wait_for_num_traces(2)
 
-        trace1 = find_trace_by_root(traces, OtelSpan(resource="otel_root"))
+        trace1 = find_trace_by_root(traces, OtelSpan(name="server.request"))
         assert len(trace1) == 2
 
         trace2 = find_trace_by_root(traces, Span(name="dd_root"))
@@ -320,9 +329,9 @@ class Test_Otel_Interoperability:
         root1 = root_span(trace1)
         root2 = root_span(trace2)
         assert root1["resource"] == "otel_root"
-        assert root2["name"] == "dd_root"
+        assert root2["name"] == "server.request"
 
-        child1 = find_span(trace1, OtelSpan(resource="otel_child"))
+        child1 = find_span(trace1, OtelSpan(name="internal"))
         child2 = find_span(trace2, Span(name="dd_child"))
         assert child1["resource"] == "otel_child"
         assert child2["name"] == "dd_child"
@@ -339,7 +348,7 @@ class Test_Otel_Interoperability:
             - Basic concurrent traces and spans
         """
         with test_library:
-            with test_library.otel_start_span("otel_root") as otel_root:
+            with test_library.otel_start_span("otel_root", span_kind=SK_SERVER) as otel_root:
                 with test_library.start_span(name="dd_child", parent_id=otel_root.span_id) as dd_child:
                     with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                         with test_library.otel_start_span(name="otel_child", parent_id=dd_root.span_id) as otel_child:
@@ -355,9 +364,9 @@ class Test_Otel_Interoperability:
             - Concurrent traces with nested start/end, with the first trace being opened with the OTel API
         """
         with test_library:
-            with test_library.otel_start_span("otel_root") as otel_root:
+            with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
                 with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
-                    with test_library.otel_start_span(name="otel_child", parent_id=otel_root.span_id) as otel_child:
+                    with test_library.otel_start_span(name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
                             otel_child.end_span()
 
