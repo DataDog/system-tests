@@ -58,7 +58,7 @@ jobs:
         if: ${{ matrix.variant.version == 'dev' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.variant.client }}
       - name: Run
-        run: ./run.sh PARAMETRIC
+        run: timeout 1200s ./run.sh PARAMETRIC
       - name: Compress logs
         id: compress_logs
         if: always()
