@@ -7,8 +7,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: missing_feature
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_DD_processors: v5.3.0
+        Test_API_Security_RC_ASM_DD_scanners: v5.3.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
