@@ -1934,7 +1934,7 @@ class features:
 
         https://feature-parity.us1.prod.dog/#/?feature=274
         """
-        pytest.mark.features(feature_id=270)(test_object)
+        pytest.mark.features(feature_id=274)(test_object)
         return test_object
 
     @staticmethod
@@ -1944,7 +1944,7 @@ class features:
 
         https://feature-parity.us1.prod.dog/#/?feature=275
         """
-        pytest.mark.features(feature_id=270)(test_object)
+        pytest.mark.features(feature_id=275)(test_object)
         return test_object
 
     @staticmethod
@@ -1954,5 +1954,5 @@ class features:
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
-        pytest.mark.features(feature_id=270)(test_object)
+        pytest.mark.features(feature_id=276)(test_object)
         return test_object
