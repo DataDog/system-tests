@@ -62,7 +62,8 @@ jobs:
         run: |
           COUNTER=1
           while [ $COUNTER -le 3 ]; do
-            timeout 20s ./run.sh PARAMETRIC
+            echo "Running parametric test attempt $COUNTER"
+            timeout 60s ./run.sh PARAMETRIC
             #timneout returns 124 if it times out
             if [ $? -ne 124 ]; then
               break
