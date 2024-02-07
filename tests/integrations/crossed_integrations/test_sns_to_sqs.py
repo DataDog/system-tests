@@ -103,6 +103,11 @@ class _Test_SNS:
         )
 
     @missing_feature(library="python", reason="Expected to fail. Python and NodeJS are not compatible at the moment")
+    @missing_feature(
+        library="java",
+        reason="Expected to fail. Java will produce a message with propagation via AWSTraceHeader and node \
+        will not produce a response since no context will be found.",
+    )
     def test_produce(self):
         """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
         assert self.production_response.status_code == 200
@@ -119,6 +124,11 @@ class _Test_SNS:
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(library="python", reason="Expected to fail. Python does not propagate context.")
+    @missing_feature(
+        library="java",
+        reason="Expected to fail. Java will produce a message with propagation via AWSTraceHeader and node \
+        will not produce a response since no context will be found.",
+    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(

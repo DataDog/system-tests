@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
 from utils.tools import logger
 
 
@@ -262,6 +262,7 @@ class Test_DsmSNS:
             timeout=61,
         )
 
+    @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 

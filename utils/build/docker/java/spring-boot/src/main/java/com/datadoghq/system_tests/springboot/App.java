@@ -294,7 +294,7 @@ public class App {
     ResponseEntity<String> kafkaProduce(@RequestParam(required = true) String topic) {
         KafkaConnector kafka = new KafkaConnector(topic);
         try {
-            kafka.produceMessageWithoutNewThread("DistributedTracing");
+            kafka.produceMessageWithoutNewThread("DistributedTracing from Java");
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start producing message...");
             e.printStackTrace();
@@ -327,7 +327,7 @@ public class App {
     ResponseEntity<String> sqsProduce(@RequestParam(required = true) String queue) {
         SqsConnector sqs = new SqsConnector(queue);
         try {
-            sqs.produceMessageWithoutNewThread("DistributedTracing SQS");
+            sqs.produceMessageWithoutNewThread("DistributedTracing SQS from Java");
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -356,7 +356,7 @@ public class App {
         SnsConnector sns = new SnsConnector(topic);
         SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
         try {
-            sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS", sqs);
+            sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS from Java", sqs);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -384,7 +384,7 @@ public class App {
     ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         try {
-            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test", queue, exchange);
+            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start producing message...");
             e.printStackTrace();
