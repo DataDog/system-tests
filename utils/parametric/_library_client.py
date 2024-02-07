@@ -329,7 +329,7 @@ class APMLibraryClientGRPC:
         pb_links = []
         for link in links:
             pb_link = pb.SpanLink()
-            if link.get("parent_id") and link.http_headers:
+            if link.get("parent_id") and link.get("http_headers"):
                 raise ValueError("Link cannot have both parent_id and http_headers")
             if link.get("parent_id"):
                 pb_link.parent_id = link["parent_id"]
@@ -377,7 +377,7 @@ class APMLibraryClientGRPC:
         pb_links = []
         for link in links:
             pb_link = pb.SpanLink(attributes=convert_to_proto(link.get("attributes")))
-            if link.get("parent_id") and link.http_headers:
+            if link.get("parent_id") and link.get("http_headers"):
                 raise ValueError("Link cannot have both parent_id and http_headers")
             if link.get("parent_id") is not None:
                 pb_link.parent_id = link["parent_id"]
