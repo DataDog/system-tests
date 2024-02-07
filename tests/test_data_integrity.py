@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
+import string
 from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
@@ -161,7 +162,9 @@ class Test_LibraryHeaders:
             if val.startswith("in-"):
                 assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
             elif val.startswith("cid-"):
-                assert val[4:].isxdigit(), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+                assert all(
+                    c in string.hexdigits for c in val[4:]
+                ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
             else:
                 raise ValueError(f"Datadog-Entity-ID header value {val} doesn't start with either 'in-' or 'cid-'")
 
