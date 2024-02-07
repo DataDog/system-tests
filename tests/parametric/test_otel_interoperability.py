@@ -73,9 +73,7 @@ class Test_Otel_Interoperability:
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
-                print("DD span id: " + dd_span.span_id)
                 with test_library.otel_start_span(name="otel_span", span_kind=SK_INTERNAL, parent_id=dd_span.span_id) as otel_span:
-                    print("Otel span id: " + otel_span.span_id)
                     current_span = test_library.current_span()
                     otel_context = otel_span.span_context()
 
@@ -101,9 +99,7 @@ class Test_Otel_Interoperability:
         """
         with test_library:
             with test_library.otel_start_span(name="otel_span", span_kind=SK_INTERNAL) as otel_span:
-                print("Otel span id: " + otel_span.span_id)
                 with test_library.start_span(name="dd_span", parent_id=otel_span.span_id) as dd_span:
-                    print("DD span id: " + dd_span.span_id)
                     current_span = test_library.current_span()
                     otel_context = otel_span.span_context()
 
@@ -316,32 +312,8 @@ class Test_Otel_Interoperability:
 
                 otel_span.end_span()
 
-
     def do_concurrent_traces_assertions(self, test_agent):
-        traces = test_agent.wait_for_num_traces(2)
-
-        trace1 = find_trace_by_root(traces, OtelSpan(name="server.request"))
-        assert len(trace1) == 2
-
-        trace2 = find_trace_by_root(traces, Span(name="dd_root"))
-        assert len(trace2) == 2
-
-        root1 = root_span(trace1)
-        root2 = root_span(trace2)
-        assert root1["resource"] == "otel_root"
-        assert root2["name"] == "server.request"
-
-        child1 = find_span(trace1, OtelSpan(name="internal"))
-        child2 = find_span(trace2, Span(name="dd_child"))
-        assert child1["resource"] == "otel_child"
-        assert child2["name"] == "dd_child"
-
-        assert child1["parent_id"] == root1["span_id"]
-        assert child2["parent_id"] == root2["span_id"]
-
-        assert root1["trace_id"] == child1["trace_id"]
-        assert root2["trace_id"] == child2["trace_id"]
-        assert root1["trace_id"] != root2["trace_id"]
+        pass
 
     def test_concurrent_traces_in_order(self, test_agent, test_library):
         """
@@ -354,10 +326,33 @@ class Test_Otel_Interoperability:
                         with test_library.otel_start_span(name="otel_child", parent_id=dd_root.span_id) as otel_child:
                             otel_child.end_span()
                         dd_root.finish()
-                    dd_child.finish()
+                    #dd_child.finish()
                 otel_root.end_span()
 
-        self.do_concurrent_traces_assertions(test_agent)
+        traces = test_agent.wait_for_num_traces(2)
+
+        trace1 = find_trace_by_root(traces, Span(name="server.request"))
+        assert len(trace1) == 2
+
+        trace2 = find_trace_by_root(traces, Span(name="dd_root"))
+        assert len(trace2) == 2
+
+        root1 = root_span(trace1)
+        root2 = root_span(trace2)
+        assert root1["resource"] == "otel_root"
+        assert root2["name"] == "dd_root"
+
+        child1 = find_span(trace1, Span(name="dd_child"))
+        child2 = find_span(trace2, Span(name="internal"))
+        assert child1["name"] == "dd_child"
+        assert child2["resource"] == "otel_child"
+
+        assert child1["parent_id"] == root1["span_id"]
+        assert child2["parent_id"] == root2["span_id"]
+
+        assert root1["trace_id"] == child1["trace_id"]
+        assert root2["trace_id"] == child2["trace_id"]
+        assert root1["trace_id"] != root2["trace_id"]
 
     def test_concurrent_traces_nested_otel_root(self, test_agent, test_library):
         """
@@ -372,17 +367,40 @@ class Test_Otel_Interoperability:
 
                             current_span = test_library.current_span()
                             assert current_span.span_id == dd_child.span_id
-                        dd_child.finish()
+                            #dd_child.finish()
 
                         current_span = test_library.current_span()
-                        assert current_span.span_id == otel_root.span_id
+                        assert current_span.span_id == dd_root.span_id
                     dd_root.finish()
 
                     current_span = test_library.current_span()
-                    assert current_span.span_id == otel_root.span_id
+                    assert "{0:x}".format(int(current_span.span_id)) == otel_root.span_id
                 otel_root.end_span()
 
-        self.do_concurrent_traces_assertions(test_agent)
+        traces = test_agent.wait_for_num_traces(2)
+
+        trace1 = find_trace_by_root(traces, Span(name="server.request"))
+        assert len(trace1) == 2
+
+        trace2 = find_trace_by_root(traces, Span(name="dd_root"))
+        assert len(trace2) == 2
+
+        root1 = root_span(trace1)
+        root2 = root_span(trace2)
+        assert root1["resource"] == "otel_root"
+        assert root2["name"] == "dd_root"
+
+        child1 = find_span(trace1, Span(name="internal"))
+        child2 = find_span(trace2, Span(name="dd_child"))
+        assert child1["resource"] == "otel_child"
+        assert child2["name"] == "dd_child"
+
+        assert child1["parent_id"] == root1["span_id"]
+        assert child2["parent_id"] == root2["span_id"]
+
+        assert root1["trace_id"] == child1["trace_id"]
+        assert root2["trace_id"] == child2["trace_id"]
+        assert root1["trace_id"] != root2["trace_id"]
 
     def test_concurrent_traces_nested_dd_root(self, test_agent, test_library):
         """
@@ -390,21 +408,44 @@ class Test_Otel_Interoperability:
         """
         with test_library:
             with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
-                with test_library.otel_start_span("otel_root") as otel_root:
-                    with test_library.otel_start_span(name="otel_child", parent_id=otel_root.span_id) as otel_child:
+                with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
+                    with test_library.otel_start_span(name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
                             otel_child.end_span()
 
                             current_span = test_library.current_span()
                             assert current_span.span_id == dd_child.span_id
-                        dd_child.finish()
+                            #dd_child.finish()
 
                         current_span = test_library.current_span()
-                        assert current_span.span_id == otel_root.span_id
+                        assert current_span.span_id == dd_root.span_id
                     dd_root.finish()
 
                     current_span = test_library.current_span()
-                    assert current_span.span_id == otel_root.span_id
+                    assert "{0:x}".format(int(current_span.span_id)) == otel_root.span_id
                 otel_root.end_span()
 
-        self.do_concurrent_traces_assertions(test_agent)
+        traces = test_agent.wait_for_num_traces(2)
+
+        trace1 = find_trace_by_root(traces, Span(name="server.request"))
+        assert len(trace1) == 2
+
+        trace2 = find_trace_by_root(traces, Span(name="dd_root"))
+        assert len(trace2) == 2
+
+        root1 = root_span(trace1)
+        root2 = root_span(trace2)
+        assert root1["resource"] == "otel_root"
+        assert root2["name"] == "dd_root"
+
+        child1 = find_span(trace1, Span(name="internal"))
+        child2 = find_span(trace2, Span(name="dd_child"))
+        assert child1["resource"] == "otel_child"
+        assert child2["name"] == "dd_child"
+
+        assert child1["parent_id"] == root1["span_id"]
+        assert child2["parent_id"] == root2["span_id"]
+
+        assert root1["trace_id"] == child1["trace_id"]
+        assert root2["trace_id"] == child2["trace_id"]
+        assert root1["trace_id"] != root2["trace_id"]
