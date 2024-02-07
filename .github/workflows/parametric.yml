@@ -64,7 +64,7 @@ jobs:
           COUNTER=1
           while [ $COUNTER -le 3 ]; do
             echo "Running parametric test attempt $COUNTER"
-            timeout 600s echo ./run.sh PARAMETRIC
+            timeout 600s ./run.sh PARAMETRIC
             status=$?
             #timneout returns 124 if it times out
             if [ $status -ne 124 ]; then
