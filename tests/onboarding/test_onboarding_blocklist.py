@@ -109,7 +109,7 @@ ignored_arguments:
         return log_local_path
 
 
-@features.host_auto_instrumentation
+@features.host_user_managed_block_list
 @scenarios.onboarding_host_block_list
 class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
 
