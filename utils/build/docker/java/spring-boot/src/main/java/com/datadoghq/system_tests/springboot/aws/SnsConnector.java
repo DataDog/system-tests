@@ -2,6 +2,9 @@ package com.datadoghq.system_tests.springboot.aws;
 
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -51,17 +54,17 @@ public class SnsConnector {
         }
     }
 
-    public void subscribeQueueToTopic(SnsClient snsClient, String topicArn, String queueUrl) throws Exception {
+    public void subscribeQueueToTopic(SnsClient snsClient, String topicArn, String queueArn) throws Exception {
         try {
             SubscribeRequest subscribeRequest = SubscribeRequest.builder()
                 .topicArn(topicArn)
                 .protocol("sqs")
-                .endpoint(queueUrl)
+                .endpoint(queueArn)
                 .build();
             SubscribeResponse subscribeResponse = snsClient.subscribe(subscribeRequest);
         } catch (SnsException e) {
             System.err.println(e.awsErrorDetails().errorMessage());
-            throw new Exception("Failed to subscribe queue to topic with following error: " + e.getLocalizedMessage());
+            throw new Exception("[SNS->SQS] Failed to subscribe queue to topic with following error: " + e.getLocalizedMessage());
         }
     }
 
@@ -85,8 +88,16 @@ public class SnsConnector {
         SnsClient snsClient = createSnsClient();
         SqsClient sqsClient = SqsConnector.createSqsClient();
         String topicArn = createSnsTopic(snsClient, topic, true);
+
+        // Create queue and get queue ARN
         String queueUrl = sqs.createSqsQueue(sqsClient, sqs.queue, true);
-        subscribeQueueToTopic(snsClient, topicArn, queueUrl);
+        GetQueueAttributesResponse queueAttributes = sqsClient.getQueueAttributes(GetQueueAttributesRequest.builder()
+            .attributeNames(QueueAttributeName.QUEUE_ARN)
+            .queueUrl(queueUrl)
+            .build());
+        String queueArn = queueAttributes.attributes().get(QueueAttributeName.QUEUE_ARN);
+        subscribeQueueToTopic(snsClient, topicArn, queueArn);
+
         PublishRequest publishRequest = PublishRequest.builder()
             .topicArn(topicArn)
             .message(message)

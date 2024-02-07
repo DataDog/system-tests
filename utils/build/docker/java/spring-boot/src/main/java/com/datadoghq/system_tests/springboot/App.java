@@ -499,8 +499,8 @@ public class App {
                 return "[SQS] failed to start consuming message";
             }
         } else if ("sns".equals(integration)) {
-            SnsConnector sns = new SnsConnector(topic == null ? topic : "dsm-system-tests-topic-java");
-            SqsConnector sqs = new SqsConnector(queue == null ? queue : "dsm-system-tests-queue-java", "http://localstack-main:4566");
+            SnsConnector sns = new SnsConnector(topic != null ? topic : "dsm-system-tests-topic-java");
+            SqsConnector sqs = new SqsConnector(queue != null ? queue : "dsm-system-tests-queue-java", "http://localstack-main:4566");
             try {
                 sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
             } catch (Exception e) {

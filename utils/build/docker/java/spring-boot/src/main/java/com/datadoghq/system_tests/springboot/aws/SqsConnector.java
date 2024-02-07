@@ -72,7 +72,7 @@ public class SqsConnector {
     }
 
     public void startConsumingMessages(String service) throws Exception {
-        Thread thread = new Thread("SqsConsume") {
+        Thread thread = new Thread(service + "Consume") {
             public void run() {
                 boolean recordFound = false;
                 while (!recordFound) {
