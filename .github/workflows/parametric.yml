@@ -72,6 +72,9 @@ jobs:
               break
             fi
             COUNTER=$((COUNTER+1))
+            if [ $COUNTER -eq 4 ]; then
+              exit 124
+            fi
           done          
       - name: Run parametric (without timeout)
         if: ${{ matrix.variant.client != 'java' }}
