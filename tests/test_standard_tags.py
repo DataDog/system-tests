@@ -112,7 +112,7 @@ class Test_StandardTagsUrl:
         ]
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby", "python"],
+        context.library in ["golang", "nodejs", "php", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
@@ -146,7 +146,7 @@ class Test_StandardTagsUrl:
         )
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby", "python"],
+        context.library in ["golang", "nodejs", "php", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
@@ -256,6 +256,7 @@ class Test_StandardTagsClientIp:
 
         self.requests_without_attack = {}
         for header, value in (self.FORWARD_HEADERS | self.FORWARD_HEADERS_VENDOR).items():
+            print(header)
             self.requests_without_attack[header] = weblog.get("/waf/", headers={header: value})
 
     def _test_client_ip(self, forward_headers):
