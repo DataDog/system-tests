@@ -81,23 +81,24 @@ class Test_DsmRabbitmq:
                 "has_routing_key:true",
                 "type:rabbitmq",
             )
-        elif context.library == "rabbitmq":
+        elif context.library == "python":
             producer_hash = 3519882823224826180
             consumer_hash = 13984784774671877513
-            edge_tags_in = ("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq")
-            edge_tags_out = (
-                "direction:out",
-                "exchange:systemTestDirectExchange",
-                "has_routing_key:true",
-                "type:rabbitmq",
-            )
-        else:
-            producer_hash = 6176024609184775446
-            consumer_hash = 1648106384315938543
             edge_tags_in = ("direction:in", "topic:dsm-system-tests-queue", "type:rabbitmq")
             edge_tags_out = (
                 "direction:out",
                 "exchange:dsm-system-tests-queue",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            )
+
+        else:
+            producer_hash = 6176024609184775446
+            consumer_hash = 1648106384315938543
+            edge_tags_in = ("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq")
+            edge_tags_out = (
+                "direction:out",
+                "exchange:systemTestDirectExchange",
                 "has_routing_key:true",
                 "type:rabbitmq",
             )
