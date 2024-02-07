@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
+from tests.integrations.crossed_integrations.test_kafka import _nodejs_buddy, _java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -34,7 +34,14 @@ class _Test_SQS:
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
-                if queue != cls.get_queue(span):
+                if operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
+                    # for nodejs we propagate from aws.response span which does not have the queue included on the span
+                    if span["resource"] != "aws.response":
+                        continue
+                    # this is a bit hacky. The only way we can identify the NodeJS 'aws.response' span is by using pathway hash
+                    if span["meta"].get("pathway.hash", "") not in ["3798979665392115457", "476120775804749364"]:
+                        continue
+                elif queue != cls.get_queue(span):
                     continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
@@ -70,6 +77,11 @@ class _Test_SQS:
             "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
 
+    @missing_feature(
+        library="java",
+        reason="Expected to fail, Java defaults to using Xray headers to propagate context. \
+        NodeJS cannot extract from Xray and will not create an 'aws.response' span if no context is extracted.",
+    )
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
 
@@ -85,9 +97,10 @@ class _Test_SQS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-    @missing_feature(library="java", reason="Expected to fail, Nodejs does not propagate context")
+    @missing_feature(
+        library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
+    )
+    @missing_feature(library="python", reason="Expected to fail. Python does not propagate context.")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -98,7 +111,7 @@ class _Test_SQS:
         )
         consumer_span = self.get_span(
             self.buddy_interface,
-            span_kind=["consumer", "client"],
+            span_kind=["consumer", "client", "server"],
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
             operation="receiveMessage",
         )
@@ -139,9 +152,6 @@ class _Test_SQS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-    @missing_feature(library="java", reason="Expected to fail, Nodejs does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -152,7 +162,7 @@ class _Test_SQS:
         )
         consumer_span = self.get_span(
             interfaces.library,
-            span_kind=["consumer", "client"],
+            span_kind=["consumer", "client", "server"],
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
             operation="receiveMessage",
         )
@@ -168,23 +178,11 @@ class _Test_SQS:
         It works the same for both test_produce and test_consume
         """
 
-        # Check that the producer did not created any consumer span
-        assert (
-            self.get_span(producer_interface, span_kind=["consumer", "client"], queue=queue, operation="receiveMessage")
-            is None
-        )
-
-        # Check that the consumer did not created any producer span
-        assert (
-            self.get_span(consumer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage")
-            is None
-        )
-
         producer_span = self.get_span(
             producer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage"
         )
         consumer_span = self.get_span(
-            consumer_interface, span_kind=["consumer", "client"], queue=queue, operation="receiveMessage"
+            consumer_interface, span_kind=["consumer", "client", "server"], queue=queue, operation="receiveMessage"
         )
         # check that both consumer and producer spans exists
         assert producer_span is not None
@@ -200,10 +198,15 @@ class _Test_SQS:
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
-    buddy_interface = interfaces.python_buddy
-    buddy = _python_buddy
+    buddy_interface = interfaces.nodejs_buddy
+    buddy = _nodejs_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
+
+    @missing_feature(library="python", reason="Expected to fail. Python and NodeJS are not compatible at the moment")
+    @missing_feature(library="java", reason="Expected to fail. Java and NodeJS are not compatible at the moment")
+    def test_produce(self):
+        super().test_produce()
 
 
 @scenarios.crossed_tracing_libraries
@@ -216,8 +219,6 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 

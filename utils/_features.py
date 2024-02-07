@@ -1926,3 +1926,33 @@ class features:
         """
         pytest.mark.features(feature_id=270)(test_object)
         return test_object
+
+    @staticmethod
+    def container_auto_installation_script(test_object):
+        """
+        Agent installation script should allow us to install auto-injection software for containers
+
+        https://feature-parity.us1.prod.dog/#/?feature=274
+        """
+        pytest.mark.features(feature_id=274)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_auto_installation_script(test_object):
+        """
+        Agent installation script should allow us to install auto-injection software for hosts
+
+        https://feature-parity.us1.prod.dog/#/?feature=275
+        """
+        pytest.mark.features(feature_id=275)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_user_managed_block_list(test_object):
+        """
+        A way to allow users to specify their own block lists
+
+        https://feature-parity.us1.prod.dog/#/?feature=276
+        """
+        pytest.mark.features(feature_id=276)(test_object)
+        return test_object
