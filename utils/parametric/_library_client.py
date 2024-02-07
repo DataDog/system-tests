@@ -21,6 +21,7 @@ class StartSpanResponse(TypedDict):
     span_id: int
     trace_id: int
 
+
 class SpanResponse(TypedDict):
     span_id: int
     trace_id: int
@@ -65,16 +66,16 @@ class APMLibraryClient:
     def current_span(self) -> Union[SpanResponse, None]:
         raise NotImplementedError
 
-    def tracestate(self):
+    def finish_span(self, span_id: int) -> None:
         raise NotImplementedError
 
     def otel_current_span(self) -> Union[SpanResponse, None]:
         raise NotImplementedError
 
-    def finish_span(self, span_id: int) -> None:
+    def otel_get_attribute(self, span_id: int, key: str):
         raise NotImplementedError
 
-    def add_distributed_tag(self, key: str, value: str) -> None:
+    def otel_get_name(self, span_id: int):
         raise NotImplementedError
 
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
@@ -95,13 +96,7 @@ class APMLibraryClient:
     def otel_is_recording(self, span_id: int) -> bool:
         raise NotImplementedError
 
-    def otel_get_span_context(self, span_id: int) -> OtelSpanContext:
-        raise NotImplementedError
-
-    def span_trace_id(self, span_id: int) -> int:
-        raise NotImplementedError
-
-    def span_parent_id(self, span_id: int) -> int:
+    def otel_get_span_context(self, span_id: int):
         raise NotImplementedError
 
     def span_add_link(self, span_id: int, parent_id: int, attributes: dict, trace_id: int, tracesate: str) -> None:
@@ -125,22 +120,10 @@ class APMLibraryClient:
     def span_resource(self, span_id: int):
         raise NotImplementedError
 
-    def span_service(self, span_id: int):
-        raise NotImplementedError
-
-    def span_type(self, span_id: int):
-        raise NotImplementedError
-
     def span_meta(self, span_id: int, key: str):
         raise NotImplementedError
 
     def span_metric(self, span_id: int, key: str):
-        raise NotImplementedError
-
-    def otel_get_attribute(self, span_id: int, key: str):
-        raise NotImplementedError
-
-    def otel_get_name(self, span_id: int):
         raise NotImplementedError
 
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
@@ -213,10 +196,11 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def current_span(self) -> Union[SpanResponse, None]:
         resp_json = self._session.get(self._url("/trace/span/current")).json()
-        print(resp_json)
         if not resp_json:
             return None
-        return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"], parent_id=resp_json["parent_id"])
+        return SpanResponse(
+            span_id=resp_json["span_id"], trace_id=resp_json["trace_id"], parent_id=resp_json["parent_id"]
+        )
 
     def finish_span(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
@@ -236,10 +220,18 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
         )
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None, trace_id: int = 0, tracesate: str = ""):
+    def span_add_link(
+        self, span_id: int, parent_id: int, attributes: dict = None, trace_id: int = 0, tracesate: str = ""
+    ):
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {}, "trace_id": trace_id, "tracestate": tracesate,},
+            json={
+                "span_id": span_id,
+                "parent_id": parent_id,
+                "attributes": attributes or {},
+                "trace_id": trace_id,
+                "tracestate": tracesate,
+            },
         )
 
     def span_meta(self, span_id: int, key: str):
@@ -294,7 +286,9 @@ class APMLibraryClientHTTP(APMLibraryClient):
             return None
 
         resp_json = resp.json()
-        return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"], parent_id=resp_json["parent_id"])
+        return SpanResponse(
+            span_id=resp_json["span_id"], trace_id=resp_json["trace_id"], parent_id=resp_json["parent_id"]
+        )
 
     def otel_get_attribute(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,})
@@ -376,12 +370,6 @@ class _TestSpan:
 
     def get_resource(self):
         return self._client.span_resource(self.span_id)
-
-    def get_service(self):
-        return self._client.span_service(self.span_id)
-
-    def get_type(self):
-        return self._client.span_type(self.span_id)
 
     def get_meta(self, key: str):
         return self._client.span_meta(self.span_id, key)
@@ -678,12 +666,6 @@ class APMLibrary:
             return None
         return _TestSpan(self._client, resp["span_id"], resp["trace_id"], resp["parent_id"])
 
-    def tracestate(self):
-        return self._client.tracestate()
-
-    def add_distributed_tag(self, key: str, value: str):
-        self._client.add_distributed_tag(key, value)
-
     def flush(self):
         self._client.trace_flush()
 
@@ -707,6 +689,3 @@ class APMLibrary:
     ):
         """Do an HTTP request with the given method and headers."""
         return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)
-
-    def get_links(self, span_id: int):
-        return self._client.get_links(span_id)
