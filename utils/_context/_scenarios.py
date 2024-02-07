@@ -964,8 +964,7 @@ class OnBoardingScenario(_Scenario):
     def customize_feature_parity_dashboard(self, result):
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2
-            test["path"] = test["path"][last_index:]
-            logger.info(f"CUSTOMIZE Test: {test}")
+            test["description"] = test["path"][last_index:]
 
 
 class ParametricScenario(_Scenario):
