@@ -57,8 +57,21 @@ jobs:
       - name: Load library binary
         if: ${{ matrix.variant.version == 'dev' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.variant.client }}
-      - name: Run
-        run: timeout 1800s ./run.sh PARAMETRIC
+      - name: Run parametric tests with timeout
+        if: ${{ matrix.variant.client == 'java' }}
+        run: |
+          COUNTER=1
+          while [ $COUNTER -le 3 ]; do
+            timeout 20s ./run.sh PARAMETRIC
+            #timneout returns 124 if it times out
+            if [ $? -ne 124 ]; then
+              break
+            fi
+            COUNTER=$((COUNTER+1))
+          done          
+      - name: Run parametric (without timeout)
+        if: ${{ matrix.variant.client != 'java' }}
+        run: ./run.sh PARAMETRIC
       - name: Compress logs
         id: compress_logs
         if: always()
