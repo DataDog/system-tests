@@ -1947,6 +1947,7 @@ class features:
         pytest.mark.features(feature_id=273)(test_object)
         return test_object
 
+    @staticmethod
     def container_auto_installation_script(test_object):
         """
         Agent installation script should allow us to install auto-injection software for containers
