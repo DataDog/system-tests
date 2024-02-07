@@ -194,7 +194,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         _logger.LogInformation("OtelSpanContext: {RequestBodyObject}", requestBodyObject);
 
-        var activity = FindActivity(requestBodyObject["id"]);
+        var activity = FindActivity(requestBodyObject["span_id"]);
         
         var result = JsonConvert.SerializeObject(new
         {
@@ -293,7 +293,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     
     private static Activity FindActivity(object activityId)
     {
-        if (Activities.TryGetValue(Convert.ToUInt64(activityId), out var activity))
+        if (Activities.TryGetValue(Convert.ToUInt64(activityId.ToString()), out var activity))
         {
             return activity;
         }
