@@ -351,6 +351,35 @@ public class App {
         }
     }
 
+    @RequestMapping("/sns/produce")
+    ResponseEntity<String> snsProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String topic) {
+        SnsConnector sns = new SnsConnector(topic);
+        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        try {
+            sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS", sqs);
+        } catch (Exception e) {
+            System.out.println("[SNS->SQS] Failed to start producing message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[SNS->SQS] failed to start producing messages", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("produce ok", HttpStatus.OK);
+    }
+
+    @RequestMapping("/sns/consume")
+    ResponseEntity<String> snsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+        SqsConnector sqs = new SqsConnector(queue);
+        if (timeout == null) timeout = 60;
+        boolean consumed = false;
+        try {
+            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS");
+            return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println("[SNS->SQS] Failed to start consuming message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[SNS->SQS] failed to start consuming messages", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @RequestMapping("/rabbitmq/produce")
     ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
@@ -471,7 +500,7 @@ public class App {
             }
         } else if ("sns".equals(integration)) {
             SnsConnector sns = new SnsConnector(topic == null ? topic : "dsm-system-tests-topic-java");
-            SqsConnector sqs = new SqsConnector(queue == null ? queue : "dsm-system-tests-queue-java", "http://localstack:4566");
+            SqsConnector sqs = new SqsConnector(queue == null ? queue : "dsm-system-tests-queue-java", "http://localstack-main:4566");
             try {
                 sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
             } catch (Exception e) {

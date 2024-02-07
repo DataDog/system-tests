@@ -18,7 +18,7 @@ import java.net.URI;
 
 
 public class SnsConnector {
-    public static final String ENDPOINT = "http://localstack:4566";
+    public static final String ENDPOINT = "http://localstack-main:4566";
     public final String topic;
 
     public SnsConnector(String topic){
