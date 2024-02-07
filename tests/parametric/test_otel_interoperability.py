@@ -312,9 +312,6 @@ class Test_Otel_Interoperability:
 
                 otel_span.end_span()
 
-    def do_concurrent_traces_assertions(self, test_agent):
-        pass
-
     def test_concurrent_traces_in_order(self, test_agent, test_library):
         """
             - Basic concurrent traces and spans
