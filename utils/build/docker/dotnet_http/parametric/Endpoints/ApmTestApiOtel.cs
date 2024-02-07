@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
-using ApmTestApi.DuckTypes;
-using Datadog.Trace.DuckTyping;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
@@ -62,22 +60,22 @@ public abstract class ApmTestApiOtel : ApmTestApi
         if (requestBodyDictionary!.TryGetValue("http_headers", out var headersList))
         {
             var extractedContext = _spanContextExtractor.Extract(
-                    ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>()!,
-                    getter: GetHeaderValues).DuckCast<IDuckSpanContext>();
+                    ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
+                    getter: GetHeaderValues);
             
             _logger.LogInformation("Extracted SpanContext: {ParentContext}", extractedContext);
 
             if (extractedContext is not null)
             {
-                var parentTraceId = ActivityTraceId.CreateFromString(extractedContext?.RawTraceId);
-                var parentSpanId = ActivitySpanId.CreateFromString(extractedContext?.RawSpanId);
-                var flags = extractedContext?.SamplingPriority > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
+                var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
+                var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
+                var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
 
                 remoteParentContext = new ActivityContext(
                     parentTraceId,
                     parentSpanId,
                     flags,
-                    extractedContext?.AdditionalW3CTraceState,
+                    AdditionalW3CTraceState.GetValue(extractedContext) as string,
                     isRemote: true);
             }
         }
@@ -297,7 +295,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     
     private static void SetTag(Activity activity, Dictionary<string,object>? attributes)
     {
-        if (attributes is null)
+                if (attributes is null)
         {
             return;
         }

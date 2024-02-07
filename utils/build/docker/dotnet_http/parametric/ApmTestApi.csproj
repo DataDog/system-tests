@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="LucasP.DuckTyping" Version="0.1.0" />
     <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
     <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" Condition="'$(Configuration)' == 'Release'" />
   </ItemGroup>
