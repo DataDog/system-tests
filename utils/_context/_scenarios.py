@@ -194,6 +194,9 @@ class _Scenario:
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
+    def customize_feature_parity_dashboard(self, result):
+        pass
+
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
 
@@ -964,6 +967,11 @@ class OnBoardingScenario(_Scenario):
     def close_targets(self):
         logger.info(f"Pulumi stack down")
         self.stack.destroy(on_output=logger.info)
+
+    def customize_feature_parity_dashboard(self, result):
+        for test in result["tests"]:
+            last_index = test["path"].rfind("::") + 2
+            test["description"] = test["path"][last_index:]
 
 
 class ParametricScenario(_Scenario):
