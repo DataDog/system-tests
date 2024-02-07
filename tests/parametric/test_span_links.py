@@ -14,6 +14,7 @@ from utils.parametric.spec.trace import retrieve_span_links
 @scenarios.parametric
 class Test_Span_Links:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
+    @missing_feature(library="nodejs", reason="only supports span links encoding through _dd.span_links tag") 
     def test_span_started_with_link_v04(self, test_agent, test_library):
         """Test adding a span link created from another span and serialized in the expected v0.4 format.
         This tests the functionality of "create a direct link between two spans

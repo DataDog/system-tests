@@ -100,6 +100,7 @@ app.post('/trace/span/start', (req, res) => {
         convertedLinkHeaders[key.toLowerCase()] = value
       }
       const linkExtracted = tracer.extract('http_headers', convertedLinkHeaders);
+      console.log(88, linkExtracted)
       if (linkExtracted) {
         span.addLink(linkExtracted, link.attributes);
       }
