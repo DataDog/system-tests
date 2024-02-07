@@ -48,11 +48,13 @@ class Test_Span_Links:
         """
         with test_library:
             with test_library.start_span("first") as s1:
-                pass
-            with test_library.start_span(
-                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
-            ):
-                pass
+                # We must manually add a link to the second span before first span ends
+                with test_library.start_span(
+                    "second",
+                    parent_id=0,
+                    links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+                ):
+                    pass
 
         traces = test_agent.wait_for_num_traces(2)
         assert len(traces[0]) == 1
@@ -87,11 +89,13 @@ class Test_Span_Links:
         with test_library:
             # create a span that will be sampled
             with test_library.start_span("first") as s1:
-                pass
-            with test_library.start_span(
-                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
-            ):
-                pass
+                # we must manually add a link to the second span before first span ends
+                with test_library.start_span(
+                    "second",
+                    parent_id=0,
+                    links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+                ):
+                    pass
 
         traces = test_agent.wait_for_num_traces(2)
         assert len(traces[0]) == 1
@@ -212,12 +216,12 @@ class Test_Span_Links:
         """Test adding a span link from a span to another span.
         """
         with test_library:
-            with test_library.start_span("root") as rt:
-                with test_library.start_span("second", parent_id=rt.span_id) as s1:
-                    pass
-
-            with test_library.start_span("third", links=[Link(parent_id=rt.span_id)]) as s2:
-                s2.add_link(s1.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
+            with test_library.start_span("first") as s1:
+                with test_library.start_span("second", parent_id=s1.span_id) as s2:
+                    # We must manually add a link to the third span before root and second spans ends
+                    # This is because parametric apps delete finished spans from the span list
+                    with test_library.start_span("third", parent_id=0, links=[Link(parent_id=s1.span_id)]) as s3:
+                        s3.add_link(s2.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
 
         traces = test_agent.wait_for_num_traces(2)
         assert len(traces[0]) == 2
@@ -287,9 +291,11 @@ class Test_Span_Links:
 
             with test_library.start_span("auto_dropped_span") as ads:
                 ads.set_meta(AUTO_DROP_KEY, "")
-
-            with test_library.start_span("linked_to_auto_dropped_span", links=[Link(parent_id=ads.span_id)]):
-                pass
+                # We must add a link to linked_to_auto_dropped_span before auto_dropped_span ends
+                with test_library.start_span(
+                    "linked_to_auto_dropped_span", parent_id=0, links=[Link(parent_id=ads.span_id)]
+                ):
+                    pass
 
         traces = test_agent.wait_for_num_traces(4)
         # Span Link generated from datadog headers containing manual keep
