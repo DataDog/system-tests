@@ -25,6 +25,10 @@ jobs:
           command: ./build.sh -i proxy
 
       - run:
+          name: Build agent
+          command: ./build.sh -i agent
+
+      - run:
           name: Build
           command: ./build.sh java
 
