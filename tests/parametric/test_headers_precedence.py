@@ -219,6 +219,7 @@ class Test_Headers_Precedence:
         context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration"
     )
     @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
+    @irrelevant(context.library >= "python@2.6.0.dev", reason="Default value was switched to datadog,tracecontext")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
