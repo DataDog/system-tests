@@ -159,7 +159,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         var activity = FindActivity(requestBodyObject["id"]);
 
-        if (string.IsNullOrEmpty(requestBodyObject["timestamp"].ToString()))
+        if (!string.IsNullOrEmpty(requestBodyObject["timestamp"].ToString()))
         {
             DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(requestBodyObject["timestamp"]));
             activity.SetEndTime(convertedTimestamp.UtcDateTime);
