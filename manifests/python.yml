@@ -481,7 +481,7 @@ tests/:
           flask-poc: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
-          flask-poc: v2.6.0
+          flask-poc: v2.6.0.dev
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
