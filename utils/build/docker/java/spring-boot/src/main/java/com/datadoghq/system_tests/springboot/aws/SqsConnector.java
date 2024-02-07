@@ -16,14 +16,19 @@ import java.util.List;
 import java.net.URI;
 
 public class SqsConnector {
-    public static final String ENDPOINT = "http://elasticmq:9324";
+    public static String ENDPOINT = "http://elasticmq:9324";
     public final String queue;
 
     public SqsConnector(String queue){
         this.queue = queue;
     }
 
-    private static SqsClient createSqsClient() {
+    public SqsConnector(String queue, String endpoint){
+        this.queue = queue;
+        ENDPOINT = endpoint;
+    }
+
+    public static SqsClient createSqsClient() {
         SqsClient sqsClient = SqsClient.builder()
             .region(Region.US_EAST_1)
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
@@ -66,22 +71,22 @@ public class SqsConnector {
         System.out.println("[SQS] Started Sqs producer thread");
     }
 
-    public void startConsumingMessages() throws Exception {
+    public void startConsumingMessages(String service) throws Exception {
         Thread thread = new Thread("SqsConsume") {
             public void run() {
                 boolean recordFound = false;
                 while (!recordFound) {
                     try {
-                        recordFound = consumeMessageWithoutNewThread();
+                        recordFound = consumeMessageWithoutNewThread(service);
                     } catch (Exception e) {
-                        System.err.println("[SQS] Failed to consume message in thread...");
-                        System.err.println("[SQS] Error consuming: " + e);
+                        System.err.println("[" + service.toUpperCase() + "] Failed to consume message in thread...");
+                        System.err.println("[" + service.toUpperCase() + "] Error consuming: " + e);
                     }
                 }
             }
         };
         thread.start();
-        System.out.println("[SQS] Started Sqs consumer thread");
+        System.out.println("[" + service.toUpperCase() + "] Started consumer thread");
     }
 
     // For APM testing, produce message without starting a new thread
@@ -96,7 +101,7 @@ public class SqsConnector {
     }
 
     // For APM testing, a consume message without starting a new thread
-    public boolean consumeMessageWithoutNewThread() throws Exception {
+    public boolean consumeMessageWithoutNewThread(String service) throws Exception {
         SqsClient sqsClient = createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, false);
 
@@ -110,7 +115,7 @@ public class SqsConnector {
             ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
             List<Message> messages = response.messages();
             for (Message message : messages) {
-                System.out.println("[SQS] got message! " + message.body() + " from " + queue);
+                System.out.println("[" + service.toUpperCase() + "] got message! " + message.body() + " from " + queue);
                 recordFound = true;
             }
             return recordFound;

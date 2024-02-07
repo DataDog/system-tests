@@ -1,5 +1,6 @@
 package com.datadoghq.system_tests.springboot;
 
+import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
@@ -341,7 +342,7 @@ public class App {
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread();
+            consumed = sqs.consumeMessageWithoutNewThread("SQS");
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start consuming message...");
@@ -383,7 +384,11 @@ public class App {
     }
 
     @RequestMapping("/dsm")
-    String publishToKafka(@RequestParam(required = true, name = "integration") String integration) {
+    String publishToKafka(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = false, name = "topic") String topic,
+        @RequestParam(required = false, name = "queue") String queue
+    ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector();
             try {
@@ -458,11 +463,28 @@ public class App {
                 return "[SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages();
+                sqs.startConsumingMessages("SQS");
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
                 e.printStackTrace();
                 return "[SQS] failed to start consuming message";
+            }
+        } else if ("sns".equals(integration)) {
+            SnsConnector sns = new SnsConnector(topic == null ? topic : "dsm-system-tests-topic-java");
+            SqsConnector sqs = new SqsConnector(queue == null ? queue : "dsm-system-tests-queue-java", "http://localstack:4566");
+            try {
+                sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+            } catch (Exception e) {
+                System.out.println("[SNS->SQS] Failed to start producing message...");
+                e.printStackTrace();
+                return "[SNS->SQS] failed to start producing message";
+            }
+            try {
+                sqs.startConsumingMessages("SNS->SQS");
+            } catch (Exception e) {
+                System.out.println("[SNS->SQS] Failed to start consuming message...");
+                e.printStackTrace();
+                return "[SNS->SQS] failed to start consuming message";
             }
         } else {
             return "unknown integration: " + integration;

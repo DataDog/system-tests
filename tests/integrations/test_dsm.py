@@ -257,7 +257,10 @@ class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
     def setup_dsm_sns(self):
-        self.r = weblog.get("/dsm?integration=sns&timeout=60", timeout=61)
+        self.r = weblog.get(
+            "/dsm?integration=sns&timeout=60&queue=dsm-system-tests-queue-sns&topic=dsm-system-tests-topic-sns",
+            timeout=61,
+        )
 
     def test_dsm_sns(self):
         assert self.r.text == "ok"

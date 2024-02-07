@@ -903,7 +903,7 @@ tests/:
         spring-boot: v1.13.0
       Test_DsmSNS:
         "*": irrelevant
-        spring-boot: missing_feature (Not implemented yet)
+        spring-boot: v0.1 # real version not known
       Test_DsmSQS:
         "*": irrelevant
         spring-boot: v0.1 # real version not known
