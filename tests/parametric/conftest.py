@@ -1026,7 +1026,7 @@ def docker_run(
         logger.stdout(f"RMM: docker_run: LOG {log_file}")
         logger.stdout(f"RMM: docker_run: TIMEOUT {default_subprocess_run_timeout}")
         try:
-            subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=False, timeout=30)
+            subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=30)
         except Exception as e:
             logger.stdout(f"RMM docker_run ERROR for {cmd}  -  {log_file}")
             logger.error(e)
