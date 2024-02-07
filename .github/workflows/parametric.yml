@@ -63,9 +63,12 @@ jobs:
           COUNTER=1
           while [ $COUNTER -le 3 ]; do
             echo "Running parametric test attempt $COUNTER"
-            timeout 60s ./run.sh PARAMETRIC
+            timeout 20s ./run.sh PARAMETRIC
+            status=$?
+            echo "Status: $status"
             #timneout returns 124 if it times out
-            if [ $? -ne 124 ]; then
+            if [ status -ne 124 ]; then
+              echo "Breaking loop"
               break
             fi
             COUNTER=$((COUNTER+1))
