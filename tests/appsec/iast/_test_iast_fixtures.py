@@ -68,6 +68,8 @@ class BaseSinkTestWithoutTelemetry:
     params = None
     data = None
     headers = None
+    secure_headers = None
+    insecure_headers = None
     location_map = None
     evidence_map = None
 
@@ -95,7 +97,7 @@ class BaseSinkTestWithoutTelemetry:
                 path=self.insecure_endpoint,
                 params=self.params,
                 data=self.data,
-                headers=self.headers,
+                headers=self.insecure_headers if self.insecure_headers is not None else self.headers,
             )
 
         self.insecure_request = self.__class__.insecure_request
@@ -123,7 +125,7 @@ class BaseSinkTestWithoutTelemetry:
                 path=self.secure_endpoint,
                 params=self.params,
                 data=self.data,
-                headers=self.headers,
+                headers=self.secure_headers if self.secure_headers is not None else self.headers,
             )
 
         self.secure_request = self.__class__.secure_request

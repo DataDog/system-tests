@@ -48,6 +48,8 @@ tests/:
             '*': missing_feature
             express4: v4.8.0
             express4-typescript: v4.8.0
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': missing_feature
