@@ -202,9 +202,8 @@ def dotnet_library_factory():
         container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
-RUN apt-get update && apt-get install -y dos2unix --no-install-recommends
+RUN apt-get update && apt-get install -y dos2unix
 RUN apt-get update && apt-get install -y curl
-USER root
 WORKDIR /app
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
@@ -214,7 +213,7 @@ RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
 COPY ["ApmTestApi.csproj", "nuget.config", "*.nupkg", "./"]
-RUN dotnet restore "./././ApmTestApi.csproj"
+RUN dotnet restore "./ApmTestApi.csproj"
 
 # build and publish
 COPY . ./

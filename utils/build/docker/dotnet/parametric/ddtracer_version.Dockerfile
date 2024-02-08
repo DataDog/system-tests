@@ -2,7 +2,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 RUN apt-get update && apt-get install dos2unix
-USER root
 WORKDIR /app
 
 COPY install_ddtrace.sh query-versions.fsx binaries* /binaries/

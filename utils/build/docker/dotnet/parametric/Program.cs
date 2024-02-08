@@ -6,9 +6,6 @@ _ = Datadog.Trace.Tracer.Instance;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddEndpointsApiExplorer();
-
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<ApmTestApi.Endpoints.ApmTestApi>>();
