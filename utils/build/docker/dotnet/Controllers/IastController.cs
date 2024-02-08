@@ -135,6 +135,21 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
+        
+        [HttpGet("/iast/source/path/test")]
+        public IActionResult pathTest()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Request.Path);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
 
         [HttpGet("insecure_cipher/test_insecure_algorithm")]
         public IActionResult test_insecure_weakCipher()
@@ -197,6 +212,22 @@ namespace weblog
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
+        }        
+        
+        [HttpGet("hstsmissing/test_insecure")]
+        public IActionResult test_insecure_hstsmissing()
+        {
+            Response.Headers.Add("Strict-Transport-Security", "max-age=-3153");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
+        }
+
+        [HttpGet("hstsmissing/test_secure")]
+        public IActionResult test_secure_hstsmissing()
+        {
+            Response.Headers.Append("Strict-Transport-Security", "max-age=31536000");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
         }
         
         [HttpGet("no-samesite-cookie/test_insecure")]
@@ -317,6 +348,20 @@ namespace weblog
                 return Content($"Error creating connection");
             }                
         }
+
+        [HttpPost("header_injection/test_insecure")]
+        public IActionResult test_insecure_header_injection([FromForm] string test)
+        {
+            Response.Headers.Add("returnedHeaderKey", test);
+            return Content("Ok");
+        }
+        
+        [HttpPost("header_injection/test_secure")]
+        public IActionResult test_secure_header_injection([FromForm] string test)
+        {
+            Response.Headers.Add("returnedHeaderKey", "notTainted");
+            return Content("Ok");
+        }        
         
         [HttpPost("sqli/test_insecure")]
         public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)

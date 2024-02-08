@@ -1,8 +1,4 @@
-import os
-
-import pytest
-
-from utils import scenarios, context, features
+from utils import scenarios, features
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
@@ -10,7 +6,7 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
 class _OnboardingInstallBaseTest:
-    def test_for_traces(self, onboardig_vm):
+    def test_install(self, onboardig_vm):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
@@ -27,7 +23,7 @@ class _OnboardingInstallBaseTest:
 
 
 class _OnboardingUninstallBaseTest:
-    def test_no_traces_after_uninstall(self, onboardig_vm):
+    def test_uninstall(self, onboardig_vm):
         logger.info(f"Launching uninstallation test for : [{onboardig_vm.ip}]")
         logger.info(f"Waiting for weblog available [{onboardig_vm.ip}]")
         # We uninstalled the autoinjection software, but the application should work
@@ -55,13 +51,13 @@ class TestOnboardingInstallManualHost(_OnboardingInstallBaseTest):
     pass
 
 
-@features.host_auto_instrumentation
+@features.host_auto_installation_script
 @scenarios.onboarding_host_install_script
 class TestOnboardingInstallScriptHost(_OnboardingInstallBaseTest):
     pass
 
 
-@features.container_auto_instrumentation
+@features.container_auto_installation_script
 @scenarios.onboarding_container_install_script
 class TestOnboardingInstallScriptContainer(_OnboardingInstallBaseTest):
     pass

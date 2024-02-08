@@ -4,7 +4,6 @@
 
 from utils import (
     context,
-    coverage,
     interfaces,
     missing_feature,
     rfc,
@@ -42,16 +41,15 @@ def equal_value(t1, t2):
     if t2 is ANY:
         return True
     if isinstance(t1, list) and isinstance(t2, list):
-        return all(contains(a, b) for a, b in zip(t1, t2))
+        return len(t1) == len(t2) and all(contains(a, b) for a, b in zip(t1, t2))
     if isinstance(t1, dict) and isinstance(t2, dict):
-        return all(contains(t1.get(k), t2[k]) for k in t2)
+        return all(k in t1 and contains(t1[k], t2[k]) for k in t2)
     if isinstance(t1, int) and isinstance(t2, int):
         return t1 == t2
     return False
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Headers:
@@ -72,7 +70,6 @@ class Test_Schema_Request_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Cookies:
@@ -96,7 +93,6 @@ class Test_Schema_Request_Cookies:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Query_Parameters:
@@ -117,7 +113,6 @@ class Test_Schema_Request_Query_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Path_Parameters:
@@ -139,7 +134,6 @@ class Test_Schema_Request_Path_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Json_Body:
@@ -160,7 +154,6 @@ class Test_Schema_Request_Json_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Request_FormUrlEncoded_Body:
@@ -182,22 +175,25 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],) or contains(
-            schema,
-            [
-                {
-                    "main[0][key]": ANY,
-                    "main[0][value]": ANY,
-                    "main[1][key]": ANY,
-                    "main[1][value]": ANY,
-                    "nullable": ANY,
-                }
-            ],
+        assert (
+            contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],)
+            or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}],)
+            or contains(
+                schema,
+                [
+                    {
+                        "main[0][key]": ANY,
+                        "main[0][value]": ANY,
+                        "main[1][key]": ANY,
+                        "main[1][value]": ANY,
+                        # "nullable": ANY,  # some frameworks may drop that value
+                    }
+                ],
+            )
         ), schema
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Headers:
@@ -217,7 +213,6 @@ class Test_Schema_Response_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Body:
@@ -243,7 +238,6 @@ class Test_Schema_Response_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security_no_response_body
 @features.api_security_schemas
 class Test_Schema_Response_Body_env_var:
@@ -273,7 +267,6 @@ class Test_Schema_Response_Body_env_var:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@coverage.basic
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_Scanners:

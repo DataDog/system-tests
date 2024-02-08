@@ -193,6 +193,9 @@ class _Scenario:
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
+    def customize_feature_parity_dashboard(self, result):
+        pass
+
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
 
@@ -864,6 +867,10 @@ class OnBoardingScenario(_Scenario):
     def weblog_variant(self):
         return self._weblog
 
+    def session_start(self):
+        super().session_start()
+        self.fill_context()
+
     def fill_context(self):
         # fix package name for nodejs -> js
         if self._library.library == "nodejs":
@@ -886,7 +893,7 @@ class OnBoardingScenario(_Scenario):
                             raise ValueError(
                                 f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
                             )
-
+                        logger.stdout(f"{dd_package_name}: {provision_vm.get_component(dd_package_name)}")
                         self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
                 # Manage specific information for each parametrized test
                 test_metadata = {
@@ -945,10 +952,6 @@ class OnBoardingScenario(_Scenario):
     def _get_warmups(self):
         return [self._start_pulumi]
 
-    def post_setup(self):
-        """ Fill context with the installed components information and parametrized test metadata"""
-        self.fill_context()
-
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
         self.extract_debug_info_before_close()
@@ -957,6 +960,11 @@ class OnBoardingScenario(_Scenario):
     def close_targets(self):
         logger.info(f"Pulumi stack down")
         self.stack.destroy(on_output=logger.info)
+
+    def customize_feature_parity_dashboard(self, result):
+        for test in result["tests"]:
+            last_index = test["path"].rfind("::") + 2
+            test["description"] = test["path"][last_index:]
 
 
 class ParametricScenario(_Scenario):
@@ -1264,12 +1272,22 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
+    appsec_api_security_rc = EndToEndScenario(
+        "APPSEC_API_SECURITY_RC",
+        proxy_state={"mock_remote_config_backend": "APPSEC_API_SECURITY_RC"},
+        doc="""
+            Scenario to test API Security Remote config
         """,
     )
 
@@ -1278,20 +1296,26 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
-        DD_EXPERIMENTAL_API_SECURITY_ENABLED is set to true.
+        DD_API_SECURITY_ENABLED is set to true.
         """,
     )
 
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_TRACE_DEBUG": "false",},
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "false",
+        },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
@@ -1422,6 +1446,8 @@ class scenarios:
     # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
     onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
     onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
+    # Onboarding block list scenarios
+    onboarding_host_block_list = OnBoardingScenario("ONBOARDING_HOST_BLOCK_LIST", doc="")
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",

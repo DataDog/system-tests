@@ -1270,10 +1270,9 @@ class features:
         return test_object
 
     @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_py(test_object):
+    def kafkaspan_creationcontext_propagation_with_dd_trace(test_object):
         """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-py
-
+        [Kafka][Span Creation][Context Propagation] with dd-trace
         https://feature-parity.us1.prod.dog/#/?feature=192
         """
         pytest.mark.features(feature_id=192)(test_object)
@@ -1850,42 +1849,6 @@ class features:
         return test_object
 
     @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_js(test_object):
-        """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-js
-        https://feature-parity.us1.prod.dog/#/?feature=259
-        """
-        pytest.mark.features(feature_id=259)(test_object)
-        return test_object
-
-    @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_java(test_object):
-        """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-java
-        https://feature-parity.us1.prod.dog/#/?feature=256
-        """
-        pytest.mark.features(feature_id=256)(test_object)
-        return test_object
-
-    @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_rb(test_object):
-        """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-rb
-        https://feature-parity.us1.prod.dog/#/?feature=257
-        """
-        pytest.mark.features(feature_id=257)(test_object)
-        return test_object
-
-    @staticmethod
-    def kafkaspan_creationcontext_propagation_with_dd_trace_go(test_object):
-        """
-        [Kafka][Span Creation][Context Propagation] with dd-trace-go
-        https://feature-parity.us1.prod.dog/#/?feature=258
-        """
-        pytest.mark.features(feature_id=258)(test_object)
-        return test_object
-
-    @staticmethod
     def decisionless_extraction(test_object):
         """
         Sampling behavior when extracted trace context does not convey a sampling decision
@@ -1982,4 +1945,34 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=270
         """
         pytest.mark.features(feature_id=270)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_installation_script(test_object):
+        """
+        Agent installation script should allow us to install auto-injection software for containers
+
+        https://feature-parity.us1.prod.dog/#/?feature=274
+        """
+        pytest.mark.features(feature_id=274)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_auto_installation_script(test_object):
+        """
+        Agent installation script should allow us to install auto-injection software for hosts
+
+        https://feature-parity.us1.prod.dog/#/?feature=275
+        """
+        pytest.mark.features(feature_id=275)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_user_managed_block_list(test_object):
+        """
+        A way to allow users to specify their own block lists
+
+        https://feature-parity.us1.prod.dog/#/?feature=276
+        """
+        pytest.mark.features(feature_id=276)(test_object)
         return test_object

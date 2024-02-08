@@ -24,14 +24,18 @@ from integrations.messaging.aws.sqs import sqs_consume
 from integrations.messaging.aws.sqs import sqs_produce
 from integrations.messaging.kafka import kafka_consume
 from integrations.messaging.kafka import kafka_produce
+from integrations.messaging.rabbitmq import rabbitmq_consume
+from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
 
-ddtrace.patch_all()
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+# Patch kombu since its not patched automatically
+ddtrace.patch_all(kombu=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -189,7 +193,7 @@ def produce_kafka_message():
     message = b"Distributed Tracing Test from Python for Kafka!"
     output = kafka_produce(topic, message)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
@@ -203,7 +207,7 @@ def consume_kafka_message():
     timeout = int(flask_request.args.get("timeout", 60))
     output = kafka_consume(topic, "apm_test", timeout)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
@@ -214,7 +218,7 @@ def produce_sqs_message():
     message = "Hello from Python SQS"
     output = sqs_produce(queue, message)
     if "error" in output:
-        return output, 404
+        return output, 400
     else:
         return output, 200
 
@@ -225,7 +229,31 @@ def consume_sqs_message():
     timeout = int(flask_request.args.get("timeout", 60))
     output = sqs_consume(queue, timeout)
     if "error" in output:
-        return output, 404
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/rabbitmq/produce")
+def produce_rabbitmq_message():
+    queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
+    exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    message = "Hello from Python RabbitMQ Context Propagation Test"
+    output = rabbitmq_produce(queue, exchange, message)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/rabbitmq/consume")
+def consume_rabbitmq_message():
+    queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
+    exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = rabbitmq_consume(queue, exchange, timeout)
+    if "error" in output:
+        return output, 400
     else:
         return output, 200
 
@@ -235,10 +263,24 @@ def dsm():
     logging.basicConfig(
         format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S",
     )
-    topic = "dsm-system-tests-queue"
+    queue = "dsm-system-tests-queue"
     integration = flask_request.args.get("integration")
 
     logging.info(f"[DSM] Got request with integration: {integration}")
+
+    # force reset DSM context for global tracer and global DSM processor
+    try:
+        del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+    try:
+        from ddtrace.internal.datastreams import data_streams_processor
+
+        del data_streams_processor()._current_context.value
+    except AttributeError:
+        pass
+
+    response = Response(f"Integration is not supported: {integration}", 406)
 
     if integration == "kafka":
 
@@ -249,26 +291,40 @@ def dsm():
                 logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
         produce_thread = threading.Thread(
-            target=kafka_produce, args=(topic, b"Hello, Kafka from DSM python!", delivery_report,)
+            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,)
         )
-        consume_thread = threading.Thread(target=kafka_consume, args=(topic, "testgroup1",))
+        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
         consume_thread.join()
         logging.info("[kafka] Returning response")
-        return Response("ok")
+        response = Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(target=sqs_produce, args=(topic, "Hello, SQS from DSM python!",))
-        consume_thread = threading.Thread(target=sqs_consume, args=(topic,))
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",))
+        consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
         consume_thread.join()
         logging.info("[sqs] Returning response")
-        return Response("ok")
+        response = Response("ok")
+    elif integration == "rabbitmq":
+        timeout = int(flask_request.args.get("timeout", 60))
+        produce_thread = threading.Thread(
+            target=rabbitmq_produce, args=(queue, queue, "Hello, RabbitMQ from DSM python!")
+        )
+        consume_thread = threading.Thread(target=rabbitmq_consume, args=(queue, queue, timeout))
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[RabbitMQ] Returning response")
+        response = Response("ok")
 
-    return Response(f"Integration is not supported: {integration}", 406)
+    # force flush stats to ensure they're available to agent after test setup is complete
+    tracer.data_streams_processor.periodic()
+    return response
 
 
 @app.route("/iast/insecure_hashing/multiple_hash")

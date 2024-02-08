@@ -6,6 +6,10 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: missing_feature
+        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -209,29 +213,20 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
-          "*": missing_feature (Only requires one server -  rails70)
-          rails70: v0.1 # real version unknown
-        Test_JavaKafka:
-          "*": missing_feature (Only requires one server -  rails70)
-          rails70: v0.1 # real version unknown
-        Test_NodeJSKafka:
-          "*": missing_feature (Only requires one server -  rails70)
-          rails70: v0.1 # real version unknown
-        Test_PythonKafka:
-          "*": missing_feature (Only requires one server -  rails70)
-          rails70: v0.1 # real version unknown
-        Test_RubyKafka:
-          "*": missing_feature (Only requires one server -  rails70)
+        Test_Kafka:
+          "*": irrelevant
           rails70: v0.1 # real version unknown
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          rails70: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          rails70: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          rails70: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -240,13 +235,24 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
-      Test_DsmKafka: missing_feature
-      Test_DsmRabbitmq: missing_feature
-      Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
-      Test_DsmSQS: missing_feature
+      Test_DsmKafka:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq_FanoutExchange:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq_TopicExchange:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
+      Test_DsmSQS:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.13.0
       TestDynamicConfigV2: missing_feature
@@ -270,6 +276,7 @@ tests/:
       Test_Trace_Sampling_Globs: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:

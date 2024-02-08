@@ -16,7 +16,11 @@ function getKafka () {
 
 function init (app, tracer) {
   app.post('/iast/source/body/test', (req, res) => {
-    readFileSync(req.body.name)
+    try {
+      readFileSync(req.body.name)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -25,7 +29,11 @@ function init (app, tracer) {
     Object.keys(req.headers).forEach((key) => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -34,7 +42,11 @@ function init (app, tracer) {
     Object.keys(req.headers).forEach((key) => {
       vulnParam += req.headers[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -43,7 +55,11 @@ function init (app, tracer) {
     Object.keys(req.query).forEach((key) => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -52,7 +68,11 @@ function init (app, tracer) {
     Object.keys(req.body).forEach((key) => {
       vulnParam += req.body[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -61,7 +81,11 @@ function init (app, tracer) {
     Object.keys(req.query).forEach((key) => {
       vulnParam += req.query[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -70,7 +94,11 @@ function init (app, tracer) {
     Object.keys(req.cookies).forEach((key) => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -79,7 +107,11 @@ function init (app, tracer) {
     Object.keys(req.cookies).forEach((key) => {
       vulnParam += req.cookies[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
