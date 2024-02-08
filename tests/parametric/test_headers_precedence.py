@@ -498,7 +498,6 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
 
     @enable_datadog_tracecontext()
-    @missing_feature(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
