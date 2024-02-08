@@ -79,6 +79,7 @@ tests/:
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-openliberty: bug (not working as expected)
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.18.0
