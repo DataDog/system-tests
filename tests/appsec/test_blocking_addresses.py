@@ -319,7 +319,6 @@ class Test_Blocking_request_uri:
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -361,7 +360,6 @@ class Test_Blocking_request_path_params:
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -406,7 +404,6 @@ class Test_Blocking_request_query:
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -435,7 +432,6 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
-    @flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -452,7 +448,6 @@ class Test_Blocking_request_headers:
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 

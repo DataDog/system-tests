@@ -13,7 +13,7 @@ const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
-const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
+const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 iast.initData().catch(() => {})
@@ -156,32 +156,32 @@ app.get('/dsm', (req, res) => {
           })
           .catch((error) => {
             console.log(error)
-            res.status(500).send('Internal Server Error during Kafka consume')
+            res.status(500).send('[Kafka] Internal Server Error during DSM Kafka consume')
           })
       })
       .catch((error) => {
         console.log(error)
-        res.status(500).send('Internal Server Error during Kafka produce')
+        res.status(500).send('[Kafka] Internal Server Error during DSM Kafka produce')
       })
   } else if (integration === 'sqs') {
     const queue = 'dsm-system-tests-queue'
     const message = 'hello from SQS DSM JS'
     const timeout = req.query.timeout ?? 5
 
-    produceMessage(queue, message)
+    sqsProduce(queue, message)
       .then(() => {
-        consumeMessage(queue, timeout)
+        sqsConsume(queue, timeout * 1000)
           .then(() => {
             res.send('ok')
           })
           .catch((error) => {
             console.log(error)
-            res.status(500).send('Internal Server Error during SQS consume')
+            res.status(500).send('[SQS] Internal Server Error during DSM SQS consume')
           })
       })
       .catch((error) => {
         console.log(error)
-        res.status(500).send('Internal Server Error during SQS produce')
+        res.status(500).send('[SQS] Internal Server Error during DSM SQS produce')
       })
   } else if (integration === 'rabbitmq') {
     const queue = 'dsm-system-tests-queue'
@@ -198,15 +198,15 @@ app.get('/dsm', (req, res) => {
           })
           .catch((error) => {
             console.error(error)
-            res.status(500).send('Internal Server Error during RabbitMQ DSM consume')
+            res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM consume')
           })
       })
       .catch((error) => {
         console.error(error)
-        res.status(500).send('Internal Server Error during RabbitMQ DSM produce')
+        res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM produce')
       })
   } else {
-    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SQS]')
+    res.status(400).send('[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SQS]')
   }
 })
 
@@ -215,7 +215,7 @@ app.get('/kafka/produce', (req, res) => {
 
   kafkaProduce(topic, 'Hello from Kafka JS')
     .then(() => {
-      res.status(200).send('produce ok')
+      res.status(200).send('[Kafka] produce ok')
     })
     .catch((error) => {
       console.error(error)
@@ -229,7 +229,7 @@ app.get('/kafka/consume', (req, res) => {
 
   kafkaConsume(topic, timeout)
     .then(() => {
-      res.status(200).send('consume ok')
+      res.status(200).send('[Kafka] consume ok')
     })
     .catch((error) => {
       console.error(error)
@@ -240,13 +240,13 @@ app.get('/kafka/consume', (req, res) => {
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
 
-  produceMessage(queue)
+  sqsProduce(queue)
     .then(() => {
-      res.status(200).send('produce ok')
+      res.status(200).send('[SQS] produce ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during SQS produce')
+      res.status(500).send('[SQS] Internal Server Error during SQS produce')
     })
 })
 
@@ -254,13 +254,13 @@ app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
 
-  consumeMessage(queue, timeout)
+  sqsConsume(queue, timeout)
     .then(() => {
-      res.status(200).send('consume ok')
+      res.status(200).send('[SQS] consume ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during SQS consume')
+      res.status(500).send('[SQS] Internal Server Error during SQS consume')
     })
 })
 
@@ -271,11 +271,11 @@ app.get('/rabbitmq/produce', (req, res) => {
 
   rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
     .then(() => {
-      res.status(200).send('produce ok')
+      res.status(200).send('[RabbitMQ] produce ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during RabbitMQ produce')
+      res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ produce')
     })
 })
 
@@ -285,11 +285,11 @@ app.get('/rabbitmq/consume', (req, res) => {
 
   rabbitmqConsume(queue, timeout * 1000)
     .then(() => {
-      res.status(200).send('consume ok')
+      res.status(200).send('[RabbitMQ] consume ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during RabbitMQ consume')
+      res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ consume')
     })
 })
 
@@ -307,7 +307,13 @@ app.all('/tag_value/:tag/:status', (req, res) => {
     res.set(k, v)
   }
 
-  res.status(req.params.status || 200).send('Value tagged')
+  res.status(req.params.status || 200)
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body })
+  } else {
+    res.send('Value tagged')
+  }
 })
 
 app.get('/read_file', (req, res) => {
@@ -368,7 +374,7 @@ iast.initRoutes(app, tracer)
 require('./auth')(app, passport, tracer)
 require('./graphql')(app).then(() => {
   app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => { })
+    tracer.trace('init.service', () => {})
     console.log('listening')
   })
 })

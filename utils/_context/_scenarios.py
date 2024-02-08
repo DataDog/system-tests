@@ -193,6 +193,9 @@ class _Scenario:
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
+    def customize_feature_parity_dashboard(self, result):
+        pass
+
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
 
@@ -958,6 +961,11 @@ class OnBoardingScenario(_Scenario):
         logger.info(f"Pulumi stack down")
         self.stack.destroy(on_output=logger.info)
 
+    def customize_feature_parity_dashboard(self, result):
+        for test in result["tests"]:
+            last_index = test["path"].rfind("::") + 2
+            test["description"] = test["path"][last_index:]
+
 
 class ParametricScenario(_Scenario):
     class PersistentParametricTestConf(dict):
@@ -1270,6 +1278,7 @@ class scenarios:
             "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
@@ -1293,6 +1302,7 @@ class scenarios:
             "DD_API_SECURITY_ENABLED": "true",
             "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="""
