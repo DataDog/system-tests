@@ -61,18 +61,20 @@ jobs:
         if: ${{ matrix.variant.client == 'java' }}
         run: |
           set +e
-          COUNTER=1
-          while [ $COUNTER -le 3 ]; do
-            echo "Running parametric test attempt $COUNTER"
+          RUN_ATTEMPTS=1
+          while [ $RUN_ATTEMPTS -le 3 ]; do
+            echo "Running parametric test attempt $RUN_ATTEMPTS"
             timeout 600s ./run.sh PARAMETRIC
             status=$?
             #timneout returns 124 if it times out
+            #if the return code is not 124, then we exit with the status
             if [ $status -ne 124 ]; then
               exit $status
               break
             fi
-            COUNTER=$((COUNTER+1))
-            if [ $COUNTER -eq 4 ]; then
+            RUN_ATTEMPTS=$((RUN_ATTEMPTS+1))
+            if [ $RUN_ATTEMPTS -eq 4 ]; then
+              #Max attempts reached, exit with 124
               exit 124
             fi
           done          
