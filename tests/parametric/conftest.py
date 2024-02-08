@@ -844,7 +844,14 @@ def docker_run(
         _cmd = [docker, "kill", name]
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
-        subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
+        # FIXME there is some weird problem when we try to kill the container. The test is blocked and the container was not killed
+        # logger.stdout(f"Parametric: docker_run: before kill the container: {log_file}")
+        try:
+            subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=30)
+        except Exception as e:
+            logger.stdout(f"Parametric docker_run ERROR for {cmd}  -  {log_file}")
+            logger.error(e)
+        # logger.stdout(f"Parametric: docker_run: After kill the container: {log_file} ")
 
 
 @pytest.fixture(scope="session")

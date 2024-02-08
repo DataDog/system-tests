@@ -46,7 +46,6 @@ JSON_CONTENT_TYPES = {
 
 @scenarios.appsec_blocking
 @features.appsec_blocking_action
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
 

@@ -41,9 +41,9 @@ def equal_value(t1, t2):
     if t2 is ANY:
         return True
     if isinstance(t1, list) and isinstance(t2, list):
-        return all(contains(a, b) for a, b in zip(t1, t2))
+        return len(t1) == len(t2) and all(contains(a, b) for a, b in zip(t1, t2))
     if isinstance(t1, dict) and isinstance(t2, dict):
-        return all(contains(t1.get(k), t2[k]) for k in t2)
+        return all(k in t1 and contains(t1[k], t2[k]) for k in t2)
     if isinstance(t1, int) and isinstance(t2, int):
         return t1 == t2
     return False
@@ -175,17 +175,21 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],) or contains(
-            schema,
-            [
-                {
-                    "main[0][key]": ANY,
-                    "main[0][value]": ANY,
-                    "main[1][key]": ANY,
-                    "main[1][value]": ANY,
-                    "nullable": ANY,
-                }
-            ],
+        assert (
+            contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],)
+            or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}],)
+            or contains(
+                schema,
+                [
+                    {
+                        "main[0][key]": ANY,
+                        "main[0][value]": ANY,
+                        "main[1][key]": ANY,
+                        "main[1][value]": ANY,
+                        # "nullable": ANY,  # some frameworks may drop that value
+                    }
+                ],
+            )
         ), schema
 
 

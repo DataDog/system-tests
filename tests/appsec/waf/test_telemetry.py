@@ -176,10 +176,32 @@ class Test_TelemetryMetrics:
             elif len(full_tags & {"request_blocked:true", "rule_triggered:true"}) == 2:
                 matched_blocked += 1
                 assert p[1] == 1
+            else:
+                raise ValueError(f"Unexpected tags: {full_tags}")
 
+        # XXX: Warm up requests might generate more than one series.
         assert matched_not_blocked >= 1
         assert matched_triggered == 1
         assert matched_blocked == 1
+
+    setup_waf_requests_match_traced_requests = _setup
+
+    @bug(context.library < "java@1.29.0", reason="APPSEC-51509")
+    def test_waf_requests_match_traced_requests(self):
+        """Total waf.requests metric should match the number of requests in traces."""
+        spans = [s for _, s in interfaces.library.get_root_spans()]
+        spans = [s for s in spans if s.get("meta", {}).get("span.kind") == "server"]
+        request_count = len(spans)
+        assert request_count >= 3
+
+        expected_metric_name = "waf.requests"
+        total_requests_metric = 0
+        for series in self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name):
+            for point in series["points"]:
+                total_requests_metric += point[1]
+        assert (
+            total_requests_metric == request_count
+        ), "Number of requests in traces do not match waf.requests metric total"
 
     def _find_series(self, request_type, namespace, metric):
         series = []

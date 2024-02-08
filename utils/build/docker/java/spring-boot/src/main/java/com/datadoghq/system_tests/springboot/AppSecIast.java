@@ -347,6 +347,12 @@ public class AppSecIast {
       return "Ok";
     }
 
+    @GetMapping(value = "/insecure-auth-protocol/test")
+    public String insecureAuthProtocol(HttpServletResponse response) {
+        response.setStatus(HttpStatus.OK.value());
+        return "ok";
+    }
+
 
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily

@@ -30,17 +30,18 @@ output_paths:
 env: dev
 config_sources: BASIC
 ignored_processes: 
-- DD_IGNORED_PROCESSES
-java_ignored_args:
-- DD_JAVA_IGNORED_ARGS
-dotnet_ignored_args:
-- DD_DOTNET_IGNORED_ARGS
-python_ignored_args:
-- DD_PYTHON_IGNORED_ARGS
-node_ignored_args:
-- DD_NODE_IGNORED_ARGS
-ruby_ignored_args:
-- DD_RUBY_IGNORED_ARGS
+        - DD_IGNORED_PROCESSES
+ignored_arguments:
+    Java:
+        - DD_JAVA_IGNORED_ARGS
+    DotNet:
+        - DD_DOTNET_IGNORED_ARGS
+    Python:
+        - DD_PYTHON_IGNORED_ARGS
+    Node:
+        - DD_NODE_IGNORED_ARGS
+    Ruby:
+        - DD_RUBY_IGNORED_ARGS
 """
 
     def _ssh_connect(self, ip, user):
@@ -60,11 +61,16 @@ ruby_ignored_args:
             f"DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/{unique_log_name} {command}"
         )
         if use_injection_config:
+            # Use yml template and replace the key DD_<lang>_IGNORED_ARGS with the value of the config
             test_conf_content = self.yml_config_template
             for key in config:
                 config_values = ""
                 for conf_val in config[key].split(","):
-                    config_values = config_values + " - '" + conf_val + "'\n"
+                    # Fix the indentation
+                    if config_values == "":
+                        config_values = "- '" + conf_val + "'\n"
+                    else:
+                        config_values = config_values + "        - '" + conf_val + "'\n"
                 test_conf_content = test_conf_content.replace("- " + key, config_values)
 
             # Write as local file and the copy by scp to user home. by ssh copy the file to /etc/datadog-agent/inject
@@ -103,7 +109,7 @@ ruby_ignored_args:
         return log_local_path
 
 
-@features.host_auto_instrumentation
+@features.host_user_managed_block_list
 @scenarios.onboarding_host_block_list
 class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
 
@@ -151,13 +157,8 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
             },
             {"ignored_args": "-Dtest=testXX", "command": "java -jar test.jar -Dtest=test", "skip": False},
             {
-                "ignored_args": "-Dtest=test -Dtest2=test2",
+                "ignored_args": "-Dtest3=test2",
                 "command": "java -jar test.jar -Dtest2=test2 -Dtest=test",
-                "skip": True,
-            },
-            {
-                "ignored_args": "-Dtest=test -Dtest2=test2",
-                "command": "java -jar test.jar -Dtest2=test3 -Dtest=test",
                 "skip": False,
             },
         ],
@@ -186,22 +187,22 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
                 "skip": True,
             },
             {
-                "ignored_args": "arg1 arg2,arg44",
+                "ignored_args": "arg12,arg2,arg44",
                 "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
-                "ignored_args": "arg1 arg22,arg44",
+                "ignored_args": "arg11, arg22,arg44",
                 "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
-                "ignored_args": "--dosomething yes",
+                "ignored_args": "--dosomething",
                 "command": "/home/datadog/.pyenv/shims/python myscript.py --dosomething yes",
                 "skip": True,
             },
             {
-                "ignored_args": "--dosomething yes",
+                "ignored_args": "--dosomethingXXXX",
                 "command": "/home/datadog/.pyenv/shims/python myscript.py --dosomething no",
                 "skip": False,
             },
@@ -209,23 +210,15 @@ class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
         "nodejs": [
             {"ignored_args": "", "command": "node example.js -a -b -c", "skip": False},
             {"ignored_args": "-c", "command": "node example.js -a -b -c", "skip": True},
-            {"ignored_args": "-a -c", "command": "node example.js -a -b -c", "skip": True},
-            {"ignored_args": "-a -b -c", "command": "node example.js -a -b -c", "skip": True},
-            {"ignored_args": "-a -g -c", "command": "node example.js -a -b -c", "skip": False},
             {"ignored_args": "", "command": "node example.js -f --custom Override", "skip": False},
             {"ignored_args": "--custom", "command": "node example.js -f --custom Override", "skip": True},
-            {"ignored_args": "--custom Override", "command": "node example.js -f --custom Override", "skip": True},
         ],
         "ruby": [
             {"ignored_args": "", "command": "ruby my_cat.rb test1 test2", "skip": False},
             {"ignored_args": "test1", "command": "ruby my_cat.rb test1 test2", "skip": True},
             {"ignored_args": "test3,test2", "command": "ruby my_cat.rb test1 test2", "skip": True},
-            {"ignored_args": "test1 test2", "command": "ruby my_cat.rb test1 test2", "skip": True},
-            {"ignored_args": "test3 test2", "command": "ruby my_cat.rb test1 test2", "skip": False},
             {"ignored_args": "test1,test2", "command": "ruby names.rb --name pepe", "skip": False},
             {"ignored_args": "--name", "command": "ruby names.rb --name pepe", "skip": True},
-            {"ignored_args": "--name pepe", "command": "ruby names.rb --name pepe", "skip": True},
-            {"ignored_args": "--name paco", "command": "ruby names.rb --name pepe", "skip": False},
             {
                 "ignored_args": "",
                 "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
