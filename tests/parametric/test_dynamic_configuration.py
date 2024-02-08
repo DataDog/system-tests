@@ -65,14 +65,19 @@ def _set_rc(test_agent, config: Dict[str, Any]) -> None:
     )
 
 
+def _create_rc_config(config_overrides: Dict[str, Any]) -> Dict:
+    rc_config = _default_config(TEST_SERVICE, TEST_ENV)
+    for k, v in config_overrides.items():
+        rc_config["lib_config"][k] = v
+    return rc_config
+
+
 def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
     """
-    rc_config = _default_config(TEST_SERVICE, TEST_ENV)
-    for k, v in config_overrides.items():
-        rc_config["lib_config"][k] = v
+    rc_config = _create_rc_config(config_overrides)
 
     _set_rc(test_agent, rc_config)
 
@@ -178,12 +183,16 @@ class TestDynamicConfigTracingEnabled:
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
 
     @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+        "library_env", [
+            {**DEFAULT_ENVVARS},
+            {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": False},
+        ],
     )
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
-        if library_env.get("DD_TRACE_ENABLED", True):
+        trace_enabled_env = library_env.get("DD_TRACE_ENABLED", True)
+        if trace_enabled_env:
             with test_library:
-                with test_library.start_span("test"):
+                with test_library.start_span("allowed"):
                     pass
             test_agent.wait_for_num_traces(num=1, clear=True)
             assert True, (
@@ -191,22 +200,26 @@ class TestDynamicConfigTracingEnabled:
                 "wait_for_num_traces does not raise an exception."
             )
 
-        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
+        # if tracing is disabled via DD_TRACE_ENABLED, the RC should not re-enable it
+        # nor should it send RemoteConfig apply state
+        if trace_enabled_env:
+            test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
         with test_library:
-            with test_library.start_span("test"):
+            with test_library.start_span("disabled"):
                 pass
-        with pytest.raises(ValueError, "no traces are sent after RC response with tracing_enabled: false"):
-            test_agent.wait_for_num_traces(num=1, clear=True)
+        test_agent.wait_for_num_traces(num=0, clear=True)
 
-        set_and_wait_rc(test_agent, config_overrides={})
+        # overriding the RC with empty config should not reset tracing,
+        # and should not emit a telemetry 'app-client-configuration-change'
+        _set_rc(test_agent, _create_rc_config({}))
+        if trace_enabled_env:
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
         with test_library:
             with test_library.start_span("test"):
                 pass
-        with pytest.raises(
-            ValueError,
-            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting",
-        ):
-            test_agent.wait_for_num_traces(num=1, clear=True)
+        test_agent.wait_for_num_traces(num=0, clear=True)
 
 
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
