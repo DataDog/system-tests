@@ -121,6 +121,7 @@ tests/:
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_otel_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature
     test_telemetry.py:
