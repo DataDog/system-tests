@@ -410,7 +410,7 @@ def tag_sampling_env(tag_glob_pattern):
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 @features.trace_sampling
-class Test_Trace_Tag_Sampling_Feb2024_Revision:
+class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @pytest.mark.parametrize(
         "library_env",
         [

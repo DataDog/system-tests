@@ -922,7 +922,7 @@ tests/:
       Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
       Test_Trace_Sampling_Resource: v1.25.0
       Test_Trace_Sampling_Tags: v1.26.0
-      Test_Trace_Tag_Sampling_Feb2024_Revision: v1.30.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v1.30.0
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
