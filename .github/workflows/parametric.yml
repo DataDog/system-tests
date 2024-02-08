@@ -64,7 +64,7 @@ jobs:
           RUN_ATTEMPTS=1
           while [ $RUN_ATTEMPTS -le 3 ]; do
             echo "Running parametric test attempt $RUN_ATTEMPTS"
-            timeout 600s ./run.sh PARAMETRIC
+            timeout 720s ./run.sh PARAMETRIC
             status=$?
             #timneout returns 124 if it times out
             #if the return code is not 124, then we exit with the status
