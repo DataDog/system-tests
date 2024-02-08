@@ -61,10 +61,9 @@ jobs:
     if: needs.scenarios.outputs.run_parametric == 'true'
     needs:
     - lint
-   # - test_the_test
+    - test_the_test
     - scenarios
-    #Fix this before merge
-    uses: datadog/system-tests/.github/workflows/parametric.yml@robertomonteromiguel/avoid_parametric_test_blocked
+    uses: datadog/system-tests/.github/workflows/parametric.yml@main
     secrets: inherit
 
   experimental:
