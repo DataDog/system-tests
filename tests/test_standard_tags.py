@@ -273,7 +273,6 @@ class Test_StandardTagsClientIp:
         self._setup_without_attack()
         self._setup_with_attack()
 
-    @bug(library="python", reason="cf-connecting-ipv6 seems to have higher precedence than it should")
     @bug(
         context.library < "java@1.11.0",
         reason="X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878",
