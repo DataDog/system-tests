@@ -35,8 +35,8 @@ public class AppSecIast {
     private final WeakRandomnessExamples weakRandomnessExamples;
     private final XPathExamples xPathExamples;
     private final XSSExamples xssExamples;
-
     private final HardcodedSecretExamples hardcodedSecretExamples;
+    private final ReflectionExamples reflectionExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -49,6 +49,7 @@ public class AppSecIast {
         this.xPathExamples = new XPathExamples();
         this.xssExamples = new XSSExamples();
         this.hardcodedSecretExamples = new HardcodedSecretExamples();
+        this.reflectionExamples = new ReflectionExamples();
     }
 
     @RequestMapping("/hardcoded_secrets/test_insecure")
@@ -351,6 +352,17 @@ public class AppSecIast {
     public String insecureAuthProtocol(HttpServletResponse response) {
         response.setStatus(HttpStatus.OK.value());
         return "ok";
+    }
+
+    @GetMapping(value = "/reflection_injection/test_secure")
+    public String secureReflection() {
+        return reflectionExamples.secureClassForName();
+    }
+
+    @GetMapping(value = "/reflection_injection/test_insecure")
+    public String insecureReflection(HttpServletRequest request) {
+        final String className = request.getParameter("param");
+        return reflectionExamples.insecureClassForName(className);
     }
 
 

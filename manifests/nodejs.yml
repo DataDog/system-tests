@@ -82,6 +82,8 @@ tests/:
             '*': missing_feature
             express4: v3.19.0
             express4-typescript: v3.19.0
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             '*': missing_feature

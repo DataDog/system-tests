@@ -31,6 +31,7 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         final SsrfExamples ssrf = new SsrfExamples();
         final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
         final XPathExamples xpath = new XPathExamples();
+        final ReflectionExamples reflection = new ReflectionExamples();
 
         router.route("/iast/*").handler(BodyHandler.create());
 
@@ -150,5 +151,13 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         router.get("/iast/insecure-auth-protocol/test").handler(ctx ->
                 ctx.response().end("ok")
         );
+        router.post("/iast/reflection_injection/test_secure").handler(ctx -> {
+            ctx.response().end(reflection.secureClassForName());
+        });
+        router.post("/iast/reflection_injection/test_insecure").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            final String pathParam = request.getParam("param");
+            ctx.response().end(reflection.insecureClassForName(param));
+        });
     }
 }
