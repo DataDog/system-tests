@@ -9,6 +9,7 @@ from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
 from utils import rfc, scenarios, features
 
+
 @features.trace_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1HRbi1DrBjL_KGeONrPgH7lblgqSLGlV5Ox1p4RL97xM/")
@@ -397,15 +398,9 @@ def tag_sampling_env(tag_glob_pattern):
     return {
         "DD_TRACE_SAMPLE_RATE": 0,
         "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
-        "DD_TRACE_SAMPLING_RULES": json.dumps(
-            [
-                {
-                    "tags": {"tag": tag_glob_pattern},
-                    "sample_rate": 1.0
-                }
-            ]
-        )
+        "DD_TRACE_SAMPLING_RULES": json.dumps([{"tags": {"tag": tag_glob_pattern}, "sample_rate": 1.0}]),
     }
+
 
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
@@ -420,8 +415,8 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             tag_sampling_env("?o*"),
             tag_sampling_env("???"),
             tag_sampling_env("*"),
-            tag_sampling_env("**")
-        ]
+            tag_sampling_env("**"),
+        ],
     )
     def test_globs_same_casing(self, test_agent, test_library):
         """Test tag matching with string of matching case"""
@@ -429,19 +424,16 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "foo")
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
 
     @pytest.mark.parametrize(
         "library_env",
-        [
-            tag_sampling_env("Foo"),
-            tag_sampling_env("Fo*"),
-            tag_sampling_env("F??"),
-            tag_sampling_env("?O*")
-        ]
+        [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
     )
     def test_globs_different_casing(self, test_agent, test_library):
         """Test tag matching with string of matching case"""
@@ -449,7 +441,9 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "foo")
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -461,7 +455,9 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "[abc]")
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -473,7 +469,9 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "[a-c]")
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -485,7 +483,9 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "^(foo|bar)[]\\$")
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -497,7 +497,9 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", random.choice(["foo", "bar", "baz", "quux"]))
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -509,19 +511,25 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_metric("tag", random.choice([-100, -0.5, 0, 5, 1000]))
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
 
-    @pytest.mark.parametrize("library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")])
+    @pytest.mark.parametrize(
+        "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
+    )
     def test_metric_matching(self, test_agent, test_library):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_metric("tag", 20.0)
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -533,7 +541,9 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="mismatching-span", service="test") as span:
                 span.set_metric("tag", 20.1)
 
-        mismatching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="mismatching-span", service="test"))
+        mismatching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="mismatching-span", service="test")
+        )
 
         assert mismatching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert mismatching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
@@ -545,11 +555,12 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             with test_library.start_span(name="matching-span", service="test") as span:
                 span.set_metric("tag", 20.3)
 
-        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test"))
+        matching_span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="matching-span", service="test")
+        )
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
-
 
 
 @scenarios.parametric
