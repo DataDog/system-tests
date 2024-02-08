@@ -191,7 +191,7 @@ RUN go install
 
 
 def dotnet_library_factory():
-    dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet_http", "parametric")
+    dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     dotnet_reldir = dotnet_appdir.replace("\\", "/")
     server = APMLibraryTestServer(
