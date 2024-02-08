@@ -12,3 +12,9 @@ def onboardig_vm(request):
     if pytestmark is not None:
         request.node.add_marker(pytest.mark.xfail(reason=pytestmark))
     yield request.param
+
+
+@pytest.fixture(params=getattr(context.scenario, "required_vms", []))
+def virtual_machine(request):
+
+    yield request.param

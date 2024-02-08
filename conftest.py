@@ -35,6 +35,7 @@ def pytest_addoption(parser):
     parser.addoption("--obd-weblog", type=str, action="store", help="Set onboarding weblog")
     parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
     parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
+    parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
 
     # report data to feature parity dashboard
     parser.addoption(

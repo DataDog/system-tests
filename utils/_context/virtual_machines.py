@@ -392,3 +392,49 @@ class DataDogConfig:
 
         if None in (self.dd_api_key, self.dd_app_key):
             logger.warn("Datadog agent is not configured correctly for auto-injection testing")
+
+
+class _VagrantConfig:
+    def __init__(self, vagrant_folder) -> None:
+        self.vagrant_folder = vagrant_folder
+
+
+class _AWSConfig:
+    def __init__(self, ami_id, ami_instance_type, user) -> None:
+        self.ami_id = ami_id
+        self.ami_instance_type = ami_instance_type
+        self.user = user
+
+
+class _VirtualMachine:
+    def __init__(self, name, aws_config, vagrant_config, os_type, os_distro, **kwargs,) -> None:
+        self.name = name
+        self.aws_config = aws_config
+        self.vagrant_config = vagrant_config
+        self.os_type = os_type
+        self.os_distro = os_distro
+        self.vm_provision = None
+
+    def configure(self, vm_provider, vm_provision):
+        self.vm_provision = vm_provision
+
+    def start(self):
+        logger.info(f"Starting VM: {self.name}")
+
+    def before_close(self):
+        logger.info(f"closing VM: {self.name}")
+
+    def destroy(self):
+        logger.info(f"Destroying VM: {self.name}")
+
+
+class Ubuntu22amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_22_amd64",
+            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=_VagrantConfig(vagrant_folder="ubuntu-x86-22.04",),
+            os_type="linux",
+            os_distro="deb",
+            **kwargs,
+        )

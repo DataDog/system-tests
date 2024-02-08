@@ -33,7 +33,7 @@ from utils._context.containers import (
     # SqlDbTestedContainer,
     BuddyContainer,
 )
-
+from utils._context.virtual_machines import Ubuntu22amd64
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 update_environ_with_local_env()
@@ -1053,6 +1053,46 @@ class ParametricScenario(_Scenario):
         return self._library
 
 
+class _VirtualMachineScenario(_Scenario):
+    """ Scenario that tests virtual machines """
+
+    def __init__(
+        self, name, doc, vm_provision=None, include_ubuntu_22_amd64=False, include_ubuntu_22_arm64=False,
+    ) -> None:
+        super().__init__(name, doc=doc)
+        self.vm_provision = vm_provision
+        self.vm_provider = None
+        self.required_vms = []
+
+        if include_ubuntu_22_amd64:
+            self.required_vms.append(Ubuntu22amd64())
+
+    def configure(self, config):
+        super().configure(config)
+        self.vm_provider = config.option.vm_provider
+        logger.info(f"Provisioning virtual machines")
+        for vm in self.required_vms:
+            vm.configure(self.vm_provision)
+
+    def _get_warmups(self):
+        warmups = super()._get_warmups()
+        for vm in self.required_vms:
+            warmups.append(vm.start)
+
+        return warmups
+
+    def pytest_sessionfinish(self, session):
+        logger.info(f"Closing  _VirtualMachineScenario scenario")
+        for vm in self.required_vms:
+            vm.before_close()
+        self.close_targets()
+
+    def close_targets(self):
+        logger.info(f"Destroying virtual machines")
+        for vm in self.required_vms:
+            vm.destroy()
+
+
 class scenarios:
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
@@ -1487,6 +1527,7 @@ class scenarios:
     )
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
+    vm_scenario = _VirtualMachineScenario("VM_SCENARIO", doc="Virtual machine scenario", include_ubuntu_22_amd64=True)
 
 
 def _main():
