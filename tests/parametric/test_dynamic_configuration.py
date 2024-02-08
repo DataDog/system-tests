@@ -183,10 +183,7 @@ class TestDynamicConfigTracingEnabled:
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
 
     @parametrize(
-        "library_env", [
-            {**DEFAULT_ENVVARS},
-            {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": False},
-        ],
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": False},],
     )
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", True)
