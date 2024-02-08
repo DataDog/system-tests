@@ -606,7 +606,7 @@ tests/:
     Test_Meta: v1.80.0
     Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
   test_standard_tags.py:
-    Test_StandardTagsClientIp: v1.5.0
+    Test_StandardTagsClientIp: v2.7.0.dev
     Test_StandardTagsMethod: v1.2.1
     Test_StandardTagsRoute: v1.6.0
     Test_StandardTagsStatusCode: v1.4.0rc1.dev
