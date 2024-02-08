@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, features, scenarios
+from utils import features, scenarios
 from .._test_iast_fixtures import BaseSourceTest, get_all_iast_events, get_iast_sources
 
 
-@coverage.basic
 @features.iast_source_kafka_value
 @scenarios.integrations
 class TestKafkaValue(BaseSourceTest):
