@@ -30,7 +30,7 @@ class Test_Otel_Interoperability:
                 current_span = test_library.current_span()
 
                 assert current_span is not None
-                assert "{0:16x}".format(int(current_span.span_id)) == otel_span.span_id
+                assert "{:016x}".format(int(current_span.span_id)) == otel_span.span_id
 
                 otel_span.end_span()
 
@@ -43,7 +43,7 @@ class Test_Otel_Interoperability:
                 otel_current_span = test_library.otel_current_span()
 
                 assert otel_current_span is not None
-                assert otel_current_span.span_id == "{0:16x}".format(int(dd_span.span_id))
+                assert otel_current_span.span_id == "{:016x}".format(int(dd_span.span_id))
 
                 dd_span.finish()
 
@@ -81,7 +81,7 @@ class Test_Otel_Interoperability:
                     otel_context = otel_span.span_context()
 
                     assert current_span.trace_id == otel_context.get("trace_id")
-                    assert "{0:16x}".format(int(current_span.span_id)) == otel_context.get("span_id")
+                    assert "{:016x}".format(int(current_span.span_id)) == otel_context.get("span_id")
                     assert dd_span.span_id == current_span.parent_id
 
                     otel_span.end_span()
@@ -109,9 +109,9 @@ class Test_Otel_Interoperability:
                     assert current_span.trace_id == otel_context.get("trace_id")
                     assert current_span.span_id == dd_span.span_id
                     if isinstance(current_span.parent_id, int):
-                        assert "{0:16x}".format(current_span.parent_id) == otel_span.span_id
+                        assert "{:016x}".format(current_span.parent_id) == otel_span.span_id
                     else:
-                        assert "{0:16x}".format(int(current_span.parent_id)) == otel_span.span_id
+                        assert "{:016x}".format(int(current_span.parent_id)) == otel_span.span_id
 
                     dd_span.finish()
 
@@ -374,7 +374,7 @@ class Test_Otel_Interoperability:
                     dd_root.finish()
 
                     current_span = test_library.current_span()
-                    assert "{0:16x}".format(int(current_span.span_id)) == otel_root.span_id
+                    assert "{:016x}".format(int(current_span.span_id)) == otel_root.span_id
                 otel_root.end_span()
 
         traces = test_agent.wait_for_num_traces(2)
@@ -423,7 +423,7 @@ class Test_Otel_Interoperability:
                     dd_root.finish()
 
                     current_span = test_library.current_span()
-                    assert "{0:16x}".format(int(current_span.span_id)) == otel_root.span_id
+                    assert "{:016x}".format(int(current_span.span_id)) == otel_root.span_id
                 otel_root.end_span()
 
         traces = test_agent.wait_for_num_traces(2)
