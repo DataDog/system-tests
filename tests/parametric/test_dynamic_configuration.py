@@ -178,7 +178,7 @@ class TestDynamicConfigTracingEnabled:
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
 
     @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": false},],
     )
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
         if library_env.get("DD_TRACE_ENABLED", True):
@@ -191,7 +191,7 @@ class TestDynamicConfigTracingEnabled:
                 "wait_for_num_traces does not raise an exception."
             )
 
-        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": false})
         with test_library:
             with test_library.start_span("test"):
                 pass
