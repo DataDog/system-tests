@@ -1234,9 +1234,9 @@ class features:
         """
         IAST Source: Kafka message key
 
-        https://feature-parity.us1.prod.dog/#/?feature=179
+        https://feature-parity.us1.prod.dog/#/?feature=277
         """
-        pytest.mark.features(feature_id=179)(test_object)
+        pytest.mark.features(feature_id=277)(test_object)
         return test_object
 
     @staticmethod
@@ -1244,9 +1244,9 @@ class features:
         """
         IAST Source: Kafka message value
 
-        https://feature-parity.us1.prod.dog/#/?feature=180
+        https://feature-parity.us1.prod.dog/#/?feature=278
         """
-        pytest.mark.features(feature_id=180)(test_object)
+        pytest.mark.features(feature_id=278)(test_object)
         return test_object
 
     @staticmethod
