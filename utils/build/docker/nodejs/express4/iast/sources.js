@@ -117,34 +117,55 @@ function init (app, tracer) {
 
   app.get('/iast/source/kafkavalue/test', (req, res) => {
     const kafka = getKafka()
-
-    const producer = kafka.producer()
+    const topic = 'dsm-system-tests-queue'
+    const timeout = 60000
+    
+    let consumer
     const doKafkaOperations = async () => {
-      await producer.connect()
-      await producer.send({
-        topic: 'iast-system-tests-queue',
-        messages: [
-          { value: 'hello value!' }
-        ]
-      })
-      await producer.disconnect()
-
-      const consumer = kafka.consumer({ groupId: 'testgroup2' })
-
+      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      
       await consumer.connect()
-      await consumer.subscribe({ topic: 'iast-system-tests-queue', fromBeginning: true })
+      await consumer.subscribe({ topic, fromBeginning: false })
+
+      const deferred = {}
+      const promise = new Promise((resolve, reject) => {
+        deferred.resolve = resolve
+        deferred.reject = reject
+      })
 
       await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
           const vulnValue = message.value.toString()
-          readFileSync(vulnValue)
-          await consumer.stop()
-          await consumer.disconnect()
+          try {
+            readFileSync(vulnValue)
+          } catch {
+            // do nothing
+          }
+          
+          deferred.resolve()
         }
       })
+
+      setTimeout(() => {
+        deferred.reject(new Error('Message not received'))
+      }, timeout)
+          
+      const producer = kafka.producer()
+      await producer.connect()
+      await producer.send({
+        topic,
+        messages: [{ value: 'hello value!' }]
+      })
+      await producer.disconnect()
+
+      return promise
     }
+
     doKafkaOperations()
-      .then(() => {
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+
         res.send('ok')
       })
       .catch((error) => {
@@ -155,34 +176,51 @@ function init (app, tracer) {
 
   app.get('/iast/source/kafkakey/test', (req, res) => {
     const kafka = getKafka()
+    const topic = 'dsm-system-tests-queue'
+    const timeout = 60000
 
-    const producer = kafka.producer()
+    let consumer
     const doKafkaOperations = async () => {
-      await producer.connect()
-      await producer.send({
-        topic: 'iast-system-tests-queue',
-        messages: [
-          { key: 'hello key!', value: 'value' }
-        ]
-      })
-      await producer.disconnect()
-
-      const consumer = kafka.consumer({ groupId: 'testgroup2' })
-
+      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      
       await consumer.connect()
-      await consumer.subscribe({ topic: 'iast-system-tests-queue', fromBeginning: true })
+      await consumer.subscribe({ topic, fromBeginning: false })
+      
+      const deferred = {}
+      const promise = new Promise((resolve, reject) => {
+        deferred.resolve = resolve
+        deferred.reject = reject
+      })
 
       await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
           const vulnKey = message.key.toString()
           readFileSync(vulnKey)
-          await consumer.stop()
-          await consumer.disconnect()
+          
+          deferred.resolve()
         }
       })
+
+      setTimeout(() => {
+        deferred.reject(new Error('Message not received'))
+      }, timeout)
+      
+      const producer = kafka.producer()
+      await producer.connect()
+      await producer.send({
+        topic,
+        messages: [{ key: 'hello key!', value: 'value' }]
+      })
+      await producer.disconnect()
+
+      return promise
     }
+
     doKafkaOperations()
-      .then(() => {
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+
         res.send('ok')
       })
       .catch((error) => {
