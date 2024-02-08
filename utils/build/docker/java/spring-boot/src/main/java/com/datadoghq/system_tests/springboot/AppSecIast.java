@@ -354,12 +354,12 @@ public class AppSecIast {
         return "ok";
     }
 
-    @GetMapping(value = "/reflection_injection/test_secure")
+    @PostMapping(value = "/reflection_injection/test_secure")
     public String secureReflection() {
         return reflectionExamples.secureClassForName();
     }
 
-    @GetMapping(value = "/reflection_injection/test_insecure")
+    @PostMapping(value = "/reflection_injection/test_insecure")
     public String insecureReflection(HttpServletRequest request) {
         final String className = request.getParameter("param");
         return reflectionExamples.insecureClassForName(className);
