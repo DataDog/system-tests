@@ -530,10 +530,10 @@ tests/:
         flask-poc: v2.6.0
       Test_DsmRabbitmq_FanoutExchange:
         '*': irrelevant
-        flask-poc: v2.6.0
+        flask-poc: missing_feature (endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
         '*': irrelevant
-        flask-poc: v2.6.0
+        flask-poc: missing_feature (endpoint not implemented)
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0
