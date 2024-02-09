@@ -31,15 +31,18 @@ class _Test_SQS:
                 if "aws.service" not in span["meta"] and "aws_service" not in span["meta"]:
                     continue
 
+                if (
+                    "sqs" not in span["meta"].get("aws.service", "").lower()
+                    and "sqs" not in span["meta"].get("aws_service", "").lower()
+                ):
+                    continue
+
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
                 if operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
-                    # for nodejs we propagate from aws.response span which does not have the queue included on the span
+                    # for nodejs we propagate from aws.response span which does not have the queue included on the span.
                     if span["resource"] != "aws.response":
-                        continue
-                    # this is a bit hacky. The only way we can identify the NodeJS 'aws.response' span is by using pathway hash
-                    if span["meta"].get("pathway.hash", "") not in ["3798979665392115457", "476120775804749364"]:
                         continue
                 elif queue != cls.get_queue(span):
                     continue
@@ -205,6 +208,14 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy = _java_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_aws_xray_header_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_aws_xray_header_buddy_to_weblog"
+
+    @missing_feature(
+        library="nodejs",
+        reason="Expected to fail, NodeJS will not create a response span \
+                     propagating context since it cannot extract AWSTracerHeader context that Java injects",
+    )
+    def test_consume(self):
+        super().test_consume()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
