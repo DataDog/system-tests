@@ -207,7 +207,7 @@ RUN apt-get update && apt-get install -y curl
 WORKDIR /app
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY install_ddtrace.sh query-versions.fsx binaries* /binaries/
+COPY utils/build/docker/dotnet/parametric/install_ddtrace.sh utils/build/docker/dotnet/parametric/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
