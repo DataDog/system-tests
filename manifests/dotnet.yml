@@ -44,7 +44,7 @@ tests/:
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: v2.39.0
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection: v2.47.0
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
         test_sql_injection.py:
