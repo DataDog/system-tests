@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from utils.onboarding.pulumi_utils import remote_install
 from utils._context.library_version import Version
+from utils import context
 
 
 class TestedVirtualMachine:
@@ -395,37 +396,67 @@ class DataDogConfig:
 
 
 class _VagrantConfig:
-    def __init__(self, vagrant_folder) -> None:
-        self.vagrant_folder = vagrant_folder
+    def __init__(self, box_name) -> None:
+        self.box_name = box_name
 
 
 class _AWSConfig:
     def __init__(self, ami_id, ami_instance_type, user) -> None:
         self.ami_id = ami_id
         self.ami_instance_type = ami_instance_type
-        self.user = user
+        self._user = user
+        self.aws_infra_config = AWSInfraConfig()
+
+
+class _SSHConfig:
+    def __init__(self, hostname=None, port=22, username=None, key_filename=None, pkey=None) -> None:
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.key_filename = key_filename
+        self.pkey = pkey
+
+    def get_ssh_connection(self):
+        import paramiko
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        if self.pkey is not None:
+            ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey)
+        else:
+            ssh.connect(self.hostname, port=self.port, username=self.username, key_filename=self.key_filename)
+        return ssh
 
 
 class _VirtualMachine:
-    def __init__(self, name, aws_config, vagrant_config, os_type, os_distro, **kwargs,) -> None:
+    def __init__(self, name, aws_config, vagrant_config, os_type, os_distro, os_branch, os_cpu, **kwargs,) -> None:
         self.name = name
         self.aws_config = aws_config
         self.vagrant_config = vagrant_config
+        self.ssh_config = _SSHConfig()
         self.os_type = os_type
         self.os_distro = os_distro
+        self.os_branch = os_branch
+        self.os_cpu = os_cpu
         self.vm_provision = None
 
-    def configure(self, vm_provider, vm_provision):
-        self.vm_provision = vm_provision
+    def set_ip(self, ip):
+        self.ssh_config.hostname = ip
 
-    def start(self):
-        logger.info(f"Starting VM: {self.name}")
+    def get_log_folder(self):
+        vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
+        if not os.path.exists(vm_folder):
+            os.mkdir(vm_folder)
+        return vm_folder
+
+    def get_default_log_file(self):
+        return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
+
+    def add_provision(self, provision):
+        self.vm_provision = provision
 
     def before_close(self):
         logger.info(f"closing VM: {self.name}")
-
-    def destroy(self):
-        logger.info(f"Destroying VM: {self.name}")
 
 
 class Ubuntu22amd64(_VirtualMachine):
@@ -433,8 +464,24 @@ class Ubuntu22amd64(_VirtualMachine):
         super().__init__(
             "Ubuntu_22_amd64",
             aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
-            vagrant_config=_VagrantConfig(vagrant_folder="ubuntu-x86-22.04",),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
             os_type="linux",
             os_distro="deb",
+            os_branch="ubuntu22",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class Ubuntu22arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_22_arm64",
+            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64",),
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu22",
+            os_cpu="arm64",
             **kwargs,
         )

@@ -1,0 +1,28 @@
+#Optional: Load the environment variables
+init-environment: !include utils/build/virtual_machine/provisions/shared-provisions/auto-inject-environment.yml
+#Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
+installed_components:
+  install: !include utils/build/virtual_machine/provisions/shared-provisions/auto-inject-installed_components.yml
+#Steps to install provision 
+provision_steps:
+  - init-config #Very first machine actions, like disable auto updates
+  - prepare-repos #Configure the reporitories for install auto-injection
+  - install-agent #Install the agent (allways latest release)
+  - autoinjection_install_manual #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
+  
+
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
+
+prepare-repos:
+  install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
+
+install-agent:
+  install: !include tests/onboarding/infra_provision/includes/provision_agent.yml
+
+autoinjection_install_manual:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_manual.yml
+  uninstall:
+    - os_type: linux
+      command: dd-host-install --uninstall
+

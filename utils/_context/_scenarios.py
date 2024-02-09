@@ -33,7 +33,10 @@ from utils._context.containers import (
     # SqlDbTestedContainer,
     BuddyContainer,
 )
-from utils._context.virtual_machines import Ubuntu22amd64
+from utils._context.virtual_machines import Ubuntu22amd64, Ubuntu22arm64
+from utils.virtual_machine.virtual_machine_provider import provider_factory
+from utils.virtual_machine.virtual_machine_provisioner import provisioner
+
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 update_environ_with_local_env()
@@ -1060,26 +1063,56 @@ class _VirtualMachineScenario(_Scenario):
         self, name, doc, vm_provision=None, include_ubuntu_22_amd64=False, include_ubuntu_22_arm64=False,
     ) -> None:
         super().__init__(name, doc=doc)
-        self.vm_provision = vm_provision
+        self.vm_provision_name = vm_provision
+        self.vm_provider_id = "vagrant"
         self.vm_provider = None
         self.required_vms = []
 
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
+            self.required_vms.append(Ubuntu22arm64())
 
     def configure(self, config):
         super().configure(config)
-        self.vm_provider = config.option.vm_provider
-        logger.info(f"Provisioning virtual machines")
+        if config.option.vm_provider:
+            self.vm_provider_id = config.option.vm_provider
+        self._library = LibraryVersion(config.option.obd_library, "0.0")
+        self._env = config.option.obd_env
+        self._weblog = config.option.obd_weblog
+
+        assert self._library is not None, "Library is not set (use --obd-library)"
+        assert self._env is not None, "Env is not set (use --obd-env)"
+        assert self._weblog is not None, "Weblog is not set (use --obd-weblog)"
+        assert os.path.isfile(
+            f"utils/build/virtual_machine/weblogs/{self._library.library}/provision_{self._weblog}.yml"
+        ), "Weblog Provision file not found."
+        assert os.path.isfile(
+            f"utils/build/virtual_machine/provisions/{self.vm_provision_name}/provision.yml"
+        ), "Provision file not found"
+
+        self.vm_provider = provider_factory.get_provider(self.vm_provider_id)
+
+        provisioner.remove_unsupported_machines(self._library.library, self._weblog, self.required_vms)
         for vm in self.required_vms:
-            vm.configure(self.vm_provision)
+            vm.add_provision(
+                provisioner.get_provision(
+                    self._library.library,
+                    self._env,
+                    self._weblog,
+                    self.vm_provision_name,
+                    vm.os_type,
+                    vm.os_distro,
+                    vm.os_branch,
+                    vm.os_cpu,
+                )
+            )
+        self.vm_provider.configure(self.required_vms, None)
+
+        # for vm in self.required_vms:
+        #    vm.configure(self.vm_provision)
 
     def _get_warmups(self):
-        warmups = super()._get_warmups()
-        for vm in self.required_vms:
-            warmups.append(vm.start)
-
-        return warmups
+        return [self.vm_provider.start]
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing  _VirtualMachineScenario scenario")
@@ -1090,7 +1123,15 @@ class _VirtualMachineScenario(_Scenario):
     def close_targets(self):
         logger.info(f"Destroying virtual machines")
         for vm in self.required_vms:
-            vm.destroy()
+            self.vm_provider.destroy()
+
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def weblog_variant(self):
+        return self._weblog
 
 
 class scenarios:
@@ -1527,7 +1568,12 @@ class scenarios:
     )
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
-    vm_scenario = _VirtualMachineScenario("VM_SCENARIO", doc="Virtual machine scenario", include_ubuntu_22_amd64=True)
+    vm_scenario = _VirtualMachineScenario(
+        "VM_SCENARIO",
+        vm_provision="host-auto-inject",
+        doc="Onboarding Host Single Step Instrumentation scenario",
+        include_ubuntu_22_amd64=True,
+    )
 
 
 def _main():

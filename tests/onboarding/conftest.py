@@ -16,5 +16,4 @@ def onboardig_vm(request):
 
 @pytest.fixture(params=getattr(context.scenario, "required_vms", []))
 def virtual_machine(request):
-
     yield request.param
