@@ -467,7 +467,7 @@ class Test_Otel_Interoperability:
 
                 assert otel_context.get("trace_id") == trace_id
                 assert otel_context.get("trace_state") == "dd=t.dm:-0,foo=1"
-                assert otel_context.get("trace_flags") == '01'
+                assert otel_context.get("trace_flags") == "01"
 
                 dd_span.finish()
 
@@ -502,7 +502,7 @@ class Test_Otel_Interoperability:
 
                 assert otel_context.get("trace_id") == "000000000000000000000000075bcd15"
                 assert otel_context.get("trace_state") == "dd=o:synthetics;s:-2;t.foo:bar"
-                assert otel_context.get("trace_flags") == '00'
+                assert otel_context.get("trace_flags") == "00"
 
                 dd_span.finish()
 
@@ -516,4 +516,3 @@ class Test_Otel_Interoperability:
         assert root["meta"]["_dd.p.foo"] == "bar"
         assert root["meta"]["_dd.origin"] == "synthetics"
         assert root["metrics"]["_sampling_priority_v1"] == -2
-
