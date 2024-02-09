@@ -218,7 +218,7 @@ class Test_Headers_Precedence:
     @missing_feature(
         context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration"
     )
-    @irrelevant(context.library >= "php@0.98.0", reason="Default value was switched to datadog,tracecontext")
+    @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
