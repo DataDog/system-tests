@@ -543,5 +543,41 @@ namespace weblog
                 return StatusCode(500, "Error executing query.");
             }               
         }
+
+        [HttpPost("mongodb-nosql-injection/test_insecure")]
+        public IActionResult test_insecure_mongodb_injection([FromForm]string key)
+        {
+            try
+            {
+                var mongoDbHelper = new MongoDbHelper("mongodb://localhost:27017", "test-db");
+                var filter = "{ \"user\": \"" + key + "\" }";
+                mongoDbHelper.Find("users", filter);
+                
+                return Content("Executed injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        [HttpPost("mongodb-nosql-injection/test_secure")]
+        public IActionResult test_secure_mongodb_injection([FromForm]string key)
+        {
+            try
+            {
+                var mongoDbHelper = new MongoDbHelper("mongodb://localhost:27017", "test-db");
+                var filter = MongoDbHelper.CreateSimpleDocument("user", key);
+                mongoDbHelper.Find("users", filter);
+                
+                return Content("Executed secure injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing query.");
+            }
+        }
     }
 }

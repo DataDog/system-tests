@@ -7,11 +7,11 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: missing_feature
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_DD_processors: v5.3.0
+        Test_API_Security_RC_ASM_DD_scanners: v5.3.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+        Test_API_Security_sampling: v4.21.0
       test_schemas.py:
         Test_Scanners: v4.21.0
         Test_Schema_Request_Cookies: v4.21.0
@@ -23,7 +23,9 @@ tests/:
         Test_Schema_Request_Json_Body: v4.21.0
         Test_Schema_Request_Path_Parameters: missing_feature (path_params not supported yet)
         Test_Schema_Request_Query_Parameters: v4.21.0
-        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body:
+          '*': v5.3.0
+          nextjs: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v4.21.0
     iast/:
@@ -48,6 +50,8 @@ tests/:
             '*': missing_feature
             express4: v4.8.0
             express4-typescript: v4.8.0
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': missing_feature
@@ -145,6 +149,14 @@ tests/:
             '*': missing_feature
             express4: v4.3.0
             express4-typescript: v4.3.0
+        test_kafka_key.py:
+          TestKafkaKey:
+            '*': missing_feature
+            express4: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue:
+            '*': missing_feature
+            express4: missing_feature
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:

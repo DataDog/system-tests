@@ -72,6 +72,14 @@ tests/:
             spring-boot-openliberty: bug (APPSEC-51483)
             vertx3: missing_feature
             vertx4: missing_feature
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol:
+            '*': v1.30.0
+            akka-http: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-openliberty: bug (not working as expected)
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.18.0
@@ -265,6 +273,10 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart:
             '*': v1.22.0

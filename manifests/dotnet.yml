@@ -33,6 +33,8 @@ tests/:
           TestHeaderInjection: v2.46.0
         test_hsts_missing_header.py: 
           Test_HstsMissingHeader: v2.44.0
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
         test_ldap_injection.py:
@@ -42,7 +44,7 @@ tests/:
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: v2.39.0
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection: v2.47.0
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
         test_sql_injection.py:
@@ -81,6 +83,10 @@ tests/:
         test_header_value.py:
           TestHeaderValue: 
              '*': v2.39.0
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -90,7 +96,7 @@ tests/:
         test_path.py:
           TestPath: v2.39.0
         test_uri.py:
-          TestURI: irrelevant     
+          TestURI: irrelevant
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
