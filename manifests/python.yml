@@ -220,6 +220,10 @@ tests/:
             '*': v1.18.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:

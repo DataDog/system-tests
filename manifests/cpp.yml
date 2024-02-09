@@ -39,6 +39,8 @@ tests/:
         test_cookie_value.py: irrelevant (ASM is not implemented in C++)
         test_header_name.py: irrelevant (ASM is not implemented in C++)
         test_header_value.py: irrelevant (ASM is not implemented in C++)
+        test_kafka_key.py: irrelevant (ASM is not implemented in C++)
+        test_kafka_value.py: irrelevant (ASM is not implemented in C++)
         test_multipart.py: irrelevant (ASM is not implemented in C++)
         test_parameter_name.py: irrelevant (ASM is not implemented in C++)
         test_parameter_value.py: irrelevant (ASM is not implemented in C++)
