@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _nodejs_buddy, _java_buddy
+from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -77,11 +77,6 @@ class _Test_SQS:
             "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
 
-    @missing_feature(
-        library="java",
-        reason="Expected to fail, Java defaults to using Xray headers to propagate context. \
-        NodeJS cannot extract from Xray and will not create an 'aws.response' span if no context is extracted.",
-    )
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
 
@@ -100,7 +95,6 @@ class _Test_SQS:
     @missing_feature(
         library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
     )
-    @missing_feature(library="python", reason="Expected to fail. Python does not propagate context.")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -198,15 +192,10 @@ class _Test_SQS:
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
-    buddy_interface = interfaces.nodejs_buddy
-    buddy = _nodejs_buddy
+    buddy_interface = interfaces.python_buddy
+    buddy = _python_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
-
-    @missing_feature(library="python", reason="Expected to fail. Python and NodeJS are not compatible at the moment")
-    @missing_feature(library="java", reason="Expected to fail. Java and NodeJS are not compatible at the moment")
-    def test_produce(self):
-        super().test_produce()
 
 
 @scenarios.crossed_tracing_libraries
