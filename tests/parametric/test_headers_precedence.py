@@ -492,7 +492,7 @@ class Test_Headers_Precedence:
     @irrelevant(context.library < "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
     @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
-    @irrelevant(context.library < "php@1.0.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
+    @irrelevant(context.library < "php@1.0.0", reason="Default value will be updated in v1.0.0 (w3c phase 2)")
     @irrelevant(context.library == "python", reason="library does not implement this default configuration")
     def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
