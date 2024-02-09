@@ -33,7 +33,9 @@ class _Test_SNS:
                 if "aws.service" not in span["meta"] and "aws_service" not in span["meta"]:
                     continue
 
-                if "sns" not in span["meta"].get("aws.service", "") and "sns" not in span["meta"].get("aws_service", ""):
+                if "sns" not in span["meta"].get("aws.service", "") and "sns" not in span["meta"].get(
+                    "aws_service", ""
+                ):
                     continue
 
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
