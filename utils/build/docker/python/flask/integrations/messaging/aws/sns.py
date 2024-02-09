@@ -6,7 +6,7 @@ import boto3
 
 def sns_produce(queue, topic, message):
     """
-        The goal of this function is to trigger sqs producer calls
+    The goal of this function is to trigger sqs producer calls
     """
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
@@ -36,7 +36,7 @@ def sns_produce(queue, topic, message):
 
 def sns_consume(queue, timeout=60):
     """
-        The goal of this function is to trigger sqs consumer calls
+    The goal of this function is to trigger sqs consumer calls
     """
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://localstack-main:4566", region_name="us-east-1")

@@ -33,6 +33,9 @@ class _Test_SNS:
                 if "aws.service" not in span["meta"] and "aws_service" not in span["meta"]:
                     continue
 
+                if "sns" not in span["meta"].get("aws.service", "") and "sns" not in span["meta"].get("aws_service", ""):
+                    continue
+
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
@@ -42,9 +45,6 @@ class _Test_SNS:
                 elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
-                        continue
-                    # this is a bit hacky. The only way we can identify the NodeJS 'aws.response' span is by using pathway hash
-                    if span["meta"].get("pathway.hash", "") not in ["2396901141544524833", "16374906615958903661"]:
                         continue
                 elif queue != cls.get_queue(span):
                     continue
@@ -102,12 +102,6 @@ class _Test_SNS:
             "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
 
-    @missing_feature(library="python", reason="Expected to fail. Python and NodeJS are not compatible at the moment")
-    @missing_feature(
-        library="java",
-        reason="Expected to fail. Java will produce a message with propagation via AWSTraceHeader and node \
-        will not produce a response since no context will be found.",
-    )
     def test_produce(self):
         """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
         assert self.production_response.status_code == 200
@@ -123,7 +117,6 @@ class _Test_SNS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail. Python does not propagate context.")
     @missing_feature(
         library="java",
         reason="Expected to fail. Java will produce a message with propagation via AWSTraceHeader and node \
