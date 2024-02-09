@@ -148,18 +148,6 @@ get_github_release_asset() {
     curl -H "Authorization: token $GH_TOKEN" --output $name -L $url 
 }
 
-get_dotnet_tracer_latest_artifact() {
-    ARCH=$1
-    VERSION=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/version.txt)
-    SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
-    ARTIFACT="datadog-dotnet-apm-$VERSION.$ARCH.tar.gz"
-    URL="https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARTIFACT"
-
-    echo "Load $URL"
-
-    curl --silent -L $URL --output $ARTIFACT
-}
-
 if test -f ".env"; then
     source .env
 fi
@@ -182,8 +170,6 @@ elif [ "$TARGET" = "dotnet" ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
     elif [ $VERSION = 'prod' ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest .
-    elif [ $VERSION = 'dev-arm64' ]; then
-       get_dotnet_tracer_latest_artifact "arm64"
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
