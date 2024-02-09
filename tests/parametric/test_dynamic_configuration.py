@@ -181,7 +181,7 @@ class TestDynamicConfigTracingEnabled:
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
-        if library_env.get("DD_TRACE_ENABLED", True):
+        if library_env.get("DD_TRACE_ENABLED", "true") == "true":
             with test_library:
                 with test_library.start_span("test"):
                     pass
@@ -195,18 +195,29 @@ class TestDynamicConfigTracingEnabled:
         with test_library:
             with test_library.start_span("test"):
                 pass
-        with pytest.raises(ValueError, "no traces are sent after RC response with tracing_enabled: false"):
+        with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
+        assert True, "no traces are sent after RC response with tracing_enabled: false"
 
+    @parametrize(
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+    )
+    @irrelevant(
+        library="python",
+        reason="The Python client library doesn't support the one-way lock functionality of tracing_enabled",
+    )
+    def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
+        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
         set_and_wait_rc(test_agent, config_overrides={})
         with test_library:
             with test_library.start_span("test"):
                 pass
-        with pytest.raises(
-            ValueError,
-            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting",
-        ):
+
+        with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
+        assert (
+            True
+        ), "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
 
 
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
