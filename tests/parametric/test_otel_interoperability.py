@@ -14,7 +14,7 @@ pytestmark = pytest.mark.parametrize(
 )
 
 TEST_TRACE_ID = "ff0000000000051791e0000000000041"
-TEST_SPAN_ID = "ff00000000000517"
+TEST_SPAN_ID = "ff00000000000516"
 TEST_TRACESTATE = "dd=t.dm:-0"
 TEST_ATTRIBUTES = {"arg1": "val1"}
 
@@ -448,3 +448,72 @@ class Test_Otel_Interoperability:
         assert root1["trace_id"] == child1["trace_id"]
         assert root2["trace_id"] == child2["trace_id"]
         assert root1["trace_id"] != root2["trace_id"]
+
+    def test_distributed_headers_are_propagated_tracecontext(self, test_agent, test_library):
+        """
+            - Test that distributed tracecontext headers are propagated across APIs
+        """
+        trace_id = "0000000000000000000000000000002a"  # 42
+        parent_id = "0000000000000003"  # 3
+        headers = [
+            ("traceparent", "00-%s-%s-01" % (trace_id, parent_id)),
+            ("tracestate", "foo=1"),
+        ]
+
+        with test_library:
+            with test_library.start_span(name="dd_span", http_headers=headers) as dd_span:
+                otel_span = test_library.otel_current_span()
+                otel_context = otel_span.span_context()
+
+                assert otel_context.get("trace_id") == trace_id
+                assert otel_context.get("trace_state") == "dd=t.dm:-0,foo=1"
+                assert otel_context.get("trace_flags") == '01'
+
+                dd_span.finish()
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, Span(name="dd_span"))
+        assert len(trace) == 1
+
+        root = root_span(trace)
+        assert root["trace_id"] == 42
+        assert root["parent_id"] == 3
+        assert "foo" not in root["meta"]
+        assert root["meta"]["_dd.p.dm"] == "-0"
+        assert root["metrics"]["_sampling_priority_v1"] == 1
+
+    def test_distributed_headers_are_propagated_datadog(self, test_agent, test_library):
+        """
+            - Test that distributed datadog headers are propagated across APIs
+        """
+
+        headers = [
+            ("x-datadog-trace-id", "123456789"),
+            ("x-datadog-parent-id", "987654321"),
+            ("x-datadog-sampling-priority", "-2"),
+            ("x-datadog-tags", "_dd.p.foo=bar"),
+            ("x-datadog-origin", "synthetics"),
+        ]
+
+        with test_library:
+            with test_library.start_span(name="dd_span", http_headers=headers,) as dd_span:
+                otel_span = test_library.otel_current_span()
+                otel_context = otel_span.span_context()
+
+                assert otel_context.get("trace_id") == "000000000000000000000000075bcd15"
+                assert otel_context.get("trace_state") == "dd=o:synthetics;s:-2;t.foo:bar"
+                assert otel_context.get("trace_flags") == '00'
+
+                dd_span.finish()
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, Span(name="dd_span"))
+        assert len(trace) == 1
+
+        root = root_span(trace)
+        assert root["trace_id"] == 123456789
+        assert root["parent_id"] == 987654321
+        assert root["meta"]["_dd.p.foo"] == "bar"
+        assert root["meta"]["_dd.origin"] == "synthetics"
+        assert root["metrics"]["_sampling_priority_v1"] == -2
+
