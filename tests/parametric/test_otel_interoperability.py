@@ -287,8 +287,6 @@ class Test_Otel_Interoperability:
 
                 dd_span.finish()
 
-                # TODO: Add span
-
     def test_span_links_add(self, test_agent, test_library):
         """
             - Test that links set on a span created with the OTel API are updated into the Datadog API
