@@ -152,6 +152,9 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         router.get("/iast/no-httponly-cookie/test_secure").handler(ctx ->
                 ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").end()
         );
+        router.get("/iast/insecure-auth-protocol/test").handler(ctx ->
+                ctx.response().end("ok")
+        );
 
     }
 }

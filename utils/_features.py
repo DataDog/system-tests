@@ -1230,6 +1230,26 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_source_kafka_key(test_object):
+        """
+        IAST Source: Kafka message key
+
+        https://feature-parity.us1.prod.dog/#/?feature=277
+        """
+        pytest.mark.features(feature_id=277)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_source_kafka_value(test_object):
+        """
+        IAST Source: Kafka message value
+
+        https://feature-parity.us1.prod.dog/#/?feature=278
+        """
+        pytest.mark.features(feature_id=278)(test_object)
+        return test_object
+
+    @staticmethod
     def grpc_threats_management(test_object):
         """
         gRPC Threats Management
@@ -1945,6 +1965,16 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=273
         """
         pytest.mark.features(feature_id=273)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_insecure_auth_protocol(test_object):
+        """
+        IAST Sink: Insecure auth protocol
+
+        https://feature-parity.us1.prod.dog/#/?feature=272
+        """
+        pytest.mark.features(feature_id=272)(test_object)
         return test_object
 
     @staticmethod
