@@ -119,11 +119,11 @@ function init (app, tracer) {
     const kafka = getKafka()
     const topic = 'dsm-system-tests-queue'
     const timeout = 60000
-    
+
     let consumer
     const doKafkaOperations = async () => {
       consumer = kafka.consumer({ groupId: 'testgroup2' })
-      
+
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
 
@@ -141,7 +141,7 @@ function init (app, tracer) {
           } catch {
             // do nothing
           }
-          
+
           deferred.resolve()
         }
       })
@@ -149,7 +149,7 @@ function init (app, tracer) {
       setTimeout(() => {
         deferred.reject(new Error('Message not received'))
       }, timeout)
-          
+
       const producer = kafka.producer()
       await producer.connect()
       await producer.send({
@@ -182,10 +182,10 @@ function init (app, tracer) {
     let consumer
     const doKafkaOperations = async () => {
       consumer = kafka.consumer({ groupId: 'testgroup2' })
-      
+
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
-      
+
       const deferred = {}
       const promise = new Promise((resolve, reject) => {
         deferred.resolve = resolve
@@ -196,7 +196,7 @@ function init (app, tracer) {
         eachMessage: async ({ topic, partition, message }) => {
           const vulnKey = message.key.toString()
           readFileSync(vulnKey)
-          
+
           deferred.resolve()
         }
       })
@@ -204,7 +204,7 @@ function init (app, tracer) {
       setTimeout(() => {
         deferred.reject(new Error('Message not received'))
       }, timeout)
-      
+
       const producer = kafka.producer()
       await producer.connect()
       await producer.send({
