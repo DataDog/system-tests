@@ -25,5 +25,6 @@
 		<Reference Include="Datadog.Trace">
 			<HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
 		</Reference>
+		<PackageReference Include="MongoDB.Driver" Version="2.23.1" />
 	</ItemGroup>
 </Project>
