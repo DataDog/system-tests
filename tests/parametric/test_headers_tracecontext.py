@@ -712,6 +712,70 @@ class Test_Headers_Tracecontext:
 
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
+    
+
+    def test_tracestate_w3c_phase_2(self, test_agent, test_library):
+        """
+        Ensure the last parent id tag is set according to the W3C spec
+        """
+        with test_library:
+            with test_library.start_span(
+                name="lp_id_set", 
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], 
+                    ["tracestate", "key1=value1,dd=s:2;o:rum;lp.id:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
+                ],
+            ):
+                pass
+
+            with test_library.start_span(
+                name="lp_id_invalid", 
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"], 
+                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4;lp.id:XX!X"],
+                ],
+            ):
+                pass
+
+            with test_library.start_span(
+                name="datadog_headers_used_in_propagation", 
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789014-1234567890123458-00"], 
+                    ["tracestate", "key1=value1,dd=s:2;lp.id:000000000000000b"],
+                    ["x-datadog-trace-id", "5"],
+                    ["x-datadog-parent-id", "11"],
+                ],
+            ):
+                pass
+
+            with test_library.start_span(
+                name="lp_id_not_propagated", 
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"], 
+                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
+                ],
+            ):
+                pass
+        
+        traces = test_agent.wait_for_num_traces(4)
+        
+        assert len(traces) == 4
+        case1, case2, case3, case4 = traces[0][0], traces[1][0], traces[2][0], traces[3][0]
+
+        assert case1["name"] == "lp_id_set"
+        assert case1["meta"]["_dd.lp.id"] == "0123456789abcdef"
+
+        assert case2["name"] == "lp_id_invalid"
+        assert case2["meta"]["_dd.lp.id"] == "XX!X", f"{case2}"
+
+        assert case3["name"] == "datadog_headers_used_in_propagation"
+        assert case3["trace_id"] == 5
+        assert case3["parent_id"] == 11
+        assert "_dd.lp.id" not in case3["meta"]
+
+        assert case4["name"] == "lp_id_not_propagated"
+        assert case4["meta"]["_dd.lp.id"] == "0000000000000000"
+
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
