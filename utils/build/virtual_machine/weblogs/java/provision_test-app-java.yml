@@ -1,19 +1,21 @@
-language-variant:
+lang_variant:
     name: OpenJDK11
-    cacheable: true
+    cache: true
     install:
       - os_type: linux
         os_distro: deb
-        command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
+        remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
 
       - os_type: linux
         os_distro: rpm
-        command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel
+        remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel
 
 weblog:
     name: test-app-java
     install:
       - os_type: linux
+        local-command: tar -czvf dd-lib-java-init-test-app_$DD_VM_NAME.tar.gz -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
+
         copy_files:
           - name: copy-service
             local_path: tests/onboarding/weblog/java/test-app-java/test-app.service
@@ -22,9 +24,10 @@ weblog:
             local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_run.sh
 
           - name: copy-java-app
-            local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
+            local_path: dd-lib-java-init-test-app_$DD_VM_NAME.tar.gz
+            #local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
-        command: sh test-app-java_run.sh
+        remote-command: tar -xf dd-lib-java-init-test-app_$DD_VM_NAME.tar.gz && sh test-app-java_run.sh
     uninstall:
       - os_type: linux
-        command: sudo systemctl stop test-app.service
+        remote-command: sudo systemctl stop test-app.service

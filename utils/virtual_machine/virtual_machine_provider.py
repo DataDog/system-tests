@@ -6,7 +6,7 @@ import pulumi_aws as aws
 from pulumi import Output
 import pulumi_command as command
 from utils.onboarding.pulumi_ssh import PulumiSSH
-from utils.onboarding.pulumi_utils import remote_install, pulumi_logger
+from utils.onboarding.pulumi_utils import pulumi_logger
 
 import vagrant
 from fabric.api import env, execute, task, run
@@ -34,11 +34,13 @@ class _VmProvider:
         self.vms = None
         self.provision = None
 
-    def configure(self, required_vms, vm_provision):
+    def configure(self, required_vms):
         self.vms = required_vms
-        self.provision = vm_provision
 
     def start(self):
+        raise NotImplementedError
+
+    def install_provision(self, vm):
         raise NotImplementedError
 
     def destroy(self):
@@ -136,8 +138,136 @@ class AWSPulumiProvider(_VmProvider):
             logger.error("Exception launching aws provision infraestructure")
             logger.exception(pulumi_exception)
 
+    def install_provision(self, vm, ec2_server):
+        server_connection = command.remote.ConnectionArgs(
+            host=ec2_server.private_ip,
+            user=vm.aws_config.user,
+            private_key=PulumiSSH.private_key_pem,
+            dial_error_limit=-1,
+        )
+        provision = vm.get_provision()
+
+        last_task = ec2_server
+        # First install cacheable installations
+        for installation in provision.installations:
+            if installation.cache:
+                logger.info(f"Installing {installation.id} in {vm.name}")
+                last_task = self._remote_install(server_connection, vm, last_task, installation)
+
+        # Then install lang variant if needed (cacheable)
+        if provision.lang_variant_installation:
+            last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
+
+        # Then install non cacheable installations
+        for installation in provision.installations:
+            if not installation.cache:
+                logger.info(f"Installing no cacheable {installation.id} in {vm.name}")
+                last_task = self._remote_install(server_connection, vm, last_task, installation)
+
+        # Extract tested/installed components
+        output_callback = lambda args: args[0].set_tested_components(args[1])
+        last_task = self._remote_install(
+            server_connection,
+            vm,
+            last_task,
+            provision.tested_components_installation,
+            logger_name="tested_components",
+            output_callback=output_callback,
+        )
+
+        # Finally install weblog
+        last_task = self._remote_install(server_connection, vm, last_task, provision.weblog_installation)
+
+    def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
+
+        local_command = None
+        # Execute local command if we need
+        if installation.local_command:
+            local_command = installation.local_command
+
+        # Execute local script if we need
+        if installation.local_script:
+            local_command = "sh " + installation.local_script
+
+        if local_command:
+            last_task = command.local.Command(
+                f"local-script_{vm.name}_{installation.id}",
+                create=local_command,
+                opts=pulumi.ResourceOptions(depends_on=[last_task]),
+            )
+            last_task.stdout.apply(lambda outputlog: pulumi_logger(context.scenario.name, vm.name).info(outputlog))
+
+        # Copy files from local to remote if we need
+        if installation.copy_files:
+            for file_to_copy in installation.copy_files:
+
+                # If we don't use remote_path, the remote_path will be a default remote user home
+                if file_to_copy.remote_path:
+                    remote_path = file_to_copy.remote_path
+                else:
+                    remote_path = os.path.basename(file_to_copy.local_path)
+
+                if os.path.isfile(file_to_copy.local_path):
+                    logger.debug(f"Copy file from {file_to_copy.local_path} to {remote_path}")
+                    # Launch copy file command
+                    last_task = command.remote.CopyFile(
+                        file_to_copy.name + f"-{vm.name}-{installation.id}",
+                        connection=server_connection,
+                        local_path=file_to_copy.local_path,
+                        remote_path=remote_path,
+                        opts=pulumi.ResourceOptions(depends_on=[last_task]),
+                    )
+                else:
+                    raise NotImplementedError("Copy folders not implemented")
+
+        # Execute a basic command on our server.
+        cmd_exec_install = command.remote.Command(
+            f"-{vm.name}-{installation.id}",
+            connection=server_connection,
+            create=installation.remote_command,
+            opts=pulumi.ResourceOptions(depends_on=[last_task]),
+            environment=self._get_command_environment(vm),
+        )
+
+        if logger_name:
+            cmd_exec_install.stdout.apply(
+                lambda outputlog: pulumi_logger(context.scenario.name, logger_name).info(outputlog)
+            )
+        else:
+            # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
+            # same remote machine in the same log file
+            header = "*****************************************************************"
+            Output.all(vm.name, installation.id, installation.remote_command, cmd_exec_install.stdout).apply(
+                lambda args: pulumi_logger(context.scenario.name, args[0]).info(
+                    f"{header} \n  - COMMAND: {args[1]} \n {header} \n {args[2]} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {args[3]}"
+                )
+            )
+        if output_callback:
+            # cmd_exec_install.stdout.apply(output_callback)
+            Output.all(vm, cmd_exec_install.stdout).apply(output_callback)
+
+        return cmd_exec_install
+
+    def _get_command_environment(self, vm):
+        command_env = {}
+        for key, value in vm.get_provision().env.items():
+            command_env["DD_" + key] = value
+        # DD
+        command_env["DD_API_KEY"] = vm.datadog_config.dd_api_key
+        command_env["DD_APP_KEY"] = vm.datadog_config.dd_app_key
+        # Docker
+        if vm.datadog_config.docker_login:
+            command_env["DD_DOCKER_LOGIN"] = vm.datadog_config.docker_login
+            command_env["DD_DOCKER_LOGIN_PASS"] = vm.datadog_config.docker_login_pass
+        # Tested library
+        command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
+        # VM name
+        command_env["DD_VM_NAME"] = vm.name
+        return command_env
+
     def destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
+        self.stack.destroy(on_output=logger.info)
 
     def _start_vm(self, vm):
         # Startup VM and prepare connection
@@ -151,9 +281,15 @@ class AWSPulumiProvider(_VmProvider):
             tags={"Name": vm.name,},
             opts=PulumiSSH.aws_key_resource,
         )
-        Output.all(ec2_server.private_ip).apply(lambda args: vm.set_ip(args[0]))
+        Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
+        pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
+        Output.all(ec2_server.private_ip, vm.name).apply(
+            lambda args: pulumi_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}")
+        )
         vm.ssh_config.pkey = paramiko.RSAKey.from_private_key_file(PulumiSSH.pem_file)
-        vm.ssh_config.username = vm.aws_config._user
+        vm.ssh_config.username = vm.aws_config.user
+
+        self.install_provision(vm, ec2_server)
 
 
 provider_factory = VmProviderFactory()

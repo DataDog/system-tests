@@ -1070,7 +1070,7 @@ class _VirtualMachineScenario(_Scenario):
 
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
-            self.required_vms.append(Ubuntu22arm64())
+        # self.required_vms.append(Ubuntu22arm64())
 
     def configure(self, config):
         super().configure(config)
@@ -1094,6 +1094,7 @@ class _VirtualMachineScenario(_Scenario):
 
         provisioner.remove_unsupported_machines(self._library.library, self._weblog, self.required_vms)
         for vm in self.required_vms:
+            logger.info(f"Adding provision for {vm.name}")
             vm.add_provision(
                 provisioner.get_provision(
                     self._library.library,
@@ -1106,7 +1107,7 @@ class _VirtualMachineScenario(_Scenario):
                     vm.os_cpu,
                 )
             )
-        self.vm_provider.configure(self.required_vms, None)
+        self.vm_provider.configure(self.required_vms)
 
         # for vm in self.required_vms:
         #    vm.configure(self.vm_provision)

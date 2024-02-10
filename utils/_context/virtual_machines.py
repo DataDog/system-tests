@@ -404,7 +404,7 @@ class _AWSConfig:
     def __init__(self, ami_id, ami_instance_type, user) -> None:
         self.ami_id = ami_id
         self.ami_instance_type = ami_instance_type
-        self._user = user
+        self.user = user
         self.aws_infra_config = AWSInfraConfig()
 
 
@@ -431,6 +431,7 @@ class _SSHConfig:
 class _VirtualMachine:
     def __init__(self, name, aws_config, vagrant_config, os_type, os_distro, os_branch, os_cpu, **kwargs,) -> None:
         self.name = name
+        self.datadog_config = DataDogConfig()
         self.aws_config = aws_config
         self.vagrant_config = vagrant_config
         self.ssh_config = _SSHConfig()
@@ -438,7 +439,8 @@ class _VirtualMachine:
         self.os_distro = os_distro
         self.os_branch = os_branch
         self.os_cpu = os_cpu
-        self.vm_provision = None
+        self._vm_provision = None
+        self.tested_components = []
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
@@ -453,7 +455,15 @@ class _VirtualMachine:
         return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
 
     def add_provision(self, provision):
-        self.vm_provision = provision
+        self._vm_provision = provision
+
+    def get_provision(self):
+        return self._vm_provision
+
+    def set_tested_components(self, components_json):
+        """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
+
+    # self.tested_components = json.loads(components_json.replace("'", '"'))
 
     def before_close(self):
         logger.info(f"closing VM: {self.name}")

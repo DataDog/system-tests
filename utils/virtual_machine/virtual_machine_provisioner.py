@@ -40,20 +40,42 @@ class VirtualMachineProvisioner:
         provision = Provision()
         provision_file = f"utils/build/virtual_machine/provisions/{vm_provision_name}/provision.yml"
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
+
         provsion_raw_data = None
         with open(provision_file, encoding="utf-8") as f:
             provsion_raw_data = yaml.load(f, Loader=yaml.FullLoader)
         assert provsion_raw_data is not None, "Provision file is empty"
-        provision.env = self._get_env(env, library_name, provsion_raw_data)
-        logger.info(f"Setting provision env [{ provision.env}]")
-        provision.installations.append(
-            self._get_components(env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data)
-        )
 
+        weblog_raw_data = None
+        with open(weblog_provision_file, encoding="utf-8") as f:
+            weblog_raw_data = yaml.load(f, Loader=yaml.FullLoader)
+        assert weblog_raw_data is not None, "Weblog provision file is empty"
+        # Get environtment variables to be injected in the remote commands
+        provision.env = self._get_env(env, library_name, provsion_raw_data)
+        # Load all custom defined provision steps
+        for provision_step in self.get_provision_steps(provsion_raw_data):
+            provision.installations.append(
+                self._get_provision_step(
+                    env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data, provision_step
+                )
+            )
+        # Load tested components installation
+        provision.tested_components_installation = self._get_tested_components(
+            env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data
+        )
+        # Load lang variant installation if exists. Lang variant is denfined in the weblog provision file
+        provision.lang_variant_installation = self._get_lang_variant_provision(
+            env, library_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data
+        )
+        # Load weblog installation
+        provision.weblog_installation = self._get_weblog_provision(
+            env, library_name, weblog, os_type, os_distro, os_branch, os_cpu, weblog_raw_data
+        )
+        logger.debug(f"Provision: {os.linesep}{provision}")
         return provision
 
     def _get_env(self, env, library_name, provsion_raw_data):
-        provision_env = {"lang": library_name}
+        provision_env = {"LANG": library_name}
         if "init-environment" not in provsion_raw_data:
             return provision_env
         init_environment = provsion_raw_data["init-environment"]
@@ -63,11 +85,50 @@ class VirtualMachineProvisioner:
                     provision_env[key] = env_data[key]
         return provision_env
 
-    def _get_components(self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data):
-        assert "installed_components" in provsion_raw_data, "installed_components is required"
-        installed_components = provsion_raw_data["installed_components"]
-        installations = installed_components["install"]
-        return self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
+    def get_provision_steps(self, provsion_raw_data):
+        assert "provision_steps" in provsion_raw_data, "provision_steps is required"
+        return provsion_raw_data["provision_steps"]
+
+    def _get_provision_step(
+        self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data, step_name
+    ):
+        assert step_name in provsion_raw_data, f"{step_name} is required"
+        provision_step = provsion_raw_data[step_name]
+        installations = provision_step["install"]
+        installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
+        installation.id = step_name
+        installation.cache = provision_step["cache"] if "cache" in provision_step else False
+        return installation
+
+    def _get_tested_components(self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data):
+        assert "tested_components" in provsion_raw_data, "tested_components is required"
+        tested_components = provsion_raw_data["tested_components"]
+        installations = tested_components["install"]
+        installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
+        installation.id = "tested_components"
+        return installation
+
+    def _get_lang_variant_provision(self, env, library_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data):
+        if "lang_variant" not in weblog_raw_data:
+            logger.debug(f"lang_variant not found in weblog provision file")
+            return None
+        lang_variant = weblog_raw_data["lang_variant"]
+        installations = lang_variant["install"]
+        installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
+        installation.id = lang_variant["name"]
+        installation.cache = lang_variant["cache"] if "cache" in lang_variant else False
+        return installation
+
+    def _get_weblog_provision(
+        self, env, library_name, weblog_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data
+    ):
+        assert "weblog" in weblog_raw_data, "weblog is required"
+        weblog = weblog_raw_data["weblog"]
+        assert weblog["name"] == weblog_name, f"Weblog name {weblog_name} does not match the provision file name"
+        installations = weblog["install"]
+        installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
+        installation.id = weblog["name"]
+        return installation
 
     def _get_installation(self, env, library_name, os_type, os_distro, os_branch, os_cpu, installations_raw_data):
         installation_raw_data = None
@@ -101,9 +162,12 @@ class VirtualMachineProvisioner:
         if "copy_files" in installation_raw_data:
             for copy_file in installation_raw_data["copy_files"]:
                 installation.copy_files.append(
-                    CopyFile(copy_file["remote_path"] if "remote_path" in copy_file else None, copy_file["local_path"])
+                    CopyFile(
+                        copy_file["name"],
+                        copy_file["remote_path"] if "remote_path" in copy_file else None,
+                        copy_file["local_path"],
+                    )
                 )
-        logger.debug(f"RMM Setting provision installation [{ installation}]")
 
         return installation
 
@@ -112,23 +176,35 @@ class Provision:
     def __init__(self):
         self.env = {}
         self.installations = []
+        self.lang_variant_installation = None
+        self.weblog_installation = None
+        self.tested_components_installation = None
+
+    def __str__(self):
+        installations_str = f"**********************{os.linesep}".join(str(x) for x in self.installations)
+        return f"env: {self.env} {os.linesep}installations:{os.linesep}{installations_str}"
 
 
 class Intallation:
     def __init__(self):
+        self.id = False
+        self.cache = False
         self.local_command = None
         self.local_script = None
         self.remote_command = None
         self.copy_files = []
 
     def __str__(self):
-        return f"local_command:{self.local_command} local_script:{self.local_script} remote_command:{self.remote_command} copy_files:{self.copy_files}"
+        copy_files_str = f"{os.linesep} ".join(str(x) for x in self.copy_files)
+
+        return f" id: {self.id}{os.linesep} cache:{self.cache}{os.linesep} local_command:{self.local_command}{os.linesep} local_script:{self.local_script}{os.linesep} remote_command:{os.linesep} {self.remote_command}{os.linesep} copy_files:{os.linesep} {copy_files_str}{os.linesep}"
 
 
 class CopyFile:
-    def __init__(self, remote_path, local_path):
+    def __init__(self, name, remote_path, local_path):
         self.remote_path = remote_path
         self.local_path = local_path
+        self.name = name
 
     def __str__(self):
         return f"remote_path:{self.remote_path} local_path:{self.local_path}"
