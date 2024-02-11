@@ -182,7 +182,7 @@ class Provision:
 
     def __str__(self):
         installations_str = f"**********************{os.linesep}".join(str(x) for x in self.installations)
-        return f"env: {self.env} {os.linesep}installations:{os.linesep}{installations_str}"
+        return f"env: {self.env} {os.linesep}installations:{os.linesep}{installations_str}{os.linesep}lang_variant_installation:{os.linesep}{self.lang_variant_installation}{os.linesep}weblog_installation:{os.linesep}{self.weblog_installation}"
 
 
 class Intallation:

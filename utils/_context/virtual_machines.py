@@ -462,8 +462,16 @@ class _VirtualMachine:
 
     def set_tested_components(self, components_json):
         """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
+        self.tested_components = json.loads(components_json.replace("'", '"'))
 
-    # self.tested_components = json.loads(components_json.replace("'", '"'))
+    def get_cache_name(self):
+        vm_cached_name = f"{self.name}_"
+        if self.get_provision().lang_variant_installation:
+            vm_cached_name += f"{self.get_provision().lang_variant_installation.id}_"
+        for installation in self.get_provision().installations:
+            if installation.cache:
+                vm_cached_name += f"{installation.id}_"
+        return vm_cached_name
 
     def before_close(self):
         logger.info(f"closing VM: {self.name}")
@@ -477,7 +485,7 @@ class Ubuntu22amd64(_VirtualMachine):
             vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
             os_type="linux",
             os_distro="deb",
-            os_branch="ubuntu22",
+            os_branch="ubuntu22_amd64",
             os_cpu="amd64",
             **kwargs,
         )
@@ -487,11 +495,81 @@ class Ubuntu22arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_22_arm64",
-            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t2.medium", user="ubuntu"),
             vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64",),
             os_type="linux",
             os_distro="deb",
-            os_branch="ubuntu22",
+            os_branch="ubuntu22_arm64",
+            os_cpu="arm64",
+            **kwargs,
+        )
+
+
+class Ubuntu18amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_18_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0263e4deb427da90e", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu18_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0dfcb1ef8550277af", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2DotNet6(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2_DotNet6",
+            aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2_dotnet6",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2023amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2023_amd64",
+            aws_config=_AWSConfig(ami_id="ami-06b09bfacae1453cb", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2024_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2023arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2023_arm64",
+            aws_config=_AWSConfig(ami_id="ami-04c97e62cb19d53f1", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2023_arm64",
             os_cpu="arm64",
             **kwargs,
         )

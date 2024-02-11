@@ -138,7 +138,7 @@ class AWSPulumiProvider(_VmProvider):
             logger.error("Exception launching aws provision infraestructure")
             logger.exception(pulumi_exception)
 
-    def install_provision(self, vm, ec2_server):
+    def install_provision(self, vm, ec2_server, create_cache=False):
         server_connection = command.remote.ConnectionArgs(
             host=ec2_server.private_ip,
             user=vm.aws_config.user,
@@ -148,15 +148,17 @@ class AWSPulumiProvider(_VmProvider):
         provision = vm.get_provision()
 
         last_task = ec2_server
-        # First install cacheable installations
-        for installation in provision.installations:
-            if installation.cache:
-                logger.info(f"Installing {installation.id} in {vm.name}")
-                last_task = self._remote_install(server_connection, vm, last_task, installation)
+        if create_cache:
+            # First install cacheable installations
+            for installation in provision.installations:
+                if installation.cache:
+                    logger.info(f"Installing {installation.id} in {vm.name}")
+                    last_task = self._remote_install(server_connection, vm, last_task, installation)
 
-        # Then install lang variant if needed (cacheable)
-        if provision.lang_variant_installation:
-            last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
+            # Then install lang variant if needed (cacheable)
+            if provision.lang_variant_installation:
+                last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
+            last_task = self._create_ami(vm, ec2_server, last_task)
 
         # Then install non cacheable installations
         for installation in provision.installations:
@@ -165,6 +167,8 @@ class AWSPulumiProvider(_VmProvider):
                 last_task = self._remote_install(server_connection, vm, last_task, installation)
 
         # Extract tested/installed components
+        logger.info(f"Extracting {provision.tested_components_installation.id} in {vm.name}")
+
         output_callback = lambda args: args[0].set_tested_components(args[1])
         last_task = self._remote_install(
             server_connection,
@@ -176,6 +180,7 @@ class AWSPulumiProvider(_VmProvider):
         )
 
         # Finally install weblog
+        logger.info(f"Installing {provision.weblog_installation.id} in {vm.name}")
         last_task = self._remote_install(server_connection, vm, last_task, provision.weblog_installation)
 
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
@@ -194,6 +199,7 @@ class AWSPulumiProvider(_VmProvider):
                 f"local-script_{vm.name}_{installation.id}",
                 create=local_command,
                 opts=pulumi.ResourceOptions(depends_on=[last_task]),
+                environment=self._get_command_environment(vm),
             )
             last_task.stdout.apply(lambda outputlog: pulumi_logger(context.scenario.name, vm.name).info(outputlog))
 
@@ -207,7 +213,12 @@ class AWSPulumiProvider(_VmProvider):
                 else:
                     remote_path = os.path.basename(file_to_copy.local_path)
 
-                if os.path.isfile(file_to_copy.local_path):
+                if not os.path.isdir(file_to_copy.local_path):
+                    # If the local path contains a variable, we need to replace it
+                    for key, value in self._get_command_environment(vm).items():
+                        file_to_copy.local_path = file_to_copy.local_path.replace(f"${key}", value)
+                        remote_path = remote_path.replace(f"${key}", value)
+
                     logger.debug(f"Copy file from {file_to_copy.local_path} to {remote_path}")
                     # Launch copy file command
                     last_task = command.remote.CopyFile(
@@ -270,6 +281,9 @@ class AWSPulumiProvider(_VmProvider):
         self.stack.destroy(on_output=logger.info)
 
     def _start_vm(self, vm):
+        # Check for cached ami, before starting a new one
+        ami_id = self._get_cached_ami(vm)
+        logger.info(f"Cache AMI: {vm.get_cache_name()}")
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
             vm.name,
@@ -277,7 +291,7 @@ class AWSPulumiProvider(_VmProvider):
             vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
             subnet_id=vm.aws_config.aws_infra_config.subnet_id,
             key_name=PulumiSSH.keypair_name,
-            ami=vm.aws_config.ami_id,
+            ami=vm.aws_config.ami_id if ami_id is None else ami_id,
             tags={"Name": vm.name,},
             opts=PulumiSSH.aws_key_resource,
         )
@@ -289,7 +303,67 @@ class AWSPulumiProvider(_VmProvider):
         vm.ssh_config.pkey = paramiko.RSAKey.from_private_key_file(PulumiSSH.pem_file)
         vm.ssh_config.username = vm.aws_config.user
 
-        self.install_provision(vm, ec2_server)
+        self.install_provision(vm, ec2_server, create_cache=ami_id is None)
+
+    def _get_cached_ami(self, vm):
+        """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
+        ami_id = None
+        # Configure name
+        ami_name = vm.get_cache_name() + "__" + context.scenario.name
+
+        # Check for existing ami
+        ami_existing = aws.ec2.get_ami_ids(
+            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[ami_name + "-*"],)], owners=["self"],
+        )
+
+        if len(ami_existing.ids) > 0:
+            # Latest ami details
+            ami_recent = aws.ec2.get_ami(
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[ami_name + "-*"],)],
+                owners=["self"],
+                most_recent=True,
+            )
+            logger.info(
+                f"We found an existing AMI with name {ami_name}: [{ami_recent.id}] and status:[{ami_recent.state}] and expiration: [{ami_recent.deprecation_time}]"
+            )
+            # The AMI exists. We don't need to create the AMI again
+            ami_id = ami_recent.id
+
+            if str(ami_recent.state) != "available":
+                logger.info(
+                    f"We found an existing AMI but we can no use it because the current status is {ami_recent.state}"
+                )
+                logger.info("We are not going to create a new AMI and we are not going to use it")
+                ami_id = None
+                ami_name = None
+
+            # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
+            if os.getenv("AMI_UPDATE") is not None:
+                # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
+                # aws.ec2.Ami( ami_existing.name,
+                #    name=ami_existing.name,
+                #    opts=pulumi.ResourceOptions(import_=ami_existing.id))
+                logger.info("We found an existing AMI but AMI_UPDATE is set. We are going to update the AMI")
+                ami_id = None
+
+        else:
+            logger.info(f"Not found an existing AMI with name {ami_name}")
+        return ami_id
+
+    def _create_ami(self, vm, ec2_server, task_dep):
+
+        ami_name = vm.get_cache_name() + "__" + context.scenario.name
+        # Ok. All third party software is installed, let's create the ami to reuse it in the future
+        logger.info(f"Creating AMI with name [{ami_name}] from instance ")
+        # Expiration date for the ami
+        # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        task_dep = aws.ec2.AmiFromInstance(
+            ami_name,
+            # deprecation_time=expiration_date,
+            source_instance_id=ec2_server.id,
+            opts=pulumi.ResourceOptions(depends_on=[task_dep], retain_on_delete=True),
+        )
+        return task_dep
 
 
 provider_factory = VmProviderFactory()

@@ -1067,6 +1067,7 @@ class _VirtualMachineScenario(_Scenario):
         self.vm_provider_id = "vagrant"
         self.vm_provider = None
         self.required_vms = []
+        self.required_vm_names = []
 
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
@@ -1107,6 +1108,7 @@ class _VirtualMachineScenario(_Scenario):
                     vm.os_cpu,
                 )
             )
+            self.required_vm_names.append(vm.name)
         self.vm_provider.configure(self.required_vms)
 
         # for vm in self.required_vms:
