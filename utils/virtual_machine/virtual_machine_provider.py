@@ -229,7 +229,7 @@ class AWSPulumiProvider(_VmProvider):
                         opts=pulumi.ResourceOptions(depends_on=[last_task]),
                     )
                 else:
-                    raise NotImplementedError("Copy folders not implemented")
+                    raise NotImplementedError(f"Copy folders not implemented {file_to_copy.local_path}")
 
         # Execute a basic command on our server.
         cmd_exec_install = command.remote.Command(

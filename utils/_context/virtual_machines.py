@@ -495,7 +495,7 @@ class Ubuntu22arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_22_arm64",
-            aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t2.medium", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.small", user="ubuntu"),
             vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64",),
             os_type="linux",
             os_distro="deb",
@@ -555,7 +555,7 @@ class AmazonLinux2023amd64(_VirtualMachine):
             vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
             os_type="linux",
             os_distro="rpm",
-            os_branch="amazon_linux2024_amd64",
+            os_branch="amazon_linux2023_amd64",
             os_cpu="amd64",
             **kwargs,
         )
@@ -565,7 +565,7 @@ class AmazonLinux2023arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2023_arm64",
-            aws_config=_AWSConfig(ami_id="ami-04c97e62cb19d53f1", ami_instance_type="t2.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-04c97e62cb19d53f1", ami_instance_type="t4g.small", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
             os_type="linux",
             os_distro="rpm",

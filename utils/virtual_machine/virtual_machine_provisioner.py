@@ -14,6 +14,12 @@ class VirtualMachineProvisioner:
         for vm in required_vms:
             installations = config_data["weblog"]["install"]
             allowed = False
+            if (
+                "excluded_os_branches" in config_data["weblog"]
+                and vm.os_branch in config_data["weblog"]["excluded_os_branches"]
+            ):
+                vms_to_remove.append(vm)
+                continue
             for installation in installations:
                 assert "os_type" in installation, "os_type is required for weblog installation"
                 if installation["os_type"] == vm.os_type:

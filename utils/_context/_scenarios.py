@@ -33,7 +33,15 @@ from utils._context.containers import (
     # SqlDbTestedContainer,
     BuddyContainer,
 )
-from utils._context.virtual_machines import Ubuntu22amd64, Ubuntu22arm64
+from utils._context.virtual_machines import (
+    Ubuntu22amd64,
+    Ubuntu22arm64,
+    Ubuntu18amd64,
+    AmazonLinux2023arm64,
+    AmazonLinux2023amd64,
+    AmazonLinux2DotNet6,
+    AmazonLinux2amd64,
+)
 from utils.virtual_machine.virtual_machine_provider import provider_factory
 from utils.virtual_machine.virtual_machine_provisioner import provisioner
 
@@ -1060,7 +1068,17 @@ class _VirtualMachineScenario(_Scenario):
     """ Scenario that tests virtual machines """
 
     def __init__(
-        self, name, doc, vm_provision=None, include_ubuntu_22_amd64=False, include_ubuntu_22_arm64=False,
+        self,
+        name,
+        doc,
+        vm_provision=None,
+        include_ubuntu_22_amd64=False,
+        include_ubuntu_22_arm64=False,
+        include_ubuntu_18_amd64=False,
+        include_amazon_linux_2_amd64=False,
+        include_amazon_linux_2_dotnet_6=False,
+        include_amazon_linux_2023_amd64=False,
+        include_amazon_linux_2023_arm64=False,
     ) -> None:
         super().__init__(name, doc=doc)
         self.vm_provision_name = vm_provision
@@ -1071,7 +1089,18 @@ class _VirtualMachineScenario(_Scenario):
 
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
-        # self.required_vms.append(Ubuntu22arm64())
+        if include_ubuntu_22_arm64:
+            self.required_vms.append(Ubuntu22arm64())
+        if include_ubuntu_18_amd64:
+            self.required_vms.append(Ubuntu18amd64())
+        if include_amazon_linux_2_amd64:
+            self.required_vms.append(AmazonLinux2amd64())
+        if include_amazon_linux_2_dotnet_6:
+            self.required_vms.append(AmazonLinux2DotNet6())
+        if include_amazon_linux_2023_amd64:
+            self.required_vms.append(AmazonLinux2023amd64())
+        if include_amazon_linux_2023_arm64:
+            self.required_vms.append(AmazonLinux2023arm64())
 
     def configure(self, config):
         super().configure(config)
@@ -1571,11 +1600,18 @@ class scenarios:
     )
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
+
     vm_scenario = _VirtualMachineScenario(
         "VM_SCENARIO",
         vm_provision="host-auto-inject",
         doc="Onboarding Host Single Step Instrumentation scenario",
         include_ubuntu_22_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_18_amd64=True,
+        include_amazon_linux_2_amd64=True,
+        include_amazon_linux_2_dotnet_6=True,
+        include_amazon_linux_2023_amd64=True,
+        include_amazon_linux_2023_arm64=True,
     )
 
 
