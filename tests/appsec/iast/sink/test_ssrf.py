@@ -2,50 +2,34 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-from utils import context, coverage, released, missing_feature
-from .._test_iast_fixtures import SinkFixture
+from utils import bug, context, missing_feature, features
+from .._test_iast_fixtures import BaseSinkTest
 
 
-@coverage.basic
-@released(dotnet="?", java="1.14.0", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@missing_feature(weblog_variant="ratpack", reason="No endpoint implemented")
-@missing_feature(weblog_variant="akka-http", reason="No endpoint implemented")
-@missing_feature(weblog_variant="vertx4", reason="No endpoint implemented")
-class TestSSRF:
+@features.iast_sink_ssrf
+class TestSSRF(BaseSinkTest):
     """Test ssrf detection."""
 
-    sink_fixture = SinkFixture(
-        vulnerability_type="SSRF",
-        http_method="POST",
-        insecure_endpoint="/iast/ssrf/test_insecure",
-        secure_endpoint="/iast/ssrf/test_secure",
-        data={"url": "https://www.datadoghq.com"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.SsrfExamples", "nodejs": "iast/index.js",},
-    )
+    vulnerability_type = "SSRF"
+    http_method = "POST"
+    insecure_endpoint = "/iast/ssrf/test_insecure"
+    secure_endpoint = "/iast/ssrf/test_secure"
+    data = {"url": "https://www.datadoghq.com"}
+    location_map = {
+        "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+    }
 
-    def setup_insecure(self):
-        self.sink_fixture.setup_insecure()
-
+    @bug(context.library < "java@1.14.0", reason="https://github.com/DataDog/dd-trace-java/pull/5172")
     def test_insecure(self):
-        self.sink_fixture.test_insecure()
-
-    def setup_secure(self):
-        self.sink_fixture.setup_secure()
+        super().test_insecure()
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
     def test_secure(self):
-        self.sink_fixture.test_secure()
+        super().test_secure()
 
-    def setup_telemetry_metric_instrumented_sink(self):
-        self.sink_fixture.setup_telemetry_metric_instrumented_sink()
-
+    @missing_feature(library="python", reason="Endpoint not implemented")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
-        self.sink_fixture.test_telemetry_metric_instrumented_sink()
-
-    def setup_telemetry_metric_executed_sink(self):
-        self.sink_fixture.setup_telemetry_metric_executed_sink()
-
-    def test_telemetry_metric_executed_sink(self):
-        self.sink_fixture.test_telemetry_metric_executed_sink()
+        super().test_telemetry_metric_instrumented_sink()

@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, released, missing_feature
+from utils import context, interfaces, bug, missing_feature, features
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -21,11 +21,14 @@ if value is dict, the weblog variant has multiple spans each with a different ex
 VARIANT_COMPONENT_MAP = {
     "chi": ["go-chi/chi", "go-chi/chi.v5"],
     "flask-poc": "flask",
+    "fastapi": "fastapi",
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
+    "nextjs": "next",
     "uwsgi-poc": "flask",
     "django-poc": "django",
+    "python3.12": "django",
     "gin": "gin-gonic/gin",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
@@ -126,7 +129,8 @@ def get_component_name(weblog_variant, language, span_name):
     return expected_component
 
 
-@released(ruby="1.7.0", golang="1.45.0", python="1.80.0", nodejs="3.13.1")
+@features.runtime_id_in_span_metadata_for_service_entry_spans
+@features.unix_domain_sockets_support_for_traces
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -226,7 +230,9 @@ class Test_Meta:
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
-    @bug(library="java", reason="language tag implemented but not for all spans")
+    # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
+    @bug(context.library < "java@1.1.0", reason="language tag implemented but not for all spans")
+    @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
@@ -293,10 +299,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
-@bug(
-    context.library in ("cpp", "python", "ruby"),
-    reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
-)
+@features.add_metadata_globally_to_all_spans_dd_tags
 class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
@@ -314,20 +317,15 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
-@released(ruby="1.7.0", nodejs="3.13.1", java="1.6.0", php="0.83.1", dotnet="2.6.0")
+@features.data_integrity
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
     @bug(library="cpp", reason="Not implemented")
+    @bug(context.library >= "java@1.3.0", reason="process_id set as tag, not metric")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
-
-        def validator(span):
-            if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
-
+        spans = [s for _, s in interfaces.library.get_root_spans()]
+        assert spans, "Did not recieve any root spans to validate."
+        for span in spans:
             assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"
-
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
-        # checking that we have at least one root span
-        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."

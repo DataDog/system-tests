@@ -24,4 +24,6 @@ runs:
           docker pull rabbitmq:3-management-alpine
           docker pull mysql/mysql-server:latest
           docker pull mcr.microsoft.com/mssql/server:latest
+          docker pull mcr.microsoft.com/azure-sql-edge:latest
+          docker pull softwaremill/elasticmq:latest
         fi

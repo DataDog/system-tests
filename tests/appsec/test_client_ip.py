@@ -2,13 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, scenarios
+from utils import weblog, interfaces, scenarios, features
 
 
-@released(dotnet="2.20.0", golang="1.44.1", java="0.114.0")
-@released(nodejs="3.6.0", php="0.81.0", python="1.5.0", ruby="1.8.0")
-@coverage.basic
 @scenarios.appsec_disabled
+@features.appsec_standard_tags_client_ip
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 

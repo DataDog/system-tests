@@ -4,7 +4,7 @@
 import json
 
 from tests.remote_config.test_remote_configuration import rc_check_request
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios, missing_feature
+from utils import weblog, context, interfaces, rfc, bug, scenarios, missing_feature, features
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json", encoding="utf-8") as f:
@@ -12,40 +12,14 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="1.11.0", nodejs="3.11.0", golang="1.47.0")
-@released(
-    java={
-        "spring-boot": "0.110.0",
-        "sprint-boot-jetty": "0.111.0",
-        "spring-boot-undertow": "0.111.0",
-        "spring-boot-openliberty": "0.115.0",
-        "ratpack": "1.7.0",
-        "jersey-grizzly2": "1.7.0",
-        "resteasy-netty3": "1.7.0",
-        "vertx3": "1.7.0",
-        "*": "?",
-    }
-)
-@irrelevant(
-    context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
-)
-@missing_feature(
-    library="python", reason="Python supported denylists of 2500 entries but it fails to block this those 15000"
-)
-@missing_feature(
-    library="ruby", reason="Ruby supported denylists of 2500 entries but it fails to block this those 15000"
-)
-@bug(library="java", reason="RC payload limit")
-@bug(context.weblog_variant == "uds-echo")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
-@coverage.basic
 @scenarios.appsec_blocking_full_denylist
+@features.appsec_client_ip_blocking
 class Test_AppSecIPBlockingFullDenylist:
     """A library should block requests from up to 2500 different blocked IP addresses."""
 
     request_number = 0
     python_request_number = 0
-    remote_config_is_sent = False
 
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_rc_protocol(self):
@@ -78,16 +52,8 @@ class Test_AppSecIPBlockingFullDenylist:
         # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
         BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(100) for b in range(125)]
 
-        def remote_config_asm_payload(data):
-            if data["path"] == "/v0.7/config":
-                if "client_configs" in data.get("response", {}).get("content", {}):
-                    self.remote_config_is_sent = True
-                    return True
-
-            return False
-
         def remote_config_is_applied(data):
-            if data["path"] == "/v0.7/config" and self.remote_config_is_sent:
+            if data["path"] == "/v0.7/config":
                 if "config_states" in data.get("request", {}).get("content", {}).get("client", {}).get("state", {}):
                     config_states = data["request"]["content"]["client"]["state"]["config_states"]
 
@@ -97,7 +63,7 @@ class Test_AppSecIPBlockingFullDenylist:
 
             return False
 
-        interfaces.library.wait_for(remote_config_asm_payload, timeout=30)
+        interfaces.library.wait_for_remote_config_request()
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
@@ -107,7 +73,7 @@ class Test_AppSecIPBlockingFullDenylist:
             weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[-1]}),
         ]
 
-    @missing_feature(context.weblog_variant == "spring-boot" and context.library < "java@0.111.0")
+    @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2024-01 (86 PR merged)
+
+* 2024-01-31 [Remove entirely the coverage decorator](https://github.com/DataDog/system-tests/pull/2091) by @cbeauchesne
+* 2024-01-29 [Check variant names in manifest validation](https://github.com/DataDog/system-tests/pull/2082) by @cbeauchesne
+* 2024-01-29 [Generate buddies on merge if needed](https://github.com/DataDog/system-tests/pull/2068) by @robertomonteromiguel
+* 2024-01-15 [Support for PHP unified client library](https://github.com/DataDog/system-tests/pull/1998) by @robertomonteromiguel
+* 2024-01-08 Parametric: test "dev" version of clienty libraries by @robertomonteromiguel
+* 2024-01-04 [parametric: test C++ client library](https://github.com/DataDog/system-tests/pull/1942) by @dmehala
+
+### December 2023 (75 PR merged)
+
+* 2023-12-26 [Remove legacy coverage decorator](https://github.com/DataDog/system-tests/pull/1961) by @cbeauchesne (Testing coverage is not dependant of system-tests only, so it's now declared directly in Feature Parity Dashbaord)
+* 2023-12-27 Declare lot of features ID ([1](https://github.com/DataDog/system-tests/pull/1968), [2](https://github.com/DataDog/system-tests/pull/1952), [3](https://github.com/DataDog/system-tests/pull/1967), [4](https://github.com/DataDog/system-tests/pull/1928), [5](https://github.com/DataDog/system-tests/pull/1915), [6](https://github.com/DataDog/system-tests/pull/1910), [7](https://github.com/DataDog/system-tests/pull/1901)) by @cbeauchesne
+* 2023-12-01 [Add "features" decorator](https://github.com/DataDog/system-tests/pull/1883), and [ensure in CI that all tests has a features decorator](https://github.com/DataDog/system-tests/pull/1923) by @cbeauchesne
+* 2023-12-27 Parametric: allow to test dev version for [python](https://github.com/DataDog/system-tests/pull/1959), [java](https://github.com/DataDog/system-tests/pull/1937), [nodejs](https://github.com/DataDog/system-tests/pull/1941) and [golang](https://github.com/DataDog/system-tests/pull/1948) by @robertomonteromiguel
+
+### November 2023 (78 PR merged)
+
+* 2023-11-23 [[PHP] Support unified package](https://github.com/DataDog/system-tests/pull/1862) by @Anilm3
+* 2023-11-07 [Sleep mode for all scenarios](https://github.com/DataDog/system-tests/pull/1794) by @robertomonteromiguel
+* 2023-11-07 [[Tracing] Add endpoints to Python Weblog application related to Kafka Producer and Consumer calls](https://github.com/DataDog/system-tests/pull/1783) by @wantsui
+
+### October 2023 (100 PR merged)
+
+* 2023-10-09 [New python/FastAPI variant](https://github.com/DataDog/system-tests/pull/1663) by @christophe-papazian
+* 2023-10-27 [New NodeJS/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
+* 2023-10-01 [New scenario for testing debugger probes](https://github.com/DataDog/system-tests/pull/1632) by @shurivich
+
+### September 2023 (84 PR merged)
+
+* 2023-09-25 [New weblog variant: testing new Python version 3.12](https://github.com/DataDog/system-tests/pull/1617)
+* 2023-09-22 [DB Integrations scenario: validate DB query reporting](https://github.com/DataDog/system-tests/pull/1601)
+* 2023-09-20 [Parametric tests can use version in decorator/manifest file](https://github.com/DataDog/system-tests/pull/1589)
+* 2023-09-08 [Agent version can be used in decorators and manifest file](https://github.com/DataDog/system-tests/pull/1577)
+* 2023-09-08 [DB Integrations scenario: validate DB query reporting](https://github.com/DataDog/system-tests/pull/1410)
+* All the month: lot of PR to migrate all `released` decorators to manifest files :tada:
+
+### August 2023 (71 PR merged)
+
+* 2023-08-31 [Deserilize appsec tags in deserializer](https://github.com/DataDog/system-tests/pull/1543) ASM data are visible as plain JSON in logs
+* 2023-08-18 [Add stdout interface for postgres DB container](https://github.com/DataDog/system-tests/pull/1496) Ability to make assertion on DB containers (like Postgres) logs
+* 2023-08-14 [Add pylint](https://github.com/DataDog/system-tests/pull/1486) Code quality for system-tests internales
+* 2023-08-16 [Implementation of manifest files](https://github.com/DataDog/system-tests/pull/1481) :tada:
+
 
 ### July 2023 (86 PR merged)
 

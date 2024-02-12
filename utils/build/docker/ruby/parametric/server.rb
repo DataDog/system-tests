@@ -7,10 +7,22 @@ require 'ddtrace'
 require 'datadog/tracing/contrib/grpc/distributed/propagation' # Loads optional `Datadog::Tracing::Contrib::GRPC::Distributed`
 require 'apm_test_client_services_pb'
 
+# Only used for OpenTelemetry testing.
+require 'opentelemetry/sdk'
+require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true works out of the box for Ruby APM
+
+OpenTelemetry::SDK.configure # Initialize OpenTelemetry
+
 Datadog.configure do |c|
   c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
   c.tracing.instrument :http # Used for `http_client_request`
+end
+
+if Datadog::Core::Remote.active_remote
+  # TODO: Remove this whole `if` condition if remote configuration is started by default.
+  raise "Remote Configuration worker already started! Remove this check and `Datadog::Core::Remote.active_remote.start` below." if Datadog::Core::Remote.active_remote.started?
+  Datadog::Core::Remote.active_remote.start
 end
 
 # Ensure output is always flushed, to prevent a forced shutdown from losing all logs.
@@ -130,7 +142,8 @@ class ServerImpl < APMClient::Service
   end
 
   def flush_spans(flush_spans_args, _call)
-    sleep 0.05 until Datadog.send(:components).tracer.writer.worker&.trace_buffer.empty?
+    wait_for_flush(5)
+
     FlushSpansReturn.new
   end
 
@@ -138,20 +151,105 @@ class ServerImpl < APMClient::Service
     FlushTraceStatsReturn.new
   end
 
-  # TODO: Implement the following OTel methods
-  # :otel_start_span, ::OtelStartSpanArgs, ::OtelStartSpanReturn
-  # :otel_end_span, ::OtelEndSpanArgs, ::OtelEndSpanReturn
-  # :otel_is_recording, ::OtelIsRecordingArgs, ::OtelIsRecordingReturn
-  # :otel_span_context, ::OtelSpanContextArgs, ::OtelSpanContextReturn
-  # :otel_set_status, ::OtelSetStatusArgs, ::OtelSetStatusReturn
-  # :otel_set_name, ::OtelSetNameArgs, ::OtelSetNameReturn
-  # :otel_set_attributes, ::OtelSetAttributesArgs, ::OtelSetAttributesReturn
-  # :otel_flush_spans, ::OtelFlushSpansArgs, ::OtelFlushSpansReturn
-  # :otel_flush_trace_stats, ::OtelFlushTraceStatsArgs, ::OtelFlushTraceStatsReturn
+  OTEL_SPAN_KIND = {
+    1 => :internal,
+    2 => :server,
+    3 => :client,
+    4 => :producer,
+    5 => :consumer,
+  }
+
+  def otel_start_span(otel_start_span_args, _call)
+    headers = header_hash(otel_start_span_args.http_headers)
+    if !headers.empty?
+      parent_context = OpenTelemetry.propagation.extract(headers)
+    elsif otel_start_span_args.parent_id != 0
+      parent_span = find_otel_span(otel_start_span_args.parent_id)
+      parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
+    end
+
+    span = otel_tracer.start_span(
+      otel_start_span_args.name,
+      with_parent: parent_context,
+      attributes: otel_parse_attributes(otel_start_span_args.attributes),
+      start_timestamp: otel_correct_time(otel_start_span_args.timestamp),
+      kind: OTEL_SPAN_KIND[otel_start_span_args.span_kind]
+    )
+
+    context = span.context
+
+    @otel_spans[otel_id_to_i(context.span_id)] = span
+
+    OtelStartSpanReturn.new(span_id: otel_id_to_i(context.span_id), trace_id: otel_id_to_i(context.trace_id))
+  end
+
+  def otel_end_span(otel_end_span_args, _call)
+    span = find_otel_span(otel_end_span_args.id)
+    span.finish(end_timestamp: otel_correct_time(otel_end_span_args.timestamp))
+
+    OtelEndSpanReturn.new
+  end
+
+  def otel_is_recording(otel_is_recording_args, _call)
+    span = find_otel_span(otel_is_recording_args.span_id)
+    OtelIsRecordingReturn.new(is_recording: span.recording?)
+  end
+
+  def otel_span_context(otel_span_context_args, _call)
+    span = find_otel_span(otel_span_context_args.span_id)
+    context = span.context
+
+    OtelSpanContextReturn.new(
+      span_id: format('%016x', otel_id_to_i(context.span_id)),
+      trace_id: format('%032x', otel_id_to_i(context.trace_id)),
+      trace_flags: context.trace_flags.sampled? ? '01' : '00',
+      trace_state: context.tracestate.to_s,
+      remote: context.remote?,
+    )
+  end
+
+  def otel_set_status(otel_set_status_args, _call)
+    span = find_otel_span(otel_set_status_args.span_id)
+
+    span.status = OpenTelemetry::Trace::Status.public_send(
+      otel_set_status_args.code.downcase,
+      otel_set_status_args.description
+    )
+
+    OtelSetStatusReturn.new
+  end
+
+  def otel_set_name(otel_set_name_args, _call)
+    span = find_otel_span(otel_set_name_args.span_id)
+    span.name = otel_set_name_args.name
+    OtelSetNameReturn.new
+  end
+
+  def otel_set_attributes(otel_set_attributes_args, _call)
+    span = find_otel_span(otel_set_attributes_args.span_id
+    )
+    otel_parse_attributes(otel_set_attributes_args.attributes).each do |key, value|
+      span.set_attribute(key, value)
+    end
+
+    OtelSetAttributesReturn.new
+  end
+
+  def otel_flush_spans(otel_flush_spans_args, _call)
+    success = wait_for_flush(otel_flush_spans_args.seconds)
+
+    OtelFlushSpansReturn.new(success: success)
+  end
+
+  def otel_flush_trace_stats(_otel_flush_trace_stats_args, _call)
+    OtelFlushTraceStatsReturn.new
+  end
 
   def stop_tracer(stop_tracer_args, _call)
     Datadog.shutdown!
     StopTracerReturn.new
+
+    @otel_spans.clear
   end
 
   # The Ruby tracer holds spans on a per-Fiber basis.
@@ -177,6 +275,9 @@ class ServerImpl < APMClient::Service
         @return_queue.push(e)
       end
     end
+
+    # A list of OpenTelemetry Span objects that allow for retrieving spans in-between API calls.
+    @otel_spans = {}
   end
 
   # Wrap all public methods to ensure they execute in a single thread.
@@ -204,6 +305,70 @@ class ServerImpl < APMClient::Service
 
     span
   end
+
+  def wait_for_flush(seconds)
+    return true unless (worker = Datadog.send(:components).tracer.writer.worker)
+
+    count = 0
+    sleep_time = seconds / 100.0
+    until worker.trace_buffer&.empty?
+      sleep sleep_time
+      count += 1
+      return false if count >= 100
+    end
+
+    true
+  end
+
+  def header_hash(http_headers)
+    http_headers.http_headers.map { |t| [t.key, t.value] }.to_h
+  end
+
+  def find_otel_span(id)
+    span = @otel_spans[id]
+    raise "Requested span #{id} not found. All spans: #{@otel_spans.map{|s|s.context.span_id}}" unless span
+
+    span
+  end
+
+  # Convert OTel's String representation to an unsigned 64-bit Integer.
+  def otel_id_to_i(span_id_or_trace_id)
+    span_id_or_trace_id.unpack1('Q')
+  end
+
+  # Convert an unsigned 64-bit Integer to OTel's String representation.
+  def i_to_otel_id(span_id_or_trace_id)
+    [span_id_or_trace_id].pack('Q')
+  end
+
+  # OTel system tests provide times in microseconds, but Ruby OTel
+  # measures time in seconds (Float).
+  def otel_correct_time(microseconds)
+    microseconds &./ 1000000.0
+  end
+
+  # Convert Protobuf attributes to native Ruby objects
+  # e.g. `Attributes.new(key_vals: { my_key:ListVal.new(val: [AttrVal.new(bool_val: true)])})`
+  def otel_parse_attributes(attributes)
+    attributes.key_vals.map do |k, v|
+      [k, v.val.map do |union|
+        union[union.val.to_s]
+      end.yield_self do |value|
+        # Flatten array of 1 element into a scalar.
+        # This is due to the gRPC API not differentiating between a
+        # single value and an array with 1 value
+        if value.size == 1
+          value[0]
+        else
+          value
+        end
+      end]
+    end.to_h
+  end
+
+  def otel_tracer
+    OpenTelemetry.tracer_provider.tracer('otel-tracer')
+  end
 end
 
 port = ENV.fetch('APM_TEST_CLIENT_SERVER_PORT', 50051)
@@ -227,6 +392,8 @@ Thread.new do
 end if ENV['DEBUG'] == '1'
 
 puts 'Running gRPC server...'
+STDOUT.flush
+
 s.handle(ServerImpl.new())
 
 # Runs the server with SIGHUP, SIGINT and SIGQUIT signal handlers to

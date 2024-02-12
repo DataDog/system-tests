@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, released, missing_feature, bug, coverage
+from utils import context, weblog, interfaces, missing_feature, bug, features
 
 
-@released(php_appsec="0.2.1")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@coverage.basic
+@features.threats_alpha_preview
 class Test_Basic:
     """ Detect attacks on raw URI and headers with default rules """
 
@@ -23,7 +22,7 @@ class Test_Basic:
         self.r_headers_1 = weblog.get("/waf/", headers={"MyHeader": "../../../secret.txt"})
         self.r_headers_2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(library="python@1.1.0", reason="a PR was not included in the release")
+    @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
     def test_headers(self):
         """ Via server.request.headers.no_cookies """
         # Note: we do not check the returned key_path nor rule_id for the alpha version

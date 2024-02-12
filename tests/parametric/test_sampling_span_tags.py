@@ -309,7 +309,6 @@ class Test_Sampling_Span_Tags:
     @bug(library="golang", reason="golang sets dm tag -1")
     @bug(library="php", reason="php sets dm tag -1")
     @bug(library="python", reason="python does not set dm tag")
-    @bug(library="python_http", reason="python does not set dm tag")
     @bug(library="dotnet", reason="dotnet does not set dm tag")
     @bug(library="java", reason="java sets dm tag -1")
     @bug(library="nodejs", reason="nodejs sets dm tag -0")

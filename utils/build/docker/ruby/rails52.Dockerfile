@@ -11,6 +11,8 @@ RUN /binaries/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
+ENV RAILS_ENV=production
+ENV RAILS_MASTER_KEY=9d319c57ec128e905d9e2ce5742bf2de
 RUN bundle exec rails db:create db:migrate db:seed
 
 RUN echo "#!/bin/bash\nbundle exec puma -b tcp://0.0.0.0 -p 7777 -w 1" > app.sh

@@ -8,8 +8,8 @@ RUN python --version && curl --version
 
 # install python deps
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now
-RUN pip install flask==2.2.4 uwsgi gevent requests pycryptodome psycopg2-binary
+RUN pip install flask==2.2.4 uwsgi gevent requests pycryptodome psycopg2-binary confluent-kafka==2.1.1
 
-# docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
-# docker push datadog/system-tests:uwsgi-poc.base-v0
+# docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v1 .
+# docker push datadog/system-tests:uwsgi-poc.base-v1
 

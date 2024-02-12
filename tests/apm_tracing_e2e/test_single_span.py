@@ -1,5 +1,4 @@
 from utils import context, weblog, interfaces, rfc, scenarios, missing_feature
-from utils.tools import logger
 from tests.apm_tracing_e2e.constants import (
     SAMPLING_PRIORITY_KEY,
     SINGLE_SPAN_SAMPLING_MECHANISM,
@@ -11,10 +10,6 @@ from tests.apm_tracing_e2e.constants import (
 
 @rfc("ATI-2419")
 @missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
-@missing_feature(
-    context.weblog_variant not in ("chi", "spring-boot"),
-    reason="The /e2e_single_span endpoint is only implemented in Go chi at the moment.",
-)
 @scenarios.apm_tracing_e2e_single_span
 class Test_SingleSpan:
     """This is a test that exercises the Single Span Ingestion Control feature.

@@ -22,6 +22,9 @@ import com.datadoghq.client.ApmTestClient.OtelSetStatusArgs;
 import com.datadoghq.client.ApmTestClient.OtelSetStatusReturn;
 import com.datadoghq.client.ApmTestClient.OtelSpanContextArgs;
 import com.datadoghq.client.ApmTestClient.OtelSpanContextReturn;
+import com.datadoghq.client.ApmTestClient.OtelStartSpanArgs;
+import com.datadoghq.client.ApmTestClient.OtelStartSpanReturn;
+import com.datadoghq.client.ApmTestClient.SpanLink;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTraceId;
 import io.grpc.stub.StreamObserver;
@@ -34,10 +37,9 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
-
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
@@ -46,10 +48,12 @@ import java.util.stream.Collectors;
 
 public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
     private final Tracer tracer;
+    private final TextMapPropagator propagator;
     private final Map<Long, Span> spans;
 
     OpenTelemetryClient() {
         this.tracer = GlobalOpenTelemetry.getTracer("java-client");
+        this.propagator = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
         this.spans = new HashMap<>();
     }
 
@@ -130,6 +134,8 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
             case 3:
                 return SpanKind.CLIENT;
             case 4:
+                return SpanKind.PRODUCER;
+            case 5:
                 return SpanKind.CONSUMER;
             case 0:
             default:
@@ -138,7 +144,7 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
     }
 
     @Override
-    public void otelStartSpan(ApmTestClient.OtelStartSpanArgs request, StreamObserver<ApmTestClient.OtelStartSpanReturn> responseObserver) {
+    public void otelStartSpan(OtelStartSpanArgs request, StreamObserver<OtelStartSpanReturn> responseObserver) {
         LOGGER.info("Starting OTel span: {}", request);
         try {
             // Build span from request
@@ -161,11 +167,41 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
             if (request.hasTimestamp()) {
                 builder.setStartTimestamp(request.getTimestamp(), MICROSECONDS);
             }
+            if (request.getSpanLinksCount() > 0) {
+                for (SpanLink spanLink : request.getSpanLinksList()) {
+                    SpanContext spanContext = null;
+                    LOGGER.warn("Span link: "+spanLink);
+                    if (spanLink.hasParentId()) {
+                        LOGGER.warn("Parent id found");
+                        Span span = getSpan(spanLink.getParentId(), responseObserver);
+                        if (span == null) {
+                            return;
+                        }
+                        LOGGER.warn("Parent span found");
+                        spanContext = span.getSpanContext();
+                    } else if (spanLink.hasHttpHeaders()) {
+                        Context extractedContext = this.propagator.extract(
+                            Context.root(),
+                            spanLink.getHttpHeaders(),
+                            HeadersTextMapGetter.INSTANCE
+                        );
+                        spanContext = Span.fromContext(extractedContext).getSpanContext();
+                        LOGGER.warn("Extracted context {} | valid {}", spanContext, spanContext.isValid());
+                    }
+                    if (spanContext != null && spanContext.isValid()) {
+                        if (spanLink.hasAttributes()) {
+                            LOGGER.warn("Adding links with attributes {}", spanContext);
+                            builder.addLink(spanContext, parseAttributes(spanLink.getAttributes()));
+                        } else {
+                            LOGGER.warn("Adding link without attributes {}", spanContext);
+                            builder.addLink(spanContext);
+                        }
+                    }
+                }
+            }
             if (request.hasHttpHeaders() && request.getHttpHeaders().getHttpHeadersCount() > 0) {
-                // Won't work as the extracted content will contain a current span without wrapped DDSpan delegate
-                // Limitation from the current tracer OTel instrumentation implementation
-                Context extractedContext = W3CTraceContextPropagator.getInstance().extract(
-                        Context.current(),
+                Context extractedContext = this.propagator.extract(
+                        Context.root(),
                         request.getHttpHeaders(),
                         HeadersTextMapGetter.INSTANCE
                 );
@@ -189,7 +225,7 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
             long traceId = DDTraceId.fromHex(span.getSpanContext().getTraceId()).toLong();
             this.spans.put(spanId, span);
             // Complete request
-            responseObserver.onNext(ApmTestClient.OtelStartSpanReturn.newBuilder()
+            responseObserver.onNext(OtelStartSpanReturn.newBuilder()
                     .setSpanId(spanId)
                     .setTraceId(traceId)
                     .build());

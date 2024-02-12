@@ -147,5 +147,8 @@ public class IastSinkRouteProvider implements Consumer<Router> {
             xpath.secureXPath();
             ctx.response().end("Secure");
         });
+        router.get("/iast/insecure-auth-protocol/test").handler(ctx ->
+                ctx.response().end("ok")
+        );
     }
 }

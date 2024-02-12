@@ -3,7 +3,7 @@ import logging
 
 import pytest
 
-from utils import bug, irrelevant, missing_feature, flaky, rfc, released
+from utils import bug, irrelevant, missing_feature, flaky, rfc
 from utils.tools import logger
 
 
@@ -51,61 +51,11 @@ handler = logging.StreamHandler(stream=logs)
 logger.addHandler(handler)
 
 
-@irrelevant(True)
-class Test_IrrelevantClass:
-    def test_method(self):
-        raise Exception("Should not be executed")
-
-
-@flaky(True)
-class Test_FlakyClass:
-    def test_method(self):
-        raise Exception("Should not be executed")
-
-
-@bug(True)
-class Test_BugClass:
-    executed = False
-
-    def test_method(self):
-        Test_BugClass.executed = True
-
-    def test_xpassed_method(self):
-        """This test will be reported as xpassed"""
-        assert True
-
-
-@released(java="?")
-class Test_NotReleased:
-    executed = False
-
-    def test_method(self):
-        Test_NotReleased.executed = True
-
-
 class Test_Class:
-    @irrelevant(True)
-    def test_irrelevant_method(self):
-        raise Exception("Should not be executed")
-
-    @flaky(True)
-    def test_flaky_method(self):
-        raise Exception("Should not be executed")
-
     @irrelevant(condition=False)
     @flaky(condition=False)
     def test_good_method(self):
         pass
-
-    @missing_feature(True, reason="missing feature")
-    @irrelevant(True, reason="irrelevant")
-    def test_skipping_prio(self):
-        raise Exception("Should not be executed")
-
-    @missing_feature(True, reason="missing feature")
-    @irrelevant(True, reason="irrelevant")
-    def test_skipping_prio2(self):
-        raise Exception("Should not be executed")
 
 
 class Test_Metadata:
@@ -114,86 +64,18 @@ class Test_Metadata:
         class Test:
             pass
 
-        assert Test.__rfc__ == "A link"
+    def test_library_does_not_exists(self):
+        with pytest.raises(ValueError):
 
-    def test_released(self):
-        @released(java="0.1")
-        @released(php="99.99")
-        class Test:
-            pass
-
-        assert Test.__released__["java"] == "0.1"
-        assert "php" not in Test.__released__
-
-    def test_double_declaration(self):
-        try:
-
-            @released(java="99.99")
-            @released(java="99.99")
-            class Test:
-                pass
-
-        except ValueError as e:
-            assert str(e) == "A java' version for Test has been declared twice"
-        else:
-            raise Exception("Component has been declared twice, should fail")
-
-    def test_version_sugar_syntax(self):
-        @released(java={"spring": "2.1", "vertx": "0.2"})
-        class Test_DictBasic:
-            pass
-
-        assert Test_DictBasic.__released__["java"] == "2.1"
-
-    def test_version_sugar_syntax_wildcard(self):
-        @released(java={"*": "2.1", "vertx": "0.2"})
-        class Test_DictBasic:
-            pass
-
-        assert Test_DictBasic.__released__["java"] == "2.1"
+            @missing_feature(library="not a lib")
+            def test_method():
+                ...
 
 
 class Test_Skips:
-    def test_irrelevant(self):
-        assert is_skipped(Test_IrrelevantClass, "not relevant")
-        assert is_skipped(Test_Class.test_irrelevant_method, "not relevant")
-
-        assert f"{BASE_PATH}::Test_IrrelevantClass::test_method => not relevant => skipped\n" in logs
-        assert f"{BASE_PATH}::Test_Class::test_irrelevant_method => not relevant => skipped\n" in logs
-
-    def test_flaky(self):
-        assert is_skipped(Test_FlakyClass, "known bug (flaky)")
-        assert is_skipped(Test_Class.test_flaky_method, "known bug (flaky)")
-
-        assert f"{BASE_PATH}::Test_FlakyClass::test_method => known bug (flaky) => skipped\n" in logs
-        assert f"{BASE_PATH}::Test_Class::test_flaky_method => known bug (flaky) => skipped\n" in logs
-
     def test_regular(self):
         assert is_not_skipped(Test_Class)
         assert is_not_skipped(Test_Class.test_good_method)
-
-    def test_double_skip(self):
-        assert is_skipped(Test_Class.test_skipping_prio, "not relevant: irrelevant")
-        assert is_skipped(Test_Class.test_skipping_prio, "missing feature: missing feature")
-
-        assert is_skipped(Test_Class.test_skipping_prio2, "not relevant: irrelevant")
-        assert is_skipped(Test_Class.test_skipping_prio2, "missing feature: missing feature")
-
-    def test_bug(self):
-        assert is_skipped(Test_BugClass, "known bug")
-        assert Test_BugClass.executed, "Bug decorator execute the test"
-
-    def test_not_released(self):
-        assert is_skipped(Test_NotReleased, "missing feature: release not yet planned")
-        assert Test_NotReleased.executed, "missing feature execute the test"
-
-
-def test_released_only_on_class():
-    with pytest.raises(TypeError):
-
-        @released()
-        def test_xx():
-            pass
 
 
 if __name__ == "__main__":

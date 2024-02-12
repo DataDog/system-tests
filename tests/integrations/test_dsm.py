@@ -2,14 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, released, irrelevant, context, bug
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features
 from utils.tools import logger
 
 
-@released(cpp="?", golang="?", php="?", python="?", ruby="?")
-@released(dotnet="2.29.0")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
-@released(nodejs="4.4.0")
+@features.datastreams_monitoring_support_for_kafka
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -25,24 +22,23 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            consumer_hash = 2931833227331067675
-            producer_hash = 271115008390912609
+            producer_hash = 2931833227331067675
+            consumer_hash = 271115008390912609
         else:
-            consumer_hash = 4463699290244539355
-            producer_hash = 3735318893869752335
+            producer_hash = 4463699290244539355
+            consumer_hash = 3735318893869752335
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash,
-            parent_hash=consumer_hash,
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.12.1", "*": "?"})
+@features.datastreams_monitoring_support_for_http
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -58,9 +54,7 @@ class Test_DsmHttp:
         )
 
 
-@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
-@released(dotnet="2.29.0")
+@features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -72,16 +66,49 @@ class Test_DsmRabbitmq:
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
+        # Hashes are created by applying the FNV-1 algorithm on
+        # checkpoint strings (e.g. service:foo)
+        # There is currently no FNV-1 library availble for node.js
+        # So we are using a different algorithm for node.js for now
+        if context.library == "nodejs":
+            producer_hash = 5080618047473654667
+            consumer_hash = 12436096712734841122
+            # node does not have access to the queue argument and defaults to using the routing key
+            edge_tags_in = ("direction:in", "topic:systemTestDirectRoutingKey", "type:rabbitmq")
+            edge_tags_out = (
+                "direction:out",
+                "exchange:systemTestDirectExchange",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            )
+        elif context.library == "python":
+            producer_hash = 3519882823224826180
+            consumer_hash = 13984784774671877513
+            edge_tags_in = ("direction:in", "topic:dsm-system-tests-queue", "type:rabbitmq")
+            edge_tags_out = (
+                "direction:out",
+                "exchange:dsm-system-tests-queue",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            )
+
+        else:
+            producer_hash = 6176024609184775446
+            consumer_hash = 1648106384315938543
+            edge_tags_in = ("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq")
+            edge_tags_out = (
+                "direction:out",
+                "exchange:systemTestDirectExchange",
+                "has_routing_key:true",
+                "type:rabbitmq",
+            )
+
         DsmHelper.assert_checkpoint_presence(
-            hash_=6176024609184775446,
-            parent_hash=0,
-            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
+            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=1648106384315938543,
-            parent_hash=6176024609184775446,
-            tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
@@ -110,8 +137,7 @@ class Test_DsmRabbitmq:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
+@features.datastreams_monitoring_support_for_rabbitmq_topicexchange
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
@@ -147,8 +173,7 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.13.0", "*": "?"})
+@features.datastreams_monitoring_support_for_rabbitmq_fanout
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
@@ -184,7 +209,58 @@ class Test_DsmRabbitmq_FanoutExchange:
         )
 
 
+@features.datastreams_monitoring_support_for_sqs
+@scenarios.integrations
+class Test_DsmSQS:
+    """ Verify DSM stats points for AWS Sqs Service """
+
+    def setup_dsm_sqs(self):
+        self.r = weblog.get("/dsm?integration=sqs&timeout=60", timeout=61)
+
+    def test_dsm_sqs(self):
+        assert self.r.text == "ok"
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {
+                "producer": 18206246330825886989,
+                "consumer": 5236533131035234664,
+                "topic": "dsm-system-tests-queue",
+            },
+            "java": {
+                "producer": 16307892913751934142,
+                "consumer": 15549836665988044996,
+                "topic": "dsm-system-tests-queue-java",
+            },
+            "default": {
+                "producer": 7228682205928812513,
+                "consumer": 3767823103515000703,
+                "topic": "dsm-system-tests-queue",
+            },
+        }
+
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        topic = language_hashes.get(context.library.library, language_hashes.get("default"))["topic"]
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{topic}", "type:sqs"),
+        )
+
+
 class DsmHelper:
+    @staticmethod
+    def is_tags_included(actual_tags, expected_tags):
+        assert isinstance(actual_tags, tuple)
+        assert isinstance(expected_tags, tuple)
+        for expected_tag in expected_tags:
+            if expected_tag not in actual_tags:
+                return False
+        return True
+
     @staticmethod
     def assert_checkpoint_presence(hash_, parent_hash, tags):
 
@@ -193,14 +269,20 @@ class DsmHelper:
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
 
         for data in interfaces.agent.get_dsm_data():
-            for stats_bucket in data["request"]["content"]["Stats"]:
-                for stats_point in stats_bucket["Stats"]:
+            # some tracers may send separate payloads with stats
+            # or backlogs so "Stats" may be empty
+            for stats_bucket in data["request"]["content"].get("Stats", {}):
+                for stats_point in stats_bucket.get("Stats", {}):
                     observed_hash = stats_point["Hash"]
                     observed_parent_hash = stats_point["ParentHash"]
                     observed_tags = tuple(stats_point["EdgeTags"])
 
-                    logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
-                    if observed_hash == hash_ and observed_parent_hash == parent_hash and observed_tags == tags:
+                    logger.info(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
+                    if (
+                        observed_hash == hash_
+                        and observed_parent_hash == parent_hash
+                        and DsmHelper.is_tags_included(observed_tags, tags)
+                    ):
                         logger.info("checkpoint found ✅")
                         return
 

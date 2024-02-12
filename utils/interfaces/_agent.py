@@ -6,7 +6,6 @@
 This files will validate data flow between agent and backend
 """
 
-import json
 import threading
 import copy
 
@@ -44,7 +43,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         if "meta" not in span or "_dd.appsec.json" not in span["meta"]:
                             continue
 
-                        appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
+                        appsec_data = span["meta"]["_dd.appsec.json"]
 
                         if rid is None:
                             yield data, payload, chunk, span, appsec_data

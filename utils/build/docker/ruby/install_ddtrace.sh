@@ -15,6 +15,7 @@ else
     echo $options >> Gemfile
 fi
 
+bundle config set --local without test development
 bundle update ddtrace
 
 bundle list | grep ddtrace > SYSTEM_TESTS_LIBRARY_VERSION

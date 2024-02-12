@@ -1,8 +1,13 @@
+import logging
+import os
+import random
+import subprocess
+import threading
+
 import psycopg2
 import requests
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
-from flask import Flask, Response
+from flask import Flask, Response, jsonify
+from flask import request
 from flask import request as flask_request
 from iast import (
     weak_cipher,
@@ -12,6 +17,25 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+from integrations.db.mssql import executeMssqlOperation
+from integrations.db.mysqldb import executeMysqlOperation
+from integrations.db.postgres import executePostgresOperation
+from integrations.messaging.aws.sqs import sqs_consume
+from integrations.messaging.aws.sqs import sqs_produce
+from integrations.messaging.kafka import kafka_consume
+from integrations.messaging.kafka import kafka_produce
+from integrations.messaging.rabbitmq import rabbitmq_consume
+from integrations.messaging.rabbitmq import rabbitmq_produce
+
+import ddtrace
+
+from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace import Pin, tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+# Patch kombu since its not patched automatically
+ddtrace.patch_all(kombu=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -44,14 +68,19 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 @app.route("/waf/", methods=["GET", "POST", "OPTIONS"])
 @app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
 @app.route("/params/<path>", methods=["GET", "POST", "OPTIONS"])
-@app.route("/tag_value/<string:value>/<int:code>", methods=["GET", "POST", "OPTIONS"])
+@app.route(
+    "/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"],
+)
 def waf(*args, **kwargs):
-    if "value" in kwargs:
+    if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]},
         )
-        return "Value tagged", kwargs["code"], flask_request.args
-    return "Hello, World!\\n"
+        if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
+            return jsonify({"payload": request.form}), kwargs["status_code"], flask_request.args
+
+        return "Value tagged", kwargs["status_code"], flask_request.args
+    return "Hello, World!\n"
 
 
 @app.route("/read_file", methods=["GET"])
@@ -145,14 +174,157 @@ def dbm():
         cursor = postgres_db.cursor()
         operation = flask_request.args.get("operation")
         if operation == "execute":
-            cursor.execute("select 'blah'")
+            cursor.execute("SELECT version()")
             return Response("OK")
         elif operation == "executemany":
-            cursor.executemany("select %s", (("blah",), ("moo",)))
+            cursor.executemany("SELECT version()", [((),)])
             return Response("OK")
         return Response(f"Cursor method is not supported: {operation}", 406)
 
     return Response(f"Integration is not supported: {integration}", 406)
+
+
+@app.route("/kafka/produce")
+def produce_kafka_message():
+    """
+    The goal of this endpoint is to trigger kafka producer calls
+    """
+    topic = flask_request.args.get("topic", "DistributedTracing")
+    message = b"Distributed Tracing Test from Python for Kafka!"
+    output = kafka_produce(topic, message)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/kafka/consume")
+def consume_kafka_message():
+    """
+    The goal of this endpoint is to trigger kafka consumer calls
+    """
+    topic = flask_request.args.get("topic", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = kafka_consume(topic, "apm_test", timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/sqs/produce")
+def produce_sqs_message():
+    queue = flask_request.args.get("queue", "DistributedTracing")
+    message = "Hello from Python SQS"
+    output = sqs_produce(queue, message)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/sqs/consume")
+def consume_sqs_message():
+    queue = flask_request.args.get("queue", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = sqs_consume(queue, timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/rabbitmq/produce")
+def produce_rabbitmq_message():
+    queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
+    exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    message = "Hello from Python RabbitMQ Context Propagation Test"
+    output = rabbitmq_produce(queue, exchange, message)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/rabbitmq/consume")
+def consume_rabbitmq_message():
+    queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
+    exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = rabbitmq_consume(queue, exchange, timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/dsm")
+def dsm():
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    queue = "dsm-system-tests-queue"
+    integration = flask_request.args.get("integration")
+
+    logging.info(f"[DSM] Got request with integration: {integration}")
+
+    # force reset DSM context for global tracer and global DSM processor
+    try:
+        del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+    try:
+        from ddtrace.internal.datastreams import data_streams_processor
+
+        del data_streams_processor()._current_context.value
+    except AttributeError:
+        pass
+
+    response = Response(f"Integration is not supported: {integration}", 406)
+
+    if integration == "kafka":
+
+        def delivery_report(err, msg):
+            if err is not None:
+                logging.info(f"[kafka] Message delivery failed: {err}")
+            else:
+                logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
+
+        produce_thread = threading.Thread(
+            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,)
+        )
+        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",))
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[kafka] Returning response")
+        response = Response("ok")
+    elif integration == "sqs":
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",))
+        consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[sqs] Returning response")
+        response = Response("ok")
+    elif integration == "rabbitmq":
+        timeout = int(flask_request.args.get("timeout", 60))
+        produce_thread = threading.Thread(
+            target=rabbitmq_produce, args=(queue, queue, "Hello, RabbitMQ from DSM python!")
+        )
+        consume_thread = threading.Thread(target=rabbitmq_consume, args=(queue, queue, timeout))
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[RabbitMQ] Returning response")
+        response = Response("ok")
+
+    # force flush stats to ensure they're available to agent after test setup is complete
+    tracer.data_streams_processor.periodic()
+    return response
 
 
 @app.route("/iast/insecure_hashing/multiple_hash")
@@ -255,6 +427,57 @@ def view_iast_source_parameter():
     else:
         table = flask_request.json.get("table")
     _sink_point(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/path_traversal/test_insecure", methods=["POST"])
+def view_iast_path_traversal_insecure():
+    path = flask_request.form["path"]
+    os.mkdir(path)
+    return Response("OK")
+
+
+@app.route("/iast/path_traversal/test_secure", methods=["POST"])
+def view_iast_path_traversal_secure():
+    path = flask_request.form["path"]
+    root_dir = "/home/usr/secure_folder/"
+
+    if os.path.commonprefix((os.path.realpath(path), root_dir)) == root_dir:
+        open(path)
+
+    return Response("OK")
+
+
+@app.route("/iast/ssrf/test_insecure", methods=["POST"])
+def view_iast_ssrf_insecure():
+    import requests
+
+    url = flask_request.form["url"]
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+    return Response("OK")
+
+
+@app.route("/iast/ssrf/test_secure", methods=["POST"])
+def view_iast_ssrf_secure():
+    from urllib.parse import urlparse
+    import requests
+
+    url = flask_request.form["url"]
+    # Validate the URL and enforce whitelist
+    allowed_domains = ["example.com", "api.example.com"]
+    parsed_url = urlparse(url)
+
+    if parsed_url.hostname not in allowed_domains:
+        return "Forbidden", 403
+
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+
     return Response("OK")
 
 
@@ -370,8 +593,63 @@ def test_nosamesite_secure_cookie():
     return resp
 
 
-@app.route("/iast/no-samesite-cookie/test_empty_cookie")
-def test_nosamesite_empty_cookie():
-    resp = Response("OK")
-    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
-    return resp
+@app.route("/iast/weak_randomness/test_insecure")
+def test_weak_randomness_insecure():
+    _ = random.randint(1, 100)
+    return Response("OK")
+
+
+@app.route("/iast/weak_randomness/test_secure")
+def test_weak_randomness_secure():
+    random_secure = random.SystemRandom()
+    _ = random_secure.randint(1, 100)
+    return Response("OK")
+
+
+@app.route("/iast/cmdi/test_insecure", methods=["POST"])
+def view_cmdi_insecure():
+    filename = "/"
+    command = flask_request.form["cmd"]
+    subp = subprocess.Popen(args=[command, "-la", filename])
+    subp.communicate()
+    subp.wait()
+
+    return Response("OK")
+
+
+@app.route("/iast/cmdi/test_secure", methods=["POST"])
+def view_cmdi_secure():
+    filename = "/"
+    command = " ".join([flask_request.form["cmd"], "-la", filename])
+    # TODO: add secure command
+    # subp = subprocess.check_output(command, shell=False)
+    # subp.communicate()
+    # subp.wait()
+    return Response("OK")
+
+
+@app.route("/db", methods=["GET", "POST", "OPTIONS"])
+def db():
+    service = flask_request.args.get("service")
+    operation = flask_request.args.get("operation")
+
+    print("REQUEST RECEIVED!")
+
+    if service == "postgresql":
+        executePostgresOperation(operation)
+    elif service == "mysql":
+        executeMysqlOperation(operation)
+    elif service == "mssql":
+        executeMssqlOperation(operation)
+    else:
+        print(f"SERVICE NOT SUPPORTED: {service}")
+
+    return "YEAH"
+
+
+@app.route("/createextraservice", methods=["GET"])
+def create_extra_service():
+    new_service_name = request.args.get("serviceName", default="", type=str)
+    if new_service_name:
+        Pin.override(Flask, service=new_service_name, tracer=tracer)
+    return Response("OK")

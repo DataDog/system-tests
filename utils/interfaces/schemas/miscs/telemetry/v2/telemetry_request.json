@@ -22,7 +22,8 @@
           "app-closing",
           "apm-onboarding-event",
           "message-batch",
-          "distributions"
+          "distributions",
+          "logs"
         ]
       }
     },
@@ -184,6 +185,22 @@
         "properties": {
           "payload": {
             "$ref": "/miscs/telemetry/common/events/distributions.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "logs"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/v2/events/logs.json"
           }
         }
       }

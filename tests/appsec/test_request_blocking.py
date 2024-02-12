@@ -3,30 +3,15 @@
 # Copyright 2021 Datadog, Inc.
 import json
 
-from utils import weblog, context, coverage, interfaces, released, bug, scenarios
+from utils import weblog, interfaces, scenarios, features
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@released(dotnet="2.25.0", php_appsec="0.7.0", python="1.10.0", ruby="1.11.1", nodejs="3.19.0")
-@released(
-    java={
-        "spring-boot": "1.9.0",
-        "sprint-boot-jetty": "1.9.0",
-        "spring-boot-undertow": "1.9.0",
-        "spring-boot-openliberty": "1.9.0",
-        "ratpack": "1.9.0",
-        "jersey-grizzly2": "1.9.0",
-        "resteasy-netty3": "1.9.0",
-        "vertx3": "1.9.0",
-        "*": "?",
-    }
-)
-@released(golang="1.50.0-rc.1")
-@coverage.basic
 @scenarios.appsec_request_blocking
+@features.appsec_request_blocking
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 
@@ -60,7 +45,6 @@ class Test_AppSecRequestBlocking:
         self.blocked_requests1 = weblog.get(headers={"user-agent": "Arachni/v1"})
         self.blocked_requests2 = weblog.get(params={"random-key": "/netsparker-"})
 
-    @bug(context.weblog_variant in ("rails50", "rails51", "rails52", "rails60"))
     def test_request_blocking(self):
         """test requests are blocked by rules in blocking mode"""
 

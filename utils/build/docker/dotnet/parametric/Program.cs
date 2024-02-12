@@ -3,6 +3,9 @@ using System.Net;
 using ApmTestClient.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
+// Force the initialization of the tracer
+_ = Datadog.Trace.Tracer.Instance;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Additional configuration is required to successfully run gRPC on macOS.

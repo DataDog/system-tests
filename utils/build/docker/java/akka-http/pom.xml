@@ -10,7 +10,7 @@
     <version>1.0.0</version>
 
     <properties>
-        <scala.version>2.13.5</scala.version>
+        <scala.version>2.13.10</scala.version>
         <akka.version>2.8.0</akka.version>
         <akka.http.version>10.5.0</akka.http.version>
     </properties>
@@ -24,6 +24,16 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http-jackson_2.13</artifactId>
+            <version>${akka.http.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_2.13</artifactId>
+            <version>2.13.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-http-xml_2.13</artifactId>
             <version>${akka.http.version}</version>
         </dependency>
         <dependency>
@@ -140,6 +150,7 @@
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
+                                        <exclude>META-INF/*.MF</exclude>
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>

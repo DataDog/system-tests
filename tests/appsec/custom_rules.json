@@ -3021,6 +3021,39 @@
           "operator": "phrase_match"
         }
       ]
+    },
+    {
+      "id": "multiple_highlight_rule",
+      "name": "noname",
+      "tags": {
+        "type": "testing",
+        "crs_id": "0",
+        "category": "testing"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "highlight1"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "highlight2"
+          },
+          "operator": "match_regex"
+        }
+      ]
     }
   ]
 }

@@ -1,50 +1,14 @@
-from utils import context, released, coverage, interfaces, scenarios, weblog, bug, irrelevant, missing_feature
+from utils import context, interfaces, scenarios, weblog, bug, features
 
 
-@released(
-    dotnet="2.30.0",
-    golang="1.48.0",
-    java={
-        "spring-boot": "0.110.0",
-        "sprint-boot-jetty": "0.111.0",
-        "spring-boot-undertow": "0.111.0",
-        "spring-boot-openliberty": "0.115.0",
-        "ratpack": "1.7.0",
-        "jersey-grizzly2": "1.7.0",
-        "resteasy-netty3": "1.7.0",
-        "vertx3": "1.7.0",
-        "*": "?",
-    },
-    nodejs="3.15.0",
-    php="0.86.3",
-    php_appsec="0.7.2",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="1.11.0",
-)
-@bug(library="java", reason="RC payload limit")
-@missing_feature(
-    library="python", reason="Python supported denylists of 2500 entries but it fails to block this those 15000"
-)
-@missing_feature(
-    library="ruby", reason="Ruby supported denylists of 2500 entries but it fails to block this those 15000"
-)
-@coverage.basic
+@features.appsec_user_blocking
 @scenarios.appsec_blocking_full_denylist
 class Test_UserBlocking_FullDenylist:
     NOT_BLOCKED_USER = "regularUser"
-    remote_config_is_sent = False
     NUM_OF_BLOCKED_USERS = 2500
 
-    def _remote_config_asm_payload(self, data):
-        if data["path"] == "/v0.7/config":
-            if "client_configs" in data.get("response", {}).get("content", {}):
-                self.remote_config_is_sent = True
-                return True
-
-        return False
-
     def _remote_config_is_applied(self, data):
-        if data["path"] == "/v0.7/config" and self.remote_config_is_sent:
+        if data["path"] == "/v0.7/config":
             if "config_states" in data.get("request", {}).get("content", {}).get("client", {}).get("state", {}):
                 config_states = data["request"]["content"]["client"]["state"]["config_states"]
 
@@ -55,7 +19,7 @@ class Test_UserBlocking_FullDenylist:
         return False
 
     def setup_nonblocking_test(self):
-        interfaces.library.wait_for(self._remote_config_asm_payload, timeout=30)
+        interfaces.library.wait_for_remote_config_request()
         interfaces.library.wait_for(self._remote_config_is_applied, timeout=30)
 
         self.r_nonblock = weblog.get("/users", params={"user": self.NOT_BLOCKED_USER})
@@ -70,7 +34,7 @@ class Test_UserBlocking_FullDenylist:
         interfaces.library.assert_no_appsec_event(self.r_nonblock)
 
     def setup_blocking_test(self):
-        interfaces.library.wait_for(self._remote_config_asm_payload, timeout=30)
+        interfaces.library.wait_for_remote_config_request()
         interfaces.library.wait_for(self._remote_config_is_applied, timeout=30)
 
         self.r_blocked_requests = [

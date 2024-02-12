@@ -4,21 +4,39 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "amqplib": "^0.10.3",
+    "aws-sdk": "^2.1530.0",
     "axios": "1.2.3",
     "body-parser": "^1.19.1",
     "cookie-parser": "^1.4.6",
     "express": "^4.17.2",
+    "express-graphql": "^0.12.0",
+    "express-mongo-sanitize": "^2.2.0",
     "express-xml-bodyparser": "^0.3.0",
     "glob": "^8.0.3",
+    "graphql": "^15.8.0",
     "kafkajs": "^2.2.4",
+    "ldapjs": "2.0.0",
+    "mongodb": "^6.1.0",
+    "mssql": "^9.1.0",
+    "mysql2": "^3.5.0",
     "passport": "^0.6.0",
     "passport-http": "^0.3.0",
     "passport-local": "^1.0.0",
     "pg": "^8.8.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.53.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-mocha": "^10.2.0",
+    "eslint-plugin-n": "^16.2.0",
+    "eslint-plugin-promise": "^6.1.1"
   }
 }

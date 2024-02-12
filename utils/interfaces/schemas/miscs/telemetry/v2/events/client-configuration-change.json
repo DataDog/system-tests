@@ -5,15 +5,12 @@
   "title": "client-configuration-change v2",
   "type": "object",
   "properties": {
-    "conf_key_values": {
-      "type": "array",
-      "items": {
-        "$ref": "/miscs/telemetry/v2/objects/configuration.json"
-      }
+    "configuration": {
+      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
     },
     "remote_config": {
       "$ref": "/miscs/telemetry/common/objects/remote_config.json"
     }
   },
-  "required": ["conf_key_values"]
+  "required": ["configuration"]
 }

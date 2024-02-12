@@ -2,56 +2,35 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released, bug, missing_feature
-from .._test_iast_fixtures import SourceFixture
+from utils import context, missing_feature, features
+from .._test_iast_fixtures import BaseSourceTest
 
 
-@coverage.basic
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="1.18.0", ruby="?")
-@released(
-    java={
-        "jersey-grizzly2": "1.15.0",
-        "resteasy-netty3": "?",
-        "vertx3": "1.12.0",
-        "vertx4": "1.12.0",
-        "akka-http": "1.12.0",
-        "ratpack": "?",
-        "*": "1.5.0",
-    }
-)
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-class TestHeaderName:
+@features.iast_source_header_name
+class TestHeaderName(BaseSourceTest):
     """Verify that request headers name are tainted"""
 
-    source_name = "user"
-    if context.library.library == "python":
-        source_name = "User"
+    source_name = "User" if context.library.library == "python" else "user"
 
-    source_fixture = SourceFixture(
-        http_method="GET",
-        endpoint="/iast/source/headername/test",
-        request_kwargs={"headers": {"user": "unused"}},
-        source_type="http.request.header.name",
-        source_name=source_name,
-        source_value=None,
+    endpoint = "/iast/source/headername/test"
+    requests_kwargs = [{"method": "GET", "headers": {"user": "unused"}}]
+    source_type = "http.request.header.name"
+    source_value = None
+
+    @missing_feature(context.library < "java@1.16.0", reason="Not working as expected")
+    @missing_feature(
+        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
+        reason="Metrics not implemented",
     )
-
-    def setup_source_reported(self):
-        self.source_fixture.setup()
-
-    def test_source_reported(self):
-        self.source_fixture.test()
-
-    def setup_telemetry_metric_instrumented_source(self):
-        self.source_fixture.setup_telemetry_metric_instrumented_source()
-
-    @bug(library="java", reason="Not working as expected")
+    @missing_feature(context.weblog_variant in ("jersey-grizzly2", "vertx4"), reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_source(self):
-        self.source_fixture.test_telemetry_metric_instrumented_source()
+        super().test_telemetry_metric_instrumented_source()
 
-    def setup_telemetry_metric_executed_source(self):
-        self.source_fixture.setup_telemetry_metric_executed_source()
-
-    @bug(library="java", reason="Not working as expected")
+    @missing_feature(context.library < "java@1.16.0", reason="Not working as expected")
+    @missing_feature(
+        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
+        reason="Metrics not implemented",
+    )
+    @missing_feature(context.weblog_variant in ("jersey-grizzly2", "vertx4"), reason="Metrics not implemented")
     def test_telemetry_metric_executed_source(self):
-        self.source_fixture.test_telemetry_metric_executed_source()
+        super().test_telemetry_metric_executed_source()

@@ -7,6 +7,9 @@
   "allOf": [
     {
       "properties": {
+        "namespace": {
+          "type": "string"
+        },
         "common": {
           "type": "boolean"
         },

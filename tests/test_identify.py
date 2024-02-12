@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import weblog, bug, context, coverage, interfaces, released, rfc
+from utils import weblog, bug, context, interfaces, rfc, features
 
 
 def assertTagInSpanMeta(span, tag, expected):
@@ -28,9 +27,7 @@ def validate_identify_tags(tags):
     return inner_validate
 
 
-@released(dotnet="2.7.0", golang="1.37.0", java="?", nodejs="2.4.0", php="0.85.0")
-@released(python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0")
-@coverage.basic
+@features.propagation_of_user_id_rfc
 class Test_Basic:
     """Basic tests for Identify SDK"""
 
@@ -63,8 +60,7 @@ class Test_Basic:
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@released(dotnet="2.26.0", golang="1.41.0", java="?", nodejs="?", php="0.85.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
-@coverage.basic
+@features.propagation_of_user_id_rfc
 class Test_Propagate_Legacy:
     """Propagation tests for Identify SDK"""
 
@@ -88,8 +84,7 @@ class Test_Propagate_Legacy:
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@released(dotnet="2.27.0", golang="1.48.0-rc.1", java="?", nodejs="?", php="0.85.0", python="1.9.0", ruby="?")
-@coverage.basic
+@features.propagation_of_user_id_rfc
 class Test_Propagate:
     """Propagation tests for Identify SDK"""
 

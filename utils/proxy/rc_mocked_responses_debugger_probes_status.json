@@ -1,0 +1,198 @@
+[
+  null,
+  [
+    {
+      "language": "",
+      "id": "loga0cf2-meth-45cf-9f39-591received",
+      "where": {
+        "typeName": "NotReallyExists",
+        "methodName": "SomeMethod",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "loga0cf2-meth-45cf-9f39-59installed",
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "LogProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "loga0cf2-line-45cf-9f39-59installed",
+      "where": {
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": [
+          "19"
+        ]
+      }
+    }
+  ],
+  [
+    {
+      "language": "",
+      "id": "metricf2-meth-45cf-9f39-591received",
+      "metricName": "MetricCountInt",
+      "kind": "COUNT",
+      "value": {
+        "json": {
+          "ref": "id"
+        }
+      },
+      "where": {
+        "typeName": "NotReallyExists",
+        "methodName": "SomeMethod",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "metricf2-meth-45cf-9f39-59installed",
+      "metricName": "MetricCountInt",
+      "kind": "COUNT",
+      "value": {
+        "json": {
+          "ref": "id"
+        }
+      },
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "MetricProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "metricf2-line-45cf-9f39-59installed",
+      "kind": "COUNT",
+      "metricName": "MetricCountInt",
+      "value": {
+        "json": {
+          "ref": "id"
+        }
+      },
+      "where": {
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": [
+          "27"
+        ]
+      },
+      "evaluateAt": "EXIT"
+    }
+  ],
+  [
+    {
+      "language": "",
+      "id": "span0cf2-meth-45cf-9f39-591received",
+      "where": {
+        "typeName": "NotReallyExists",
+        "methodName": "SomeMethod",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "span0cf2-meth-45cf-9f39-59installed",
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "SpanProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    }
+  ],
+  [
+    {
+      "language": "",
+      "id": "decorcf2-meth-45cf-9f39-591received",
+      "targetSpan": "ACTIVE",
+      "decorations": [
+        {
+          "when": {
+            "json": {
+              "gt": [
+                {
+                  "ref": "intLocal"
+                },
+                {
+                  "ref": "intArg"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "where": {
+        "typeName": "NotReallyExists",
+        "methodName": "SomeMethod",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "decorcf2-meth-45cf-9f39-59installed",
+      "targetSpan": "ACTIVE",
+      "decorations": [
+        {
+          "when": {
+            "json": {
+              "gt": [
+                {
+                  "ref": "intLocal"
+                },
+                {
+                  "ref": "intArg"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "SpanDecorationProbe",
+        "sourceFile": null
+      },
+      "evaluateAt": "EXIT"
+    },
+    {
+      "language": "",
+      "id": "decorcf2-line-45cf-9f39-59installed",
+      "targetSpan": "ACTIVE",
+      "decorations": [
+        {
+          "when": {
+            "json": {
+              "gt": [
+                {
+                  "ref": "intLocal"
+                },
+                {
+                  "ref": "intArg"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "where": {
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": [
+          "43"
+        ]
+      },
+      "evaluateAt": "EXIT"
+    }
+  ]
+]

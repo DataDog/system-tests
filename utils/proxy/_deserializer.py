@@ -23,7 +23,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from _decoders.protobuf_schemas import TracePayload
+from _decoders.protobuf_schemas import MetricPayload, TracePayload
 
 
 logger = logging.getLogger(__name__)
@@ -79,24 +79,19 @@ def _decode_v_0_5_traces(content):
                 "type": strings[int(span[11])],
             }
 
-            meta = decoded_span["meta"]
-
-            for key in list(meta):
-                if key.startswith("_dd.appsec.s."):
-                    meta[key] = deserialize_dd_appsec_s_meta(key, meta[key])
-
             decoded_spans.append(decoded_span)
 
     return result
 
 
-def deserialize_dd_appsec_s_meta(key, payload):
+def deserialize_dd_appsec_s_meta(payload):
     """ meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings """
 
     try:
         return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
-    except Exception as e:
-        raise ValueError(f"meta {key} should be b64/gziped JSON.\nPayload: {payload}") from e
+    except Exception:
+        # b64/gzip is optional
+        return json.loads(payload)
 
 
 def deserialize_http_message(path, message, content: bytes, interface, key):
@@ -133,10 +128,12 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
         if interface == "library":
             if path == "/v0.4/traces":
                 _decode_unsigned_int_traces(result)
+                _deserialized_nested_json_from_trace_payloads(result, interface)
 
             elif path == "/v0.5/traces":
                 result = _decode_v_0_5_traces(result)
                 _decode_unsigned_int_traces(result)
+                _deserialized_nested_json_from_trace_payloads(result, interface)
 
         _convert_bytes_values(result)
 
@@ -160,7 +157,11 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
         if path == "/v1/logs":
             return MessageToDict(ExportLogsServiceResponse.FromString(content))
         if path == "/api/v0.2/traces":
-            return MessageToDict(TracePayload.FromString(content))
+            result = MessageToDict(TracePayload.FromString(content))
+            _deserialized_nested_json_from_trace_payloads(result, interface)
+            return result
+        if path == "/api/v2/series":
+            return MessageToDict(MetricPayload.FromString(content))
 
     if content_type == "application/x-www-form-urlencoded" and content == b"[]" and path == "/v0.4/traces":
         return []
@@ -180,6 +181,34 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
         return decoded
 
     return content
+
+
+def _deserialized_nested_json_from_trace_payloads(content, interface):
+    """ trace payload from agent and library contains strings that are json """
+
+    if interface == "agent":
+        for tracer_payload in content.get("tracerPayloads", []):
+            for chunk in tracer_payload.get("chunks", []):
+                for span in chunk.get("spans", []):
+                    _deserialize_meta(span)
+
+    elif interface == "library":
+        for traces in content:
+            for span in traces:
+                _deserialize_meta(span)
+
+
+def _deserialize_meta(span):
+
+    meta = span.get("meta", {})
+
+    keys = ("_dd.appsec.json", "_dd.iast.json")
+
+    for key in list(meta):
+        if key.startswith("_dd.appsec.s."):
+            meta[key] = deserialize_dd_appsec_s_meta(meta[key])
+        elif key in keys:
+            meta[key] = json.loads(meta[key])
 
 
 def _convert_bytes_values(item):

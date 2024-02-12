@@ -1,9 +1,13 @@
 # pages/urls.py
+import json
+import os
+import random
+import subprocess
+
+import django
 import requests
-from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from iast import (
@@ -14,6 +18,9 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+
+from ddtrace import Pin, tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -36,11 +43,18 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 @csrf_exempt
 def waf(request, *args, **kwargs):
-    if "value" in kwargs:
+    if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]}
         )
-        return HttpResponse("Value tagged", status=int(kwargs["code"]), headers=request.GET.dict())
+        if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
+            return HttpResponse(
+                json.dumps({"payload": dict(request.POST)}),
+                content_type="application/json",
+                status=int(kwargs["status_code"]),
+                headers=request.GET.dict(),
+            )
+        return HttpResponse("Value tagged", status=int(kwargs["status_code"]), headers=request.GET.dict())
     return HttpResponse("Hello, World!")
 
 
@@ -179,6 +193,59 @@ def view_nosamesite_cookies_empty(request):
     return res
 
 
+def view_iast_weak_randomness_insecure(request):
+    _ = random.randint(1, 100)
+    res = HttpResponse("OK")
+    return res
+
+
+def view_iast_weak_randomness_secure(request):
+    random_secure = random.SystemRandom()
+    _ = random_secure.randint(1, 100)
+    res = HttpResponse("OK")
+    return res
+
+
+@csrf_exempt
+def view_cmdi_insecure(request):
+    cmd = request.POST.get("cmd", "")
+    filename = "/"
+    subp = subprocess.Popen(args=[cmd, "-la", filename], shell=True)
+    subp.communicate()
+    subp.wait()
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_cmdi_secure(request):
+    cmd = request.POST.get("cmd", "")
+    filename = "/"
+    cmd = " ".join([cmd, "-la", filename])
+    # TODO: add secure command
+    # subp = subprocess.check_output(cmd, shell=True)
+    # subp.communicate()
+    # subp.wait()
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_path_traversal_insecure(request):
+    path = request.POST.get("path", "")
+    os.mkdir(path)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_path_traversal_secure(request):
+    path = request.POST.get("path", "")
+    root_dir = "/home/usr/secure_folder/"
+
+    if os.path.commonprefix((os.path.realpath(path), root_dir)) == root_dir:
+        open(path)
+
+    return HttpResponse("OK")
+
+
 @csrf_exempt
 def view_sqli_insecure(request):
     username = request.POST.get("username", "")
@@ -198,6 +265,39 @@ def view_sqli_secure(request):
 
     with connection.cursor() as cursor:
         cursor.execute(sql, (username, password))
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_ssrf_insecure(request):
+    import requests
+
+    url = request.POST.get("url", "")
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_ssrf_secure(request):
+    from urllib.parse import urlparse
+    import requests
+
+    url = request.POST.get("url", "")
+    # Validate the URL and enforce whitelist
+    allowed_domains = ["example.com", "api.example.com"]
+    parsed_url = urlparse(url)
+
+    if parsed_url.hostname not in allowed_domains:
+        return HttpResponseBadRequest("ERROR")
+
+    try:
+        requests.get(url)
+    except Exception:
+        pass
+
     return HttpResponse("OK")
 
 
@@ -311,7 +411,6 @@ def track_custom_event(request):
 
 
 def read_file(request):
-
     if "file" not in request.GET:
         return HttpResponseBadRequest("Please provide a file parameter")
 
@@ -341,6 +440,13 @@ def get_value(request):
     return HttpResponse(VALUE_STORED)
 
 
+def create_extra_service(request):
+    new_service_name = request.GET.get("serviceName", default="")
+    if new_service_name:
+        Pin.override(django, service=new_service_name, tracer=tracer)
+    return HttpResponse("OK")
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -348,7 +454,8 @@ urlpatterns = [
     path("waf/", waf),
     path("waf/<url>", waf),
     path("params/<appscan_fingerprint>", waf),
-    path("tag_value/<str:value>/<int:code>", waf),
+    path("tag_value/<str:tag_value>/<int:status_code>", waf),
+    path("createextraservice", create_extra_service),
     path("headers", headers),
     path("status", status_code),
     path("identify", identify),
@@ -371,6 +478,14 @@ urlpatterns = [
     path("iast/no-samesite-cookie/test_empty_cookie", view_nosamesite_cookies_empty),
     path("iast/sqli/test_secure", view_sqli_secure),
     path("iast/sqli/test_insecure", view_sqli_insecure),
+    path("iast/cmdi/test_insecure", view_cmdi_insecure),
+    path("iast/cmdi/test_secure", view_cmdi_secure),
+    path("iast/weak_randomness/test_insecure", view_iast_weak_randomness_insecure),
+    path("iast/weak_randomness/test_secure", view_iast_weak_randomness_secure),
+    path("iast/path_traversal/test_insecure", view_iast_path_traversal_insecure),
+    path("iast/path_traversal/test_secure", view_iast_path_traversal_secure),
+    path("iast/ssrf/test_insecure", view_iast_ssrf_insecure),
+    path("iast/ssrf/test_secure", view_iast_ssrf_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),

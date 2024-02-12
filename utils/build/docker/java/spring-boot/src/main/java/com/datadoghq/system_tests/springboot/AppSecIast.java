@@ -3,6 +3,7 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.iast.utils.*;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,8 @@ public class AppSecIast {
     private final XPathExamples xPathExamples;
     private final XSSExamples xssExamples;
 
+    private final HardcodedSecretExamples hardcodedSecretExamples;
+
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
@@ -45,6 +48,12 @@ public class AppSecIast {
         this.weakRandomnessExamples = new WeakRandomnessExamples();
         this.xPathExamples = new XPathExamples();
         this.xssExamples = new XSSExamples();
+        this.hardcodedSecretExamples = new HardcodedSecretExamples();
+    }
+
+    @RequestMapping("/hardcoded_secrets/test_insecure")
+    String hardcodedSecrets() {
+        return hardcodedSecretExamples.SECRET;
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -289,6 +298,18 @@ public class AppSecIast {
       return "Trust Boundary violation page";
     }
 
+    @GetMapping(value="/xcontent-missing-header/test_insecure", produces = "text/html")
+    public String xcontentMissingHeaderInsecure(final HttpServletResponse response) {
+        response.addHeader("X-Content-Type-Options", "dosniffplease");
+        return "ok";
+    }
+
+    @GetMapping(value="/xcontent-missing-header/test_secure", produces = "text/html")
+    public String xcontentMissingHeaderSecure(final HttpServletResponse response) {
+        response.addHeader("X-Content-Type-Options", "nosniff");
+        return "ok";
+    }
+
     @PostMapping("/xss/test_insecure")
     void insecureXSS(final ServletRequest request, final ServletResponse response) throws IOException {
         xssExamples.insecureXSS(response.getWriter(), request.getParameter("param"));
@@ -298,6 +319,40 @@ public class AppSecIast {
     void secureXSS(final ServletResponse response) throws IOException {
         xssExamples.secureXSS(response.getWriter());
     }
+
+    @GetMapping(value = "/hstsmissing/test_insecure", produces = "text/html")
+    public String hstsHeaderMissingInsecure(HttpServletResponse response) {
+        response.setStatus(HttpStatus.OK.value());
+        return "ok";
+    }
+
+    @GetMapping(value = "/hstsmissing/test_secure", produces = "text/html")
+    public String hstsHeaderMissingSecure(HttpServletResponse response) {
+        response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+        response.setStatus(HttpStatus.OK.value());
+        return "ok";
+    }
+
+    @PostMapping("/header_injection/test_insecure")
+    public String headerInjectionInsecure(final HttpServletRequest request, HttpServletResponse response) {
+      String paramValue = request.getParameter("test");
+      response.addHeader("X-Test-Header", paramValue);
+      return "Ok";
+    }
+
+    @PostMapping("/header_injection/test_secure")
+    public String headerInjectionSecure(final HttpServletRequest request, HttpServletResponse response) {
+      String paramValue = request.getParameter("test");
+        response.addHeader("Sec-WebSocket-Location", paramValue);
+      return "Ok";
+    }
+
+    @GetMapping(value = "/insecure-auth-protocol/test")
+    public String insecureAuthProtocol(HttpServletResponse response) {
+        response.setStatus(HttpStatus.OK.value());
+        return "ok";
+    }
+
 
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily

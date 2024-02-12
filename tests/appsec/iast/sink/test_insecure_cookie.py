@@ -2,68 +2,38 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released, missing_feature, bug
-from .._test_iast_fixtures import SinkFixture
+from utils import context, missing_feature, bug, weblog, features
+from .._test_iast_fixtures import BaseSinkTest
 
 
-@coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="1.19.0", ruby="?")
-@released(nodejs={"express4": "4.1.0", "*": "?"})
-@released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
-class TestInsecureCookie:
+@features.iast_sink_insecure_cookie
+class TestInsecureCookie(BaseSinkTest):
     """Test insecure cookie detection."""
 
-    sink_fixture = SinkFixture(
-        vulnerability_type="INSECURE_COOKIE",
-        http_method="GET",
-        insecure_endpoint="/iast/insecure-cookie/test_insecure",
-        secure_endpoint="/iast/insecure-cookie/test_secure",
-        data={},
-        location_map={"nodejs": "iast/index.js",},
-    )
-
-    sink_fixture_empty_cookie = SinkFixture(
-        vulnerability_type="INSECURE_COOKIE",
-        http_method="GET",
-        insecure_endpoint="",
-        secure_endpoint="/iast/insecure-cookie/test_empty_cookie",
-        data={},
-        location_map={"nodejs": "iast/index.js",},
-    )
-
-    def setup_insecure(self):
-        self.sink_fixture.setup_insecure()
-
-    def test_insecure(self):
-        self.sink_fixture.test_insecure()
-
-    def setup_secure(self):
-        self.sink_fixture.setup_secure()
+    vulnerability_type = "INSECURE_COOKIE"
+    http_method = "GET"
+    insecure_endpoint = "/iast/insecure-cookie/test_insecure"
+    secure_endpoint = "/iast/insecure-cookie/test_secure"
+    data = {}
+    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
     @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
     def test_secure(self):
-        self.sink_fixture.test_secure()
+        super().test_secure()
 
     def setup_empty_cookie(self):
-        self.sink_fixture_empty_cookie.setup_secure()
+        self.request_empty_cookie = weblog.get("/iast/insecure-cookie/test_empty_cookie", data={})
 
     def test_empty_cookie(self):
-        self.sink_fixture_empty_cookie.test_secure()
+        self.assert_no_iast_event(self.request_empty_cookie)
 
-    def setup_telemetry_metric_instrumented_sink(self):
-        self.sink_fixture.setup_telemetry_metric_instrumented_sink()
-
-    @missing_feature(library="nodejs", reason="Metrics implemented")
-    @missing_feature(library="java", reason="Metrics implemented")
-    @missing_feature(library="python", reason="Metrics implemented")
+    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
+    @missing_feature(library="python", reason="Metrics not implemented")
+    @missing_feature(library="dotnet", reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_sink(self):
-        self.sink_fixture.test_telemetry_metric_instrumented_sink()
+        super().test_telemetry_metric_instrumented_sink()
 
-    def setup_telemetry_metric_executed_sink(self):
-        self.sink_fixture.setup_telemetry_metric_executed_sink()
-
-    @missing_feature(library="nodejs", reason="Metrics implemented")
-    @missing_feature(library="java", reason="Metrics implemented")
-    @missing_feature(library="python", reason="Metrics implemented")
+    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
+    @missing_feature(weblog_variant="vertx4", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
-        self.sink_fixture.test_telemetry_metric_executed_sink()
+        super().test_telemetry_metric_executed_sink()

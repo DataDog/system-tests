@@ -15,7 +15,7 @@
         "type": "object",
         "properties": {
           "appsec.event": { "enum": ["true"] },
-          "_dd.appsec.json": { "type": "string" }
+          "_dd.appsec.json": { "type": "object" }
         }
       },
       "metrics": { "type": "object" },

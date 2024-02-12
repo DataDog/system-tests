@@ -3,10 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, released, coverage
+from utils import features
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@coverage.not_implemented
+@features.appsec_scrubbing
 class Test_Scrubbing:
     """Appsec scrubs all sensitive data"""
+
+    def test_main(self):
+        assert False, "Test not implemented"

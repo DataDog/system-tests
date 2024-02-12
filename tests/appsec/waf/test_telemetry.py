@@ -1,12 +1,8 @@
-from utils import interfaces, released, rfc, weblog, scenarios, context, bug, missing_feature, flaky
+from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky, features
 from utils.tools import logger
-import pytest
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
-
-if context.weblog_variant == "akka-http":
-    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 def _setup(self):
@@ -28,6 +24,7 @@ def _setup(self):
     Test_TelemetryMetrics.__common_setup_done = True
 
 
+@features.waf_telemetry
 class Test_TelemetryResponses:
     """ Test response from backend/agent """
 
@@ -41,9 +38,8 @@ class Test_TelemetryResponses:
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
-@released(python="1.14.0", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_waf_telemetry
+@features.waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
 
@@ -74,7 +70,7 @@ class Test_TelemetryMetrics:
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
-        if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+        if context.library == "python" and context.weblog_variant not in ("fastapi", "uwsgi-poc"):
             assert len(series) == 2
         else:
             assert len(series) == 1
@@ -180,10 +176,32 @@ class Test_TelemetryMetrics:
             elif len(full_tags & {"request_blocked:true", "rule_triggered:true"}) == 2:
                 matched_blocked += 1
                 assert p[1] == 1
+            else:
+                raise ValueError(f"Unexpected tags: {full_tags}")
 
+        # XXX: Warm up requests might generate more than one series.
         assert matched_not_blocked >= 1
         assert matched_triggered == 1
         assert matched_blocked == 1
+
+    setup_waf_requests_match_traced_requests = _setup
+
+    @bug(context.library < "java@1.29.0", reason="APPSEC-51509")
+    def test_waf_requests_match_traced_requests(self):
+        """Total waf.requests metric should match the number of requests in traces."""
+        spans = [s for _, s in interfaces.library.get_root_spans()]
+        spans = [s for s in spans if s.get("meta", {}).get("span.kind") == "server"]
+        request_count = len(spans)
+        assert request_count >= 3
+
+        expected_metric_name = "waf.requests"
+        total_requests_metric = 0
+        for series in self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name):
+            for point in series["points"]:
+                total_requests_metric += point[1]
+        assert (
+            total_requests_metric == request_count
+        ), "Number of requests in traces do not match waf.requests metric total"
 
     def _find_series(self, request_type, namespace, metric):
         series = []
@@ -222,14 +240,21 @@ def _validate_headers(headers, request_type):
     # a set means "any of"
     expected_headers = {
         "Content-Type": {"application/json", "application/json; charset=utf-8"},
-        "DD-Telemetry-API-Version": "v1",
         "DD-Telemetry-Request-Type": request_type,
         "DD-Client-Library-Language": expected_language,
         "DD-Client-Library-Version": "",
     }
 
-    # APM Python migrates Telemetry to V2
-    expected_headers["DD-Telemetry-API-Version"] = "v2" if expected_language == "python" else "v1"
+    if context.library == "python":
+        # APM Python migrates Telemetry to V2
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    elif context.library > "nodejs@4.20.0":
+        # APM Node.js migrates Telemetry to V2
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    elif context.library >= "java@1.23.0":
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
+    else:
+        expected_headers["DD-Telemetry-API-Version"] = "v1"
 
     expected_headers = {k.lower(): v for k, v in expected_headers.items()}
 

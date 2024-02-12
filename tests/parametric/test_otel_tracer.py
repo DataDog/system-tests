@@ -17,8 +17,6 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_simple_trace(self, test_agent, test_library):
         """
             Perform two traces
@@ -37,29 +35,34 @@ class Test_Otel_Tracer:
                 parent.end_span()
 
         traces = test_agent.wait_for_num_traces(2)
-        trace_one = find_trace_by_root(traces, OtelSpan(name="root_one"))
+        trace_one = find_trace_by_root(traces, OtelSpan(resource="root_one"))
         assert len(trace_one) == 2
 
-        root_span = find_span(trace_one, OtelSpan(name="root_one"))
-        assert root_span["name"] == "root_one"
+        root_span = find_span(trace_one, OtelSpan(resource="root_one"))
+        assert root_span["resource"] == "root_one"
         assert root_span["meta"]["parent_k1"] == "parent_v1"
 
-        child_span = find_span(trace_one, OtelSpan(name="child"))
-        assert child_span["name"] == "child"
+        child_span = find_span(trace_one, OtelSpan(resource="child"))
+        assert child_span["resource"] == "child"
 
-        trace_two = find_trace_by_root(traces, OtelSpan(name="root_two"))
+        trace_two = find_trace_by_root(traces, OtelSpan(resource="root_two"))
         assert len(trace_two) == 2
 
-        root_span = find_span(trace_two, OtelSpan(name="root_two"))
-        assert root_span["name"] == "root_two"
+        root_span = find_span(trace_two, OtelSpan(resource="root_two"))
+        assert root_span["resource"] == "root_two"
 
-        child_span = find_span(trace_one, OtelSpan(name="child"))
-        assert child_span["name"] == "child"
+        child_span = find_span(trace_one, OtelSpan(resource="child"))
+        assert child_span["resource"] == "child"
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    def test_force_flush_otel(self, test_agent, test_library):
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(
+        context.library == "ruby", reason="Ruby is instrumenting telemetry calls, creating 2 spans instead of 1"
+    )
+    def test_otel_force_flush(self, test_agent, test_library):
         """
             Verify that force flush flushed the spans
         """
@@ -71,5 +74,5 @@ class Test_Otel_Tracer:
             assert flushed, "ForceFlush error"
             # check if trace is flushed
             traces = test_agent.wait_for_num_traces(1)
-            span = find_span_in_traces(traces, OtelSpan(name="test_span"))
-            assert span.get("name") == "test_span"
+            span = find_span_in_traces(traces, OtelSpan(resource="test_span"))
+            assert span.get("name") == "internal"

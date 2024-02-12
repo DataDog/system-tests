@@ -56,12 +56,7 @@
             <artifactId>opentracing-util</artifactId>
             <version>LATEST</version>
         </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.4.3</version>
-        </dependency>
-        <dependency>
+         <dependency>
             <groupId>com.datastax.oss</groupId>
             <artifactId>java-driver-core</artifactId>
             <version>4.13.0</version>
@@ -141,6 +136,27 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.4</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.0.33</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>12.2.0.jre8</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sqs</artifactId>
+            <version>2.17.51</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -208,6 +224,10 @@
         </profile>
         <profile>
             <id>openliberty</id>
+            <properties>
+                <!-- Defaults to latest OpenLiberty version, which might break during releases. -->
+                <liberty.runtime.version>23.0.0.12</liberty.runtime.version>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
@@ -219,7 +239,7 @@
                     <plugin>
                         <groupId>io.openliberty.tools</groupId>
                         <artifactId>liberty-maven-plugin</artifactId>
-                        <version>3.5.1</version>
+                        <version>3.10</version>
                         <configuration>
                             <appsDirectory>apps</appsDirectory>
                             <installAppPackages>spring-boot-project</installAppPackages>

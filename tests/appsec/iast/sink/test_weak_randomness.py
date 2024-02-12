@@ -2,33 +2,21 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, released, missing_feature
-from .._test_iast_fixtures import SinkFixture
+from utils import features
+from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
-@coverage.basic
-@released(dotnet="?", golang="?", java="1.15.0", php_appsec="?", python="?", ruby="?", nodejs="?")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-class TestWeakRandomness:
+@features.iast_sink_weakrandomness
+class TestWeakRandomness(BaseSinkTestWithoutTelemetry):
     """Test weak randomness detection."""
 
-    sink_fixture = SinkFixture(
-        vulnerability_type="WEAK_RANDOMNESS",
-        http_method="GET",
-        insecure_endpoint="/iast/weak_randomness/test_insecure",
-        secure_endpoint="/iast/weak_randomness/test_secure",
-        data=None,
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples"},
-    )
-
-    def setup_insecure(self):
-        self.sink_fixture.setup_insecure()
-
-    def test_insecure(self):
-        self.sink_fixture.test_insecure()
-
-    def setup_secure(self):
-        self.sink_fixture.setup_secure()
-
-    def test_secure(self):
-        self.sink_fixture.test_secure()
+    vulnerability_type = "WEAK_RANDOMNESS"
+    http_method = "GET"
+    insecure_endpoint = "/iast/weak_randomness/test_insecure"
+    secure_endpoint = "/iast/weak_randomness/test_secure"
+    data = None
+    location_map = {
+        "java": "com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples",
+        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+    }

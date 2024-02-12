@@ -6,16 +6,24 @@ const tracer = require('dd-trace').init({ debug: true });
 
 const app = require('express')();
 const axios = require('axios');
-const fs = require('fs');
 const passport = require('passport')
 const { Kafka } = require("kafkajs")
+const { spawnSync } = require('child_process');
+
+const iast = require('./iast')
+
+iast.initData().catch(() => {})
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
 
+iast.initMiddlewares(app)
+
 require('./auth')(app, passport, tracer)
+require('./graphql')(app)
+iast.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
@@ -166,13 +174,13 @@ app.get("/dsm", (req: Request, res: Response) => {
     })
   }
   doKafkaOperations()
-      .then(() => {
-        res.send('ok');
-      })
-      .catch((error: Error) => {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      });
+    .then(() => {
+      res.send('ok');
+    })
+    .catch((error: Error) => {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+    });
 });
 
 app.get('/load_dependency', (req: Request, res: Response) => {
@@ -188,8 +196,39 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
     res.set(k, v && v.toString());
   }
 
-  res.status(parseInt(req.params.status) || 200).send('Value tagged');
+  res.status(parseInt(req.params.status) || 200)
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body });
+  } else {
+    res.send('Value tagged');
+  }
 });
+
+app.post('/shell_execution', (req: Request, res: Response) => {
+  const options = { shell: !!req?.body?.options?.shell }
+  const reqArgs = req?.body?.args
+
+  let args
+  if (typeof reqArgs === 'string') {
+    args = reqArgs.split(' ')
+  } else {
+    args = reqArgs
+  }
+
+  const response = spawnSync(req?.body?.command, args, options)
+
+  res.send(response)
+})
+
+app.get('/createextraservice', (req: Request, res: Response) => {
+  const serviceName = req.query['serviceName']
+
+  const span = tracer.scope().active()
+  span.setTag('service.name', serviceName)
+
+  res.send('OK')
+})
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});

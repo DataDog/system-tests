@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   get  '/waf/*other' => 'system_test#waf'
   post '/waf/*other' => 'system_test#waf'
 
+  get '/kafka/produce' => 'system_test#kafka_produce'
+  get '/kafka/consume' => 'system_test#kafka_consume'
+
   get '/params/:value' => 'system_test#handle_path_params'
   get '/spans' => 'system_test#generate_spans'
   get '/status' => 'system_test#status'
@@ -26,10 +29,10 @@ Rails.application.routes.draw do
   get 'custom_event' => 'system_test#custom_event'
 
   %i(get post).each do |request_method|
-    send(request_method, '/tag_value/:key/:status_code' => 'system_test#tag_value')
+    send(request_method, '/tag_value/:tag_value/:status_code' => 'system_test#tag_value')
   end
 
-  match '/tag_value/:key/:status_code' => 'system_test#tag_value', via: :options
+  match '/tag_value/:tag_value/:status_code' => 'system_test#tag_value', via: :options
 
   get '/users' => 'system_test#users'
 

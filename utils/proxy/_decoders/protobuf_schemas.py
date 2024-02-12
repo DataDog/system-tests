@@ -8,11 +8,11 @@ from google.protobuf.message_factory import GetMessages
 from pathlib import Path
 
 
-def _get_schema(descriptor_name, name):
-    with open(Path(__file__).parent / descriptor_name, "rb") as f:
-        fds = FileDescriptorSet.FromString(f.read())
-    messages = GetMessages([file for file in fds.file])
-    return messages[name]
+with open(Path(__file__).parent / "agent.descriptor", "rb") as f:
+    _fds = FileDescriptorSet.FromString(f.read())
+_messages = GetMessages([file for file in _fds.file])
 
+print(f"Message types present in protobuf descriptors: {_messages.keys()}")
 
-TracePayload = _get_schema("trace_payload.descriptor", "pb.AgentPayload")
+TracePayload = _messages["datadog.trace.AgentPayload"]
+MetricPayload = _messages["datadog.agentpayload.MetricPayload"]

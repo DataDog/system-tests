@@ -1,0 +1,269 @@
+ami:
+
+- name: amazon-linux-x86
+  ami_id: ami-0dfcb1ef8550277af
+  user: ec2-user
+  os_type: linux
+  os_distro: rpm
+
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
+  
+prepare-repos:
+  install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
+
+agent:
+
+  - env: prod
+    install:
+      - os_type: linux
+        os_distro: rpm
+        local-script: tests/onboarding/autoinjection/ansible/local_inject_dd_api_key.sh
+        copy_files:
+            - name: copy-ansible-inventory
+              local_path: tests/onboarding/autoinjection/ansible/hosts
+
+            - name: copy-ansible-playbook
+              local_path: tests/onboarding/autoinjection/ansible/datadog_playbook.yml
+
+        command: |
+          sudo amazon-linux-extras install ansible2 -y
+          ansible --version
+          ansible-galaxy install datadog.datadog
+          sudo cp hosts /etc/ansible/hosts
+          ansible-playbook datadog_playbook.yml
+autoinjection:
+  - java: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
+            dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          command: |          
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-java
+            dd-host-install
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
+            dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
+            dd-host-install
+
+  - nodejs: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
+            dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-js
+            dd-host-install
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
+            dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
+            dd-host-install
+  - dotnet: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64  datadog-apm-library-dotnet
+            dd-host-install
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-dotnet
+            dd-host-install
+  - python:
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-python
+            dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-python
+            dd-host-install
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-python
+            dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-python
+            dd-host-install
+language-variants:
+  - java: 
+    - name: OpenJDK11
+      version: 11
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: sudo apt-get -y install openjdk-11-jdk-headless
+
+        - os_type: linux
+          os_distro: rpm
+          command: sudo amazon-linux-extras install java-openjdk11
+
+  - nodejs:
+    - name: node16
+      version: 16
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - && sudo apt-get install -y nodejs
+        - os_type: linux
+          os_distro: rpm
+          command: curl -sL https://rpm.nodesource.com/setup_16.x | sudo bash - && sudo yum install -y nodejs       
+
+  - dotnet:
+    - name: dotnet
+      version: 6
+      install: 
+        - os_type: linux
+          os_distro: rpm
+          os_branch: amazon-netcore6
+          command: dotnet --info  
+
+  - python: 
+    - name: Python3
+      version: 3
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: sudo apt-get -y install python3 python3-pip
+
+        - os_type: linux
+          os_distro: rpm
+          command: sudo yum -y install python3
+weblogs:
+  - java: 
+    - name: test-app-java
+      supported-language-versions:
+        - 11
+      local-command: tar cvf test-app-java.tar -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-service
+              local_path: tests/onboarding/weblog/java/test-app-java/test-app-java.service
+
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_run.sh
+
+            - name: copy-java-app
+              local_path: test-app-java.tar
+              
+          command: sh test-app-java_run.sh
+
+    - name: wildfly
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-service
+              local_path: tests/onboarding/weblog/java/wildfly/wildfly.service
+
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/java/wildfly/wildfly_run.sh
+
+          command: sh wildfly_run.sh
+  - nodejs: 
+    - name: test-app-nodejs
+      supported-language-versions:
+        - 16
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-service
+              local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/test-app-nodejs.service
+
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/nodejs/test-app-nodejs/test-app-nodejs_run.sh
+
+            - name: copy-binary
+              local_path: lib-injection/build/docker/nodejs/sample-app/index.js
+
+          command: sh test-app-nodejs_run.sh
+
+  - dotnet: 
+    - name: test-app-dotnet
+      supported-language-versions:
+        - 6
+      local-command: tar cvf test-app-dotnet.tar -C lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app .
+      install: 
+        - os_type: linux
+          os_distro: rpm
+          os_branch: amazon-netcore6
+          copy_files:
+            - name: copy-dotnet-app
+              local_path: test-app-dotnet.tar
+
+            - name: copy-service
+              local_path: tests/onboarding/weblog/dotnet/test-app-dotnet/test-app-dotnet.service
+
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/dotnet/test-app-dotnet/test-app-dotnet_run.sh
+
+          command: sh test-app-dotnet_run.sh
+  - python: 
+    - name: test-app-python
+      supported-language-versions:
+        - 3
+      local-script: tar cvf test-app-python.tar -C lib-injection/build/docker/python/dd-lib-python-init-test-django .
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-service
+              local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python.service
+
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python_run.sh
+
+            - name: copy-python-app
+              local_path: test-app-python.tar
+
+          command: sh test-app-python_run.sh
+
+installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml

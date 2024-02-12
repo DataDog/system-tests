@@ -10,10 +10,16 @@ from ._open_telemetry import OpenTelemetryInterfaceValidator
 
 # singletons
 agent = AgentInterfaceValidator()
-library = LibraryInterfaceValidator()
+library = LibraryInterfaceValidator("library")
 library_stdout = _LibraryStdout()
 agent_stdout = _AgentStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
 backend = _BackendInterfaceValidator(library_interface=library)
 open_telemetry = OpenTelemetryInterfaceValidator()
 postgres = _PostgresStdout()
+
+python_buddy = LibraryInterfaceValidator("python_buddy")
+nodejs_buddy = LibraryInterfaceValidator("nodejs_buddy")
+java_buddy = LibraryInterfaceValidator("java_buddy")
+ruby_buddy = LibraryInterfaceValidator("ruby_buddy")
+golang_buddy = LibraryInterfaceValidator("golang_buddy")

@@ -59,7 +59,7 @@ runs:
         if: ${{ always() }}
         run: |
           cd system-tests
-          ./lib-injection/execFunction.sh print-debug-info
+          ./lib-injection/execFunction.sh $LIBRARY_INJECTION_ADMISSION_CONTROLLER print-debug-info
 
       - name: Compress lib injection logs
         shell: bash

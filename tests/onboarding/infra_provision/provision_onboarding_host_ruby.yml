@@ -1,0 +1,96 @@
+ami: 
+  - name: ubuntu-x86-22.04
+    ami_id: ami-007855ac798b5175e
+    instance_type: t2.medium
+    user: ubuntu
+    os_type: linux
+    os_distro: deb
+
+  - name: amazon-linux-2023-x86
+    ami_id: ami-06b09bfacae1453cb
+    instance_type: t2.medium
+    user: ec2-user
+    os_type: linux
+    os_distro: rpm
+
+  #ARM BASED EC2 INSTANCES
+  - name: ubuntu-arm64-22.04
+    ami_id: ami-016485166ec7fa705
+    instance_type: t4g.small
+    user: ubuntu
+    os_type: linux
+    os_distro: deb
+    os_arch: arm
+
+  - name: amazon-linux-2023-arm64
+    ami_id: ami-04c97e62cb19d53f1
+    instance_type: t4g.small
+    user: ec2-user
+    os_type: linux
+    os_distro: rpm
+    os_arch: arm
+
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_vm_config.yml
+
+init-dd-config-distro: !include tests/onboarding/infra_provision/includes/provision_init_dd_config_distro.yml
+
+prepare-repos:
+  install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
+
+agent:
+  install: !include tests/onboarding/infra_provision/includes/provision_agent.yml
+
+autoinjection_install_script:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_script.yml
+
+autoinjection_install_manual:
+  install: !include tests/onboarding/infra_provision/includes/provision_lib_injection_host_manual.yml
+  uninstall:
+    - os_type: linux
+      command: dd-host-install --uninstall
+
+installation_checks:
+  install: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml   
+  
+language-variants:
+
+  - name: Ruby_3_0_2
+    version: 3.0.2
+    install: 
+      - os_type: linux
+        os_distro: deb
+        command: |
+          sudo apt-get -y update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev nodejs yarn
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install rbenv ruby-build ruby-dev
+          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
+          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
+      - os_type: linux
+        os_distro: rpm
+        command: |
+          sudo yum install -y gcc
+          sudo amazon-linux-extras install -y ruby3.0
+          sudo yum install -y ruby-devel
+          sudo yum groupinstall -y "Development Tools"
+          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
+          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
+
+weblogs:
+  - name: test-app-ruby
+    supported-language-versions:
+      - 3.0.2   
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-ruby-app
+            local_path: lib-injection/build/docker/ruby/lib_injection_rails_app  
+          - name: copy-service
+            local_path: tests/onboarding/weblog/ruby/test-app-ruby/test-app.service
+
+          - name: copy-run-weblog-script-ruby
+            local_path: tests/onboarding/weblog/ruby/test-app-ruby/test-app-ruby_run.sh
+        command: sh test-app-ruby_run.sh
+    uninstall: 
+      - os_type: linux
+        command: sudo systemctl stop test-app.service

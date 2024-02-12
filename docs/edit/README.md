@@ -1,14 +1,13 @@
-## Dev env
+## Run the test loccally
 
-First of all, it'll be more confortable to set-up your dev env. The repo contains basic conf for VSCode, feel free to add conf for other IDE.
+Please have a look on the [weblog](../execute/)
 
 ```bash
-python3.9 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+./build.sh python  # or any another library. This step can be ran only once, as long as you do not need a modification on the lib/agent
+./run.sh
 ```
 
-That's it. If you're using VScode with python extension, your terminal will automatically switch to the virtual env, nad you will be avble to use lint/format tools.
+That's it. If you're using VScode with Python extension, your terminal will automatically switch to the virtual env, and you will be able to use lint/format tools.
 
 ## Propose a modification
 
@@ -43,13 +42,12 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-And it's also a good idea to declare [a version](./declare-versions.md) and a [coverage](./coverage.md) for your feature, and sometimes [skip a test](./features.md)
+Sometimes [skip a test](./features.md) is needed
 
 ```python
-from utils import weblog, interfaces, context, released, bug
+from utils import weblog, interfaces, context, bug
 
 
-@released(ruby="1.2.3")
 class Test_Feature():
 
     def setup_feature_detail(self):

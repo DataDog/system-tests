@@ -128,12 +128,16 @@ jobs:
           weblog: spring-boot-payara
         - library: java
           weblog: akka-http
+        - library: java
+          weblog: play
         - library: nodejs
           weblog: express4
         - library: nodejs
           weblog: uds-express4
         - library: nodejs
           weblog: express4-typescript
+        - library: nodejs
+          weblog: nextjs
         - library: php
           weblog: apache-mod-7.0
         - library: php
@@ -190,6 +194,10 @@ jobs:
           weblog: uwsgi-poc
         - library: python
           weblog: uds-flask
+        - library: python
+          weblog: python3.12
+        - library: python
+          weblog: fastapi
         - library: ruby
           weblog: rack
         - library: ruby
@@ -223,6 +231,7 @@ jobs:
         version:
         - prod
         - dev
+            
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
@@ -239,23 +248,33 @@ jobs:
     - name: Build python's weblog base images
       if: matrix.variant.library == 'python' && contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
       run: |
-        docker build --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
-        docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v0 .
-        docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v1 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v2 .
+        docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v1 .
+    - name: Build buddies weblog images
+      if: contains(github.event.pull_request.labels.*.name, 'build-buddies-images')
+      run: ./utils/build/build_tracer_buddies.sh
     - name: Build proxy image
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
       run: ./build.sh -i proxy
-    - name: Load WAF rules
-      if: ${{ matrix.version == 'dev' }}
-      run: ./utils/scripts/load-binary.sh waf_rule_set
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
+    #### skipping this, waiting for a proper solution
+    # - name: Load WAF rules
+    #   if: ${{ matrix.version == 'dev' }}
+    #   run: ./utils/scripts/load-binary.sh waf_rule_set
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load library PHP appsec binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
+    
+      # quick and dirty fix, because we can't test for now the PHP released tracer
+    - name: Load PHP library binary (skipping release tests, use snapshot instead)
+      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -272,6 +291,11 @@ jobs:
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run CROSSED_TRACING_LIBRARIES scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_integration == 'true'
+      run: ./run.sh CROSSED_TRACING_LIBRARIES
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING
@@ -283,7 +307,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_integration == 'true'
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -294,14 +318,14 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
+    - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
+      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
+    - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
+      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
@@ -335,77 +359,94 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_RULES scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_CUSTOM_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RATE_LIMITER scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_RATE_LIMITER
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_REQUEST_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_REQUEST_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_WAF_TELEMETRY scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_API_SECURITY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_API_SECURITY_RC scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      run: ./run.sh APPSEC_API_SECURITY_RC
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
+      run: |
+        ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING
+        cat ./logs_appsec_api_security_with_sampling/tests.log 2>/dev/null | grep "API SECURITY" || true
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_appsec == 'true'
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -441,14 +482,24 @@ jobs:
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run DEBUGGER_METHOD_PROBES_STATUS scenario
+    - name: Run DEBUGGER_PROBES_STATUS scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
-      run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
+      run: ./run.sh DEBUGGER_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run DEBUGGER_LINE_PROBES_STATUS scenario
+    - name: Run DEBUGGER_METHOD_PROBES_SNAPSHOT scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
-      run: ./run.sh DEBUGGER_LINE_PROBES_STATUS
+      run: ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_LINE_PROBES_SNAPSHOT scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
+      run: ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_MIX_LOG_PROBE scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_debugger == 'true'
+      run: ./run.sh DEBUGGER_MIX_LOG_PROBE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run all scenarios in replay mode
@@ -459,8 +510,8 @@ jobs:
         # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
         ./run.sh INTEGRATIONS --replay
         # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
-        ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT --replay
-        ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG --replay
+        ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS --replay
+        ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD --replay
@@ -481,10 +532,16 @@ jobs:
         ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
         ./run.sh APPSEC_WAF_TELEMETRY --replay
         ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
-        # ./run.sh SAMPLING --replay  # currently not working on replay mode
+        ./run.sh APPSEC_API_SECURITY --replay
+        ./run.sh APPSEC_API_SECURITY_RC --replay
+        ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY --replay
+        ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING --replay
+        ./run.sh SAMPLING --replay
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
-        ./run.sh DEBUGGER_METHOD_PROBES_STATUS --replay
-        ./run.sh DEBUGGER_LINE_PROBES_STATUS --replay
+        ./run.sh DEBUGGER_PROBES_STATUS --replay
+        ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay
+        ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay
+        ./run.sh DEBUGGER_MIX_LOG_PROBE --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -508,7 +565,7 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
 
-  open-telemetry:
+  open-telemetry-manual:
     runs-on: ubuntu-latest
     if: needs.scenarios.outputs.run_open_telemetry == 'true'
     needs:
@@ -563,6 +620,7 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+
     - name: Compress logs
       if: always() && steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
@@ -570,7 +628,63 @@ jobs:
       if: always() && steps.build.outcome == 'success'
       uses: actions/upload-artifact@v3
       with:
-        name: logs_java-otel_spring-boot-native_prod
+        name: logs_java-otel_prod
+        path: artifact.tar.gz
+
+  open-telemetry-automatic:
+    runs-on: ubuntu-latest
+    if: needs.scenarios.outputs.run_open_telemetry == 'true' || needs.scenarios.outputs.run_integration == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    strategy:
+      matrix:
+        variant:
+        - library: java_otel
+          weblog: spring-boot-otel
+        - library: python_otel
+          weblog: flask-poc-otel
+        - library: nodejs_otel
+          weblog: express4-otel
+        version:
+        - prod        
+      fail-fast: false
+    env:
+      TEST_LIBRARY: ${{ matrix.variant.library }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    - name: Pull mitmproxy image
+      run: docker pull datadog/system-tests:proxy-v1 || true
+    - name: Build proxy image
+      if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+      run: ./build.sh -i proxy
+    - name: Build agent
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} -i agent
+
+    - name: Build weblog opentelemetry autoinstrumentation
+      if: always() 
+      id: build_otel
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} --weblog-variant ${{ matrix.variant.weblog }}
+    - name: Run OTEL_INTEGRATIONS scenario
+      if: always() && steps.build_otel.outcome == 'success'
+      run: ./run.sh OTEL_INTEGRATIONS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    - name: Compress logs
+      if: always() && steps.build_otel.outcome == 'success'
+      run: tar -czvf artifact.tar.gz $(ls | grep logs)
+    - name: Upload artifact
+      if: always() && steps.build_otel.outcome == 'success'
+      uses: actions/upload-artifact@v3
+      with:
+        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.version }}
         path: artifact.tar.gz
 
   update-CI-visibility:

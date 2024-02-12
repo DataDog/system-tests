@@ -18,6 +18,9 @@ import google.protobuf.struct_pb2 as pb
 from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
+# monkey patching header validation in requests module, as we want to be able to send anything to weblog
+requests.utils._validate_header_part = lambda *args, **kwargs: None  # pylint: disable=protected-access
+
 
 class ResponseEncoder(json.JSONEncoder):
     def default(self, o):
@@ -77,6 +80,8 @@ class _Weblog:
             m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
             if m is not None:
                 self.domain = m.group(1)
+            else:
+                self.domain = "localhost"
         else:
             self.domain = "localhost"
 
@@ -116,6 +121,7 @@ class _Weblog:
         params=None,
         data=None,
         headers=None,
+        cookies=None,
         stream=None,
         domain=None,
         port=None,
@@ -131,7 +137,7 @@ class _Weblog:
             return self.get_request_from_logs()
 
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
-        headers = headers or {}
+        headers = {**headers} if headers else {}  # get our own copy of headers, as we'll modify them
 
         user_agent_key = "User-Agent"
         for k in headers:
@@ -159,7 +165,7 @@ class _Weblog:
 
         timeout = kwargs.pop("timeout", 5)
         try:
-            req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
+            req = requests.Request(method, url, params=params, data=data, headers=headers, cookies=cookies, **kwargs)
             r = req.prepare()
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")

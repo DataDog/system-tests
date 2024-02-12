@@ -2,32 +2,16 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from tests.constants import PYTHON_RELEASE_PUBLIC_BETA, PYTHON_RELEASE_GA_1_1
-from utils import (
-    weblog,
-    bug,
-    context,
-    coverage,
-    interfaces,
-    irrelevant,
-    released,
-    rfc,
-    missing_feature,
-    scenarios,
-)
+from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
+from utils.tools import nested_lookup
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
-@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(dotnet="1.29.0", java="0.92.0", python="1.1.0rc2.dev")
-@released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
-@bug(library="python@1.1.0", reason="a PR was not included in the release")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-@coverage.good
+@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@features.security_events_metadata
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
 
@@ -67,13 +51,7 @@ class Test_RetainTraces:
         interfaces.library.validate_spans(self.r, validate_appsec_event_span_tags)
 
 
-@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(dotnet="1.29.0", java="0.104.0", nodejs="2.0.0")
-@released(php_appsec="0.1.0", python="0.58.5", ruby="0.54.2")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@coverage.good
+@features.security_events_metadata
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
 
@@ -164,12 +142,8 @@ class Test_AppSecEventSpanTags:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@released(golang="1.38.0", dotnet="2.7.0", java="0.113.0", nodejs="2.6.0")
-@released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@coverage.good
+@features.sensitive_data_obfuscation
+@features.security_events_metadata
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
 
@@ -194,13 +168,13 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags, success_by_default=True)
 
     def setup_appsec_obfuscator_cookies(self):
         cookies = {"Bearer": self.SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY}
@@ -218,14 +192,15 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            if self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY not in span["meta"]["_dd.appsec.json"]:
-                raise Exception("Could not find the non-sensitive cookie data")
-            return True
+            assert not nested_lookup(
+                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
+            assert nested_lookup(
+                self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY, appsec_data, exact_match=True
+            ), "Could not find the non-sensitive cookie data"
 
         interfaces.library.assert_waf_attack(self.r_cookies, address="server.request.cookies")
-        interfaces.library.validate_appsec(self.r_cookies, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_cookies, validate_appsec_span_tags, success_by_default=True)
 
     def setup_appsec_obfuscator_value(self):
         sensitive_raw_payload = r"""{
@@ -268,13 +243,13 @@ class Test_AppSecObfuscator:
         # and matches an XSS attack. It contains an access token secret we shouldn't have in the event.
 
         def validate_appsec_span_tags(span, appsec_data):
-            if self.VALUE_WITH_SECRET in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.VALUE_WITH_SECRET, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_value, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_value, validate_appsec_span_tags, success_by_default=True)
 
     def setup_appsec_obfuscator_key_with_custom_rules(self):
         self.r_custom = weblog.get(
@@ -291,13 +266,13 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            return True
+            assert not nested_lookup(
+                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.cookies")
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_custom, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_custom, validate_appsec_span_tags, success_by_default=True)
 
     def setup_appsec_obfuscator_cookies_with_custom_rules(self):
         cookies = {
@@ -317,24 +292,19 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM in span["meta"]["_dd.appsec.json"]:
-                raise Exception("The security events contain the secret value that should be obfuscated")
-            if self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM not in span["meta"]["_dd.appsec.json"]:
-                raise Exception("Could not find the non-sensitive cookie data")
-            return True
+            assert not nested_lookup(
+                self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM, appsec_data, look_in_keys=True
+            ), "Sensitive cookie is not obfuscated"
+            assert nested_lookup(
+                self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM, appsec_data, exact_match=True
+            ), "Non-sensitive cookie is not reported"
 
         interfaces.library.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
-        interfaces.library.validate_appsec(self.r_cookies_custom, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_cookies_custom, validate_appsec_span_tags, success_by_default=True)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@released(dotnet="2.5.1", php_appsec="0.2.2", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.0.0.beta1")
-@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
-@released(nodejs="2.0.0", java="0.102.0")
-@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-@coverage.good
+@features.security_events_metadata
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
 
@@ -354,6 +324,9 @@ class Test_CollectRespondHeaders:
         interfaces.library.validate_spans(self.r, validate_response_headers)
 
 
-@coverage.not_implemented
+@features.security_events_metadata
 class Test_DistributedTraceInfo:
     """Distributed traces info (Services, URL, trace id)"""
+
+    def test_main(self):
+        assert False, "Test not implemented"

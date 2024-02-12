@@ -2,21 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, released, scenarios, coverage, rfc, bug
+from utils import weblog, interfaces, context, missing_feature, scenarios, rfc, bug, features
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
-@coverage.good
-@released(golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="0.89.0", python="?", ruby="1.13.0")
-@missing_feature(
-    weblog_variant="rails32",
-    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
-)
-@missing_feature(
-    context.library == "ruby"
-    and context.weblog_variant in ("rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
-    reason="We do not support authentication framework for sinatra or rack",
-)
+@features.user_monitoring
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
@@ -263,18 +253,9 @@ class Test_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
-@coverage.good
 @scenarios.appsec_auto_events_extended
-@released(golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="0.89.0", python="?", ruby="1.14.0")
-@missing_feature(
-    context.library == "ruby" and context.weblog_variant in ("rails32", "rails40", "rails41"),
-    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String",
-)
-@missing_feature(
-    context.library == "ruby"
-    and context.weblog_variant in ("rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
-    reason="We do not support authentication framework for sinatra or rack",
-)
+@features.user_monitoring
+@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 

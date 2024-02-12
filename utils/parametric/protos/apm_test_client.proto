@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 option java_package = "com.datadoghq.client";
+//option go_package = "./";
 option csharp_namespace = "ApmTestClient";
 
 // Interface of APM clients to be used for shared testing.
@@ -10,6 +11,9 @@ service APMClient {
   rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
   rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
   rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
+  rpc SpanAddLink(SpanAddLinkArgs) returns (SpanAddLinkReturn) {}
+  rpc HTTPClientRequest(HTTPRequestArgs) returns (HTTPRequestReturn) {}
+  rpc HTTPServerRequest(HTTPRequestArgs) returns (HTTPRequestReturn) {}
   rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
@@ -35,10 +39,20 @@ message StartSpanArgs {
   optional string type = 5;
   optional string origin = 6;
   optional DistributedHTTPHeaders http_headers = 7;
+  repeated HeaderTuple span_tags = 8;
+  repeated SpanLink span_links = 9;
 }
 
 message DistributedHTTPHeaders {
-  repeated HeaderTuple http_headers = 9;
+  repeated HeaderTuple http_headers = 1;
+}
+
+message SpanLink {
+  oneof from {
+    uint64 parent_id = 1;
+    DistributedHTTPHeaders http_headers = 2;
+  }
+  Attributes attributes = 3;
 }
 
 message HeaderTuple {
@@ -89,6 +103,25 @@ message SpanSetErrorArgs {
 }
 message SpanSetErrorReturn {}
 
+
+message SpanAddLinkArgs {
+  uint64 span_id = 1;
+  repeated SpanLink links = 2;
+}
+
+message SpanAddLinkReturn {}
+
+
+message HTTPRequestArgs {
+  string url = 1;
+  string method = 2;
+  DistributedHTTPHeaders headers = 3;
+  bytes body = 4;
+}
+message HTTPRequestReturn {
+  string status_code = 1;
+}
+
 message FlushSpansArgs {}
 message FlushSpansReturn {}
 
@@ -106,6 +139,7 @@ message OtelStartSpanArgs {
   optional string resource = 5;
   optional string type = 6;
   optional int64 timestamp = 7;
+  repeated SpanLink span_links = 11;
   optional DistributedHTTPHeaders http_headers = 10;
   Attributes attributes = 8;
 }
