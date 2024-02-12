@@ -44,7 +44,7 @@ tests/:
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: v2.39.0
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection: v2.47.0
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
         test_sql_injection.py:
@@ -83,6 +83,10 @@ tests/:
         test_header_value.py:
           TestHeaderValue: 
              '*': v2.39.0
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -92,7 +96,7 @@ tests/:
         test_path.py:
           TestPath: v2.39.0
         test_uri.py:
-          TestURI: irrelevant     
+          TestURI: irrelevant
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -237,8 +241,10 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: bug (Both env vars are not independent; injected tags are duplicated in all spans)
