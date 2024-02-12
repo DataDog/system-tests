@@ -28,6 +28,6 @@ class _AutoInjectInstallBaseTest:
 
 
 # @features.host_auto_instrumentation
-@scenarios.vm_scenario
+@scenarios.host_auto_injection
 class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
     pass

@@ -1615,8 +1615,8 @@ class scenarios:
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
 
-    vm_scenario = _VirtualMachineScenario(
-        "VM_SCENARIO",
+    host_auto_injection = _VirtualMachineScenario(
+        "HOST_AUTO_INJECTION",
         vm_provision="host-auto-inject",
         doc="Onboarding Host Single Step Instrumentation scenario",
         include_ubuntu_22_amd64=True,
