@@ -226,6 +226,10 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
           rails70: missing_feature (Endpoint not implemented)
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          rails70: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
@@ -251,6 +255,9 @@ tests/:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmSQS:

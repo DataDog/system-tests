@@ -4,7 +4,7 @@ import time
 import boto3
 
 
-def kinesis_produce(stream, message, partition_key, timeout):
+def kinesis_produce(stream, message, partition_key, timeout=60):
     """
         The goal of this function is to trigger kinesis producer calls
     """
@@ -55,14 +55,18 @@ def kinesis_consume(stream, timeout=60):
         if not shard_iterator:
             try:
                 response = kinesis.describe_stream(StreamName=stream)
+                print("descriibe stream")
+                print(response)
                 shard_id = response["StreamDescription"]["Shards"][0]["ShardId"]
                 response = kinesis.get_shard_iterator(
                     StreamName=stream, ShardId=shard_id, ShardIteratorType="TRIM_HORIZON"
                 )
+                print("get shard iterator")
+                print(response)
                 shard_iterator = response["ShardIterator"]
                 logging.info(f"Found Kinesis Shard Iterator: {shard_iterator} for stream: {stream}")
             except Exception as e:
-                logging.info(f"Error during Python Kinesis get stream shard iterator: {str(e)}")
+                logging.warning(f"Error during Python Kinesis get stream shard iterator: {str(e)}")
 
         try:
             response = kinesis.get_records(ShardIterator=shard_iterator)
