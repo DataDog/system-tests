@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# shellcheck disable= C2015
+# shellcheck disable=C2015
 [  -z "$DD_DOCKER_LOGIN_PASS" ] && echo "Skipping docker loging. Consider set the variable DOCKER_LOGIN and DOCKER_LOGIN_PASS" || echo "$DD_DOCKER_LOGIN_PASS" | sudo docker login --username "$DD_DOCKER_LOGIN" --password-stdin 
 
 tar xvf test-app-java.tar
