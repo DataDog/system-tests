@@ -367,7 +367,7 @@ public class App {
 
     @RequestMapping("/sns/consume")
     ResponseEntity<String> snsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
-        SqsConnector sqs = new SqsConnector(queue);
+        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
