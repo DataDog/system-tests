@@ -86,7 +86,7 @@ public class SnsConnector {
     // For APM testing, produce message without starting a new thread
     public void produceMessageWithoutNewThread(String message, SqsConnector sqs) throws Exception {
         SnsClient snsClient = createSnsClient();
-        SqsClient sqsClient = SqsConnector.createSqsClient();
+        SqsClient sqsClient = sqs.createSqsClient();
         String topicArn = createSnsTopic(snsClient, topic, true);
 
         // Create queue and get queue ARN

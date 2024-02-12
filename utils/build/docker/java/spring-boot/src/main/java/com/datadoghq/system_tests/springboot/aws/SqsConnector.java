@@ -16,24 +16,25 @@ import java.util.List;
 import java.net.URI;
 
 public class SqsConnector {
-    public static String ENDPOINT = "http://elasticmq:9324";
+    public static String DEFAULT_ENDPOINT = "http://elasticmq:9324";
     public final String queue;
 
     public SqsConnector(String queue){
         this.queue = queue;
+        this.endpoint = DEFAULT_ENDPOINT;
     }
 
     public SqsConnector(String queue, String endpoint){
         this.queue = queue;
-        ENDPOINT = endpoint;
+        this.endpoint = endpoint;
     }
 
-    public static SqsClient createSqsClient() {
+    public SqsClient createSqsClient() {
         SqsClient sqsClient = SqsClient.builder()
             .region(Region.US_EAST_1)
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
             .applyMutation(builder -> {
-                builder.endpointOverride(URI.create(ENDPOINT));
+                builder.endpointOverride(URI.create(this.endpoint));
             })
             .build();
         return sqsClient;
@@ -91,7 +92,7 @@ public class SqsConnector {
 
     // For APM testing, produce message without starting a new thread
     public void produceMessageWithoutNewThread(String message) throws Exception {
-        SqsClient sqsClient = createSqsClient();
+        SqsClient sqsClient = this.createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, true);
         System.out.printf("[SQS] Publishing message: %s%n", message);
         sqsClient.sendMessage(SendMessageRequest.builder()
@@ -102,7 +103,7 @@ public class SqsConnector {
 
     // For APM testing, a consume message without starting a new thread
     public boolean consumeMessageWithoutNewThread(String service) throws Exception {
-        SqsClient sqsClient = createSqsClient();
+        SqsClient sqsClient = this.createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, false);
 
         ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
