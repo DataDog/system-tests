@@ -283,9 +283,27 @@ tests/:
             vertx3: v1.12.0
             vertx4: v1.12.0
         test_kafka_key.py:
-          TestKafkaKey: missing_feature
+          TestKafkaKey:
+            '*': v1.31.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature
+            vertx4: missing_feature
         test_kafka_value.py:
-          TestKafkaValue: missing_feature
+          TestKafkaValue:
+            '*': v1.31.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature
+            vertx4: missing_feature
         test_multipart.py:
           TestMultipart:
             '*': v1.22.0
