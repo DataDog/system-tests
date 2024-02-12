@@ -77,7 +77,6 @@ class VirtualMachineProvisioner:
         provision.weblog_installation = self._get_weblog_provision(
             env, library_name, weblog, os_type, os_distro, os_branch, os_cpu, weblog_raw_data
         )
-        logger.debug(f"Provision: {os.linesep}{provision}")
         return provision
 
     def _get_env(self, env, library_name, provsion_raw_data):
@@ -186,10 +185,6 @@ class Provision:
         self.weblog_installation = None
         self.tested_components_installation = None
 
-    def __str__(self):
-        installations_str = f"**********************{os.linesep}".join(str(x) for x in self.installations)
-        return f"env: {self.env} {os.linesep}installations:{os.linesep}{installations_str}{os.linesep}lang_variant_installation:{os.linesep}{self.lang_variant_installation}{os.linesep}weblog_installation:{os.linesep}{self.weblog_installation}"
-
 
 class Intallation:
     def __init__(self):
@@ -200,20 +195,12 @@ class Intallation:
         self.remote_command = None
         self.copy_files = []
 
-    def __str__(self):
-        copy_files_str = f"{os.linesep} ".join(str(x) for x in self.copy_files)
-
-        return f" id: {self.id}{os.linesep} cache:{self.cache}{os.linesep} local_command:{self.local_command}{os.linesep} local_script:{self.local_script}{os.linesep} remote_command:{os.linesep} {self.remote_command}{os.linesep} copy_files:{os.linesep} {copy_files_str}{os.linesep}"
-
 
 class CopyFile:
     def __init__(self, name, remote_path, local_path):
         self.remote_path = remote_path
         self.local_path = local_path
         self.name = name
-
-    def __str__(self):
-        return f"remote_path:{self.remote_path} local_path:{self.local_path}"
 
 
 provisioner = VirtualMachineProvisioner()

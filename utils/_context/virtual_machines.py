@@ -375,7 +375,6 @@ class TestedVirtualMachine:
 
 class AWSInfraConfig:
     def __init__(self) -> None:
-
         # Mandatory parameters
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
@@ -440,7 +439,7 @@ class _VirtualMachine:
         self.os_branch = os_branch
         self.os_cpu = os_cpu
         self._vm_provision = None
-        self.tested_components = []
+        self.tested_components = {}
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip

@@ -26,7 +26,6 @@ weblog:
 
           - name: copy-java-app
             local_path: dd-lib-java-init-test-app_$DD_VM_NAME.tar.gz
-            #local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
         remote-command: tar -xf dd-lib-java-init-test-app_$DD_VM_NAME.tar.gz && sh test-app-java_run.sh
     uninstall:

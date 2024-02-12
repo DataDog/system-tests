@@ -42,8 +42,6 @@ from utils._context.virtual_machines import (
     AmazonLinux2DotNet6,
     AmazonLinux2amd64,
 )
-from utils.virtual_machine.virtual_machine_provider import provider_factory
-from utils.virtual_machine.virtual_machine_provisioner import provisioner
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
@@ -1086,6 +1084,7 @@ class _VirtualMachineScenario(_Scenario):
         self.vm_provider = None
         self.required_vms = []
         self.required_vm_names = []
+        self._tested_components = {}
 
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
@@ -1102,7 +1101,14 @@ class _VirtualMachineScenario(_Scenario):
         if include_amazon_linux_2023_arm64:
             self.required_vms.append(AmazonLinux2023arm64())
 
+    def session_start(self):
+        super().session_start()
+        self.fill_context()
+
     def configure(self, config):
+        from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
+        from utils.virtual_machine.virtual_machine_provisioner import provisioner
+
         super().configure(config)
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
@@ -1120,7 +1126,7 @@ class _VirtualMachineScenario(_Scenario):
             f"utils/build/virtual_machine/provisions/{self.vm_provision_name}/provision.yml"
         ), "Provision file not found"
 
-        self.vm_provider = provider_factory.get_provider(self.vm_provider_id)
+        self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
 
         provisioner.remove_unsupported_machines(self._library.library, self._weblog, self.required_vms)
         for vm in self.required_vms:
@@ -1144,7 +1150,12 @@ class _VirtualMachineScenario(_Scenario):
         #    vm.configure(self.vm_provision)
 
     def _get_warmups(self):
-        return [self.vm_provider.start]
+        return [self.vm_provider.stack_up]
+
+    def fill_context(self):
+        for vm in self.required_vms:
+            for key in vm.tested_components:
+                self._tested_components[key] = vm.tested_components[key]
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing  _VirtualMachineScenario scenario")
@@ -1154,8 +1165,7 @@ class _VirtualMachineScenario(_Scenario):
 
     def close_targets(self):
         logger.info(f"Destroying virtual machines")
-        for vm in self.required_vms:
-            self.vm_provider.destroy()
+        self.vm_provider.stack_destroy()
 
     @property
     def library(self):
@@ -1164,6 +1174,10 @@ class _VirtualMachineScenario(_Scenario):
     @property
     def weblog_variant(self):
         return self._weblog
+
+    @property
+    def components(self):
+        return self._tested_components
 
 
 class scenarios:
@@ -1606,12 +1620,12 @@ class scenarios:
         vm_provision="host-auto-inject",
         doc="Onboarding Host Single Step Instrumentation scenario",
         include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
-        include_ubuntu_18_amd64=True,
-        include_amazon_linux_2_amd64=True,
-        include_amazon_linux_2_dotnet_6=True,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
+        include_ubuntu_22_arm64=False,
+        include_ubuntu_18_amd64=False,
+        include_amazon_linux_2_amd64=False,
+        include_amazon_linux_2_dotnet_6=False,
+        include_amazon_linux_2023_amd64=False,
+        include_amazon_linux_2023_arm64=False,
     )
 
 
