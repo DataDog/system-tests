@@ -183,11 +183,11 @@ class TestDynamicConfigTracingEnabled:
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
 
     @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": False},],
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", True)
-        if trace_enabled_env:
+        if trace_enabled_env is True:
             with test_library:
                 with test_library.start_span("allowed"):
                     pass
@@ -200,23 +200,26 @@ class TestDynamicConfigTracingEnabled:
         _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
         # if tracing is disabled via DD_TRACE_ENABLED, the RC should not re-enable it
         # nor should it send RemoteConfig apply state
-        if trace_enabled_env:
+        if trace_enabled_env is True:
             test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
             test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
         with test_library:
             with test_library.start_span("disabled"):
                 pass
-        test_agent.wait_for_num_traces(num=0, clear=True)
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1, clear=True)
 
         # overriding the RC with empty config should not reset tracing,
         # and should not emit a telemetry 'app-client-configuration-change'
         _set_rc(test_agent, _create_rc_config({}))
-        if trace_enabled_env:
+        if trace_enabled_env is True:
             test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
         with test_library:
             with test_library.start_span("test"):
                 pass
-        test_agent.wait_for_num_traces(num=0, clear=True)
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1, clear=True)
 
 
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
