@@ -20,6 +20,8 @@ from iast import (
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
+from integrations.messaging.aws.kinesis import kinesis_consume
+from integrations.messaging.aws.kinesis import kinesis_produce
 from integrations.messaging.aws.sqs import sqs_consume
 from integrations.messaging.aws.sqs import sqs_produce
 from integrations.messaging.kafka import kafka_consume
@@ -228,6 +230,28 @@ def consume_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
     output = sqs_consume(queue, timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/kinesis/produce")
+def produce_kinesis_message():
+    stream = flask_request.args.get("stream", "DistributedTracing")
+    message = b"Hello from Python Kinesis"
+    output = kinesis_produce(stream, message, "1")
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/kinesis/consume")
+def consume_kinesis_message():
+    stream = flask_request.args.get("stream", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = kinesis_consume(stream, timeout)
     if "error" in output:
         return output, 400
     else:
