@@ -755,7 +755,7 @@ class LocalstackContainer(TestedContainer):
             image_name="localstack/localstack:3.0.2",
             name="localstack-main",
             environment={
-                "LOCALSTACK_SERVICES": "sqs,sns,xray",
+                "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
                 "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",
                 "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid",
                 "AWS_DEFAULT_REGION": "us-east-1",
