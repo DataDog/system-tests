@@ -178,6 +178,9 @@ class _Test_SNS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(
+        library="java", reason="Not expected to fail, Java should be able to extract Binary trace context but is not."
+    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
