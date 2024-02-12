@@ -5,6 +5,8 @@ from utils import context
 
 
 class VmProviderFactory:
+    """ Use the correct provider specified by Id """
+
     def get_provider(self, provider_id):
         from utils.virtual_machine.aws_provider import AWSPulumiProvider
         from utils.virtual_machine.vagrant_provider import VagrantProvider
@@ -19,6 +21,9 @@ class VmProviderFactory:
 
 
 class VmProvider:
+    """ Provider responsible of manage the virtual machines
+        Start up all the stack (group of virtual machines) """
+
     def __init__(self):
         self.vms = None
         self.provision = None
@@ -29,13 +34,20 @@ class VmProvider:
         self.vms = required_vms
 
     def stack_up(self):
+        """ Each provider should implement the method that start up all the machines. 
+        After each machine is up, you will call the install_provision method for each machine. """
         raise NotImplementedError
 
     def stack_destroy(self):
+        """ Stop and destroy machines"""
         raise NotImplementedError
 
     def install_provision(self, vm, server, server_connection, create_cache=False):
-
+        """ 
+        This method orchestrate the provision installation for a machine
+        Vm object contains the provision for the machine.
+        The provision structure must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Provision
+        This is a common method for all providers"""
         provision = vm.get_provision()
 
         last_task = server
@@ -75,7 +87,8 @@ class VmProvider:
         last_task = self._remote_install(server_connection, vm, last_task, provision.weblog_installation)
 
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
-
+        """ Manages a installation. 
+        The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation """
         local_command = None
         command_environment = self._get_command_environment(vm)
         # Execute local command if we need
@@ -132,6 +145,7 @@ class VmProvider:
         )
 
     def _get_command_environment(self, vm):
+        """ This environment will be injected as environment variables for all launched remote commands """
         command_env = {}
         for key, value in vm.get_provision().env.items():
             command_env["DD_" + key] = value
