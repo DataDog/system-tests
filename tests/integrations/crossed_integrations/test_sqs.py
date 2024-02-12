@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 from tests.integrations.crossed_integrations.test_kafka import _nodejs_buddy, _java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features, bug
 from utils.tools import logger
 
 
@@ -202,6 +202,10 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy = _nodejs_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
+
+    @bug(library="nodejs", reason="Unexpected failure, weblog answers 500")
+    def test_consume(self):
+        return super().test_consume()
 
     @missing_feature(library="python", reason="Expected to fail. Python and NodeJS are not compatible at the moment")
     @missing_feature(library="java", reason="Expected to fail. Java and NodeJS are not compatible at the moment")
