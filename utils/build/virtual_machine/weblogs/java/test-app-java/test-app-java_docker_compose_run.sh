@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=C2015
+# shellcheck disable=SC2015
 set -e
 
 # shellcheck disable=SC2035
