@@ -4,7 +4,7 @@ import time
 import boto3
 
 
-def kinesis_produce(stream, message, partition_key):
+def kinesis_produce(stream, message, partition_key, timeout):
     """
         The goal of this function is to trigger kinesis producer calls
     """
@@ -17,14 +17,27 @@ def kinesis_produce(stream, message, partition_key):
     except Exception as e:
         logging.info(f"Error during Python Kinesis create stream: {str(e)}")
 
-    try:
-        # Send the message to the Kinesis stream
-        kinesis.put_record(StreamName=stream, Data=message, PartitionKey=partition_key)
+    message_sent = False
+    exc = None
+
+    start_time = time.time()
+
+    while not message_sent and time.time() - start_time < timeout:
+        # loop to ensure that message is sent, the kinesis stream may be becoming active and if not active can error out
+        try:
+            # Send the message to the Kinesis stream
+            kinesis.put_record(StreamName=stream, Data=message, PartitionKey=partition_key)
+            message_sent = True
+        except Exception as e:
+            exc = e
+        time.sleep(1)
+
+    if message_sent:
         logging.info("Python Kinesis message sent successfully")
         return "Kinesis Produce ok"
-    except Exception as e:
-        logging.info(f"Error during Python Kinesis put record: {str(e)}")
-        return {"error": f"Error during Python Kinesis put record: {str(e)}"}
+    elif exc:
+        logging.info(f"Error during Python Kinesis put record: {str(exc)}")
+        return {"error": f"Error during Python Kinesis put record: {str(exc)}"}
 
 
 def kinesis_consume(stream, timeout=60):

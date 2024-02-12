@@ -239,8 +239,9 @@ def consume_sqs_message():
 @app.route("/kinesis/produce")
 def produce_kinesis_message():
     stream = flask_request.args.get("stream", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
     message = b"Hello from Python Kinesis"
-    output = kinesis_produce(stream, message, "1")
+    output = kinesis_produce(stream, message, "1", timeout)
     if "error" in output:
         return output, 400
     else:
