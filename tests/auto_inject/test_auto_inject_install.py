@@ -27,7 +27,7 @@ class _AutoInjectInstallBaseTest:
         wait_backend_trace_id(request_uuid, 60.0)
 
 
-# @features.host_auto_instrumentation
+@features.host_auto_instrumentation
 @scenarios.host_auto_injection
 class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
     pass
