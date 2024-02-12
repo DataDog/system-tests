@@ -33,9 +33,12 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
         time.sleep(1)
 
     if message_sent:
+        print("kinesis message sent")
         logging.info("Python Kinesis message sent successfully")
         return "Kinesis Produce ok"
     elif exc:
+        print("kinesis message error producing")
+        print(exc)
         logging.info(f"Error during Python Kinesis put record: {str(exc)}")
         return {"error": f"Error during Python Kinesis put record: {str(exc)}"}
 
@@ -69,16 +72,22 @@ def kinesis_consume(stream, timeout=60):
                 logging.warning(f"Error during Python Kinesis get stream shard iterator: {str(e)}")
 
         try:
+            print("get records")
             response = kinesis.get_records(ShardIterator=shard_iterator)
+            print(response)
             if response and "Records" in response:
                 for message in response["Records"]:
                     consumed_message = message["Data"]
+                    print(str(consumed_message))
                     logging.info("Consumed the following: " + consumed_message)
         except Exception as e:
+            print(e)
             logging.warning(e)
         time.sleep(1)
 
     if not consumed_message:
+        print("kinesis message error")
         return {"error": "No messages to consume"}
     else:
+        print("kinesis message consumed")
         return {"message": consumed_message}
