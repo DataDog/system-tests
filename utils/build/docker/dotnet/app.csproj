@@ -17,7 +17,8 @@
 		<PackageReference Include="MySql.Data" Version="8.0.30" />
 		<PackageReference Include="Npgsql" Version="4.0.10" />
 		<PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
-		<PackageReference Include="Microsoft.Data.Sqlite " />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="7.0.15" />
+		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.8" />
 		<PackageReference Include="System.DirectoryServices" Version="6.0.0" />
 		<PackageReference Include="NodaTime" Version="3.1.6"/>
                 <PackageReference Include="Confluent.Kafka" Version="1.9.3" />
@@ -25,5 +26,6 @@
 		<Reference Include="Datadog.Trace">
 			<HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
 		</Reference>
+		<PackageReference Include="MongoDB.Driver" Version="2.23.1" />
 	</ItemGroup>
 </Project>

@@ -252,4 +252,10 @@ public class IastSinkResource {
     public Response  noHttpOnlyCookieSecure() {
         return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").build();
     }
+
+    @GET
+    @Path("/insecure-auth-protocol/test")
+    public Response  insecureAuthProtocol() {
+        return Response.status(Response.Status.OK).build();
+    }
 }
