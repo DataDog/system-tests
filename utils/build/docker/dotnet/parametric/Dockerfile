@@ -1,22 +1,21 @@
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
-RUN apt-get update && apt-get install -y dos2unix --no-install-recommends
+RUN apt-get update && apt-get install -y dos2unix
 RUN apt-get update && apt-get install -y curl
-USER root
 WORKDIR /app
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY install_ddtrace.sh query-versions.fsx binaries* /binaries/
+COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
-COPY ["ApmTestApi.csproj", "nuget.config", "*.nupkg", "./"]
-RUN dotnet restore "./././ApmTestApi.csproj"
+COPY ["utils/build/docker/dotnet/parametric/ApmTestApi.csproj", "utils/build/docker/dotnet/parametric/nuget.config", "utils/build/docker/dotnet/parametric/*.nupkg", "./"]
+RUN dotnet restore "./ApmTestApi.csproj"
 
 # build and publish
-COPY . ./
+COPY utils/build/docker/dotnet/parametric ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /app/out
 

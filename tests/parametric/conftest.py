@@ -212,11 +212,11 @@ RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
-COPY ["ApmTestApi.csproj", "nuget.config", "*.nupkg", "./"]
+COPY ["{dotnet_reldir}/ApmTestApi.csproj", "{dotnet_reldir}/nuget.config", "{dotnet_reldir}/*.nupkg", "./"]
 RUN dotnet restore "./ApmTestApi.csproj"
 
 # build and publish
-COPY . ./
+COPY {dotnet_reldir} ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /app/out
 
@@ -240,7 +240,7 @@ ENTRYPOINT ["dotnet", "ApmTestApi.dll"]
 """,
         container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
-        container_build_context=dotnet_absolute_appdir,
+        container_build_context=_get_base_directory(),
         volumes=[],
         env={},
         port="",

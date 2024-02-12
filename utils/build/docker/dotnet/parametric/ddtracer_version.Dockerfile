@@ -8,4 +8,4 @@ COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/quer
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
-CMD cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION
+CMD cat /app/SYSTEM_TESTS_LIBRARY_VERSION
