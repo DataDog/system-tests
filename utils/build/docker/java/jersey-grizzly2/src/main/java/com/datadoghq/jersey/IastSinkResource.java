@@ -1,23 +1,16 @@
 package com.datadoghq.jersey;
 
-import com.datadoghq.system_tests.iast.utils.*;
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
-
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Request;
-import org.glassfish.grizzly.http.server.Session;
-
-
 import static com.datadoghq.jersey.Main.DATA_SOURCE;
 import static com.datadoghq.jersey.Main.LDAP_CONTEXT;
 
+import com.datadoghq.system_tests.iast.utils.*;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpRequest;
 
 @Path("/iast")
 @Produces(MediaType.TEXT_PLAIN)
@@ -256,6 +249,12 @@ public class IastSinkResource {
     @Path("/no-httponly-cookie/test_secure")
     public Response  noHttpOnlyCookieSecure() {
         return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/insecure-auth-protocol/test")
+    public Response  insecureAuthProtocol() {
+        return Response.status(Response.Status.OK).build();
     }
 
 }
