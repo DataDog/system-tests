@@ -1,5 +1,7 @@
 #!/bin/bash
 set -e
+
+# shellcheck disable=SC2035
 sudo chmod -R 755 *
 
 echo "START RUN APP"
@@ -10,5 +12,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable test-app.service
 sudo systemctl start test-app.service
 sudo systemctl status test-app.service
-ps -fea|grep java
 echo "RUN DONE"
