@@ -18,6 +18,7 @@ import java.net.URI;
 public class SqsConnector {
     public static String DEFAULT_ENDPOINT = "http://elasticmq:9324";
     public final String queue;
+    public final String endpoint;
 
     public SqsConnector(String queue){
         this.queue = queue;
