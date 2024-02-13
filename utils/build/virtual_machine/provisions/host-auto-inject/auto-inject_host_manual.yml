@@ -10,6 +10,7 @@
       - name: copy-tracer-debug-config
         local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
   remote-command: |
+    ls
     tar -xf binaries_$DD_VM_NAME.tar.gz
     architecture=""
     case $(uname -m) in
@@ -32,15 +33,15 @@
 
 - os_type: linux
   os_distro: rpm
-  local-command: tar -czvf binaries_$DD_VM_NAME.tar.gz -C binaries .
+  #local-command: tar -czvf binaries_$DD_VM_NAME.tar.gz -C binaries .
   copy_files:
-      - name: copy-binaries
-        local_path: binaries_$DD_VM_NAME.tar.gz
+     # - name: copy-binaries
+     #   local_path: binaries_$DD_VM_NAME.tar.gz
 
       - name: copy-tracer-debug-config
         local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
   remote-command: | 
-    tar -xf binaries_$DD_VM_NAME.tar.gz
+    echo "tar -xf binaries_$DD_VM_NAME.tar.gz"
     architecture=""
     case $(uname -m) in
         x86_64) architecture="x86_64" ;;
