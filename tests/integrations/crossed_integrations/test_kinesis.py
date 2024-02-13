@@ -40,7 +40,7 @@ class _Test_Kinesis:
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
-                if operation.lower() == "getRecords" and span["meta"].get("language", "") == "javascript":
+                if operation.lower() == "getrecords" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the stream included on the span.
                     if span["resource"] != "aws.response":
                         continue
@@ -106,13 +106,13 @@ class _Test_Kinesis:
             interfaces.library,
             span_kind=["producer", "client"],
             stream=self.WEBLOG_TO_BUDDY_STREAM,
-            operation="sendMessage",
+            operation="PutRecord",
         )
         consumer_span = self.get_span(
             self.buddy_interface,
             span_kind=["consumer", "client", "server"],
             stream=self.WEBLOG_TO_BUDDY_STREAM,
-            operation="receiveMessage",
+            operation="GetRecords",
         )
 
         # Both producer and consumer spans should be part of the same trace
@@ -157,13 +157,13 @@ class _Test_Kinesis:
             self.buddy_interface,
             span_kind=["producer", "client"],
             stream=self.BUDDY_TO_WEBLOG_STREAM,
-            operation="sendMessage",
+            operation="PutRecord",
         )
         consumer_span = self.get_span(
             interfaces.library,
             span_kind=["consumer", "client", "server"],
             stream=self.BUDDY_TO_WEBLOG_STREAM,
-            operation="receiveMessage",
+            operation="GetRecords",
         )
 
         # Both producer and consumer spans should be part of the same trace
@@ -178,10 +178,10 @@ class _Test_Kinesis:
         """
 
         producer_span = self.get_span(
-            producer_interface, span_kind=["producer", "client"], stream=stream, operation="sendMessage"
+            producer_interface, span_kind=["producer", "client"], stream=stream, operation="PutRecord"
         )
         consumer_span = self.get_span(
-            consumer_interface, span_kind=["consumer", "client", "server"], stream=stream, operation="receiveMessage"
+            consumer_interface, span_kind=["consumer", "client", "server"], stream=stream, operation="GetRecords"
         )
         # check that both consumer and producer spans exists
         assert producer_span is not None
