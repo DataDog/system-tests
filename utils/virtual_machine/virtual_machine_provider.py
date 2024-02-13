@@ -102,7 +102,7 @@ class VmProvider:
             local_command = "sh " + installation.local_script
 
         if local_command:
-            self.commander.execute_local_command(
+            last_task = self.commander.execute_local_command(
                 f"local-script_{vm.name}_{installation.id}", local_command, command_environment, last_task, vm.name
             )
 
