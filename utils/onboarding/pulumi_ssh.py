@@ -48,6 +48,7 @@ class PulumiSSH:
             pem_file = open(pem_file_path, "w", encoding="utf-8")  # pylint: disable=R1732
             ssh_key.private_key_pem.apply(lambda out: PulumiSSH._write_pem_file(pem_file, out))
             PulumiSSH.pem_file = pem_file_path
+            logger.info(f"Pem file created. Path [{PulumiSSH.pem_file}]")
 
     @staticmethod
     def _write_pem_file(pem_file, content):

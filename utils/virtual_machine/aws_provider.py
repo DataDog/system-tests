@@ -66,6 +66,7 @@ class AWSPulumiProvider(VmProvider):
         )
 
         # Configure ssh connection
+        logger.info(f"Using Pem file:  Path [{PulumiSSH.pem_file}]")
         vm.ssh_config.pkey = paramiko.RSAKey.from_private_key_file(PulumiSSH.pem_file)
         vm.ssh_config.username = vm.aws_config.user
 
