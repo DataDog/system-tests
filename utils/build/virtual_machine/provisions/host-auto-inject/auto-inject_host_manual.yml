@@ -33,7 +33,7 @@
 
 - os_type: linux
   os_distro: rpm
-  #local-command: tar -czvf binaries_$DD_VM_NAME.tar.gz -C binaries .
+  local-command: tar -czvf binaries_$DD_VM_NAME.tar.gz -C binaries .
   copy_files:
      # - name: copy-binaries
      #   local_path: binaries_$DD_VM_NAME.tar.gz
