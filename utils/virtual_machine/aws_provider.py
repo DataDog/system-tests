@@ -65,9 +65,9 @@ class AWSPulumiProvider(VmProvider):
             lambda args: pulumi_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}")
         )
         # Configure ssh connection
-        Output.all(ec2_server.private_ip, vm).apply(
-            vm.ssh_config.set_pkey(paramiko.RSAKey.from_private_key_file(PulumiSSH.pem_file))
-        )
+        # Output.all(ec2_server.private_ip, vm).apply(
+        #    vm.ssh_config.set_pkey(paramiko.RSAKey.from_private_key_file(PulumiSSH.pem_file))
+        # )
         vm.ssh_config.username = vm.aws_config.user
 
         server_connection = command.remote.ConnectionArgs(
