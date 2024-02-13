@@ -81,7 +81,6 @@ class _Test_Kinesis:
         self.consume_response = self.buddy.get(
             "/kinesis/consume", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "timeout": 60}, timeout=61
         )
-        breakpoint()
 
     def test_produce(self):
         """Check that a message produced to Kinesis is correctly ingested by a Datadog tracer"""
@@ -136,7 +135,6 @@ class _Test_Kinesis:
         self.consume_response = weblog.get(
             "/kinesis/consume", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "timeout": 60}, timeout=61
         )
-        breakpoint()
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
