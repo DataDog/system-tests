@@ -16,7 +16,7 @@ class TestGraphqlResolverArgument(BaseSourceTest):
         {
             "method": "POST",
             "json": {
-                "query": "query TestInjection { testInjection(path: \"filename\") { id name }}",
+                "query": 'query TestInjection { testInjection(path: "filename") { id name }}',
                 "operationName": "TestInjection",
             },
         }
