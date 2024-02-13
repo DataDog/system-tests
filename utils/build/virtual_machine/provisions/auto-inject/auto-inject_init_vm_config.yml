@@ -34,6 +34,7 @@
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo systemctl restart sshd.service
+    echo "DONE"
  
 - os_type: linux
   os_distro: rpm

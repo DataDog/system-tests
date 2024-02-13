@@ -1146,9 +1146,6 @@ class _VirtualMachineScenario(_Scenario):
             self.required_vm_names.append(vm.name)
         self.vm_provider.configure(self.required_vms)
 
-        # for vm in self.required_vms:
-        #    vm.configure(self.vm_provision)
-
     def _get_warmups(self):
         return [self.vm_provider.stack_up]
 

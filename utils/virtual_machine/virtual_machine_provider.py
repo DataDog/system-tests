@@ -8,13 +8,14 @@ class VmProviderFactory:
     """ Use the correct provider specified by Id """
 
     def get_provider(self, provider_id):
-        from utils.virtual_machine.aws_provider import AWSPulumiProvider
-        from utils.virtual_machine.vagrant_provider import VagrantProvider
-
         logger.info(f"Using {provider_id} provider")
         if provider_id == "aws":
+            from utils.virtual_machine.aws_provider import AWSPulumiProvider
+
             return AWSPulumiProvider()
         elif provider_id == "vagrant":
+            from utils.virtual_machine.vagrant_provider import VagrantProvider
+
             return VagrantProvider()
         else:
             raise ValueError("Not supported provided", provider_id)
@@ -42,35 +43,36 @@ class VmProvider:
         """ Stop and destroy machines"""
         raise NotImplementedError
 
-    def install_provision(self, vm, server, server_connection, create_cache=False):
+    def install_provision(self, vm, server, server_connection, create_cache=True):
         """ 
         This method orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
         The provision structure must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Provision
         This is a common method for all providers"""
+        logger.stdout(f"Provisioning [{vm.name}]")
         provision = vm.get_provision()
-
         last_task = server
         if create_cache:
             # First install cacheable installations
             for installation in provision.installations:
                 if installation.cache:
-                    logger.info(f"Installing {installation.id} in {vm.name}")
+                    logger.stdout(f"[{vm.name}] Provisioning cacheable {installation.id}")
                     last_task = self._remote_install(server_connection, vm, last_task, installation)
 
             # Then install lang variant if needed (cacheable)
             if provision.lang_variant_installation:
+                logger.info(f"[{vm.name}] Provisioning lang variant {provision.lang_variant_installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
             last_task = self.commander.create_cache(vm, server, last_task)
 
         # Then install non cacheable installations
         for installation in provision.installations:
             if not installation.cache:
-                logger.info(f"Installing no cacheable {installation.id} in {vm.name}")
+                logger.info(f"[{vm.name}] Provisioning no cacheable {installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, installation)
 
         # Extract tested/installed components
-        logger.info(f"Extracting {provision.tested_components_installation.id} in {vm.name}")
+        logger.info(f"[{vm.name}] Extracting {provision.tested_components_installation.id}")
 
         output_callback = lambda args: args[0].set_tested_components(args[1])
         last_task = self._remote_install(
@@ -83,7 +85,7 @@ class VmProvider:
         )
 
         # Finally install weblog
-        logger.info(f"Installing {provision.weblog_installation.id} in {vm.name}")
+        logger.info(f"[{vm.name}] Installing {provision.weblog_installation.id}")
         last_task = self._remote_install(server_connection, vm, last_task, provision.weblog_installation)
 
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
@@ -116,7 +118,7 @@ class VmProvider:
 
                 if not os.path.isdir(file_to_copy.local_path):
                     # If the local path contains a variable, we need to replace it
-                    for key, value in command_environment:
+                    for key, value in command_environment.items():
                         file_to_copy.local_path = file_to_copy.local_path.replace(f"${key}", value)
                         remote_path = remote_path.replace(f"${key}", value)
 

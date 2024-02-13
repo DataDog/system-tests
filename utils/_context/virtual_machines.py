@@ -440,6 +440,7 @@ class _VirtualMachine:
         self.os_cpu = os_cpu
         self._vm_provision = None
         self.tested_components = {}
+        self.deffault_open_port = 5985
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
@@ -481,7 +482,7 @@ class Ubuntu22amd64(_VirtualMachine):
         super().__init__(
             "Ubuntu_22_amd64",
             aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
-            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            vagrant_config=_VagrantConfig(box_name="bento/ubuntu-22.04"),
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu22_amd64",
@@ -495,7 +496,7 @@ class Ubuntu22arm64(_VirtualMachine):
         super().__init__(
             "Ubuntu_22_arm64",
             aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.small", user="ubuntu"),
-            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64",),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64",),
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu22_arm64",
