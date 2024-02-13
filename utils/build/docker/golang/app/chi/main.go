@@ -4,9 +4,12 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
-	"os"
+
+	"weblog/internal/common"
+	"weblog/internal/grpc"
 
 	"github.com/go-chi/chi/v5"
 
@@ -24,7 +27,7 @@ func main() {
 	mux := chi.NewRouter().With(chitrace.Middleware())
 
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
-		body, err := parseBody(r)
+		body, err := common.ParseBody(r)
 		if err == nil {
 			appsec.MonitorParsedHTTPBody(r.Context(), body)
 		}
@@ -32,7 +35,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/waf/*", func(w http.ResponseWriter, r *http.Request) {
-		body, err := parseBody(r)
+		body, err := common.ParseBody(r)
 		if err == nil {
 			appsec.MonitorParsedHTTPBody(r.Context(), body)
 		}
@@ -158,7 +161,7 @@ func main() {
 		tags = append(tags, tracer.Tag("http.useragent", userAgent))
 
 		if r.URL.Query().Get("shouldIndex") == "1" {
-			tags = append(tags, forceSpanIndexingTags()...)
+			tags = append(tags, common.ForceSpanIndexingTags()...)
 		}
 
 		// Make a fresh root span!
@@ -191,8 +194,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	initDatadog()
-	go listenAndServeGRPC()
+	common.InitDatadog()
+	go grpc.ListenAndServe()
 	http.ListenAndServe(":7777", mux)
 }
 

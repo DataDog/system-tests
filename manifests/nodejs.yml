@@ -186,7 +186,7 @@ tests/:
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
-          '*': missing_feature (v4.16.0 but test is not implemented)
+          '*': v4.22.0
           nextjs: irrelevant # nextjs is not related with graphql
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
@@ -246,7 +246,9 @@ tests/:
         nextjs: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v3.19.0
-      Test_BlockingGraphqlResolvers: missing_feature
+      Test_BlockingGraphqlResolvers:
+          '*': v4.22.0
+          nextjs: irrelevant # nextjs is not related with graphql
       Test_Blocking_request_body:
         '*': v3.19.0
         nextjs: missing_feature

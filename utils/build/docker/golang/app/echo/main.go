@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
+	"weblog/internal/common"
+	"weblog/internal/grpc"
 
 	"github.com/labstack/echo/v4"
 
@@ -151,8 +153,8 @@ func main() {
 		return ctx.String(http.StatusOK, string(content))
 	})
 
-	initDatadog()
-	go listenAndServeGRPC()
+	common.InitDatadog()
+	go grpc.ListenAndServe()
 	r.Start(":7777")
 }
 
@@ -167,7 +169,7 @@ func headers(c echo.Context) error {
 
 func waf(c echo.Context) error {
 	req := c.Request()
-	body, err := parseBody(req)
+	body, err := common.ParseBody(req)
 	if err == nil {
 		appsec.MonitorParsedHTTPBody(req.Context(), body)
 	}

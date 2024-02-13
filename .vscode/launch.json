@@ -86,6 +86,15 @@
             "justMyCode": true
         },
         {
+            "name": "Run GRAPHQL_APPSEC scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "GRAPHQL_APPSEC", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
