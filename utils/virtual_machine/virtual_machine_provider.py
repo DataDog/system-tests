@@ -74,16 +74,15 @@ class VmProvider:
         # Extract tested/installed components
         logger.stdout(f"[{vm.name}] Extracting {provision.tested_components_installation.id}")
 
-        # output_callback = lambda args: args[0].set_tested_components(args[1])
-        logger.stdout(f"[{vm.name}] Installing {provision.tested_components_installation.remote_command}")
-        #last_task = self._remote_install(
-        #    server_connection,
-        #    vm,
-        #    last_task,
-        #    provision.tested_components_installation,
-            # logger_name="tested_components",
-            # output_callback=output_callback,
-        #)
+        output_callback = lambda args: args[0].set_tested_components(args[1])
+        last_task = self._remote_install(
+            server_connection,
+            vm,
+            last_task,
+            provision.tested_components_installation,
+            logger_name="tested_components",
+            output_callback=output_callback,
+        )
 
         # Finally install weblog
         logger.stdout(f"[{vm.name}] Installing {provision.weblog_installation.id}")

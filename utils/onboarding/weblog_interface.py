@@ -13,7 +13,7 @@ def make_get_request(app_url):
 
 
 def warmup_weblog(app_url):
-    for _ in range(3):
+    for _ in range(15):
         try:
             requests.get(app_url, timeout=10)
             break

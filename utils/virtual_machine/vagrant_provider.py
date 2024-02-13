@@ -43,19 +43,25 @@ class VagrantProvider(VmProvider):
         conf_file_path = f"{vm.get_log_folder()}/Vagrantfile"
         vm.ssh_config.port = self._get_open_port()
         vm.deffault_open_port = self._get_open_port()
-        qe_arch = "x86_64" if vm.os_cpu == "amd64" else "aarch64"
+        # qe_arch = "x86_64" if vm.os_cpu == "amd64" else "aarch64"
+        # qe.extra_qemu_args = %w(-accel tcg,thread=multi,tb-size=512)
+        extra_config = ""
+        if vm.os_cpu == "amd64":
+            extra_config = f"""
+                qe.arch="x86_64"
+                qe.machine = "q35"
+                qe.cpu = "max"
+                qe.smp = "cpus=8,sockets=1,cores=8,threads=1"
+                qe.net_device = "virtio-net-pci"       
+            """
         port_configuration = f"""
         config.vm.network "forwarded_port", guest: 5985, host: {vm.deffault_open_port}
+
         config.vm.provider "qemu" do |qe|
             qe.ssh_port={vm.ssh_config.port}
-            qe.arch="{qe_arch}"
-            qe.machine = "q35"
-            qe.cpu = "qemu64"
-            qe.extra_qemu_args = %w(-accel tcg,thread=multi,tb-size=512)
-            qe.net_device = "virtio-net-pci"
+            {extra_config}
         end
         config.vm.synced_folder '.', '/vagrant', disabled: true
-
         end
         """
         lines = []
@@ -76,8 +82,8 @@ class VagrantProvider(VmProvider):
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
 
-        for v in self.vagrant_machines:
-            v.destroy()
+    # for v in self.vagrant_machines:
+    #    v.destroy()
 
 
 class VagrantCommander(Commander):

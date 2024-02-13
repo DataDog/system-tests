@@ -513,7 +513,7 @@ class Ubuntu18amd64(_VirtualMachine):
         super().__init__(
             "Ubuntu_18_amd64",
             aws_config=_AWSConfig(ami_id="ami-0263e4deb427da90e", ami_instance_type="t2.medium", user="ubuntu"),
-            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu18_amd64",
@@ -527,7 +527,7 @@ class AmazonLinux2amd64(_VirtualMachine):
         super().__init__(
             "Amazon_Linux_2_amd64",
             aws_config=_AWSConfig(ami_id="ami-0dfcb1ef8550277af", ami_instance_type="t2.medium", user="ec2-user"),
-            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            vagrant_config=_VagrantConfig(box_name="generic/centos7"),
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2_amd64",
@@ -569,7 +569,7 @@ class AmazonLinux2023arm64(_VirtualMachine):
         super().__init__(
             "Amazon_Linux_2023_arm64",
             aws_config=_AWSConfig(ami_id="ami-04c97e62cb19d53f1", ami_instance_type="t4g.small", user="ec2-user"),
-            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            vagrant_config=_VagrantConfig(box_name="generic-a64/fedora39"),
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2023_arm64",

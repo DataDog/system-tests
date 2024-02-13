@@ -8,7 +8,7 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
-        remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel
+        remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
 
 weblog:
     name: test-app-java
