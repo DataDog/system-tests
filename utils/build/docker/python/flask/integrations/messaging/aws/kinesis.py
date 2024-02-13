@@ -25,9 +25,18 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
     while not message_sent and time.time() - start_time < timeout:
         # loop to ensure that message is sent, the kinesis stream may be becoming active and if not active can error out
         try:
-            # Send the message to the Kinesis stream
-            kinesis.put_record(StreamName=stream, Data=message, PartitionKey=partition_key)
-            message_sent = True
+            response = kinesis.describe_stream(StreamName=stream)
+            if (
+                response
+                and response.get("StreamDescription", None)
+                and response.get("StreamDescription", None).get("StreamStatus", "") == "ACTIVE"
+            ):
+                # Send the message to the Kinesis stream
+                kinesis.put_record(StreamName=stream, Data=message, PartitionKey=partition_key)
+                message_sent = True
+            else:
+                time.sleep(1)
+                continue
         except Exception as e:
             exc = e
         time.sleep(1)
@@ -58,16 +67,24 @@ def kinesis_consume(stream, timeout=60):
         if not shard_iterator:
             try:
                 response = kinesis.describe_stream(StreamName=stream)
-                print("descriibe stream")
-                print(response)
-                shard_id = response["StreamDescription"]["Shards"][0]["ShardId"]
-                response = kinesis.get_shard_iterator(
-                    StreamName=stream, ShardId=shard_id, ShardIteratorType="TRIM_HORIZON"
-                )
-                print("get shard iterator")
-                print(response)
-                shard_iterator = response["ShardIterator"]
-                logging.info(f"Found Kinesis Shard Iterator: {shard_iterator} for stream: {stream}")
+                if (
+                    response
+                    and response.get("StreamDescription", None)
+                    and response.get("StreamDescription", None).get("StreamStatus", "") == "ACTIVE"
+                ):
+                    print("descriibe stream")
+                    print(response)
+                    shard_id = response["StreamDescription"]["Shards"][0]["ShardId"]
+                    response = kinesis.get_shard_iterator(
+                        StreamName=stream, ShardId=shard_id, ShardIteratorType="TRIM_HORIZON"
+                    )
+                    print("get shard iterator")
+                    print(response)
+                    shard_iterator = response["ShardIterator"]
+                    logging.info(f"Found Kinesis Shard Iterator: {shard_iterator} for stream: {stream}")
+                else:
+                    time.sleep(1)
+                    continue
             except Exception as e:
                 logging.warning(f"Error during Python Kinesis get stream shard iterator: {str(e)}")
 
