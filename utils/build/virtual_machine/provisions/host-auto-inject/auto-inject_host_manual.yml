@@ -41,7 +41,7 @@
       - name: copy-tracer-debug-config
         local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
   remote-command: | 
-    echo "tar -xf binaries_$DD_VM_NAME.tar.gz"
+    tar -xf binaries_$DD_VM_NAME.tar.gz >/dev/null 2>&1
     architecture=""
     case $(uname -m) in
         x86_64) architecture="x86_64" ;;
