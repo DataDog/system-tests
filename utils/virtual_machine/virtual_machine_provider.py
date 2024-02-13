@@ -61,18 +61,18 @@ class VmProvider:
 
             # Then install lang variant if needed (cacheable)
             if provision.lang_variant_installation:
-                logger.info(f"[{vm.name}] Provisioning lang variant {provision.lang_variant_installation.id}")
+                logger.stdout(f"[{vm.name}] Provisioning lang variant {provision.lang_variant_installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
             last_task = self.commander.create_cache(vm, server, last_task)
 
         # Then install non cacheable installations
         for installation in provision.installations:
             if not installation.cache:
-                logger.info(f"[{vm.name}] Provisioning no cacheable {installation.id}")
+                logger.stdout(f"[{vm.name}] Provisioning no cacheable {installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, installation)
 
         # Extract tested/installed components
-        logger.info(f"[{vm.name}] Extracting {provision.tested_components_installation.id}")
+        logger.stdout(f"[{vm.name}] Extracting {provision.tested_components_installation.id}")
 
         output_callback = lambda args: args[0].set_tested_components(args[1])
         last_task = self._remote_install(
@@ -85,7 +85,7 @@ class VmProvider:
         )
 
         # Finally install weblog
-        logger.info(f"[{vm.name}] Installing {provision.weblog_installation.id}")
+        logger.stdout(f"[{vm.name}] Installing {provision.weblog_installation.id}")
         last_task = self._remote_install(server_connection, vm, last_task, provision.weblog_installation)
 
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
