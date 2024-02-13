@@ -415,6 +415,9 @@ class _SSHConfig:
         self.key_filename = key_filename
         self.pkey = pkey
 
+    def set_pkey(self, pkey):
+        self.pkey = pkey
+
     def get_ssh_connection(self):
         import paramiko
 
