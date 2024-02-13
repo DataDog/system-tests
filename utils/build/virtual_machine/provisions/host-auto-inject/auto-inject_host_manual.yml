@@ -35,8 +35,8 @@
   os_distro: rpm
   local-command: tar -czvf binaries_$DD_VM_NAME.tar.gz -C binaries .
   copy_files:
-     # - name: copy-binaries
-     #   local_path: binaries_$DD_VM_NAME.tar.gz
+      - name: copy-binaries
+        local_path: binaries_$DD_VM_NAME.tar.gz
 
       - name: copy-tracer-debug-config
         local_path: tests/onboarding/autoinjection/tracer_debug/debug_config.yaml
