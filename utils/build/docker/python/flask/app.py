@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import random
@@ -265,7 +266,9 @@ def consume_sns_message():
 def produce_kinesis_message():
     stream = flask_request.args.get("stream", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
-    message = b"Hello from Python Producer: Kinesis Context Propagation Test"
+
+    # we only allow injection into JSON messages encoded as a string
+    message = json.dumps({"message": "Hello from Python Producer: Kinesis Context Propagation Test"})
     output = kinesis_produce(stream, message, "1", timeout)
     if "error" in output:
         return output, 400
