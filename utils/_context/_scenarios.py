@@ -1622,7 +1622,7 @@ class scenarios:
         include_amazon_linux_2_amd64=True,
         include_amazon_linux_2_dotnet_6=False,
         include_amazon_linux_2023_amd64=False,
-        include_amazon_linux_2023_arm64=True,
+        include_amazon_linux_2023_arm64=False,
     )
 
 

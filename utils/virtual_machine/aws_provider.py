@@ -188,8 +188,8 @@ class AWSCommander(Commander):
                     f"{header} \n  - COMMAND: {args[1]} \n {header} \n {args[2]} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {args[3]}"
                 )
             )
-        if output_callback:
-            # cmd_exec_install.stdout.apply(output_callback)
-            Output.all(vm, cmd_exec_install.stdout).apply(output_callback)
+        #        if output_callback:
+        # cmd_exec_install.stdout.apply(output_callback)
+        # Output.all(vm, cmd_exec_install.stdout).apply(output_callback)
 
         return cmd_exec_install
