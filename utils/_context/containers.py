@@ -752,7 +752,7 @@ class ElasticMQContainer(TestedContainer):
 class LocalstackContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="localstack/localstack:3.0.2",
+            image_name="localstack/localstack:3.1.0",
             name="localstack-main",
             environment={
                 "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
@@ -764,6 +764,6 @@ class LocalstackContainer(TestedContainer):
                 "DOCKER_HOST": "unix:///var/run/docker.sock",
             },
             host_log_folder=host_log_folder,
-            ports={4566: 4566},
+            ports={"4566": ("127.0.0.1", 4566)},
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
         )
