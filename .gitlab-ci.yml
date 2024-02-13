@@ -78,6 +78,7 @@ onboarding_java:
     - schedules
   variables:
     TEST_LIBRARY: "java"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev]
