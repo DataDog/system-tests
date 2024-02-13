@@ -10,9 +10,10 @@ provision_steps:
   - init-config #Very first machine actions, like disable auto updates
   - prepare-repos #Configure the reporitories for install auto-injection
   - install-agent #Install the agent (allways latest release)
+  - autoinjection_install_manual #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
   - testing
- # - autoinjection_install_manual #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
-  
+  - testing2
+
 init-config:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
@@ -25,7 +26,11 @@ testing:
     - os_type: linux
       remote-command: |
         echo "----------------------------- Testing -----------------------------"
-
+testing2:
+  install:
+    - os_type: linux
+      remote-command: |
+        echo "----------------------------- Testing 22222 -----------------------------"
 install-agent:
   install:
     - os_type: linux
