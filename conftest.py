@@ -39,18 +39,10 @@ def pytest_addoption(parser):
 
     # report data to feature parity dashboard
     parser.addoption(
-        "--report-run-url",
-        type=str,
-        action="store",
-        default=None,
-        help="URI of the run who produced the report",
+        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report",
     )
     parser.addoption(
-        "--report-environment",
-        type=str,
-        action="store",
-        default=None,
-        help="The environment the test is run under",
+        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under",
     )
 
 
@@ -340,17 +332,13 @@ def pytest_sessionfinish(session, exitstatus):
     if not hasattr(session.config, "workerinput"):
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
-                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
-                f,
-                indent=2,
+                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
             )
 
         data = session.config._json_report.report  # pylint: disable=protected-access
 
         junit_modifyreport(
-            data,
-            session.config.option.xmlpath,
-            junit_properties=context.scenario.get_junit_properties(),
+            data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
         )
 
         export_feature_parity_dashboard(session, data)
