@@ -1,5 +1,4 @@
 const AWS = require('aws-sdk')
-const tracer = require('dd-trace')
 
 const sqsProduce = (queue, message) => {
   // Create an SQS client
@@ -68,10 +67,6 @@ const sqsConsume = async (queue, timeout) => {
           console.log(response)
           if (response && response.Messages && response.Messages.length > 0) {
             for (const message of response.Messages) {
-              // add a manual span to make finding this trace easier when asserting on tests
-              tracer.trace('sqs.consume', span => {
-                span.setTag('queue_name', queue)
-              })
               console.log(message)
               console.log(message.MessageAttributes)
               const consumedMessage = message.Body
