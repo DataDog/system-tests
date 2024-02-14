@@ -5,7 +5,7 @@ from utils.tools import logger
 
 
 class VirtualMachineProvisioner:
-    def remove_unsupported_machines(self, library_name, weblog, required_vms):
+    def remove_unsupported_machines(self, library_name, weblog, required_vms, vm_provider_id):
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
         config_data = None
         with open(weblog_provision_file, encoding="utf-8") as f:
@@ -14,6 +14,7 @@ class VirtualMachineProvisioner:
         for vm in required_vms:
             installations = config_data["weblog"]["install"]
             allowed = False
+            # Exclude by excluded_os_branches
             if (
                 "excluded_os_branches" in config_data["weblog"]
                 and vm.os_branch in config_data["weblog"]["excluded_os_branches"]
@@ -21,6 +22,17 @@ class VirtualMachineProvisioner:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in excluded_os_branches")
                 vms_to_remove.append(vm)
                 continue
+            # Exlude by vm_provider_id and vm configuration. IE: vm_provider_id: vagrant exclude all vms that don't have vagrant configuration
+            if vm_provider_id == "vagrant" and vm.vagrant_config is None:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a Vagrant VM")
+                vms_to_remove.append(vm)
+                continue
+            if vm_provider_id == "aws" and vm.aws_config is None:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a AWS VM")
+                vms_to_remove.append(vm)
+                continue
+
+            # Exclude by vm fields: os_distro, os_branch, os_cpu
             for installation in installations:
                 assert "os_type" in installation, "os_type is required for weblog installation"
                 if installation["os_type"] == vm.os_type:

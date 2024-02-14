@@ -541,7 +541,7 @@ class AmazonLinux2DotNet6(_VirtualMachine):
         super().__init__(
             "Amazon_Linux_2_DotNet6",
             aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t2.medium", user="ec2-user"),
-            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-20.04-arm64"),
+            vagrant_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2_dotnet6",
@@ -569,7 +569,8 @@ class AmazonLinux2023arm64(_VirtualMachine):
         super().__init__(
             "Amazon_Linux_2023_arm64",
             aws_config=_AWSConfig(ami_id="ami-04c97e62cb19d53f1", ami_instance_type="t4g.small", user="ec2-user"),
-            vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
+            # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
+            vagrant_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2023_arm64",

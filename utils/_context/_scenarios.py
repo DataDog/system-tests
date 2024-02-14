@@ -1118,7 +1118,9 @@ class _VirtualMachineScenario(_Scenario):
         self._check_test_environment()
         self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
 
-        provisioner.remove_unsupported_machines(self._library.library, self._weblog, self.required_vms)
+        provisioner.remove_unsupported_machines(
+            self._library.library, self._weblog, self.required_vms, self.vm_provider_id
+        )
         for vm in self.required_vms:
             logger.info(f"Adding provision for {vm.name}")
             vm.add_provision(
@@ -1622,12 +1624,12 @@ class scenarios:
         "HOST_AUTO_INJECTION",
         vm_provision="host-auto-inject",
         doc="Onboarding Host Single Step Instrumentation scenario",
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
+        include_ubuntu_22_amd64=False,
+        include_ubuntu_22_arm64=False,
         include_ubuntu_18_amd64=True,
-        include_amazon_linux_2_amd64=True,
+        include_amazon_linux_2_amd64=False,
         include_amazon_linux_2_dotnet_6=True,
-        include_amazon_linux_2023_amd64=True,
+        include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=True,
     )
 

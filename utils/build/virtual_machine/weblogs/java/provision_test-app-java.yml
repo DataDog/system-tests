@@ -24,7 +24,7 @@ weblog:
             local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_run.sh
 
           - name: copy-java-app
-            local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
+            local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app/
 
         remote-command: sh test-app-java_run.sh
     uninstall:

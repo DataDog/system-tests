@@ -2,6 +2,7 @@ import socket
 import os
 import subprocess
 import vagrant
+import paramiko
 from fabric.api import env, execute, task, run
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.tools import logger
@@ -137,3 +138,37 @@ class VagrantCommander(Commander):
             output_callback([vm, command_output])
 
         return last_task
+
+    def remote_copy_folders(
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+    ):
+        if destination_folder == "":
+            destination_folder = "./"
+        sftp = MySFTPClient.from_transport(connection.get_transport())
+        sftp.mkdir(destination_folder, ignore_existing=True)
+        sftp.put_dir(source_folder, destination_folder)
+        sftp.close()
+
+
+class MySFTPClient(paramiko.SFTPClient):
+    def put_dir(self, source, target):
+        """ Uploads the contents of the source directory to the target path. The
+            target directory needs to exists. All subdirectories in source are 
+            created under target.
+        """
+        for item in os.listdir(source):
+            if os.path.isfile(os.path.join(source, item)):
+                self.put(os.path.join(source, item), "%s/%s" % (target, item))
+            else:
+                self.mkdir("%s/%s" % (target, item), ignore_existing=True)
+                self.put_dir(os.path.join(source, item), "%s/%s" % (target, item))
+
+    def mkdir(self, path, mode=511, ignore_existing=False):
+        """ Augments mkdir by adding an option to not fail if the folder exists  """
+        try:
+            super(MySFTPClient, self).mkdir(path, mode)
+        except IOError:
+            if ignore_existing:
+                pass
+            else:
+                raise
