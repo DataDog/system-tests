@@ -18,22 +18,10 @@ class _Test_Kinesis:
     @classmethod
     def get_span(cls, interface, span_kind, stream, operation):
         logger.debug(f"Trying to find traces with span kind: {span_kind} and stream: {stream} in {interface}")
-        manual_span_found = False
 
         for data, trace in interface.get_traces():
-            # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sqs.
-            # Instead, we look for the custom span created after the "aws.response" span
-            for span in reversed(trace):
+            for span in trace:
                 if not span.get("meta"):
-                    continue
-
-                # special case for JS spans where we create a manual span since the callback span lacks specific information
-                if (
-                    span["meta"].get("language", "") == "javascript"
-                    and span["name"] == "kinesis.consume"
-                    and span["meta"].get("stream_name", "") == stream
-                ):
-                    manual_span_found = True
                     continue
 
                 if span["meta"].get("span.kind") not in span_kind:
@@ -55,9 +43,6 @@ class _Test_Kinesis:
                 if operation.lower() == "getrecords" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the stream included on the span.
                     if span["resource"] != "aws.response":
-                        continue
-                    # if we found the manual span, and now have the aws.response span, we will return this span
-                    elif not manual_span_found:
                         continue
                 # elif stream != cls.get_stream_name(span):
                 #     continue

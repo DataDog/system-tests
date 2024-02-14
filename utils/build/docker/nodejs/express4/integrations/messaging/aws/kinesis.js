@@ -18,26 +18,29 @@ const kinesisProduce = (stream, message, partitionKey, timeout = 60000) => {
       } else {
         console.log(`[Kinesis] Created Kinesis Stream with name: ${stream}`)
 
-        let messageSent = false
-        let error = null
-
-        const startTime = Date.now()
-
         const sendRecord = () => {
           kinesis.describeStream({ StreamName: stream }, (err, data) => {
             if (err) {
-              error = err
+              console.log('[Kinesis] Error while getting stream status, retrying send message')
+              setTimeout(() => {
+                sendRecord()
+              }, 1000)
             } else if (
               data.StreamDescription &&
                 data.StreamDescription.StreamStatus === 'ACTIVE'
             ) {
+              console.log('[Kinesis] Kinesis Stream is Active')
               kinesis.putRecord(
                 { StreamName: stream, Data: message, PartitionKey: partitionKey },
                 (err) => {
                   if (err) {
-                    error = err
+                    console.log('[Kinesis] Error while producing message, retrying send message')
+                    setTimeout(() => {
+                      sendRecord()
+                    }, 1000)
                   } else {
-                    messageSent = true
+                    console.log('[Kinesis] Node.js Kinesis message sent successfully')
+                    resolve()
                   }
                 }
               )
@@ -45,26 +48,12 @@ const kinesisProduce = (stream, message, partitionKey, timeout = 60000) => {
           })
         }
 
-        const checkStatus = () => {
-          if (messageSent) {
-            console.log('[Kinesis] Node.js Kinesis message sent successfully')
-            resolve('Kinesis Produce ok')
-          } else if (error) {
-            console.log(`[Kinesis] Error during Node.js Kinesis put record: ${error}`)
-            reject(error)
-          } else if (Date.now() - startTime < timeout) {
-            setTimeout(() => {
-              sendRecord()
-              checkStatus()
-            }, 1000)
-          } else {
-            console.log('[Kinesis] Timeout exceeded')
-            reject(new Error('[Kinesis] TimeoutError: Message not received'))
-          }
-        }
+        setTimeout(() => {
+          console.log('[Kinesis] TimeoutError: No message produced')
+          reject(new Error('[Kinesis] TimeoutError: No message produced'))
+        }, timeout)
 
         sendRecord()
-        checkStatus()
       }
     })
   })
