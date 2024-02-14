@@ -1,5 +1,6 @@
 package com.datadoghq.system_tests.springboot;
 
+import com.datadoghq.system_tests.springboot.aws.KinesisConnector;
 import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
@@ -377,6 +378,35 @@ public class App {
             System.out.println("[SNS->SQS] Failed to start consuming message...");
             e.printStackTrace();
             return new ResponseEntity<>("[SNS->SQS] failed to start consuming messages", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping("/kinesis/produce")
+    ResponseEntity<String> kinesisProduce(@RequestParam(required = true) String stream) {
+        KinesisConnector kinesis = new KinesisConnector(stream);
+        try {
+            String jsonString = "{\"message\":\"DistributedTracing Kinesis from Java\"}";
+            kinesis.produceMessageWithoutNewThread(jsonString);
+        } catch (Exception e) {
+            System.out.println("[Kinesis] Failed to start producing message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[Kinesis] failed to start producing messages", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("produce ok", HttpStatus.OK);
+    }
+
+    @RequestMapping("/kinesis/consume")
+    ResponseEntity<String> kinesisConsume(@RequestParam(required = true) String stream, @RequestParam(required = false) Integer timeout) {
+        KinesisConnector kinesis = new KinesisConnector(stream);
+        if (timeout == null) timeout = 60;
+        boolean consumed = false;
+        try {
+            consumed = kinesis.consumeMessageWithoutNewThread(timeout);
+            return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println("[Kinesis] Failed to start consuming message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[Kinesis] failed to start consuming messages", HttpStatus.BAD_REQUEST);
         }
     }
 

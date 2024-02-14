@@ -19,6 +19,7 @@ const kinesisProduce = (stream, message, partitionKey, timeout = 60000) => {
         console.log(`[Kinesis] Created Kinesis Stream with name: ${stream}`)
 
         const sendRecord = () => {
+          console.log('[Kinesis] Performing Kinesis describe stream and putRecord')
           kinesis.describeStream({ StreamName: stream }, (err, data) => {
             if (err) {
               console.log('[Kinesis] Error while getting stream status, retrying send message')
@@ -44,6 +45,9 @@ const kinesisProduce = (stream, message, partitionKey, timeout = 60000) => {
                   }
                 }
               )
+            } else {
+              console.log('[Kinesis] Kinesis describe stream, stream not active')
+              console.log(data)
             }
           })
         }
