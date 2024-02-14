@@ -1115,17 +1115,7 @@ class _VirtualMachineScenario(_Scenario):
         self._library = LibraryVersion(config.option.obd_library, "0.0")
         self._env = config.option.obd_env
         self._weblog = config.option.obd_weblog
-
-        assert self._library is not None, "Library is not set (use --obd-library)"
-        assert self._env is not None, "Env is not set (use --obd-env)"
-        assert self._weblog is not None, "Weblog is not set (use --obd-weblog)"
-        assert os.path.isfile(
-            f"utils/build/virtual_machine/weblogs/{self._library.library}/provision_{self._weblog}.yml"
-        ), "Weblog Provision file not found."
-        assert os.path.isfile(
-            f"utils/build/virtual_machine/provisions/{self.vm_provision_name}/provision.yml"
-        ), "Provision file not found"
-
+        self._check_test_environment()
         self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
 
         provisioner.remove_unsupported_machines(self._library.library, self._weblog, self.required_vms)
@@ -1145,6 +1135,22 @@ class _VirtualMachineScenario(_Scenario):
             )
             self.required_vm_names.append(vm.name)
         self.vm_provider.configure(self.required_vms)
+
+    def _check_test_environment(self):
+        """ Check if the test environment is correctly set"""
+
+        assert self._library is not None, "Library is not set (use --obd-library)"
+        assert self._env is not None, "Env is not set (use --obd-env)"
+        assert self._weblog is not None, "Weblog is not set (use --obd-weblog)"
+        assert os.path.isfile(
+            f"utils/build/virtual_machine/weblogs/{self._library.library}/provision_{self._weblog}.yml"
+        ), "Weblog Provision file not found."
+        assert os.path.isfile(
+            f"utils/build/virtual_machine/provisions/{self.vm_provision_name}/provision.yml"
+        ), "Provision file not found"
+
+        assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
+        assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
 
     def _get_warmups(self):
         return [self.vm_provider.stack_up]
@@ -1616,9 +1622,9 @@ class scenarios:
         "HOST_AUTO_INJECTION",
         vm_provision="host-auto-inject",
         doc="Onboarding Host Single Step Instrumentation scenario",
-        include_ubuntu_22_amd64=False,
-        include_ubuntu_22_arm64=False,
-        include_ubuntu_18_amd64=False,
+        include_ubuntu_22_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_18_amd64=True,
         include_amazon_linux_2_amd64=True,
         include_amazon_linux_2_dotnet_6=True,
         include_amazon_linux_2023_amd64=True,
