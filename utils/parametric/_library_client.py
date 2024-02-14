@@ -97,7 +97,9 @@ class APMLibraryClient:
     def otel_get_span_context(self, span_id: int):
         raise NotImplementedError
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]] = None) -> None:
+    def span_add_link(
+        self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]] = None
+    ) -> None:
         raise NotImplementedError
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
@@ -542,7 +544,9 @@ class APMLibraryClientGRPC:
     def span_set_error(self, span_id: int, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(pb.SpanSetErrorArgs(span_id=span_id, type=typestr, message=message, stack=stack))
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]]) -> None:
+    def span_add_link(
+        self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]]
+    ) -> None:
         distributed_message = pb.DistributedHTTPHeaders()
         for key, value in http_headers:
             distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
@@ -552,7 +556,7 @@ class APMLibraryClientGRPC:
                 span_id=span_id,
                 parent_id=parent_id,
                 attributes=convert_to_proto(attributes),
-                http_headers=distributed_message
+                http_headers=distributed_message,
             )
         )
 
