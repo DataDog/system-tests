@@ -261,22 +261,24 @@ class Test_Otel_Interoperability:
         with test_library:
             with test_library.start_span("dd.span") as dd_span:
                 dd_span.add_link(
-                    parent_id=TEST_SPAN_ID,
+                    parent_id=0,
                     attributes=TEST_ATTRIBUTES,
-                    trace_id=TEST_TRACE_ID,
-                    tracestate=TEST_TRACESTATE,
+                    http_headers=[
+                        ("traceparent", f"00-{TEST_TRACE_ID}-{TEST_SPAN_ID}-01"),
+                        ("tracestate", TEST_TRACESTATE),
+                    ],
                 )
 
                 otel_span = test_library.otel_current_span()
-                otel_span_links = otel_span.get_links()
 
+                otel_span_links = otel_span.get_links()
                 assert len(otel_span_links) == 1
 
                 otel_link = otel_span_links[0]
                 assert otel_link["trace_id"] == TEST_TRACE_ID
                 assert otel_link["parent_id"] == TEST_SPAN_ID
                 assert otel_link["tracestate"] == TEST_TRACESTATE
-                assert otel_link["attributes"] == TEST_ATTRIBUTES
+                assert otel_link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
 
     def test_span_links_add(self, test_agent, test_library):
         """
@@ -287,10 +289,12 @@ class Test_Otel_Interoperability:
                 current_span = test_library.current_span()
 
                 current_span.add_link(
-                    parent_id=TEST_SPAN_ID,
+                    parent_id=0,
                     attributes=TEST_ATTRIBUTES,
-                    trace_id=TEST_TRACE_ID,
-                    tracestate=TEST_TRACESTATE,
+                    http_headers=[
+                        ("traceparent", f"00-{TEST_TRACE_ID}-{TEST_SPAN_ID}-01"),
+                        ("tracestate", TEST_TRACESTATE),
+                    ],
                 )
 
                 otel_span_links = otel_span.get_links()
@@ -300,7 +304,7 @@ class Test_Otel_Interoperability:
                 assert otel_link["trace_id"] == TEST_TRACE_ID
                 assert otel_link["parent_id"] == TEST_SPAN_ID
                 assert otel_link["tracestate"] == TEST_TRACESTATE
-                assert otel_link["attributes"] == TEST_ATTRIBUTES
+                assert otel_link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
 
     def test_concurrent_traces_in_order(self, test_agent, test_library):
         """

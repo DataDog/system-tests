@@ -202,15 +202,21 @@ $router->addRoute('POST', '/trace/span/error', new ClosureRequestHandler(functio
 $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
     $span = $spans[arg($req, 'span_id')];
     $parent_id = arg($req, 'parent_id');
+    $httpHeaders = arg($req, 'http_headers');
     if (isset($spans[$parent_id]) || isset($closed_spans[$parent_id])) {
         $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
         $link->attributes += arg($req, "attributes") ?? [];
+    } elseif ($httpHeaders) {
+        $httpHeaders = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $httpHeaders));
+        $callback = function ($headername) use ($httpHeaders) {
+            return $httpHeaders[$headername] ?? null;
+        };
+        $link = \DDTrace\SpanLink::fromHeaders($callback);
+        $link->attributes += arg($req, "attributes") ?? [];
     } else {
         $link = new \DDTrace\SpanLink();
-        $link->traceId = arg($req, 'trace_id');
         $link->spanId = arg($req, 'parent_id');
         $link->attributes = arg($req, 'attributes') ?? [];
-        $link->traceState = arg($req, 'tracestate') ?? "";
     }
 
     $span->links[] = $link;

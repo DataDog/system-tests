@@ -29,11 +29,9 @@ class SpanResponse(TypedDict):
 
 
 class Link(TypedDict):
-    trace_id: int  # 0 to extract from open/closed spans
     parent_id: int  # 0 to extract from headers
     attributes: dict
     http_headers: List[Tuple[str, str]]
-    tracestate: str
 
 
 class APMLibraryClient:
@@ -99,7 +97,7 @@ class APMLibraryClient:
     def otel_get_span_context(self, span_id: int):
         raise NotImplementedError
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict, trace_id: int, tracesate: str) -> None:
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]] = None) -> None:
         raise NotImplementedError
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
@@ -221,7 +219,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         )
 
     def span_add_link(
-        self, span_id: int, parent_id: int, attributes: dict = None, trace_id: int = 0, tracesate: str = ""
+        self, span_id: int, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None
     ):
         self._session.post(
             self._url("/trace/span/add_link"),
@@ -229,8 +227,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "span_id": span_id,
                 "parent_id": parent_id,
                 "attributes": attributes or {},
-                "trace_id": trace_id,
-                "tracestate": tracesate,
+                "http_headers": http_headers or [],
             },
         )
 
@@ -362,8 +359,8 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict = None, trace_id: int = 0, tracestate: str = ""):
-        self._client.span_add_link(self.span_id, parent_id, attributes, trace_id, tracestate)
+    def add_link(self, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None):
+        self._client.span_add_link(self.span_id, parent_id, attributes, http_headers)
 
     def get_name(self):
         return self._client.span_name(self.span_id)
@@ -545,9 +542,18 @@ class APMLibraryClientGRPC:
     def span_set_error(self, span_id: int, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(pb.SpanSetErrorArgs(span_id=span_id, type=typestr, message=message, stack=stack))
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]]) -> None:
+        distributed_message = pb.DistributedHTTPHeaders()
+        for key, value in http_headers:
+            distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
+
         self._client.SpanAddLink(
-            pb.SpanAddLinkArgs(span_id=span_id, parent_id=parent_id, attributes=convert_to_proto(attributes))
+            pb.SpanAddLinkArgs(
+                span_id=span_id,
+                parent_id=parent_id,
+                attributes=convert_to_proto(attributes),
+                http_headers=distributed_message
+            )
         )
 
     def finish_span(self, span_id: int):
