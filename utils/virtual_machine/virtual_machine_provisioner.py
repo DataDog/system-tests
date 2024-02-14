@@ -5,7 +5,11 @@ from utils.tools import logger
 
 
 class VirtualMachineProvisioner:
-    def remove_unsupported_machines(self, library_name, weblog, required_vms, vm_provider_id):
+    """ Manages the provision parser for the virtual machines."""
+
+    def remove_unsupported_machines(self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch):
+        """ Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch  """
+
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
         config_data = None
         with open(weblog_provision_file, encoding="utf-8") as f:
@@ -14,6 +18,11 @@ class VirtualMachineProvisioner:
         for vm in required_vms:
             installations = config_data["weblog"]["install"]
             allowed = False
+            # Exclude by vm_only_branch
+            if vm_only_branch and vm.os_branch != vm_only_branch:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
+                vms_to_remove.append(vm)
+                continue
             # Exclude by excluded_os_branches
             if (
                 "excluded_os_branches" in config_data["weblog"]
@@ -56,6 +65,8 @@ class VirtualMachineProvisioner:
             required_vms.remove(vm)
 
     def get_provision(self, library_name, env, weblog, vm_provision_name, os_type, os_distro, os_branch, os_cpu):
+        """ Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
+
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
         provision = Provision()
         provision_file = f"utils/build/virtual_machine/provisions/{vm_provision_name}/provision.yml"
@@ -192,6 +203,8 @@ class VirtualMachineProvisioner:
 
 
 class Provision:
+    """ Contains all the information about the provision that it will be launched on the vm 1"""
+
     def __init__(self):
         self.env = {}
         self.installations = []
@@ -201,6 +214,8 @@ class Provision:
 
 
 class Intallation:
+    """ Generic installation object. It can be a installation, lang_variant installation or weblog installation."""
+
     def __init__(self):
         self.id = False
         self.cache = False

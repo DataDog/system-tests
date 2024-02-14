@@ -199,6 +199,10 @@ class AWSCommander(Commander):
     def remote_copy_folders(
         self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
     ):
+        # If we don't use remote_path, the remote_path will be a default remote user home
+        if not destination_folder:
+            destination_folder = os.path.basename(source_folder)
+
         quee_depends_on = [depends_on]
         for file_name in os.listdir(source_folder):
             # construct full file path

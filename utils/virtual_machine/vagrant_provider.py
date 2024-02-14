@@ -23,9 +23,11 @@ class VagrantProvider(VmProvider):
             log_cm = vagrant.make_file_cm(vm.get_default_log_file())
             v = vagrant.Vagrant(root=vm.get_log_folder(), out_cm=log_cm, err_cm=log_cm)
             v.init(box_name=vm.vagrant_config.box_name)
-            self._set_vm_ports(vm)
 
+            # TODO Support for different vagrant providers. Currently only support for qemu
+            self._set_vagrant_configuration(vm)
             v.up(provider="qemu")
+
             env.hosts = [v.user_hostname_port()]
             env.key_filename = v.keyfile()
             env.disable_known_hosts = True
@@ -39,7 +41,11 @@ class VagrantProvider(VmProvider):
             # Install provision on the started server
             self.install_provision(vm, None, client)
 
-    def _set_vm_ports(self, vm):
+    def _set_vagrant_configuration(self, vm):
+        """ Makes some configuration on the vagrant files
+        These configurations are relative to the provider and to port forwarding (for weblog) and port for ssh 
+        TODO Support for different vagrant providers. Currently only support for qemu
+        """
 
         conf_file_path = f"{vm.get_log_folder()}/Vagrantfile"
         vm.ssh_config.port = self._get_open_port()
@@ -142,8 +148,12 @@ class VagrantCommander(Commander):
     def remote_copy_folders(
         self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
     ):
-        if destination_folder == "":
+        if not source_folder.endswith("/"):
+            source_folder = source_folder + "/"
+
+        if destination_folder is None or destination_folder == "":
             destination_folder = "./"
+        logger.debug(f"RMM Destination folder  {destination_folder}")
         sftp = MySFTPClient.from_transport(connection.get_transport())
         sftp.mkdir(destination_folder, ignore_existing=True)
         sftp.put_dir(source_folder, destination_folder)

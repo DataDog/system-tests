@@ -36,6 +36,7 @@ def pytest_addoption(parser):
     parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
     parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
+    parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
 
     # report data to feature parity dashboard
     parser.addoption(

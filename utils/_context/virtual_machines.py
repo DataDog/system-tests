@@ -513,7 +513,8 @@ class Ubuntu18amd64(_VirtualMachine):
         super().__init__(
             "Ubuntu_18_amd64",
             aws_config=_AWSConfig(ami_id="ami-0263e4deb427da90e", ami_instance_type="t2.medium", user="ubuntu"),
-            vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
+            # vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
+            vagrant_config=None,
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu18_amd64",

@@ -1119,7 +1119,7 @@ class _VirtualMachineScenario(_Scenario):
         self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
 
         provisioner.remove_unsupported_machines(
-            self._library.library, self._weblog, self.required_vms, self.vm_provider_id
+            self._library.library, self._weblog, self.required_vms, self.vm_provider_id, config.option.vm_only_branch
         )
         for vm in self.required_vms:
             logger.info(f"Adding provision for {vm.name}")
@@ -1183,6 +1183,11 @@ class _VirtualMachineScenario(_Scenario):
     @property
     def components(self):
         return self._tested_components
+
+    def customize_feature_parity_dashboard(self, result):
+        for test in result["tests"]:
+            last_index = test["path"].rfind("::") + 2
+            test["description"] = test["path"][last_index:]
 
 
 class scenarios:
@@ -1625,12 +1630,12 @@ class scenarios:
         vm_provision="host-auto-inject",
         doc="Onboarding Host Single Step Instrumentation scenario",
         include_ubuntu_22_amd64=False,
-        include_ubuntu_22_arm64=False,
-        include_ubuntu_18_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=False,
-        include_amazon_linux_2_dotnet_6=True,
+        include_amazon_linux_2_dotnet_6=False,
         include_amazon_linux_2023_amd64=False,
-        include_amazon_linux_2023_arm64=True,
+        include_amazon_linux_2023_arm64=False,
     )
 
 
