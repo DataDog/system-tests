@@ -19,10 +19,10 @@
     if [ -e datadog-apm-inject_*_$architecture.deb ]
     then
         echo "Instaling datadog-apm-inject from local folder"
-        sudo apt install -y ./datadog-apm-inject_*_$architecture.deb
+        sudo apt install -y --reinstall ./datadog-apm-inject_*_$architecture.deb
     else
         echo "Instaling datadog-apm-inject from remote repository"
-        sudo apt install -y -t $DD_deb_repo_name datadog-apm-inject
+        sudo apt install -y --reinstall -t $DD_deb_repo_name datadog-apm-inject
     fi
 
     sudo apt install -y -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
@@ -31,7 +31,7 @@
 
 - os_type: linux
   os_distro: rpm
-  
+
   copy_files:
       - name: copy-binaries
         local_path: binaries/
@@ -49,10 +49,10 @@
     if [ -e datadog-apm-inject-*.$architecture.rpm ]
     then
         echo "Instaling datadog-apm-inject from local folder"
-        sudo yum -y install --disablerepo="*" datadog-apm-inject-*.$architecture.rpm
+        sudo yum -q list installed datadog-apm-inject &>/dev/null && sudo yum -y reinstall --disablerepo="*" datadog-apm-inject-*.$architecture.rpm || sudo yum -y install --disablerepo="*" datadog-apm-inject-*.$architecture.rpm
     else
         echo "Instaling datadog-apm-inject from remote repository"
-        sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject
+        sudo yum -q list installed datadog-apm-inject &>/dev/null && sudo yum -y reinstall --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject || sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject
     fi
 
     sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG
