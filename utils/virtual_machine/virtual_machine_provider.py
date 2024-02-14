@@ -133,7 +133,11 @@ class VmProvider:
                     )
                 else:
                     last_task = self.commander.remote_copy_folders(
-                        file_to_copy.local_path, remote_path, installation.id, server_connection, last_task
+                        file_to_copy.local_path,
+                        remote_path,
+                        f"-{vm.name}-{installation.id}",
+                        server_connection,
+                        last_task,
                     )
 
         # Execute a basic command on our server.
