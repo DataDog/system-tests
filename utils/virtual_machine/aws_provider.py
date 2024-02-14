@@ -288,19 +288,13 @@ class PulumiSSH:
 
             # Create temporary file to use the pem file in other ssh connections (outside of Pulumi context)
             logger.info("Creating temporary pem file")
-
-            # Configure ssh connection
-            Output.all(vms, ssh_key.private_key_pem).apply(
-                lambda args: [
-                    vm.vm.ssh_config.set_pkey(paramiko.RSAKey.from_private_key_file(self._write_pem_file(args[1])))
-                    for vm in args[0]
-                ]
-            )
-
-    def _write_pem_file(self, content):
-        if self.pem_file is None:
             _, pem_file_path = tempfile.mkstemp()
-            self.pem_file = open(pem_file_path, "w", encoding="utf-8")  # pylint: disable=R1732
-            self.pem_file.write(content)
-            self.pem_file.close()
-        return self.pem_file
+            pem_file = open(pem_file_path, "w", encoding="utf-8")  # pylint: disable=R1732
+            ssh_key.private_key_pem.apply(lambda out: self._write_pem_file(pem_file, out))
+
+            for vm in vms:
+                vm.vm.ssh_config.pkey_path = pem_file_path
+
+    def _write_pem_file(self, pem_file, content):
+        pem_file.write(content)
+        pem_file.close()

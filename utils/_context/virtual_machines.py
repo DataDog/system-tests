@@ -414,6 +414,7 @@ class _SSHConfig:
         self.username = username
         self.key_filename = key_filename
         self.pkey = pkey
+        self.pkey_path = pkey
 
     def set_pkey(self, pkey):
         self.pkey = pkey
@@ -423,7 +424,10 @@ class _SSHConfig:
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        if self.pkey is not None:
+        if self.pkey_path is not None:
+            if self.pkey is None:
+                pem_file = open(self.pkey_path, "r", encoding="utf-8")  # pylint: disable=R1732
+                self.pkey = paramiko.RSAKey.from_private_key_file(pem_file)
             ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey)
         else:
             ssh.connect(self.hostname, port=self.port, username=self.username, key_filename=self.key_filename)

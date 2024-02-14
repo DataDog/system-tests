@@ -12,9 +12,10 @@ from tests.auto_inject.test_auto_inject_install import _AutoInjectInstallBaseTes
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection_chaos
 class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
-    def test_remove_apm_inject_folder(self, virtual_machine):
-        """ Test removing the installation folder and restore it.
-        After removing the installation folder, the app should be still working (but no sending traces to the backend).
+    def _test_removing_things(self, virtual_machine, evil_command):
+        """ Test break the installation and restore it.
+        After breaking the installation, the app should be still working (but no sending traces to the backend).
+        After breaking the installation, we can restart the app
         After restores the installation, the app should be working and sending traces to the backend."""
 
         vm_ip = virtual_machine.ssh_config.hostname
@@ -25,7 +26,7 @@ class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
         self.test_install(virtual_machine)
 
         # Remove installation folder
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo rm -rf /opt/datadog/apm/inject")
+        virtual_machine.ssh_config.get_ssh_connection().exec_command(evil_command)
 
         # Assert the app is still working
         wait_for_port(vm_port, vm_ip, 40.0)
@@ -80,10 +81,9 @@ class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
 
         # The app should be instrumented and reporting traces to the backend
         self.test_install(virtual_machine)
-        # * 		install host injection
-        # * 		delete the /opt/datadog/apm/inject directory
-        # * 		log out
-        # * 		try to log back in (or just open a new shell)
-        # * 		if you can log back in, run sudo rm /etc/ld.so.preload
-        # * 		see if the file is removed
-        # * 		see if services can be launched
+
+    def test_remove_apm_inject_folder(self, virtual_machine):
+        self._test_removing_things(virtual_machine, "sudo rm -rf /opt/datadog/apm/inject")
+
+    def test_remove_ld_preload(self, virtual_machine):
+        self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
