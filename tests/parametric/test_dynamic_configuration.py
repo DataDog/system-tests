@@ -220,6 +220,10 @@ class TestDynamicConfigTracingEnabled:
         ), "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
 
 
+def reverse_case(s):
+    return "".join([char.lower() if char.isupper() else char.upper() for char in s])
+
+
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
 @features.dynamic_configuration
@@ -255,37 +259,6 @@ class TestDynamicConfigV1:
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2)
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
-
-    @missing_feature(context.library in ["java", "dotnet", "ruby", "nodejs"], reason="Not implemented yet")
-    @parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                # Override service and env
-                "DD_SERVICE": s,
-                "DD_ENV": e,
-            }
-            for (s, e) in [
-                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"]),
-                (DEFAULT_ENVVARS["DD_SERVICE"], DEFAULT_ENVVARS["DD_ENV"] + "-override"),
-                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"] + "-override"),
-            ]
-        ],
-    )
-    def test_not_match_service_target(self, library_env, test_agent, test_library):
-        """Test that the library reports an erroneous apply_state when the service targeting is not correct.
-
-        This can occur if the library requests Remote Configuration with an initial service + env pair and then
-        one or both of the values changes.
-
-        We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ from the service
-        target in the RC record.
-        """
-        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3)
-        assert cfg_state["apply_state"] == 3
-        assert cfg_state["apply_error"] != ""
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_trace_sampling_rate_override_default(self, test_agent, test_library):
@@ -390,6 +363,77 @@ class TestDynamicConfigV1:
         There is no way (at the time of writing) to check the logs produced by the library.
         """
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
+        assert cfg_state["apply_state"] == 2
+
+
+@rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
+@scenarios.parametric
+@features.dynamic_configuration
+class TestDynamicConfigV1_ServiceTargets:
+    """Tests covering the Service Target matching of the dynamic configuration feature.
+
+        - ignore mismatching targets
+        - matching service target case-insensitively
+    """
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                # Override service and env
+                "DD_SERVICE": s,
+                "DD_ENV": e,
+            }
+            for (s, e) in [
+                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"]),
+                (DEFAULT_ENVVARS["DD_SERVICE"], DEFAULT_ENVVARS["DD_ENV"] + "-override"),
+                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"] + "-override"),
+            ]
+        ],
+    )
+    def test_not_match_service_target(self, library_env, test_agent, test_library):
+        """Test that the library reports an erroneous apply_state when the service targeting is not correct.
+
+        This can occur if the library requests Remote Configuration with an initial service + env pair and then
+        one or both of the values changes.
+
+        We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ from the service
+        target in the RC record.
+        """
+        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3)
+        assert cfg_state["apply_state"] == 3
+        assert cfg_state["apply_error"] != ""
+
+    @missing_feature(context.library in ["golang"], reason="Go Tracer does case-sensitive checks for service and env")
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                # Override service and env
+                "DD_SERVICE": s,
+                "DD_ENV": e,
+            }
+            for (s, e) in [
+                (reverse_case(DEFAULT_ENVVARS["DD_SERVICE"]), DEFAULT_ENVVARS["DD_ENV"]),
+                (DEFAULT_ENVVARS["DD_SERVICE"], reverse_case(DEFAULT_ENVVARS["DD_ENV"])),
+                (reverse_case(DEFAULT_ENVVARS["DD_SERVICE"]), reverse_case(DEFAULT_ENVVARS["DD_ENV"])),
+            ]
+        ],
+    )
+    def test_match_service_target_case_insensitively(self, library_env, test_agent, test_library):
+        """Test that the library reports a non-erroneous apply_state when the service targeting is correct but differ in case.
+
+        This can occur if the library requests Remote Configuration with an initial service + env pair and then
+        one or both of the values changes its case.
+
+        We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ only in case from the service
+        target in the RC record.
+        """
+        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2)
         assert cfg_state["apply_state"] == 2
 
 
