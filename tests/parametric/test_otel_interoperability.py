@@ -7,7 +7,7 @@ from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER, OtelSpan
 from utils.parametric.spec.trace import find_trace_by_root, find_span
 
 # this global mark applies to all tests in this file.
-#   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
+#   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1",}],
@@ -32,8 +32,6 @@ class Test_Otel_Interoperability:
                 assert current_span is not None
                 assert "{:016x}".format(int(current_span.span_id)) == otel_span.span_id
 
-                otel_span.end_span()
-
     def test_span_creation_using_datadog(self, test_agent, test_library):
         """
             - A span created with the DD API should be visible in the OTel API
@@ -44,8 +42,6 @@ class Test_Otel_Interoperability:
 
                 assert otel_current_span is not None
                 assert otel_current_span.span_id == "{:016x}".format(int(dd_span.span_id))
-
-                dd_span.finish()
 
     def test_has_ended(self, test_agent, test_library):
         """
@@ -85,7 +81,6 @@ class Test_Otel_Interoperability:
                     assert dd_span.span_id == current_span.parent_id
 
                     otel_span.end_span()
-                dd_span.finish()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, Span(name="dd_span"))
@@ -112,8 +107,6 @@ class Test_Otel_Interoperability:
                         assert "{:016x}".format(current_span.parent_id) == otel_span.span_id
                     else:
                         assert "{:016x}".format(int(current_span.parent_id)) == otel_span.span_id
-
-                    dd_span.finish()
 
                 otel_current_span = test_library.otel_current_span()
                 assert otel_current_span.span_id == otel_span.span_id
@@ -285,8 +278,6 @@ class Test_Otel_Interoperability:
                 assert otel_link["tracestate"] == TEST_TRACESTATE
                 assert otel_link["attributes"] == TEST_ATTRIBUTES
 
-                dd_span.finish()
-
     def test_span_links_add(self, test_agent, test_library):
         """
             - Test that links set on a span created with the OTel API are updated into the Datadog API
@@ -310,8 +301,6 @@ class Test_Otel_Interoperability:
                 assert otel_link["parent_id"] == TEST_SPAN_ID
                 assert otel_link["tracestate"] == TEST_TRACESTATE
                 assert otel_link["attributes"] == TEST_ATTRIBUTES
-
-                otel_span.end_span()
 
     def test_concurrent_traces_in_order(self, test_agent, test_library):
         """
@@ -469,8 +458,6 @@ class Test_Otel_Interoperability:
                 assert otel_context.get("trace_state") == "dd=t.dm:-0,foo=1"
                 assert otel_context.get("trace_flags") == "01"
 
-                dd_span.finish()
-
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, Span(name="dd_span"))
         assert len(trace) == 1
@@ -503,8 +490,6 @@ class Test_Otel_Interoperability:
                 assert otel_context.get("trace_id") == "000000000000000000000000075bcd15"
                 assert otel_context.get("trace_state") == "dd=o:synthetics;s:-2;t.foo:bar"
                 assert otel_context.get("trace_flags") == "00"
-
-                dd_span.finish()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, Span(name="dd_span"))
