@@ -63,7 +63,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: ./.github/workflows/parametric.yml
+    uses: ./.github/workflows/runs/parametric.yml
     secrets: inherit
 
   graphql:
@@ -72,7 +72,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: ./.github/workflows/graphql.yml
+    uses: ./.github/workflows/runs/graphql.yml
     secrets: inherit
 
   experimental:
@@ -81,7 +81,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: ./.github/workflows/experimental.yml
+    uses: ./.github/workflows/runs/experimental.yml
     secrets: inherit
 
   main:
@@ -89,7 +89,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: ./.github/workflows/end-to-end.yml
+    uses: ./.github/workflows/runs/end-to-end.yml
     secrets: inherit
     with:
       run_all: ${{ needs.scenarios.outputs.run_all  == 'true' }}
@@ -103,7 +103,6 @@ jobs:
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
-
 
   open-telemetry-manual:
     runs-on: ubuntu-latest
