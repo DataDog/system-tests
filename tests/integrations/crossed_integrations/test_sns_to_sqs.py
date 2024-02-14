@@ -88,15 +88,12 @@ class _Test_SNS:
 
     @staticmethod
     def get_topic(span) -> str | None:
-        """Extracts the queue from a span by trying various fields"""
+        """Extracts the topic from a span by trying various fields"""
         topic = span["meta"].get("topicname", None)  # this is in nodejs, java, python
 
         if topic is None:
             if "aws.sns.topic_arn" in span["meta"]:
                 topic = span["meta"]["aws.sns.topic_arn"].split(":")[-1]
-            # elif "messaging.url" in span["meta"]:
-            #     topic = span["meta"]["messaging.url"].split("/")[-1]
-
             if topic is None:
                 logger.error(f"could not extract topic from this span:\n{span}")
 
@@ -254,29 +251,3 @@ class Test_SNS_Propagation(_Test_SNS):
     WEBLOG_TO_BUDDY_TOPIC = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy_topic"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog"
     BUDDY_TO_WEBLOG_TOPIC = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog_topic"
-
-
-# we should create a test case for testing AWS SNS propagation with XRay headers, but localstack does not allow Xray header to be
-# propagated unless using the Pro version, which we don't have
-
-# @scenarios.crossed_tracing_libraries
-# @features.aws_sns_span_creationcontext_propagation_via_xray_header_with_dd_trace
-# class Test_SNS_Propagation_VIA_AWS_XRAY_HEADERS(_Test_SNS):
-#     buddy_interface = interfaces.java_buddy
-#     buddy = _java_buddy
-#     WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_Propagation_via_aws_xray_header_weblog_to_buddy"
-#     BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_Propagation_via_aws_xray_header_buddy_to_weblog"
-
-#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-#     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-#     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-#     def test_produce_trace_equality(self):
-#         super().test_produce_trace_equality()
-
-#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-#     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-#     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-#     def test_consume_trace_equality(self):
-#         super().test_consume_trace_equality()
