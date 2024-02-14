@@ -273,6 +273,10 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart:
             '*': v1.22.0
@@ -927,8 +931,10 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
       Test_Trace_Sampling_Resource: v1.25.0
       Test_Trace_Sampling_Tags: v1.26.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v1.30.0
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0

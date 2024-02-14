@@ -4,7 +4,7 @@
 // - protoc             v3.19.1
 // source: utils/grpc/weblog.proto
 
-package main
+package grpc
 
 import (
 	context "context"
