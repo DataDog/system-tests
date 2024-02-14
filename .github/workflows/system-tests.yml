@@ -85,21 +85,21 @@ jobs:
 
   parametric:
     if: inputs.run_parametric || inputs.run_all
-    uses: ./.github/workflows/runs/parametric.yml
+    uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
 
   graphql:
     if: inputs.run_graphql || inputs.run_all
-    uses: ./.github/workflows/runs/graphql.yml
+    uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
 
   experimental:
     if: inputs.run_libinjection || inputs.run_all
-    uses: ./.github/workflows/runs/experimental.yml
+    uses: ./.github/workflows/run-experimental.yml
     secrets: inherit
 
   main:
-    uses: ./.github/workflows/runs/end-to-end.yml
+    uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
       run_all: ${{ inputs.run_all }}
