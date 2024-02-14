@@ -58,6 +58,11 @@ on:
         default: false
         required: false
         type: boolean
+      push_to_feature_parity_dashbaord:
+        description: "Shall we push results to Feature Parity Dashbaord"
+        default: false
+        required: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -540,6 +545,22 @@ jobs:
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_main
         path: artifact.tar.gz
+
+    - name: Push results to Feature Parity Dashboard
+      if: ${{ matrix.version == 'dev' && inputs.push_to_feature_parity_dashbaord && false }} # disabled for now
+      run: |
+        for folder in logs*/ ; do
+          curl -X POST ${FP_IMPORT_URL} \
+            --fail
+            --header "Content-Type: application/json" \
+            --header "FP_API_KEY: ${FP_API_KEY}" \
+            --data "@./${folder}feature_parity.json" \
+            --include
+        done
+      env:
+        FP_API_KEY: ${{ secrets.FP_API_KEY }}
+        FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
+
     - name: Upload results CI Visibility
       if: ${{ always() }}
       run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
