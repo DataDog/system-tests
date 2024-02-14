@@ -1,6 +1,12 @@
 name: GraphQL
 on:
   workflow_call:
+    inputs:
+      build_proxy_image:
+        description: "Shall we build proxy image"
+        default: false
+        required: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -41,7 +47,7 @@ jobs:
         uses: ./.github/actions/install_runner
 
       - name: Build proxy image
-        if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+        if: inputs.build_proxy_image
         run: ./build.sh -i proxy
       - name: Load library binary
         if: matrix.version == 'dev'

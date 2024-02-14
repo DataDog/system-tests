@@ -78,9 +78,6 @@ on:
         required: false
         type: boolean
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
 
   parametric:
@@ -92,6 +89,8 @@ jobs:
     if: inputs.run_graphql || inputs.run_all
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
+    with:
+      build_proxy_image: ${{ inputs.build_proxy_image }}
 
   experimental:
     if: inputs.run_libinjection || inputs.run_all
