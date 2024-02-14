@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         os:
-          # - macos-latest
+          - macos-latest
           - ubuntu-latest
     name: Test the test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -55,7 +55,7 @@ jobs:
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
-    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
+    uses: ./.github/workflows/compute-scenarios.yml
 
   parametric:
     if: needs.scenarios.outputs.run_parametric == 'true'
@@ -64,6 +64,15 @@ jobs:
     - test_the_test
     - scenarios
     uses: datadog/system-tests/.github/workflows/parametric.yml@main
+    secrets: inherit
+
+  graphql:
+    if: needs.scenarios.outputs.run_graphql == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: ./.github/workflows/graphql.yml
     secrets: inherit
 
   experimental:
@@ -231,7 +240,7 @@ jobs:
         version:
         - prod
         - dev
-            
+
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
@@ -262,7 +271,7 @@ jobs:
     #### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
     #### skipping this, waiting for a proper solution
     # - name: Load WAF rules
-    #   if: ${{ matrix.version == 'dev' }}
+    #   if: matrix.version == 'dev'
     #   run: ./utils/scripts/load-binary.sh waf_rule_set
     #   env:
     #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -648,7 +657,7 @@ jobs:
         - library: nodejs_otel
           weblog: express4-otel
         version:
-        - prod        
+        - prod
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
@@ -667,7 +676,7 @@ jobs:
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} -i agent
 
     - name: Build weblog opentelemetry autoinstrumentation
-      if: always() 
+      if: always()
       id: build_otel
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} --weblog-variant ${{ matrix.variant.weblog }}
     - name: Run OTEL_INTEGRATIONS scenario

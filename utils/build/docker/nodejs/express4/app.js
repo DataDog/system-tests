@@ -424,9 +424,9 @@ app.get('/createextraservice', (req, res) => {
 iast.initRoutes(app, tracer)
 
 require('./auth')(app, passport, tracer)
-require('./graphql')(app)
-
-app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => {})
-  console.log('listening')
+require('./graphql')(app).then(() => {
+  app.listen(7777, '0.0.0.0', () => {
+    tracer.trace('init.service', () => {})
+    console.log('listening')
+  })
 })

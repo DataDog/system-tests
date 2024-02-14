@@ -1,0 +1,85 @@
+name: GraphQL
+on:
+  workflow_call:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  graphql:
+    runs-on:
+      group: "APM Larger Runners"
+
+    strategy:
+      matrix:
+        variant:
+          - library: golang
+            weblog: gqlgen
+          - library: golang
+            weblog: graph-gophers
+          - library: golang
+            weblog: graphql-go
+          - library: nodejs
+            weblog: express4
+          - library: nodejs
+            weblog: uds-express4
+          - library: nodejs
+            weblog: express4-typescript
+        version:
+          - prod
+          - dev
+      fail-fast: false
+
+    env:
+      TEST_LIBRARY: ${{ matrix.variant.library }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+
+      - name: Build proxy image
+        if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+        run: ./build.sh -i proxy
+      - name: Load library binary
+        if: matrix.version == 'dev'
+        run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+      - name: Load agent binary
+        if: ${{ matrix.version == 'dev' }}
+        run: ./utils/scripts/load-binary.sh agent
+      - name: Log in to the Container registry
+        if: ${{ matrix.variant.library == 'ruby' }}
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Build agent
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
+
+      - name: Build weblog
+        id: build
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
+
+      - name: Run GRAPHQL_APPSEC scenario
+        run: ./run.sh GRAPHQL_APPSEC
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Compress logs
+        id: compress_logs
+        if: always()
+        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+      - name: Upload artifact
+        if: always() && steps.compress_logs.outcome == 'success'
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_graphql
+          path: artifact.tar.gz
+      - name: Upload results CI Visibility
+        if: always()
+        run: ./utils/scripts/upload_results_CI_visibility.sh dev system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+      - name: Print fancy log report
+        if: always()
+        run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY

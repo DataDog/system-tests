@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk')
+const tracer = require('dd-trace')
 
 let TopicArn
 let QueueUrl
@@ -102,6 +103,10 @@ const snsConsume = async (queue, timeout) => {
           console.log(response)
           if (response && response.Messages && response.Messages.length > 0) {
             for (const message of response.Messages) {
+              // add a manual span to make finding this trace easier when asserting on tests
+              tracer.trace('sns.consume', span => {
+                span.setTag('queue_name', queue)
+              })
               console.log(message)
               const messageJSON = JSON.parse(message.Body)
               console.log(messageJSON)
