@@ -329,7 +329,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_name="ruby-test-client",
         container_tag="ruby-test-client",
         container_img=f"""
-            FROM ruby:3.2.1-bullseye
+            FROM --platform=linux/amd64 ruby:3.2.1-bullseye
             WORKDIR /app
             COPY {ruby_reldir} .           
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
