@@ -91,6 +91,19 @@ jobs:
     - scenarios
     uses: ./.github/workflows/end-to-end.yml
     secrets: inherit
+    with:
+      run_all: ${{ needs.scenarios.outputs.run_all  == 'true' }}
+      run_replay: ${{ needs.scenarios.outputs.run_all  == 'true' }}
+      run_integration: ${{ needs.scenarios.outputs.run_integration  == 'true' }}
+      run_sampling: ${{ needs.scenarios.outputs.run_sampling  == 'true' }}
+      run_profiling: ${{ needs.scenarios.outputs.run_profiling  == 'true' }}
+      run_debugger: ${{ needs.scenarios.outputs.run_debugger  == 'true' }}
+      run_appsec: ${{ needs.scenarios.outputs.run_appsec  == 'true' }}
+      run_open_telemetry: ${{ needs.scenarios.outputs.run_open_telemetry  == 'true' }}
+      build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
+      build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
+      build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
+
 
   open-telemetry-manual:
     runs-on: ubuntu-latest
