@@ -48,6 +48,8 @@ jobs:
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.client }}
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ matrix.version }}
+      SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -88,7 +90,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v3
         with:
-          name: logs_${{ matrix.variant.client}}_parametric_${{ matrix.variant.version }}_main
+          name: logs_parametric_${{ matrix.variant.client}}_${{ matrix.variant.version }}
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: ${{ always() }}

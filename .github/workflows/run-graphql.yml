@@ -39,6 +39,8 @@ jobs:
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ matrix.version }}
+      SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
     steps:
       - name: Checkout
@@ -79,7 +81,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v3
         with:
-          name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_graphql
+          name: logs_graphql_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: always()
