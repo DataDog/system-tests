@@ -132,7 +132,7 @@ class VmProvider:
                         last_task,
                     )
                 else:
-                    last_task = self.remote_copy_folders(
+                    last_task = self.commander.remote_copy_folders(
                         file_to_copy.local_path, remote_path, installation.id, server_connection, last_task
                     )
 
@@ -147,11 +147,6 @@ class VmProvider:
             logger_name=logger_name,
             output_callback=output_callback,
         )
-
-    def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
-    ):
-        raise NotImplementedError(f"Copy folders not implemented")
 
     def _get_command_environment(self, vm):
         """ This environment will be injected as environment variables for all launched remote commands """
@@ -206,3 +201,12 @@ class Commander:
             output_callback is a function to be called with the output of the command.
             Return the current task executed."""
         raise NotImplementedError
+
+    def remote_copy_folders(
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+    ):
+        """ The best option would be zip folder on local system and copy to remote machine
+             There is a weird behaviour synchronizing local command and remote command
+             Uggly workaround: Copy files and folder one by one :-( ) """
+
+        raise NotImplementedError(f"Copy folders not implemented")
