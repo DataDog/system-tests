@@ -48,14 +48,17 @@ const kinesisProduce = (stream, message, partitionKey, timeout = 60000) => {
             } else {
               console.log('[Kinesis] Kinesis describe stream, stream not active')
               console.log(data)
+              setTimeout(() => {
+                sendRecord()
+              }, 1000)
             }
           })
         }
 
-        setTimeout(() => {
-          console.log('[Kinesis] TimeoutError: No message produced')
-          reject(new Error('[Kinesis] TimeoutError: No message produced'))
-        }, timeout)
+        // setTimeout(() => {
+        //   console.log('[Kinesis] TimeoutError: No message produced')
+        //   reject(new Error('[Kinesis] TimeoutError: No message produced'))
+        // }, timeout)
 
         sendRecord()
       }

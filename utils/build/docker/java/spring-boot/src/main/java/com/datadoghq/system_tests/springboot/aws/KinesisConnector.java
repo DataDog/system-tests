@@ -16,10 +16,12 @@ import software.amazon.awssdk.services.kinesis.model.Record;
 import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 
 public class KinesisConnector {
+    public static final String ENDPOINT = "http://localstack-main:4566";
     public static String DEFAULT_REGION = "us-east-1";
     public final String stream;
     public final Region region;
@@ -33,6 +35,7 @@ public class KinesisConnector {
         KinesisClient kinesisClient = KinesisClient.builder()
             .region(this.region)
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .endpointOverride(URI.create(ENDPOINT))
             .build();
         return kinesisClient;
     }
@@ -48,12 +51,12 @@ public class KinesisConnector {
                 System.out.println("[Kinesis] Kinesis Stream creation status: " + createStreamResponse.sdkHttpResponse().statusCode());
             }
 
-            DescribeStreamRequest describeStreamRequest = DescribeStreamRequest.builder()
-                .streamName(stream)
-                .build();
-            DescribeStreamResponse describeStreamResponse = kinesisClient.describeStream(describeStreamRequest);
-            StreamStatus streamStatus = describeStreamResponse.streamDescription().streamStatus();
-            System.out.println("[Kinesis] Kinesis Stream status: " + streamStatus);
+            // DescribeStreamRequest describeStreamRequest = DescribeStreamRequest.builder()
+            //     .streamName(stream)
+            //     .build();
+            // DescribeStreamResponse describeStreamResponse = kinesisClient.describeStream(describeStreamRequest);
+            // StreamStatus streamStatus = describeStreamResponse.streamDescription().streamStatus();
+            // System.out.println("[Kinesis] Kinesis Stream status: " + streamStatus);
         } catch (Exception e) {
             System.err.println("[Kinesis] Failed to create Kinesis stream with following error: " + e.getLocalizedMessage());
             throw e;
@@ -95,7 +98,7 @@ public class KinesisConnector {
 
     public void produceMessageWithoutNewThread(String message) throws Exception {
         KinesisClient kinesisClient = this.createKinesisClient();
-        createKinesisStream(kinesisClient, this.stream, false);
+        createKinesisStream(kinesisClient, this.stream, true);
         System.out.printf("[Kinesis] Publishing message: %s%n", message);
         PutRecordRequest putRecordRequest = PutRecordRequest.builder()
             .streamName(this.stream)
@@ -108,7 +111,6 @@ public class KinesisConnector {
 
     public boolean consumeMessageWithoutNewThread(int timeout) throws Exception {
         KinesisClient kinesisClient = this.createKinesisClient();
-        createKinesisStream(kinesisClient, this.stream, false);
     
         long startTime = System.currentTimeMillis();
         long endTime = startTime + timeout * 1000; // Convert timeout to milliseconds
