@@ -1,17 +1,20 @@
 import os
 import pathlib
 import uuid
+import tempfile
+
 import paramiko
 
 from pulumi import automation as auto
 import pulumi
+import pulumi_tls as tls
 import pulumi_aws as aws
 from pulumi import Output
 import pulumi_command as command
 
 from utils.tools import logger
 from utils import context
-from utils.onboarding.pulumi_ssh import PulumiSSH
+
 from utils.onboarding.pulumi_utils import pulumi_logger
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 
@@ -20,13 +23,15 @@ class AWSPulumiProvider(VmProvider):
     def __init__(self):
         super().__init__()
         self.commander = AWSCommander()
+        self.pulumi_ssh = None
 
     def stack_up(self):
         logger.info(f"Starting AWS VMs: {self.vms}")
 
         def pulumi_start_program():
             # Static loading of keypairs for ec2 machines
-            PulumiSSH.load()
+            self.pulumi_ssh = PulumiSSH()
+            self.pulumi_ssh.load(self.vms)
             for vm in self.vms:
                 logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
                 self._start_vm(vm)
@@ -55,10 +60,10 @@ class AWSPulumiProvider(VmProvider):
             instance_type=vm.aws_config.ami_instance_type,
             vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
             subnet_id=vm.aws_config.aws_infra_config.subnet_id,
-            key_name=PulumiSSH.keypair_name,
+            key_name=self.pulumi_ssh.keypair_name,
             ami=vm.aws_config.ami_id if ami_id is None else ami_id,
             tags={"Name": vm.name,},
-            opts=PulumiSSH.aws_key_resource,
+            opts=self.pulumi_ssh.aws_key_resource,
         )
 
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
@@ -67,16 +72,13 @@ class AWSPulumiProvider(VmProvider):
         Output.all(ec2_server.private_ip, vm.name).apply(
             lambda args: pulumi_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}")
         )
-        # Configure ssh connection
-        # Output.all(ec2_server.private_ip, vm).apply(
-        #    vm.ssh_config.set_pkey(paramiko.RSAKey.from_private_key_file(PulumiSSH.pem_file))
-        # )
+
         vm.ssh_config.username = vm.aws_config.user
 
         server_connection = command.remote.ConnectionArgs(
             host=ec2_server.private_ip,
             user=vm.aws_config.user,
-            private_key=PulumiSSH.private_key_pem,
+            private_key=self.pulumi_ssh.private_key_pem,
             dial_error_limit=-1,
         )
         # Install provision on the started server
@@ -249,3 +251,55 @@ class AWSCommander(Commander):
                     ),
                 )
         return quee_depends_on.pop()  # Here the quee should contain only one element
+
+
+class PulumiSSH:
+    keypair_name = None
+    private_key_pem = None
+    aws_key_resource = None
+    pem_file = None
+
+    def load(self, vms):
+        # Optional parameters. You can use for local testing
+        user_provided_keyPairName = os.getenv("ONBOARDING_AWS_INFRA_KEYPAIR_NAME")
+        user_provided_privateKeyPath = os.getenv("ONBOARDING_AWS_INFRA_KEY_PATH")
+        # SSH Keys: Two options. 1. Use your own keypair and pem file. 2.
+        # Create a new one and automatically destroy after the test
+        if user_provided_keyPairName and user_provided_privateKeyPath:
+            logger.info("Using a existing key pair")
+            self.keypair_name = user_provided_keyPairName
+            self.pem_file = user_provided_privateKeyPath
+            with open(user_provided_privateKeyPath, encoding="utf-8") as f:
+                self.private_key_pem = f.read()
+        else:
+            logger.info("Creating new ssh key")
+            key_name = "onboarding_test_key_name" + str(randint(0, 1000000))
+            ssh_key = tls.PrivateKey(key_name, algorithm="RSA", rsa_bits=4096)
+            self.private_key_pem = ssh_key.private_key_pem
+            aws_key = aws.ec2.KeyPair(
+                key_name,
+                key_name=key_name,
+                public_key=ssh_key.public_key_openssh,
+                opts=pulumi.ResourceOptions(parent=ssh_key),
+            )
+            self.keypair_name = aws_key.key_name
+            self.aws_key_resource = pulumi.ResourceOptions(depends_on=[aws_key])
+
+            # Create temporary file to use the pem file in other ssh connections (outside of Pulumi context)
+            logger.info("Creating temporary pem file")
+
+            # Configure ssh connection
+            Output.all(vms, ssh_key.private_key_pem).apply(
+                lambda args: [
+                    vm.vm.ssh_config.set_pkey(paramiko.RSAKey.from_private_key_file(self._write_pem_file(args[1])))
+                    for vm in args[0]
+                ]
+            )
+
+    def _write_pem_file(self, content):
+        if self.pem_file is None:
+            _, pem_file_path = tempfile.mkstemp()
+            self.pem_file = open(pem_file_path, "w", encoding="utf-8")  # pylint: disable=R1732
+            self.pem_file.write(content)
+            self.pem_file.close()
+        return self.pem_file
