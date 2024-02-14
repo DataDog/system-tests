@@ -1,4 +1,8 @@
 import os
+import pathlib
+import uuid
+import paramiko
+
 from pulumi import automation as auto
 import pulumi
 import pulumi_aws as aws
@@ -9,7 +13,6 @@ from utils.tools import logger
 from utils import context
 from utils.onboarding.pulumi_ssh import PulumiSSH
 from utils.onboarding.pulumi_utils import pulumi_logger
-import paramiko
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 
 
@@ -192,3 +195,53 @@ class AWSCommander(Commander):
             Output.all(vm, cmd_exec_install.stdout).apply(output_callback)
 
         return cmd_exec_install
+
+    def remote_copy_folders(
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+    ):
+        quee_depends_on = [depends_on]
+        for file_name in os.listdir(source_folder):
+            # construct full file path
+            source = source_folder + "/" + file_name
+            destination = destination_folder + "/" + file_name
+            logger.debug(f"remote_copy_folders: source:[{source}] and remote destination: [{destination}] ")
+
+            if os.path.isfile(source):
+                if not relative_path:
+                    destination = os.path.basename(destination)
+
+                logger.debug(f"Copy single file: source:[{source}] and remote destination: [{destination}] ")
+                # Launch copy file command
+                quee_depends_on.insert(
+                    0,
+                    command.remote.CopyFile(
+                        source + "-" + command_id,
+                        connection=connection,
+                        local_path=source,
+                        remote_path=destination,
+                        opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
+                    ),
+                )
+            else:
+                # mkdir remote
+                if not relative_path:
+                    p = pathlib.Path("/" + destination)
+                    destination = str(p.relative_to(*p.parts[:2]))
+                logger.debug(f"Creating remote folder: {destination}")
+
+                quee_depends_on.insert(
+                    0,
+                    command.remote.Command(
+                        "mkdir-" + destination + "-" + str(uuid.uuid4()) + "-" + command_id,
+                        connection=connection,
+                        create=f"mkdir -p {destination}",
+                        opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
+                    ),
+                )
+                quee_depends_on.insert(
+                    0,
+                    self.remote_copy_folders(
+                        source, destination, command_id, connection, quee_depends_on.pop(), relative_path=True
+                    ),
+                )
+        return quee_depends_on.pop()  # Here the quee should contain only one element

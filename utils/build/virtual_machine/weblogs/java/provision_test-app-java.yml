@@ -12,10 +12,9 @@ lang_variant:
 
 weblog:
     name: test-app-java
-    excluded_os_branches: [amazon_linux2_dotnet6,amazon_linux2023_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
     install:
       - os_type: linux
-        local-command: tar -czvf dd-lib-java-init-test-app_$DD_VM_NAME.tar.gz -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
 
         copy_files:
           - name: copy-service
@@ -25,9 +24,9 @@ weblog:
             local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_run.sh
 
           - name: copy-java-app
-            local_path: dd-lib-java-init-test-app_$DD_VM_NAME.tar.gz
+            local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
-        remote-command: tar -xf dd-lib-java-init-test-app_$DD_VM_NAME.tar.gz && sh test-app-java_run.sh
+        remote-command: sh test-app-java_run.sh
     uninstall:
       - os_type: linux
         remote-command: sudo systemctl stop test-app.service

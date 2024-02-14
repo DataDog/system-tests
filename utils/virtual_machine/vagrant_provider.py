@@ -82,8 +82,8 @@ class VagrantProvider(VmProvider):
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
 
-    # for v in self.vagrant_machines:
-    #    v.destroy()
+        for v in self.vagrant_machines:
+            v.destroy()
 
 
 class VagrantCommander(Commander):

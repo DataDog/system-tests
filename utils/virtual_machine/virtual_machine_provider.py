@@ -132,7 +132,9 @@ class VmProvider:
                         last_task,
                     )
                 else:
-                    raise NotImplementedError(f"Copy folders not implemented {file_to_copy.local_path}")
+                    last_task = self.remote_copy_folders(
+                        file_to_copy.local_path, remote_path, installation.id, server_connection, last_task
+                    )
 
         # Execute a basic command on our server.
         return self.commander.remote_command(
@@ -146,14 +148,21 @@ class VmProvider:
             output_callback=output_callback,
         )
 
+    def remote_copy_folders(
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+    ):
+        raise NotImplementedError(f"Copy folders not implemented")
+
     def _get_command_environment(self, vm):
         """ This environment will be injected as environment variables for all launched remote commands """
         command_env = {}
         for key, value in vm.get_provision().env.items():
             command_env["DD_" + key] = value
         # DD
-        command_env["DD_API_KEY"] = vm.datadog_config.dd_api_key
-        command_env["DD_APP_KEY"] = vm.datadog_config.dd_app_key
+        if vm.datadog_config.dd_api_key:
+            command_env["DD_API_KEY"] = vm.datadog_config.dd_api_key
+        if vm.datadog_config.dd_app_key:
+            command_env["DD_APP_KEY"] = vm.datadog_config.dd_app_key
         # Docker
         if vm.datadog_config.docker_login:
             command_env["DD_DOCKER_LOGIN"] = vm.datadog_config.docker_login

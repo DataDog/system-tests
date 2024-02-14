@@ -18,6 +18,7 @@ class VirtualMachineProvisioner:
                 "excluded_os_branches" in config_data["weblog"]
                 and vm.os_branch in config_data["weblog"]["excluded_os_branches"]
             ):
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in excluded_os_branches")
                 vms_to_remove.append(vm)
                 continue
             for installation in installations:
@@ -36,6 +37,7 @@ class VirtualMachineProvisioner:
                     if allowed == True:
                         break
             if allowed == False:
+                logger.stdout(f"WARNING: Weblog doesn't support VM [{vm.name}]. Removed!")
                 vms_to_remove.append(vm)
         # Ok remove the vms
         for vm in vms_to_remove:
