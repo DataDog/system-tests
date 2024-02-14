@@ -130,7 +130,7 @@ class _Test_Kinesis:
         """
 
         self.production_response = self.buddy.get(
-            "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM}, timeout=120
+            "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM}, timeout=500
         )
         self.consume_response = weblog.get(
             "/kinesis/consume", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "timeout": 60}, timeout=61

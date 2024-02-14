@@ -100,13 +100,25 @@ public class KinesisConnector {
         KinesisClient kinesisClient = this.createKinesisClient();
         createKinesisStream(kinesisClient, this.stream, true);
         System.out.printf("[Kinesis] Publishing message: %s%n", message);
-        PutRecordRequest putRecordRequest = PutRecordRequest.builder()
-            .streamName(this.stream)
-            .partitionKey("1")
-            .data(SdkBytes.fromByteBuffer(ByteBuffer.wrap(message.getBytes())))
-            .build();
-        PutRecordResponse putRecordResponse = kinesisClient.putRecord(putRecordRequest);
-        System.out.println("[Kinesis] Kinesis record sequence number: " + putRecordResponse.sequenceNumber());
+
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + 60000;
+    
+        while (System.currentTimeMillis() < endTime) {
+            try {
+                PutRecordRequest putRecordRequest = PutRecordRequest.builder()
+                    .streamName(this.stream)
+                    .partitionKey("1")
+                    .data(SdkBytes.fromByteBuffer(ByteBuffer.wrap(message.getBytes())))
+                    .build();
+                PutRecordResponse putRecordResponse = kinesisClient.putRecord(putRecordRequest);
+                System.out.println("[Kinesis] Kinesis record sequence number: " + putRecordResponse.sequenceNumber());
+                break;
+            } catch (Exception e) {
+                System.err.println("[Kinesis] Error trying to produce, will retry: " + e);
+                Thread.sleep(1000); // Wait 1 second before checking again
+            }
+        }
     }
 
     public boolean consumeMessageWithoutNewThread(int timeout) throws Exception {
@@ -116,39 +128,44 @@ public class KinesisConnector {
         long endTime = startTime + timeout * 1000; // Convert timeout to milliseconds
     
         while (System.currentTimeMillis() < endTime) {
-            DescribeStreamRequest describeStreamRequest = DescribeStreamRequest.builder()
-                .streamName(this.stream)
-                .build();
-            DescribeStreamResponse describeStreamResponse = kinesisClient.describeStream(describeStreamRequest);
-            StreamStatus streamStatus = describeStreamResponse.streamDescription().streamStatus();
-    
-            if (streamStatus != StreamStatus.ACTIVE) {
-                System.out.println("[Kinesis] Kinesis Stream is not active");
+            try {
+                DescribeStreamRequest describeStreamRequest = DescribeStreamRequest.builder()
+                    .streamName(this.stream)
+                    .build();
+                DescribeStreamResponse describeStreamResponse = kinesisClient.describeStream(describeStreamRequest);
+                StreamStatus streamStatus = describeStreamResponse.streamDescription().streamStatus();
+        
+                if (streamStatus != StreamStatus.ACTIVE) {
+                    System.out.println("[Kinesis] Kinesis Stream is not active");
+                    Thread.sleep(1000); // Wait 1 second before checking again
+                    continue;
+                }
+        
+                String shardIterator = kinesisClient.getShardIterator(r -> r.streamName(this.stream).shardId("shardId-000000000000").shardIteratorType(ShardIteratorType.TRIM_HORIZON)).shardIterator();
+        
+                GetRecordsRequest getRecordsRequest = GetRecordsRequest.builder()
+                    .shardIterator(shardIterator)
+                    .limit(1)
+                    .build();
+        
+                GetRecordsResponse getRecordsResponse = kinesisClient.getRecords(getRecordsRequest);
+                List<Record> records = getRecordsResponse.records();
+        
+                for (Record record : records) {
+                    System.out.println("[Kinesis] got message! " + new String(record.data().asByteArray()));
+                }
+        
+                if (!records.isEmpty()) {
+                    return true;
+                }
+
                 Thread.sleep(1000); // Wait 1 second before checking again
-                continue;
+            } catch (Exception e) {
+                System.err.println("[Kinesis] Error trying to consume, will retry: " + e);
+                Thread.sleep(1000); // Wait 1 second before checking again
             }
-    
-            String shardIterator = kinesisClient.getShardIterator(r -> r.streamName(this.stream).shardId("shardId-000000000000").shardIteratorType(ShardIteratorType.TRIM_HORIZON)).shardIterator();
-    
-            GetRecordsRequest getRecordsRequest = GetRecordsRequest.builder()
-                .shardIterator(shardIterator)
-                .limit(1)
-                .build();
-    
-            GetRecordsResponse getRecordsResponse = kinesisClient.getRecords(getRecordsRequest);
-            List<Record> records = getRecordsResponse.records();
-    
-            for (Record record : records) {
-                System.out.println("[Kinesis] got message! " + new String(record.data().asByteArray()));
-            }
-    
-            if (!records.isEmpty()) {
-                return true;
-            }
-    
-            Thread.sleep(1000); // Wait 1 second before checking again
         }
-    
+
         return false;
     }
 }
