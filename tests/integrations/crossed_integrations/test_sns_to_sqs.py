@@ -25,7 +25,7 @@ class _Test_SNS:
         for data, trace in interface.get_traces():
             # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
-            for span in trace.reverse():
+            for span in reversed(trace):
                 if not span.get("meta"):
                     continue
 
