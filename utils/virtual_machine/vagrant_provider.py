@@ -153,7 +153,6 @@ class VagrantCommander(Commander):
 
         if destination_folder is None or destination_folder == "":
             destination_folder = "./"
-        logger.debug(f"RMM Destination folder  {destination_folder}")
         sftp = MySFTPClient.from_transport(connection.get_transport())
         sftp.mkdir(destination_folder, ignore_existing=True)
         sftp.put_dir(source_folder, destination_folder)

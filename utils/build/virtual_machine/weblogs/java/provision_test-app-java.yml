@@ -27,6 +27,3 @@ weblog:
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
         remote-command: sh test-app-java_run.sh
-    uninstall:
-      - os_type: linux
-        remote-command: sudo systemctl stop test-app.service

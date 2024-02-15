@@ -1104,6 +1104,12 @@ class _VirtualMachineScenario(_Scenario):
     def session_start(self):
         super().session_start()
         self.fill_context()
+        self.print_installed_components()
+
+    def print_installed_components(self):
+        logger.terminal.write_sep("=", "Installed components", bold=True)
+        for component in self.components:
+            logger.stdout(f"{component}: {self.components[component]}")
 
     def configure(self, config):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
@@ -1155,12 +1161,13 @@ class _VirtualMachineScenario(_Scenario):
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
 
     def _get_warmups(self):
+        logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True)
         return [self.vm_provider.stack_up]
 
     def fill_context(self):
         for vm in self.required_vms:
             for key in vm.tested_components:
-                self._tested_components[key] = vm.tested_components[key]
+                self._tested_components[key] = vm.tested_components[key].lstrip(" ")
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing  _VirtualMachineScenario scenario")
@@ -1630,6 +1637,18 @@ class scenarios:
 
     host_auto_injection = _VirtualMachineScenario(
         "HOST_AUTO_INJECTION",
+        vm_provision="host-auto-inject",
+        doc="Onboarding Host Single Step Instrumentation scenario",
+        include_ubuntu_22_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_18_amd64=True,
+        include_amazon_linux_2_amd64=True,
+        include_amazon_linux_2_dotnet_6=True,
+        include_amazon_linux_2023_amd64=True,
+        include_amazon_linux_2023_arm64=True,
+    )
+    host_auto_injection_block_list = _VirtualMachineScenario(
+        "HOST_AUTO_INJECTION_BLOCK_LIST",
         vm_provision="host-auto-inject",
         doc="Onboarding Host Single Step Instrumentation scenario",
         include_ubuntu_22_amd64=True,
