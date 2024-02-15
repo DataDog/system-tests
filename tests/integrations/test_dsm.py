@@ -291,10 +291,7 @@ class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
 
     def setup_dsm_kinesis(self):
-        self.r = weblog.get(
-            "/dsm?integration=kinesis&timeout=60&stream=dsm-system-tests-stream",
-            timeout=61,
-        )
+        self.r = weblog.get("/dsm?integration=kinesis&timeout=60&stream=dsm-system-tests-stream", timeout=61,)
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_kinesis(self):
@@ -315,7 +312,9 @@ class Test_DsmKinesis:
             hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{stream_arn}", "type:kinesis"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{stream_arn}", "type:kinesis"),
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=("direction:in", f"topic:{stream_arn}", "type:kinesis"),
         )
 
 

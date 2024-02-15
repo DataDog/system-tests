@@ -393,9 +393,7 @@ def dsm():
         timeout = flask_request.args.get("timeout", 60)
         message = json.dumps({"message": "Hello from Python DSM Kinesis test"})
 
-        produce_thread = threading.Thread(
-            target=kinesis_produce, args=(stream, message, "1", timeout)
-        )
+        produce_thread = threading.Thread(target=kinesis_produce, args=(stream, message, "1", timeout))
         consume_thread = threading.Thread(target=kinesis_consume, args=(stream, timeout))
         produce_thread.start()
         consume_thread.start()
