@@ -74,97 +74,56 @@ const kinesisConsume = (stream, timeout = 60000) => {
   })
 
   let consumedMessage = null
-  let shardIterator = null
-
-  const describeStream = () => {
-    return new Promise((resolve, reject) => {
-      kinesis.describeStream({ StreamName: stream }, (err, response) => {
-        if (err) {
-          console.log(`[Kinesis] Error during Kinesis describe stream: ${err}`)
-          reject(err)
-        } else {
-          resolve(response)
-        }
-      })
-    })
-  }
-
-  const getShardIterator = (shardId) => {
-    return new Promise((resolve, reject) => {
-      kinesis.getShardIterator({
-        StreamName: stream,
-        ShardId: shardId,
-        ShardIteratorType: 'TRIM_HORIZON'
-      }, (err, response) => {
-        if (err) {
-          console.log(`[Kinesis] Error during Kinesis get shard iterator: ${err}`)
-          reject(err)
-        } else {
-          resolve(response.ShardIterator)
-        }
-      })
-    })
-  }
-
-  const getRecords = (shardIterator) => {
-    return new Promise((resolve, reject) => {
-      kinesis.getRecords({ ShardIterator: shardIterator }, (err, recordsResponse) => {
-        if (err) {
-          console.log(`[Kinesis] Error during Kinesis get records: ${err}`)
-          reject(err)
-        } else {
-          resolve(recordsResponse)
-        }
-      })
-    })
-  }
 
   return new Promise((resolve, reject) => {
     const consumeMessage = () => {
-      if (!shardIterator) {
-        describeStream()
-          .then((response) => {
-            if (response && response.StreamDescription && response.StreamDescription.StreamStatus === 'ACTIVE') {
-              const shardId = response.StreamDescription.Shards[0].ShardId
-              return getShardIterator(shardId)
-            } else {
-              return new Promise((resolve) => setTimeout(resolve, 1000))
-                .then(consumeMessage)
-            }
-          })
-          .then((iterator) => {
-            shardIterator = iterator
-            console.log(`[Kinesis] Found Kinesis Shard Iterator: ${shardIterator} for stream: ${stream}`)
-            consumeMessage()
-          })
-          .catch((err) => {
-            console.log(`[Kinesis] Error during Kinesis setup: ${err}`)
-            reject(err)
-          })
-      } else {
-        getRecords(shardIterator)
-          .then((recordsResponse) => {
-            if (recordsResponse && recordsResponse.Records && recordsResponse.Records.length > 0) {
-              for (const message of recordsResponse.Records) {
-                // add a manual span to make finding this trace easier when asserting on tests
-                tracer.trace('kinesis.consume', span => {
-                  span.setTag('stream_name', stream)
-                })
-                consumedMessage = message.Data
-                console.log(`[Kinesis] Consumed the following: ${consumedMessage}`)
-              }
-              resolve()
-            } else {
-              setTimeout(consumeMessage, 1000)
-            }
-          })
-          .catch((err) => {
-            console.log(`[Kinesis] Error during Kinesis get records: ${err}`)
-            reject(err)
-          })
-      }
-    }
+      kinesis.describeStream({ StreamName: stream }, (err, response) => {
+        if (err) {
+          console.log(`[Kinesis] Error during Kinesis describe stream: ${err}`)
+          setTimeout(consumeMessage, 1000)
+        } else {
+          if (response && response.StreamDescription && response.StreamDescription.StreamStatus === 'ACTIVE') {
+            const shardId = response.StreamDescription.Shards[0].ShardId
 
+            kinesis.getShardIterator({
+              StreamName: stream,
+              ShardId: shardId,
+              ShardIteratorType: 'TRIM_HORIZON'
+            }, (err, response) => {
+              if (err) {
+                console.log(`[Kinesis] Error during Kinesis get shard iterator: ${err}`)
+                setTimeout(consumeMessage, 1000)
+              } else {
+                console.log(`[Kinesis] Found Kinesis Shard Iterator: ${response.ShardIterator} for stream: ${stream}`)
+
+                kinesis.getRecords({ ShardIterator: response.ShardIterator }, (err, recordsResponse) => {
+                  if (err) {
+                    console.log(`[Kinesis] Error during Kinesis get records: ${err}`)
+                    setTimeout(consumeMessage, 1000)
+                  } else {
+                    if (recordsResponse && recordsResponse.Records && recordsResponse.Records.length > 0) {
+                      for (const message of recordsResponse.Records) {
+                        // add a manual span to make finding this trace easier when asserting on tests
+                        tracer.trace('kinesis.consume', span => {
+                          span.setTag('stream_name', stream)
+                        })
+                        consumedMessage = message.Data
+                        console.log(`[Kinesis] Consumed the following: ${consumedMessage}`)
+                      }
+                      resolve()
+                    } else {
+                      setTimeout(consumeMessage, 1000)
+                    }
+                  }
+                })
+              }
+            })
+          } else {
+            setTimeout(consumeMessage, 1000)
+          }
+        }
+      })
+    }
     setTimeout(() => {
       console.log('[Kinesis] TimeoutError: No messages consumed')
       reject(new Error('[Kinesis] TimeoutError: No messages consumed'))

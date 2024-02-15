@@ -32,7 +32,9 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
                 and response.get("StreamDescription", None).get("StreamStatus", "") == "ACTIVE"
             ):
                 # Send the message to the Kinesis stream
-                kinesis.put_record(StreamName=stream, Data=message, PartitionKey=partition_key)
+                kinesis.put_record(
+                    StreamARN=response["StreamDescription"]["StreamARN"], Data=message, PartitionKey=partition_key
+                )
                 message_sent = True
             else:
                 time.sleep(1)

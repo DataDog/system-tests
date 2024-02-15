@@ -151,6 +151,9 @@ class _Test_Kinesis:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(
+        library="java", reason="Expected to fail, Java does not extract message attribute context for Kinesis"
+    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -201,32 +204,3 @@ class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_Kinesis):
     buddy = _python_buddy
     WEBLOG_TO_BUDDY_STREAM = "Test_Kinesis_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_STREAM = "Test_Kinesis_propagation_via_message_attributes_buddy_to_weblog"
-
-
-# @scenarios.crossed_tracing_libraries
-# @features.aws_kinesis_span_creationcontext_propagation_via_AWS_Xray_headers_with_dd_trace
-# class Test_Kinesis_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_Kinesis):
-#     buddy_interface = interfaces.java_buddy
-#     buddy = _java_buddy
-#     WEBLOG_TO_BUDDY_STREAM = "Test_Kinesis_propagation_via_aws_xray_header_weblog_to_buddy"
-#     BUDDY_TO_WEBLOG_STREAM = "Test_Kinesis_propagation_via_aws_xray_header_buddy_to_weblog"
-
-#     @missing_feature(
-#         library="nodejs",
-#         reason="Expected to fail, NodeJS will not create a response span \
-#                      propagating context since it cannot extract AWSTracerHeader context that Java injects",
-#     )
-#     def test_consume(self):
-#         super().test_consume()
-
-#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-#     def test_produce_trace_equality(self):
-#         super().test_produce_trace_equality()
-
-#     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-#     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-#     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-#     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-#     def test_consume_trace_equality(self):
-#         super().test_consume_trace_equality()
