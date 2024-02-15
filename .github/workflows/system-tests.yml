@@ -92,12 +92,12 @@ jobs:
     with:
       build_proxy_image: ${{ inputs.build_proxy_image }}
 
-  experimental:
+  lib-injection:
     if: inputs.run_libinjection || inputs.run_all
-    uses: ./.github/workflows/run-experimental.yml
+    uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
 
-  main:
+  end-to-end:
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
