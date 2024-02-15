@@ -1332,6 +1332,9 @@ class scenarios:
     appsec_blocking = EndToEndScenario(
         "APPSEC_BLOCKING", appsec_rules="/appsec_blocking_rule.json", doc="Misc tests for appsec blocking"
     )
+    graphql_appsec = EndToEndScenario(
+        "GRAPHQL_APPSEC", appsec_rules="/appsec_blocking_rule.json", doc="AppSec tests for GraphQL integrations"
+    )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
         appsec_rules="/appsec_custom_rules_with_errors.json",

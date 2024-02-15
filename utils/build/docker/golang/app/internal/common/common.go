@@ -1,9 +1,9 @@
-package main
+package common
 
 import (
 	"encoding/json"
 	"encoding/xml"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -11,15 +11,15 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func initDatadog() {
+func InitDatadog() {
 	span := tracer.StartSpan("init.service")
 	defer span.Finish()
 	span.SetTag("whip", "done")
 }
 
-func parseBody(r *http.Request) (interface{}, error) {
+func ParseBody(r *http.Request) (interface{}, error) {
 	var payload interface{}
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func parseBody(r *http.Request) (interface{}, error) {
 	return url.ParseQuery(string(data))
 }
 
-func forceSpanIndexingTags() []ddtrace.StartSpanOption {
+func ForceSpanIndexingTags() []ddtrace.StartSpanOption {
 	// These tags simulate a retention filter to index spans, otherwise
 	// they will only be available in live search of spans!
 	//

@@ -275,7 +275,7 @@ class Test_Scanners:
     def setup_request_method(self):
         self.request = weblog.get(
             "/tag_value/api_match_AS001/200",
-            cookies={"mastercard": "5123456789123456", "authorization": "digest a0b1c2", "SSN": "123-45-6789",},
+            cookies={"mastercard": "5123456789123456", "authorization": "digest_a0b1c2", "SSN": "123-45-6789",},
             headers={"authorization": "digest a0b1c2",},
         )
 
@@ -287,20 +287,33 @@ class Test_Scanners:
         assert self.request.status_code == 200
         assert schema_cookies
         assert isinstance(schema_cookies, list)
-        EXPECTED_COOKIES = {
-            "SSN": [8, {"category": "pii", "type": "us_ssn"}],
-            "authorization": [8],
-            "mastercard": [8, {"card_type": "mastercard", "type": "card", "category": "payment"},],
-        }
-        EXPECTED_HEADERS = {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]}
+        # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
+        # in this case, the second case of expected variables below would pass
+        EXPECTED_COOKIES = [
+            {
+                "SSN": [8, {"category": "pii", "type": "us_ssn"}],
+                "authorization": [8],
+                "mastercard": [8, {"card_type": "mastercard", "type": "card", "category": "payment"},],
+            },
+            {
+                "SSN": [[[8, {"category": "pii", "type": "us_ssn"}]], {"len": 1}],
+                "authorization": [[[8]], {"len": 1}],
+                "mastercard": [[[8, {"card_type": "mastercard", "type": "card", "category": "payment"}]], {"len": 1}],
+            },
+        ]
+        EXPECTED_HEADERS = [
+            {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]},
+            {"authorization": [[[8, {"category": "credentials", "type": "digest_auth"}]], {"len": 1}]},
+        ]
 
         for schema, expected in [
             (schema_cookies[0], EXPECTED_COOKIES),
             (schema_headers[0], EXPECTED_HEADERS),
         ]:
-            for key in expected:
+
+            for key in expected[0]:
                 assert key in schema
                 assert isinstance(schema[key], list)
-                assert len(schema[key]) == len(expected[key])
+                assert len(schema[key]) == len(expected[0][key]) or len(schema[key]) == len(expected[1][key])
                 if len(schema[key]) == 2:
-                    assert schema[key][1] == expected[key][1]
+                    assert schema[key][1] == expected[1][key][1] or schema[key][1] == expected[0][key][1]

@@ -13,7 +13,7 @@ tests/:
       test_apisec_sampling.py:
         Test_API_Security_sampling: v2.46.0
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
         Test_Schema_Request_FormUrlEncoded_Body: v2.46.0
         Test_Schema_Request_Headers: v2.46.0
@@ -232,6 +232,7 @@ tests/:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v2.33.0
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_span_links.py: missing_feature
     test_telemetry.py:
