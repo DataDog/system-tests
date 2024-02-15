@@ -304,19 +304,22 @@ class Test_DsmKinesis:
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {
                 "producer": 6740568728215232522,
-                "consumer": 6273982990684090851,
+                "consumer": 13484979344558289202,
                 "edge_tags_out": ("direction:out", f"topic:{stream}", "type:kinesis"),
+                "edge_tags_in": ("direction:in", f"topic:{stream}", "type:kinesis"),
             },
             "default": {
                 "producer": 5712665980795799642,
                 "consumer": 17643872031898844474,
                 "edge_tags_out": ("direction:out", f"topic:{stream_arn}", "type:kinesis"),
+                "edge_tags_out": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),
             },
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
         edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_out"]
+        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
@@ -324,7 +327,7 @@ class Test_DsmKinesis:
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash,
             parent_hash=producer_hash,
-            tags=("direction:in", f"topic:{stream_arn}", "type:kinesis"),
+            tags=edge_tags_in,
         )
 
 
