@@ -231,42 +231,7 @@ jobs:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.version }}
         path: artifact.tar.gz
 
-  peformances:
-    runs-on: ubuntu-latest
+  exotics:
     if: inputs.run_all
-    env:
-      DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Setup python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    - name: Run
-      run: ./tests/perfs/run.sh golang
-    - name: Display
-      run: |
-        source venv/bin/activate
-        python tests/perfs/process.py
-
-  fuzzer:
-    runs-on: ubuntu-latest
-    if: inputs.run_all
-    env:
-      DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Install runner
-      uses: ./.github/actions/install_runner
-    - name: Build
-      run: |
-        ./build.sh -i agent
-        ./build.sh golang -i weblog
-    - name: Run
-      run: ./tests/fuzzer/run.sh
+    uses: ./.github/workflows/run-exotics.yml
+    secrets: inherit
