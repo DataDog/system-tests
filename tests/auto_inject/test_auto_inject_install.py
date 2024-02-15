@@ -39,7 +39,7 @@ class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
 
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
-class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
+class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
         """ Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
@@ -115,3 +115,38 @@ class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
 
     def test_remove_ld_preload(self, virtual_machine):
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
+
+
+@features.host_auto_instrumentation
+@scenarios.host_auto_injection
+class TestHostAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
+    def test_uninstall(self, virtual_machine):
+
+        vm_ip = virtual_machine.ssh_config.hostname
+        vm_port = virtual_machine.deffault_open_port
+        weblog_url = f"http://{vm_ip}:{vm_port}/"
+
+        # Kill the app before the uninstallation
+        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl kill -s SIGKILL test-app.service")
+        # Uninstall the auto inject
+        virtual_machine.ssh_config.get_ssh_connection().exec_command("dd-host-install --uninstall")
+        # Start the app again
+        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl start test-app.service")
+        wait_for_port(vm_port, vm_ip, 40.0)
+        warmup_weblog(weblog_url)
+        request_uuid = make_get_request(weblog_url)
+        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
+        try:
+            wait_backend_trace_id(request_uuid, 10.0)
+            raise AssertionError("The weblog application is instrumented after uninstall DD software")
+        except TimeoutError:
+            # OK there are no traces, the weblog app is not instrumented
+            pass
+        # Kill the app before restore the installation
+        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl kill -s SIGKILL test-app.service")
+        # reinstall the auto inject
+        virtual_machine.ssh_config.get_ssh_connection().exec_command("dd-host-install")
+        # Start the app again
+        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl start test-app.service")
+        # The app should be instrumented and reporting traces to the backend
+        self.test_install(virtual_machine)
