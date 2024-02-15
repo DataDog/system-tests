@@ -13,7 +13,7 @@ import requests
 
 from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
-from utils.parametric.spec.otel_trace import OtelSpanContext, get_val
+from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.parametric.spec.otel_trace import convert_to_proto
 
 
@@ -535,8 +535,8 @@ class APMLibraryClientGRPC:
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
 
-    def span_set_meta(self, span_id: int, key: str, val):
-        self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=span_id, key=key, value=get_val(val),))
+    def span_set_meta(self, span_id: int, key: str, val: str):
+        self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=span_id, key=key, value=val,))
 
     def span_set_metric(self, span_id: int, key: str, val: float):
         self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=span_id, key=key, value=val,))
