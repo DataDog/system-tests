@@ -68,7 +68,7 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  main:
+  end-to-end:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -230,6 +230,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull images
