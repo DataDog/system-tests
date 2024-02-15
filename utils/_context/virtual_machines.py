@@ -373,6 +373,9 @@ class TestedVirtualMachine:
         return command_env
 
 
+## ^^^ The above code will be deleted when the migration is finished. ^^^
+
+
 class AWSInfraConfig:
     def __init__(self) -> None:
         # Mandatory parameters
@@ -426,8 +429,7 @@ class _SSHConfig:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         if self.pkey_path is not None:
             if self.pkey is None:
-                pem_file = open(self.pkey_path, "r", encoding="utf-8")  # pylint: disable=R1732
-                self.pkey = paramiko.RSAKey.from_private_key_file(pem_file)
+                self.pkey = paramiko.RSAKey.from_private_key_file(self.pkey_path)
             ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey)
         else:
             ssh.connect(self.hostname, port=self.port, username=self.username, key_filename=self.key_filename)
