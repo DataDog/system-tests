@@ -627,8 +627,7 @@ tests/:
     Test_StandardTagsRoute: v1.6.0
     Test_StandardTagsStatusCode: v1.4.0rc1.dev
     Test_StandardTagsUrl:
-      '*': v1.6.0rc1.dev
-      fastapi: v2.4.0.dev1
+      '*': v2.4.0.dev
     Test_StandardTagsUserAgent: v1.5.0rc1.dev
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
