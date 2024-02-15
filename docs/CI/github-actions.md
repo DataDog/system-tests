@@ -45,7 +45,7 @@ jobs:
         run: ./run.sh
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}

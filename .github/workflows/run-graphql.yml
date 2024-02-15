@@ -81,7 +81,7 @@ jobs:
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
       - name: Upload artifact
         if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs_graphql_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
           path: artifact.tar.gz

@@ -69,7 +69,7 @@ jobs:
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
       if: always() && steps.build.outcome == 'success'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: logs_java-otel_prod
         path: artifact.tar.gz
@@ -124,7 +124,7 @@ jobs:
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
       if: always() && steps.build_otel.outcome == 'success'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.version }}
         path: artifact.tar.gz
