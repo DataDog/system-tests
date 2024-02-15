@@ -293,7 +293,7 @@ class PulumiSSH:
             ssh_key.private_key_pem.apply(lambda out: self._write_pem_file(pem_file, out))
 
             for vm in vms:
-                vm.vm.ssh_config.pkey_path = pem_file_path
+                vm.ssh_config.pkey_path = pem_file_path
 
     def _write_pem_file(self, pem_file, content):
         pem_file.write(content)
