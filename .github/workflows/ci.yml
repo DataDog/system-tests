@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Run lints
       uses: ./.github/actions/lint_code
 
@@ -41,7 +41,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install runner
         uses: ./.github/actions/install_runner
       # force /bin/bash in order to test against bash 3.2 on macOS
@@ -85,7 +85,7 @@ jobs:
     if: always() && github.ref == 'refs/heads/main'
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Update CI Dashboard
       run: ./utils/scripts/update_dashboard_CI_visibility.sh system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:

@@ -118,7 +118,7 @@ jobs:
     if: inputs.run_open_telemetry || inputs.run_all
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
@@ -195,7 +195,7 @@ jobs:
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
@@ -234,7 +234,7 @@ jobs:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Setup python 3.9
       uses: actions/setup-python@v4
       with:
@@ -253,7 +253,7 @@ jobs:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Build

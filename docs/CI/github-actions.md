@@ -28,7 +28,7 @@ jobs:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
           token: ${{ secrets.GH_TOKEN }}
