@@ -908,6 +908,9 @@ tests/:
       Test_DsmKafka:
         "*": irrelevant
         spring-boot: v1.13.0
+      Test_DsmKinesis:
+        "*": irrelevant
+        spring-boot: v1.13.0
       Test_DsmRabbitmq:
         "*": irrelevant
         spring-boot: v1.13.0

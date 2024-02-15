@@ -388,6 +388,21 @@ def dsm():
         consume_thread.join()
         logging.info("[SNS->SQS] Returning response")
         response = Response("ok")
+    elif integration == "kinesis":
+        stream = flask_request.args.get("stream")
+        timeout = flask_request.args.get("timeout", 60)
+        message = json.dumps({"message": "Hello from Python DSM Kinesis test"})
+
+        produce_thread = threading.Thread(
+            target=kinesis_produce, args=(stream, message, "1", timeout)
+        )
+        consume_thread = threading.Thread(target=kinesis_consume, args=(stream, timeout))
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[Kinesis] Returning response")
+        response = Response("ok")
 
     # force flush stats to ensure they're available to agent after test setup is complete
     tracer.data_streams_processor.periodic()

@@ -228,8 +228,30 @@ app.get('/dsm', (req, res) => {
         console.error(error)
         res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM produce')
       })
+  } else if (integration === 'kinesis') {
+    const message = JSON.stringify({ message: 'hello from Kinesis DSM JS' })
+    const timeout = req.query.timeout ?? 60
+    const stream = req.query.stream
+
+    kinesisProduce(stream, message, '1', timeout)
+      .then(() => {
+        kinesisConsume(stream, timeout * 1000)
+          .then(() => {
+            res.status(200).send('ok')
+          })
+          .catch((error) => {
+            console.error(error)
+            res.status(500).send('[Kinesis] Internal Server Error during Kinesis DSM consume')
+          })
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('[Kinesis] Internal Server Error during Kinesis DSM produce')
+      })
   } else {
-    res.status(400).send('[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS]')
+    res.status(400).send(
+      '[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS, Kinesis]'
+    )
   }
 })
 

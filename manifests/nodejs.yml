@@ -370,6 +370,9 @@ tests/:
       Test_DsmKafka:
         '*': v4.4.0
         nextjs: missing_feature (missing endpoint)
+      Test_DsmKinesis:
+        "*": irrelevant
+        express4: v5.2.0
       Test_DsmRabbitmq:
         "*": irrelevant
         express4: v5.3.0

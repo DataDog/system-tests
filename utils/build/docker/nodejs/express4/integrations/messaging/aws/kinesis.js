@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk')
 const tracer = require('dd-trace')
 
-const kinesisProduce = (stream, message, partitionKey, timeout = 60000) => {
+const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) => {
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis({
     endpoint: 'http://localstack-main:4566',

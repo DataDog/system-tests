@@ -248,6 +248,9 @@ tests/:
       Test_DsmKafka:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
+      Test_DsmKinesis:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
