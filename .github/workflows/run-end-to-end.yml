@@ -232,20 +232,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: 'DataDog/system-tests'
-    - name: Free up Disk Space
-      run: |
-        # List of image that will be removed
-        docker images -f "dangling=true"
-
-        # Remove specific Docker images that are no longer needed
-        docker rmi $(docker images -f "dangling=true" -q) || true
-        
-        # Prune unused Docker objects (images, containers, volumes, and networks)
-        # docker system prune -f || true
-
-        # Show disk space usage
-        df -h
-
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull images
@@ -290,6 +276,10 @@ jobs:
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
+
+    - name: Print free space
+      run: df -h
+
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
