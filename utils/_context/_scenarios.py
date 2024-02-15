@@ -1650,7 +1650,19 @@ class scenarios:
     host_auto_injection_block_list = _VirtualMachineScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
         vm_provision="host-auto-inject",
-        doc="Onboarding Host Single Step Instrumentation scenario",
+        doc="Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists",
+        include_ubuntu_22_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_18_amd64=True,
+        include_amazon_linux_2_amd64=True,
+        include_amazon_linux_2_dotnet_6=True,
+        include_amazon_linux_2023_amd64=True,
+        include_amazon_linux_2023_arm64=True,
+    )
+    host_auto_injection_install_script = _VirtualMachineScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
+        vm_provision="host-auto-inject-install-script",
+        doc="Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         include_ubuntu_22_amd64=True,
         include_ubuntu_22_arm64=True,
         include_ubuntu_18_amd64=True,

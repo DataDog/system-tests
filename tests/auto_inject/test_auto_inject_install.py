@@ -37,6 +37,12 @@ class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
     pass
 
 
+@features.host_auto_installation_script
+@scenarios.host_auto_injection_install_script
+class TestHostAutoInjectInstallScript(_AutoInjectInstallBaseTest):
+    pass
+
+
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
 class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
