@@ -7,6 +7,11 @@ on:
         default: false
         required: false
         type: boolean
+      run_all_end_to_end:
+        description: "Shall we run all end-to-end scenarios"
+        default: false
+        required: false
+        type: boolean
       run_replay:
         description: "Shall we run all scenarios in replay mode"
         default: false
@@ -86,7 +91,7 @@ jobs:
     secrets: inherit
 
   graphql:
-    if: inputs.run_graphql || inputs.run_all
+    if: inputs.run_graphql || run_all_end_to_end || inputs.run_all
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
     with:
@@ -101,7 +106,7 @@ jobs:
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
-      run_all: ${{ inputs.run_all }}
+      run_all: ${{ inputs.run_all || run_all_end_to_end }}
       run_replay: ${{ inputs.run_replay }}
       run_integration: ${{ inputs.run_integration }}
       run_sampling: ${{ inputs.run_sampling }}
