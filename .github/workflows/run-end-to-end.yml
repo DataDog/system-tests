@@ -496,7 +496,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run all scenarios in replay mode
-      if: always() && steps.build.outcome == 'success' && (inputs.run_replay || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && inputs.run_replay
       run: |
         ./run.sh DEFAULT --replay
         ./run.sh PROFILING --replay
