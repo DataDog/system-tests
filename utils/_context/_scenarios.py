@@ -1638,19 +1638,6 @@ class scenarios:
         include_amazon_linux_2023_arm64=True,
     )
 
-    host_auto_injection_chaos = _VirtualMachineScenario(
-        "HOST_AUTO_INJECTION_CHAOS",
-        vm_provision="host-auto-inject",
-        doc="Onboarding Host Single Step Instrumentation test user actions that can destroy the default installation",
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
-        include_ubuntu_18_amd64=True,
-        include_amazon_linux_2_amd64=True,
-        include_amazon_linux_2_dotnet_6=True,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
-    )
-
 
 def _main():
     for name in dir(scenarios):

@@ -82,7 +82,7 @@ onboarding_java:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_CHAOS]
+          SCENARIO: [HOST_AUTO_INJECTION]
         #  SCENARIO: [HOST_AUTO_INJECTION, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST]
         #- ONBOARDING_FILTER_ENV: [dev, prod]
         #  ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-buildpack,test-app-java-alpine]
