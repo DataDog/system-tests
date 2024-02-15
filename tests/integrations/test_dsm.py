@@ -297,19 +297,29 @@ class Test_DsmKinesis:
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
+        stream_arn = "arn:aws:kinesis:us-east-1:000000000000:dsm-system-tests-stream"
+        stream = "dsm-system-tests-stream"
+
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 1231913865272259685, "consumer": 6273982990684090851,},
-            "default": {"producer": 5712665980795799642, "consumer": 17643872031898844474,},
+            "nodejs": {
+                "producer": 6740568728215232522,
+                "consumer": 6273982990684090851,
+                "edge_tags_out": ("direction:out", f"topic:{stream}", "type:kinesis"),
+            },
+            "default": {
+                "producer": 5712665980795799642,
+                "consumer": 17643872031898844474,
+                "edge_tags_out": ("direction:out", f"topic:{stream_arn}", "type:kinesis"),
+            },
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        stream_arn = "arn:aws:kinesis:us-east-1:000000000000:dsm-system-tests-stream"
-        stream = "dsm-system-tests-stream"
+        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_out"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{stream_arn}", "type:kinesis"),
+            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
         )
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash,

@@ -390,7 +390,7 @@ def dsm():
         response = Response("ok")
     elif integration == "kinesis":
         stream = flask_request.args.get("stream")
-        timeout = flask_request.args.get("timeout", 60)
+        timeout = int(flask_request.args.get("timeout", "60"))
         message = json.dumps({"message": "Hello from Python DSM Kinesis test"})
 
         produce_thread = threading.Thread(target=kinesis_produce, args=(stream, message, "1", timeout))

@@ -447,8 +447,7 @@ public class App {
         @RequestParam(required = true, name = "integration") String integration,
         @RequestParam(required = false, name = "topic") String topic,
         @RequestParam(required = false, name = "queue") String queue,
-        @RequestParam(required = false, name = "stream") String stream,
-        @RequestParam(required = false, name = "timeout") int timeout
+        @RequestParam(required = false, name = "stream") String stream
     ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector();
@@ -558,7 +557,7 @@ public class App {
                 return "[Kinesis] failed to start producing message";
             }
             try {
-                kinesis.consumeMessageWithoutNewThread(timeout);
+                kinesis.consumeMessageWithoutNewThread(60);
             } catch (Exception e) {
                 System.out.println("[Kinesis] Failed to start consuming message...");
                 e.printStackTrace();
