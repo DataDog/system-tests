@@ -1,6 +1,12 @@
 name: GraphQL
 on:
   workflow_call:
+    inputs:
+      build_proxy_image:
+        description: "Shall we build proxy image"
+        default: false
+        required: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -33,6 +39,8 @@ jobs:
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ matrix.version }}
+      SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
     steps:
       - name: Checkout
@@ -41,7 +49,7 @@ jobs:
         uses: ./.github/actions/install_runner
 
       - name: Build proxy image
-        if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+        if: inputs.build_proxy_image
         run: ./build.sh -i proxy
       - name: Load library binary
         if: matrix.version == 'dev'
@@ -73,7 +81,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v3
         with:
-          name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_graphql
+          name: logs_graphql_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: always()

@@ -26,4 +26,9 @@ runs:
           docker pull mcr.microsoft.com/mssql/server:latest
           docker pull mcr.microsoft.com/azure-sql-edge:latest
           docker pull softwaremill/elasticmq:latest
+          docker pull datadog/system-tests:python_buddy-v0
+          docker pull datadog/system-tests:nodejs_buddy-v0
+          docker pull datadog/system-tests:java_buddy-v0
+          docker pull datadog/system-tests:ruby_buddy-v0
+          docker pull datadog/system-tests:golang_buddy-v0
         fi
