@@ -76,7 +76,6 @@ jobs:
 
   open-telemetry-automatic:
     runs-on: ubuntu-latest
-    if: inputs.run_open_telemetry || inputs.run_integration
     strategy:
       matrix:
         variant:
