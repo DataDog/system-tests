@@ -82,7 +82,7 @@ onboarding_java:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [HOST_AUTO_INJECTION]
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
