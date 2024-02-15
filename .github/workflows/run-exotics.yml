@@ -6,7 +6,6 @@ on:
 jobs:
   peformances:
     runs-on: ubuntu-latest
-    if: inputs.run_all
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
@@ -27,7 +26,6 @@ jobs:
 
   fuzzer:
     runs-on: ubuntu-latest
-    if: inputs.run_all
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
