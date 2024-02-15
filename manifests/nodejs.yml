@@ -186,7 +186,7 @@ tests/:
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
-          '*': missing_feature (v4.16.0 but test is not implemented)
+          '*': v4.22.0
           nextjs: irrelevant # nextjs is not related with graphql
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
@@ -246,7 +246,9 @@ tests/:
         nextjs: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v3.19.0
-      Test_BlockingGraphqlResolvers: missing_feature
+      Test_BlockingGraphqlResolvers:
+          '*': v4.22.0
+          nextjs: irrelevant # nextjs is not related with graphql
       Test_Blocking_request_body:
         '*': v3.19.0
         nextjs: missing_feature
@@ -336,6 +338,10 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
           express4: v0.1 # real version not known
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          express4: v0.1 # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
@@ -369,6 +375,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         express4: missing_feature
+      Test_DsmSNS:
+        "*": irrelevant
+        express4: v5.2.0
       Test_DsmSQS:
         "*": irrelevant
         express4: v5.2.0
@@ -377,6 +386,7 @@ tests/:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v4.11.0
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v4.23.0
     test_span_links.py: missing_feature
     test_telemetry.py:

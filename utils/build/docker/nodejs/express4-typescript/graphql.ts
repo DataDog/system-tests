@@ -1,8 +1,7 @@
 'use strict'
 
 import type { Express } from 'express'
-const  { graphqlHTTP } = require('express-graphql')
-const { buildSchema } = require('graphql')
+const { ApolloServer, gql } = require('apollo-server-express')
 
 const users = [
   {
@@ -19,7 +18,9 @@ const users = [
   }
 ]
 
-const schema = buildSchema(`
+const typeDefs = gql`
+      directive @case(format: String) on FIELD
+
       type Query {
         user(id: Int!): User
         userByName(name: String): [User]
@@ -28,10 +29,9 @@ const schema = buildSchema(`
       type User {
         id: Int
         name: String
-      }
-`);
+      }`
 
-function getuser (args: any) {
+function getUser (args: any) {
  return users.find((item) => args.id === item.id)
 }
 
@@ -39,18 +39,15 @@ function getUserByName (args: any) {
   return users.filter((item) => args.name === item.name)
 }
 
-const rootValue = {
-  user: getuser,
-  userByName: getUserByName
+const resolvers = {
+  Query: {
+    user: getUser,
+    userByName: getUserByName
+  }
 }
 
-module.exports = function (app: Express) {
-  app.use(
-    '/graphql',
-    graphqlHTTP({
-      schema,
-      rootValue,
-      graphiql: true
-    })
-  )
+module.exports = async function (app: Express) {
+  const server = new ApolloServer({ typeDefs, resolvers })
+  await server.start()
+  server.applyMiddleware({ app })
 }

@@ -233,8 +233,7 @@ tests/:
       Test_Login_Events_Extended: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
-      Test_BlockingGraphqlResolvers:
-        '*': missing_feature
+      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: missing_feature
       Test_Blocking_request_cookies:
         '*': v1.51.0
@@ -336,6 +335,10 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          net-http: missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
@@ -363,6 +366,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
@@ -371,6 +377,7 @@ tests/:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.59.0
+      TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
     test_span_links.py: missing_feature
     test_telemetry.py:

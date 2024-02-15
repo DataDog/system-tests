@@ -222,6 +222,10 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
           rails70: missing_feature (Endpoint not implemented)
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          rails70: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
@@ -249,6 +253,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
@@ -257,6 +264,7 @@ tests/:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.13.0
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0

@@ -13,7 +13,7 @@ tests/:
       test_apisec_sampling.py:
         Test_API_Security_sampling: v2.46.0
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
         Test_Schema_Request_FormUrlEncoded_Body: v2.46.0
         Test_Schema_Request_Headers: v2.46.0
@@ -211,6 +211,8 @@ tests/:
         Test_Kafka: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -226,12 +228,14 @@ tests/:
       Test_DsmRabbitmq: v2.29.0
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v2.33.0
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_span_links.py: missing_feature
     test_telemetry.py:
