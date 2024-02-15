@@ -1,4 +1,4 @@
-name: Experimental tests
+name: Lib-injection tests
 
 on:
   workflow_call:
