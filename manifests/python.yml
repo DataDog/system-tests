@@ -504,6 +504,10 @@ tests/:
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
+          flask-poc: v0.1 # real version not known
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
           flask-poc: v2.6.0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
@@ -540,6 +544,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         '*': irrelevant
         flask-poc: missing_feature (endpoint not implemented)
+      Test_DsmSNS:
+        '*': irrelevant
+        flask-poc: v1.16.0
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0

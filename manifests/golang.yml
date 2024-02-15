@@ -335,6 +335,10 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          net-http: missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
@@ -360,6 +364,9 @@ tests/:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
