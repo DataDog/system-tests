@@ -70,7 +70,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_parametric_${{ matrix.library}}_${{ matrix.version }}
+          name: logs_parametric_${{ matrix.library}}_parametric_${{ matrix.version }}
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: ${{ always() }}

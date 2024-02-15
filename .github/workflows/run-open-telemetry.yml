@@ -71,7 +71,7 @@ jobs:
       if: always() && steps.build.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_java-otel_prod
+        name: logs_otelmanual_java-otel_spring-boot-native_prod
         path: artifact.tar.gz
 
   open-telemetry-automatic:
@@ -126,6 +126,6 @@ jobs:
       if: always() && steps.build_otel.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.version }}
+        name: logs_otelautomatic_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
         path: artifact.tar.gz
 
