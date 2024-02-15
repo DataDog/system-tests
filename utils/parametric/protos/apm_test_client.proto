@@ -114,7 +114,7 @@ message SpanGetMetaArgs {
   string key = 2;
 }
 message SpanGetMetaReturn {
-  string value = 1;
+  AttrVal value = 1;
 }
 
 message SpanGetMetricArgs {
@@ -128,7 +128,7 @@ message SpanGetMetricReturn {
 message SpanSetMetaArgs {
   uint64 span_id = 1;
   string key = 2;
-  string value = 3;
+  AttrVal value = 3;
 }
 message SpanSetMetaReturn {}
 

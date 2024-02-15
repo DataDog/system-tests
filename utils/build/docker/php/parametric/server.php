@@ -242,15 +242,18 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
 
     return jsonResponse([]);
 }));
+$router->addRoute('POST', '/trace/span/get_name', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
+    $span = $spans[arg($req, 'span_id')] ?? $closed_spans[arg($req, 'span_id')] ?? null;
+
+    return jsonResponse([
+        'name' => $span?->name
+    ]);
+}));
 $router->addRoute('POST', '/trace/span/get_resource', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
     $span = $spans[arg($req, 'span_id')] ?? $closed_spans[arg($req, 'span_id')] ?? null;
-    if ($span === null) {
-        return jsonResponse([
-            'resource' => null
-        ]);
-    }
+
     return jsonResponse([
-        'resource' => $span->resource
+        'resource' => $span?->resource
     ]);
 }));
 $router->addRoute('POST', '/trace/span/get_meta', new ClosureRequestHandler(function (Request $req) use (&$spans) {

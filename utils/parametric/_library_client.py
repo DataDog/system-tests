@@ -105,7 +105,7 @@ class APMLibraryClient:
     def span_set_resource(self, span_id: int, resource: str) -> None:
         raise NotImplementedError
 
-    def span_set_meta(self, span_id: int, key: str, value: str) -> None:
+    def span_set_meta(self, span_id: int, key: str, value) -> None:
         raise NotImplementedError
 
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
@@ -114,16 +114,16 @@ class APMLibraryClient:
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         raise NotImplementedError
 
-    def span_name(self, span_id: int):
+    def span_get_name(self, span_id: int):
         raise NotImplementedError
 
-    def span_resource(self, span_id: int):
+    def span_get_resource(self, span_id: int):
         raise NotImplementedError
 
-    def span_meta(self, span_id: int, key: str):
+    def span_get_meta(self, span_id: int, key: str):
         raise NotImplementedError
 
-    def span_metric(self, span_id: int, key: str):
+    def span_get_metric(self, span_id: int, key: str):
         raise NotImplementedError
 
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
@@ -208,7 +208,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def span_set_resource(self, span_id: int, resource: str) -> None:
         self._session.post(self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource,})
 
-    def span_set_meta(self, span_id: int, key: str, value: str) -> None:
+    def span_set_meta(self, span_id: int, key: str, value) -> None:
         self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,})
 
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
@@ -233,15 +233,15 @@ class APMLibraryClientHTTP(APMLibraryClient):
             },
         )
 
-    def span_meta(self, span_id: int, key: str):
+    def span_get_meta(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,})
         return resp.json()["value"]
 
-    def span_metric(self, span_id: int, key: str):
+    def span_get_metric(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,})
         return resp.json()["value"]
 
-    def span_resource(self, span_id: int):
+    def span_get_resource(self, span_id: int):
         resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,})
         return resp.json()["resource"]
 
@@ -352,7 +352,7 @@ class _TestSpan:
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
 
-    def set_meta(self, key: str, val: str):
+    def set_meta(self, key: str, val):
         self._client.span_set_meta(self.span_id, key, val)
 
     def set_metric(self, key: str, val: float):
@@ -365,16 +365,16 @@ class _TestSpan:
         self._client.span_add_link(self.span_id, parent_id, attributes, http_headers)
 
     def get_name(self):
-        return self._client.span_name(self.span_id)
+        return self._client.span_get_name(self.span_id)
 
     def get_resource(self):
-        return self._client.span_resource(self.span_id)
+        return self._client.span_get_resource(self.span_id)
 
     def get_meta(self, key: str):
-        return self._client.span_meta(self.span_id, key)
+        return self._client.span_get_meta(self.span_id, key)
 
     def get_metric(self, key: str):
-        return self._client.span_metric(self.span_id, key)
+        return self._client.span_get_metric(self.span_id, key)
 
     def finish(self):
         self._client.finish_span(self.span_id)
@@ -535,7 +535,7 @@ class APMLibraryClientGRPC:
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
 
-    def span_set_meta(self, span_id: int, key: str, val: str):
+    def span_set_meta(self, span_id: int, key: str, val):
         self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=span_id, key=key, value=val,))
 
     def span_set_metric(self, span_id: int, key: str, val: float):

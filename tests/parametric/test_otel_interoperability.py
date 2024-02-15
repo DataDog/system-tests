@@ -505,3 +505,55 @@ class Test_Otel_Interoperability:
         assert root["meta"]["_dd.p.foo"] == "bar"
         assert root["meta"]["_dd.origin"] == "synthetics"
         assert root["metrics"]["_sampling_priority_v1"] == -2
+
+    def test_set_attribute_from_datadog(self, test_agent, test_library):
+        """
+            - Test that attributes set using the Datadog API are visible in the OTel API
+        """
+        with test_library:
+            with test_library.start_span(name="dd_span") as dd_span:
+                dd_span.set_meta("int", 1)
+                dd_span.set_meta("float", 1.0)
+                dd_span.set_meta("bool", True)
+                dd_span.set_meta("str", "string")
+                dd_span.set_meta("none", None)
+                # Note: OTel's arrays MUST be homogeneous
+                dd_span.set_meta("str_array", ["a", "b", "c"])
+                dd_span.set_meta("nested_str_array", [["a", "b"], ["c", "d"]])
+                dd_span.set_meta("int_array", [1, 2, 3])
+
+                otel_span = test_library.otel_current_span()
+                assert otel_span.get_attribute("int") == 1
+                assert otel_span.get_attribute("float") == 1.0
+                assert otel_span.get_attribute("bool") == True
+                assert otel_span.get_attribute("str") == "string"
+                assert otel_span.get_attribute("none") == None
+                assert otel_span.get_attribute("str_array") == ["a", "b", "c"]
+                assert otel_span.get_attribute("nested_str_array") == [["a", "b"], ["c", "d"]]
+                assert otel_span.get_attribute("int_array") == [1, 2, 3]
+
+    def test_set_attribute_from_otel(self, test_agent, test_library):
+        """
+            - Test that attributes set using the OTel API are visible in the Datadog API
+        """
+        with test_library:
+            with test_library.otel_start_span(name="otel_span") as otel_span:
+                otel_span.set_attribute("int", 1)
+                otel_span.set_attribute("float", 1.0)
+                otel_span.set_attribute("bool", True)
+                otel_span.set_attribute("str", "string")
+                otel_span.set_attribute("none", None)
+                # Note: OTel's arrays MUST be homogeneous
+                otel_span.set_attribute("str_array", ["a", "b", "c"])
+                otel_span.set_attribute("nested_str_array", [["a", "b"], ["c", "d"]])
+                otel_span.set_attribute("int_array", [1, 2, 3])
+
+                dd_span = test_library.current_span()
+                assert dd_span.get_metric("int") == 1
+                assert dd_span.get_metric("float") == 1.0
+                assert dd_span.get_meta("bool") == True
+                assert dd_span.get_meta("str") == "string"
+                assert dd_span.get_meta("none") == None
+                assert dd_span.get_meta("str_array") == ["a", "b", "c"]
+                assert dd_span.get_meta("nested_str_array") == [["a", "b"], ["c", "d"]]
+                assert dd_span.get_metric("int_array") == [1, 2, 3]
