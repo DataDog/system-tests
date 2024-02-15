@@ -113,123 +113,12 @@ jobs:
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
 
-  open-telemetry-manual:
-    runs-on: ubuntu-latest
+  open-telemetry:
     if: inputs.run_open_telemetry || inputs.run_all
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Install runner
-      uses: ./.github/actions/install_runner
-    - name: Pull mitmproxy image
-      run: docker pull datadog/system-tests:proxy-v1 || true
-    - name: Build proxy image
-      if: inputs.build_proxy_image
-      run: ./build.sh -i proxy
-    - name: Build agent
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i agent
-    - name: Build weblog
-      id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i weblog
-    - name: Run OTEL_TRACING_E2E scenario
-      if: always() && steps.build.outcome == 'success'
-      run: ./run.sh OTEL_TRACING_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_METRIC_E2E scenario
-      if: always() && steps.build.outcome == 'success'
-      run: ./run.sh OTEL_METRIC_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_LOG_E2E scenario
-      if: always() && steps.build.outcome == 'success'
-      run: ./run.sh OTEL_LOG_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-
-    - name: Compress logs
-      if: always() && steps.build.outcome == 'success'
-      run: tar -czvf artifact.tar.gz $(ls | grep logs)
-    - name: Upload artifact
-      if: always() && steps.build.outcome == 'success'
-      uses: actions/upload-artifact@v3
-      with:
-        name: logs_java-otel_prod
-        path: artifact.tar.gz
-
-  open-telemetry-automatic:
-    runs-on: ubuntu-latest
-    if: inputs.run_open_telemetry || inputs.run_integration || inputs.run_all
-    strategy:
-      matrix:
-        variant:
-        - library: java_otel
-          weblog: spring-boot-otel
-        - library: python_otel
-          weblog: flask-poc-otel
-        - library: nodejs_otel
-          weblog: express4-otel
-        version:
-        - prod
-      fail-fast: false
-    env:
-      TEST_LIBRARY: ${{ matrix.variant.library }}
-      WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Install runner
-      uses: ./.github/actions/install_runner
-    - name: Pull mitmproxy image
-      run: docker pull datadog/system-tests:proxy-v1 || true
-    - name: Build proxy image
-      if: inputs.build_proxy_image
-      run: ./build.sh -i proxy
-    - name: Build agent
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} -i agent
-
-    - name: Build weblog opentelemetry autoinstrumentation
-      if: always()
-      id: build_otel
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} --weblog-variant ${{ matrix.variant.weblog }}
-    - name: Run OTEL_INTEGRATIONS scenario
-      if: always() && steps.build_otel.outcome == 'success'
-      run: ./run.sh OTEL_INTEGRATIONS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-    - name: Compress logs
-      if: always() && steps.build_otel.outcome == 'success'
-      run: tar -czvf artifact.tar.gz $(ls | grep logs)
-    - name: Upload artifact
-      if: always() && steps.build_otel.outcome == 'success'
-      uses: actions/upload-artifact@v3
-      with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.version }}
-        path: artifact.tar.gz
+    uses: ./.github/workflows/run-open-telemetry.yml
+    secrets: inherit
+    with:
+      build_proxy_image: ${{ inputs.build_proxy_image }}
 
   exotics:
     if: inputs.run_all
