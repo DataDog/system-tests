@@ -153,10 +153,12 @@ tests/:
           TestKafkaKey:
             '*': missing_feature
             express4: v5.4.0
+            express4-typescript: v5.4.0
         test_kafka_value.py:
           TestKafkaValue:
             '*': missing_feature
             express4: v5.4.0
+            express4-typescript: v5.4.0
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
