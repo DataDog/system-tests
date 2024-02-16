@@ -112,7 +112,7 @@ jobs:
       - name: Delete image [sample-app]
         uses: actions/delete-package-versions@v4
         with: 
-          package-name: 'sample-app'
+          package-name: 'ghcr.io/datadog/system-tests/sample-app'
           package-type: 'container'
           min-versions-to-keep: 50
           delete-only-untagged-versions: 'true'
