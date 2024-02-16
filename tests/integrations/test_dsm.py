@@ -5,6 +5,10 @@
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
 from utils.tools import logger
 
+import logging
+
+import kombu
+
 
 @features.datastreams_monitoring_support_for_kafka
 @scenarios.integrations
@@ -285,6 +289,38 @@ class Test_DsmSNS:
         )
 
 
+@scenarios.integrations
+class Test_Dsm_Context_Extraction_V1:
+    """ Verify DSM context is extracted using "dd-pathway-ctx" """
+
+    def setup_dsm_context_extraction_v1(self):
+        queue = "dsm-propagation-test-v1-encoding-queue"
+        exchange = "dsm-propagation-test-v1-encoding-exchange"
+
+        # send initial message with v1 pathway context encoding
+        assert DsmHelper.produce_rabbitmq_message_v1_propagation(queue, exchange) == "ok"
+
+        self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
+
+    def test_dsm_context_extraction_v1(self):
+        assert self.r.text == "ok"
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 1231913865272259685, "consumer": 6273982990684090851,},
+            "default": {"producer": 9235368231858162135, "consumer": 17643872031898844474,},
+        }
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+
+        queue = "dsm-propagation-test-v1-encoding-queue"
+        edge_tags_in = ("direction:in", f"topic:{queue}", "type:rabbitmq")
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
+        )
+
+
 class DsmHelper:
     @staticmethod
     def is_tags_included(actual_tags, expected_tags):
@@ -322,3 +358,31 @@ class DsmHelper:
 
         logger.error("Checkpoint not found 🚨")
         raise ValueError("Checkpoint has not been found, please have a look in logs")
+
+    @staticmethod
+    def produce_rabbitmq_message_v1_propagation(queue, exchange):
+        # Create a RabbitMQ client
+        conn = kombu.Connection("amqp://rabbitmq:5672")
+        conn.connect()
+        producer = conn.Producer()
+
+        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+
+        headers = {
+            "dd-pathway-ctx": b"\xd7I\xd5\xcdy\x9e*\x80\xe6\x86\x8a\xa6\xb6c\xe6\x86\x8a\xa6\xb6c"  # encoded V1 pathway from dd-trace-py, pathway hash is: 9235368231858162135
+        }
+        to_publish = {"message": "DSM Pathway Encoding V1 Test"}
+
+        try:
+            producer.publish(
+                to_publish,
+                exchange=task_queue.exchange,
+                routing_key=task_queue.routing_key,
+                declare=[task_queue],
+                headers=headers,
+            )
+            logging.info("System Tests RabbitMQ message using V1 DSM Pathway Encoding sent successfully")
+            return "ok"
+        except Exception as e:
+            logging.info(f"Error during DSM RabbitMQ publish message using V1 DSM Pathway Encoding: {e}")
+            return "error"
