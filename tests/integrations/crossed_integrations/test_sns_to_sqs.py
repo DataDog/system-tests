@@ -2,26 +2,28 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
+from tests.integrations.crossed_integrations.test_kafka import _python_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
 
-class _Test_SQS:
-    """Test sqs compatibility with inputted datadog tracer"""
+class _Test_SNS:
+    """Test sns compatibility with inputted datadog tracer"""
 
     BUDDY_TO_WEBLOG_QUEUE = None
+    BUDDY_TO_WEBLOG_TOPIC = None
     WEBLOG_TO_BUDDY_QUEUE = None
+    WEBLOG_TO_BUDDY_TOPIC = None
     buddy = None
     buddy_interface = None
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, operation):
+    def get_span(cls, interface, span_kind, queue, topic, operation):
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
         for data, trace in interface.get_traces():
-            # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sns_to_sqs.
+            # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
             for span in reversed(trace):
                 if not span.get("meta"):
@@ -30,7 +32,7 @@ class _Test_SQS:
                 # special case for JS spans where we create a manual span since the callback span lacks specific information
                 if (
                     span["meta"].get("language", "") == "javascript"
-                    and span["name"] == "sqs.consume"
+                    and span["name"] == "sns.consume"
                     and span["meta"].get("queue_name", "") == queue
                 ):
                     manual_span_found = True
@@ -43,15 +45,15 @@ class _Test_SQS:
                 if "aws.service" not in span["meta"] and "aws_service" not in span["meta"]:
                     continue
 
-                if (
-                    "sqs" not in span["meta"].get("aws.service", "").lower()
-                    and "sqs" not in span["meta"].get("aws_service", "").lower()
-                ):
+                if span["meta"].get("aws.service", span["meta"].get("aws_service", "")).lower() not in ["sns", "sqs"]:
                     continue
 
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
+                if operation.lower() == "publish":
+                    if topic != cls.get_topic(span):
+                        continue
                 elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
@@ -84,34 +86,53 @@ class _Test_SQS:
 
         return queue
 
+    @staticmethod
+    def get_topic(span) -> str | None:
+        """Extracts the topic from a span by trying various fields"""
+        topic = span["meta"].get("topicname", None)  # this is in nodejs, java, python
+
+        if topic is None:
+            if "aws.sns.topic_arn" in span["meta"]:
+                topic = span["meta"]["aws.sns.topic_arn"].split(":")[-1]
+            if topic is None:
+                logger.error(f"could not extract topic from this span:\n{span}")
+
+        return topic
+
     def setup_produce(self):
         """
-        send request A to weblog : this request will produce a sqs message
-        send request B to library buddy, this request will consume sqs message
+        send request A to weblog : this request will produce a sns message
+        send request B to library buddy, this request will consume sns message
         """
 
-        self.production_response = weblog.get("/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE}, timeout=60)
+        self.production_response = weblog.get(
+            "/sns/produce",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC},
+            timeout=60,
+        )
         self.consume_response = self.buddy.get(
-            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
+            "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
 
     def test_produce(self):
-        """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
-
+        """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
         assert self.production_response.status_code == 200
         assert self.consume_response.status_code == 200
 
         # The weblog is the producer, the buddy is the consumer
-        self.validate_sqs_spans(
+        self.validate_sns_spans(
             producer_interface=interfaces.library,
             consumer_interface=self.buddy_interface,
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
-        library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
+        library="java",
+        reason="Expected to fail. Java will produce a message with propagation via AWSTraceHeader and node \
+        will not produce a response since no context will be found.",
     )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
@@ -119,12 +140,14 @@ class _Test_SQS:
             interfaces.library,
             span_kind=["producer", "client"],
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
-            operation="sendMessage",
+            topic=self.WEBLOG_TO_BUDDY_TOPIC,
+            operation="publish",
         )
         consumer_span = self.get_span(
             self.buddy_interface,
             span_kind=["consumer", "client", "server"],
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
+            topic=self.WEBLOG_TO_BUDDY_TOPIC,
             operation="receiveMessage",
         )
 
@@ -135,18 +158,20 @@ class _Test_SQS:
 
     def setup_consume(self):
         """
-        send request A to library buddy : this request will produce a sqs message
-        send request B to weblog, this request will consume sqs message
+        send request A to library buddy : this request will produce a sns message
+        send request B to weblog, this request will consume sns message
 
-        request A: GET /library_buddy/produce_sqs_message
-        request B: GET /weblog/consume_sqs_message
+        request A: GET /library_buddy/produce_sns_message
+        request B: GET /weblog/consume_sns_message
         """
 
         self.production_response = self.buddy.get(
-            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE}, timeout=60
+            "/sns/produce",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC},
+            timeout=60,
         )
         self.consume_response = weblog.get(
-            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
+            "/sns/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
         )
 
     def test_consume(self):
@@ -156,26 +181,32 @@ class _Test_SQS:
         assert self.consume_response.status_code == 200
 
         # The buddy is the producer, the weblog is the consumer
-        self.validate_sqs_spans(
+        self.validate_sns_spans(
             producer_interface=self.buddy_interface,
             consumer_interface=interfaces.library,
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(
+        library="java", reason="Not expected to fail, Java should be able to extract Binary trace context but is not."
+    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
             self.buddy_interface,
             span_kind=["producer", "client"],
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
-            operation="sendMessage",
+            topic=self.BUDDY_TO_WEBLOG_TOPIC,
+            operation="publish",
         )
         consumer_span = self.get_span(
             interfaces.library,
             span_kind=["consumer", "client", "server"],
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
+            topic=self.BUDDY_TO_WEBLOG_TOPIC,
             operation="receiveMessage",
         )
 
@@ -184,17 +215,21 @@ class _Test_SQS:
         # asserting on direct parent/child relationships
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_sqs_spans(self, producer_interface, consumer_interface, queue):
+    def validate_sns_spans(self, producer_interface, consumer_interface, queue, topic):
         """
-        Validates production/consumption of sqs message.
+        Validates production/consumption of sns message.
         It works the same for both test_produce and test_consume
         """
 
         producer_span = self.get_span(
-            producer_interface, span_kind=["producer", "client"], queue=queue, operation="sendMessage"
+            producer_interface, span_kind=["producer", "client"], queue=queue, topic=topic, operation="publish"
         )
         consumer_span = self.get_span(
-            consumer_interface, span_kind=["consumer", "client", "server"], queue=queue, operation="receiveMessage"
+            consumer_interface,
+            span_kind=["consumer", "client", "server"],
+            queue=queue,
+            topic=topic,
+            operation="receiveMessage",
         )
         # check that both consumer and producer spans exists
         assert producer_span is not None
@@ -208,38 +243,11 @@ class _Test_SQS:
 
 
 @scenarios.crossed_tracing_libraries
-@features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
+@features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
+class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = _python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
-
-
-@scenarios.crossed_tracing_libraries
-@features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
-    buddy_interface = interfaces.java_buddy
-    buddy = _java_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_aws_xray_header_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_aws_xray_header_buddy_to_weblog"
-
-    @missing_feature(
-        library="nodejs",
-        reason="Expected to fail, NodeJS will not create a response span \
-                     propagating context since it cannot extract AWSTracerHeader context that Java injects",
-    )
-    def test_consume(self):
-        super().test_consume()
-
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    def test_produce_trace_equality(self):
-        super().test_produce_trace_equality()
-
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-    def test_consume_trace_equality(self):
-        super().test_consume_trace_equality()
+    WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy"
+    WEBLOG_TO_BUDDY_TOPIC = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy_topic"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog_topic"

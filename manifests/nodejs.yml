@@ -342,6 +342,10 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
           express4: v0.1 # real version not known
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          express4: v0.1 # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
@@ -375,6 +379,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         express4: missing_feature
+      Test_DsmSNS:
+        "*": irrelevant
+        express4: v5.2.0
       Test_DsmSQS:
         "*": irrelevant
         express4: v5.2.0
