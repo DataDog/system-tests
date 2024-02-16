@@ -223,7 +223,7 @@ tests/:
       Test_MySql: missing_feature
       Test_Postgres: missing_feature
     test_dsm.py:
-      Test_Dsm_Context_Extraction_V1: missing_feature
+      Test_DsmContext_Extraction_V1: missing_feature
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
       Test_DsmRabbitmq: v2.29.0

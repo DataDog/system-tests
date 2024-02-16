@@ -898,7 +898,7 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
-      Test_Dsm_Context_Extraction_V1: 
+      Test_DsmContext_Extraction_V1: 
         "*": irrelevant
         spring-boot: v1.12.1
       Test_DsmHttp:

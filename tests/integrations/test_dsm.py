@@ -290,7 +290,7 @@ class Test_DsmSNS:
 
 
 @scenarios.integrations
-class Test_Dsm_Context_Extraction_V1:
+class Test_DsmContext_Extraction_V1:
     """ Verify DSM context is extracted using "dd-pathway-ctx" """
 
     def setup_dsm_context_extraction_v1(self):
@@ -302,7 +302,7 @@ class Test_Dsm_Context_Extraction_V1:
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
-    def test_dsm_context_extraction_v1(self):
+    def Test_DsmContext_Extraction_V1(self):
         assert self.r.text == "ok"
 
         language_hashes = {

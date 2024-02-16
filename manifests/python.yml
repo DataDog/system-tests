@@ -531,7 +531,7 @@ tests/:
         '*': missing_feature (Missing on weblog)
         flask-poc: v0.1 # real version not known
     test_dsm.py:
-      Test_Dsm_Context_Extraction_V1: 
+      Test_DsmContext_Extraction_V1: 
         "*": irrelevant
         flask-poc: v2.6.0
       Test_DsmHttp: missing_feature

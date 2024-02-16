@@ -100,7 +100,7 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
-      Test_Dsm_Context_Extraction_V1: missing_feature
+      Test_DsmContext_Extraction_V1: missing_feature
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
       Test_DsmRabbitmq: missing_feature
