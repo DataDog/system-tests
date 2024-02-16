@@ -126,7 +126,7 @@ tests/:
             vertx3: v1.12.0
         test_reflection_injection.py:
           TestReflectionInjection:
-            '*': v1.30.0
+            '*': v1.31.0
             akka-http: missing_feature
             play: missing_feature
             ratpack: missing_feature
