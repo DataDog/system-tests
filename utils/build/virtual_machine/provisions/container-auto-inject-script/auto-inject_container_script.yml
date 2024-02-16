@@ -1,0 +1,15 @@
+#installation for lib-injection packages, using install script
+- os_type: linux
+  copy_files:
+      - name: copy-auto-install-script
+        local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script.sh
+      - name: copy-docker-config
+        local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
+      - name: copy-tracer-debug-config
+        local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+      - name: copy-agent-docker-compose
+        local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
+  remote-command: |
+    bash execute_install_script.sh docker
+    sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+    sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml

@@ -482,8 +482,25 @@ class _VirtualMachine:
                 vm_cached_name += f"{installation.id}_"
         return vm_cached_name
 
-    def before_close(self):
-        logger.info(f"closing VM: {self.name}")
+    def get_command_environment(self):
+        """ This environment will be injected as environment variables for all launched remote commands """
+        command_env = {}
+        for key, value in self.get_provision().env.items():
+            command_env["DD_" + key] = value
+        # DD
+        if self.datadog_config.dd_api_key:
+            command_env["DD_API_KEY"] = self.datadog_config.dd_api_key
+        if self.datadog_config.dd_app_key:
+            command_env["DD_APP_KEY"] = self.datadog_config.dd_app_key
+        # Docker
+        if self.datadog_config.docker_login:
+            command_env["DD_DOCKER_LOGIN"] = self.datadog_config.docker_login
+            command_env["DD_DOCKER_LOGIN_PASS"] = self.datadog_config.docker_login_pass
+        # Tested library
+        command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
+        # VM name
+        command_env["DD_VM_NAME"] = self.name
+        return command_env
 
 
 class Ubuntu22amd64(_VirtualMachine):

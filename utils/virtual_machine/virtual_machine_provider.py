@@ -92,7 +92,7 @@ class VmProvider:
         """ Manages a installation. 
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation """
         local_command = None
-        command_environment = self._get_command_environment(vm)
+        command_environment = vm.get_command_environment()
         # Execute local command if we need
         if installation.local_command:
             local_command = installation.local_command
@@ -151,26 +151,6 @@ class VmProvider:
             logger_name=logger_name,
             output_callback=output_callback,
         )
-
-    def _get_command_environment(self, vm):
-        """ This environment will be injected as environment variables for all launched remote commands """
-        command_env = {}
-        for key, value in vm.get_provision().env.items():
-            command_env["DD_" + key] = value
-        # DD
-        if vm.datadog_config.dd_api_key:
-            command_env["DD_API_KEY"] = vm.datadog_config.dd_api_key
-        if vm.datadog_config.dd_app_key:
-            command_env["DD_APP_KEY"] = vm.datadog_config.dd_app_key
-        # Docker
-        if vm.datadog_config.docker_login:
-            command_env["DD_DOCKER_LOGIN"] = vm.datadog_config.docker_login
-            command_env["DD_DOCKER_LOGIN_PASS"] = vm.datadog_config.docker_login_pass
-        # Tested library
-        command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
-        # VM name
-        command_env["DD_VM_NAME"] = vm.name
-        return command_env
 
 
 class Commander:

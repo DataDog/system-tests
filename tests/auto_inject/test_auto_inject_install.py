@@ -20,7 +20,7 @@ class _AutoInjectInstallBaseTest:
         vm_ip = virtual_machine.ssh_config.hostname
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
-        logger.info(f"Launching test for : [{vm_name}]")
+        logger.info(f"Launching test_install for : [{vm_name}]")
         logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
         wait_for_port(vm_port, vm_ip, 80.0)
         logger.info(f"[{vm_ip}]: Weblog app is ready!")
@@ -29,13 +29,64 @@ class _AutoInjectInstallBaseTest:
         request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, 60.0)
+        logger.info(f"Success test_install for : [{vm_name}]")
 
-    def execute_command(self, ssh_client, command):
-        _, stdout, stderr = ssh_client.exec_command(command)
-        stdout.channel.set_combine_stderr(True)
-        output = stdout.readlines()
-        logger.info(f"Command: {command}")
-        logger.info(f"Output: {output}")
+    def execute_command(self, virtual_machine, command):
+        # Env for the command
+        prefix_env = ""
+        for key, value in virtual_machine.get_command_environment().items():
+            prefix_env += f" {key}={value}"
+
+        command_with_env = f"{prefix_env} {command}"
+
+        with virtual_machine.ssh_config.get_ssh_connection() as ssh:
+            _, stdout, stderr = ssh.exec_command(command_with_env)
+            stdout.channel.set_combine_stderr(True)
+            # Read the output line by line
+            command_output = ""
+            for line in stdout.readlines():
+                if not line.startswith("export"):
+                    command_output += line
+            logger.info(f"Command: {command}")
+            logger.info(f"Output: {command_output}")
+
+
+class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
+    def _test_uninstall(
+        self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+    ):
+        logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
+
+        vm_ip = virtual_machine.ssh_config.hostname
+        vm_port = virtual_machine.deffault_open_port
+        weblog_url = f"http://{vm_ip}:{vm_port}/"
+
+        # Kill the app before the uninstallation
+        self.execute_command(virtual_machine, stop_weblog_command)
+        # Uninstall the auto inject
+        self.execute_command(virtual_machine, uninstall_command)
+        # Start the app again
+        self.execute_command(virtual_machine, start_weblog_command)
+
+        wait_for_port(vm_port, vm_ip, 40.0)
+        warmup_weblog(weblog_url)
+        request_uuid = make_get_request(weblog_url)
+        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
+        try:
+            wait_backend_trace_id(request_uuid, 10.0)
+            raise AssertionError("The weblog application is instrumented after uninstall DD software")
+        except TimeoutError:
+            # OK there are no traces, the weblog app is not instrumented
+            pass
+        # Kill the app before restore the installation
+        self.execute_command(virtual_machine, stop_weblog_command)
+        # reinstall the auto inject
+        self.execute_command(virtual_machine, install_command)
+        # Start the app again
+        self.execute_command(virtual_machine, start_weblog_command)
+        # The app should be instrumented and reporting traces to the backend
+        self.test_install(virtual_machine)
+        logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
 
 
 @features.host_auto_instrumentation
@@ -56,6 +107,12 @@ class TestContainerAutoInjectInstallManual(_AutoInjectInstallBaseTest):
     pass
 
 
+@features.container_auto_installation_script
+@scenarios.container_auto_injection_install_script
+class TestContainerAutoInjectInstallScript(_AutoInjectInstallBaseTest):
+    pass
+
+
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
 class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
@@ -73,7 +130,7 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         self.test_install(virtual_machine)
 
         # Remove installation folder
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), evil_command)
+        self.execute_command(virtual_machine, evil_command)
 
         # Assert the app is still working
         wait_for_port(vm_port, vm_ip, 40.0)
@@ -81,12 +138,10 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         assert r.status_code == 200, "The weblog app it's not working after remove the installation folder"
 
         # Kill the app
-        self.execute_command(
-            virtual_machine.ssh_config.get_ssh_connection(), "sudo systemctl kill -s SIGKILL test-app.service"
-        )
+        self.execute_command(virtual_machine, "sudo systemctl kill -s SIGKILL test-app.service")
 
         # Start the app again
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), "sudo systemctl start test-app.service")
+        self.execute_command(virtual_machine, "sudo systemctl start test-app.service")
 
         # App shpuld be working again, although the installation folder was removed
         wait_for_port(vm_port, vm_ip, 40.0)
@@ -97,9 +152,7 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         ), "The weblog app it's not working after remove the installation folder  and restart the app"
 
         # Kill the app before restore the installation
-        self.execute_command(
-            virtual_machine.ssh_config.get_ssh_connection(), "sudo systemctl kill -s SIGKILL test-app.service"
-        )
+        self.execute_command(virtual_machine, "sudo systemctl kill -s SIGKILL test-app.service")
 
         # Restore the installation
         apm_inject_restore = ""
@@ -128,53 +181,20 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         logger.info(command_output)
 
         # Start the app again
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), "sudo systemctl start test-app.service")
+        self.execute_command(virtual_machine, "sudo systemctl start test-app.service")
 
         # The app should be instrumented and reporting traces to the backend
         self.test_install(virtual_machine)
 
     def test_remove_apm_inject_folder(self, virtual_machine):
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), "sudo rm -rf /opt/datadog/apm/inject")
+        logger.info(f"Launching test_remove_apm_inject_folder for : [{virtual_machine.name}]")
+        self._test_removing_things(virtual_machine, "sudo rm -rf /opt/datadog/apm/inject")
+        logger.info(f"Success test_remove_apm_inject_folder for : [{virtual_machine.name}]")
 
     def test_remove_ld_preload(self, virtual_machine):
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), "sudo rm /etc/ld.so.preload")
-
-
-class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
-    def _test_uninstall(
-        self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
-    ):
-
-        vm_ip = virtual_machine.ssh_config.hostname
-        vm_port = virtual_machine.deffault_open_port
-        weblog_url = f"http://{vm_ip}:{vm_port}/"
-
-        # Kill the app before the uninstallation
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), stop_weblog_command)
-        # Uninstall the auto inject
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), uninstall_command)
-        # Start the app again
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), start_weblog_command)
-
-        wait_for_port(vm_port, vm_ip, 40.0)
-        warmup_weblog(weblog_url)
-        request_uuid = make_get_request(weblog_url)
-        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
-        try:
-            wait_backend_trace_id(request_uuid, 10.0)
-            raise AssertionError("The weblog application is instrumented after uninstall DD software")
-        except TimeoutError:
-            # OK there are no traces, the weblog app is not instrumented
-            pass
-        # Kill the app before restore the installation
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), stop_weblog_command)
-        # reinstall the auto inject
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), install_command)
-        # Start the app again
-        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), start_weblog_command)
-
-        # The app should be instrumented and reporting traces to the backend
-        self.test_install(virtual_machine)
+        logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]")
+        self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
+        logger.info(f"Success test_remove_ld_preload for : [{virtual_machine.name}]")
 
 
 @features.host_auto_instrumentation

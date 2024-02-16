@@ -11,7 +11,7 @@ provision_steps:
   - prepare-repos #Configure the reporitories for install auto-injection
   - prepare-docker #Prepare the docker environment
   - install-agent #Install the agent (allways latest release)
-  - autoinjection_install_manual #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
+  - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
 
 init-config:
   cache: true
@@ -33,7 +33,7 @@ install-agent:
             local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
       remote-command: cat docker-compose-agent-prod.yml
 
-autoinjection_install_manual:
-  install: !include utils/build/virtual_machine/provisions/container-auto-inject/auto-inject_container_manual.yml
+autoinjection_install_script:
+  install: !include utils/build/virtual_machine/provisions/container-auto-inject/auto-inject_container_script.yml
 
 

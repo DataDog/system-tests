@@ -1171,8 +1171,6 @@ class _VirtualMachineScenario(_Scenario):
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing  _VirtualMachineScenario scenario")
-        for vm in self.required_vms:
-            vm.before_close()
         self.close_targets()
 
     def close_targets(self):
@@ -1674,6 +1672,18 @@ class scenarios:
 
     container_auto_injection = _VirtualMachineScenario(
         "CONTAINER_AUTO_INJECTION",
+        vm_provision="container-auto-inject",
+        doc="Onboarding Container Single Step Instrumentation scenario",
+        include_ubuntu_22_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_18_amd64=True,
+        include_amazon_linux_2_amd64=False,
+        include_amazon_linux_2_dotnet_6=False,
+        include_amazon_linux_2023_amd64=True,
+        include_amazon_linux_2023_arm64=True,
+    )
+    container_auto_injection_install_script = _VirtualMachineScenario(
+        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         vm_provision="container-auto-inject",
         doc="Onboarding Container Single Step Instrumentation scenario",
         include_ubuntu_22_amd64=True,
