@@ -30,6 +30,13 @@ class _AutoInjectInstallBaseTest:
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, 60.0)
 
+    def execute_command(self, ssh_client, command):
+        _, stdout, stderr = ssh_client.exec_command(command)
+        stdout.channel.set_combine_stderr(True)
+        output = stdout.readlines()
+        logger.info(f"Command: {command}")
+        logger.info(f"Output: {output}")
+
 
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
@@ -139,11 +146,12 @@ class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
         weblog_url = f"http://{vm_ip}:{vm_port}/"
 
         # Kill the app before the uninstallation
-        virtual_machine.ssh_config.get_ssh_connection().exec_command(stop_weblog_command)
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), stop_weblog_command)
         # Uninstall the auto inject
-        virtual_machine.ssh_config.get_ssh_connection().exec_command(uninstall_command)
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), uninstall_command)
         # Start the app again
-        virtual_machine.ssh_config.get_ssh_connection().exec_command(start_weblog_command)
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), start_weblog_command)
+
         wait_for_port(vm_port, vm_ip, 40.0)
         warmup_weblog(weblog_url)
         request_uuid = make_get_request(weblog_url)
@@ -155,11 +163,12 @@ class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
             # OK there are no traces, the weblog app is not instrumented
             pass
         # Kill the app before restore the installation
-        virtual_machine.ssh_config.get_ssh_connection().exec_command(stop_weblog_command)
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), stop_weblog_command)
         # reinstall the auto inject
-        virtual_machine.ssh_config.get_ssh_connection().exec_command(install_command)
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), install_command)
         # Start the app again
-        virtual_machine.ssh_config.get_ssh_connection().exec_command(start_weblog_command)
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), start_weblog_command)
+
         # The app should be instrumented and reporting traces to the backend
         self.test_install(virtual_machine)
 

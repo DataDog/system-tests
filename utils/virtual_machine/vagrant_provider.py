@@ -23,11 +23,10 @@ class VagrantProvider(VmProvider):
             log_cm = vagrant.make_file_cm(vm.get_default_log_file())
             v = vagrant.Vagrant(root=vm.get_log_folder(), out_cm=log_cm, err_cm=log_cm)
             v.init(box_name=vm.vagrant_config.box_name)
-
             # TODO Support for different vagrant providers. Currently only support for qemu
             self._set_vagrant_configuration(vm)
             v.up(provider="qemu")
-
+            self.vagrant_machines.append(v)
             env.hosts = [v.user_hostname_port()]
             env.key_filename = v.keyfile()
             env.disable_known_hosts = True
