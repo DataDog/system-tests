@@ -1672,6 +1672,19 @@ class scenarios:
         include_amazon_linux_2023_arm64=True,
     )
 
+    container_auto_injection = _VirtualMachineScenario(
+        "CONTAINER_AUTO_INJECTION",
+        vm_provision="container-auto-inject",
+        doc="Onboarding Container Single Step Instrumentation scenario",
+        include_ubuntu_22_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_18_amd64=True,
+        include_amazon_linux_2_amd64=False,
+        include_amazon_linux_2_dotnet_6=False,
+        include_amazon_linux_2023_amd64=True,
+        include_amazon_linux_2023_arm64=True,
+    )
+
 
 def _main():
     for name in dir(scenarios):
