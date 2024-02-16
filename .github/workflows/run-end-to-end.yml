@@ -276,10 +276,6 @@ jobs:
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
-
-    - name: Print free space
-      run: df -h
-
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
