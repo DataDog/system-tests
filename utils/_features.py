@@ -2006,3 +2006,13 @@ class features:
         """
         pytest.mark.features(feature_id=276)(test_object)
         return test_object
+
+    @staticmethod
+    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=280
+        """
+        pytest.mark.features(feature_id=280)(test_object)
+        return test_object

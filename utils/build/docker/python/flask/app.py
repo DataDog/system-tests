@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import random
@@ -20,6 +21,8 @@ from iast import (
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
+from integrations.messaging.aws.kinesis import kinesis_consume
+from integrations.messaging.aws.kinesis import kinesis_produce
 from integrations.messaging.aws.sns import sns_consume
 from integrations.messaging.aws.sns import sns_produce
 from integrations.messaging.aws.sqs import sqs_consume
@@ -253,6 +256,31 @@ def consume_sns_message():
     queue = flask_request.args.get("queue", "DistributedTracing SNS")
     timeout = int(flask_request.args.get("timeout", 60))
     output = sns_consume(queue, timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/kinesis/produce")
+def produce_kinesis_message():
+    stream = flask_request.args.get("stream", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
+
+    # we only allow injection into JSON messages encoded as a string
+    message = json.dumps({"message": "Hello from Python Producer: Kinesis Context Propagation Test"})
+    output = kinesis_produce(stream, message, "1", timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/kinesis/consume")
+def consume_kinesis_message():
+    stream = flask_request.args.get("stream", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = kinesis_consume(stream, timeout)
     if "error" in output:
         return output, 400
     else:
