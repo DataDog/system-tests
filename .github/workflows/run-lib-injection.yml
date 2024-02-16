@@ -48,9 +48,13 @@ jobs:
       BUILDX_PLATFORMS: linux/amd64
       MODE: manual
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: ./../lib-injection/runner
+        uses: ./lib-injection/runner
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
@@ -90,9 +94,13 @@ jobs:
       MODE: auto-${{ matrix.test-case }}
       TEST_CASE: ${{ matrix.test-case }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: ./../lib-injection/runner
+        uses: ./lib-injection/runner
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
