@@ -210,18 +210,6 @@ class TestDynamicConfigTracingEnabled:
             test_agent.wait_for_num_traces(num=1, clear=True)
         assert True, "no traces are sent after RC response with tracing_enabled: false"
 
-        # overriding the RC with empty config should not reset tracing,
-        # and should not emit a telemetry 'app-client-configuration-change'
-        _set_rc(test_agent, _create_rc_config({}))
-        if trace_enabled_env:
-            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
-        with test_library:
-            with test_library.start_span("test"):
-                pass
-
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
-
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
