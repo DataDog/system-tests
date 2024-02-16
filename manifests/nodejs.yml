@@ -142,6 +142,10 @@ tests/:
             '*': missing_feature
             express4: v4.3.0
             express4-typescript: v4.3.0
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument:
+            '*': v5.4.0
+            nextjs: irrelevant # nextjs is not related with graphql
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
