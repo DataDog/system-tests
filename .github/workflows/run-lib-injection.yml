@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: ./lib-injection/runner
+        uses: ./../lib-injection/runner
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
@@ -92,7 +92,7 @@ jobs:
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: ./lib-injection/runner
+        uses: ./../lib-injection/runner
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
