@@ -156,7 +156,7 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         });
         router.post("/iast/reflection_injection/test_insecure").handler(ctx -> {
             final HttpServerRequest request = ctx.request();
-            final String pathParam = request.getParam("param");
+            final String param = request.getParam("param");
             ctx.response().end(reflection.insecureClassForName(param));
         });
     }
