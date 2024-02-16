@@ -150,8 +150,6 @@ onboarding_parse_results:
   stage: parse_results
   only:
     - schedules
-  rules:
-    - if: $CI_COMMIT_BRANCH == "robertomonteromiguel/onboarding_feature_parity_dashboard"
   before_script:
     #We need authenticate on git repository
     - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text) 
