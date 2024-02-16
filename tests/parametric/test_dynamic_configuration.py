@@ -225,7 +225,8 @@ class TestDynamicConfigTracingEnabled:
     )
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
-        set_and_wait_rc(test_agent, config_overrides={})
+        _set_rc(test_agent, _create_rc_config({}))
+        test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
         with test_library:
             with test_library.start_span("test"):
                 pass
