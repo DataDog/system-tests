@@ -325,9 +325,7 @@ class Test_DsmKinesis:
             hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash,
-            parent_hash=producer_hash,
-            tags=edge_tags_in,
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
 
 
