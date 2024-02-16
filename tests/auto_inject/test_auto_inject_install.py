@@ -73,7 +73,7 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         self.test_install(virtual_machine)
 
         # Remove installation folder
-        virtual_machine.ssh_config.get_ssh_connection().exec_command(evil_command)
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), evil_command)
 
         # Assert the app is still working
         wait_for_port(vm_port, vm_ip, 40.0)
@@ -81,10 +81,12 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         assert r.status_code == 200, "The weblog app it's not working after remove the installation folder"
 
         # Kill the app
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl kill -s SIGKILL test-app.service")
+        self.execute_command(
+            virtual_machine.ssh_config.get_ssh_connection(), "sudo systemctl kill -s SIGKILL test-app.service"
+        )
 
         # Start the app again
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl start test-app.service")
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), "sudo systemctl start test-app.service")
 
         # App shpuld be working again, although the installation folder was removed
         wait_for_port(vm_port, vm_ip, 40.0)
@@ -95,7 +97,9 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         ), "The weblog app it's not working after remove the installation folder  and restart the app"
 
         # Kill the app before restore the installation
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl kill -s SIGKILL test-app.service")
+        self.execute_command(
+            virtual_machine.ssh_config.get_ssh_connection(), "sudo systemctl kill -s SIGKILL test-app.service"
+        )
 
         # Restore the installation
         apm_inject_restore = ""
@@ -124,16 +128,16 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         logger.info(command_output)
 
         # Start the app again
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl start test-app.service")
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), "sudo systemctl start test-app.service")
 
         # The app should be instrumented and reporting traces to the backend
         self.test_install(virtual_machine)
 
     def test_remove_apm_inject_folder(self, virtual_machine):
-        self._test_removing_things(virtual_machine, "sudo rm -rf /opt/datadog/apm/inject")
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), "sudo rm -rf /opt/datadog/apm/inject")
 
     def test_remove_ld_preload(self, virtual_machine):
-        self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
+        self.execute_command(virtual_machine.ssh_config.get_ssh_connection(), "sudo rm /etc/ld.so.preload")
 
 
 class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
@@ -192,8 +196,8 @@ class TestContainerAutoInjectUninstallManual(_BaseAutoInjectUninstallManual):
     def test_uninstall(self, virtual_machine):
         stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down"
         start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-        install_command = "dd-container-install"
-        uninstall_command = "dd-container-install --uninstall"
+        install_command = "dd-container-install && sudo systemctl restart docker"
+        uninstall_command = "dd-container-install --uninstall && sudo systemctl restart docker"
         self._test_uninstall(
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
