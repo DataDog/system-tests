@@ -99,7 +99,7 @@ jobs:
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           test-script: ./lib-injection/run-auto-lib-injection.sh
 
-  cleam-lib-injection-imagess:
+  clean-lib-injection-imagess:
     runs-on: ubuntu-latest
     #if: ${{ github.event_name == 'schedule' }}
     permissions:
