@@ -303,13 +303,15 @@ class Test_DsmContext_Extraction_V1:
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
+    @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
+    @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
     def test_dsmcontext_extraction_v1(self):
         assert "error" not in self.r.text
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 1231913865272259685, "consumer": 6273982990684090851,},
-            "default": {"producer": 9235368231858162135, "consumer": 17643872031898844474,},
+            "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
+            "default": {"producer": 9235368231858162135, "consumer": 6884439977898629893,},
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
