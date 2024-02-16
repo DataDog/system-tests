@@ -33,7 +33,7 @@ stages:
     - pulumi plugin install resource command 0.7.2
     - pulumi plugin install resource aws 5.41.0
   after_script:
-    - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
+    - export SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
   artifacts:
     when: always
     paths:
