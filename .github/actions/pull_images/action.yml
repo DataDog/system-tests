@@ -8,6 +8,23 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Let's free some place
+      shell: bash
+      run: |
+        if [[ "${{ inputs.pull-all }}" == "true" ]]; then
+          df -h
+
+          echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
+
+          sudo rm -rf /usr/local/lib/android  # 9Gb!
+          sudo rm -rf /opt/hostedtoolcache/CodeQL  # 5Gb !
+          sudo rm -rf /usr/share/dotnet # 1Gb
+
+          # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
+
+          df -h
+        fi
+
     - name: Pull images needed for default scenario
       shell: bash
       run: |

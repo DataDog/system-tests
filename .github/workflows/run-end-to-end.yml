@@ -68,7 +68,7 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  main:
+  end-to-end:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -229,7 +229,9 @@ jobs:
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull images
@@ -494,7 +496,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run all scenarios in replay mode
-      if: always() && steps.build.outcome == 'success' && (inputs.run_replay || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && inputs.run_replay
       run: |
         ./run.sh DEFAULT --replay
         ./run.sh PROFILING --replay
@@ -543,7 +545,7 @@ jobs:
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
       if: always() && steps.compress_logs.outcome == 'success'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: logs_endtoend_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
         path: artifact.tar.gz
@@ -563,11 +565,6 @@ jobs:
         FP_API_KEY: ${{ secrets.FP_API_KEY }}
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
 
-    - name: Upload results CI Visibility
-      if: ${{ always() }}
-      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-      env:
-        DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
     - name: Print fancy log report
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY

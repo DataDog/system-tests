@@ -30,7 +30,9 @@ jobs:
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Load library binary
@@ -66,9 +68,9 @@ jobs:
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
       - name: Upload artifact
         if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: logs_parametric_${{ matrix.library}}_${{ matrix.version }}
+          name: logs_parametric_${{ matrix.library}}_parametric_${{ matrix.version }}
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: ${{ always() }}
