@@ -1,9 +1,9 @@
 stages:
-  #- ruby_tracer
+  - ruby_tracer
   - nodejs_tracer
-  #- java_tracer
-  #- python_tracer
-  #- dotnet_tracer
+  - java_tracer
+  - python_tracer
+  - dotnet_tracer
   - parse_results
   - before_tests
 
@@ -59,20 +59,17 @@ onboarding_nodejs:
     TEST_LIBRARY: "nodejs"
   parallel:
       matrix:
-        #- ONBOARDING_FILTER_ENV: [dev, prod]
-        - ONBOARDING_FILTER_ENV: [dev]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL] 
-        #  SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST] 
-       # - ONBOARDING_FILTER_ENV: [dev, prod]
-       #   ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
-       #   SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL] 
-         
+          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST] 
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
+          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL]      
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
 
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding
   stage: java_tracer
   allow_failure: true
@@ -93,7 +90,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding
   stage: python_tracer
   allow_failure: true
@@ -114,7 +111,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
 
-.onboarding_dotnet:
+onboarding_dotnet:
   extends: .base_job_onboarding
   stage: dotnet_tracer
   allow_failure: true
@@ -132,7 +129,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
-.onboarding_ruby:
+onboarding_ruby:
   extends: .base_job_onboarding
   stage: ruby_tracer
   allow_failure: true
@@ -163,8 +160,6 @@ onboarding_parse_results:
   script:
       - |
         for folder in reports/logs*/ ; do
-          cat ${folder}feature_parity.json
-          echo "------------"
           curl -X POST ${FP_IMPORT_URL} \
             --fail \
             --header "Content-Type: application/json" \
@@ -185,4 +180,3 @@ check_merge_labels:
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
-
