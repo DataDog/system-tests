@@ -32,11 +32,12 @@ stages:
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
     - pulumi plugin install resource command 0.7.2
     - pulumi plugin install resource aws 5.41.0
-
+  after_script:
+    - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
   artifacts:
-      when: always
-      paths:
-        - logs_*/
+    when: always
+    paths:
+      - logs_$SCENARIO_SUFIX/  
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
@@ -65,7 +66,7 @@ onboarding_nodejs:
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
-      
+
 .onboarding_java:
   extends: .base_job_onboarding
   stage: java_tracer
@@ -158,7 +159,8 @@ onboarding_parse_results:
       - |
         for folder in logs*/ ; do
           curl -X POST ${FP_IMPORT_URL} \
-            --fail
+            --fail \
+            --header "Content-Type: application/json" \
             --header "FP_API_KEY: ${FP_API_KEY}" \
             --data "@./${folder}feature_parity.json" \
             --include
