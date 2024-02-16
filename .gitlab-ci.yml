@@ -163,6 +163,8 @@ onboarding_parse_results:
   script:
       - |
         for folder in reports/logs*/ ; do
+          cat ${folder}feature_parity.json
+          echo "------------"
           curl -X POST ${FP_IMPORT_URL} \
             --fail \
             --header "Content-Type: application/json" \
