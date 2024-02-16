@@ -217,12 +217,7 @@ class TestDynamicConfigTracingEnabled:
         library="python",
         reason="The Python client library doesn't support the one-way lock functionality of tracing_enabled",
     )
-    @irrelevant(
-        library="golang",
-        reason="The test expects the agent to send a telemetry event 'app-client-configuration-change'"
-        ", however it should not be sent in the first place for the the case when tracing is disabled "
-        "via DD_TRACE_ENABLED from the start",
-    )
+    @irrelevant(library="golang")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
         _set_rc(test_agent, _create_rc_config({}))
