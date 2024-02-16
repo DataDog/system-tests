@@ -93,6 +93,8 @@ tests/:
           TestCookieName: missing_feature
         test_cookie_value.py:
           TestCookieValue: missing_feature
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
@@ -331,10 +333,18 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           net-http: v0.1 # real version not known
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          net-http: missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
@@ -350,16 +360,19 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
-      Test_DsmKafka: 
+      Test_DsmKafka:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
-      Test_DsmRabbitmq: 
+      Test_DsmRabbitmq:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
@@ -370,6 +383,7 @@ tests/:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
+      TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
     test_span_links.py: missing_feature
     test_telemetry.py:

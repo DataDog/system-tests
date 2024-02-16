@@ -1250,6 +1250,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_graphql_resolver_argument(test_object):
+        """
+        IAST Source: Graphql resolver argument
+
+        https://feature-parity.us1.prod.dog/#/?feature=281
+        """
+        pytest.mark.features(feature_id=281)(test_object)
+        return test_object
+
+    @staticmethod
     def grpc_threats_management(test_object):
         """
         gRPC Threats Management
@@ -1948,6 +1958,26 @@ class features:
         return test_object
 
     @staticmethod
+    def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-SNS][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=271
+        """
+        pytest.mark.features(feature_id=271)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_sns(test_object):
+        """
+        DataStreams Monitoring support for AWS SNS
+
+        https://feature-parity.us1.prod.dog/#/?feature=273
+        """
+        pytest.mark.features(feature_id=273)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_insecure_auth_protocol(test_object):
         """
         IAST Sink: Insecure auth protocol
@@ -1985,4 +2015,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
         pytest.mark.features(feature_id=276)(test_object)
+        return test_object
+
+    @staticmethod
+    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=280
+        """
+        pytest.mark.features(feature_id=280)(test_object)
         return test_object

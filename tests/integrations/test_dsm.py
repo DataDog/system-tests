@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
 from utils.tools import logger
 
 
@@ -248,6 +248,40 @@ class Test_DsmSQS:
         )
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{topic}", "type:sqs"),
+        )
+
+
+@features.datastreams_monitoring_support_for_sns
+@scenarios.integrations
+class Test_DsmSNS:
+    """ Verify DSM stats points for AWS SNS Service """
+
+    def setup_dsm_sns(self):
+        self.r = weblog.get(
+            "/dsm?integration=sns&timeout=60&queue=dsm-system-tests-queue-sns&topic=dsm-system-tests-topic-sns",
+            timeout=61,
+        )
+
+    @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
+    def test_dsm_sns(self):
+        assert self.r.text == "ok"
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 1231913865272259685, "consumer": 6273982990684090851,},
+            "default": {"producer": 5712665980795799642, "consumer": 17643872031898844474,},
+        }
+
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        topic = "arn:aws:sns:us-east-1:000000000000:dsm-system-tests-topic-sns"
+        queue = "dsm-system-tests-queue-sns"
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sns"),
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{queue}", "type:sqs"),
         )
 
 
