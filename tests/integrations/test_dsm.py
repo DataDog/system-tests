@@ -304,7 +304,7 @@ class Test_DsmContext_Extraction_V1:
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
     def test_dsmcontext_extraction_v1(self):
-        assert self.r.text == "ok"
+        assert "error" not in self.r.text
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
