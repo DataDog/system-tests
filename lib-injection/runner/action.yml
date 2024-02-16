@@ -18,16 +18,17 @@ runs:
   using: composite
   steps:
       - name: Checkout system tests
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c  # 3.3.0
+        uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
           path: './system-tests'
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8  # 2.0.0
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3  # 3.0.0
+        
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # 2.2.1
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # 3.0.0
         with:
           install: true
           config-inline: |
@@ -35,7 +36,7 @@ runs:
               max-parallelism = 1
 
       - name: Log in to the Container registry
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # 2.1.0
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
         with:
           registry: ${{ inputs.docker-registry }}
           username: ${{ inputs.docker-registry-username }}
@@ -67,7 +68,7 @@ runs:
         run: cd system-tests && tar -czvf ../artifact.tar.gz $(ls | grep logs)
 
       - name: Upload lib injection logs
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # 3.1.2
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: ${{ env.MODE }}-lib-injection_${{ env.TEST_LIBRARY }}_${{ matrix.weblog-variant }}_${{ matrix.lib-injection-connection }}_${{ matrix.lib-injection-use-admission-controller }}_${{ env.DOCKER_IMAGE_TAG}}
