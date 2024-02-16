@@ -289,11 +289,12 @@ class Test_DsmSNS:
         )
 
 
+@features.datastreams_monitoring_support_for_v1_encoding
 @scenarios.integrations
 class Test_DsmContext_Extraction_V1:
     """ Verify DSM context is extracted using "dd-pathway-ctx" """
 
-    def setup_dsm_context_extraction_v1(self):
+    def setup_dsmcontext_extraction_v1(self):
         queue = "dsm-propagation-test-v1-encoding-queue"
         exchange = "dsm-propagation-test-v1-encoding-exchange"
 
@@ -302,7 +303,7 @@ class Test_DsmContext_Extraction_V1:
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
-    def Test_DsmContext_Extraction_V1(self):
+    def test_dsmcontext_extraction_v1(self):
         assert self.r.text == "ok"
 
         language_hashes = {
@@ -319,6 +320,8 @@ class Test_DsmContext_Extraction_V1:
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
+
+        assert 1 == 0
 
 
 class DsmHelper:
