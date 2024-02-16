@@ -55,7 +55,7 @@ jobs:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          test-script: ./lib-injection/run-manual-lib-injection.sh
+          test-script: lib-injection/run-manual-lib-injection.sh
 
   auto-lib-injection-tests:
     runs-on: ubuntu-latest
@@ -97,4 +97,4 @@ jobs:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          test-script: ./lib-injection/run-auto-lib-injection.sh
+          test-script: lib-injection/run-auto-lib-injection.sh
