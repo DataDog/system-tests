@@ -1250,6 +1250,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_graphql_resolver_argument(test_object):
+        """
+        IAST Source: Graphql resolver argument
+
+        https://feature-parity.us1.prod.dog/#/?feature=281
+        """
+        pytest.mark.features(feature_id=281)(test_object)
+        return test_object
+
+    @staticmethod
     def grpc_threats_management(test_object):
         """
         gRPC Threats Management
@@ -2008,6 +2018,16 @@ class features:
         return test_object
 
     @staticmethod
+    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=280
+        """
+        pytest.mark.features(feature_id=280)(test_object)
+        return test_object
+
+    @staticmethod
     def datastreams_monitoring_support_for_v1_encoding(test_object):
         """
         DataStreams Monitoring support for V1 Encoding using dd-pathway-ctx
@@ -2015,4 +2035,3 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=283
         """
         pytest.mark.features(feature_id=283)(test_object)
-        return test_object
