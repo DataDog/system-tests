@@ -2036,3 +2036,13 @@ class features:
         """
         pytest.mark.features(feature_id=283)(test_object)
         return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_v2_base64_encoding(test_object):
+        """
+        DataStreams Monitoring support for V2 Base64 Encoding using dd-pathway-ctx/dd-pathway-ctx-base64
+
+        https://feature-parity.us1.prod.dog/#/?feature=284
+        """
+        pytest.mark.features(feature_id=284)(test_object)
+        return test_object

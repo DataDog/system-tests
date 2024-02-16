@@ -201,6 +201,7 @@ tests/:
       Test_Dbm: v0.91.1
     test_dsm.py:
       Test_DsmContext_Extraction_V1: missing_feature
+      Test_DsmContext_Extraction_V2: missing_feature
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
       Test_DsmRabbitmq: missing_feature

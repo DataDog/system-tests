@@ -249,6 +249,9 @@ tests/:
       Test_DsmContext_Extraction_V1:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
+      Test_DsmContext_Extraction_V2:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         "*": irrelevant

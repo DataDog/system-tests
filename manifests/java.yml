@@ -907,6 +907,9 @@ tests/:
       Test_DsmContext_Extraction_V1: 
         "*": irrelevant
         spring-boot: v1.12.1
+      Test_DsmContext_Extraction_V2: 
+        "*": irrelevant
+        spring-boot: v1.12.1
       Test_DsmHttp:
         '*': missing_feature
         spring-boot: v1.12.1

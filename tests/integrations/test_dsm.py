@@ -323,7 +323,40 @@ class Test_DsmContext_Extraction_V1:
             hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
 
-        assert 1 == 0
+
+@features.datastreams_monitoring_support_for_v2_base64_encoding
+@scenarios.integrations
+class Test_DsmContext_Extraction_V2:
+    """ Verify DSM context is extracted using "dd-pathway-ctx/dd-pathway-ctx-base64" """
+
+    def setup_dsmcontext_extraction_v2_base64(self):
+        queue = "dsm-propagation-test-v2-encoding-queue"
+        exchange = "dsm-propagation-test-v2-encoding-exchange"
+
+        # send initial message with v2 pathway context encoding
+        assert DsmHelper.produce_rabbitmq_message_v2_base64_propagation(queue, exchange) == "ok"
+
+        self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
+
+    # @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
+    # @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
+    def test_dsmcontext_extraction_v2_base64(self):
+        assert "error" not in self.r.text
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
+            "default": {"producer": 9235368231858162135, "consumer": 6884439977898629893,},
+        }
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+
+        queue = "dsm-propagation-test-v2-encoding-queue"
+        edge_tags_in = ("direction:in", f"topic:{queue}", "type:rabbitmq")
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
+        )
 
 
 class DsmHelper:
@@ -390,4 +423,33 @@ class DsmHelper:
             return "ok"
         except Exception as e:
             logging.info(f"Error during DSM RabbitMQ publish message using V1 DSM Pathway Encoding: {e}")
+            return "error"
+
+    @staticmethod
+    def produce_rabbitmq_message_v2_base64_propagation(queue, exchange):
+        # Create a RabbitMQ client
+        conn = kombu.Connection("amqp://127.0.0.1:5672")
+        conn.connect()
+        producer = conn.Producer()
+
+        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+
+        headers = {
+            "dd-pathway-ctx": "10nVzXmeKoCM1uautmOM1uautmM=",  # base64 encoded V2 pathway from dd-trace-py, pathway hash is: 9235368231858162135
+            "dd-pathway-ctx-base64": "10nVzXmeKoCM1uautmOM1uautmM=",
+        }
+        to_publish = {"message": "DSM Pathway Encoding V2 Test"}
+
+        try:
+            producer.publish(
+                to_publish,
+                exchange=task_queue.exchange,
+                routing_key=task_queue.routing_key,
+                declare=[task_queue],
+                headers=headers,
+            )
+            logging.info("System Tests RabbitMQ message using V2 DSM Pathway Encoding sent successfully")
+            return "ok"
+        except Exception as e:
+            logging.info(f"Error during DSM RabbitMQ publish message using V2 DSM Pathway Encoding: {e}")
             return "error"
