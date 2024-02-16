@@ -112,7 +112,7 @@ jobs:
       - name: Delete image [sample-app]
         uses: actions/delete-package-versions@v4
         with: 
-          package-name: 'ghcr.io/datadog/system-tests/sample-app'
+          package-name: 'system-tests/sample-app'
           package-type: 'container'
           min-versions-to-keep: 50
           delete-only-untagged-versions: 'true'
@@ -120,7 +120,7 @@ jobs:
       - name: Delete image [dd-lib-python-init-test-django-uvicorn]
         uses: actions/delete-package-versions@v4
         with: 
-          package-name: 'dd-lib-python-init-test-django-uvicorn'
+          package-name: 'system-tests/dd-lib-python-init-test-django-uvicorn'
           package-type: 'container'
           min-versions-to-keep: 50
           delete-only-untagged-versions: 'true'
@@ -128,7 +128,7 @@ jobs:
       - name: Delete image [dd-lib-python-init-test-django-gunicorn]
         uses: actions/delete-package-versions@v4
         with: 
-          package-name: 'dd-lib-python-init-test-django-gunicorn'
+          package-name: 'system-tests/dd-lib-python-init-test-django-gunicorn'
           package-type: 'container'
           min-versions-to-keep: 50
           delete-only-untagged-versions: 'true'
@@ -136,7 +136,7 @@ jobs:
       - name: Delete image [dd-lib-java-init-test-app]
         uses: actions/delete-package-versions@v4
         with: 
-          package-name: 'dd-lib-java-init-test-app'
+          package-name: 'system-tests/dd-lib-java-init-test-app'
           package-type: 'container'
           min-versions-to-keep: 50
           delete-only-untagged-versions: 'true'
