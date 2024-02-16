@@ -365,7 +365,7 @@ class DsmHelper:
     @staticmethod
     def produce_rabbitmq_message_v1_propagation(queue, exchange):
         # Create a RabbitMQ client
-        conn = kombu.Connection("amqp://rabbitmq:5672")
+        conn = kombu.Connection("amqp://127.0.0.1:5672")
         conn.connect()
         producer = conn.Producer()
 
