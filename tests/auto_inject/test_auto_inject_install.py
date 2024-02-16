@@ -129,41 +129,10 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
 
 
-@features.host_auto_instrumentation
-@scenarios.host_auto_injection
-class TestHostAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
-    def test_uninstall(self, virtual_machine):
-
-        vm_ip = virtual_machine.ssh_config.hostname
-        vm_port = virtual_machine.deffault_open_port
-        weblog_url = f"http://{vm_ip}:{vm_port}/"
-
-        # Kill the app before the uninstallation
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl kill -s SIGKILL test-app.service")
-        # Uninstall the auto inject
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("dd-host-install --uninstall")
-        # Start the app again
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl start test-app.service")
-        wait_for_port(vm_port, vm_ip, 40.0)
-        warmup_weblog(weblog_url)
-        request_uuid = make_get_request(weblog_url)
-        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
-        try:
-            wait_backend_trace_id(request_uuid, 10.0)
-            raise AssertionError("The weblog application is instrumented after uninstall DD software")
-        except TimeoutError:
-            # OK there are no traces, the weblog app is not instrumented
-            pass
-        # Kill the app before restore the installation
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl kill -s SIGKILL test-app.service")
-        # reinstall the auto inject
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("dd-host-install")
-        # Start the app again
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl start test-app.service")
-        # The app should be instrumented and reporting traces to the backend
-        self.test_install(virtual_machine)
 class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
-    def _test_uninstall(self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command,install_command):
+    def _test_uninstall(
+        self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+    ):
 
         vm_ip = virtual_machine.ssh_config.hostname
         vm_port = virtual_machine.deffault_open_port
@@ -193,41 +162,29 @@ class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
         virtual_machine.ssh_config.get_ssh_connection().exec_command(start_weblog_command)
         # The app should be instrumented and reporting traces to the backend
         self.test_install(virtual_machine)
-        
+
+
+@features.host_auto_instrumentation
+@scenarios.host_auto_injection
+class TestHostAutoInjectUninstallManual(_BaseAutoInjectUninstallManual):
+    def test_uninstall(self, virtual_machine):
+        stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
+        start_weblog_command = "sudo systemctl start test-app.service"
+        install_command = "dd-host-install"
+        uninstall_command = "dd-host-install --uninstall"
+        self._test_uninstall(
+            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        )
+
+
 @features.container_auto_instrumentation
 @scenarios.container_auto_injection
 class TestContainerAutoInjectUninstallManual(_BaseAutoInjectUninstallManual):
     def test_uninstall(self, virtual_machine):
         stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down"
         start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-        
-        self._test_uninstall(virtual_machine, "sudo docker stop test-app", "sudo docker start test-app", "dd-agent --uninstall", "dd-agent --install")
-
-        vm_ip = virtual_machine.ssh_config.hostname
-        vm_port = virtual_machine.deffault_open_port
-        weblog_url = f"http://{vm_ip}:{vm_port}/"
-
-        # Kill the app before the uninstallation
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl kill -s SIGKILL test-app.service")
-        # Uninstall the auto inject
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("dd-host-install --uninstall")
-        # Start the app again
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl start test-app.service")
-        wait_for_port(vm_port, vm_ip, 40.0)
-        warmup_weblog(weblog_url)
-        request_uuid = make_get_request(weblog_url)
-        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
-        try:
-            wait_backend_trace_id(request_uuid, 10.0)
-            raise AssertionError("The weblog application is instrumented after uninstall DD software")
-        except TimeoutError:
-            # OK there are no traces, the weblog app is not instrumented
-            pass
-        # Kill the app before restore the installation
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl kill -s SIGKILL test-app.service")
-        # reinstall the auto inject
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("dd-host-install")
-        # Start the app again
-        virtual_machine.ssh_config.get_ssh_connection().exec_command("sudo systemctl start test-app.service")
-        # The app should be instrumented and reporting traces to the backend
-        self.test_install(virtual_machine)
+        install_command = "dd-container-install"
+        uninstall_command = "dd-container-install --uninstall"
+        self._test_uninstall(
+            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        )
