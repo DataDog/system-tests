@@ -2035,3 +2035,4 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=283
         """
         pytest.mark.features(feature_id=283)(test_object)
+        return test_object
