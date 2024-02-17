@@ -25,4 +25,4 @@ weblog:
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
-        remote-command: sh test-app-java_docker_compose_run.sh
+        remote-command: sh test-app-java_docker_compose_run_buildpack.sh
