@@ -18,5 +18,4 @@ def warmup_weblog(app_url):
             requests.get(app_url, timeout=10)
             break
         except Exception as e:
-            logger.debug(f"Error warming up weblog: {e}")
             time.sleep(5)

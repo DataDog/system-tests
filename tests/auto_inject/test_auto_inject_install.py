@@ -9,11 +9,11 @@ from utils import irrelevant
 from utils import scenarios, context, features
 
 
-class _AutoInjectInstallBaseTest:
+class _AutoInjectBaseTest:
     @irrelevant(
         condition=getattr(context.scenario, "required_vms", []) == [], reason="No VMs to test",
     )
-    def test_install(self, virtual_machine):
+    def _test_install(self, virtual_machine):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
@@ -50,11 +50,13 @@ class _AutoInjectInstallBaseTest:
             logger.info(f"Command: {command}")
             logger.info(f"Output: {command_output}")
 
-
-class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
     def _test_uninstall(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
     ):
+        """ We can unistall the auto injection software. We can start the app again 
+        The weblog app should work but no sending traces to the backend.
+        We can reinstall the auto inject software. The weblog app should be instrumented 
+        and reporting traces to the backend."""
         logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
 
         vm_ip = virtual_machine.ssh_config.hostname
@@ -85,37 +87,13 @@ class _BaseAutoInjectUninstallManual(_AutoInjectInstallBaseTest):
         # Start the app again
         self.execute_command(virtual_machine, start_weblog_command)
         # The app should be instrumented and reporting traces to the backend
-        self.test_install(virtual_machine)
+        self._test_install(virtual_machine)
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
 
 
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
-class TestHostAutoInjectInstallManual(_AutoInjectInstallBaseTest):
-    pass
-
-
-@features.host_auto_installation_script
-@scenarios.host_auto_injection_install_script
-class TestHostAutoInjectInstallScript(_AutoInjectInstallBaseTest):
-    pass
-
-
-@features.container_auto_instrumentation
-@scenarios.container_auto_injection
-class TestContainerAutoInjectInstallManual(_AutoInjectInstallBaseTest):
-    pass
-
-
-@features.container_auto_installation_script
-@scenarios.container_auto_injection_install_script
-class TestContainerAutoInjectInstallScript(_AutoInjectInstallBaseTest):
-    pass
-
-
-@features.host_auto_instrumentation
-@scenarios.host_auto_injection
-class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
+class TestHostAutoInjectChaos(_AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
         """ Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
@@ -126,8 +104,13 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         vm_port = virtual_machine.deffault_open_port
         weblog_url = f"http://{vm_ip}:{vm_port}/"
 
+        # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
+        weblog_start_command = "sudo systemctl start test-app.service"
+        if context.scenario.library.library == "ruby":
+            weblog_start_command = virtual_machine._vm_provision.weblog_installation.remote_command
+
         # Ok the installation is done, now we can do some chaos
-        self.test_install(virtual_machine)
+        self._test_install(virtual_machine)
 
         # Remove installation folder
         self.execute_command(virtual_machine, evil_command)
@@ -141,8 +124,7 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         self.execute_command(virtual_machine, "sudo systemctl kill -s SIGKILL test-app.service")
 
         # Start the app again
-        self.execute_command(virtual_machine, "sudo systemctl start test-app.service")
-
+        self.execute_command(virtual_machine, weblog_start_command)
         # App shpuld be working again, although the installation folder was removed
         wait_for_port(vm_port, vm_ip, 40.0)
         warmup_weblog(weblog_url)
@@ -150,10 +132,8 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         assert (
             r.status_code == 200
         ), "The weblog app it's not working after remove the installation folder  and restart the app"
-
         # Kill the app before restore the installation
         self.execute_command(virtual_machine, "sudo systemctl kill -s SIGKILL test-app.service")
-
         # Restore the installation
         apm_inject_restore = ""
         for installation in virtual_machine._vm_provision.installations:
@@ -181,10 +161,10 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
         logger.info(command_output)
 
         # Start the app again
-        self.execute_command(virtual_machine, "sudo systemctl start test-app.service")
+        self.execute_command(virtual_machine, weblog_start_command)
 
         # The app should be instrumented and reporting traces to the backend
-        self.test_install(virtual_machine)
+        self._test_install(virtual_machine)
 
     def test_remove_apm_inject_folder(self, virtual_machine):
         logger.info(f"Launching test_remove_apm_inject_folder for : [{virtual_machine.name}]")
@@ -199,10 +179,18 @@ class TestHostAutoInjectChaos(_AutoInjectInstallBaseTest):
 
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
-class TestHostAutoInjectUninstallManual(_BaseAutoInjectUninstallManual):
+class TestHostAutoInjectManual(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
+
     def test_uninstall(self, virtual_machine):
         stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
+        # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         start_weblog_command = "sudo systemctl start test-app.service"
+
+        if context.scenario.library.library == "ruby":
+            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+
         install_command = "dd-host-install"
         uninstall_command = "dd-host-install --uninstall"
         self._test_uninstall(
@@ -212,7 +200,10 @@ class TestHostAutoInjectUninstallManual(_BaseAutoInjectUninstallManual):
 
 @features.container_auto_instrumentation
 @scenarios.container_auto_injection
-class TestContainerAutoInjectUninstallManual(_BaseAutoInjectUninstallManual):
+class TestContainerAutoInjectManual(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
+
     def test_uninstall(self, virtual_machine):
         stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down"
         start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
@@ -221,3 +212,17 @@ class TestContainerAutoInjectUninstallManual(_BaseAutoInjectUninstallManual):
         self._test_uninstall(
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
+
+
+@features.host_auto_installation_script
+@scenarios.host_auto_injection_install_script
+class TestHostAutoInjectInstallScript(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
+
+
+@features.container_auto_installation_script
+@scenarios.container_auto_injection_install_script
+class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)

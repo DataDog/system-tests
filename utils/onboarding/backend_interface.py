@@ -15,8 +15,8 @@ def _query_for_trace_id(trace_id):
     }
     try:
         r = requests.get(f"{host}{path}", headers=headers, timeout=10)
-        logger.info(f"Request path [{host}{path}]")
-        logger.info(f"Trying to find trace_id [{trace_id}] in backend with result status [{r.status_code}]")
+        # logger.info(f"Request path [{host}{path}]")
+        # logger.info(f"Trying to find trace_id [{trace_id}] in backend with result status [{r.status_code}]")
         logger.debug(f" Backend response for trace_id [{trace_id}]: [{r}]")
         return r.status_code
     except Exception:

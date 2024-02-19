@@ -11,7 +11,7 @@ from utils import irrelevant
 from utils.onboarding.injection_log_parser import command_injection_skipped
 
 
-class _OnboardingBlockListBaseTest:
+class _AutoInjectBlockListBaseTest:
     """ Base class to test the block list on auto instrumentation"""
 
     env_vars_config_mapper = {
@@ -75,7 +75,7 @@ ignored_arguments:
 
             # Write as local file and the copy by scp to user home. by ssh copy the file to /etc/datadog-agent/inject
             file_name = f"host_config_{uuid.uuid4()}.yml"
-            temp_file_path = scenarios.onboarding_host_block_list.host_log_folder + "/" + file_name
+            temp_file_path = scenarios.host_auto_injection_block_list.host_log_folder + "/" + file_name
             with open(temp_file_path, "w") as host_config_file:
                 host_config_file.write(test_conf_content)
             SCPClient(ssh_client.get_transport()).put(temp_file_path, file_name)
@@ -93,7 +93,7 @@ ignored_arguments:
 
         logger.info(f"Executing command: [{command_with_config}] associated with log file: [{unique_log_name}]")
 
-        log_local_path = scenarios.onboarding_host_block_list.host_log_folder + f"/{unique_log_name}"
+        log_local_path = scenarios.host_auto_injection_block_list.host_log_folder + f"/{unique_log_name}"
 
         _, stdout, stderr = ssh_client.exec_command(command_with_config)
         logger.info("Command output:")
@@ -111,7 +111,7 @@ ignored_arguments:
 
 @features.host_user_managed_block_list
 @scenarios.host_auto_injection_block_list
-class TestOnboardingBlockListInstallManualHost(_OnboardingBlockListBaseTest):
+class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
 
     buildIn_args_commands_block = {
         "java": ["java -version", "MY_ENV_VAR=hello java -version"],
