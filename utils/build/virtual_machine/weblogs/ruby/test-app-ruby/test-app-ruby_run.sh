@@ -4,6 +4,8 @@ echo "START RUN APP"
 sudo sed -i "s/3.1.3/>= 3.0.0\", \"< 3.3.0/g" Gemfile
 
 sudo DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
+
+# shellcheck disable=SC2035
 sudo cp -R * /home/datadog
 
 # shellcheck disable=SC2035
