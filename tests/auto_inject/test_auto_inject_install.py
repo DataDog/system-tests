@@ -105,7 +105,7 @@ class TestHostAutoInjectChaos(_AutoInjectBaseTest):
 
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         weblog_start_command = "sudo systemctl start test-app.service"
-        if context.scenario.library.library in ["ruby", "python"]:
+        if context.scenario.library.library in ["ruby", "python", "dotnet"]:
             weblog_start_command = virtual_machine._vm_provision.weblog_installation.remote_command
 
         # Ok the installation is done, now we can do some chaos
@@ -190,7 +190,7 @@ class TestHostAutoInjectManual(_AutoInjectBaseTest):
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         start_weblog_command = "sudo systemctl start test-app.service"
 
-        if context.scenario.library.library in ["ruby", "python"]:
+        if context.scenario.library.library in ["ruby", "python", "dotnet"]:
             start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
 
         install_command = "dd-host-install"

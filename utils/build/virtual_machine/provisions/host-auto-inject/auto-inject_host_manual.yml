@@ -24,8 +24,15 @@
         echo "Instaling datadog-apm-inject from remote repository"
         sudo apt install -y --reinstall -t $DD_deb_repo_name datadog-apm-inject
     fi
-
-    sudo apt install -y -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
+    
+    if [ -e datadog-apm-library-$DD_LANG_*_$architecture.deb ]
+    then
+        echo "Instaling datadog-apm-library-$DD_LANG from local folder"
+        sudo apt install -y --reinstall ./datadog-apm-library-$DD_LANG_*_$architecture.deb
+    else
+        echo "Instaling datadog-apm-library-$DD_LANG from remote repository"
+        sudo apt install -y --reinstall -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
+    fi
     dd-host-install
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
@@ -55,7 +62,16 @@
         sudo yum -q list installed datadog-apm-inject &>/dev/null && sudo yum -y reinstall --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject || sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject
     fi
 
-    sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG
+    if [ -e datadog-apm-library-$DD_LANG-*.$architecture.rpm ]
+    then
+        echo "Instaling datadog-apm-library-$DD_LANG from local folder"
+        sudo yum -q list installed datadog-apm-library-$DD_LANG &>/dev/null && sudo yum -y reinstall --disablerepo="*" datadog-apm-library-$DD_LANG-*.$architecture.rpm || sudo yum -y install --disablerepo="*" datadog-apm-library-$DD_LANG-*.$architecture.rpm
+    else
+        echo "Instaling datadog-apm-library-$DD_LANG from remote repository"
+        sudo yum -q list installed datadog-apm-library-$DD_LANG &>/dev/null && sudo yum -y reinstall --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG || sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG
+    fi
+
+
     dd-host-install
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
     echo "Verify package signature. Fails if it isn't V4"

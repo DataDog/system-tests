@@ -33,9 +33,9 @@ def pytest_addoption(parser):
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
     # Onboarding scenarios mandatory parameters
-    parser.addoption("--obd-weblog", type=str, action="store", help="Set onboarding weblog")
-    parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
-    parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
+    parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
+    parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
+    parser.addoption("--vm-env", type=str, action="store", help="Set virtual machine environment")
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
 

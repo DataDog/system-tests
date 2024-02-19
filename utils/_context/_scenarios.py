@@ -987,9 +987,9 @@ class _VirtualMachineScenario(_Scenario):
         super().configure(config)
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
-        self._library = LibraryVersion(config.option.obd_library, "0.0")
-        self._env = config.option.obd_env
-        self._weblog = config.option.obd_weblog
+        self._library = LibraryVersion(config.option.vm_library, "0.0")
+        self._env = config.option.vm_env
+        self._weblog = config.option.vm_weblog
         self._check_test_environment()
         self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
 
@@ -1016,9 +1016,9 @@ class _VirtualMachineScenario(_Scenario):
     def _check_test_environment(self):
         """ Check if the test environment is correctly set"""
 
-        assert self._library is not None, "Library is not set (use --obd-library)"
-        assert self._env is not None, "Env is not set (use --obd-env)"
-        assert self._weblog is not None, "Weblog is not set (use --obd-weblog)"
+        assert self._library is not None, "Library is not set (use --vm-library)"
+        assert self._env is not None, "Env is not set (use --vm-env)"
+        assert self._weblog is not None, "Weblog is not set (use --vm-weblog)"
         assert os.path.isfile(
             f"utils/build/virtual_machine/weblogs/{self._library.library}/provision_{self._weblog}.yml"
         ), "Weblog Provision file not found."
