@@ -7,14 +7,14 @@ lang_variant:
         os_distro: deb
         copy_files:
           - name: copy-auto-install-script
-            local_path: tests/onboarding/autoinjection/lang/python_install.sh 
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python/python_install.sh
         remote-command: sudo apt-get -y update && sudo sh python_install.sh deb 3.8.15
 
       - os_type: linux
         os_distro: rpm
         copy_files:
           - name: copy-auto-install-script
-            local_path: tests/onboarding/autoinjection/lang/python_install.sh
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python/python_install.sh
         remote-command: sudo sh python_install.sh rpm 3.8.15
 
 weblog:

@@ -1,7 +1,6 @@
 import os
 
 from utils.tools import logger
-from utils import context
 
 
 class VmProviderFactory:

@@ -6,7 +6,6 @@ from utils.tools import logger
 
 import paramiko
 from scp import SCPClient
-from utils.onboarding.pulumi_ssh import PulumiSSH
 from utils import irrelevant
 from utils.onboarding.injection_log_parser import command_injection_skipped
 
@@ -43,14 +42,6 @@ ignored_arguments:
     Ruby:
         - DD_RUBY_IGNORED_ARGS
 """
-
-    def _ssh_connect(self, ip, user):
-        """ Establish the connection with the remote machine """
-        cert = paramiko.RSAKey.from_private_key_file(PulumiSSH.pem_file)
-        ssh_client = paramiko.SSHClient()
-        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_client.connect(hostname=ip, username=user, pkey=cert)
-        return ssh_client
 
     def _execute_remote_command(self, ssh_client, command, config={}, use_injection_config=False):
         """ Execute remote command and get remote log file from the vm. You can use this method using env variables or using injection config file  """

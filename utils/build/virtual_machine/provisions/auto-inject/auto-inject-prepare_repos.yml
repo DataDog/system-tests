@@ -29,16 +29,16 @@
           os_distro: rpm
           copy_files:
             - name: copy-datadog-staging-repo.x86_64
-              local_path: tests/onboarding/autoinjection/repositories/rpm/datadog-staging.x86_64.repo
+              local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/rpm/datadog-staging.x86_64.repo
               remote_path: datadog-staging.x86_64.repo
             - name: copy-datadog-staging-repo.aarch64
-              local_path: tests/onboarding/autoinjection/repositories/rpm/datadog-staging.aarch64.repo
+              local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/rpm/datadog-staging.aarch64.repo
               remote_path: datadog-staging.aarch64.repo
             - name: copy-datadog-stable-repo.x86_64
-              local_path: tests/onboarding/autoinjection/repositories/rpm/datadog-stable.x86_64.repo
+              local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/rpm/datadog-stable.x86_64.repo
               remote_path: datadog-stable.x86_64.repo
             - name: copy-datadog-stable-repo.aarch64
-              local_path: tests/onboarding/autoinjection/repositories/rpm/datadog-stable.aarch64.repo
+              local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/rpm/datadog-stable.aarch64.repo
               remote_path: datadog-stable.aarch64.repo
 
           remote-command: |

@@ -15,8 +15,8 @@ import pulumi_command as command
 
 from utils.tools import logger
 from utils import context
+from utils.virtual_machine.vm_logger import vm_logger
 
-from utils.onboarding.pulumi_utils import pulumi_logger
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 
 
@@ -71,7 +71,7 @@ class AWSPulumiProvider(VmProvider):
         Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
         pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
         Output.all(ec2_server.private_ip, vm.name).apply(
-            lambda args: pulumi_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}")
+            lambda args: vm_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}")
         )
 
         vm.ssh_config.username = vm.aws_config.user
@@ -158,7 +158,7 @@ class AWSCommander(Commander):
             opts=pulumi.ResourceOptions(depends_on=[last_task]),
             environment=env,
         )
-        last_task.stdout.apply(lambda outputlog: pulumi_logger(context.scenario.name, logger_name).info(outputlog))
+        last_task.stdout.apply(lambda outputlog: vm_logger(context.scenario.name, logger_name).info(outputlog))
         return last_task
 
     def copy_file(self, id, local_path, remote_path, connection, last_task):
@@ -183,14 +183,14 @@ class AWSCommander(Commander):
         )
         if logger_name:
             cmd_exec_install.stdout.apply(
-                lambda outputlog: pulumi_logger(context.scenario.name, logger_name).info(outputlog)
+                lambda outputlog: vm_logger(context.scenario.name, logger_name).info(outputlog)
             )
         else:
             # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
             # same remote machine in the same log file
             header = "*****************************************************************"
             Output.all(vm.name, installation_id, remote_command, cmd_exec_install.stdout).apply(
-                lambda args: pulumi_logger(context.scenario.name, args[0]).info(
+                lambda args: vm_logger(context.scenario.name, args[0]).info(
                     f"{header} \n  - COMMAND: {args[1]} \n {header} \n {args[2]} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {args[3]}"
                 )
             )

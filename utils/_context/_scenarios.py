@@ -13,7 +13,6 @@ from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
-from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
     WeblogContainer,
@@ -846,143 +845,6 @@ class PerformanceScenario(EndToEndScenario):
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
 
-class OnBoardingScenario(_Scenario):
-    def __init__(self, name, doc) -> None:
-        super().__init__(name, doc=doc)
-        self.stack = None
-        self.provision_vms = []
-        self.provision_vm_names = []
-        self.onboarding_components = {}
-        self.onboarding_tests_metadata = {}
-
-    def configure(self, config):
-        super().configure(config)
-        self._library = LibraryVersion(config.option.obd_library, "0.0")
-        self._env = config.option.obd_env
-        self._weblog = config.option.obd_weblog
-        self.provision_vms = list(
-            ProvisionMatrix(
-                ProvisionFilter(self.name, language=self._library.library, env=self._env, weblog=self._weblog)
-            ).get_infrastructure_provision()
-        )
-        self.provision_vm_names = [vm.name for vm in self.provision_vms]
-
-    @property
-    def components(self):
-        return self.onboarding_components
-
-    @property
-    def parametrized_tests_metadata(self):
-        return self.onboarding_tests_metadata
-
-    @property
-    def library(self):
-        return self._library
-
-    @property
-    def weblog_variant(self):
-        return self._weblog
-
-    def session_start(self):
-        super().session_start()
-        self.fill_context()
-
-    def fill_context(self):
-        # fix package name for nodejs -> js
-        if self._library.library == "nodejs":
-            package_lang = "datadog-apm-library-js"
-        else:
-            package_lang = f"datadog-apm-library-{self._library.library}"
-
-        dd_package_names = ["agent", "datadog-apm-inject", package_lang]
-
-        try:
-            for provision_vm in self.provision_vms:
-                # Manage common dd software components for the scenario if it's not a skipped test
-                if provision_vm.pytestmark is None:
-                    for dd_package_name in dd_package_names:
-                        # All the tested machines should have the same version of the DD components
-                        if dd_package_name in self.onboarding_components and self.onboarding_components[
-                            dd_package_name
-                        ] != provision_vm.get_component(dd_package_name):
-                            self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
-                            raise ValueError(
-                                f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
-                            )
-                        logger.stdout(f"{dd_package_name}: {provision_vm.get_component(dd_package_name)}")
-                        self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
-                # Manage specific information for each parametrized test
-                test_metadata = {
-                    "vm": provision_vm.ec2_data["name"],
-                    "vm_ip": provision_vm.ip,
-                    "vm_ami": provision_vm.ec2_data["ami_id"],
-                    "vm_distro": provision_vm.ec2_data["os_distro"],
-                    "docker": provision_vm.get_component("docker"),
-                    "lang_variant": provision_vm.language_variant_install_data["name"],
-                }
-                self.onboarding_tests_metadata[provision_vm.name] = test_metadata
-
-        except Exception as ex:
-            logger.error("Error filling the context components")
-            logger.exception(ex)
-
-    def extract_debug_info_before_close(self):
-        """ Extract debug info for each machine before shutdown. We connect to machines using ssh"""
-        from utils.onboarding.debug_vm import debug_info_ssh
-        from utils.onboarding.pulumi_ssh import PulumiSSH
-
-        for provision_vm in self.provision_vms:
-            if provision_vm.pytestmark is None:
-                debug_info_ssh(
-                    provision_vm.name,
-                    provision_vm.ip,
-                    provision_vm.ec2_data["user"],
-                    PulumiSSH.pem_file,
-                    self.host_log_folder,
-                )
-
-    def _start_pulumi(self):
-        from pulumi import automation as auto
-        from utils.onboarding.pulumi_ssh import PulumiSSH
-
-        def pulumi_start_program():
-            # Static loading of keypairs for ec2 machines
-            PulumiSSH.load()
-            for provision_vm in self.provision_vms:
-                logger.info(f"Executing warmup {provision_vm.name}")
-                provision_vm.start()
-
-        project_name = "system-tests-onboarding"
-        stack_name = "testing_v2"
-
-        try:
-            self.stack = auto.create_or_select_stack(
-                stack_name=stack_name, project_name=project_name, program=pulumi_start_program
-            )
-            self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
-            up_res = self.stack.up(on_output=logger.info)
-        except Exception as pulumi_exception:  #
-            logger.error("Exception launching onboarding provision infraestructure")
-            logger.exception(pulumi_exception)
-
-    def _get_warmups(self):
-        return [self._start_pulumi]
-
-    def pytest_sessionfinish(self, session):
-        logger.info(f"Closing onboarding scenario")
-        self.extract_debug_info_before_close()
-        self.close_targets()
-
-    def close_targets(self):
-        logger.info(f"Pulumi stack down")
-        self.stack.destroy(on_output=logger.info)
-
-    def customize_feature_parity_dashboard(self, result):
-        for test in result["tests"]:
-            last_index = test["path"].rfind("::") + 2
-            test["description"] = test["path"][last_index:]
-
-
 class ParametricScenario(_Scenario):
     class PersistentParametricTestConf(dict):
         """ Parametric tests are executed in multiple thread, we need a mechanism to persist each parametrized_tests_metadata on a file"""
@@ -1591,17 +1453,6 @@ class scenarios:
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
-
-    # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
-    onboarding_host_install_manual = OnBoardingScenario("ONBOARDING_HOST_INSTALL_MANUAL", doc="")
-    onboarding_container_install_manual = OnBoardingScenario("ONBOARDING_CONTAINER_INSTALL_MANUAL", doc="")
-    onboarding_host_install_script = OnBoardingScenario("ONBOARDING_HOST_INSTALL_SCRIPT", doc="")
-    onboarding_container_install_script = OnBoardingScenario("ONBOARDING_CONTAINER_INSTALL_SCRIPT", doc="")
-    # Onboarding uninstall scenario: first install onboarding, the uninstall dd injection software
-    onboarding_host_uninstall = OnBoardingScenario("ONBOARDING_HOST_UNINSTALL", doc="")
-    onboarding_container_uninstall = OnBoardingScenario("ONBOARDING_CONTAINER_UNINSTALL", doc="")
-    # Onboarding block list scenarios
-    onboarding_host_block_list = OnBoardingScenario("ONBOARDING_HOST_BLOCK_LIST", doc="")
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
