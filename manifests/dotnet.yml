@@ -31,7 +31,7 @@ tests/:
           Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: v2.46.0
-        test_hsts_missing_header.py: 
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader: v2.44.0
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
@@ -47,8 +47,10 @@ tests/:
           TestNoSqlMongodbInjection: v2.47.0
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
-          TestSqlInjection: 
+          TestSqlInjection:
              '*': v2.23.0
         test_ssrf.py:
           TestSSRF: v2.36.0
@@ -66,7 +68,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: v2.39.0
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -78,10 +80,12 @@ tests/:
           TestCookieName: v2.42.0
         test_cookie_value.py:
           TestCookieValue: v2.42.0
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
-          TestHeaderValue: 
+          TestHeaderValue:
              '*': v2.39.0
         test_kafka_key.py:
           TestKafkaKey: missing_feature
@@ -209,8 +213,12 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: missing_feature
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -226,6 +234,7 @@ tests/:
       Test_DsmRabbitmq: v2.29.0
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:

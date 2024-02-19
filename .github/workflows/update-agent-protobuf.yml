@@ -9,7 +9,7 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v2
       - run: sudo apt-get update
       - run: sudo apt-get -y install protobuf-compiler
