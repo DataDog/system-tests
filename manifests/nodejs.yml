@@ -151,14 +151,12 @@ tests/:
             express4-typescript: v4.3.0
         test_kafka_key.py:
           TestKafkaKey:
-            '*': missing_feature
-            express4: v5.4.0
-            express4-typescript: v5.4.0
+            '*': v5.4.0
+            nextjs: irrelevant # nextjs is not related with kafka
         test_kafka_value.py:
           TestKafkaValue:
             '*': v5.4.0
             nextjs: irrelevant # nextjs is not related with kafka
-            express4-typescript: v5.4.0
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
