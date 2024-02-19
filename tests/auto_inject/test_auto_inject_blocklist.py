@@ -252,13 +252,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         },
     ]
 
-    def test_versions(self, virtual_machine):
-        logger.info(f"*********** TEST VERSIONS ***********")
-        logger.info(f"Testing COMPNENTS: {context.scenario.components}")
-        logger.info(f"SHOULD BE TRUE: {'datadog-apm-inject' in context.scenario.components}")
-        logger.info(f"Testing version: {context.scenario.components['datadog-apm-inject']}")
-        logger.info(f"SHOULD BE TRUE: {context.scenario.components['datadog-apm-inject'] > '0.12.4'}")
-
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
