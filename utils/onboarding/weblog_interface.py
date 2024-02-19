@@ -1,7 +1,6 @@
 import time
 from random import randint
 import requests
-from utils.tools import logger
 
 
 def make_get_request(app_url):
@@ -17,5 +16,5 @@ def warmup_weblog(app_url):
         try:
             requests.get(app_url, timeout=10)
             break
-        except Exception as e:
+        except Exception:
             time.sleep(5)
