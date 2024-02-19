@@ -1,21 +1,22 @@
 lang_variant:
-    name: node16
+    name: Python_3.8.15
+    version: 3.8.15
     cache: true
-    version: 16
     install: 
       - os_type: linux
         os_distro: deb
-        remote-command: curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - && sudo apt-get install -y nodejs  
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: tests/onboarding/autoinjection/lang/python_install.sh 
+        remote-command: sudo apt-get -y update && sudo sh python_install.sh deb 3.8.15
+
       - os_type: linux
         os_distro: rpm
-        remote-command: | 
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm install 16.0.0
-          nvm use node
-          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: tests/onboarding/autoinjection/lang/python_install.sh
+        remote-command: sudo sh python_install.sh rpm 3.8.15
+
 
 weblog:
     name: test-shell-script

@@ -1,0 +1,25 @@
+lang_variant:
+    name: dotnet
+    cache: true
+    version: 6
+    install: 
+      - os_type: linux
+        os_distro: rpm
+        command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
+
+weblog:
+    name: test-app-dotnet
+    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu18_amd64, amazon_linux2_amd64, amazon_linux2023_amd64]
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-dotnet-app
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app 
+
+          - name: copy-service
+            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app.service
+
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
+
+        remote-command: sh test-app-dotnet_run.sh

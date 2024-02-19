@@ -20,7 +20,7 @@ class _AutoInjectBaseTest:
         vm_ip = virtual_machine.ssh_config.hostname
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
-        logger.info(f"Launching test_install for : [{vm_name}]")
+
         logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
         wait_for_port(vm_port, vm_ip, 80.0)
         logger.info(f"[{vm_ip}]: Weblog app is ready!")
@@ -29,7 +29,6 @@ class _AutoInjectBaseTest:
         request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, 60.0)
-        logger.info(f"Success test_install for : [{vm_name}]")
 
     def execute_command(self, virtual_machine, command):
         # Env for the command
@@ -106,7 +105,7 @@ class TestHostAutoInjectChaos(_AutoInjectBaseTest):
 
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         weblog_start_command = "sudo systemctl start test-app.service"
-        if context.scenario.library.library == "ruby":
+        if context.scenario.library.library in ["ruby", "python"]:
             weblog_start_command = virtual_machine._vm_provision.weblog_installation.remote_command
 
         # Ok the installation is done, now we can do some chaos
@@ -167,12 +166,12 @@ class TestHostAutoInjectChaos(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
     def test_remove_apm_inject_folder(self, virtual_machine):
-        logger.info(f"Launching test_remove_apm_inject_folder for : [{virtual_machine.name}]")
+        logger.info(f"Launching test_remove_apm_inject_folder for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm -rf /opt/datadog/apm/inject")
         logger.info(f"Success test_remove_apm_inject_folder for : [{virtual_machine.name}]")
 
     def test_remove_ld_preload(self, virtual_machine):
-        logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]")
+        logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
         logger.info(f"Success test_remove_ld_preload for : [{virtual_machine.name}]")
 
@@ -181,14 +180,17 @@ class TestHostAutoInjectChaos(_AutoInjectBaseTest):
 @scenarios.host_auto_injection
 class TestHostAutoInjectManual(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
     def test_uninstall(self, virtual_machine):
+        logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
         stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         start_weblog_command = "sudo systemctl start test-app.service"
 
-        if context.scenario.library.library == "ruby":
+        if context.scenario.library.library in ["ruby", "python"]:
             start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
 
         install_command = "dd-host-install"
@@ -196,6 +198,7 @@ class TestHostAutoInjectManual(_AutoInjectBaseTest):
         self._test_uninstall(
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
+        logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")
 
 
 @features.container_auto_instrumentation

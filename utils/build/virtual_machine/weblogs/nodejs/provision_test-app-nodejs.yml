@@ -1,6 +1,7 @@
 lang_variant:
     name: node16
     version: 16
+    cache: true
     install: 
       - os_type: linux
         os_distro: deb
