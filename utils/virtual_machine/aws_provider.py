@@ -65,6 +65,7 @@ class AWSPulumiProvider(VmProvider):
             ami=vm.aws_config.ami_id if ami_id is None else ami_id,
             tags={"Name": vm.name,},
             opts=self.pulumi_ssh.aws_key_resource,
+            root_block_device={"volume_size": 16},
         )
 
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
