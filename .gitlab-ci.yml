@@ -130,6 +130,7 @@ onboarding_dotnet:
     - schedules
   variables:
     TEST_LIBRARY: "dotnet"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev]
