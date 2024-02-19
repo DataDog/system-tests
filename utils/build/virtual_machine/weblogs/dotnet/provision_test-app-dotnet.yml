@@ -5,7 +5,7 @@ lang_variant:
     install: 
       - os_type: linux
         os_distro: rpm
-        command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
+        remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
 
 weblog:
     name: test-app-dotnet
