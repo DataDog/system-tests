@@ -408,10 +408,7 @@ function initSourceRoutes (app: Express): void {
       const deferred: {
         resolve?: Function,
         reject?: Function
-      } = {
-        resolve: undefined,
-        reject: undefined
-      }
+      } = {}
 
       const promise = new Promise((resolve: Function, reject: Function): void => {
         deferred.resolve = resolve
@@ -419,7 +416,7 @@ function initSourceRoutes (app: Express): void {
       })
 
       await consumer.run({
-        eachMessage: async ({ topic, partition, message }: { topic: string, partition: string, message: any }) => {
+        eachMessage: async ({ message }: { message: any }) => {
           const vulnValue = message.value.toString()
           try {
             readFileSync(vulnValue)
@@ -474,10 +471,7 @@ function initSourceRoutes (app: Express): void {
       const deferred: {
         resolve?: Function,
         reject?: Function
-      } = {
-        resolve: undefined,
-        reject: undefined
-      }
+      } = {}
 
       const promise = new Promise((resolve: Function, reject: Function): void => {
         deferred.resolve = resolve
@@ -485,7 +479,7 @@ function initSourceRoutes (app: Express): void {
       })
 
       await consumer.run({
-        eachMessage: async ({ topic, partition, message }: { topic: string, partition: string, message: any }) => {
+        eachMessage: async ({ message }: { message: any }) => {
           const vulnKey = message.key.toString()
           readFileSync(vulnKey)
 

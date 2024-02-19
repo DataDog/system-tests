@@ -156,7 +156,6 @@ tests/:
             express4-typescript: v5.4.0
         test_kafka_value.py:
           TestKafkaValue:
-            '*': missing_feature
             '*': v5.4.0
             nextjs: irrelevant # nextjs is not related with kafka
             express4-typescript: v5.4.0
