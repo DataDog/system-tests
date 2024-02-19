@@ -2,6 +2,8 @@
 echo "START RUN APP"
 
 set -e
+
+# shellcheck disable=SC2015
 sudo chmod -R 755 *
 
 sudo cp django_app.py /home/datadog/
