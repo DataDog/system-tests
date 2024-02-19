@@ -5,7 +5,10 @@ sudo sed -i "s/3.1.3/>= 3.0.0\", \"< 3.3.0/g" Gemfile
 
 sudo DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
 sudo cp -R * /home/datadog
+
+# shellcheck disable=SC2035
 sudo chmod -R 755 /home/datadog
+
 sudo chown -R datadog:datadog /home/datadog
 sudo cp test-app.service /etc/systemd/system/test-app.service
 sudo systemctl daemon-reload

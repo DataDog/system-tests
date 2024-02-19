@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# shellcheck disable=SC2015
+# shellcheck disable=SC2035
 sudo chmod -R 755 *
 
 echo "START RUN APP (debug active)"
