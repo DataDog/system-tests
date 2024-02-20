@@ -1,8 +1,7 @@
 import pytest
 
 from ddapm_test_agent.trace import Span, root_span
-from typing import Union
-from utils import bug, missing_feature, irrelevant, context, scenarios
+from utils import bug, missing_feature, irrelevant, context, scenarios, features
 from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER, OtelSpan
 from utils.parametric.spec.trace import find_trace_by_root, find_span
 
@@ -19,6 +18,7 @@ TEST_TRACESTATE = "dd=t.dm:-0"
 TEST_ATTRIBUTES = {"arg1": "val1"}
 
 
+@features.f_interoperability
 @scenarios.parametric
 class Test_Otel_Interoperability:
     def test_span_creation_using_otel(self, test_agent, test_library):
