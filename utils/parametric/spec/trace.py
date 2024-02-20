@@ -278,7 +278,8 @@ def assert_trace_has_tags(trace: Trace, tags: Dict[str, Union[int, str, float, b
 def retrieve_span_links(span):
     if span.get("span_links") is not None:
         return span["span_links"]
-    elif span["meta"].get("_dd.span_links") is not None:
+
+    if span["meta"].get("_dd.span_links") is not None:
         # Convert span_links tags into protobuf v0.4 format
         json_links = json.loads(span["meta"].get("_dd.span_links"))
         links = []
@@ -298,5 +299,3 @@ def retrieve_span_links(span):
                 link["flags"] = 0
             links.append(link)
         return links
-    else:
-        return None
