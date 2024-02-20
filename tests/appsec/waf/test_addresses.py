@@ -390,8 +390,8 @@ class Test_gRPC:
     def setup_basic(self):
         self.requests = [
             weblog.grpc('" OR TRUE --'),
-            weblog.grpc("SELECT * FROM users WHERE name='com.sun.org.apache' UNION SELECT creditcard FROM users"),
-            weblog.grpc("SELECT * FROM users WHERE id=1 UNION SELECT creditcard FROM users"),
+            weblog.grpc("SELECT * FROM products WHERE id=1-SLEEP(15)"),
+            weblog.grpc("SELECT * FROM products WHERE id=1; WAIT FOR DELAY '00:00:15'"),
         ]
 
     def test_basic(self):
