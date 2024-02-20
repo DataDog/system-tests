@@ -269,7 +269,8 @@ function initRoutes (app, tracer) {
 
   app.get('/iast/hardcoded_secrets/test_insecure', (req, res) => {
     const secret = 'A3TMAWZUKIWR6O0OGR7B'
-    res.send(`OK:${secret}`)
+    const datadogSecret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
+    res.send(`OK:${secret}:${datadogSecret}`)
   })
 
   app.get('/iast/hardcoded_secrets/test_secure', (req, res) => {

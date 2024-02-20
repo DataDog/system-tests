@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, weblog, features, context
+from utils import interfaces, weblog, features, context, missing_feature
 
 # Test_HardcodedSecrets doesn't inherit from BaseSinkTest
 # Hardcode secrets detection implementation change a lot between different languages
@@ -26,6 +26,22 @@ class Test_HardcodedSecrets:
         assert self.r_hardcoded_secrets_exec.status_code == 200
         hardcode_secrets = self.get_hardcoded_secret_vulnerabilities()
         hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
+        assert len(hardcode_secrets) == 1
+        vuln = hardcode_secrets[0]
+        assert vuln["location"]["path"] == self._get_expectation(self.location_map)
+
+    # the rules from the extended set for secret detection need to know the variable name in addition to the literal value
+    @missing_feature(library="golang", reason="Not implemented yet")
+    @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(library="ruby", reason="Not implemented yet")
+    @missing_feature(library="php", reason="Not implemented yet")
+    @missing_feature(library="cpp", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    def test_hardcoded_secrets_extended_exec(self):
+        hardcode_secrets = self.get_hardcoded_secret_vulnerabilities()
+        hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "datadog-access-token"]
         assert len(hardcode_secrets) == 1
         vuln = hardcode_secrets[0]
         assert vuln["location"]["path"] == self._get_expectation(self.location_map)
