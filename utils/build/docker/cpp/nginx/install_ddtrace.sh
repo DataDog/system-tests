@@ -8,10 +8,7 @@ get_latest_release() {
 
 NGINX_VERSION=1.17.3
 
-# https://github.com/opentracing-contrib/nginx-opentracing/issues/586
-# ot16 file are missing from the latest release of nginx-opentracing
-# OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
-OPENTRACING_NGINX_VERSION="v0.34.0"
+OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
 
 DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
 
