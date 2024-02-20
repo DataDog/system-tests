@@ -1,5 +1,5 @@
 import requests
-
+import os
 from utils import scenarios, features
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
@@ -7,6 +7,8 @@ from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils import irrelevant
 from utils import scenarios, context, features
+from utils.virtual_machine.vm_logger import vm_logger
+import pytest
 
 
 class _AutoInjectBaseTest:
@@ -39,15 +41,17 @@ class _AutoInjectBaseTest:
         command_with_env = f"{prefix_env} {command}"
 
         with virtual_machine.ssh_config.get_ssh_connection() as ssh:
-            _, stdout, stderr = ssh.exec_command(command_with_env)
+            _, stdout, stderr = ssh.exec_command(command_with_env, timeout=120)
             stdout.channel.set_combine_stderr(True)
             # Read the output line by line
             command_output = ""
             for line in stdout.readlines():
                 if not line.startswith("export"):
                     command_output += line
-            logger.info(f"Command: {command}")
-            logger.info(f"Output: {command_output}")
+            header = "*****************************************************************"
+            vm_logger(context.scenario.name, virtual_machine.name).info(
+                f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
+            )
 
     def _test_uninstall(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
@@ -88,6 +92,74 @@ class _AutoInjectBaseTest:
         # The app should be instrumented and reporting traces to the backend
         self._test_install(virtual_machine)
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
+
+    @pytest.fixture(autouse=True)
+    def do_before_test(self, virtual_machine):
+        if virtual_machine:
+            current_test = os.environ.get("PYTEST_CURRENT_TEST").split(":")[-1].split(" ")[0]
+            start = current_test.find("[")
+            if start != -1:
+                current_test = current_test[: start + 1]
+            header = "----------------------------------------------------------------------"
+            vm_logger(context.scenario.name, virtual_machine.name).info(
+                f"{header} \n {header}  \n  Launching the test {current_test} for VM: {virtual_machine.name}  \n {header} \n {header}"
+            )
+        yield
+
+
+@features.host_auto_instrumentation
+@scenarios.host_auto_injection
+class TestHostAutoInjectManual(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+    def test_uninstall(self, virtual_machine):
+        logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
+        stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
+        # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
+        start_weblog_command = "sudo systemctl start test-app.service"
+
+        if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+
+        install_command = "dd-host-install"
+        uninstall_command = "dd-host-install --uninstall"
+        self._test_uninstall(
+            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        )
+        logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")
+
+
+@features.container_auto_instrumentation
+@scenarios.container_auto_injection
+class TestContainerAutoInjectManual(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
+
+    def test_uninstall(self, virtual_machine):
+        stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down"
+        start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+        install_command = "dd-container-install && sudo systemctl restart docker"
+        uninstall_command = "dd-container-install --uninstall && sudo systemctl restart docker"
+        self._test_uninstall(
+            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        )
+
+
+@features.host_auto_installation_script
+@scenarios.host_auto_injection_install_script
+class TestHostAutoInjectInstallScript(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
+
+
+@features.container_auto_installation_script
+@scenarios.container_auto_injection_install_script
+class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
 
 
 @features.host_auto_instrumentation
@@ -174,58 +246,3 @@ class TestHostAutoInjectChaos(_AutoInjectBaseTest):
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
         logger.info(f"Success test_remove_ld_preload for : [{virtual_machine.name}]")
-
-
-@features.host_auto_instrumentation
-@scenarios.host_auto_injection
-class TestHostAutoInjectManual(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        self._test_install(virtual_machine)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
-
-    def test_uninstall(self, virtual_machine):
-        logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
-        stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
-        # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
-        start_weblog_command = "sudo systemctl start test-app.service"
-
-        if context.scenario.library.library in ["ruby", "python", "dotnet"]:
-            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-
-        install_command = "dd-host-install"
-        uninstall_command = "dd-host-install --uninstall"
-        self._test_uninstall(
-            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
-        )
-        logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")
-
-
-@features.container_auto_instrumentation
-@scenarios.container_auto_injection
-class TestContainerAutoInjectManual(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
-
-    def test_uninstall(self, virtual_machine):
-        stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down"
-        start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-        install_command = "dd-container-install && sudo systemctl restart docker"
-        uninstall_command = "dd-container-install --uninstall && sudo systemctl restart docker"
-        self._test_uninstall(
-            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
-        )
-
-
-@features.host_auto_installation_script
-@scenarios.host_auto_injection_install_script
-class TestHostAutoInjectInstallScript(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
-
-
-@features.container_auto_installation_script
-@scenarios.container_auto_injection_install_script
-class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
