@@ -391,7 +391,7 @@ class Test_gRPC:
         self.requests = [
             weblog.grpc('" OR TRUE --'),
             weblog.grpc("SELECT * FROM products WHERE id=1-SLEEP(15)"),
-            weblog.grpc("SELECT * FROM products WHERE id=1; WAIT FOR DELAY '00:00:15'"),
+            weblog.grpc("SELECT * FROM products WHERE id=1; WAITFOR DELAY '00:00:15'"),
         ]
 
     def test_basic(self):
