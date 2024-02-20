@@ -19,6 +19,8 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 ENV DD_BOTOCORE_PROPAGATION_ENABLED=true
 ENV DD_KAFKA_PROPAGATION_ENABLED=true
 
+ENV LOG_LEVEL='DEBUG'
+
 # docker startup
 # FIXME: Ensure gevent patching occurs before ddtrace
 

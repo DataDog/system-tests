@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _nodejs_buddy, _java_buddy
+from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -18,10 +18,22 @@ class _Test_SQS:
     @classmethod
     def get_span(cls, interface, span_kind, queue, operation):
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
+        manual_span_found = False
 
         for data, trace in interface.get_traces():
-            for span in trace:
+            # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sns_to_sqs.
+            # Instead, we look for the custom span created after the "aws.response" span
+            for span in reversed(trace):
                 if not span.get("meta"):
+                    continue
+
+                # special case for JS spans where we create a manual span since the callback span lacks specific information
+                if (
+                    span["meta"].get("language", "") == "javascript"
+                    and span["name"] == "sqs.consume"
+                    and span["meta"].get("queue_name", "") == queue
+                ):
+                    manual_span_found = True
                     continue
 
                 if span["meta"].get("span.kind") not in span_kind:
@@ -31,15 +43,21 @@ class _Test_SQS:
                 if "aws.service" not in span["meta"] and "aws_service" not in span["meta"]:
                     continue
 
+                if (
+                    "sqs" not in span["meta"].get("aws.service", "").lower()
+                    and "sqs" not in span["meta"].get("aws_service", "").lower()
+                ):
+                    continue
+
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
-                if operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
+                elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
                         continue
-                    # this is a bit hacky. The only way we can identify the NodeJS 'aws.response' span is by using pathway hash
-                    if span["meta"].get("pathway.hash", "") not in ["3798979665392115457", "476120775804749364"]:
+                    # if we found the manual span, and now have the aws.response span, we will return this span
+                    elif not manual_span_found:
                         continue
                 elif queue != cls.get_queue(span):
                     continue
@@ -77,11 +95,6 @@ class _Test_SQS:
             "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
 
-    @missing_feature(
-        library="java",
-        reason="Expected to fail, Java defaults to using Xray headers to propagate context. \
-        NodeJS cannot extract from Xray and will not create an 'aws.response' span if no context is extracted.",
-    )
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
 
@@ -100,7 +113,6 @@ class _Test_SQS:
     @missing_feature(
         library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
     )
-    @missing_feature(library="python", reason="Expected to fail. Python does not propagate context.")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -198,15 +210,10 @@ class _Test_SQS:
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
-    buddy_interface = interfaces.nodejs_buddy
-    buddy = _nodejs_buddy
+    buddy_interface = interfaces.python_buddy
+    buddy = _python_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
-
-    @missing_feature(library="python", reason="Expected to fail. Python and NodeJS are not compatible at the moment")
-    @missing_feature(library="java", reason="Expected to fail. Java and NodeJS are not compatible at the moment")
-    def test_produce(self):
-        super().test_produce()
 
 
 @scenarios.crossed_tracing_libraries
@@ -216,6 +223,14 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy = _java_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_aws_xray_header_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_aws_xray_header_buddy_to_weblog"
+
+    @missing_feature(
+        library="nodejs",
+        reason="Expected to fail, NodeJS will not create a response span \
+                     propagating context since it cannot extract AWSTracerHeader context that Java injects",
+    )
+    def test_consume(self):
+        super().test_consume()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")

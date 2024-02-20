@@ -22,7 +22,6 @@ app.use(require('cookie-parser')());
 iast.initMiddlewares(app)
 
 require('./auth')(app, passport, tracer)
-require('./graphql')(app)
 iast.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
@@ -230,7 +229,9 @@ app.get('/createextraservice', (req: Request, res: Response) => {
   res.send('OK')
 })
 
-app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => {});
-  console.log('listening');
-});
+require('./graphql')(app).then(() => {
+  app.listen(7777, '0.0.0.0', () => {
+    tracer.trace('init.service', () => { })
+    console.log('listening')
+  })
+})

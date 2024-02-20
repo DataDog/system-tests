@@ -7,7 +7,7 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: 
+        Test_API_Security_RC_ASM_DD_processors:
           '*': missing_feature
           django-poc: v2.6.0dev
           fastapi: v2.6.0dev
@@ -15,7 +15,7 @@ tests/:
           python3.12: v2.6.0dev
           uds-flask: v2.6.0dev
           uwsgi-poc: v2.6.0dev
-        Test_API_Security_RC_ASM_DD_scanners: 
+        Test_API_Security_RC_ASM_DD_scanners:
           '*': missing_feature
           django-poc: v2.6.0dev
           fastapi: v2.6.0dev
@@ -153,6 +153,8 @@ tests/:
             '*': v2.1.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.18.0
@@ -210,6 +212,8 @@ tests/:
             '*': v1.18.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName:
             '*': v1.18.0
@@ -501,9 +505,17 @@ tests/:
         Test_Kafka:
           '*': irrelevant
           flask-poc: v2.5.0
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          flask-poc: v2.6.0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
+          flask-poc: v0.1 # real version not known
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
           flask-poc: v2.6.0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
@@ -511,7 +523,7 @@ tests/:
           flask-poc: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
-          flask-poc: v2.6.0.dev
+          flask-poc: v2.6.0
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
@@ -540,14 +552,18 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         '*': irrelevant
         flask-poc: missing_feature (endpoint not implemented)
+      Test_DsmSNS:
+        '*': irrelevant
+        flask-poc: v1.16.0
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: v2.6.0
-      TestDynamicConfigTracingEnabled: missing_feature
+      TestDynamicConfigTracingEnabled: v2.6.0
       TestDynamicConfigV1: missing_feature
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
@@ -619,8 +635,7 @@ tests/:
     Test_StandardTagsRoute: v1.6.0
     Test_StandardTagsStatusCode: v1.4.0rc1.dev
     Test_StandardTagsUrl:
-      '*': v1.6.0rc1.dev
-      fastapi: v2.4.0.dev1
+      '*': v2.4.0.dev
     Test_StandardTagsUserAgent: v1.5.0rc1.dev
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
