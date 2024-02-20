@@ -34,7 +34,7 @@ stages:
     - pulumi plugin install resource aws 5.41.0
   after_script:
     - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
-    - REPORTS_PATH="reports/$ONBOARDING_FILTER_ENV/$TEST_LIBRARY/$ONBOARDING_FILTER_WEBLOG"
+    - REPORTS_PATH="reports/"
     - mkdir -p "$REPORTS_PATH"
     - cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/
     - cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
@@ -42,6 +42,7 @@ stages:
       when: always
       paths:
         - reports/
+ 
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
@@ -63,12 +64,11 @@ onboarding_nodejs:
           SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST] 
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
-          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL] 
-         
+          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL]      
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
-      
+
 onboarding_java:
   extends: .base_job_onboarding
   stage: java_tracer
@@ -154,12 +154,19 @@ onboarding_parse_results:
   only:
     - schedules
   before_script:
-    - export GITHUB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
     #We need authenticate on git repository
-    - export GITHUB_USER=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-user --with-decryption --query "Parameter.Value" --out text) 
-    - export GITHUB_MAIL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-mail --with-decryption --query "Parameter.Value" --out text) 
+    - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text) 
+    - export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text) 
   script:
-      - sh utils/scripts/push_reports_dashboard.sh
+      - |
+        for folder in reports/logs*/ ; do
+          curl -X POST ${FP_IMPORT_URL} \
+            --fail \
+            --header "Content-Type: application/json" \
+            --header "FP_API_KEY: ${FP_API_KEY}" \
+            --data "@./${folder}feature_parity.json" \
+            --include
+        done
 
 check_merge_labels:
   image: registry.ddbuild.io/images/ci_docker_base
@@ -173,4 +180,3 @@ check_merge_labels:
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
-

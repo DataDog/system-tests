@@ -49,6 +49,8 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection: missing_feature
         test_ssrf.py:
@@ -79,6 +81,8 @@ tests/:
           TestCookieName: missing_feature
         test_cookie_value.py:
           TestCookieValue: missing_feature
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
@@ -218,8 +222,16 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           rails70: v0.1 # real version unknown
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          rails70: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
+          "*": irrelevant
+          rails70: missing_feature (Endpoint not implemented)
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
           "*": irrelevant
           rails70: missing_feature (Endpoint not implemented)
       test_sqs.py:
@@ -249,6 +261,9 @@ tests/:
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
@@ -257,6 +272,7 @@ tests/:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.13.0
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
@@ -276,8 +292,10 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature

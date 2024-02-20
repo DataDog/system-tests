@@ -190,7 +190,13 @@ class Test_TelemetryMetrics:
     def test_waf_requests_match_traced_requests(self):
         """Total waf.requests metric should match the number of requests in traces."""
         spans = [s for _, s in interfaces.library.get_root_spans()]
-        spans = [s for s in spans if s.get("meta", {}).get("span.kind") == "server"]
+        spans = [
+            s
+            for s in spans
+            if s.get("meta", {}).get("span.kind") == "server"
+            # excluding graphql introspection query executed on startup in nodejs
+            and s.get("meta", {}).get("graphql.operation.name") != "IntrospectionQuery"
+        ]
         request_count = len(spans)
         assert request_count >= 3
 

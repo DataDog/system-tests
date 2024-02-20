@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import json
+import os
 import time
 
 import pytest
@@ -38,18 +39,22 @@ def pytest_addoption(parser):
 
     # report data to feature parity dashboard
     parser.addoption(
-        "--report-run-url",
-        type=str,
-        action="store",
-        default="https://github.com/DataDog/system-tests",
-        help="URI of the run who produced the report",
+        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report",
     )
     parser.addoption(
-        "--report-environment", type=str, action="store", default="local", help="The environment the test is run under",
+        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under",
     )
 
 
 def pytest_configure(config):
+
+    # handle options that can be filled by environ
+    if not config.option.report_environment and "SYSTEM_TESTS_REPORT_ENVIRONMENT" in os.environ:
+        config.option.report_environment = os.environ["SYSTEM_TESTS_REPORT_ENVIRONMENT"]
+
+    if not config.option.report_run_url and "SYSTEM_TESTS_REPORT_RUN_URL" in os.environ:
+        config.option.report_run_url = os.environ["SYSTEM_TESTS_REPORT_RUN_URL"]
+
     # First of all, we must get the current scenario
     for name in dir(scenarios):
         if name.upper() == config.option.scenario:
@@ -342,9 +347,9 @@ def pytest_sessionfinish(session, exitstatus):
 def export_feature_parity_dashboard(session, data):
 
     result = {
-        "runUrl": session.config.option.report_run_url,
+        "runUrl": session.config.option.report_run_url or "https://github.com/DataDog/system-tests",
         "runDate": data["created"],
-        "environment": session.config.option.report_environment,
+        "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
         "language": context.scenario.library.library,
         "variant": context.scenario.weblog_variant,
