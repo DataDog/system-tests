@@ -482,8 +482,7 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id_high") == 16
 
         # Tracestate is not required, but if it is present, it must be valid
-        if link.get("tracestate") is not "":
-            assert link.get("tracestate") is not None
+        if link.get("tracestate"):
             tracestateArr = link["tracestate"].split(",")
             assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
             tracestateDD = tracestateArr[0][3:].split(";")
@@ -602,7 +601,8 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("bools.1") == "false"
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
-        assert link.get("tracestate") == "" or link.get("tracestate") == "dd=s:1;t.dm:-0"
+        if link.get("tracestate"):
+            assert link.get("tracestate") == "dd=s:1;t.dm:-0"
 
     @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
