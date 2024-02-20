@@ -397,7 +397,10 @@ class Test_gRPC:
     def test_basic(self):
         """AppSec detects some basic attack"""
         for r in self.requests:
-            interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+            try:
+                interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+            except:
+                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected")
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
