@@ -237,7 +237,7 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
-        pull-all: ${{ inputs.run_all }}
+        pull-all: ${{ inputs.run_all || inputs.run_integration }}
     - name: Build python's weblog base images
       if: matrix.variant.library == 'python' && inputs.build_python_base_images
       run: |

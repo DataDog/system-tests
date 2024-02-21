@@ -1,9 +1,0 @@
-#Get version of the installed components
-- os_type: linux
-  os_distro: rpm
-  command: |
-      echo "{'host':'$(hostname -I)','agent':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)','datadog-apm-inject':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)','datadog-apm-library-$DD_LANG': '$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG)','docker':'$(docker -v || true)'}"
-- os_type: linux
-  os_distro: deb
-  command: |
-      version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 )&& version=$((dpkg -s datadog-apm-inject || true) | grep Version) && version_lang=$(dpkg -s datadog-apm-library-$DD_LANG| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-$DD_LANG':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"

@@ -1,6 +1,7 @@
 'use strict'
 
 const { ApolloServer, gql } = require('apollo-server-express')
+const { readFileSync } = require('fs')
 
 const users = [
   {
@@ -23,6 +24,7 @@ const typeDefs = gql`
       type Query {
         user(id: Int!): User
         userByName(name: String): [User]
+        testInjection(path: String): [User]
       }
 
       type User {
@@ -38,10 +40,20 @@ function getUserByName (parent, args) {
   return users.filter((item) => args.name === item.name)
 }
 
+function testInjection (parent, args) {
+  try {
+    readFileSync(args.path)
+  } catch {
+    // do nothing
+  }
+  return users
+}
+
 const resolvers = {
   Query: {
     user: getUser,
-    userByName: getUserByName
+    userByName: getUserByName,
+    testInjection
   }
 }
 

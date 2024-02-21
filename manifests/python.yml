@@ -7,7 +7,7 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: 
+        Test_API_Security_RC_ASM_DD_processors:
           '*': missing_feature
           django-poc: v2.6.0dev
           fastapi: v2.6.0dev
@@ -15,7 +15,7 @@ tests/:
           python3.12: v2.6.0dev
           uds-flask: v2.6.0dev
           uwsgi-poc: v2.6.0dev
-        Test_API_Security_RC_ASM_DD_scanners: 
+        Test_API_Security_RC_ASM_DD_scanners:
           '*': missing_feature
           django-poc: v2.6.0dev
           fastapi: v2.6.0dev
@@ -153,6 +153,8 @@ tests/:
             '*': v2.1.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.18.0
@@ -210,6 +212,8 @@ tests/:
             '*': v1.18.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName:
             '*': v1.18.0
