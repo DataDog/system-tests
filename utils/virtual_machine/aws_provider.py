@@ -273,6 +273,8 @@ class PulumiSSH:
             self.pem_file = user_provided_privateKeyPath
             with open(user_provided_privateKeyPath, encoding="utf-8") as f:
                 self.private_key_pem = f.read()
+            for vm in vms:
+                vm.ssh_config.pkey_path = user_provided_privateKeyPath
         else:
             logger.info("Creating new ssh key")
             key_name = "onboarding_test_key_name" + str(randint(0, 1000000))

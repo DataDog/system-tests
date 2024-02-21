@@ -5,16 +5,13 @@ from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
-from utils import irrelevant
+from utils import bug
 from utils import scenarios, context, features
 from utils.virtual_machine.vm_logger import vm_logger
 import pytest
 
 
 class _AutoInjectBaseTest:
-    @irrelevant(
-        condition=getattr(context.scenario, "required_vms", []) == [], reason="No VMs to test",
-    )
     def _test_install(self, virtual_machine):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
             After starting application we can see application HTTP requests traces in the backend.
@@ -242,6 +239,7 @@ class TestHostAutoInjectChaos(_AutoInjectBaseTest):
         self._test_removing_things(virtual_machine, "sudo rm -rf /opt/datadog/apm/inject")
         logger.info(f"Success test_remove_apm_inject_folder for : [{virtual_machine.name}]")
 
+    @bug(library="dotnet", reason="AIT-8620")
     def test_remove_ld_preload(self, virtual_machine):
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
