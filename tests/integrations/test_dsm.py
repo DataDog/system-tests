@@ -312,7 +312,7 @@ class Test_DsmKinesis:
                 "producer": 5712665980795799642,
                 "consumer": 17643872031898844474,
                 "edge_tags_out": ("direction:out", f"topic:{stream_arn}", "type:kinesis"),
-                "edge_tags_out": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),
+                "edge_tags_in": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),
             },
         }
 
