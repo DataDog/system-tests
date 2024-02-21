@@ -1,4 +1,3 @@
-import json
 import time
 
 import pytest
@@ -10,6 +9,7 @@ from utils.parametric.spec.otel_trace import OtelSpan, otel_span
 from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
 from utils import bug, missing_feature, irrelevant, context, scenarios
@@ -482,8 +482,7 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id_high") == 16
 
         # Tracestate is not required, but if it is present, it must be valid
-        if link.get("tracestate") is not "":
-            assert link.get("tracestate") is not None
+        if link.get("tracestate"):
             tracestateArr = link["tracestate"].split(",")
             assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
             tracestateDD = tracestateArr[0][3:].split(";")
@@ -543,7 +542,7 @@ class Test_Otel_Span_Methods:
         assert "t.dm:-4" in tracestateDD
 
         assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
-        assert len(link.get("attributes")) == 0
+        assert link.get("attributes") is None
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
@@ -588,9 +587,10 @@ class Test_Otel_Span_Methods:
         assert link.get("span_id") == root.get("span_id")
         assert link.get("trace_id") == root.get("trace_id")
         assert link.get("trace_id_high") == int(root_tid, 16)
-        assert len(link.get("attributes")) == 0
+        assert link.get("attributes") is None
         # Tracestate is not required, but if it is present, it must contain the linked span's tracestate
-        assert link.get("tracestate") == "" or link.get("tracestate") == "dd=s:1;t.dm:-0"
+        if link.get("tracestate"):
+            assert link.get("tracestate") == "dd=s:1;t.dm:-0"
 
         link = span_links[1]
         assert link.get("span_id") == first.get("span_id")
@@ -601,7 +601,8 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("bools.1") == "false"
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
-        assert link.get("tracestate") == "" or link.get("tracestate") == "dd=s:1;t.dm:-0"
+        if link.get("tracestate"):
+            assert link.get("tracestate") == "dd=s:1;t.dm:-0"
 
     @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
@@ -787,25 +788,3 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
     else:
         assert "_dd1.sr.eausr" not in span["metrics"]
     assert "analytics.event" not in span["meta"]
-
-
-def retrieve_span_links(span):
-    if span.get("span_links") is not None:
-        return span["span_links"]
-    elif span["meta"].get("_dd.span_links") is not None:
-        # Convert span_links tags into protobuf v0.4 format
-        json_links = json.loads(span["meta"].get("_dd.span_links"))
-        links = []
-        for json_link in json_links:
-            link = {}
-            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
-            link["trace_id_high"] = int(json_link["trace_id"][:16], base=16) if len(json_link["trace_id"]) > 16 else 0
-            link["span_id"] = int(json_link["span_id"], base=16)
-            link["attributes"] = json_link.get("attributes") or {}
-            link["tracestate"] = json_link.get("tracestate") or ""
-            # If set, the high bit (bit 31) should be set according the RFC
-            link["flags"] = 0 if json_link.get("flags") is None else (json_link.get("flags") | TRACECONTEXT_FLAGS_SET)
-            links.append(link)
-        return links
-    else:
-        return None
