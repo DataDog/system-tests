@@ -13,6 +13,7 @@ const { MongoClient } = require('mongodb')
 const mongoSanitize = require('express-mongo-sanitize')
 const { join } = require('path')
 const { Client } = require('pg')
+const { Kafka } = require('kafkajs')
 
 const ldap = require('./integrations/ldap')
 
@@ -379,6 +380,139 @@ function initSourceRoutes (app: Express): void {
     })
     readFileSync(vulnParam)
     res.send('OK')
+  })
+
+  function getKafka () {
+    return new Kafka({
+      clientId: 'my-app-iast',
+      brokers: ['kafka:9092'],
+      retry: {
+        initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+        retries: 20 // Number of retries before giving up
+      }
+    })
+  }
+
+  app.get('/iast/source/kafkavalue/test', (req: Request, res: Response): void => {
+    const kafka = getKafka()
+    const topic = 'dsm-system-tests-queue'
+    const timeout = 60000
+
+    let consumer: any
+    const doKafkaOperations = async () => {
+      consumer = kafka.consumer({ groupId: 'testgroup2' })
+
+      await consumer.connect()
+      await consumer.subscribe({ topic, fromBeginning: false })
+
+      const deferred: {
+        resolve?: Function,
+        reject?: Function
+      } = {}
+
+      const promise = new Promise((resolve: Function, reject: Function): void => {
+        deferred.resolve = resolve
+        deferred.reject = reject
+      })
+
+      await consumer.run({
+        eachMessage: async ({ message }: { message: any }) => {
+          const vulnValue = message.value.toString()
+          try {
+            readFileSync(vulnValue)
+          } catch {
+            // do nothing
+          }
+
+          deferred.resolve?.()
+        }
+      })
+
+      setTimeout(() => {
+        deferred.reject?.(new Error('Message not received'))
+      }, timeout)
+
+      const producer = kafka.producer()
+      await producer.connect()
+      await producer.send({
+        topic,
+        messages: [{ value: 'hello value!' }]
+      })
+      await producer.disconnect()
+
+      return promise
+    }
+
+    doKafkaOperations()
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+
+        res.send('ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+      })
+  })
+
+  app.get('/iast/source/kafkakey/test', (req: Request, res: Response): void => {
+    const kafka = getKafka()
+    const topic = 'dsm-system-tests-queue'
+    const timeout = 60000
+
+    let consumer: any
+    const doKafkaOperations = async () => {
+      consumer = kafka.consumer({ groupId: 'testgroup2' })
+
+      await consumer.connect()
+      await consumer.subscribe({ topic, fromBeginning: false })
+
+      const deferred: {
+        resolve?: Function,
+        reject?: Function
+      } = {}
+
+      const promise = new Promise((resolve: Function, reject: Function): void => {
+        deferred.resolve = resolve
+        deferred.reject = reject
+      })
+
+      await consumer.run({
+        eachMessage: async ({ message }: { message: any }) => {
+          const vulnKey = message.key.toString()
+          readFileSync(vulnKey)
+
+          deferred.resolve?.()
+        }
+      })
+
+      setTimeout(() => {
+        deferred.reject?.(new Error('Message not received'))
+      }, timeout)
+
+      const producer = kafka.producer()
+      await producer.connect()
+      await producer.send({
+        topic,
+        messages: [{ key: 'hello key!', value: 'value' }]
+      })
+      await producer.disconnect()
+
+      return promise
+    }
+
+    doKafkaOperations()
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+
+        res.send('ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+      })
   })
 }
 
