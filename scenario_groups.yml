@@ -18,7 +18,6 @@ APPSEC_SCENARIOS: &appsec_scenarios
   - APPSEC_API_SECURITY_NO_RESPONSE_BODY
   - APPSEC_AUTO_EVENTS_EXTENDED
 
-
 # Scenarios covering Remote Configuration
 REMOTE_CONFIG_SCENARIOS: &remote_config_scenarios
   - REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
