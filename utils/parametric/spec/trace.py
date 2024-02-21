@@ -280,7 +280,7 @@ def retrieve_span_links(span):
         return span["span_links"]
 
     if span["meta"].get("_dd.span_links") is not None:
-        # Convert span_links tags into protobuf v0.4 format
+        # Convert span_links tags into msgpack v0.4 format
         json_links = json.loads(span["meta"].get("_dd.span_links"))
         links = []
         for json_link in json_links:
