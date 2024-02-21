@@ -293,11 +293,15 @@ class Test_DsmKinesis:
     def setup_dsm_kinesis(self):
         self.r = weblog.get("/dsm?integration=kinesis&timeout=60&stream=dsm-system-tests-stream", timeout=61,)
 
-    @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
+    @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
+    @missing_feature(
+        library="python",
+        reason="DSM always creates a new pathway on consume, and does not try to read from injected context",
+    )
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
-        stream_arn = "arn:aws:kinesis:us-east-1:000000000000:dsm-system-tests-stream"
+        stream_arn = "arn:aws:kinesis:us-east-1:000000000000:stream/dsm-system-tests-stream"
         stream = "dsm-system-tests-stream"
 
         language_hashes = {
@@ -309,7 +313,7 @@ class Test_DsmKinesis:
                 "edge_tags_in": ("direction:in", f"topic:{stream}", "type:kinesis"),
             },
             "default": {
-                "producer": 5712665980795799642,
+                "producer": 12766628368524791023,
                 "consumer": 17643872031898844474,
                 "edge_tags_out": ("direction:out", f"topic:{stream_arn}", "type:kinesis"),
                 "edge_tags_in": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),

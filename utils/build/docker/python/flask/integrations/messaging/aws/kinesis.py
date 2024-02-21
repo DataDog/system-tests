@@ -71,6 +71,7 @@ def kinesis_consume(stream, timeout=60):
                     and response.get("StreamDescription", None)
                     and response.get("StreamDescription", {}).get("StreamStatus", "") == "ACTIVE"
                 ):
+                    stream_arn = response["StreamDescription"]["StreamARN"]
                     shard_id = response["StreamDescription"]["Shards"][0]["ShardId"]
                     response = kinesis.get_shard_iterator(
                         StreamName=stream, ShardId=shard_id, ShardIteratorType="TRIM_HORIZON"
@@ -84,7 +85,7 @@ def kinesis_consume(stream, timeout=60):
                 logging.warning(f"Error during Python Kinesis get stream shard iterator: {str(e)}")
 
         try:
-            records_response = kinesis.get_records(ShardIterator=shard_iterator)
+            records_response = kinesis.get_records(ShardIterator=shard_iterator, StreamARN=stream_arn)
             if records_response and "Records" in records_response:
                 for message in records_response["Records"]:
                     consumed_message = message["Data"]
