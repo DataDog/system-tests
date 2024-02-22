@@ -880,7 +880,7 @@ tests/:
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          spring-boot: missing_feature
+          spring-boot: v0.1 # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
@@ -915,6 +915,9 @@ tests/:
         '*': missing_feature
         spring-boot: v1.12.1
       Test_DsmKafka:
+        "*": irrelevant
+        spring-boot: v1.13.0
+      Test_DsmKinesis:
         "*": irrelevant
         spring-boot: v1.13.0
       Test_DsmRabbitmq:

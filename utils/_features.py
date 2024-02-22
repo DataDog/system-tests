@@ -2028,6 +2028,16 @@ class features:
         return test_object
 
     @staticmethod
+    def datastreams_monitoring_support_for_kinesis(test_object):
+        """
+        DataStreams Monitoring support for AWS Kinesis
+
+        https://feature-parity.us1.prod.dog/#/?feature=282
+        """
+        pytest.mark.features(feature_id=282)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_reflection_injection(test_object):
         """
         IAST Sink: Reflection Injection
