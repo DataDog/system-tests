@@ -638,10 +638,12 @@ class Test_BlockingGraphqlResolvers:
     def test_request_block_attack(self):
         assert self.r_attack.status_code == 403
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
-            meta = span.get("meta", {}) | span.get("meta_struct", {})
+            meta = span.get("meta", {})
+            meta_struct = span.get("meta_struct", {})
             assert meta["appsec.event"] == "true"
-            assert "_dd.appsec.json" in meta
-            rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
+            assert ("_dd.appsec.json" in meta) ^ ("appsec" in meta_struct)
+            appsec = meta.get("_dd.appsec.json", {}) or meta_struct.get("appsec", {})
+            rule_triggered = appsec["triggers"][0]
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
             assert (
                 parameters["address"] == "graphql.server.all_resolvers"
@@ -675,10 +677,12 @@ class Test_BlockingGraphqlResolvers:
     def test_request_block_attack_directive(self):
         assert self.r_attack.status_code == 403
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
-            meta = span.get("meta", {}) | span.get("meta_struct", {})
+            meta = span.get("meta", {})
+            meta_struct = span.get("meta_struct", {})
             assert meta["appsec.event"] == "true"
-            assert "_dd.appsec.json" in meta
-            rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
+            assert ("_dd.appsec.json" in meta) ^ ("appsec" in meta_struct)
+            appsec = meta.get("_dd.appsec.json", {}) or meta_struct.get("appsec", {})
+            rule_triggered = appsec["triggers"][0]
             assert rule_triggered["rule"]["id"] == "block-resolvers"
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
             assert (
