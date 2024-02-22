@@ -2050,7 +2050,7 @@ class features:
     @staticmethod
     def embeded_git_reference(test_object):
         """
-        IAST Sink: Reflection Injection
+        Embedding Git references to build artifacts
 
         https://feature-parity.us1.prod.dog/#/?feature=286
         """
