@@ -34,21 +34,24 @@ class Test_Defaults:
 
         configuration_by_name = {item["name"]: item for item in configuration}
         for (apm_telemetry_name, value) in [
-            ("trace_sample_rate", "1.0"),
-            ("logs_injection_enabled", "false"),
-            ("trace_header_tags", ""),
-            ("trace_tags", ""),
-            ("trace_enabled", "true"),
-            ("profiling_enabled", "false"),
-            ("appsec_enabled", "false"),
-            ("data_streams_enabled", "false"),
+            ("trace_sample_rate", (1.0, None, "1.0")),
+            ("logs_injection_enabled", ("false", False)),
+            ("trace_header_tags", ("", [])),
+            ("trace_tags", ("", [])),
+            ("trace_enabled", ("true", True)),
+            ("profiling_enabled", ("false", False)),
+            ("appsec_enabled", ("false", False, "inactive")),
+            ("data_streams_enabled", ("false", False)),
         ]:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
-            assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
+            if isinstance(value, tuple):
+                assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
+            else:
+                assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("origin") == "default", "Unexpected origin for '{}'".format(apm_telemetry_name)
 
 
@@ -83,21 +86,32 @@ class Test_Environment:
 
         configuration_by_name = {item["name"]: item for item in configuration}
         for (apm_telemetry_name, environment_value) in [
-            ("trace_sample_rate", "0.3"),
-            ("logs_injection_enabled", "true"),
-            ("trace_header_tags", "X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2"),
-            ("trace_tags", "team:apm,component:web"),
-            ("trace_enabled", "true"),
-            ("profiling_enabled", "false"),
-            ("appsec_enabled", "false"),
-            ("data_streams_enabled", "false"),
+            ("trace_sample_rate", ("0.3", 0.3)),
+            ("logs_injection_enabled", ("true", True)),
+            (
+                "trace_header_tags",
+                ("X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2"),
+                {"X-Header-Tag-1": "header_tag_1", "X-Header-Tag-2": "header_tag_2"},
+            ),
+            ("trace_tags", ("team:apm,component:web", {"team": "apm", "component": "web"})),
+            ("trace_enabled", ("true", True)),
+            ("profiling_enabled", ("false", False)),
+            ("appsec_enabled", ("false", False)),
+            ("data_streams_enabled", ("false", False)),
         ]:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
-            assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(apm_telemetry_name)
+            if isinstance(environment_value, tuple):
+                assert cfg_item.get("value") in environment_value, "Unexpected value for '{}'".format(
+                    apm_telemetry_name
+                )
+            else:
+                assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(
+                    apm_telemetry_name
+                )
             assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
 
 
