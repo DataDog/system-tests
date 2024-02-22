@@ -39,11 +39,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for payload in content:
                 for chunk in payload["chunks"]:
                     for span in chunk["spans"]:
-
-                        if "meta" not in span or "_dd.appsec.json" not in span["meta"]:
+                        appsec_data = span.get("meta",{}).get("_dd.appsec.json", None) or span.get("meta_struct",{}).get("_dd.appsec.json", None)
+                        if appsec_data is None:
                             continue
-
-                        appsec_data = span["meta"]["_dd.appsec.json"]
 
                         if rid is None:
                             yield data, payload, chunk, span, appsec_data
