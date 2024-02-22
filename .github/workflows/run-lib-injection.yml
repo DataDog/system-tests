@@ -119,7 +119,7 @@ jobs:
           ^[a-z0-9]{40}$
         prune-untagged: true
         
-  clean-lib-injection-imagess:
+  clean-lib-injection-imagesss:
     runs-on: ubuntu-latest
     if: ${{false }}
     permissions:
