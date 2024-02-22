@@ -722,7 +722,7 @@ class Test_Headers_Tracecontext:
                 name="lp_id_set",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "key1=value1,dd=s:2;o:rum;lp.id:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
+                    ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
                 ],
             ):
                 pass
@@ -731,7 +731,7 @@ class Test_Headers_Tracecontext:
                 name="lp_id_invalid",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
-                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4;lp.id:XX!X"],
+                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
                 ],
             ):
                 pass
@@ -740,7 +740,7 @@ class Test_Headers_Tracecontext:
                 name="datadog_headers_used_in_propagation",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789014-1234567890123458-00"],
-                    ["tracestate", "key1=value1,dd=s:2;lp.id:000000000000000b"],
+                    ["tracestate", "key1=value1,dd=s:2;p:000000000000000b"],
                     ["x-datadog-trace-id", "5"],
                     ["x-datadog-parent-id", "11"],
                 ],
@@ -762,18 +762,18 @@ class Test_Headers_Tracecontext:
         case1, case2, case3, case4 = traces[0][0], traces[1][0], traces[2][0], traces[3][0]
 
         assert case1["name"] == "lp_id_set"
-        assert case1["meta"]["_dd.lp.id"] == "0123456789abcdef"
+        assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
 
         assert case2["name"] == "lp_id_invalid"
-        assert case2["meta"]["_dd.lp.id"] == "XX!X", f"{case2}"
+        assert case2["meta"]["_dd.parent_id"] == "XX!X", f"{case2}"
 
         assert case3["name"] == "datadog_headers_used_in_propagation"
         assert case3["trace_id"] == 5
         assert case3["parent_id"] == 11
-        assert "_dd.lp.id" not in case3["meta"]
+        assert "_dd.parent_id" not in case3["meta"]
 
         assert case4["name"] == "lp_id_not_propagated"
-        assert case4["meta"]["_dd.lp.id"] == "0000000000000000"
+        assert case4["meta"]["_dd.parent_id"] == "0000000000000000"
 
     def test_tracestate_w3c_lp_id_inject(self, test_agent, test_library):
         """
@@ -789,7 +789,7 @@ class Test_Headers_Tracecontext:
             assert len(tracestate_headers) == 1
 
             tracestate = tracestate_headers[0][1]
-            assert "lp.id:{:016x}".format(span.span_id) in tracestate
+            assert "p:{:016x}".format(span.span_id) in tracestate
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
