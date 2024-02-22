@@ -59,6 +59,7 @@ test_variables:
     TEST_LIBRARY: "nodejs"
   script:
    - echo "HEREEEEEEEEE $DOCKER_LOGIN"
+   - echo "HEREEEEEEEEE2 $DOCKER_LOGIN_PASS"
 
 .onboarding_nodejs:
   extends: .base_job_onboarding
