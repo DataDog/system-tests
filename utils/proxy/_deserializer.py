@@ -215,12 +215,17 @@ def _convert_bytes_values(item, path=""):
     if isinstance(item, dict):
         for key in item:
             if isinstance(item[key], bytes):
-                try:
-                    item[key] = item[key].decode("ascii")
-                except UnicodeDecodeError as e:
-                    if path == "[][].meta_struct":
+                if path == "[][].meta_struct":
+                    # meta_struct value is msgpack in msgpack
+                    try:
                         item[key] = msgpack.unpackb(item[key], unicode_errors="replace", strict_map_key=False)
-                    else:
+                    except BaseException as e:
+                        raise ValueError(f"Error decoding {path}") from e
+                else:
+                    # otherwise, best guess is simple string
+                    try:
+                        item[key] = item[key].decode("ascii")
+                    except UnicodeDecodeError as e:
                         raise ValueError(f"Error decoding {path}") from e
             elif isinstance(item[key], dict):
                 _convert_bytes_values(item[key], f"{path}.{key}")
