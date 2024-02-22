@@ -2046,3 +2046,13 @@ class features:
         """
         pytest.mark.features(feature_id=279)(test_object)
         return test_object
+
+    @staticmethod
+    def embeded_git_reference(test_object):
+        """
+        IAST Sink: Reflection Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=286
+        """
+        pytest.mark.features(feature_id=286)(test_object)
+        return test_object
