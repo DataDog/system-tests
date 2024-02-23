@@ -340,6 +340,52 @@ class Test_DsmKinesis:
 
 @features.datastreams_monitoring_support_for_v1_encoding
 @scenarios.integrations
+class Test_DsmContext_Injection:
+    """ Verify DSM context is injected using correct encoding (base64) """
+
+    def setup_dsmcontext_injection(self):
+        queue = "dsm-propagation-test-injection"
+        exchange = "dsm-propagation-test-injection-exchange"
+
+        # send initial message with via weblog
+        self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
+
+        assert self.r.status_code == 200
+
+        # consume message using helper and check propagation type
+        self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
+
+    # @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
+    # @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
+    def test_dsmcontext_injection(self):
+        assert "error" not in self.r.text
+        assert "error" not in self.consume_response
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
+            "default": {
+                "producer": 9235368231858162135,
+                "consumer": 6884439977898629893,
+            },  # confirmed that this is correct consumer hash
+        }
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        # consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+
+        # queue = "dsm-propagation-test-injection"
+        exchange = "dsm-propagation-test-injection-exchange"
+        edge_tags_out = ("direction:out", f"exchange:{exchange}", "type:rabbitmq")
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
+        )
+
+        print(self.consume_response["result"].properties)
+        print(self.consume_response["result"].headers)
+
+
+@features.datastreams_monitoring_support_for_v1_encoding
+@scenarios.integrations
 class Test_DsmContext_Extraction_V1:
     """ Verify DSM context is extracted using "dd-pathway-ctx" """
 
@@ -416,52 +462,6 @@ class Test_DsmContext_Extraction_V2:
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
-
-
-@features.datastreams_monitoring_support_for_v1_encoding
-@scenarios.integrations
-class Test_DsmContext_Injection:
-    """ Verify DSM context is injected using correct encoding (base64) """
-
-    def setup_dsmcontext_injection(self):
-        queue = "dsm-propagation-test-injection"
-        exchange = "dsm-propagation-test-injection-exchange"
-
-        # send initial message with via weblog
-        self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
-
-        assert self.r.status_code == 200
-
-        # consume message using helper and check propagation type
-        self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
-
-    # @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
-    # @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
-    def test_dsmcontext_injection(self):
-        assert "error" not in self.r.text
-        assert "error" not in self.consume_response
-
-        language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
-            "default": {
-                "producer": 9235368231858162135,
-                "consumer": 6884439977898629893,
-            },  # confirmed that this is correct consumer hash
-        }
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        # consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-
-        # queue = "dsm-propagation-test-injection"
-        exchange = "dsm-propagation-test-injection-exchange"
-        edge_tags_out = ("direction:out", f"exchange:{exchange}", "type:rabbitmq")
-
-        DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
-        )
-
-        print(self.consume_response["result"].properties)
-        print(self.consume_response["result"].headers)
 
 
 class DsmHelper:
