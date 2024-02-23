@@ -22,6 +22,7 @@ tests/:
         test_no_samesite_cookie.py: irrelevant (ASM is not implemented in C++)
         test_nosql_mongodb_injection.py: irrelevant (ASM is not implemented in C++)
         test_path_traversal.py: irrelevant (ASM is not implemented in C++)
+        test_reflection_injection.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
@@ -108,6 +109,7 @@ tests/:
       Test_DsmContext_Injection: missing_feature
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
+      Test_DsmKinesis: missing_feature
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature

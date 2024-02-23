@@ -62,6 +62,8 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection: missing_feature
         test_ssrf.py:
@@ -372,7 +374,10 @@ tests/:
       Test_DsmKafka:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
-      Test_DsmRabbitmq:
+      Test_DsmKinesis:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq: 
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
@@ -390,7 +395,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigTracingEnabled: missing_feature
+      TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
       TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0

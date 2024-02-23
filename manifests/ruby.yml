@@ -49,6 +49,8 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection: missing_feature
         test_ssrf.py:
@@ -257,6 +259,9 @@ tests/:
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
+      Test_DsmKinesis:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq:

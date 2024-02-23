@@ -124,6 +124,13 @@ tests/:
             resteasy-netty3: v1.11.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
+        test_reflection_injection.py:
+          TestReflectionInjection:
+            '*': v1.31.0
+            akka-http: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_sql_injection.py:
           TestSqlInjection:
             '*': v1.1.0
@@ -873,7 +880,7 @@ tests/:
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          spring-boot: missing_feature
+          spring-boot: v0.1 # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
@@ -919,6 +926,9 @@ tests/:
       Test_DsmKafka:
         "*": irrelevant
         spring-boot: v1.13.0
+      Test_DsmKinesis:
+        "*": irrelevant
+        spring-boot: v1.13.0
       Test_DsmRabbitmq:
         "*": irrelevant
         spring-boot: v1.13.0
@@ -942,9 +952,9 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: v1.17.0
+      TestDynamicConfigV1: v1.17.0      
       TestDynamicConfigV1_ServiceTargets: v1.31.0
-      TestDynamicConfigV2: missing_feature
+      TestDynamicConfigV2: v1.31.0      
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature

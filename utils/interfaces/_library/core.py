@@ -92,7 +92,14 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def get_appsec_events(self, request=None, full_trace=False):
         for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
-            if "_dd.appsec.json" in span.get("meta", {}):
+            if "appsec" in span.get("meta_struct", {}):
+
+                if request:  # do not spam log if all data are sent to the validator
+                    logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
+
+                appsec_data = span["meta_struct"]["appsec"]
+                yield data, trace, span, appsec_data
+            elif "_dd.appsec.json" in span.get("meta", {}):
 
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")

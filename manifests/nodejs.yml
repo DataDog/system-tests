@@ -82,6 +82,8 @@ tests/:
             '*': missing_feature
             express4: v3.19.0
             express4-typescript: v3.19.0
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             '*': missing_feature
@@ -155,12 +157,12 @@ tests/:
             express4-typescript: v4.3.0
         test_kafka_key.py:
           TestKafkaKey:
-            '*': missing_feature
-            express4: missing_feature
+            '*': v5.4.0
+            nextjs: irrelevant # nextjs is not related with kafka
         test_kafka_value.py:
           TestKafkaValue:
-            '*': missing_feature
-            express4: missing_feature
+            '*': v5.4.0
+            nextjs: irrelevant # nextjs is not related with kafka
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -341,7 +343,7 @@ tests/:
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          express4: missing_feature
+          express4: v5.3.0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
@@ -383,6 +385,9 @@ tests/:
       Test_DsmKafka:
         '*': v4.4.0
         nextjs: missing_feature (missing endpoint)
+      Test_DsmKinesis:
+        "*": irrelevant
+        express4: v5.2.0
       Test_DsmRabbitmq:
         "*": irrelevant
         express4: v5.3.0
