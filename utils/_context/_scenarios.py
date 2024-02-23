@@ -994,7 +994,12 @@ class _VirtualMachineScenario(_Scenario):
         self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
 
         provisioner.remove_unsupported_machines(
-            self._library.library, self._weblog, self.required_vms, self.vm_provider_id, config.option.vm_only_branch
+            self._library.library,
+            self._weblog,
+            self.required_vms,
+            self.vm_provider_id,
+            config.option.vm_only_branch,
+            config.option.vm_skip_branches,
         )
         for vm in self.required_vms:
             logger.info(f"Adding provision for {vm.name}")
