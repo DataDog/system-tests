@@ -18,10 +18,22 @@ class _Test_SQS:
     @classmethod
     def get_span(cls, interface, span_kind, queue, operation):
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
+        manual_span_found = False
 
         for data, trace in interface.get_traces():
-            for span in trace:
+            # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sns_to_sqs.
+            # Instead, we look for the custom span created after the "aws.response" span
+            for span in reversed(trace):
                 if not span.get("meta"):
+                    continue
+
+                # special case for JS spans where we create a manual span since the callback span lacks specific information
+                if (
+                    span["meta"].get("language", "") == "javascript"
+                    and span["name"] == "sqs.consume"
+                    and span["meta"].get("queue_name", "") == queue
+                ):
+                    manual_span_found = True
                     continue
 
                 if span["meta"].get("span.kind") not in span_kind:
@@ -40,9 +52,12 @@ class _Test_SQS:
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
 
-                if operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
-                    # for nodejs we propagate from aws.response span which does not have the queue included on the span.
+                elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
+                    # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
+                        continue
+                    # if we found the manual span, and now have the aws.response span, we will return this span
+                    elif not manual_span_found:
                         continue
                 elif queue != cls.get_queue(span):
                     continue

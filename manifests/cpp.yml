@@ -22,6 +22,7 @@ tests/:
         test_no_samesite_cookie.py: irrelevant (ASM is not implemented in C++)
         test_nosql_mongodb_injection.py: irrelevant (ASM is not implemented in C++)
         test_path_traversal.py: irrelevant (ASM is not implemented in C++)
+        test_reflection_injection.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
@@ -30,13 +31,14 @@ tests/:
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
         test_weak_hash.py: irrelevant (ASM is not implemented in C++)
         test_weak_randomness.py: irrelevant (ASM is not implemented in C++)
-        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)       
+        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)
         test_xpath_injection.py: irrelevant (ASM is not implemented in C++)
         test_xss.py: irrelevant (ASM is not implemented in C++)
       source/:
         test_body.py: irrelevant (ASM is not implemented in C++)
         test_cookie_name.py: irrelevant (ASM is not implemented in C++)
         test_cookie_value.py: irrelevant (ASM is not implemented in C++)
+        test_graphql_resolver.py: irrelevant (ASM is not implemented in C++)
         test_header_name.py: irrelevant (ASM is not implemented in C++)
         test_header_value.py: irrelevant (ASM is not implemented in C++)
         test_kafka_key.py: irrelevant (ASM is not implemented in C++)
@@ -84,14 +86,18 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: missing_feature
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": missing_feature (Endpoint not implemented)
-    test_db_integrations_sql.py: 
+    test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
       Test_Postgres: missing_feature
@@ -100,15 +106,18 @@ tests/:
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
+      Test_DsmKinesis: missing_feature
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature

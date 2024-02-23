@@ -20,7 +20,6 @@ import java.net.URISyntaxException;
 public class IastSinkResource {
 
     private final String superSecretAccessKey = "insecure";
-
     private final CryptoExamples crypto = new CryptoExamples();
     private final SqlExamples sql = new SqlExamples(DATA_SOURCE) ;
     private final LDAPExamples ldap = new LDAPExamples(LDAP_CONTEXT);
@@ -28,8 +27,8 @@ public class IastSinkResource {
     private final PathExamples path = new PathExamples();
     private final SsrfExamples ssrf = new SsrfExamples();
     private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
-
     private final XPathExamples xPathExamples = new XPathExamples();
+    private final ReflectionExamples reflectionExamples = new ReflectionExamples();
 
     @GET
     @Path("/insecure_hashing/deduplicate")
@@ -257,5 +256,19 @@ public class IastSinkResource {
     @Path("/insecure-auth-protocol/test")
     public Response  insecureAuthProtocol() {
         return Response.status(Response.Status.OK).build();
+    }
+
+    @POST
+    @Path("/reflection_injection/test_secure")
+    public String secureReflection() {
+        reflectionExamples.secureClassForName();
+        return "Secure";
+    }
+
+    @POST
+    @Path("/reflection_injection/test_insecure")
+    public String insecureReflection(@FormParam("param") final String className) {
+        reflectionExamples.insecureClassForName(className);
+        return "Insecure";
     }
 }
