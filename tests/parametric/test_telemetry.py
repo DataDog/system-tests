@@ -11,6 +11,26 @@ import pytest
 from utils import context, scenarios, rfc, features
 
 
+telemetry_name_mapping = {
+    "trace_sample_rate": {"dotnet": "TODO",},
+    "logs_injection_enabled": {"dotnet": "TODO",},
+    "trace_header_tags": {"dotnet": "TODO",},
+    "trace_tags": {"dotnet": "TODO",},
+    "trace_enabled": {"dotnet": "TODO",},
+    "profiling_enabled": {"dotnet": "TODO",},
+    "appsec_enabled": {"dotnet": "TODO",},
+    "data_streams_enabled": {"dotnet": "TODO",},
+}
+
+
+def _mapped_telemetry_name(context, apm_telemetry_name):
+    if apm_telemetry_name in telemetry_name_mapping:
+        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library)
+        if mapped_name is not None:
+            return mapped_name
+    return apm_telemetry_name
+
+
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
 @features.telemetry_app_started_event
@@ -46,6 +66,8 @@ class Test_Defaults:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
+            apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
+
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             if isinstance(value, tuple):
@@ -90,10 +112,10 @@ class Test_Environment:
             ("logs_injection_enabled", ("true", True)),
             (
                 "trace_header_tags",
-                ("X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2"),
-                {"X-Header-Tag-1": "header_tag_1", "X-Header-Tag-2": "header_tag_2"},
+                "X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2",
+                "x-header-tag-1:header_tag_1,x-header-tag-2:header_tag_2",
             ),
-            ("trace_tags", ("team:apm,component:web", {"team": "apm", "component": "web"})),
+            ("trace_tags", ("team:apm,component:web", "component:web,team:apm")),
             ("trace_enabled", ("true", True)),
             ("profiling_enabled", ("false", False)),
             ("appsec_enabled", ("false", False)),
@@ -102,6 +124,8 @@ class Test_Environment:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
+
+            apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             if isinstance(environment_value, tuple):
