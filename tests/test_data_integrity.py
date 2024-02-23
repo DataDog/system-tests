@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
+import string
 from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
@@ -158,8 +159,14 @@ class Test_LibraryHeaders:
             if "datadog-entity-id" not in request_headers:
                 raise ValueError(f"Datadog-Entity-ID header is missing in request {data['log_filename']}")
             val = request_headers["datadog-entity-id"]
-            assert val.startswith("in-"), f"Datadog-Entity-ID header value {val} doesn't start with 'in-'"
-            assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
+            if val.startswith("in-"):
+                assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
+            elif val.startswith("cid-"):
+                assert all(
+                    c in string.hexdigits for c in val[4:]
+                ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+            else:
+                raise ValueError(f"Datadog-Entity-ID header value {val} doesn't start with either 'in-' or 'cid-'")
 
         interfaces.library.validate(validator, success_by_default=True)
 

@@ -319,7 +319,6 @@ class Test_Blocking_request_uri:
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -361,7 +360,6 @@ class Test_Blocking_request_path_params:
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -406,7 +404,6 @@ class Test_Blocking_request_query:
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -435,7 +432,6 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
-    @flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -452,7 +448,6 @@ class Test_Blocking_request_headers:
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
 @bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
@@ -620,32 +615,12 @@ class Test_Suspicious_Request_Blocking:
         assert False, "TODO"
 
 
-@scenarios.appsec_blocking
+@scenarios.graphql_appsec
 @features.appsec_request_blocking
 class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 
-    def setup_request_non_blocking(self):
-        self.r_no_attack = weblog.post(
-            "/graphql",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {
-                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
-                    "variables": {"name": "foo"},
-                    "operationName": "getUserByName",
-                }
-            ),
-        )
-
-    def test_request_non_blocking(self):
-        assert self.r_no_attack.status_code == 200
-        for _, span in interfaces.library.get_root_spans(request=self.r_no_attack):
-            meta = span.get("meta", {})
-            assert "_dd.appsec.event" not in meta
-            assert "_dd.appsec.json" not in meta
-
-    def setup_request_monitor_attack(self):
+    def setup_request_block_attack(self):
         """ Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
@@ -654,21 +629,65 @@ class Test_BlockingGraphqlResolvers:
             data=json.dumps(
                 {
                     "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
-                    "variables": {"name": "testattack"},
+                    "variables": {"name": "testblockresolver"},
                     "operationName": "getUserByName",
                 }
             ),
         )
 
-    def test_request_monitor_attack(self):
-        assert self.r_attack.status_code == 200
+    def test_request_block_attack(self):
+        assert self.r_attack.status_code == 403
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             assert meta["appsec.event"] == "true"
             assert "_dd.appsec.json" in meta
-            rule_triggered = json.loads(meta["_dd.appsec.json"])["triggers"][0]
-            assert rule_triggered["rule"]["id"] == "monitor-resolvers"
+            rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
-            assert parameters["address"] == "graphql.server.all_resolvers"
-            assert parameters["key_path"] == ["userByName", "0", "name"]
-            assert parameters["value"] == "testattack"
+            assert (
+                parameters["address"] == "graphql.server.all_resolvers"
+                or parameters["address"] == "graphql.server.resolver"
+            )
+            assert rule_triggered["rule"]["id"] == (
+                "block-resolvers" if parameters["address"] == "graphql.server.resolver" else "block-all-resolvers"
+            )
+            assert parameters["key_path"] == (
+                ["userByName", "name"]
+                if parameters["address"] == "graphql.server.resolver"
+                else ["userByName", "0", "name"]
+            )
+            assert parameters["value"] == "testblockresolver"
+
+    def setup_request_block_attack_directive(self):
+        """ Currently only monitoring is implemented"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testblockresolver") { id name }}',
+                    "variables": {"name": "test"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_block_attack_directive(self):
+        assert self.r_attack.status_code == 403
+        for _, span in interfaces.library.get_root_spans(request=self.r_attack):
+            meta = span.get("meta", {})
+            assert meta["appsec.event"] == "true"
+            assert "_dd.appsec.json" in meta
+            rule_triggered = meta["_dd.appsec.json"]["triggers"][0]
+            assert rule_triggered["rule"]["id"] == "block-resolvers"
+            parameters = rule_triggered["rule_matches"][0]["parameters"][0]
+            assert (
+                parameters["address"] == "graphql.server.all_resolvers"
+                or parameters["address"] == "graphql.server.resolver"
+            )
+            assert (
+                parameters["key_path"] == ["userByName", "case", "format"]
+                if parameters["address"] == "graphql.server.resolver"
+                else ["userByName", "0", "case", "format"]
+            )
+            assert parameters["value"] == "testblockresolver"

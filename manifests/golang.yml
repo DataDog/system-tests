@@ -10,6 +10,10 @@ tests/:
         chi: v0.1  # real version not known
   appsec/:
     api_security/:
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: missing_feature
+        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
         Test_API_Security_sampling:
           '*': v1.60.0-dev
@@ -44,6 +48,8 @@ tests/:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
         test_ldap_injection.py:
@@ -56,6 +62,8 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection: missing_feature
         test_ssrf.py:
@@ -87,10 +95,16 @@ tests/:
           TestCookieName: missing_feature
         test_cookie_value.py:
           TestCookieValue: missing_feature
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -223,8 +237,7 @@ tests/:
       Test_Login_Events_Extended: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
-      Test_BlockingGraphqlResolvers:
-        '*': missing_feature
+      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: missing_feature
       Test_Blocking_request_cookies:
         '*': v1.51.0
@@ -322,13 +335,25 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           net-http: v0.1 # real version not known
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
       test_rabbitmq.py:
-        Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          net-http: missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -337,16 +362,33 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmHttp: missing_feature
-      Test_DsmKafka: missing_feature
-      Test_DsmRabbitmq: missing_feature
-      Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
-      Test_DsmSQS: missing_feature
+      Test_DsmKafka:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmKinesis:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq: 
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq_FanoutExchange:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq_TopicExchange:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmSQS:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigTracingEnabled: missing_feature
+      TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
+      TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -355,9 +397,11 @@ tests/:
       Test_TelemetryInstallSignature: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Globs: v1.60.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_Resource: v1.60.0
+      Test_Trace_Sampling_Tags: v1.60.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v1.48.0
     test_tracer_flare.py:

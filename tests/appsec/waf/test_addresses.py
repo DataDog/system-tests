@@ -1,6 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+import json
 from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
 
 
@@ -388,15 +389,17 @@ class Test_gRPC:
 
     def setup_basic(self):
         self.requests = [
-            weblog.grpc('" OR TRUE --'),
-            weblog.grpc("SELECT * FROM users WHERE name='com.sun.org.apache' UNION SELECT creditcard FROM users"),
-            weblog.grpc("SELECT * FROM users WHERE id=1 UNION SELECT creditcard FROM users"),
+            weblog.grpc("SELECT * FROM products WHERE id=1-SLEEP(15)"),
+            weblog.grpc("SELECT * FROM products WHERE id=1; WAITFOR DELAY '00:00:15'"),
         ]
 
     def test_basic(self):
         """AppSec detects some basic attack"""
         for r in self.requests:
-            interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+            try:
+                interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+            except:
+                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected")
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
@@ -409,13 +412,96 @@ class Test_FullGrpc:
         assert False, "Need to write a test"
 
 
-@features.appsec_request_blocking
+@scenarios.graphql_appsec
 @features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""
 
-    def test_main(self):
-        assert False, "Need to write a test"
+    def setup_request_no_attack(self):
+        """Set up an innofensive request with no attacks"""
+
+        self.r_no_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "foo"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_no_attack(self):
+        """Verify that no AppSec event was reported"""
+
+        assert self.r_no_attack.status_code == 200  # There is no attack here!
+        interfaces.library.assert_no_appsec_event(self.r_no_attack)
+
+    def base_test_request_monitor_attack(self, resolversKeyPath, allResolversKeyPath):
+        """Verify that the request triggered a directive attack event"""
+
+        assert self.r_attack.status_code == 200  # This attack is never blocking
+
+        failures = []
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack, rule="monitor-resolvers", key_path=resolversKeyPath, value="testattack", full_trace=True
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack,
+                rule="monitor-all-resolvers",
+                key_path=allResolversKeyPath,
+                value="testattack",
+                full_trace=True,
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        # At least one of the two assertions should have passed...
+        if len(failures) >= 2:
+            raise ValueError(f"At least one rule should have triggered - {failures[0]}- {failures[1]}")
+
+    def setup_request_monitor_attack(self):
+        """Set up a request with a resolver-targeted attack"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "testattack"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_monitor_attack(self):
+        self.base_test_request_monitor_attack(["userByName", "name"], ["userByName", "0", "name"])
+
+    def setup_request_monitor_attack_directive(self):
+        """Set up a request with a directive-targeted attack"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testattack") { id name }}',
+                    "variables": {"name": "test"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_monitor_attack_directive(self):
+        self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
 
 
 @features.appsec_request_blocking

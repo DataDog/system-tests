@@ -10,15 +10,16 @@
 #
 # Binaries sources:
 # 
-# * C++:    Circle CI      (needs auth)
-# * .NET:   windows.net
-# * Golang: github repo
-# * Java:   Circle CI      (needs auth)
-# * NodeJS: github repo
-# * PHP:    Circle CI      (needs auth)
-# * Python: github actions
-# * Ruby:   github repo
-#
+# * Agent:  Docker hub datadog/agent-dev:master-py3
+# * Golang: gopkg.in/DataDog/dd-trace-go.v1@main
+# * .NET:   ghcr.io/datadog/dd-trace-dotnet
+# * Java:   ghcr.io/datadog/dd-trace-java
+# * PHP:    ghcr.io/datadog/dd-trace-php
+# * NodeJS: Direct from github source
+# * C++:    Direct from github source
+# * Python: Direct from github source
+# * Ruby:   Direct from github source
+# * WAF:    Direct from github source, but not working, as this repo is now private
 ##########################################################################################
 
 set -eu

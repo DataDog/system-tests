@@ -6,19 +6,23 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: missing_feature
+        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+        Test_API_Security_sampling: v2.46.0
       test_schemas.py:
-        Test_Scanners: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
-        Test_Schema_Request_Headers: missing_feature
-        Test_Schema_Request_Json_Body: missing_feature
-        Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
-        Test_Schema_Response_Body: missing_feature
+        Test_Scanners: v2.46.0
+        Test_Schema_Request_Cookies: v2.46.0
+        Test_Schema_Request_FormUrlEncoded_Body: v2.46.0
+        Test_Schema_Request_Headers: v2.46.0
+        Test_Schema_Request_Json_Body: v2.46.0
+        Test_Schema_Request_Path_Parameters: v2.46.0
+        Test_Schema_Request_Query_Parameters: v2.46.0
+        Test_Schema_Response_Body: v2.46.0
         Test_Schema_Response_Body_env_var: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Headers: v2.46.0
     iast/:
       sink/:
         test_command_injection.py:
@@ -27,8 +31,10 @@ tests/:
           Test_HardcodedSecrets: missing_feature
         test_header_injection.py:
           TestHeaderInjection: v2.46.0
-        test_hsts_missing_header.py: 
+        test_hsts_missing_header.py:
           Test_HstsMissingHeader: v2.44.0
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
         test_ldap_injection.py:
@@ -38,11 +44,13 @@ tests/:
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: v2.39.0
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection: v2.47.0
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
-          TestSqlInjection: 
+          TestSqlInjection:
              '*': v2.23.0
         test_ssrf.py:
           TestSSRF: v2.36.0
@@ -60,7 +68,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: v2.39.0
         test_xcontent_sniffing.py:
-          Test_XContentSniffing: missing_feature        
+          Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -72,11 +80,17 @@ tests/:
           TestCookieName: v2.42.0
         test_cookie_value.py:
           TestCookieValue: v2.42.0
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
-          TestHeaderValue: 
+          TestHeaderValue:
              '*': v2.39.0
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -84,9 +98,9 @@ tests/:
         test_parameter_value.py:
           TestParameterValue: v2.28.0
         test_path.py:
-          TestPath: missing_feature
+          TestPath: v2.39.0
         test_uri.py:
-          TestURI: irrelevant     
+          TestURI: irrelevant
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -199,8 +213,12 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: missing_feature
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
@@ -213,15 +231,18 @@ tests/:
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
+      Test_DsmKinesis: missing_feature
       Test_DsmRabbitmq: v2.29.0
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v2.33.0
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -231,8 +252,11 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: bug (Both env vars are not independent; injected tags are duplicated in all spans)
     test_tracer_flare.py:

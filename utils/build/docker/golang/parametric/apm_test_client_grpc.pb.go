@@ -821,5 +821,5 @@ var APMClient_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "protos/apm_test_client.proto",
+	Metadata: "parametric/protos/apm_test_client.proto",
 }

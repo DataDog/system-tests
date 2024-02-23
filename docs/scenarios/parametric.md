@@ -74,7 +74,7 @@ Tests can be aborted using CTRL-C but note that containers maybe still be runnin
 
 For running the Go tests, see the README in apps/golang.
 
-To test unmerged PRs locally, run the following in the apps/golang directory:
+To test unmerged PRs locally, run the following in the utils/build/docker/golang/parametric directory:
 
 ```sh
 go get -u github.com/DataDog/dd-trace-go/v2@<commit_hash>

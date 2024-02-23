@@ -6,19 +6,28 @@ tests/:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
     api_security/:
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: v5.3.0
+        Test_API_Security_RC_ASM_DD_scanners: v5.3.0
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+        Test_API_Security_sampling: v4.21.0
       test_schemas.py:
-        Test_Scanners: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
-        Test_Schema_Request_Headers: missing_feature
-        Test_Schema_Request_Json_Body: missing_feature
-        Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
-        Test_Schema_Response_Body: missing_feature
+        Test_Scanners: v4.21.0
+        Test_Schema_Request_Cookies: v4.21.0
+        Test_Schema_Request_FormUrlEncoded_Body:
+          express4: v4.21.0
+          express4-typescript: v4.21.0
+          nextjs: v5.3.0
+        Test_Schema_Request_Headers: v4.21.0
+        Test_Schema_Request_Json_Body: v4.21.0
+        Test_Schema_Request_Path_Parameters: missing_feature (path_params not supported yet)
+        Test_Schema_Request_Query_Parameters: v4.21.0
+        Test_Schema_Response_Body:
+          '*': v5.3.0
+          nextjs: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Headers: v4.21.0
     iast/:
       sink/:
         test_command_injection.py:
@@ -41,6 +50,8 @@ tests/:
             '*': missing_feature
             express4: v4.8.0
             express4-typescript: v4.8.0
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': missing_feature
@@ -71,6 +82,8 @@ tests/:
             '*': missing_feature
             express4: v3.19.0
             express4-typescript: v3.19.0
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             '*': missing_feature
@@ -131,6 +144,10 @@ tests/:
             '*': missing_feature
             express4: v4.3.0
             express4-typescript: v4.3.0
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument:
+            '*': v5.4.0
+            nextjs: irrelevant # nextjs is not related with graphql
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
@@ -138,6 +155,14 @@ tests/:
             '*': missing_feature
             express4: v4.3.0
             express4-typescript: v4.3.0
+        test_kafka_key.py:
+          TestKafkaKey:
+            '*': v5.4.0
+            nextjs: irrelevant # nextjs is not related with kafka
+        test_kafka_value.py:
+          TestKafkaValue:
+            '*': v5.4.0
+            nextjs: irrelevant # nextjs is not related with kafka
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -159,7 +184,7 @@ tests/:
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded:
           '*': v2.2.0
-          nextjs: missing_feature  # request.formData() method not supported yet
+          nextjs: v5.3.0
         Test_BodyXml:
           '*': v2.2.0
           nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
@@ -167,7 +192,7 @@ tests/:
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
-          '*': missing_feature (v4.16.0 but test is not implemented)
+          '*': v4.22.0
           nextjs: irrelevant # nextjs is not related with graphql
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
@@ -227,7 +252,9 @@ tests/:
         nextjs: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v3.19.0
-      Test_BlockingGraphqlResolvers: missing_feature
+      Test_BlockingGraphqlResolvers:
+          '*': v4.22.0
+          nextjs: irrelevant # nextjs is not related with graphql
       Test_Blocking_request_body:
         '*': v3.19.0
         nextjs: missing_feature
@@ -311,17 +338,26 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          '*': missing_feature (Endpoint not implemented)
+          "*": irrelevant
           express4: v0.1 # real version not known
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          express4: v5.3.0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          express4: v0.1 # real version not known
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          express4: v0.1 # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
           express4: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
           express4: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
@@ -340,16 +376,30 @@ tests/:
       Test_DsmKafka:
         '*': v4.4.0
         nextjs: missing_feature (missing endpoint)
-      Test_DsmRabbitmq: missing_feature
-      Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
-      Test_DsmSQS: 
-        '*': missing_feature
+      Test_DsmKinesis:
+        "*": irrelevant
+        express4: v5.2.0
+      Test_DsmRabbitmq:
+        "*": irrelevant
+        express4: v5.3.0
+      Test_DsmRabbitmq_FanoutExchange:
+        "*": irrelevant
+        express4: missing_feature
+      Test_DsmRabbitmq_TopicExchange:
+        "*": irrelevant
+        express4: missing_feature
+      Test_DsmSNS:
+        "*": irrelevant
+        express4: v5.2.0
+      Test_DsmSQS:
+        "*": irrelevant
+        express4: v5.2.0
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v4.11.0
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v4.23.0
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -359,8 +409,11 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: v3.21.0
     test_tracer_flare.py:

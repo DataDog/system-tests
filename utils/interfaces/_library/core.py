@@ -51,7 +51,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         rid = get_rid_from_request(request)
 
         if rid:
-            logger.debug(f"Try to found traces related to request {rid}")
+            logger.debug(f"Try to find traces related to request {rid}")
 
         for data in self.get_data(path_filters=paths):
             traces = data["request"]["content"]
@@ -64,19 +64,22 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                             yield data, trace
                             break
 
-    def get_spans(self, request=None):
-        """
-        Iterate over all spans reported by the tracer to the agent.
-        If request is not None, only span trigered by this request will be returned.
+    def get_spans(self, request=None, full_trace=False):
+        """Iterate over all spans reported by the tracer to the agent.
+
+        If request is not None and full_trace is False, only span trigered by that request will be
+        returned.
+        If request is not None and full_trace is True, all spans from a trace triggered by that
+        request will be returned.
         """
         rid = get_rid_from_request(request)
 
         if rid:
-            logger.debug(f"Try to found spans related to request {rid}")
+            logger.debug(f"Try to find spans related to request {rid}")
 
         for data, trace in self.get_traces(request=request):
             for span in trace:
-                if rid is None:
+                if rid is None or full_trace:
                     yield data, trace, span
                 elif rid == get_rid_from_span(span):
                     logger.debug(f"A span is found in {data['log_filename']}")
@@ -87,8 +90,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             if span.get("parent_id") in (0, None):
                 yield data, span
 
-    def get_appsec_events(self, request=None):
-        for data, trace, span in self.get_spans(request):
+    def get_appsec_events(self, request=None, full_trace=False):
+        for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
             if "_dd.appsec.json" in span.get("meta", {}):
 
                 if request:  # do not spam log if all data are sent to the validator
@@ -181,10 +184,12 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             success_by_default=success_by_default,
         )
 
-    def validate_appsec(self, request=None, validator=None, success_by_default=False, legacy_validator=None):
+    def validate_appsec(
+        self, request=None, validator=None, success_by_default=False, legacy_validator=None, full_trace=False
+    ):
 
         if validator:
-            for _, _, span, appsec_data in self.get_appsec_events(request=request):
+            for _, _, span, appsec_data in self.get_appsec_events(request=request, full_trace=full_trace):
                 if validator(span, appsec_data):
                     return
 
@@ -262,14 +267,25 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             raise ValueError(f"An appsec event has been reported in {data['log_filename']}")
 
     def assert_waf_attack(
-        self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
+        self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None, full_trace=False
     ):
+        """Asserts the WAF detected an attack on the provided request.
+
+        If full_trace is True, all events found on the trace(s) created by the request will be looked into, otherwise
+        only those with an identified User-Agent matching that of the request will be considered. It is advised to set
+        full_trace to True when the events aren't expected to originate from the HTTP layer (e.g: GraphQL tests).
+        """
+
         validator = _WafAttack(
             rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path,
         )
 
         self.validate_appsec(
-            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
+            request,
+            validator=validator.validate,
+            legacy_validator=validator.validate_legacy,
+            success_by_default=False,
+            full_trace=full_trace,
         )
 
     def add_appsec_reported_header(self, request, header_name):

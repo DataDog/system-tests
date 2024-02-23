@@ -12,8 +12,11 @@ const passport = require('passport')
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
+const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
+const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
+const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
-const { produceMessage, consumeMessage } = require('./integrations/messaging/aws/sqs')
+const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 iast.initData().catch(() => {})
 
@@ -155,35 +158,100 @@ app.get('/dsm', (req, res) => {
           })
           .catch((error) => {
             console.log(error)
-            res.status(500).send('Internal Server Error during Kafka consume')
+            res.status(500).send('[Kafka] Internal Server Error during DSM Kafka consume')
           })
       })
       .catch((error) => {
         console.log(error)
-        res.status(500).send('Internal Server Error during Kafka produce')
+        res.status(500).send('[Kafka] Internal Server Error during DSM Kafka produce')
       })
   } else if (integration === 'sqs') {
     const queue = 'dsm-system-tests-queue'
     const message = 'hello from SQS DSM JS'
     const timeout = req.query.timeout ?? 5
 
-    produceMessage(queue, message)
+    sqsProduce(queue, message)
       .then(() => {
-        consumeMessage(queue, timeout)
+        sqsConsume(queue, timeout * 1000)
           .then(() => {
             res.send('ok')
           })
           .catch((error) => {
             console.log(error)
-            res.status(500).send('Internal Server Error during SQS consume')
+            res.status(500).send('[SQS] Internal Server Error during DSM SQS consume')
           })
       })
       .catch((error) => {
         console.log(error)
-        res.status(500).send('Internal Server Error during SQS produce')
+        res.status(500).send('[SQS] Internal Server Error during DSM SQS produce')
+      })
+  } else if (integration === 'sns') {
+    const queue = 'dsm-system-tests-queue-sns'
+    const topic = 'dsm-system-tests-topic-sns'
+    const message = 'hello from SNS DSM JS'
+    const timeout = req.query.timeout ?? 5
+
+    snsPublish(queue, topic, message)
+      .then(() => {
+        snsConsume(queue, timeout * 1000)
+          .then(() => {
+            res.send('ok')
+          })
+          .catch((error) => {
+            console.log(error)
+            res.status(500).send('[SNS->SQS] Internal Server Error during DSM SQS consume from SNS')
+          })
+      })
+      .catch((error) => {
+        console.log(error)
+        res.status(500).send('[SNS->SQS] Internal Server Error during DSM SNS publish')
+      })
+  } else if (integration === 'rabbitmq') {
+    const queue = 'dsm-system-tests-queue'
+    const message = 'hello from SQS DSM JS'
+    const timeout = req.query.timeout ?? 5
+    const exchange = 'systemTestDirectExchange'
+    const routingKey = 'systemTestDirectRoutingKey'
+
+    rabbitmqProduce(queue, exchange, routingKey, message)
+      .then(() => {
+        rabbitmqConsume(queue, timeout * 1000)
+          .then(() => {
+            res.status(200).send('ok')
+          })
+          .catch((error) => {
+            console.error(error)
+            res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM consume')
+          })
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM produce')
+      })
+  } else if (integration === 'kinesis') {
+    const message = JSON.stringify({ message: 'hello from Kinesis DSM JS' })
+    const timeout = req.query.timeout ?? 60
+    const stream = req.query.stream
+
+    kinesisProduce(stream, message, '1', timeout)
+      .then(() => {
+        kinesisConsume(stream, timeout * 1000)
+          .then(() => {
+            res.status(200).send('ok')
+          })
+          .catch((error) => {
+            console.error(error)
+            res.status(500).send('[Kinesis] Internal Server Error during Kinesis DSM consume')
+          })
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('[Kinesis] Internal Server Error during Kinesis DSM produce')
       })
   } else {
-    res.status(400).send('Wrong or missing integration, available integrations are [Kafka, SQS]')
+    res.status(400).send(
+      '[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS, Kinesis]'
+    )
   }
 })
 
@@ -192,7 +260,7 @@ app.get('/kafka/produce', (req, res) => {
 
   kafkaProduce(topic, 'Hello from Kafka JS')
     .then(() => {
-      res.status(200).send('produce ok')
+      res.status(200).send('[Kafka] produce ok')
     })
     .catch((error) => {
       console.error(error)
@@ -206,7 +274,7 @@ app.get('/kafka/consume', (req, res) => {
 
   kafkaConsume(topic, timeout)
     .then(() => {
-      res.status(200).send('consume ok')
+      res.status(200).send('[Kafka] consume ok')
     })
     .catch((error) => {
       console.error(error)
@@ -216,28 +284,114 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
+  console.log('sqs produce')
 
-  produceMessage(queue)
+  sqsProduce(queue)
     .then(() => {
-      res.status(200).send('produce ok')
+      res.status(200).send('[SQS] produce ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during SQS produce')
+      res.status(500).send('[SQS] Internal Server Error during SQS produce')
     })
 })
 
 app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
+  console.log('sqs consume')
 
-  consumeMessage(queue, timeout)
+  sqsConsume(queue, timeout * 1000)
     .then(() => {
-      res.status(200).send('consume ok')
+      res.status(200).send('[SQS] consume ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error during SQS consume')
+      res.status(500).send('[SQS] Internal Server Error during SQS consume')
+    })
+})
+
+app.get('/sns/produce', (req, res) => {
+  const queue = req.query.queue
+  const topic = req.query.topic
+
+  snsPublish(queue, topic)
+    .then(() => {
+      res.status(200).send('[SNS] publish ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[SNS] Internal Server Error during SNS publish')
+    })
+})
+
+app.get('/sns/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  snsConsume(queue, timeout * 1000)
+    .then(() => {
+      res.status(200).send('[SNS->SQS] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[SNS->SQS] Internal Server Error during SQS consume from SNS')
+    })
+})
+
+app.get('/kinesis/produce', (req, res) => {
+  const stream = req.query.stream
+
+  kinesisProduce(stream, null, '1', null)
+    .then(() => {
+      res.status(200).send('[Kinesis] publish ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[Kinesis] Internal Server Error during Kinesis publish')
+    })
+})
+
+app.get('/kinesis/consume', (req, res) => {
+  const stream = req.query.stream
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  kinesisConsume(stream, timeout * 1000)
+    .then(() => {
+      res.status(200).send('[Kinesis] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[Kinesis] Internal Server Error during Kinesis consume')
+    })
+})
+
+app.get('/rabbitmq/produce', (req, res) => {
+  const queue = req.query.queue
+  const exchange = req.query.exchange
+  const routingKey = 'systemTestDirectRoutingKeyContextPropagation'
+
+  rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
+    .then(() => {
+      res.status(200).send('[RabbitMQ] produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ produce')
+    })
+})
+
+app.get('/rabbitmq/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  rabbitmqConsume(queue, timeout * 1000)
+    .then(() => {
+      res.status(200).send('[RabbitMQ] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ consume')
     })
 })
 
@@ -255,7 +409,13 @@ app.all('/tag_value/:tag/:status', (req, res) => {
     res.set(k, v)
   }
 
-  res.status(req.params.status || 200).send('Value tagged')
+  res.status(req.params.status || 200)
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body })
+  } else {
+    res.send('Value tagged')
+  }
 })
 
 app.get('/read_file', (req, res) => {
@@ -314,9 +474,9 @@ app.get('/createextraservice', (req, res) => {
 iast.initRoutes(app, tracer)
 
 require('./auth')(app, passport, tracer)
-require('./graphql')(app)
-
-app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => { })
-  console.log('listening')
+require('./graphql')(app).then(() => {
+  app.listen(7777, '0.0.0.0', () => {
+    tracer.trace('init.service', () => {})
+    console.log('listening')
+  })
 })
