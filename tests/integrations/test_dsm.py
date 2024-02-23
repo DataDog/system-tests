@@ -311,7 +311,10 @@ class Test_DsmContext_Extraction_V1:
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
-            "default": {"producer": 9235368231858162135, "consumer": 6884439977898629893,},
+            "default": {
+                "producer": 9235368231858162135,
+                "consumer": 6884439977898629893,
+            },  # confirmed that this is correct consumer hash
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
@@ -339,14 +342,21 @@ class Test_DsmContext_Extraction_V2:
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
     # @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
-    # @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
+    @missing_feature(
+        library="nodejs",
+        reason="dd-trace-js cannot extract DSM V2 Base64 Headers and throws an error for DSM, never setting checkpoint",
+    )
+    @missing_feature(library="python", reason="dd-trace-py automatically assumes v1 encoding for rabbitmq")
     def test_dsmcontext_extraction_v2_base64(self):
         assert "error" not in self.r.text
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
-            "default": {"producer": 9235368231858162135, "consumer": 6884439977898629893,},
+            "default": {
+                "producer": 9235368231858162135,
+                "consumer": 6884439977898629893,
+            },  # java decodes to consumer hash of 7819692959683983563
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
@@ -357,6 +367,50 @@ class Test_DsmContext_Extraction_V2:
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
+
+
+@features.datastreams_monitoring_support_for_v1_encoding
+@scenarios.integrations
+class Test_DsmContext_Injection:
+    """ Verify DSM context is injected using correct encoding (base64) """
+
+    def setup_dsmcontext_injection(self):
+        queue = "dsm-propagation-test-injection"
+        exchange = "dsm-propagation-test-injection-exchange"
+
+        # send initial message with via weblog
+        self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
+
+        assert self.r.status_code == 200
+
+        # consume message using helper and check propagation type
+        self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
+
+    # @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
+    # @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
+    def test_dsmcontext_injection(self):
+        assert "error" not in self.r.text
+        assert "error" not in self.consume_response.text
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
+            "default": {
+                "producer": 9235368231858162135,
+                "consumer": 6884439977898629893,
+            },  # confirmed that this is correct consumer hash
+        }
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        # consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+
+        queue = "dsm-propagation-test-injection"
+        edge_tags_out = ("direction:out", f"topic:{queue}", "type:rabbitmq")
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
+        )
+        print(self.consume_response["result"].properties)
+        print(self.consume_response["result"].headers)
 
 
 class DsmHelper:
@@ -450,6 +504,36 @@ class DsmHelper:
             )
             logging.info("System Tests RabbitMQ message using V2 DSM Pathway Encoding sent successfully")
             return "ok"
+        except Exception as e:
+            logging.info(f"Error during DSM RabbitMQ publish message using V2 DSM Pathway Encoding: {e}")
+            return "error"
+
+    @staticmethod
+    def consume_rabbitmq_injection(queue, exchange, timeout):
+        # Create a RabbitMQ client
+        conn = kombu.Connection("amqp://127.0.0.1:5672")
+        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+        messages = []
+
+        def process_message(body, message):
+            print(body)
+            print(message)
+            print(message.body)
+            print(message.headers)
+            print(message.properties)
+            print(message.payload)
+            message.ack()
+            messages.append(message)
+
+        try:
+            with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]):
+                conn.drain_events(timeout=timeout)
+
+            if messages:
+                logging.info("System Tests RabbitMQ testing injection and consume from weblog successfully")
+                return {"result": messages}
+            else:
+                return {"error": "Message not received"}
         except Exception as e:
             logging.info(f"Error during DSM RabbitMQ publish message using V2 DSM Pathway Encoding: {e}")
             return "error"
