@@ -713,6 +713,12 @@ class Test_Headers_Tracecontext:
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
 
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
         """
         Ensure the last parent id tag is set according to the W3C spec
@@ -775,6 +781,12 @@ class Test_Headers_Tracecontext:
         assert case4["name"] == "p_not_propagated"
         assert case4["meta"]["_dd.parent_id"] == "0000000000000000"
 
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
         """
         Ensure the last parent id is propagated according to the W3C spec
