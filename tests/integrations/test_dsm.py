@@ -439,7 +439,7 @@ class Test_DsmContext_Injection:
     # @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
     def test_dsmcontext_injection(self):
         assert "error" not in self.r.text
-        assert "error" not in self.consume_response.text
+        assert "error" not in self.consume_response
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
@@ -452,8 +452,9 @@ class Test_DsmContext_Injection:
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         # consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
 
-        queue = "dsm-propagation-test-injection"
-        edge_tags_out = ("direction:out", f"topic:{queue}", "type:rabbitmq")
+        # queue = "dsm-propagation-test-injection"
+        exchange = "dsm-propagation-test-injection-exchange"
+        edge_tags_out = ("direction:out", f"exchange:{exchange}", "type:rabbitmq")
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
