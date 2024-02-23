@@ -1064,6 +1064,29 @@ class _VirtualMachineScenario(_Scenario):
             test["description"] = test["path"][last_index:]
 
 
+class _KubernetesMachineScenario(_Scenario):
+    """ Scenario that tests virtual machines """
+
+    def __init__(self, name, doc) -> None:
+        super().__init__(name, doc=doc)
+
+    def _get_warmups(self):
+        logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True)
+        return [self.connect_cluster]
+
+    def connect_cluster(self):
+        from kubernetes import client, config
+
+        # Configs can be set in Configuration class directly or using helper utility
+        config.load_kube_config()
+
+        v1 = client.CoreV1Api()
+        logger.info("Listing pods with their IPs:")
+        ret = v1.list_pod_for_all_namespaces(watch=False)
+        for i in ret.items:
+            logger.info("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
+
+
 class scenarios:
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
@@ -1554,6 +1577,7 @@ class scenarios:
         include_amazon_linux_2023_amd64=True,
         include_amazon_linux_2023_arm64=True,
     )
+    k8s_lib_injection = _KubernetesMachineScenario("K8S_LIB_INJECTION", doc=" Kubernetes Instrumentation scenario")
 
 
 def _main():
