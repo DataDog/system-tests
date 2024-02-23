@@ -129,6 +129,22 @@ class TestHostAutoInjectManual(_AutoInjectBaseTest):
         logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")
 
 
+@features.host_auto_installation_script
+@scenarios.host_auto_injection_install_script
+class TestHostAutoInjectInstallScript(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
+
+
+@features.host_auto_instrumentation
+@scenarios.simple_host_auto_injection
+class TestSimpleHostAutoInjectManual(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+
 @features.container_auto_instrumentation
 @scenarios.container_auto_injection
 class TestContainerAutoInjectManual(_AutoInjectBaseTest):
@@ -145,16 +161,16 @@ class TestContainerAutoInjectManual(_AutoInjectBaseTest):
         )
 
 
-@features.host_auto_installation_script
-@scenarios.host_auto_injection_install_script
-class TestHostAutoInjectInstallScript(_AutoInjectBaseTest):
+@features.container_auto_installation_script
+@scenarios.container_auto_injection_install_script
+class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine)
 
 
-@features.container_auto_installation_script
-@scenarios.container_auto_injection_install_script
-class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
+@features.container_auto_instrumentation
+@scenarios.simple_container_auto_injection
+class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine)
 

@@ -1064,6 +1064,38 @@ class _VirtualMachineScenario(_Scenario):
             test["description"] = test["path"][last_index:]
 
 
+class HostAutoInjectionScenario(_VirtualMachineScenario):
+    def __init__(self, name, doc, vm_provision="host-auto-inject") -> None:
+        super().__init__(
+            name,
+            vm_provision=vm_provision,
+            doc=doc,
+            include_ubuntu_22_amd64=True,
+            include_ubuntu_22_arm64=True,
+            include_ubuntu_18_amd64=True,
+            include_amazon_linux_2_amd64=True,
+            include_amazon_linux_2_dotnet_6=True,
+            include_amazon_linux_2023_amd64=True,
+            include_amazon_linux_2023_arm64=True,
+        )
+
+
+class ContainerAutoInjectionScenario(_VirtualMachineScenario):
+    def __init__(self, name, doc, vm_provision="container-auto-inject") -> None:
+        super().__init__(
+            name,
+            vm_provision=vm_provision,
+            doc=doc,
+            include_ubuntu_22_amd64=True,
+            include_ubuntu_22_arm64=True,
+            include_ubuntu_18_amd64=True,
+            include_amazon_linux_2_amd64=False,
+            include_amazon_linux_2_dotnet_6=False,
+            include_amazon_linux_2023_amd64=True,
+            include_amazon_linux_2023_arm64=True,
+        )
+
+
 class scenarios:
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
@@ -1493,66 +1525,33 @@ class scenarios:
 
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
 
-    host_auto_injection = _VirtualMachineScenario(
-        "HOST_AUTO_INJECTION",
-        vm_provision="host-auto-inject",
-        doc="Onboarding Host Single Step Instrumentation scenario",
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
-        include_ubuntu_18_amd64=True,
-        include_amazon_linux_2_amd64=True,
-        include_amazon_linux_2_dotnet_6=True,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
+    host_auto_injection = HostAutoInjectionScenario(
+        "HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario",
     )
-    host_auto_injection_block_list = _VirtualMachineScenario(
+    simple_host_auto_injection = HostAutoInjectionScenario(
+        "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
+    )
+    host_auto_injection_block_list = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
-        vm_provision="host-auto-inject",
-        doc="Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists",
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
-        include_ubuntu_18_amd64=True,
-        include_amazon_linux_2_amd64=True,
-        include_amazon_linux_2_dotnet_6=True,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
+        "Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists",
     )
-    host_auto_injection_install_script = _VirtualMachineScenario(
+    host_auto_injection_install_script = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
+        "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
-        doc="Onboarding Host Single Step Instrumentation scenario using agent auto install script",
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
-        include_ubuntu_18_amd64=True,
-        include_amazon_linux_2_amd64=True,
-        include_amazon_linux_2_dotnet_6=True,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
     )
 
-    container_auto_injection = _VirtualMachineScenario(
-        "CONTAINER_AUTO_INJECTION",
-        vm_provision="container-auto-inject",
-        doc="Onboarding Container Single Step Instrumentation scenario",
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
-        include_ubuntu_18_amd64=True,
-        include_amazon_linux_2_amd64=False,
-        include_amazon_linux_2_dotnet_6=False,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
+    container_auto_injection = ContainerAutoInjectionScenario(
+        "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
     )
-    container_auto_injection_install_script = _VirtualMachineScenario(
+    simple_container_auto_injection = ContainerAutoInjectionScenario(
+        "SIMPLE_CONTAINER_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+    )
+    container_auto_injection_install_script = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
-        vm_provision="container-auto-inject",
-        doc="Onboarding Container Single Step Instrumentation scenario",
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
-        include_ubuntu_18_amd64=True,
-        include_amazon_linux_2_amd64=False,
-        include_amazon_linux_2_dotnet_6=False,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
+        "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
+        vm_provision="container-auto-inject-install-script",
     )
 
 
