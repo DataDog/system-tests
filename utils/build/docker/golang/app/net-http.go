@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	saramatrace "github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1"
+	saramatrace "github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama"
 	"github.com/IBM/sarama"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"

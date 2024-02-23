@@ -5,7 +5,7 @@ set -euv
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
     go mod edit -replace github.com/DataDog/dd-trace-go/v2=/binaries/dd-trace-go
-    go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1=/binaries/dd-trace-go/v2/contrib/IBM/sarama.v1
+    go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama=/binaries/dd-trace-go/v2/contrib/IBM/sarama
     go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin=/binaries/dd-trace-go/v2/contrib/gin-gonic/gin
     go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5=/binaries/dd-trace-go/v2/contrib/go-chi/chi.v5
     go mod edit -replace github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc=/binaries/dd-trace-go/v2/contrib/google.golang.org/grpc
@@ -20,7 +20,7 @@ else
     echo "Installing production dd-trace-version"
     # TODO(darccio): remove @$ref on v2 release
     go get -v -d -u github.com/DataDog/dd-trace-go/v2@v2-dev
-    go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1@v2-dev
+    go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama@v2-dev
     go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin@v2-dev
     go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5@v2-dev
     go get -v -d -u github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc@v2-dev

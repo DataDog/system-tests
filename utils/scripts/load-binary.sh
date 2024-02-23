@@ -204,7 +204,7 @@ elif [ "$TARGET" = "golang" ]; then
 
     echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
     echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get
-    echo "github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama.v1@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc@$COMMIT_ID" >> golang-load-from-go-get
