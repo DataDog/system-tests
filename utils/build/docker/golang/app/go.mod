@@ -3,11 +3,14 @@ module weblog
 go 1.19
 
 require (
-	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240222161352-386ab579ed42
-	github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama v0.0.0-20240223102026-dd22231fd6a4
+	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240223105017-0206562b3b5d
+	github.com/DataDog/dd-trace-go/v2/contrib/99designs/gqlgen v0.0.0-20240222161352-386ab579ed42
+	github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama v0.0.0-20240223103138-8a6113d1e1f8
 	github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin v0.0.0-20240201115451-b8c2740eb729
 	github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5 v0.0.0-20240201115451-b8c2740eb729
 	github.com/DataDog/dd-trace-go/v2/contrib/google.golang.org/grpc v0.0.0-20240201115451-b8c2740eb729
+	github.com/DataDog/dd-trace-go/v2/contrib/graph-gophers/graphql-go v0.0.0-20240222161352-386ab579ed42
+	github.com/DataDog/dd-trace-go/v2/contrib/graphql-go/graphql v0.0.0-20240222161352-386ab579ed42
 	github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4 v0.0.0-20240201115451-b8c2740eb729
 	github.com/DataDog/dd-trace-go/v2/contrib/net/http v0.0.0-20240201115451-b8c2740eb729
 	github.com/99designs/gqlgen v0.17.36
@@ -58,7 +61,7 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/uuid v1.3.1 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

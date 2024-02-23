@@ -5,9 +5,9 @@ import (
 	"weblog/gqlgen/graph"
 	"weblog/internal/common"
 
-	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/99designs/gqlgen"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	graphqltrace "github.com/DataDog/dd-trace-go/v2/contrib/99designs/gqlgen"
+	httptrace "github.com/DataDog/dd-trace-go/v2/contrib/net/http"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 

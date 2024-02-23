@@ -11,7 +11,7 @@
 # Binaries sources:
 # 
 # * Agent:  Docker hub datadog/agent-dev:master-py3
-# * Golang: gopkg.in/DataDog/dd-trace-go.v1@main
+# * Golang: github.com/DataDog/dd-trace-go/v2@main
 # * .NET:   ghcr.io/datadog/dd-trace-dotnet
 # * Java:   ghcr.io/datadog/dd-trace-java
 # * PHP:    ghcr.io/datadog/dd-trace-php

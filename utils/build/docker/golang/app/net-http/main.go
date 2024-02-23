@@ -13,9 +13,6 @@ import (
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 
-	"github.com/Shopify/sarama"
-	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
-
 	saramatrace "github.com/DataDog/dd-trace-go/v2/contrib/IBM/sarama"
 	"github.com/IBM/sarama"
 

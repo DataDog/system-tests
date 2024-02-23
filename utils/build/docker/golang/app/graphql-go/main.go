@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"weblog/internal/common"
 
-	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/graphql-go/graphql"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	graphqltrace "github.com/DataDog/dd-trace-go/v2/contrib/graphql-go/graphql"
+	httptrace "github.com/DataDog/dd-trace-go/v2/contrib/net/http"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
