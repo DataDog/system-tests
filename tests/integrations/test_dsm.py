@@ -337,6 +337,7 @@ class Test_DsmKinesis:
             hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
 
+
 @features.datastreams_monitoring_support_for_v1_encoding
 @scenarios.integrations
 class Test_DsmContext_Extraction_V1:
