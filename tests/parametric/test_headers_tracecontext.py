@@ -713,13 +713,13 @@ class Test_Headers_Tracecontext:
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
 
-    def test_tracestate_w3c_lp_id_extract(self, test_agent, test_library):
+    def test_tracestate_w3c_p_extract(self, test_agent, test_library):
         """
         Ensure the last parent id tag is set according to the W3C spec
         """
         with test_library:
             with test_library.start_span(
-                name="lp_id_set",
+                name="p_set",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
@@ -728,7 +728,7 @@ class Test_Headers_Tracecontext:
                 pass
 
             with test_library.start_span(
-                name="lp_id_invalid",
+                name="p_invalid",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
                     ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
@@ -748,7 +748,7 @@ class Test_Headers_Tracecontext:
                 pass
 
             with test_library.start_span(
-                name="lp_id_not_propagated",
+                name="p_not_propagated",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
                     ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
@@ -761,10 +761,10 @@ class Test_Headers_Tracecontext:
         assert len(traces) == 4
         case1, case2, case3, case4 = traces[0][0], traces[1][0], traces[2][0], traces[3][0]
 
-        assert case1["name"] == "lp_id_set"
+        assert case1["name"] == "p_set"
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
 
-        assert case2["name"] == "lp_id_invalid"
+        assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X", f"{case2}"
 
         assert case3["name"] == "datadog_headers_used_in_propagation"
@@ -772,10 +772,10 @@ class Test_Headers_Tracecontext:
         assert case3["parent_id"] == 11
         assert "_dd.parent_id" not in case3["meta"]
 
-        assert case4["name"] == "lp_id_not_propagated"
+        assert case4["name"] == "p_not_propagated"
         assert case4["meta"]["_dd.parent_id"] == "0000000000000000"
 
-    def test_tracestate_w3c_lp_id_inject(self, test_agent, test_library):
+    def test_tracestate_w3c_p_inject(self, test_agent, test_library):
         """
         Ensure the last parent id is propagated according to the W3C spec
         """
