@@ -773,7 +773,7 @@ class Test_Headers_Tracecontext:
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
 
         assert case2["name"] == "p_invalid"
-        assert case2["meta"]["_dd.parent_id"] == "XX!X", f"{case2}"
+        assert case2["meta"]["_dd.parent_id"] == "XX!X"
 
         assert case3["name"] == "datadog_headers_used_in_propagation"
         assert case3["trace_id"] == 5
