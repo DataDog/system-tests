@@ -2,6 +2,7 @@
 
 import type { Express } from 'express'
 const { ApolloServer, gql } = require('apollo-server-express')
+const { readFileSync } = require('fs')
 
 const users = [
   {
@@ -24,6 +25,7 @@ const typeDefs = gql`
       type Query {
         user(id: Int!): User
         userByName(name: String): [User]
+        testInjection(path: String): [User]
       }
 
       type User {
@@ -31,18 +33,28 @@ const typeDefs = gql`
         name: String
       }`
 
-function getUser (args: any) {
+function getUser (parent: any, args: any) {
  return users.find((item) => args.id === item.id)
 }
 
-function getUserByName (args: any) {
+function getUserByName (parent: any, args: any) {
   return users.filter((item) => args.name === item.name)
+}
+
+function testInjection (parent: any, args: any) {
+  try {
+    readFileSync(args.path)
+  } catch {
+    // do nothing
+  }
+  return users
 }
 
 const resolvers = {
   Query: {
     user: getUser,
-    userByName: getUserByName
+    userByName: getUserByName,
+    testInjection
   }
 }
 

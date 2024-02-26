@@ -211,16 +211,27 @@ def _deserialize_meta(span):
             meta[key] = json.loads(meta[key])
 
 
-def _convert_bytes_values(item):
+def _convert_bytes_values(item, path=""):
     if isinstance(item, dict):
         for key in item:
             if isinstance(item[key], bytes):
-                item[key] = item[key].decode("ascii")
+                if path == "[][].meta_struct":
+                    # meta_struct value is msgpack in msgpack
+                    try:
+                        item[key] = msgpack.unpackb(item[key], unicode_errors="replace", strict_map_key=False)
+                    except BaseException as e:
+                        raise ValueError(f"Error decoding {path}") from e
+                else:
+                    # otherwise, best guess is simple string
+                    try:
+                        item[key] = item[key].decode("ascii")
+                    except UnicodeDecodeError as e:
+                        raise ValueError(f"Error decoding {path}") from e
             elif isinstance(item[key], dict):
-                _convert_bytes_values(item[key])
+                _convert_bytes_values(item[key], f"{path}.{key}")
     elif isinstance(item, (list, tuple)):
         for value in item:
-            _convert_bytes_values(value)
+            _convert_bytes_values(value, f"{path}[]")
 
 
 def deserialize(data, key, content, interface):

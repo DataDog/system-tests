@@ -1,0 +1,7 @@
+version: '3'
+services:
+  test-app-nodejs:
+    container_name: test-app-nodejs
+    image: system-tests/local:latest
+    ports:
+      - 5985:18080 

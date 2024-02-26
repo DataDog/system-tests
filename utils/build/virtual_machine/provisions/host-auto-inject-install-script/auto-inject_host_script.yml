@@ -1,0 +1,10 @@
+#Execute script installation for lib-injection packages using install script
+- os_type: linux
+  copy_files:
+      - name: copy-auto-install-script
+        local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
+      - name: copy-tracer-debug-config
+        local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+  remote-command: |
+    bash execute_install_script.sh host 
+    sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml

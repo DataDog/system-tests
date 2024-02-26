@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from utils import bug, scenarios  # noqa
+from utils import bug, scenarios, features  # noqa
 from utils.parametric.spec.trace import MANUAL_DROP_KEY  # noqa
 from utils.parametric.spec.trace import MANUAL_KEEP_KEY  # noqa
 from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE  # noqa
@@ -71,6 +71,7 @@ def _assert_sampling_tags(
 
 
 @scenarios.parametric
+@features.trace_sampling
 class Test_Sampling_Span_Tags:
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="nodejs", reason="NodeJS does not set priority on parent span")
