@@ -783,7 +783,7 @@ class Test_Headers_Tracecontext:
         assert case4["name"] == "p_not_propagated"
         assert case4["meta"]["_dd.parent_id"] == "0000000000000000"
 
-    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
