@@ -1086,6 +1086,273 @@ class _KubernetesMachineScenario(_Scenario):
         for i in ret.items:
             logger.info("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
 
+        self.deploy_agents_manual()
+
+    def deploy_agents_manual(self):
+        from kubernetes import client, config
+
+        v1 = client.CoreV1Api()
+        apps_api = client.AppsV1Api()
+        # apps_api.delete_namespaced_daemon_set(namespace="default", name="datadog")
+        container = client.V1Container(
+            name="trace-agent",
+            image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            image_pull_policy="Always",
+            ports=[client.V1ContainerPort(container_port=8126, host_port=8126, name="traceport", protocol="TCP")],
+            command=["ddapm-test-agent"],
+            env=[
+                client.V1EnvVar(name="SNAPSHOT_CI", value="0"),
+                client.V1EnvVar(name="PORT", value="8126"),
+                client.V1EnvVar(name="DD_APM_RECEIVER_SOCKET", value="/var/run/datadog/apm.socket"),
+                client.V1EnvVar(name="LOG_LEVEL", value="DEBUG"),
+                client.V1EnvVar(
+                    name="ENABLED_CHECKS", value="trace_count_header,meta_tracer_version_header,trace_content_length"
+                ),
+            ],
+            volume_mounts=[client.V1VolumeMount(mount_path="/var/run/datadog", name="datadog")],
+            readiness_probe=client.V1Probe(
+                initial_delay_seconds=1,
+                period_seconds=2,
+                timeout_seconds=10,
+                success_threshold=1,
+                tcp_socket=client.V1TCPSocketAction(port=8126),
+            ),
+            liveness_probe=client.V1Probe(
+                initial_delay_seconds=15,
+                period_seconds=15,
+                timeout_seconds=10,
+                success_threshold=1,
+                failure_threshold=12,
+                tcp_socket=client.V1TCPSocketAction(port=8126),
+            ),
+            # livenessProbe:
+            #   failureThreshold: 12
+            #   initialDelaySeconds: 15
+            #   periodSeconds: 15
+            #   successThreshold: 1
+            #   tcpSocket:
+            #     port: 8126
+            #   timeoutSeconds: 10
+            # readinessProbe:
+            #   initialDelaySeconds: 1
+            #   periodSeconds: 2
+            #   timeoutSeconds: 10
+            #   successThreshold: 1
+            #   tcpSocket:
+            #     port: 8126
+        )
+        # Template
+        template = client.V1PodTemplateSpec(
+            metadata=client.V1ObjectMeta(labels={"app": "datadog"}),
+            spec=client.V1PodSpec(
+                containers=[container],
+                dns_policy="ClusterFirst",
+                node_selector={"kubernetes.io/os": "linux"},
+                restart_policy="Always",
+                scheduler_name="default-scheduler",
+                security_context=client.V1PodSecurityContext(run_as_user=0),
+                termination_grace_period_seconds=30,
+                volumes=[
+                    client.V1Volume(
+                        name="datadog",
+                        host_path=client.V1HostPathVolumeSource(path="/var/run/datadog", type="DirectoryOrCreate"),
+                    )
+                ],
+            ),
+        )
+
+        # Spec
+        spec = client.V1DaemonSetSpec(
+            selector=client.V1LabelSelector(match_labels={"app": "datadog"}), template=template
+        )
+        # DaemonSet
+        daemonset = client.V1DaemonSet(
+            api_version="apps/v1", kind="DaemonSet", metadata=client.V1ObjectMeta(name="datadog"), spec=spec
+        )
+
+        result = apps_api.create_namespaced_daemon_set(namespace="default", body=daemonset)
+
+        daemonset_created = False
+        daemonset_status = None
+        # Wait for the daemonset to be created
+        for i in range(0, 10):
+            try:
+                daemonset_status = apps_api.read_namespaced_daemon_set_status(name="datadog", namespace="default")
+                if daemonset_status.status.number_ready > 0:
+                    logger.info(f"daemonset status datadog running!")
+                    daemonset_created = True
+                    break
+                else:
+                    time.sleep(5)
+            except client.exceptions.ApiException as e:
+                logger.info(f"daemonset status error: {e}")
+                time.sleep(5)
+
+        if not daemonset_created:
+            logger.info("Daemonset not created. Last status: %s" % daemonset_status)
+            raise Exception("Daemonset not created")
+
+        logger.info("Daemonset created")
+
+        logger.info("----------------------- Listing pods with their IPs 222222: -----------------------")
+        ret = v1.list_pod_for_all_namespaces(watch=False)
+        for i in ret.items:
+            logger.info("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
+            logger.info(f"STATUS: {i.status.phase}")
+
+        if 1 == 1:  # if USE_ADMISSION_CONTROLLER
+            self.deploy_operator()
+        # Delete the daemonset
+        apps_api.delete_namespaced_daemon_set(namespace="default", name="datadog")
+
+    def deploy_app_manual(self):
+        from kubernetes import client, config
+
+        v1 = client.CoreV1Api()
+        apps_api = client.AppsV1Api()
+
+        containers = []
+        container1 = client.V1Container(name="my-nginx-container", image="nginx")
+        containers.append(container1)
+
+        pod_spec = client.V1PodSpec(containers=containers)
+        pod_metadata = client.V1ObjectMeta(name="my-pod", namespace="default")
+
+        pod_body = client.V1Pod(api_version="v1", kind="Pod", metadata=pod_metadata, spec=pod_spec)
+
+        v1.create_namespaced_pod(namespace="default", body=pod_body)
+
+    def deploy_operator(self):
+        from utils.k8s_lib_injection.helm_utils import helm_add_repo, helm_install_chart
+        from kubernetes import client, config
+
+        v1 = client.CoreV1Api()
+        apps_api = client.AppsV1Api()
+        # This will use the Kubernetes configuration from the environment
+        # helm_client = Client()
+        # Specify the kubeconfig file to use
+        # client = Client(kubeconfig = "/path/to/kubeconfig")
+        # Specify a custom Helm executable (by default, we expect 'helm' to be on the PATH)
+        # client = Client(executable = "/path/to/helm")
+
+        operator_file = "lib-injection/common/operator-helm-values.yaml"
+        if os.getenv("USE_UDS", "0") == "1":
+            logger.info("[Deploy operator] Using UDS")
+            operator_file = "lib-injection/common/operator-helm-values-uds.yaml"
+
+        logger.info("[Deploy operator] Configuring helm repository")
+        helm_add_repo("datadog", "https://helm.datadoghq.com", update=True)
+        # helm repo add datadog https://helm.datadoghq.com
+        # helm repo update
+
+        logger.info(f"[Deploy operator] helm install datadog with config file [{operator_file}]")
+        # logger.info(f"[Deploy operator] Chart: {chart.metadata.name} --- {chart.metadata.version}")
+        # helm_client.install_or_upgrade_release()
+        helm_install_chart(
+            "datadog",
+            "datadog/datadog",
+            value_file=operator_file,
+            set_dict={"datadog.apiKey": os.getenv("DD_API_KEY"), "datadog.appKey": os.getenv("DD_APP_KEY")},
+        )
+        # helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog
+        # kubectl get pods
+
+        # pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
+        # kubectl wait "${pod_name}" --for condition=ready --timeout=5m
+        # kubectl get pods
+        logger.info("[Deploy operator] Waiting for the operator to be ready")
+        pods = v1.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+        # logger.info(f"ç------------PODS: {pods}")
+        datadog_cluster_name = pods.items[0].metadata.name
+        logger.info(f"waiting for the operator ready on cluster name: {datadog_cluster_name}")
+        pod_ready = False
+        for i in range(0, 10):
+            try:
+
+                pod_status = v1.read_namespaced_pod_status(name=datadog_cluster_name, namespace="default")
+                logger.info("------------------------------------------------------------------")
+                logger.info("POD STATUS: %s" % pod_status)
+                if pod_status.status.phase == "Running":
+                    logger.info(f"Pod status datadog running!")
+                    pod_ready = True
+                    break
+                else:
+                    time.sleep(5)
+            except client.exceptions.ApiException as e:
+                logger.info(f"Pod status error: {e}")
+                time.sleep(5)
+        # pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
+        # kubectl wait "${pod_name}" --for condition=ready --timeout=5m
+        if not pod_ready:
+            logger.error("Operator not created. Last status: %s" % pod_status)
+            pod_logs = v1.read_namespaced_pod_log(name=datadog_cluster_name, namespace="default")
+            logger.error(f"Operator logs: {pod_logs}")
+            # raise Exception("Operator not created")
+
+    def __deploy_agents_manual(self):
+        from kubernetes import client, config
+
+        v1 = client.CoreV1Api()
+        api = client.AppsV1Api()
+
+        v1.delete_namespaced_pod(namespace="default", name="datadog")
+        if 1 == 1:
+            return
+
+        metadata = client.V1ObjectMeta(name="datadog", namespace="default")
+        test_agent_container = client.V1Container(
+            name="trace-agent", image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest"
+        )
+        pod_spec = client.V1PodSpec(containers=[test_agent_container])
+        pod_body = client.V1Pod(metadata=metadata, spec=pod_spec, kind="DaemonSet", api_version="v1")
+        pod = v1.create_namespaced_pod(namespace="default", body=pod_body)
+        # logger.info(f"Pod created. Pod: {pod}")
+
+        # for i in range(0, 10):
+        #    try:
+        #        pod_logs = v1.read_namespaced_pod_log(name='datadog', namespace='default')
+        #        logger.info(f"Pod logs: {pod_logs}")
+        #    except client.exceptions.ApiException as e:
+        #        logger.info(f"Pod logs error: {e}")
+        #        time.sleep(5)
+        for i in range(0, 10):
+            try:
+                pod_status = v1.read_namespaced_pod_status(name="datadog", namespace="default")
+                # logger.info("POD STATUS: %s" % pod_status)
+                if pod_status.status.phase == "Running":
+                    logger.info(f"Pod status datadog running!")
+                    break
+                else:
+                    time.sleep(5)
+            except client.exceptions.ApiException as e:
+                logger.info(f"Pod status error: {e}")
+                time.sleep(5)
+
+        logger.info("----------------------- Listing pods with their IPs 222222: -----------------------")
+        ret = v1.list_pod_for_all_namespaces(watch=False)
+        for i in ret.items:
+            logger.info("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
+            logger.info(f"STATUS: {i.status.phase}")
+
+        # deployment_list = api.list_deployment_for_all_namespaces()
+        # logger.info(f"Listing deployments : {deployment_list}")
+
+        # deployment = api.read_namespaced_deployment(name='daemonset/datadog', namespace='default')
+        # logger.info("Deployment: %s" % deployment)
+        # v1Pod, status_code, headers = v1.read_namespaced_pod_status_with_http_info(name='datadog', namespace='default')
+        # logger.info(f"Pod status code: {status_code}")
+        # logger.info(f"Pod v1Pod: {v1Pod}")
+
+        # pod_logs = v1.read_namespaced_pod_log(name='datadog', namespace='default')
+        # logger.info(f"Pod logs: {pod_logs}")
+
+        v1.delete_namespaced_pod(namespace="default", name="datadog")
+
+        # logger.info("Listing pods with their IPs 222222:")
+        # ret = v1.list_pod_for_all_namespaces(watch=False)
+        # for i in ret.items:
+        #    logger.info("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
+
 
 class scenarios:
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
