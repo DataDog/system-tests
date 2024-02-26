@@ -6,6 +6,9 @@ using System;
 using System.Net;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
+using Amazon.SQS;
+using Amazon.SQS.Model;
 using RabbitMQ.Client;
 
 namespace weblog
@@ -35,6 +38,14 @@ namespace weblog
                     Thread consumerThread = new Thread(RabbitMQConsumerFanoutExchange.DoWork);
                     producerThread.Start();
                     consumerThread.Start();
+                    await context.Response.WriteAsync("ok");
+                }
+                else if ("sqs".Equals(integration))
+                {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                    Task.Run(SqsProducer.DoWork);
+                    Task.Run(KafkaConsumer.DoWork);
+#pragma warning restore CS4014
                     await context.Response.WriteAsync("ok");
                 } else {
                     await context.Response.WriteAsync("unknown integration: " + integration);
@@ -146,6 +157,55 @@ namespace weblog
             {
                 Console.WriteLine("[rabbitmq_fanout] Consumed message: " + message);
             });
+        }
+    }
+
+    class SqsProducer
+    {
+        public static async Task DoWork()
+        {
+            var sqsClient = new AmazonSQSClient();
+            // create queue
+            CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(
+                new CreateQueueRequest { QueueName = "dsm-system-tests-queue" });
+            var qUrl = responseCreate.QueueUrl;
+            using (Datadog.Trace.Tracer.Instance.StartActive("SqsProduce"))
+            {
+                await sqsClient.SendMessageAsync(qUrl, "this is a test sqs message");
+                Console.WriteLine("Done with message producing");
+            }
+        }
+    }
+
+    class SqsConsumer
+    {
+        public static async Task DoWork()
+        {
+            var sqsClient = new AmazonSQSClient();
+            // create queue
+            CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(
+                new CreateQueueRequest { QueueName = "dsm-system-tests-queue" });
+            var qUrl = responseCreate.QueueUrl;
+            while (true)
+            {
+                using (Datadog.Trace.Tracer.Instance.StartActive("SqsConsume"))
+                {
+                    var result = await sqsClient.ReceiveMessageAsync(new ReceiveMessageRequest
+                    {
+                        QueueUrl = qUrl,
+                        MaxNumberOfMessages = 1,
+                        WaitTimeSeconds = 1
+                    });
+                    if (result == null || result.Messages.Count > 0)
+                    {
+                        Thread.Sleep(1000);
+                        Console.WriteLine("No messages to consume at this time");
+                        continue;
+                    }
+
+                    Console.WriteLine($"Consumed message from {qUrl}: {result.Messages[0].Body}");
+                }
+            }
         }
     }
 }
