@@ -12,20 +12,20 @@ from utils import context, scenarios, rfc, features
 
 
 telemetry_name_mapping = {
-    "trace_sample_rate": {"dotnet": "TODO",},
-    "logs_injection_enabled": {"dotnet": "TODO",},
-    "trace_header_tags": {"dotnet": "TODO",},
-    "trace_tags": {"dotnet": "TODO",},
-    "trace_enabled": {"dotnet": "TODO",},
-    "profiling_enabled": {"dotnet": "TODO",},
-    "appsec_enabled": {"dotnet": "TODO",},
-    "data_streams_enabled": {"dotnet": "TODO",},
+    "trace_sample_rate": {"dotnet": "DD_TRACE_SAMPLE_RATE",},
+    "logs_injection_enabled": {"dotnet": "DD_LOGS_INJECTION",},
+    "trace_header_tags": {"dotnet": "DD_TRACE_HEADER_TAGS",},
+    "trace_tags": {"dotnet": "DD_TAGS",},
+    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED",},
+    "profiling_enabled": {"dotnet": "DD_PROFILING_ENABLED",},
+    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED",},
+    "data_streams_enabled": {"dotnet": "DD_DATA_STREAMS_ENABLED",},
 }
 
 
 def _mapped_telemetry_name(context, apm_telemetry_name):
     if apm_telemetry_name in telemetry_name_mapping:
-        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library)
+        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.library)
         if mapped_name is not None:
             return mapped_name
     return apm_telemetry_name
@@ -112,8 +112,8 @@ class Test_Environment:
             ("logs_injection_enabled", ("true", True)),
             (
                 "trace_header_tags",
-                "X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2",
-                "x-header-tag-1:header_tag_1,x-header-tag-2:header_tag_2",
+                ("X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2",
+                "x-header-tag-1:header_tag_1,x-header-tag-2:header_tag_2")
             ),
             ("trace_tags", ("team:apm,component:web", "component:web,team:apm")),
             ("trace_enabled", ("true", True)),
