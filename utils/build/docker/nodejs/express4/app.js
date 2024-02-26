@@ -12,6 +12,7 @@ const passport = require('passport')
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
+const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
@@ -227,8 +228,30 @@ app.get('/dsm', (req, res) => {
         console.error(error)
         res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM produce')
       })
+  } else if (integration === 'kinesis') {
+    const message = JSON.stringify({ message: 'hello from Kinesis DSM JS' })
+    const timeout = req.query.timeout ?? 60
+    const stream = req.query.stream
+
+    kinesisProduce(stream, message, '1', timeout)
+      .then(() => {
+        kinesisConsume(stream, timeout * 1000)
+          .then(() => {
+            res.status(200).send('ok')
+          })
+          .catch((error) => {
+            console.error(error)
+            res.status(500).send('[Kinesis] Internal Server Error during Kinesis DSM consume')
+          })
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('[Kinesis] Internal Server Error during Kinesis DSM produce')
+      })
   } else {
-    res.status(400).send('[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS]')
+    res.status(400).send(
+      '[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS, Kinesis]'
+    )
   }
 })
 
@@ -313,6 +336,33 @@ app.get('/sns/consume', (req, res) => {
     .catch((error) => {
       console.error(error)
       res.status(500).send('[SNS->SQS] Internal Server Error during SQS consume from SNS')
+    })
+})
+
+app.get('/kinesis/produce', (req, res) => {
+  const stream = req.query.stream
+
+  kinesisProduce(stream, null, '1', null)
+    .then(() => {
+      res.status(200).send('[Kinesis] publish ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[Kinesis] Internal Server Error during Kinesis publish')
+    })
+})
+
+app.get('/kinesis/consume', (req, res) => {
+  const stream = req.query.stream
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  kinesisConsume(stream, timeout * 1000)
+    .then(() => {
+      res.status(200).send('[Kinesis] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[Kinesis] Internal Server Error during Kinesis consume')
     })
 })
 

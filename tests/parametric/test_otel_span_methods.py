@@ -12,7 +12,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
-from utils import bug, missing_feature, irrelevant, context, scenarios
+from utils import features, missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -23,6 +23,7 @@ pytestmark = pytest.mark.parametrize(
 
 
 @scenarios.parametric
+@features.open_tracing_api
 class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")

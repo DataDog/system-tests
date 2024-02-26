@@ -7,7 +7,9 @@ from utils.tools import logger
 class VirtualMachineProvisioner:
     """ Manages the provision parser for the virtual machines."""
 
-    def remove_unsupported_machines(self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch):
+    def remove_unsupported_machines(
+        self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch, vm_skip_branches
+    ):
         """ Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch  """
 
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
@@ -15,6 +17,12 @@ class VirtualMachineProvisioner:
         with open(weblog_provision_file, encoding="utf-8") as f:
             config_data = yaml.load(f, Loader=yaml.FullLoader)
         vms_to_remove = []
+
+        # Skipped branches seted by the user parameter
+        skipped_branches = []
+        if vm_skip_branches:
+            skipped_branches = vm_skip_branches.split(",")
+
         for vm in required_vms:
             installations = config_data["weblog"]["install"]
             allowed = False
@@ -23,6 +31,12 @@ class VirtualMachineProvisioner:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
                 vms_to_remove.append(vm)
                 continue
+            # Exclude by vm_skip_branches
+            if vm_skip_branches and vm.os_branch in skipped_branches:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_skip_branches directive")
+                vms_to_remove.append(vm)
+                continue
+
             # Exclude by excluded_os_branches
             if (
                 "excluded_os_branches" in config_data["weblog"]
