@@ -409,7 +409,7 @@ function print-debug-info-manual() {
 
     echo "[debug] Export: Daemonset logs"
     kubectl logs daemonset/datadog > "${log_dir}/daemonset_datadog.log"
-
+    kubectl describe daemonset/datadog > "${log_dir}/daemonset_datadog_describe.log"
     if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then 
         pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
 
