@@ -56,8 +56,8 @@ class Test_Defaults:
         for (apm_telemetry_name, value) in [
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False)),
-            ("trace_header_tags", ("", [])),
-            ("trace_tags", ("", [])),
+            ("trace_header_tags", ""),
+            ("trace_tags", ""),
             ("trace_enabled", ("true", True)),
             ("profiling_enabled", ("false", False)),
             ("appsec_enabled", ("false", False, "inactive")),
@@ -112,8 +112,10 @@ class Test_Environment:
             ("logs_injection_enabled", ("true", True)),
             (
                 "trace_header_tags",
-                ("X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2",
-                "x-header-tag-1:header_tag_1,x-header-tag-2:header_tag_2")
+                (
+                    "X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2",
+                    "x-header-tag-1:header_tag_1,x-header-tag-2:header_tag_2",
+                ),
             ),
             ("trace_tags", ("team:apm,component:web", "component:web,team:apm")),
             ("trace_enabled", ("true", True)),
