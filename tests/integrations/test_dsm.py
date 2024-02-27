@@ -352,14 +352,14 @@ class Test_DsmContext_Injection:
         # send initial message with via weblog
         self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
-        assert self.r.status_code == 200
-
         # consume message using helper and check propagation type
         self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
 
     # @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
     # @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
     def test_dsmcontext_injection(self):
+        assert self.r.status_code == 200
+
         assert "error" not in self.r.text
         assert "error" not in self.consume_response
 
@@ -404,7 +404,7 @@ class Test_DsmContext_Injection:
             # assert producer_hash == decoded_pathway
 
             DsmHelper.assert_checkpoint_presence(
-                hash_=decoded_pathway, parent_hash=0, tags=edge_tags_out,
+                hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
             )
             assert 1 == 0, "DSM Pathway should be injected as base64, which is the most up-to-date pathway encoding"
         else:
@@ -421,13 +421,14 @@ class Test_DsmContext_Extraction_V1:
         exchange = "dsm-propagation-test-v1-encoding-exchange"
 
         # send initial message with v1 pathway context encoding
-        assert DsmHelper.produce_rabbitmq_message_v1_propagation(queue, exchange) == "ok"
+        self.produce_response = DsmHelper.produce_rabbitmq_message_v1_propagation(queue, exchange)
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
     @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
     @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers, and throws an error")
     def test_dsmcontext_extraction_v1(self):
+        assert self.produce_response == "ok"
         assert "error" not in self.r.text
 
         language_hashes = {
@@ -459,17 +460,17 @@ class Test_DsmContext_Extraction_V2:
         exchange = "dsm-propagation-test-v2-encoding-exchange"
 
         # send initial message with v2 pathway context encoding
-        assert DsmHelper.produce_rabbitmq_message_v2_base64_propagation(queue, exchange) == "ok"
+        self.produce_response = DsmHelper.produce_rabbitmq_message_v2_base64_propagation(queue, exchange)
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
-    # @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
     @missing_feature(
         library="nodejs",
         reason="dd-trace-js cannot extract DSM V2 Base64 Headers and throws an error for DSM, never setting checkpoint",
     )
     @missing_feature(library="python", reason="dd-trace-py automatically assumes v1 encoding for rabbitmq")
     def test_dsmcontext_extraction_v2_base64(self):
+        assert self.produce_response == "ok"
         assert "error" not in self.r.text
 
         language_hashes = {
