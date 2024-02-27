@@ -31,8 +31,8 @@ echo "[build] Installing kubectl..."
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 echo "[build] kubectl install complete"
 
-echo "[build] Creating kube cluster"
-./lib-injection/execFunction.sh ensure-cluster
+#echo "[build] Creating kube cluster"
+#./lib-injection/execFunction.sh ensure-cluster
 
 echo "[build] Installing helm"
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3

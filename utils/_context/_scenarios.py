@@ -1065,6 +1065,36 @@ class _VirtualMachineScenario(_Scenario):
 
 
 class _KubernetesMachineScenario(_Scenario):
+    def __init__(self, name, doc) -> None:
+        super().__init__(name, doc=doc)
+
+    def configure(self, config):
+        super().configure(config)
+
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
+        assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
+        assert (
+            "WEBLOG_VARIANT_IMAGE" in os.environ
+        ), "WEBLOG_VARIANT_IMAGE is not set. IE: docker.io/robertomontero509/dd-lib-java-init-test-app:local"
+        assert (
+            "LIBRARY_INIT_IMAGE" in os.environ
+        ), "LIBRARY_INIT_IMAGE is not set. IE: docker.io/datadog/dd-lib-java-init:latest"
+
+        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
+        self._weblog_variant_image = os.getenv("WEBLOG_VARIANT_IMAGE")
+        self._library_init_image = os.getenv("LIBRARY_INIT_IMAGE")
+
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def weblog_variant(self):
+        return self._weblog_variant
+
+
+class _KubernetesMachineScenario_DELETE(_Scenario):
     """ Scenario that tests virtual machines """
 
     def __init__(self, name, doc) -> None:
@@ -1088,8 +1118,14 @@ class _KubernetesMachineScenario(_Scenario):
 
         self.deploy_agents_manual()
 
+        # app_name= "dd-lib-java-init-test-app"
+        # app_image= "docker.io/robertomontero509/dd-lib-java-init-test-app:local"
+        # library="java"
+        # library_init_image="docker.io/datadog/dd-lib-java-init:latest"
+        # self.deploy_app_manual(app_name, app_image, library, library_init_image)
+
     def deploy_agents_manual(self):
-        from kubernetes import client, config
+        from kubernetes import client, config, watch
 
         v1 = client.CoreV1Api()
         apps_api = client.AppsV1Api()
@@ -1194,36 +1230,121 @@ class _KubernetesMachineScenario(_Scenario):
 
         logger.info("Daemonset created")
 
-        logger.info("----------------------- Listing pods with their IPs 222222: -----------------------")
-        ret = v1.list_pod_for_all_namespaces(watch=False)
-        for i in ret.items:
-            logger.info("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
-            logger.info(f"STATUS: {i.status.phase}")
+        w = watch.Watch()
+        for event in w.stream(
+            func=v1.list_namespaced_pod, namespace="default", label_selector="app=datadog", timeout_seconds=60
+        ):
+            if event["object"].status.phase == "Running":
+                w.stop()
+                end_time = time.time()
+                logger.info("Datadog test agent started!!!!!!!!")
+                break
 
         if 1 == 1:  # if USE_ADMISSION_CONTROLLER
             self.deploy_operator()
-        # Delete the daemonset
-        apps_api.delete_namespaced_daemon_set(namespace="default", name="datadog")
 
-    def deploy_app_manual(self):
+        app_name = "dd-lib-java-init-test-app"
+        app_image = "docker.io/robertomontero509/dd-lib-java-init-test-app:local"
+        library = "java"
+        library_init_image = "docker.io/datadog/dd-lib-java-init:latest"
+        self.deploy_app_manual(app_name, app_image, library, library_init_image)
+        # self.deploy_app_manual("weblog", "ghcr.io/datadog/system-tests/weblog:latest", "python", "ghcr.io/datadog/system-tests/python-lib-init:latest")
+        # Delete the daemonset
+        # apps_api.delete_namespaced_daemon_set(namespace="default", name="datadog")
+
+    def deploy_app_manual(self, app_name, app_image, library, library_init_image):
         from kubernetes import client, config
 
         v1 = client.CoreV1Api()
         apps_api = client.AppsV1Api()
 
+        pod_metadata = client.V1ObjectMeta(
+            name="my-app",
+            namespace="default",
+            labels={
+                "admission.datadoghq.com/enabled": "true",
+                "app": "my-app",
+                "tags.datadoghq.com/env": "local",
+                "tags.datadoghq.com/service": "my-app",
+                "tags.datadoghq.com/version": "local",
+            },
+            annotations={f"admission.datadoghq.com/{library}-lib.custom-image": f"{library_init_image}"},
+        )
+
         containers = []
-        container1 = client.V1Container(name="my-nginx-container", image="nginx")
+        container1 = client.V1Container(
+            name=app_name,
+            image=app_image,
+            env=[
+                client.V1EnvVar(name="SERVER_PORT", value="18080"),
+                client.V1EnvVar(
+                    name="DD_ENV",
+                    value_from=client.V1EnvVarSource(
+                        field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/env']")
+                    ),
+                ),
+                client.V1EnvVar(
+                    name="DD_SERVICE",
+                    value_from=client.V1EnvVarSource(
+                        field_ref=client.V1ObjectFieldSelector(
+                            field_path="metadata.labels['tags.datadoghq.com/service']"
+                        )
+                    ),
+                ),
+                client.V1EnvVar(
+                    name="DD_VERSION",
+                    value_from=client.V1EnvVarSource(
+                        field_ref=client.V1ObjectFieldSelector(
+                            field_path="metadata.labels['tags.datadoghq.com/version']"
+                        )
+                    ),
+                ),
+            ],
+            readiness_probe=client.V1Probe(
+                timeout_seconds=5,
+                success_threshold=1,
+                failure_threshold=10,
+                http_get=client.V1HTTPGetAction(path="/", port=18080),
+                initial_delay_seconds=15,
+                period_seconds=15,
+            ),
+            ports=[client.V1ContainerPort(container_port=18080, host_port=18080, name="http", protocol="TCP")],
+        )
+
         containers.append(container1)
 
         pod_spec = client.V1PodSpec(containers=containers)
-        pod_metadata = client.V1ObjectMeta(name="my-pod", namespace="default")
 
         pod_body = client.V1Pod(api_version="v1", kind="Pod", metadata=pod_metadata, spec=pod_spec)
 
         v1.create_namespaced_pod(namespace="default", body=pod_body)
 
+        pod_ready = False
+        for i in range(0, 10):
+            try:
+
+                pod_status = v1.read_namespaced_pod_status(name="my-app", namespace="default")
+                logger.info("------------------------------------------------------------------")
+                logger.info("POD STATUS: %s" % pod_status)
+                if pod_status.status.phase == "Running":
+                    logger.info(f"Pod status weblog running!")
+                    pod_ready = True
+                    break
+                else:
+                    time.sleep(5)
+            except client.exceptions.ApiException as e:
+                logger.info(f"Pod weblog status error: {e}")
+                time.sleep(5)
+        # pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
+        # kubectl wait "${pod_name}" --for condition=ready --timeout=5m
+        if not pod_ready:
+            logger.error("weblog not created. Last status: %s" % pod_status)
+            pod_logs = v1.read_namespaced_pod_log(name=app_name, namespace="default")
+            logger.error(f"weblog logs: {pod_logs}")
+            # raise Exception("Operator not created")
+
     def deploy_operator(self):
-        from utils.k8s_lib_injection.helm_utils import helm_add_repo, helm_install_chart
+        from utils.k8s_lib_injection.k8s_command_utils import helm_add_repo, helm_install_chart
         from kubernetes import client, config
 
         v1 = client.CoreV1Api()
