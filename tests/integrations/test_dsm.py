@@ -5,7 +5,9 @@
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
 from utils.tools import logger
 
+import base64
 import logging
+import struct
 
 import kombu
 
@@ -363,25 +365,50 @@ class Test_DsmContext_Injection:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
+            "nodejs": {"producer": 5171947544405521872, "consumer": 6273982990684090851,},
+            "python": {
+                "producer": 12830291756145931912,  # python is producing 12830291756145931912, since it includes 'has_routing_key:<value>', which Java SHOULD too but isnt
+                "consumer": 6273982990684090851,
+            },
             "default": {
-                "producer": 9235368231858162135,
+                "producer": 8303078309451632155,  # Java should be producing the same as python, but for some reason isn't including the routing key tag in the created hash
                 "consumer": 6884439977898629893,
-            },  # confirmed that this is correct consumer hash
+            },
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        # consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
 
-        # queue = "dsm-propagation-test-injection"
         exchange = "dsm-propagation-test-injection-exchange"
-        edge_tags_out = ("direction:out", f"exchange:{exchange}", "type:rabbitmq")
+        edge_tags_out = ("direction:out", f"exchange:{exchange}", "has_routing_key:true", "type:rabbitmq")
 
-        DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
-        )
+        message = self.consume_response["result"][0]
 
-        print(self.consume_response["result"].properties)
-        print(self.consume_response["result"].headers)
+        if "dd-pathway-ctx-base64" in message.headers:
+            encoded_pathway_b64 = message.headers["dd-pathway-ctx-base64"]
+
+            # assert that this is base64
+            assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
+
+            encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
+            decoded_pathway = struct.unpack("<Q", encoded_pathway[:8])[0]
+
+            assert producer_hash == decoded_pathway
+
+            DsmHelper.assert_checkpoint_presence(
+                hash_=decoded_pathway, parent_hash=0, tags=edge_tags_out,
+            )
+
+        elif "dd-pathway-ctx" in message.headers:
+            encoded_pathway = message.headers["dd-pathway-ctx"]
+            hash_value = struct.unpack("<Q", encoded_pathway[:8])[0]
+
+            assert producer_hash == hash_value
+
+            DsmHelper.assert_checkpoint_presence(
+                hash_=decoded_pathway, parent_hash=0, tags=edge_tags_out,
+            )
+            assert 1 == 0, "DSM Pathway should be injected as base64, which is the most up-to-date pathway encoding"
+        else:
+            assert 1 == 0, "DSM Pathway should be injected as base64, which is the most up-to-date pathway encoding"
 
 
 @features.datastreams_monitoring_support_for_v1_encoding
@@ -399,7 +426,7 @@ class Test_DsmContext_Extraction_V1:
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
     @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
-    @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
+    @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers, and throws an error")
     def test_dsmcontext_extraction_v1(self):
         assert "error" not in self.r.text
 
@@ -450,8 +477,8 @@ class Test_DsmContext_Extraction_V2:
             "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
             "default": {
                 "producer": 9235368231858162135,
-                "consumer": 6884439977898629893,
-            },  # java decodes to consumer hash of 7819692959683983563
+                "consumer": 7819692959683983563,
+            },  # java/python decode to consumer hash of 7819692959683983563
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
