@@ -1,0 +1,39 @@
+#Optional: Load the environment variables
+init-environment: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-environment.yml
+
+#Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
+tested_components:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
+
+#Mandatory: Steps to install provision 
+provision_steps:
+  - init-config #Very first machine actions, like disable auto updates
+  - prepare-repos #Configure the reporitories for install auto-injection
+  - prepare-docker #Prepare the docker environment
+  - install-agent #Install the agent (allways latest release)
+  - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
+
+init-config:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
+
+prepare-repos:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-prepare_repos.yml
+
+prepare-docker:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/docker/auto-inject_prepare_docker.yml
+
+install-agent:
+  install:
+    - os_type: linux
+      copy_files:
+          - name: copy-agent-docker-compose
+            local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
+      remote-command: cat docker-compose-agent-prod.yml
+
+autoinjection_install_script:
+  install: !include utils/build/virtual_machine/provisions/container-auto-inject/auto-inject_container_script.yml
+
+

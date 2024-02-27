@@ -1,8 +1,8 @@
 'use strict'
 
 import type { Express } from 'express'
-const  { graphqlHTTP } = require('express-graphql')
-const { buildSchema } = require('graphql')
+const { ApolloServer, gql } = require('apollo-server-express')
+const { readFileSync } = require('fs')
 
 const users = [
   {
@@ -19,38 +19,47 @@ const users = [
   }
 ]
 
-const schema = buildSchema(`
+const typeDefs = gql`
+      directive @case(format: String) on FIELD
+
       type Query {
         user(id: Int!): User
         userByName(name: String): [User]
+        testInjection(path: String): [User]
       }
 
       type User {
         id: Int
         name: String
-      }
-`);
+      }`
 
-function getuser (args: any) {
+function getUser (parent: any, args: any) {
  return users.find((item) => args.id === item.id)
 }
 
-function getUserByName (args: any) {
+function getUserByName (parent: any, args: any) {
   return users.filter((item) => args.name === item.name)
 }
 
-const rootValue = {
-  user: getuser,
-  userByName: getUserByName
+function testInjection (parent: any, args: any) {
+  try {
+    readFileSync(args.path)
+  } catch {
+    // do nothing
+  }
+  return users
 }
 
-module.exports = function (app: Express) {
-  app.use(
-    '/graphql',
-    graphqlHTTP({
-      schema,
-      rootValue,
-      graphiql: true
-    })
-  )
+const resolvers = {
+  Query: {
+    user: getUser,
+    userByName: getUserByName,
+    testInjection
+  }
+}
+
+module.exports = async function (app: Express) {
+  const server = new ApolloServer({ typeDefs, resolvers })
+  await server.start()
+  server.applyMiddleware({ app })
 }

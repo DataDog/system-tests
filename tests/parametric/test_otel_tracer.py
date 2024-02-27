@@ -4,7 +4,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.otel_trace import OtelSpan
-from utils import missing_feature, irrelevant, context, scenarios
+from utils import missing_feature, irrelevant, context, scenarios, features
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -15,11 +15,12 @@ pytestmark = pytest.mark.parametrize(
 
 
 @scenarios.parametric
+@features.open_tracing_api
 class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     def test_otel_simple_trace(self, test_agent, test_library):
         """
-            Perform two traces
+        Perform two traces
         """
         with test_library:
             with test_library.otel_start_span("root_one") as parent:
@@ -64,7 +65,7 @@ class Test_Otel_Tracer:
     )
     def test_otel_force_flush(self, test_agent, test_library):
         """
-            Verify that force flush flushed the spans
+        Verify that force flush flushed the spans
         """
         with test_library:
             with test_library.otel_start_span(name="test_span") as span:

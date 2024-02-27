@@ -615,32 +615,12 @@ class Test_Suspicious_Request_Blocking:
         assert False, "TODO"
 
 
-@scenarios.appsec_blocking
+@scenarios.graphql_appsec
 @features.appsec_request_blocking
 class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 
-    def setup_request_non_blocking(self):
-        self.r_no_attack = weblog.post(
-            "/graphql",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {
-                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
-                    "variables": {"name": "foo"},
-                    "operationName": "getUserByName",
-                }
-            ),
-        )
-
-    def test_request_non_blocking(self):
-        assert self.r_no_attack.status_code == 200
-        for _, span in interfaces.library.get_root_spans(request=self.r_no_attack):
-            meta = span.get("meta", {})
-            assert "_dd.appsec.event" not in meta
-            assert "_dd.appsec.json" not in meta
-
-    def setup_request_monitor_attack(self):
+    def setup_request_block_attack(self):
         """ Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
@@ -649,21 +629,69 @@ class Test_BlockingGraphqlResolvers:
             data=json.dumps(
                 {
                     "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
-                    "variables": {"name": "testattack"},
+                    "variables": {"name": "testblockresolver"},
                     "operationName": "getUserByName",
                 }
             ),
         )
 
-    def test_request_monitor_attack(self):
-        assert self.r_attack.status_code == 200
+    def test_request_block_attack(self):
+        assert self.r_attack.status_code == 403
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
+            meta_struct = span.get("meta_struct", {})
             assert meta["appsec.event"] == "true"
-            assert "_dd.appsec.json" in meta
-            rule_triggered = json.loads(meta["_dd.appsec.json"])["triggers"][0]
-            assert rule_triggered["rule"]["id"] == "monitor-resolvers"
+            assert ("_dd.appsec.json" in meta) ^ ("appsec" in meta_struct)
+            appsec = meta.get("_dd.appsec.json", {}) or meta_struct.get("appsec", {})
+            rule_triggered = appsec["triggers"][0]
             parameters = rule_triggered["rule_matches"][0]["parameters"][0]
-            assert parameters["address"] == "graphql.server.all_resolvers"
-            assert parameters["key_path"] == ["userByName", "0", "name"]
-            assert parameters["value"] == "testattack"
+            assert (
+                parameters["address"] == "graphql.server.all_resolvers"
+                or parameters["address"] == "graphql.server.resolver"
+            )
+            assert rule_triggered["rule"]["id"] == (
+                "block-resolvers" if parameters["address"] == "graphql.server.resolver" else "block-all-resolvers"
+            )
+            assert parameters["key_path"] == (
+                ["userByName", "name"]
+                if parameters["address"] == "graphql.server.resolver"
+                else ["userByName", "0", "name"]
+            )
+            assert parameters["value"] == "testblockresolver"
+
+    def setup_request_block_attack_directive(self):
+        """ Currently only monitoring is implemented"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testblockresolver") { id name }}',
+                    "variables": {"name": "test"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_block_attack_directive(self):
+        assert self.r_attack.status_code == 403
+        for _, span in interfaces.library.get_root_spans(request=self.r_attack):
+            meta = span.get("meta", {})
+            meta_struct = span.get("meta_struct", {})
+            assert meta["appsec.event"] == "true"
+            assert ("_dd.appsec.json" in meta) ^ ("appsec" in meta_struct)
+            appsec = meta.get("_dd.appsec.json", {}) or meta_struct.get("appsec", {})
+            rule_triggered = appsec["triggers"][0]
+            assert rule_triggered["rule"]["id"] == "block-resolvers"
+            parameters = rule_triggered["rule_matches"][0]["parameters"][0]
+            assert (
+                parameters["address"] == "graphql.server.all_resolvers"
+                or parameters["address"] == "graphql.server.resolver"
+            )
+            assert (
+                parameters["key_path"] == ["userByName", "case", "format"]
+                if parameters["address"] == "graphql.server.resolver"
+                else ["userByName", "0", "case", "format"]
+            )
+            assert parameters["value"] == "testblockresolver"

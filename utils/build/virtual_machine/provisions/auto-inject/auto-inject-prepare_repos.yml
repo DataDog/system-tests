@@ -1,0 +1,46 @@
+        - os_type: linux
+          os_distro: deb
+          remote-command: |
+            #I have to launch apt-get update before add datadog repositories. 
+            #Problems with Ubuntu 22 if I launch update after add datadog repositories
+            #Problem executing scripts APT::Update::Post-Invoke-Success 'if /usr/bin/test -w /var/lib/command-not-found/ -a -e /usr/lib/cnf-update-db; then /usr/lib/cnf-update-db > /dev/null; fi'
+            [[ $(cat /etc/os-release) == *"22.04"* ]] && sudo apt-get update
+
+            #Staging beta repository
+            sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datad0g.com beta apm" > datadog-beta.list
+
+            sudo cp datadog-beta.list /etc/apt/sources.list.d/
+            #Production repository
+            sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datadoghq.com stable 7" > datadog-stable.list
+            sudo cp datadog-stable.list /etc/apt/sources.list.d/
+            #Configure repo keys
+            sudo touch /usr/share/keyrings/datadog-archive-keyring.gpg
+            sudo chmod a+r /usr/share/keyrings/datadog-archive-keyring.gpg
+
+            curl https://keys.datadoghq.com/DATADOG_APT_KEY_CURRENT.public | sudo gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import --batch
+            curl https://keys.datadoghq.com/DATADOG_APT_KEY_382E94DE.public | sudo gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import --batch
+            curl https://keys.datadoghq.com/DATADOG_APT_KEY_F14F620E.public | sudo gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import --batch
+
+            sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-beta.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" || true
+            sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-stable.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" || true
+            [[ $(cat /etc/os-release) == *"18.04"* ]] && sudo apt-get update
+            echo "Repositories configured successfully!"
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-datadog-staging-repo.x86_64
+              local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/rpm/datadog-staging.x86_64.repo
+              remote_path: datadog-staging.x86_64.repo
+            - name: copy-datadog-staging-repo.aarch64
+              local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/rpm/datadog-staging.aarch64.repo
+              remote_path: datadog-staging.aarch64.repo
+            - name: copy-datadog-stable-repo.x86_64
+              local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/rpm/datadog-stable.x86_64.repo
+              remote_path: datadog-stable.x86_64.repo
+            - name: copy-datadog-stable-repo.aarch64
+              local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/rpm/datadog-stable.aarch64.repo
+              remote_path: datadog-stable.aarch64.repo
+
+          remote-command: |
+              sudo cp *.$(arch).repo /etc/yum.repos.d/
+              sudo yum -y makecache

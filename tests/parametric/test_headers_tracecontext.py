@@ -713,6 +713,100 @@ class Test_Headers_Tracecontext:
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
 
+    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    def test_tracestate_w3c_p_extract(self, test_agent, test_library):
+        """
+        Ensure the last parent id tag is set according to the W3C spec
+        """
+        with test_library:
+            with test_library.start_span(
+                name="p_set",
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
+                ],
+            ):
+                pass
+
+            with test_library.start_span(
+                name="p_invalid",
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
+                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
+                ],
+            ):
+                pass
+
+            with test_library.start_span(
+                name="datadog_headers_used_in_propagation",
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789014-1234567890123458-00"],
+                    ["tracestate", "key1=value1,dd=s:2;p:000000000000000b"],
+                    ["x-datadog-trace-id", "5"],
+                    ["x-datadog-parent-id", "11"],
+                ],
+            ):
+                pass
+
+            with test_library.start_span(
+                name="p_not_propagated",
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
+                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
+                ],
+            ):
+                pass
+
+        traces = test_agent.wait_for_num_traces(4)
+
+        assert len(traces) == 4
+        case1, case2, case3, case4 = traces[0][0], traces[1][0], traces[2][0], traces[3][0]
+
+        assert case1["name"] == "p_set"
+        assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
+
+        assert case2["name"] == "p_invalid"
+        assert case2["meta"]["_dd.parent_id"] == "XX!X"
+
+        assert case3["name"] == "datadog_headers_used_in_propagation"
+        assert case3["trace_id"] == 5
+        assert case3["parent_id"] == 11
+        assert "_dd.parent_id" not in case3["meta"]
+
+        assert case4["name"] == "p_not_propagated"
+        assert case4["meta"]["_dd.parent_id"] == "0000000000000000"
+
+    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    def test_tracestate_w3c_p_inject(self, test_agent, test_library):
+        """
+        Ensure the last parent id is propagated according to the W3C spec
+        """
+        with test_library:
+            with test_library.start_span(name="new_span") as span:
+                pass
+
+            headers = test_library.inject_headers(span.span_id)
+
+            tracestate_headers = list(filter(lambda h: h[0].lower() == "tracestate", headers))
+            assert len(tracestate_headers) == 1
+
+            tracestate = tracestate_headers[0][1]
+            assert "p:{:016x}".format(span.span_id) in tracestate
+
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
         """
