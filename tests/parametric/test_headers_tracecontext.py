@@ -719,7 +719,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@1.21.0", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
         """
@@ -789,7 +789,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@1.21.0", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
         """
@@ -797,9 +797,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             with test_library.start_span(name="new_span") as span:
-                pass
-
-            headers = test_library.inject_headers(span.span_id)
+                headers = test_library.inject_headers(span.span_id)
 
             tracestate_headers = list(filter(lambda h: h[0].lower() == "tracestate", headers))
             assert len(tracestate_headers) == 1
