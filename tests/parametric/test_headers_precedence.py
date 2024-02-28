@@ -87,7 +87,7 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 
 @scenarios.parametric
 class Test_Headers_Precedence:
-    @missing_feature(context.library == "dotnet", reason="Implements the new 'datadog,tracecontext' default")
+    @irrelevant(context.library == "dotnet", reason="Implements the new 'datadog,tracecontext' default")
     @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
     @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
