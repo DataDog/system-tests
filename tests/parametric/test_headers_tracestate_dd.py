@@ -377,7 +377,7 @@ class Test_Headers_Tracestate_DD:
 
         # 1) x-datadog-tags is populated with well-known propagated tags
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
-        assert headers1["x-datadog-tags"] == "_dd.p.dm=-4"
+        assert headers1["x-datadog-tags"] == "_dd.p.dm=-3"
 
         traceparent1, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
