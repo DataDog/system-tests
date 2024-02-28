@@ -403,8 +403,8 @@ tests/:
       TestDynamicConfigV2: v4.23.0
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Defaults: missing_feature
-      Test_Environment: missing_feature
+      Test_Defaults:
+      Test_Environment:
       Test_TelemetryInstallSignature: v4.23.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
