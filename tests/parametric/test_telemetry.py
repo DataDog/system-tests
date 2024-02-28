@@ -12,14 +12,14 @@ from utils import context, scenarios, rfc, features
 
 
 telemetry_name_mapping = {
-    "trace_sample_rate": {"dotnet": "DD_TRACE_SAMPLE_RATE",},
-    "logs_injection_enabled": {"dotnet": "DD_LOGS_INJECTION",},
-    "trace_header_tags": {"dotnet": "DD_TRACE_HEADER_TAGS",},
-    "trace_tags": {"dotnet": "DD_TAGS",},
-    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED",},
-    "profiling_enabled": {"dotnet": "DD_PROFILING_ENABLED",},
-    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED",},
-    "data_streams_enabled": {"dotnet": "DD_DATA_STREAMS_ENABLED",},
+    "trace_sample_rate": {"dotnet": "DD_TRACE_SAMPLE_RATE", "nodejs": "DD_TRACE_SAMPLE_RATE"},
+    "logs_injection_enabled": {"dotnet": "DD_LOGS_INJECTION", "nodejs": "DD_LOG_INJECTION"},
+    "trace_header_tags": {"dotnet": "DD_TRACE_HEADER_TAGS", "nodejs": "DD_TRACE_HEADER_TAGS"},
+    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS"},
+    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "DD_TRACING_ENABLED"},
+    "profiling_enabled": {"dotnet": "DD_PROFILING_ENABLED", "nodejs": "profiling.enabled"},
+    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED", "nodejs": "appsec.enabled"},
+    "data_streams_enabled": {"dotnet": "DD_DATA_STREAMS_ENABLED", "nodejs": "dsmEnabled"},
 }
 
 
