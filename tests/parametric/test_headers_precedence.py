@@ -87,7 +87,7 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 
 @scenarios.parametric
 class Test_Headers_Precedence:
-    @missing_feature(context.library == "dotnet", reason="New 'datadog' default hasn't been implemented yet")
+    @irrelevant(context.library == "dotnet", reason="Implements the new 'datadog,tracecontext' default")
     @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
     @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
@@ -221,6 +221,7 @@ class Test_Headers_Precedence:
     @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
+    @irrelevant(context.library > "dotnet@2.47.0", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
@@ -488,7 +489,7 @@ class Test_Headers_Precedence:
     @missing_feature(context.library < "java@1.24.0", reason="Implemented from 1.24.0")
     @missing_feature(context.library == "ruby", reason="library does not yet implement this default configuration")
     @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
-    @irrelevant(context.library == "dotnet", reason="library does not implement this default configuration")
+    @irrelevant(context.library < "dotnet@2.48.0", reason="Default value was updated in 2.48.0")
     @irrelevant(context.library < "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
     @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
