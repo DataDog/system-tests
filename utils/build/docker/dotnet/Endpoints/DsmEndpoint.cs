@@ -48,8 +48,8 @@ namespace weblog
             KafkaHelper.CreateTopics("kafka:9092", new List<string>{"dsm-system-tests-queue"});
             using (var producer = KafkaHelper.GetProducer("kafka:9092")) {
                 using (Datadog.Trace.Tracer.Instance.StartActive("KafkaProduce")) {
-                    producer.Produce("dsm-system-tests-queue", new Message<long, string>{
-                        Key = DateTime.UtcNow.Ticks,
+                    producer.Produce("dsm-system-tests-queue", new Message<Null, string>
+                    {
                         Value = "Produced to dsm-system-tests-queue"
                     });
                     producer.Flush();
