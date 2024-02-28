@@ -212,7 +212,7 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_Kafka: missing_feature
+        Test_Kafka: v2.0.0
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
