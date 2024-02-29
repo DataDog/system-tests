@@ -25,14 +25,7 @@ tests/:
           uwsgi-poc: v2.6.0dev
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling:
-          '*': missing_feature
-          django-poc: v2.5.0
-          fastapi: v2.5.0
-          flask-poc: v2.5.0
-          python3.12: v2.5.0
-          uds-flask: v2.5.0
-          uwsgi-poc: v2.5.0
+        Test_API_Security_sampling: missing_feature
       test_schemas.py:
         Test_Scanners:
           '*': missing_feature
