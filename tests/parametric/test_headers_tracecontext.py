@@ -720,6 +720,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.62.0", reason="Implemented in v1.62.0")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
         """
         Ensure the last parent id tag is set according to the W3C spec
@@ -789,6 +790,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.62.0", reason="Implemented in v1.62.0")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
         """
         Ensure the last parent id is propagated according to the W3C spec
