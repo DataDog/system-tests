@@ -16,7 +16,7 @@ telemetry_name_mapping = {
     "logs_injection_enabled": {"dotnet": "DD_LOGS_INJECTION", "nodejs": "DD_LOG_INJECTION"},
     "trace_header_tags": {"dotnet": "DD_TRACE_HEADER_TAGS", "nodejs": "DD_TRACE_HEADER_TAGS"},
     "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS"},
-    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "DD_TRACING_ENABLED"},
+    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "tracing"},
     "profiling_enabled": {"dotnet": "DD_PROFILING_ENABLED", "nodejs": "profiling.enabled"},
     "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED", "nodejs": "appsec.enabled"},
     "data_streams_enabled": {"dotnet": "DD_DATA_STREAMS_ENABLED", "nodejs": "dsmEnabled"},
