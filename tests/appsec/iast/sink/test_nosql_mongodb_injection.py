@@ -18,12 +18,6 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
     data = {"key": "somevalue"}
     location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
-    def test_insecure(self):
-        super().test_insecure()
-
-    def test_secure(self):
-        super().test_secure()
-
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
