@@ -1,0 +1,34 @@
+lang_variant:
+    name: Ruby_3_0_2
+    version: 3.0.2
+    cache: true
+    install: 
+      - os_type: linux
+        os_distro: deb
+        remote-command: |
+          sudo apt-get -y update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev nodejs yarn
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install rbenv ruby-build ruby-dev
+          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
+          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
+      - os_type: linux
+        os_distro: rpm
+        remote-command: |
+          sudo yum install -y gcc
+          sudo amazon-linux-extras install -y ruby3.0
+          sudo yum install -y ruby-devel
+          sudo yum groupinstall -y "Development Tools"
+          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
+          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
+
+weblog:
+    name: test-shell-script
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    install:
+      - os_type: linux
+        remote-command: |
+          sudo mkdir /opt/datadog/logs_injection && sudo chmod -R 777 /opt/datadog/logs_injection
+          sudo touch /opt/datadog/logs_injection/host_injection.log && sudo chmod 777 /opt/datadog/logs_injection/host_injection.log
+          sudo sh -c 'echo "DD_APM_INSTRUMENTATION_DEBUG=TRUE" >> /etc/environment'
+          sudo sh -c 'echo "DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/host_injection.log" >> /etc/environment'
+          source /etc/environment

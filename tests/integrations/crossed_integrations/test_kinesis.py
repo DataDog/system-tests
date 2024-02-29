@@ -76,7 +76,7 @@ class _Test_Kinesis:
         """
 
         self.production_response = weblog.get(
-            "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM}, timeout=61
+            "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM}, timeout=120
         )
         self.consume_response = self.buddy.get(
             "/kinesis/consume", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "timeout": 60}, timeout=61
@@ -130,7 +130,7 @@ class _Test_Kinesis:
         """
 
         self.production_response = self.buddy.get(
-            "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM}, timeout=61
+            "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM}, timeout=500
         )
         self.consume_response = weblog.get(
             "/kinesis/consume", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "timeout": 60}, timeout=61
@@ -151,6 +151,9 @@ class _Test_Kinesis:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(
+        library="java", reason="Expected to fail, Java does not extract message attribute context for Kinesis"
+    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(

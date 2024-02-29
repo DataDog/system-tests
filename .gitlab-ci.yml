@@ -38,6 +38,7 @@ stages:
     - mkdir -p "$REPORTS_PATH"
     - cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/
     - cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
+    - mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}" 
   artifacts:
       when: always
       paths:
@@ -61,14 +62,18 @@ onboarding_nodejs:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST] 
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
-          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL]      
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine]
+          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+         
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
-
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      
 onboarding_java:
   extends: .base_job_onboarding
   stage: java_tracer
@@ -82,13 +87,16 @@ onboarding_java:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST]
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-buildpack,test-app-java-alpine]
-          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL]
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-buildpack,test-app-java-alpine]
+          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
 onboarding_python:
   extends: .base_job_onboarding
@@ -103,13 +111,16 @@ onboarding_python:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL, ONBOARDING_HOST_BLOCK_LIST] 
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python-django-alpine]
-          SCENARIO: [ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_CONTAINER_UNINSTALL] 
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
+          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY} 
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
 onboarding_dotnet:
   extends: .base_job_onboarding
@@ -124,10 +135,16 @@ onboarding_dotnet:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL,ONBOARDING_CONTAINER_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_CONTAINER_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL,ONBOARDING_CONTAINER_UNINSTALL,ONBOARDING_HOST_BLOCK_LIST] 
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
+          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
 onboarding_ruby:
   extends: .base_job_onboarding
@@ -141,11 +158,17 @@ onboarding_ruby:
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby] 
-          SCENARIO: [ONBOARDING_HOST_INSTALL_MANUAL, ONBOARDING_HOST_INSTALL_SCRIPT, ONBOARDING_HOST_UNINSTALL, ONBOARDING_CONTAINER_INSTALL_MANUAL,ONBOARDING_CONTAINER_UNINSTALL,ONBOARDING_CONTAINER_INSTALL_SCRIPT,ONBOARDING_HOST_BLOCK_LIST] 
+          ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
+          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c

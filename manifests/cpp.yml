@@ -106,6 +106,7 @@ tests/:
     test_dsm.py:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
+      Test_DsmKinesis: missing_feature
       Test_DsmRabbitmq: missing_feature
       Test_DsmRabbitmq_FanoutExchange: missing_feature
       Test_DsmRabbitmq_TopicExchange: missing_feature

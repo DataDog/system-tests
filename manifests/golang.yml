@@ -365,7 +365,10 @@ tests/:
       Test_DsmKafka:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
-      Test_DsmRabbitmq:
+      Test_DsmKinesis:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq: 
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:

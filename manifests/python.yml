@@ -536,6 +536,9 @@ tests/:
       Test_DsmKafka:
         '*': irrelevant
         flask-poc: v1.20.3
+      Test_DsmKinesis:
+        '*': irrelevant
+        flask-poc: v1.16.0
       Test_DsmRabbitmq:
         '*': irrelevant
         flask-poc: v2.6.0
