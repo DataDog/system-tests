@@ -94,6 +94,7 @@ class Test_Environment:
                 "DD_TRACE_HEADER_TAGS": "X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2",
                 "DD_TAGS": "team:apm,component:web",
                 "DD_TRACE_ENABLED": "true",
+                # node.js DD_TRACING_ENABLED is equivalent to DD_TRACE_ENABLED in other libraries
                 "DD_TRACING_ENABLED": "true",
                 "DD_PROFILING_ENABLED": "false",
                 "DD_APPSEC_ENABLED": "false",
