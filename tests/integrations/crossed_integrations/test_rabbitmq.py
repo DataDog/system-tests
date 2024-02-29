@@ -39,11 +39,11 @@ class _Test_RabbitMQ:
                     continue
 
                 meta = span.get("meta")
-                component = meta.get("component", "")
                 if (
                     queue.lower() not in span.get("resource").lower()
                     and exchange.lower() not in span.get("resource").lower()
-                    and queue.lower() not in meta.get(f"{component}.routing_key", "").lower()
+                    and queue.lower() not in meta.get(f"rabbitmq.routing_key", "").lower()
+                    and queue.lower() not in meta.get(f"amqp.routing_key", "").lower()  # this is where we find the queue name in dotnet
                 ):
                     continue
 
@@ -172,7 +172,7 @@ class _Test_RabbitMQ:
         It works the same for both test_produce and test_consume
         """
 
-        # Check that the producer did not created any consumer span
+        # Check that the producer did not create any consumer span
         assert (
             self.get_span(
                 producer_interface,
@@ -184,7 +184,7 @@ class _Test_RabbitMQ:
             is None
         )
 
-        # Check that the consumer did not created any producer span
+        # Check that the consumer did not create any producer span
         assert (
             self.get_span(
                 consumer_interface, span_kind="producer", queue=queue, exchange=exchange, operation=["publish"],
