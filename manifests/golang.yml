@@ -16,7 +16,7 @@ tests/:
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
         Test_API_Security_sampling:
-          '*': missing_feature
+          '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
       test_schemas.py:
         Test_Scanners: missing_feature
