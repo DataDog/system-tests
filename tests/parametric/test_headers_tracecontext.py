@@ -803,7 +803,8 @@ class Test_Headers_Tracecontext:
             assert len(tracestate_headers) == 1
 
             tracestate = tracestate_headers[0][1]
-            assert "p:{:016x}".format(span.span_id) in tracestate
+            # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
+            assert "p:{:016x}".format(int(span.span_id)) in tracestate
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
