@@ -579,5 +579,37 @@ namespace weblog
                 return StatusCode(500, "Error executing query.");
             }
         }
+        
+        [HttpPost("reflection_injection/test_insecure")]
+        public IActionResult test_insecure_reflection_injection([FromForm]string param)
+        {
+            try
+            {
+                var type = Type.GetType(param);
+                Activator.CreateInstance(type);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+
+            return Content("Executed reflection injection");
+        }
+        
+        [HttpPost("reflection_injection/test_secure")]
+        public IActionResult test_secure_reflection_injection([FromForm]string param)
+        {
+            try
+            {
+                var type = Type.GetType("System.String")!;
+                Activator.CreateInstance(type);
+                return Content("Executed secure injection");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error executing safe reflection.");
+            }
+        }
+
     }
 }
