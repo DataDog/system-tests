@@ -1381,6 +1381,16 @@ class scenarios:
         doc="Scenario for checking extended mode in automatic user events",
     )
 
+    appsec_sca_enabled = EndToEndScenario(
+        "APPSEC_SCA_ENABLED",
+        weblog_env={"DD_APPSEC_SCA_ENABLED": "true"},
+        doc="""
+        Scenario to test that libraries report the state of DD_APPSEC_SCA_ENABLED in the 
+        configuration payload for the following telemetry messages: app-started, 
+        app-extended-heartbeat and app-client-configuration-change (if implemented).
+        """,
+    )
+
     # Remote config scenarios
     # library timeout is set to 100 seconds
     # default polling interval for tracers is very low (5 seconds)
