@@ -20,7 +20,9 @@ clusterAgent:
     successThreshold: 1
     failureThreshold: 12
   image:
-    tag: master
+    #tag: master
+    #repository: datadog/cluster-agent-dev
+    tag: liliya-belaus-7-52-0-rc2-test
     repository: datadog/cluster-agent-dev
     pullPolicy: Always
     doNotCheckTag: true

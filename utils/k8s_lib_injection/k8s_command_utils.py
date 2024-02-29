@@ -13,7 +13,7 @@ def execute_command(command, timeout=None):
     output = ""
     try:
         start = datetime.datetime.now()
-        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         while process.poll() is None:
             time.sleep(0.1)
@@ -31,6 +31,8 @@ def execute_command(command, timeout=None):
         output = process.stdout.read()
         logger.debug(f"Command: {command} \n {output}")
         if process.returncode != 0:
+            output_error = process.stderr.read()
+            logger.debug(f"Command: {command} \n {output_error}")
             raise Exception(f"Error executing command: {command} \n {output}")
 
     except Exception as ex:
@@ -67,6 +69,7 @@ def helm_install_chart(name, chart, set_dict={}, value_file=None):
 
     command = f"helm install {name} --wait {set_str} {chart}"
     if value_file:
-        command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
+        # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
+        command = f"helm install {name} {set_str} -f {value_file} {chart}"
 
-    execute_command(command)
+    execute_command(command, timeout=90)

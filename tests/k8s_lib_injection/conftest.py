@@ -26,7 +26,7 @@ def test_k8s_instance():
     logger.info("K8sInstance created")
     yield k8s_instance
     logger.info("K8sInstance destroying")
-    k8s_instance.destroy_instance()
+    #  k8s_instance.destroy_instance()
     logger.info("K8sInstance destroyed")
 
 
@@ -54,6 +54,14 @@ class K8sInstance:
     def deploy_weblog_as_pod(self):
         self.test_weblog.deploy_app_manual(self.weblog_variant_image, self.library, self.library_init_image)
         return self.test_weblog
+
+    def deploy_weblog_as_deployment(self):
+        self.test_weblog.deploy_app_auto(self.weblog_variant_image, self.library)
+        return self.test_weblog
+
+    def apply_config_auto_inject(self):
+        self.test_agent.apply_config_auto_inject()
+        return self.test_agent
 
     def say_hello(self):
         logger.info("Hello, World!")
