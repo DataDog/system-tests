@@ -60,7 +60,7 @@ class Test_Defaults:
             ("trace_tags", ""),
             ("trace_enabled", ("true", True)),
             ("profiling_enabled", ("false", False)),
-            ("appsec_enabled", ("false", False, "inactive")),
+            ("appsec_enabled", ("false", False, "inactive", None)),
             ("data_streams_enabled", ("false", False)),
         ]:
             # The Go tracer does not support logs injection.
