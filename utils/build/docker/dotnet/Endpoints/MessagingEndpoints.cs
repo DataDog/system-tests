@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Amazon.SQS;
+using Amazon.SQS.Model;
 using System.Threading;
 using Confluent.Kafka;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 
 namespace weblog;
@@ -63,6 +67,31 @@ public class MessagingEndpoints : ISystemTestEndpoint
                 context.Response.StatusCode = 500;
             await context.Response.CompleteAsync();
         });
+        routeBuilder.MapGet("/sqs/produce", async context =>
+        {
+            var queue = context.Request.Query["queue"].ToString();
+            await SqsProduce(queue);
+            await context.Response.CompleteAsync();
+        });
+        routeBuilder.MapGet("/sqs/consume", async context =>
+        {
+            var queue = context.Request.Query["queue"].ToString();
+            TimeSpan timeout;
+            try
+            {
+                timeout = TimeSpan.FromSeconds(Int32.Parse(context.Request.Query["timeout"].ToString()));
+            }
+            catch // I don't want to deal with the different ways this can fail, I'm catching all to set the default.
+            {
+                Console.WriteLine("timeout set to default value");
+                timeout = TimeSpan.FromMinutes(1);
+            }
+
+            var success = await SqsConsume(queue, timeout);
+            if (!success)
+                context.Response.StatusCode = 500;
+            await context.Response.CompleteAsync();
+        });
     }
 
     private static void KafkaProduce(string topic)
@@ -112,5 +141,40 @@ public class MessagingEndpoints : ISystemTestEndpoint
         if (received.Count > 1)
             Console.WriteLine("ERROR: consumed more than one message from Rabbit, this shouldn't happen");
         return received.Count == 1;
+    }
+
+    private static async Task SqsProduce(string queue)
+    {
+        var sqsClient = new AmazonSQSClient();
+        var responseCreate = await sqsClient.CreateQueueAsync(
+            new CreateQueueRequest { QueueName = queue });
+        var qUrl = responseCreate.QueueUrl;
+        await sqsClient.SendMessageAsync(qUrl, "sqs message from dotnet");
+        Console.WriteLine($"SQS message produced to queue {queue} with url {qUrl}");
+    }
+
+    private static async Task<bool> SqsConsume(string queue, TimeSpan timeout)
+    {
+        Console.WriteLine("consuming one message from SQS queue " + queue);
+        var sqsClient = new AmazonSQSClient();
+        var responseCreate = await sqsClient.CreateQueueAsync(
+            new CreateQueueRequest { QueueName = "dsm-system-tests-queue" });
+        var qUrl = responseCreate.QueueUrl;
+        var result = await sqsClient.ReceiveMessageAsync(new ReceiveMessageRequest
+        {
+            QueueUrl = qUrl,
+            MaxNumberOfMessages = 1,
+            WaitTimeSeconds = (int)timeout.TotalSeconds
+        });
+        if (result == null || result.Messages.Count == 0)
+        {
+            return false;
+        }
+
+        Console.WriteLine(
+            $"received {result.Messages.Count} message(s). Content: " + string.Join(", ", result.Messages));
+        if (result.Messages.Count > 1)
+            Console.WriteLine("ERROR: consumed more than one message from SQS, this shouldn't happen");
+        return result.Messages.Count == 1;
     }
 }
