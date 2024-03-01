@@ -365,7 +365,7 @@ class Test_DsmContext_Injection:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 5171947544405521872, "consumer": 6273982990684090851,},
+            "nodejs": {"producer": 5171947544405521872, "consumer": 1272731766871501641,},
             "python": {
                 "producer": 12830291756145931912,  # python is producing 12830291756145931912, since it includes 'has_routing_key:<value>', which Java SHOULD too but isnt
                 "consumer": 6273982990684090851,
@@ -470,7 +470,7 @@ class Test_DsmContext_Extraction_V2:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
+            "nodejs": {"producer": 15513165469939804800, "consumer": 5454773345580223976,},
             "default": {
                 "producer": 9235368231858162135,
                 "consumer": 7819692959683983563,
