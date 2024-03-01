@@ -9,7 +9,7 @@ def validate_log(log: dict, rid: str, otel_source: str) -> dict:
         "env:system-tests",
         f"otel_source:{otel_source}",
         "service:otel-system-tests-spring-boot",
-        "source:undefined",
+        "source:otlp_log_ingestion",
     ]
     assert expected_attributes_tags <= log["attributes"]["tags"]
     expected_attributes_attributes = {
