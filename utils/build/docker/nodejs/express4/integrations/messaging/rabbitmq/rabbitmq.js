@@ -25,6 +25,7 @@ async function rabbitmqConsume (queue, timeout) {
         console.log({
           value: msg.content.toString()
         })
+        console.log(msg.properties.headers)
         channel.ack(msg)
         resolve()
       }
