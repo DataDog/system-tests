@@ -100,6 +100,7 @@ jobs:
           test-script: ./lib-injection/run-auto-lib-injection.sh
 
   prune-init-images:
+    if: ${{false }}
     name: Prune lib-injection docker images
     runs-on: ubuntu-latest
     permissions:
@@ -128,9 +129,8 @@ jobs:
           ^[a-z0-9]{40}$
         prune-untagged: true
         
-  clean-lib-injection-imagesss:
+  clean-lib-injection-images:
     runs-on: ubuntu-latest
-    if: ${{false }}
     permissions:
       contents: read
       packages: write
