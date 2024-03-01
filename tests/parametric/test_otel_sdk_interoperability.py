@@ -198,7 +198,6 @@ class Test_Otel_SDK_Interoperability:
         trace = find_trace_by_root(traces, Span(name="dd.span"))
         self.assert_span_link(trace)
 
-
     def test_span_links_add(self, test_agent, test_library):
         """
             - Test that links set on a span created with the OTel API are updated into the Datadog API

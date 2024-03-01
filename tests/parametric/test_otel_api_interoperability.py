@@ -11,7 +11,7 @@ from utils.parametric.spec.trace import find_trace_by_root, find_span
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1", }],
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1",}],
 )
 
 TEST_TRACE_ID = "ff0000000000051791e0000000000041"
@@ -52,7 +52,7 @@ class Test_Otel_API_Interoperability:
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
                 with test_library.otel_start_span(
-                        name="otel_span", span_kind=SK_INTERNAL, parent_id=dd_span.span_id
+                    name="otel_span", span_kind=SK_INTERNAL, parent_id=dd_span.span_id
                 ) as otel_span:
                     current_span = test_library.current_span()
                     otel_context = otel_span.span_context()
@@ -299,7 +299,7 @@ class Test_Otel_API_Interoperability:
             with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
                 with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                     with test_library.otel_start_span(
-                            name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
+                        name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
                     ) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
                             otel_child.end_span()
@@ -348,7 +348,7 @@ class Test_Otel_API_Interoperability:
             with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                 with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
                     with test_library.otel_start_span(
-                            name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
+                        name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
                     ) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
                             otel_child.end_span()
@@ -434,7 +434,7 @@ class Test_Otel_API_Interoperability:
         ]
 
         with test_library:
-            with test_library.start_span(name="dd_span", http_headers=headers, ) as dd_span:
+            with test_library.start_span(name="dd_span", http_headers=headers,) as dd_span:
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
 
@@ -521,7 +521,7 @@ class Test_Otel_API_Interoperability:
         assert root["metrics"]["float"] == 1.0
         assert root["meta"]["bool"] == "true"
         assert root["meta"]["str"] == "string"
-        #assert root["meta"]["none"] == "null"
+        # assert root["meta"]["none"] == "null"
         assert root["meta"]["str_array.0"] == "a"
         assert root["meta"]["str_array.1"] == "b"
         assert root["meta"]["str_array.2"] == "c"
