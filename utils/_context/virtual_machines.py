@@ -12,8 +12,8 @@ class AWSInfraConfig:
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
 
-        if None in (self.subnet_id, self.vpc_security_group_ids):
-            logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
+        # if None in (self.subnet_id, self.vpc_security_group_ids):
+        #    logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
 
 
 class DataDogConfig:
@@ -23,8 +23,8 @@ class DataDogConfig:
         self.docker_login = os.getenv("DOCKER_LOGIN")
         self.docker_login_pass = os.getenv("DOCKER_LOGIN_PASS")
 
-        if None in (self.dd_api_key, self.dd_app_key):
-            logger.warn("Datadog agent is not configured correctly for auto-injection testing")
+        # if None in (self.dd_api_key, self.dd_app_key):
+        #    logger.warn("Datadog agent is not configured correctly for auto-injection testing")
 
 
 class _VagrantConfig:
