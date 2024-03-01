@@ -100,7 +100,6 @@ jobs:
           test-script: ./lib-injection/run-auto-lib-injection.sh
 
   prune-init-images:
-    if: ${{false }}
     name: Prune lib-injection docker images
     runs-on: ubuntu-latest
     permissions:
