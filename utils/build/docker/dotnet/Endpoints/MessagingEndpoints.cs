@@ -6,7 +6,7 @@ using Amazon.SQS.Model;
 using System.Threading;
 using Confluent.Kafka;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace weblog;
@@ -23,18 +23,7 @@ public class MessagingEndpoints : ISystemTestEndpoint
         });
         routeBuilder.MapGet("/kafka/consume", async context =>
         {
-            var topic = context.Request.Query["topic"].ToString();
-            TimeSpan timeout;
-            try
-            {
-                timeout = TimeSpan.FromSeconds(Int32.Parse(context.Request.Query["timeout"].ToString()));
-            }
-            catch // I don't want to deal with the different ways this can fail, I'm catching all to set the default.
-            {
-                Console.WriteLine("timeout set to default value");
-                timeout = TimeSpan.FromMinutes(1);
-            }
-
+            var (topic, timeout) = GetQueueNameAndTimeout("topic", context);
             var success = KafkaConsume(topic, timeout);
             if (!success)
                 context.Response.StatusCode = 500;
@@ -49,19 +38,7 @@ public class MessagingEndpoints : ISystemTestEndpoint
         });
         routeBuilder.MapGet("/rabbitmq/consume", async context =>
         {
-            var queue = context.Request.Query["queue"].ToString();
-            // request can contain an "exchange" parameter, but we don't need it
-            TimeSpan timeout;
-            try
-            {
-                timeout = TimeSpan.FromSeconds(Int32.Parse(context.Request.Query["timeout"].ToString()));
-            }
-            catch // I don't want to deal with the different ways this can fail, I'm catching all to set the default.
-            {
-                Console.WriteLine("timeout set to default value");
-                timeout = TimeSpan.FromMinutes(1);
-            }
-
+            var (queue, timeout) = GetQueueNameAndTimeout("queue", context);
             var success = RabbitConsume(queue, timeout);
             if (!success)
                 context.Response.StatusCode = 500;
@@ -75,7 +52,18 @@ public class MessagingEndpoints : ISystemTestEndpoint
         });
         routeBuilder.MapGet("/sqs/consume", async context =>
         {
-            var queue = context.Request.Query["queue"].ToString();
+            var (queue, timeout) = GetQueueNameAndTimeout("queue", context);
+            var success = await SqsConsume(queue, timeout);
+            if (!success)
+                context.Response.StatusCode = 500;
+            await context.Response.CompleteAsync();
+        });
+        return;
+
+        // extracts and parses the queue name and timeout from the request parameters
+        (string, TimeSpan) GetQueueNameAndTimeout(string queueParamName, HttpContext context)
+        {
+            var queue = context.Request.Query[queueParamName].ToString();
             TimeSpan timeout;
             try
             {
@@ -87,11 +75,8 @@ public class MessagingEndpoints : ISystemTestEndpoint
                 timeout = TimeSpan.FromMinutes(1);
             }
 
-            var success = await SqsConsume(queue, timeout);
-            if (!success)
-                context.Response.StatusCode = 500;
-            await context.Response.CompleteAsync();
-        });
+            return (queue, timeout);
+        }
     }
 
     private static void KafkaProduce(string topic)
@@ -137,7 +122,7 @@ public class MessagingEndpoints : ISystemTestEndpoint
             completion.Set();
         });
         completion.WaitOne(timeout);
-        Console.WriteLine($"received {received.Count} message(s). Content: " + string.Join(", ", received[0]));
+        Console.WriteLine($"received {received.Count} message(s). Content: " + string.Join(", ", received));
         if (received.Count > 1)
             Console.WriteLine("ERROR: consumed more than one message from Rabbit, this shouldn't happen");
         return received.Count == 1;
