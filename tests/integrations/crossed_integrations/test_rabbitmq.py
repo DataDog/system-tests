@@ -43,7 +43,8 @@ class _Test_RabbitMQ:
                     queue.lower() not in span.get("resource").lower()
                     and exchange.lower() not in span.get("resource").lower()
                     and queue.lower() not in meta.get(f"rabbitmq.routing_key", "").lower()
-                    and queue.lower() not in meta.get(f"amqp.routing_key", "").lower()  # this is where we find the queue name in dotnet
+                    # this is where we find the queue name in dotnet 👇
+                    and queue.lower() not in meta.get(f"amqp.routing_key", "").lower()
                 ):
                     continue
 
