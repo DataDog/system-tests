@@ -426,7 +426,6 @@ class Test_DsmContext_Extraction_V1:
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
     @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
-    @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers, and throws an error")
     def test_dsmcontext_extraction_v1(self):
         assert self.produce_response == "ok"
         assert "error" not in self.r.text
@@ -464,10 +463,6 @@ class Test_DsmContext_Extraction_V2:
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
-    @missing_feature(
-        library="nodejs",
-        reason="dd-trace-js cannot extract DSM V2 Base64 Headers and throws an error for DSM, never setting checkpoint",
-    )
     @missing_feature(library="python", reason="dd-trace-py automatically assumes v1 encoding for rabbitmq")
     def test_dsmcontext_extraction_v2_base64(self):
         assert self.produce_response == "ok"

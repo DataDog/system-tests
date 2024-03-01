@@ -374,10 +374,10 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_V1: 
         "*": irrelevant
-        express4: irrelevant # v5.3.0
+        express4: v0.1  # v5.3.0
       Test_DsmContext_Extraction_V2: 
         "*": irrelevant
-        express4: irrelevant # v5.3.0
+        express4: v0.1 # v5.3.0
       Test_DsmContext_Injection: 
         "*": irrelevant
         express4: v5.3.0
