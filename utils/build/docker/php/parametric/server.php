@@ -280,10 +280,8 @@ $router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(functi
         $payload = [
             "span_id" => $span->id,
             "trace_id" => $span->traceId,
-            "parent_id" => $span->parentId ?? 0
         ];
     } elseif ($span instanceof \DDTrace\SpanData) {
-        // Get the local root span associated with the current span
         $rootSpan = $span;
         while ($rootSpan && !$rootSpan instanceof \DDTrace\RootSpanData && $rootSpan->parent) {
             $rootSpan = $rootSpan->parent;
@@ -291,7 +289,6 @@ $router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(functi
         $payload = [
             "span_id" => $span->id,
             "trace_id" => $rootSpan->traceId,
-            "parent_id" => $span->parent->id
         ];
     } else {
         $payload = [];
@@ -474,7 +471,6 @@ $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(f
     $span = Span::getCurrent();
     $spanId = $span->getContext()->getSpanId();
     $traceId = $span->getContext()->getTraceId();
-    $parentId = $span->getParentContext()?->getSpanId();
 
     if ($spanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $traceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
         $otelSpans[$spanId] = $span;
@@ -483,7 +479,6 @@ $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(f
     return jsonResponse([
         'span_id' => $spanId,
         'trace_id' => $traceId,
-        'parent_id' => $parentId
     ]);
 }));
 $router->addRoute('POST', '/trace/otel/get_attribute', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {

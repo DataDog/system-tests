@@ -25,7 +25,6 @@ class StartSpanResponse(TypedDict):
 class SpanResponse(TypedDict):
     span_id: int
     trace_id: int
-    parent_id: int
 
 
 class Link(TypedDict):
@@ -198,9 +197,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp_json = self._session.get(self._url("/trace/span/current")).json()
         if not resp_json:
             return None
-        return SpanResponse(
-            span_id=resp_json["span_id"], trace_id=resp_json["trace_id"], parent_id=resp_json["parent_id"]
-        )
+        return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def finish_span(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
@@ -285,9 +282,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
             return None
 
         resp_json = resp.json()
-        return SpanResponse(
-            span_id=resp_json["span_id"], trace_id=resp_json["trace_id"], parent_id=resp_json["parent_id"]
-        )
+        return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def otel_get_attribute(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,})
@@ -347,7 +342,6 @@ class _TestSpan:
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
-        self.parent_id = parent_id
 
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
@@ -381,11 +375,12 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int = 0, parent_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int = 0):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
-        self.parent_id = parent_id
+
+    # API methods
 
     def set_attributes(self, attributes):
         self._client.otel_set_attributes(self.span_id, attributes)
@@ -405,14 +400,16 @@ class _TestOtelSpan:
     def is_recording(self) -> bool:
         return self._client.otel_is_recording(self.span_id)
 
+    def span_context(self) -> OtelSpanContext:
+        return self._client.otel_get_span_context(self.span_id)
+
+    # SDK methods
+
     def get_attribute(self, key: str):
         return self._client.otel_get_attribute(self.span_id, key)
 
     def get_name(self):
         return self._client.otel_get_name(self.span_id)
-
-    def span_context(self) -> OtelSpanContext:
-        return self._client.otel_get_span_context(self.span_id)
 
     def get_links(self):
         return self._client.otel_get_links(self.span_id)
@@ -674,7 +671,7 @@ class APMLibrary:
         resp = self._client.current_span()
         if resp is None:
             return None
-        return _TestSpan(self._client, resp["span_id"], resp["trace_id"], resp["parent_id"])
+        return _TestSpan(self._client, resp["span_id"], resp["trace_id"])
 
     def flush(self):
         self._client.trace_flush()
@@ -686,7 +683,7 @@ class APMLibrary:
         resp = self._client.otel_current_span()
         if resp is None:
             return None
-        return _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"], resp["parent_id"])
+        return _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
 
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
@@ -699,3 +696,6 @@ class APMLibrary:
     ):
         """Do an HTTP request with the given method and headers."""
         return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)
+
+    def finish_span(self, span_id: int) -> None:
+        self._client.finish_span(span_id)

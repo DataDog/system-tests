@@ -92,7 +92,6 @@ message SpanGetCurrentArgs {}
 message SpanGetCurrentReturn {
   uint64 span_id = 1;
   uint64 trace_id = 2;
-  uint64 parent_id = 3;
 }
 
 message SpanGetNameArgs {
@@ -247,7 +246,6 @@ message OtelSpanGetCurrentArgs {}
 message OtelSpanGetCurrentReturn {
   string span_id = 1;
   string trace_id = 2;
-  string parent_id = 3;
 }
 
 message OtelSetStatusArgs {

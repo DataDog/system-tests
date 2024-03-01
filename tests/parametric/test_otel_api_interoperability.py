@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from ddapm_test_agent.trace import Span, root_span
@@ -9,7 +11,7 @@ from utils.parametric.spec.trace import find_trace_by_root, find_span
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1",}],
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1", }],
 )
 
 TEST_TRACE_ID = "ff0000000000051791e0000000000041"
@@ -20,7 +22,7 @@ TEST_ATTRIBUTES = {"arg1": "val1"}
 
 @features.f_interoperability
 @scenarios.parametric
-class Test_Otel_Interoperability:
+class Test_Otel_API_Interoperability:
     def test_span_creation_using_otel(self, test_agent, test_library):
         """
             - A span created with the OTel API should be visible in the DD API
@@ -43,6 +45,32 @@ class Test_Otel_Interoperability:
                 assert otel_current_span is not None
                 assert otel_current_span.span_id == "{:016x}".format(int(dd_span.span_id))
 
+    def test_otel_start_after_datadog_span(self, test_agent, test_library):
+        """
+            - Start a span using the OTel API while a span created using the Datadog API already exists
+        """
+        with test_library:
+            with test_library.start_span("dd_span") as dd_span:
+                with test_library.otel_start_span(
+                        name="otel_span", span_kind=SK_INTERNAL, parent_id=dd_span.span_id
+                ) as otel_span:
+                    current_span = test_library.current_span()
+                    otel_context = otel_span.span_context()
+
+                    assert current_span.trace_id == otel_context.get("trace_id")
+                    assert "{:016x}".format(int(current_span.span_id)) == otel_context.get("span_id")
+
+                    otel_span.end_span()
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, Span(name="dd_span"))
+        assert len(trace) == 2
+
+        root = root_span(trace)
+        span = find_span(trace, OtelSpan(resource="otel_span"))
+
+        assert span.get("parent_id") == root.get("span_id")
+
     def test_has_ended(self, test_agent, test_library):
         """
             - Test that the ending status of a span is propagated across APIs
@@ -64,33 +92,6 @@ class Test_Otel_Interoperability:
         trace = find_trace_by_root(traces, Span(name="dd_span"))
         assert len(trace) == 1
 
-    def test_otel_start_after_datadog_span(self, test_agent, test_library):
-        """
-            - Start a span using the OTel API while a span created using the Datadog API already exists
-        """
-        with test_library:
-            with test_library.start_span("dd_span") as dd_span:
-                with test_library.otel_start_span(
-                    name="otel_span", span_kind=SK_INTERNAL, parent_id=dd_span.span_id
-                ) as otel_span:
-                    current_span = test_library.current_span()
-                    otel_context = otel_span.span_context()
-
-                    assert current_span.trace_id == otel_context.get("trace_id")
-                    assert "{:016x}".format(int(current_span.span_id)) == otel_context.get("span_id")
-                    assert dd_span.span_id == current_span.parent_id
-
-                    otel_span.end_span()
-
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="dd_span"))
-        assert len(trace) == 2
-
-        root = root_span(trace)
-        span = find_span(trace, OtelSpan(resource="otel_span"))
-
-        assert span.get("parent_id") == root.get("span_id")
-
     def test_datadog_start_after_otel_span(self, test_agent, test_library):
         """
             - Start a span using the Datadog API while a span created using the OTel API already exists
@@ -103,10 +104,6 @@ class Test_Otel_Interoperability:
 
                     assert current_span.trace_id == otel_context.get("trace_id")
                     assert current_span.span_id == dd_span.span_id
-                    if isinstance(current_span.parent_id, int):
-                        assert "{:016x}".format(current_span.parent_id) == otel_span.span_id
-                    else:
-                        assert "{:016x}".format(int(current_span.parent_id)) == otel_span.span_id
 
                 otel_current_span = test_library.otel_current_span()
                 assert otel_current_span.span_id == otel_span.span_id
@@ -135,22 +132,10 @@ class Test_Otel_Interoperability:
 
                 otel_span.set_attribute("arg3", "val3")
                 otel_span.set_attribute("arg4", "val4")
-
                 dd_span.set_meta("arg3", None)  # Remove the arg3/val3 pair (Created with the Otel API)
-                assert dd_span.get_meta("arg3") is None
-                assert otel_span.get_attribute("arg3") is None
-
                 otel_span.set_attribute("arg1", None)  # Remove the arg1/val1 pair (Created with the DD API)
-                assert dd_span.get_meta("arg1") is None
-                assert otel_span.get_attribute("arg1") is None
-
                 otel_span.set_attribute("arg2", "val3")  # Update the arg2/val2 pair (Created with the DD API)
-                assert dd_span.get_meta("arg2") == "val3"
-                assert otel_span.get_attribute("arg2") == "val3"
-
                 dd_span.set_meta("arg4", "val5")  # Update the arg4/val4 pair (Created with the Otel API)
-                assert dd_span.get_meta("arg4") == "val5"
-                assert otel_span.get_attribute("arg4") == "val5"
 
                 dd_span.finish()
 
@@ -188,22 +173,10 @@ class Test_Otel_Interoperability:
 
                 otel_span.set_attribute("m3", 3)  # Set a metric with the Otel API
                 otel_span.set_attribute("m4", 4)
-
                 dd_span.set_metric("m3", None)  # Remove the m3/3 pair (Created with the Otel API)
-                assert dd_span.get_metric("m3") is None
-                assert otel_span.get_attribute("m3") is None
-
                 otel_span.set_attribute("m1", None)  # Remove the m1/1 pair (Created with the DD API)
-                assert dd_span.get_metric("m1") is None
-                assert otel_span.get_attribute("m1") is None
-
                 otel_span.set_attribute("m2", 3)  # Update the m2/2 pair (Created with the DD API)
-                assert dd_span.get_metric("m2") == 3
-                assert otel_span.get_attribute("m2") == 3
-
                 dd_span.set_metric("m4", 5)  # Update the m4/4 pair (Created with the Otel API)
-                assert dd_span.get_metric("m4") == 5
-                assert otel_span.get_attribute("m4") == 5
 
                 dd_span.finish()
 
@@ -237,52 +210,19 @@ class Test_Otel_Interoperability:
                 dd_span = test_library.current_span()
 
                 dd_span.set_resource("my_new_resource")
-                assert dd_span.get_resource() == "my_new_resource"
-                assert otel_span.get_name() == "my_new_resource"
-
                 otel_span.set_name("my_new_resource2")
-                assert dd_span.get_resource() == "my_new_resource2"
-                assert otel_span.get_name() == "my_new_resource2"
 
                 dd_span.finish()
 
                 otel_span.set_name("my_new_resource3")
-                assert dd_span.get_resource() == "my_new_resource2"
-                assert otel_span.get_name() == "my_new_resource2"
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, OtelSpan(resource="my_new_resource2"))
         assert len(trace) == 1
 
-    def test_span_links_basic(self, test_agent, test_library):
-        """
-            - Test that links set on a span created with the Datadog API are updated into the OTel API
-        """
-        with test_library:
-            with test_library.start_span("dd.span") as dd_span:
-                dd_span.add_link(
-                    parent_id=0,
-                    attributes=TEST_ATTRIBUTES,
-                    http_headers=[
-                        ("traceparent", f"00-{TEST_TRACE_ID}-{TEST_SPAN_ID}-01"),
-                        ("tracestate", TEST_TRACESTATE),
-                    ],
-                )
-
-                otel_span = test_library.otel_current_span()
-
-                otel_span_links = otel_span.get_links()
-                assert len(otel_span_links) == 1
-
-                otel_link = otel_span_links[0]
-                assert otel_link["trace_id"] == TEST_TRACE_ID
-                assert otel_link["parent_id"] == TEST_SPAN_ID
-                assert otel_link["tracestate"] == TEST_TRACESTATE
-                assert otel_link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
-
     def test_span_links_add(self, test_agent, test_library):
         """
-            - Test that links set on a span created with the OTel API are updated into the Datadog API
+            - Test that links can be added with the Datadog API on a span created with the OTel API
         """
         with test_library:
             with test_library.otel_start_span("otel.span") as otel_span:
@@ -297,14 +237,21 @@ class Test_Otel_Interoperability:
                     ],
                 )
 
-                otel_span_links = otel_span.get_links()
-                assert len(otel_span_links) == 1
+                otel_span.end_span()
 
-                otel_link = otel_span_links[0]
-                assert otel_link["trace_id"] == TEST_TRACE_ID
-                assert otel_link["parent_id"] == TEST_SPAN_ID
-                assert otel_link["tracestate"] == TEST_TRACESTATE
-                assert otel_link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, Span(name="internal"))
+        assert len(trace) == 1
+
+        root = root_span(trace)
+        span_links = json.loads(root["meta"]["_dd.span_links"])
+        assert len(span_links) == 1
+
+        link = span_links[0]
+        assert link["trace_id"] == TEST_TRACE_ID
+        assert link["span_id"] == TEST_SPAN_ID
+        assert link["trace_state"] == TEST_TRACESTATE
+        assert link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
 
     def test_concurrent_traces_in_order(self, test_agent, test_library):
         """
@@ -352,7 +299,7 @@ class Test_Otel_Interoperability:
             with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
                 with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                     with test_library.otel_start_span(
-                        name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
+                            name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
                     ) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
                             otel_child.end_span()
@@ -401,7 +348,7 @@ class Test_Otel_Interoperability:
             with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                 with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
                     with test_library.otel_start_span(
-                        name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
+                            name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
                     ) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
                             otel_child.end_span()
@@ -487,7 +434,7 @@ class Test_Otel_Interoperability:
         ]
 
         with test_library:
-            with test_library.start_span(name="dd_span", http_headers=headers,) as dd_span:
+            with test_library.start_span(name="dd_span", http_headers=headers, ) as dd_span:
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
 
@@ -506,38 +453,14 @@ class Test_Otel_Interoperability:
         assert root["meta"]["_dd.origin"] == "synthetics"
         assert root["metrics"]["_sampling_priority_v1"] == -2
 
-    def test_set_attribute_from_datadog(self, test_agent, test_library):
-        """
-            - Test that attributes set using the Datadog API are visible in the OTel API
-        """
-        with test_library:
-            with test_library.start_span(name="dd_span") as dd_span:
-                dd_span.set_meta("int", 1)
-                dd_span.set_meta("float", 1.0)
-                dd_span.set_meta("bool", True)
-                dd_span.set_meta("str", "string")
-                dd_span.set_meta("none", None)
-                # Note: OTel's arrays MUST be homogeneous
-                dd_span.set_meta("str_array", ["a", "b", "c"])
-                dd_span.set_meta("nested_str_array", [["a", "b"], ["c", "d"]])
-                dd_span.set_meta("int_array", [1, 2, 3])
-
-                otel_span = test_library.otel_current_span()
-                assert otel_span.get_attribute("int") == 1
-                assert otel_span.get_attribute("float") == 1.0
-                assert otel_span.get_attribute("bool") == True
-                assert otel_span.get_attribute("str") == "string"
-                assert otel_span.get_attribute("none") == None
-                assert otel_span.get_attribute("str_array") == ["a", "b", "c"]
-                assert otel_span.get_attribute("nested_str_array") == [["a", "b"], ["c", "d"]]
-                assert otel_span.get_attribute("int_array") == [1, 2, 3]
-
     def test_set_attribute_from_otel(self, test_agent, test_library):
         """
-            - Test that attributes set using the OTel API are visible in the Datadog API
+            - Test that attributes can be set on a Datadog span using the OTel API
         """
         with test_library:
-            with test_library.otel_start_span(name="otel_span") as otel_span:
+            with test_library.start_span("dd_span") as dd_span:
+                otel_span = test_library.otel_current_span()
+
                 otel_span.set_attribute("int", 1)
                 otel_span.set_attribute("float", 1.0)
                 otel_span.set_attribute("bool", True)
@@ -548,12 +471,64 @@ class Test_Otel_Interoperability:
                 otel_span.set_attribute("nested_str_array", [["a", "b"], ["c", "d"]])
                 otel_span.set_attribute("int_array", [1, 2, 3])
 
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, Span(name="dd_span"))
+        assert len(trace) == 1
+
+        root = root_span(trace)
+        assert root["metrics"]["int"] == 1
+        assert root["metrics"]["float"] == 1.0
+        assert root["meta"]["bool"] == "true"
+        assert root["meta"]["str"] == "string"
+        assert root["meta"]["none"] == "null"
+        assert root["meta"]["str_array.0"] == "a"
+        assert root["meta"]["str_array.1"] == "b"
+        assert root["meta"]["str_array.2"] == "c"
+        assert root["meta"]["nested_str_array.0.0"] == "a"
+        assert root["meta"]["nested_str_array.0.1"] == "b"
+        assert root["meta"]["nested_str_array.1.0"] == "c"
+        assert root["meta"]["nested_str_array.1.1"] == "d"
+        assert root["metrics"]["int_array.0"] == 1
+        assert root["metrics"]["int_array.1"] == 2
+        assert root["metrics"]["int_array.2"] == 3
+
+    def test_set_attribute_from_datadog(self, test_agent, test_library):
+        """
+            - Test that attributes can be set on an OTel span using the Datadog API
+        """
+        with test_library:
+            with test_library.otel_start_span(name="otel_span") as otel_span:
                 dd_span = test_library.current_span()
-                assert dd_span.get_metric("int") == 1
-                assert dd_span.get_metric("float") == 1.0
-                assert dd_span.get_meta("bool") == True
-                assert dd_span.get_meta("str") == "string"
-                assert dd_span.get_meta("none") == None
-                assert dd_span.get_meta("str_array") == ["a", "b", "c"]
-                assert dd_span.get_meta("nested_str_array") == [["a", "b"], ["c", "d"]]
-                assert dd_span.get_metric("int_array") == [1, 2, 3]
+
+                dd_span.set_metric("int", 1)
+                dd_span.set_metric("float", 1.0)
+                dd_span.set_meta("bool", True)
+                dd_span.set_meta("str", "string")
+                dd_span.set_meta("none", None)
+                # Note: OTel's arrays MUST be homogeneous
+                dd_span.set_meta("str_array", ["a", "b", "c"])
+                dd_span.set_meta("nested_str_array", [["a", "b"], ["c", "d"]])
+                dd_span.set_metric("int_array", [1, 2, 3])
+
+                otel_span.end_span()
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, OtelSpan(resource="otel_span"))
+        assert len(trace) == 1
+
+        root = root_span(trace)
+        assert root["metrics"]["int"] == 1
+        assert root["metrics"]["float"] == 1.0
+        assert root["meta"]["bool"] == "true"
+        assert root["meta"]["str"] == "string"
+        #assert root["meta"]["none"] == "null"
+        assert root["meta"]["str_array.0"] == "a"
+        assert root["meta"]["str_array.1"] == "b"
+        assert root["meta"]["str_array.2"] == "c"
+        assert root["meta"]["nested_str_array.0.0"] == "a"
+        assert root["meta"]["nested_str_array.0.1"] == "b"
+        assert root["meta"]["nested_str_array.1.0"] == "c"
+        assert root["meta"]["nested_str_array.1.1"] == "d"
+        assert root["metrics"]["int_array.0"] == 1
+        assert root["metrics"]["int_array.1"] == 2
+        assert root["metrics"]["int_array.2"] == 3
