@@ -18,6 +18,7 @@ class TestReflectionInjection(BaseSinkTest):
     location_map = {"java": "com.datadoghq.system_tests.iast.utils.ReflectionExamples"}
 
     @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
