@@ -200,11 +200,13 @@ class K8sDatadogClusterTestAgent:
             value_file=operator_file,
             set_dict={"datadog.apiKey": os.getenv("DD_API_KEY"), "datadog.appKey": os.getenv("DD_APP_KEY")},
         )
-
+        self._wait_for_operator_ready()
         # body_patch='[{"op": "add", "path": "/rules/0", "value":{ "apiGroups": ["apps"], "resources": ["deployments"], "verbs": ["patch"]}}]'
         # execute_command( f"kubectl patch clusterrole datadog-cluster-agent --type=json -p {body_patch} ")
-        execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
+
         # TODO: This is a hack until the patching permission is added in the official helm chart.
+        execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
+
         # logger.info("[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole")
         v1 = client.CoreV1Api()
         # apps_api = client.AppsV1Api()
@@ -216,27 +218,7 @@ class K8sDatadogClusterTestAgent:
         # logger.info("[Deploy operator] ---------------------------------- 3")
         # logger.info("[Deploy operator] Waiting for the operator to be ready")
 
-        pod_ready = False
-        for i in range(0, 10):
-            try:
-
-                pod_status = v1.read_namespaced_pod_status(name=datadog_cluster_name, namespace="default")
-
-                if pod_status.status.phase == "Running":
-                    logger.info(f"Pod status datadog running!")
-                    pod_ready = True
-                    break
-                else:
-                    time.sleep(5)
-            except client.exceptions.ApiException as e:
-                logger.info(f"Pod status error: {e}")
-                time.sleep(5)
-
-        if not pod_ready:
-            logger.error("Operator not created. Last status: %s" % pod_status)
-            pod_logs = v1.read_namespaced_pod_log(name=datadog_cluster_name, namespace="default")
-            logger.error(f"Operator logs: {pod_logs}")
-            raise Exception("Operator not created")
+        self._wait_for_operator_ready()
 
     def create_configmap_auto_inject(self):
         exec_command = "kubectl create -f utils/k8s_lib_injection/resources/operator/templates/configmap.yaml"
@@ -244,12 +226,14 @@ class K8sDatadogClusterTestAgent:
         # Simple sleep. TODO: Add a better way to wait for the configmap to be created
         time.sleep(5)
 
-    def apply_config_auto_inject(self):
-        execute_command("kubectl apply -f lib-injection/build/docker/java/config.yaml")
+    def apply_config_auto_inject(self, library):
+        execute_command(f"kubectl apply -f lib-injection/build/docker/{library}/config.yaml")
         logger.info("[Auto Config] Waiting on the cluster agent to pick up the changes")
-        time.sleep(120)
-        logger.info("[Auto Config] apply-config-auto: waiting for deployments/test-java-deployment available")
-        execute_command("kubectl rollout status deployments/test-java-deployment --timeout=5m")
+        time.sleep(90)
+
+    # execute_command("kubectl rollout status deployments/test-python-deployment --timeout=5m")
+
+    # result = v1.list_namespaced_pod( "default", label_selector="label_key=label_value",watch=False)
 
     # TODO create configmap for auto-inject programatically
     def _create_configmap_auto_inject(self):

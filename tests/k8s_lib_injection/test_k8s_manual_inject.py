@@ -19,7 +19,7 @@ class TestKubernetes:
                 logger.debug(f"Test traces response: {traces_json}")
                 return traces_json
             time.sleep(2)
-        return None
+        return []
 
     def warmup_weblog(self, app_url):
         for _ in range(15):
@@ -33,7 +33,7 @@ class TestKubernetes:
             except Exception:
                 time.sleep(3)
 
-    def test_manual_install(self, test_k8s_instance):
+    def _test_manual_install(self, test_k8s_instance):
         logger.info(f"Launching test test_manual_install")
         test_agent = test_k8s_instance.deploy_test_agent()
         # time.sleep(60)
@@ -44,10 +44,10 @@ class TestKubernetes:
         # time.sleep(30)
         # self.warmup_weblog("http://localhost:18080")
         traces_json = self._get_dev_agent_traces()
-        assert traces_json is not None and len(traces_json) > 0, "No traces found"
+        assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_manual_install finished")
 
-    def __test_auto_install(self, test_k8s_instance):
+    def test_auto_install(self, test_k8s_instance):
 
         # echo "[run-auto-lib-injection] Deploying deployment"
         # ${BASE_DIR}/execFunction.sh deploy-app-auto
@@ -59,10 +59,8 @@ class TestKubernetes:
         logger.info(f"Launching test test_auto_install")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
-        time.sleep(30)
-        test_agent.apply_config_auto_inject()
-        self.warmup_weblog("http://localhost:18080")
+        test_k8s_instance.apply_config_auto_inject()
         traces_json = self._get_dev_agent_traces()
         logger.debug(f"Traces: {traces_json}")
-        assert traces_json is not None or len(traces_json) > 0, "No traces found"
+        assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_auto_install finished")

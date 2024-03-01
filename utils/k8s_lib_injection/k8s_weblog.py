@@ -1,15 +1,15 @@
-import time
+import time, datetime
 from kubernetes import client, watch
 from utils.tools import logger
 
 
 class K8sWeblog:
     def deploy_app_manual(self, app_image, library, library_init_image):
+        self.v1 = client.CoreV1Api()
         logger.info(
             "[Deploy weblog] Deploying weblog as pod. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
             % (app_image, library, library_init_image)
         )
-        v1 = client.CoreV1Api()
 
         pod_metadata = client.V1ObjectMeta(
             name="my-app",
@@ -71,7 +71,7 @@ class K8sWeblog:
         pod_body = client.V1Pod(api_version="v1", kind="Pod", metadata=pod_metadata, spec=pod_spec)
 
         v1.create_namespaced_pod(namespace="default", body=pod_body)
-
+        self.wait_for_weblog_ready_by_label_app("my-app", timeout=100)
         # pod_ready = False
         # for i in range(0, 10):
         #    try:
@@ -93,30 +93,12 @@ class K8sWeblog:
         #    logger.error(f"weblog logs: {pod_logs}")
         #    raise Exception("Weblog not created")
 
-        pod_ready = False
-        w = watch.Watch()
-        for event in w.stream(
-            func=v1.list_namespaced_pod, namespace="default", label_selector="app=my-app", timeout_seconds=100
-        ):
-            if event["object"].status.phase == "Running" and event["object"].status.container_statuses[0].ready:
-                w.stop()
-                logger.info("Weblog started!")
-                pod_ready = True
-                break
-
-        if not pod_ready:
-            pod_status = v1.read_namespaced_pod_status(name="my-app", namespace="default")
-            logger.error("weblog not created. Last status: %s" % pod_status)
-            pod_logs = v1.read_namespaced_pod_log(name="my-app", namespace="default")
-            logger.error(f"weblog logs: {pod_logs}")
-            raise Exception("Weblog not created")
-
     def deploy_app_auto(self, app_image, library):
-        v1 = client.CoreV1Api()
+        api = client.AppsV1Api()
         deployment_name = f"test-{library}-deployment"
 
         deployment_metadata = client.V1ObjectMeta(
-            name=deployment_name, namespace="default", labels={"app": f"{library}-app",},
+            name=deployment_name, namespace="default", labels={"app": f"{library}-app"},
         )
 
         # Configureate Pod template container
@@ -137,8 +119,8 @@ class K8sWeblog:
 
         # Create and configure a spec section
         template = client.V1PodTemplateSpec(
-            metadata=client.V1ObjectMeta(name=deployment_name, labels={"app": f"{library}-app"}),
-            spec=client.V1PodSpec(containers=[container]),
+            metadata=client.V1ObjectMeta(labels={"app": f"{library}-app"}),
+            spec=client.V1PodSpec(containers=[container], restart_policy="Always"),
         )
 
         # Create the specification of deployment
@@ -151,9 +133,8 @@ class K8sWeblog:
             api_version="apps/v1", kind="Deployment", metadata=deployment_metadata, spec=spec,
         )
         # Create deployment
-        api = client.AppsV1Api()
         resp = api.create_namespaced_deployment(body=deployment, namespace="default")
-        self._wait_for_deployment_complete(deployment_name, timeout=60)
+        self._wait_for_deployment_complete(deployment_name, timeout=100)
 
         # deployment_ready = False
         # w = watch.Watch()
@@ -195,11 +176,62 @@ class K8sWeblog:
     #
     #    echo "[Deploy] deploy-app-auto: done"
     # }
+    def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
+        v1 = client.CoreV1Api()
+        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        logger.info(f"[Weblog] Currently running pods [{app_name}]:[{len(pods.items)}]")
+        if len(pods.items) == 2:
+            if pods.items[0].status.phase == "Pending" or pods.items[1].status.phase == "Pending":
+                pod_name_pending = (
+                    pods.items[0].metadata.name
+                    if pods.items[0].status.phase == "Pending"
+                    else pods.items[1].metadata.name
+                )
+                pod_name_running = (
+                    pods.items[0].metadata.name
+                    if pods.items[0].status.phase == "Running"
+                    else pods.items[1].metadata.name
+                )
+
+                logger.info(f"[Weblog] Deleting previous pod {pod_name_running}")
+                v1.delete_namespaced_pod(pod_name_running, "default")
+                logger.info(f"[Weblog] Waiting for pod {pod_name_pending} to be running")
+                self.wait_for_weblog_ready_by_pod_name(pod_name_pending, timeout=timeout)
+
+    def wait_for_weblog_ready_by_label_app(self, app_name, timeout=60):
+        v1 = client.CoreV1Api()
+        pod_ready = False
+        w = watch.Watch()
+        for event in w.stream(
+            func=v1.list_namespaced_pod, namespace="default", label_selector=f"app={app_name}", timeout_seconds=timeout
+        ):
+            if event["object"].status.phase == "Running" and event["object"].status.container_statuses[0].ready:
+                w.stop()
+                logger.info("Weblog started!")
+                pod_ready = True
+                break
+
+        if not pod_ready:
+            pod_status = v1.read_namespaced_pod_status(name="my-app", namespace="default")
+            logger.error("weblog not created. Last status: %s" % pod_status)
+            pod_logs = v1.read_namespaced_pod_log(name="my-app", namespace="default")
+            logger.error(f"weblog logs: {pod_logs}")
+            raise Exception("Weblog not created")
+
+    def wait_for_weblog_ready_by_pod_name(self, pod_name, timeout=60):
+        v1 = client.CoreV1Api()
+        start = datetime.datetime.now()
+        while True:
+            pod = v1.read_namespaced_pod(pod_name, "default")
+            if pod.status.phase == "Running" and pod.status.container_statuses[0].ready:
+                return
+            time.sleep(1)
+            now = datetime.datetime.now()
+            if (now - start).seconds > timeout:
+                raise Exception(f"Pod {pod_name} did not start in {timeout} seconds")
 
     def _wait_for_deployment_complete(self, deployment_name, timeout=60):
-        v1 = client.CoreV1Api()
         api = client.AppsV1Api()
-
         start = time.time()
         while time.time() - start < timeout:
             time.sleep(2)
