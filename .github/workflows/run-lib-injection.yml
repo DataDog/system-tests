@@ -98,19 +98,28 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           test-script: ./lib-injection/run-auto-lib-injection.sh
+
   prune-init-images:
     name: Prune lib-injection docker images
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        variant:
+        - weblog-variant: dd-lib-java-init-test-app
+        - weblog-variant: sample-app
+        - weblog-variant: dd-lib-python-init-test-django
+        - weblog-variant: dd-lib-python-init-test-django-uvicorn
+        - weblog-variant: dd-lib-python-init-test-django-gunicorn
     steps:
     - name: Prune registry
       uses: vlaurin/action-ghcr-prune@0a539594d122b915e71c59733a5b115bfaaf5d52 #v0.5.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         organization: Datadog
-        container: system-tests/sample-app
+        container: system-tests/${{ matrix.variant.weblog-variant }}
         keep-younger-than: 7 # days
         keep-last: 10
         keep-tags: |
