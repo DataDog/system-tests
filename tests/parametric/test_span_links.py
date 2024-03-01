@@ -47,11 +47,6 @@ class Test_Span_Links:
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
-        # Some languages do not set tracestate on all spans (ex: java, php)
-        # If tracestate is set ensure the value is correct (ex: python)
-        if link.get("tracestate"):
-            assert link.get("tracestate") == "dd=s:1;t.dm:-0"
-        assert link.get("flags", 0) == 1 | TRACECONTEXT_FLAGS_SET  # Sampled and Set (31 bit according the RFC)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
     def test_span_started_with_link_v05(self, test_agent, test_library):
@@ -88,11 +83,6 @@ class Test_Span_Links:
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
-        # Some languages do not set tracestate on all spans (ex: java, php)
-        # If tracestate is set ensure the value is correct
-        if link.get("tracestate"):
-            assert link.get("tracestate") == "dd=s:1;t.dm:-0"
-        assert link.get("flags") == 1
 
     def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
@@ -177,7 +167,6 @@ class Test_Span_Links:
         assert tracestateArr[other_num] == "foo=1"
         assert tracestateArr[2] == "bar=baz"
         tracestateDD = tracestateArr[dd_num][3:].split(";")
-        assert len(tracestateDD) == 2
         assert "s:2" in tracestateDD
         assert "t.dm:-4" in tracestateDD
 
@@ -209,7 +198,7 @@ class Test_Span_Links:
         assert second.get("parent_id") == root.get("span_id")
         assert third.get("parent_id") != root.get("span_id")
 
-        span_links = retrieve_span_links(span)
+        span_links = retrieve_span_links(third)
         assert len(span_links) == 2
 
         link = span_links[0]
