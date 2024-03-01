@@ -1250,6 +1250,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_graphql_resolver_argument(test_object):
+        """
+        IAST Source: Graphql resolver argument
+
+        https://feature-parity.us1.prod.dog/#/?feature=281
+        """
+        pytest.mark.features(feature_id=281)(test_object)
+        return test_object
+
+    @staticmethod
     def grpc_threats_management(test_object):
         """
         gRPC Threats Management
@@ -2005,4 +2015,44 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
         pytest.mark.features(feature_id=276)(test_object)
+        return test_object
+
+    @staticmethod
+    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=280
+        """
+        pytest.mark.features(feature_id=280)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_kinesis(test_object):
+        """
+        DataStreams Monitoring support for AWS Kinesis
+
+        https://feature-parity.us1.prod.dog/#/?feature=282
+        """
+        pytest.mark.features(feature_id=282)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_reflection_injection(test_object):
+        """
+        IAST Sink: Reflection Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=279
+        """
+        pytest.mark.features(feature_id=279)(test_object)
+        return test_object
+
+    @staticmethod
+    def embeded_git_reference(test_object):
+        """
+        Embedding Git references to build artifacts
+
+        https://feature-parity.us1.prod.dog/#/?feature=286
+        """
+        pytest.mark.features(feature_id=286)(test_object)
         return test_object

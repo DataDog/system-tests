@@ -8,38 +8,11 @@ from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import scenarios, missing_feature
 from utils.parametric._library_client import Link
+from utils.parametric.spec.trace import retrieve_span_links
 
 
 @scenarios.parametric
 class Test_Span_Links:
-    @staticmethod
-    def _get_span_links(span):
-        """Return the span links for the given span.
-        This method is used to abstract the differences between the trace API v0.4 and v0.5.
-        """
-        if span.get("span_links"):
-            # trace API v0.4
-            return span["span_links"]
-
-        encoded_span_links = span.get("meta", {}).get("_dd.span_links")
-        if not encoded_span_links:
-            # no span links found
-            return None
-
-        # trace API v0.5
-        span_links = json.loads(encoded_span_links)
-        # convert v0.5 span_link span ids and trace ids to the v0.4 format.
-        # This will simplify tests and reduce duplication.
-        for link in span_links:
-            tid_high = int(link["trace_id"][:16], 16)
-            if tid_high:
-                link["trace_id_high"] = tid_high
-            link["trace_id"] = int(link["trace_id"][16:], 16)
-            link["span_id"] = int(link["span_id"], 16)
-            # If set, the high bit (bit 31) should be set according the RFC
-            link["flags"] = 0 if link.get("flags") is None else (link.get("flags") | TRACECONTEXT_FLAGS_SET)
-        return span_links
-
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
     def test_span_started_with_link_v04(self, test_agent, test_library):
         """Test adding a span link created from another span and serialized in the expected v0.4 format.
@@ -149,7 +122,7 @@ class Test_Span_Links:
         assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
         assert span["meta"].get(ORIGIN) is None
 
-        span_links = self._get_span_links(span)
+        span_links = retrieve_span_links(span)
         assert len(span_links) == 1
         link = span_links[0]
         assert link.get("span_id") == 9876543210
@@ -190,7 +163,7 @@ class Test_Span_Links:
         span = traces[0][0]
         assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
 
-        span_links = self._get_span_links(span)
+        span_links = retrieve_span_links(span)
         assert len(span_links) == 1
         link = span_links[0]
         assert link.get("span_id") == 1311768467284833366
@@ -236,7 +209,7 @@ class Test_Span_Links:
         assert second.get("parent_id") == root.get("span_id")
         assert third.get("parent_id") != root.get("span_id")
 
-        span_links = self._get_span_links(third)
+        span_links = retrieve_span_links(span)
         assert len(span_links) == 2
 
         link = span_links[0]
@@ -301,7 +274,7 @@ class Test_Span_Links:
         # Span Link generated from datadog headers containing manual keep
         link_w_manual_keep = traces[0][0]
         # assert that span link is set up correctly
-        span_links = self._get_span_links(link_w_manual_keep)
+        span_links = retrieve_span_links(link_w_manual_keep)
         assert len(span_links) == 1 and span_links[0]["span_id"] == 777
         # assert that sampling decision is propagated by the span link
         assert link_w_manual_keep["meta"].get("_dd.p.dm") == "-0"
@@ -310,7 +283,7 @@ class Test_Span_Links:
         # Span Link generated from tracecontext headers containing manual drop
         link_w_manual_drop = traces[1][0]
         # assert that span link is set up correctly
-        span_links = self._get_span_links(link_w_manual_drop)
+        span_links = retrieve_span_links(link_w_manual_drop)
         assert len(span_links) == 1 and span_links[0]["span_id"] == 17
         # assert that sampling decision is propagated by the span link
         assert link_w_manual_drop["meta"].get("_dd.p.dm") == "-3"
@@ -320,7 +293,7 @@ class Test_Span_Links:
         auto_dropped_span = traces[2][0]
         linked_to_auto_dropped_span = traces[3][0]
         # assert that span link is set up correctly
-        span_links = self._get_span_links(linked_to_auto_dropped_span)
+        span_links = retrieve_span_links(linked_to_auto_dropped_span)
         assert len(span_links) == 1 and span_links[0]["span_id"] == auto_dropped_span["span_id"]
         # ensure autodropped span has the set sampling decision
         assert auto_dropped_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 0

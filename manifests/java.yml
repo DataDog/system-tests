@@ -51,7 +51,7 @@ tests/:
             spring-boot-wildfly: v1.29.0
             uds-spring-boot: v1.29.0
         test_header_injection.py:
-          TestHeaderInjection: 
+          TestHeaderInjection:
             '*': missing_feature
             spring-boot: v1.27.0
             spring-boot-jetty: v1.27.0
@@ -113,7 +113,7 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
         test_nosql_mongodb_injection.py:
-          TestNoSqlMongodbInjection: missing_feature            
+          TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': v1.1.0
@@ -124,6 +124,13 @@ tests/:
             resteasy-netty3: v1.11.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
+        test_reflection_injection.py:
+          TestReflectionInjection:
+            '*': v1.31.0
+            akka-http: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_sql_injection.py:
           TestSqlInjection:
             '*': v1.1.0
@@ -146,7 +153,7 @@ tests/:
           Test_TrustBoundaryViolation:
             "*": "bug (APPSEC-12201)"
         test_unvalidated_redirect.py:
-          TestUnvalidatedHeader: 
+          TestUnvalidatedHeader:
             '*': v1.15.0
             akka-http: missing_feature
             play: missing_feature
@@ -251,6 +258,8 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName:
             '*': v1.3.0
@@ -868,6 +877,10 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           spring-boot: v0.1 # real version not known
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          spring-boot: v0.1 # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
@@ -904,6 +917,9 @@ tests/:
       Test_DsmKafka:
         "*": irrelevant
         spring-boot: v1.13.0
+      Test_DsmKinesis:
+        "*": irrelevant
+        spring-boot: v1.13.0
       Test_DsmRabbitmq:
         "*": irrelevant
         spring-boot: v1.13.0
@@ -927,9 +943,9 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: v1.17.0
+      TestDynamicConfigV1: v1.17.0      
       TestDynamicConfigV1_ServiceTargets: v1.31.0
-      TestDynamicConfigV2: missing_feature
+      TestDynamicConfigV2: v1.31.0      
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature

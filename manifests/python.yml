@@ -7,7 +7,7 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: 
+        Test_API_Security_RC_ASM_DD_processors:
           '*': missing_feature
           django-poc: v2.6.0dev
           fastapi: v2.6.0dev
@@ -15,7 +15,7 @@ tests/:
           python3.12: v2.6.0dev
           uds-flask: v2.6.0dev
           uwsgi-poc: v2.6.0dev
-        Test_API_Security_RC_ASM_DD_scanners: 
+        Test_API_Security_RC_ASM_DD_scanners:
           '*': missing_feature
           django-poc: v2.6.0dev
           fastapi: v2.6.0dev
@@ -25,14 +25,7 @@ tests/:
           uwsgi-poc: v2.6.0dev
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling:
-          '*': missing_feature
-          django-poc: v2.5.0
-          fastapi: v2.5.0
-          flask-poc: v2.5.0
-          python3.12: v2.5.0
-          uds-flask: v2.5.0
-          uwsgi-poc: v2.5.0
+        Test_API_Security_sampling: missing_feature
       test_schemas.py:
         Test_Scanners:
           '*': missing_feature
@@ -153,6 +146,8 @@ tests/:
             '*': v2.1.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.18.0
@@ -210,6 +205,8 @@ tests/:
             '*': v1.18.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName:
             '*': v1.18.0
@@ -501,6 +498,10 @@ tests/:
         Test_Kafka:
           '*': irrelevant
           flask-poc: v2.5.0
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          flask-poc: v2.6.0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
@@ -535,6 +536,9 @@ tests/:
       Test_DsmKafka:
         '*': irrelevant
         flask-poc: v1.20.3
+      Test_DsmKinesis:
+        '*': irrelevant
+        flask-poc: v1.16.0
       Test_DsmRabbitmq:
         '*': irrelevant
         flask-poc: v2.6.0
