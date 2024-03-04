@@ -151,7 +151,7 @@ jobs:
         run: DOCKER_IMAGE_WEBLOG_TAG=${{ github.sha }} ./run.sh K8S_LIB_INJECTION 
 
       - name: Kubernetes lib-injection tests
-        if: !inputs.build_lib_injection_app_images
+        if: inputs.build_lib_injection_app_images != true
         id: k8s-lib-injection-tests
         run: ./run.sh K8S_LIB_INJECTION 
         
