@@ -15,7 +15,7 @@ stages:
   before_script:
     # Setup AWS Credentials
     #- pip3 install virtualenv
-    - apt-get update
+    - apt-get --ignore-missing update
     - apt-get install -y python3-virtualenv
     - mkdir -p ~/.aws
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
