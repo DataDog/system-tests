@@ -157,7 +157,7 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
         with:
-          registry: ${{env.DOCKER_REGISTRY_IMAGES_PATH}}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
