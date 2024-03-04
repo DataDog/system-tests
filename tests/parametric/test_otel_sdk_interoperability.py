@@ -227,7 +227,7 @@ class Test_Otel_SDK_Interoperability:
                 otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="dd.span"))
+        trace = find_trace_by_root(traces, Span(name="internal"))
         self.assert_span_link(trace)
 
     def test_set_attribute_from_datadog(self, test_agent, test_library):
