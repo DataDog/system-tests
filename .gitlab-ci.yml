@@ -14,9 +14,6 @@ stages:
   tags: ["arch:amd64"]
   before_script:
     # Setup AWS Credentials
-    #- pip3 install virtualenv
-    - apt-get --ignore-missing update
-    - apt-get install -y python3-virtualenv
     - mkdir -p ~/.aws
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
     - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
@@ -72,6 +69,7 @@ onboarding_nodejs:
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
          
   script:
+      - pip3 install virtualenv
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
       
@@ -168,6 +166,7 @@ onboarding_ruby:
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
+      - pip3 install virtualenv
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
