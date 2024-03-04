@@ -14,7 +14,9 @@ stages:
   tags: ["arch:amd64"]
   before_script:
     # Setup AWS Credentials
-    - pip3 install virtualenv
+    #- pip3 install virtualenv
+    - apt-get update
+    - apt-get install -y python3-virtualenv
     - mkdir -p ~/.aws
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
     - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
