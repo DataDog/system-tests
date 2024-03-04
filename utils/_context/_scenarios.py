@@ -1113,16 +1113,70 @@ class _KubernetesMachineScenario(_Scenario):
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
         assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
         assert (
-            "WEBLOG_VARIANT_IMAGE" in os.environ
-        ), "WEBLOG_VARIANT_IMAGE is not set. IE: docker.io/robertomontero509/dd-lib-java-init-test-app:local"
+            "DOCKER_IMAGE_TAG" in os.environ
+        ), "DOCKER_IMAGE_TAG is not set. Select tag for the lang inject init image: latest, local, latest_snapshot or a specific version"
         assert (
-            "LIBRARY_INIT_IMAGE" in os.environ
-        ), "LIBRARY_INIT_IMAGE is not set. IE: docker.io/datadog/dd-lib-java-init:latest"
+            "DOCKER_REGISTRY_IMAGES_PATH" in os.environ
+        ), "DOCKER_REGISTRY_IMAGES_PATH is not set. IE: ghcr.io/datadog"
+
+        library_injection_init_image = self._get_library_injection_init_image()
+        library_injection_test_app_image = self._get_library_injection_test_app_image()
 
         self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
         self._weblog_variant = os.getenv("WEBLOG_VARIANT")
-        self._weblog_variant_image = os.getenv("WEBLOG_VARIANT_IMAGE")
-        self._library_init_image = os.getenv("LIBRARY_INIT_IMAGE")
+        self._weblog_variant_image = library_injection_test_app_image
+        self._library_init_image = library_injection_init_image
+        self._library_init_image_tag = os.getenv("DOCKER_IMAGE_TAG")
+
+        logger.stdout("K8s Lib Injection environment:")
+        logger.stdout(f"Library: {self._library}")
+        logger.stdout(f"Weblog variant: {self._weblog_variant}")
+        logger.stdout(f"Weblog variant image: {self._weblog_variant_image}")
+        logger.stdout(f"Library init image: {self._library_init_image}")
+        logger.stdout(f"Library init image tag: {self._library_init_image_tag}")
+
+    def _get_library_injection_test_app_image(self):
+        docker_registry_images_path = os.getenv("DOCKER_REGISTRY_IMAGES_PATH")
+        library_injection_test_app_image = os.environ.get("LIBRARY_INJECTION_TEST_APP_IMAGE", None)
+        if not library_injection_test_app_image:
+            app_docker_image_repo = f"{docker_registry_images_path}/system-tests/{os.getenv('WEBLOG_VARIANT')}"
+            if "DOCKER_IMAGE_WEBLOG_TAG" in os.environ:
+                library_injection_test_app_image = (
+                    f"{app_docker_image_repo}:{os.environ.get('DOCKER_IMAGE_WEBLOG_TAG')}"
+                )
+            else:
+                library_injection_test_app_image = f"{app_docker_image_repo}:latest"
+        return library_injection_test_app_image
+
+    def _get_library_injection_init_image(self):
+        test_library = os.getenv("TEST_LIBRARY")
+        init_image_repo_alias = test_library
+        init_image_alias = test_library
+        if test_library == "nodejs":
+            init_image_repo_alias = "js"
+            init_image_alias = "js"
+        elif test_library == "python":
+            init_image_repo_alias = "py"
+        elif test_library == "ruby":
+            init_image_repo_alias = "rb"
+
+        docker_image_tag = os.getenv("DOCKER_IMAGE_TAG")
+        docker_registry_images_path = os.getenv("DOCKER_REGISTRY_IMAGES_PATH")
+
+        init_docker_image_repo = ""
+        if docker_image_tag == "latest":
+            # Release version are published in docker.io
+            init_docker_image_repo = f"docker.io/datadog/dd-lib-{init_image_alias}-init"
+        elif docker_image_tag == "local":
+            # Docker hub doesn't allow multi level repo paths
+            init_docker_image_repo = f"{docker_registry_images_path}/dd-lib-{init_image_alias}-init"
+        else:
+            init_docker_image_repo = (
+                f"{docker_registry_images_path}/dd-trace-{init_image_repo_alias}/dd-lib-{init_image_alias}-init"
+            )
+
+        library_injection_init_image = f"{init_docker_image_repo}:{docker_image_tag}"
+        return library_injection_init_image
 
     @property
     def library(self):

@@ -132,22 +132,13 @@ class K8sDatadogClusterTestAgent:
 
         self._wait_for_operator_ready()
 
-    def _apply_config_auto_inject(self, library):
-        execute_command(f"kubectl apply -f lib-injection/build/docker/{library}/config.yaml")
-        res = create_from_yaml(client.ApiClient(), f"lib-injection/build/docker/{library}/config.yaml")
-        logger.info(f"Configmap created: {res}")
-        logger.info("[Auto Config] Waiting on the cluster agent to pick up the changes")
-        time.sleep(90)
-
     def apply_config_auto_inject(self, library, config_data):
         logger.info(f"[Auto Config] Applying config for auto-inject: {config_data}")
         v1 = client.CoreV1Api()
         metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
-        with open(f"lib-injection/build/docker/{library}/config.json", "r") as f:
-            file_content = f.read()
-        configmap = client.V1ConfigMap(kind="ConfigMap", data={"auto-instru.json": file_content,}, metadata=metadata)
+        configmap = client.V1ConfigMap(kind="ConfigMap", data={"auto-instru.json": config_data,}, metadata=metadata)
         r = v1.replace_namespaced_config_map(name="auto-instru", namespace="default", body=configmap)
-        logger.info(f"[Auto Config] Configmap replaced: {r}")
+        logger.info(f"[Auto Config] Configmap replaced!")
         time.sleep(90)
 
     def create_configmap_auto_inject(self):
