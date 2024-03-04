@@ -10,7 +10,7 @@ stages:
 .base_job_onboarding:
   only:
       - web
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:59215b0d47c4
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   before_script:
     # Setup AWS Credentials
@@ -69,7 +69,6 @@ onboarding_nodejs:
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
          
   script:
-      - pip3 install virtualenv
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
       
@@ -166,7 +165,6 @@ onboarding_ruby:
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
-      - pip3 install virtualenv
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
