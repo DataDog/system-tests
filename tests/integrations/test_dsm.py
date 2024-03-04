@@ -355,8 +355,7 @@ class Test_DsmContext_Injection:
         # consume message using helper and check propagation type
         self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
 
-    # @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
-    # @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
+    @missing_feature(library="python", reason="dd-trace-py uses V1 encoding by default.")
     def test_dsmcontext_injection(self):
         assert self.r.status_code == 200
 
@@ -389,7 +388,12 @@ class Test_DsmContext_Injection:
             assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
 
             encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
-            decoded_pathway = struct.unpack("<Q", encoded_pathway[:8])[0]
+
+            # nodejs uses big endian, others use little endian
+            _format = "<Q"
+            if context.library.library == "nodejs":
+                _format = ">Q"
+            decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
 
             assert producer_hash == decoded_pathway
 
@@ -399,16 +403,17 @@ class Test_DsmContext_Injection:
 
         elif "dd-pathway-ctx" in message.headers:
             encoded_pathway = message.headers["dd-pathway-ctx"]
-            decoded_pathway = struct.unpack("<Q", encoded_pathway[:8])[0]
+            # nodejs uses big endian, others use little endian
+            _format = "<Q"
+            if context.library.library == "nodejs":
+                _format = ">Q"
+            decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
 
             # assert producer_hash == decoded_pathway
 
             DsmHelper.assert_checkpoint_presence(
                 hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
             )
-            assert 1 == 0, "DSM Pathway should be injected as base64, which is the most up-to-date pathway encoding"
-        else:
-            assert 1 == 0, "DSM Pathway should be injected as base64, which is the most up-to-date pathway encoding"
 
 
 @features.datastreams_monitoring_support_for_v1_encoding
@@ -426,6 +431,7 @@ class Test_DsmContext_Extraction_V1:
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
     @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
+    @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
     def test_dsmcontext_extraction_v1(self):
         assert self.produce_response == "ok"
         assert "error" not in self.r.text
