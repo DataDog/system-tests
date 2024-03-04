@@ -157,16 +157,17 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
         with:
-          registry: ghcr.io
+          registry: ghcr.io/datadog
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build weblog base images
         if: inputs.build_lib_injection_app_images
+        env:
+          DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
         run: |
-          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT
-          #FIXME: This variable should be call DOCKER_IMAGE_WEBLOG_TAG
-          LIBRARY_INJECTION_TEST_APP_IMAGE=${{ github.sha }} ./build.sh
+          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT        
+          LIBRARY_INJECTION_TEST_APP_IMAGE=ghcr.io/datadog/system-tests/$WEBLOG_VARIANT:${{ github.sha }} ./build.sh
           
       - name: Kubernetes lib-injection tests (using custom weblog image tag)
         if: inputs.build_lib_injection_app_images
