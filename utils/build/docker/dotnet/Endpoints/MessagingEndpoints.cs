@@ -130,9 +130,8 @@ public class MessagingEndpoints : ISystemTestEndpoint
 
     private static async Task SqsProduce(string queue)
     {
-        var sqsClient = new AmazonSQSClient();
-        var responseCreate = await sqsClient.CreateQueueAsync(
-            new CreateQueueRequest { QueueName = queue });
+        var sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = "http://elasticmq:9324" });
+        var responseCreate = await sqsClient.CreateQueueAsync(queue);
         var qUrl = responseCreate.QueueUrl;
         await sqsClient.SendMessageAsync(qUrl, "sqs message from dotnet");
         Console.WriteLine($"SQS message produced to queue {queue} with url {qUrl}");
@@ -140,26 +139,30 @@ public class MessagingEndpoints : ISystemTestEndpoint
 
     private static async Task<bool> SqsConsume(string queue, TimeSpan timeout)
     {
-        Console.WriteLine("consuming one message from SQS queue " + queue);
-        var sqsClient = new AmazonSQSClient();
-        var responseCreate = await sqsClient.CreateQueueAsync(
-            new CreateQueueRequest { QueueName = "dsm-system-tests-queue" });
+        Console.WriteLine($"consuming one message from SQS queue {queue} in max {(int)timeout.TotalSeconds} seconds");
+        var sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = "http://elasticmq:9324" });
+        var responseCreate = await sqsClient.CreateQueueAsync(queue);
         var qUrl = responseCreate.QueueUrl;
-        var result = await sqsClient.ReceiveMessageAsync(new ReceiveMessageRequest
+
+        // WaitTimeSeconds must be less than 20, and the timeout provided is often greater, so we do several 1 second calls to handle that.
+        for (int i = 0; i < (int)timeout.TotalSeconds; i++)
         {
-            QueueUrl = qUrl,
-            MaxNumberOfMessages = 1,
-            WaitTimeSeconds = (int)timeout.TotalSeconds
-        });
-        if (result == null || result.Messages.Count == 0)
-        {
-            return false;
+            var result = await sqsClient.ReceiveMessageAsync(new ReceiveMessageRequest
+            {
+                QueueUrl = qUrl,
+                MaxNumberOfMessages = 1,
+                WaitTimeSeconds = 1
+            });
+            if (result != null && result.Messages.Count != 0)
+            {
+                Console.WriteLine(
+                    $"received {result.Messages.Count} message(s). Content: " + string.Join(", ", result.Messages));
+                if (result.Messages.Count > 1)
+                    Console.WriteLine("ERROR: consumed more than one message from SQS, this shouldn't happen");
+                return result.Messages.Count == 1;
+            }
         }
 
-        Console.WriteLine(
-            $"received {result.Messages.Count} message(s). Content: " + string.Join(", ", result.Messages));
-        if (result.Messages.Count > 1)
-            Console.WriteLine("ERROR: consumed more than one message from SQS, this shouldn't happen");
-        return result.Messages.Count == 1;
+        return false;
     }
 }
