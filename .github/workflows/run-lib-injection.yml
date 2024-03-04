@@ -168,7 +168,7 @@ jobs:
         run: |
           cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
           export APP_DOCKER_IMAGE_REPO=ghcr.io/datadog/system-tests/$WEBLOG_VARIANT       
-          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO/$WEBLOG_VARIANT:${{ github.sha }} ./build.sh
+          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:${{ github.sha }} ./build.sh
           cd ..
 
       - name: Install runner
