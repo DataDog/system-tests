@@ -138,6 +138,11 @@ jobs:
       BUILDX_PLATFORMS: linux/amd64
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+          
       - name: Build weblog base images
         if: inputs.build_lib_injection_app_images
         run: |
