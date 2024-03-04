@@ -3,7 +3,7 @@ name: Lib-injection tests
 on:
   workflow_call:
     inputs:
-      build_python_base_images:
+      build_lib_injection_app_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
         required: false
