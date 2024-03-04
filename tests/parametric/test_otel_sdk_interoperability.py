@@ -224,6 +224,8 @@ class Test_Otel_SDK_Interoperability:
                 assert otel_link["tracestate"] == TEST_TRACESTATE
                 assert otel_link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
 
+                otel_span.end_span()
+
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, Span(name="dd.span"))
         self.assert_span_link(trace)
