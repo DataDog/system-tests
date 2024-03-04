@@ -340,12 +340,12 @@ class Test_DsmKinesis:
         )
 
 
-@features.datastreams_monitoring_support_for_v1_encoding
+@features.datastreams_monitoring_support_context_injection_base64
 @scenarios.integrations
-class Test_DsmContext_Injection:
+class Test_DsmContext_Injection_Base64:
     """ Verify DSM context is injected using correct encoding (base64) """
 
-    def setup_dsmcontext_injection(self):
+    def setup_dsmcontext_injection_base64(self):
         queue = "dsm-propagation-test-injection"
         exchange = "dsm-propagation-test-injection-exchange"
 
@@ -356,7 +356,8 @@ class Test_DsmContext_Injection:
         self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
 
     @missing_feature(library="python", reason="dd-trace-py uses V1 encoding by default.")
-    def test_dsmcontext_injection(self):
+    @missing_feature(library="nodejs", reason="dd-trace-js does not yet support V2 Base64 injection")
+    def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
         assert "error" not in self.r.text
@@ -409,11 +410,12 @@ class Test_DsmContext_Injection:
                 _format = ">Q"
             decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
 
-            # assert producer_hash == decoded_pathway
-
             DsmHelper.assert_checkpoint_presence(
                 hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
             )
+
+            # We autofail here since we anticipate the base64 header
+            assert 1 == 0, "Tracer should support DSM Base64 Pathway encoding"
 
 
 @features.datastreams_monitoring_support_for_v1_encoding
@@ -470,6 +472,7 @@ class Test_DsmContext_Extraction_V2:
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
     @missing_feature(library="python", reason="dd-trace-py automatically assumes v1 encoding for rabbitmq")
+    @missing_feature(library="nodejs", reason="dd-trace-js does not yet support Base64 pathway header")
     def test_dsmcontext_extraction_v2_base64(self):
         assert self.produce_response == "ok"
         assert "error" not in self.r.text

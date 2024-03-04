@@ -2048,6 +2048,16 @@ class features:
         return test_object
 
     @staticmethod
+    def datastreams_monitoring_support_context_injection_base64(test_object):
+        """
+        Datastreams Monitoring support for V2 Base64 Encoding injection using dd-pathway-ctx-base64
+
+        https://feature-parity.us1.prod.dog/#/?feature=287
+        """
+        pytest.mark.features(feature_id=287)(test_object)
+        return test_object
+
+    @staticmethod
     def datastreams_monitoring_support_for_kinesis(test_object):
         """
         DataStreams Monitoring support for AWS Kinesis
