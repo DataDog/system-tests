@@ -169,7 +169,10 @@ jobs:
           cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT        
           LIBRARY_INJECTION_TEST_APP_IMAGE=ghcr.io/datadog/system-tests/$WEBLOG_VARIANT:${{ github.sha }} ./build.sh
           cd ..
-           
+          
+      - name: Install runner
+        uses: ./.github/actions/install_runner     
+
       - name: Build system-tests runner
         id: build-runner
         run: ./build.sh -i runner   
