@@ -169,7 +169,11 @@ jobs:
           cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT        
           LIBRARY_INJECTION_TEST_APP_IMAGE=ghcr.io/datadog/system-tests/$WEBLOG_VARIANT:${{ github.sha }} ./build.sh
           cd ..
-          
+           
+      - name: Build system-tests runner
+        id: build-runner
+        run: ./build.sh -i runner   
+
       - name: Kubernetes lib-injection tests (using custom weblog image tag)
         if: inputs.build_lib_injection_app_images
         id: k8s-lib-injection-tests-custom-weblog-tag
