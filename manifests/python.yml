@@ -25,95 +25,28 @@ tests/:
           uwsgi-poc: v2.6.0dev
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling:
-          '*': missing_feature
-          django-poc: v2.5.0
-          fastapi: v2.5.0
-          flask-poc: v2.5.0
-          python3.12: v2.5.0
-          uds-flask: v2.5.0
-          uwsgi-poc: v2.5.0
+        Test_API_Security_sampling: missing_feature
       test_schemas.py:
         Test_Scanners:
           '*': missing_feature
-          django-poc: v2.4.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.4.0.dev
-          python3.12: v2.4.0.dev
-          uds-flask: v2.4.0dev
-          uwsgi-poc: v2.4.0dev
         Test_Schema_Request_Cookies:
           '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
         Test_Schema_Request_FormUrlEncoded_Body:
           '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
         Test_Schema_Request_Headers:
           '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
         Test_Schema_Request_Json_Body:
           '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
         Test_Schema_Request_Path_Parameters:
           '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
         Test_Schema_Request_Query_Parameters:
           '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
         Test_Schema_Response_Body:
           '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
         Test_Schema_Response_Body_env_var:
           '*': missing_feature
-          django-poc: v2.6.0.dev
-          fastapi: v2.6.0.dev1
-          flask-poc: v2.6.0.dev
-          python3.12: v2.6.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
         Test_Schema_Response_Headers:
           '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
     iast/:
       sink/:
         test_command_injection.py:
