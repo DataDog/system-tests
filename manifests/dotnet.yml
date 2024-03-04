@@ -48,7 +48,7 @@ tests/:
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
         test_reflection_injection.py:
-          TestReflectionInjection: missing_feature
+          TestReflectionInjection: v2.48.0
         test_sql_injection.py:
           TestSqlInjection:
              '*': v2.23.0
@@ -212,11 +212,11 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_Kafka: missing_feature
+        Test_Kafka: v2.0.0
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
-        Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+        Test_RabbitMQ_Trace_Context_Propagation: v2.0.0
       test_sns_to_sqs.py:
         Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:

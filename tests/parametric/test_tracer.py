@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span
-from utils import missing_feature, context, rfc, scenarios
+from utils import missing_feature, context, rfc, scenarios, features
 
 from .conftest import _TestAgentAPI
 from .conftest import APMLibrary
@@ -45,6 +45,7 @@ class Test_Tracer:
 
 @rfc("https://docs.google.com/document/d/1vxuRUNzHqd6sp1lnF3T383acbLrG0R-xDGi8cdZ4cs8/edit")
 @scenarios.parametric
+@features.embeded_git_reference
 class Test_TracerSCITagging:
     @parametrize("library_env", [{"DD_GIT_REPOSITORY_URL": "https://github.com/DataDog/dd-trace-go"}])
     def test_tracer_repository_url_environment_variable(

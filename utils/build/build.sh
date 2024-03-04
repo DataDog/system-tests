@@ -241,9 +241,9 @@ build() {
             # If anybody has an idea to achieve this in a cleanest way ...
 
             echo "Getting system test context and saving it in weblog image"
-            SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
-            SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
-            SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
+            SYSTEM_TESTS_LIBRARY_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
+            SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
+            SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
