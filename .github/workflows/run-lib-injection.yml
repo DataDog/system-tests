@@ -166,10 +166,11 @@ jobs:
         env:
           DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
         run: |
-          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT        
-          LIBRARY_INJECTION_TEST_APP_IMAGE=ghcr.io/datadog/system-tests/$WEBLOG_VARIANT:${{ github.sha }} ./build.sh
+          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
+          export APP_DOCKER_IMAGE_REPO=ghcr.io/datadog/system-tests/$WEBLOG_VARIANT       
+          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO/$WEBLOG_VARIANT:${{ github.sha }} ./build.sh
           cd ..
-          
+
       - name: Install runner
         uses: ./.github/actions/install_runner     
 
