@@ -715,7 +715,7 @@ class Test_Headers_Tracecontext:
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
@@ -785,7 +785,7 @@ class Test_Headers_Tracecontext:
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
