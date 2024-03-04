@@ -2,12 +2,20 @@ name: Lib-injection tests
 
 on:
   workflow_call:
-  
+    inputs:
+      build_python_base_images:
+        description: "Shall we build python base images for tests on python tracer"
+        default: false
+        required: false
+        type: boolean 
 env:
   REGISTRY: ghcr.io
 
+
+
 jobs:
   manual-lib-injection-tests:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -98,3 +106,55 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           test-script: ./lib-injection/run-auto-lib-injection.sh
+
+  #TODO rename this job after migration completed!
+  new-lib-injection-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        variant:
+        - library: java
+          weblog-variant: dd-lib-java-init-test-app
+
+        - library: nodejs
+          weblog-variant: sample-app
+
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django
+
+        version: 
+          - latest #Production tag
+          - latest_snapshot
+
+      fail-fast: false
+    env:
+      TEST_LIBRARY: ${{ matrix.variant.library }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
+      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
+      DOCKER_IMAGE_TAG: ${{ matrix.version }}
+      BUILDX_PLATFORMS: linux/amd64
+
+    steps:
+      - name: Build weblog base images
+        if: inputs.build_lib_injection_app_images
+        run: |
+          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT
+          #FIXME: This variable should be call DOCKER_IMAGE_WEBLOG_TAG
+          LIBRARY_INJECTION_TEST_APP_IMAGE=${{ github.sha }} ./build.sh
+          
+      - name: Kubernetes lib-injection tests (using custom weblog image tag)
+        if: inputs.build_lib_injection_app_images
+        id: k8s-lib-injection-tests-custom-weblog-tag
+        run: DOCKER_IMAGE_WEBLOG_TAG=${{ github.sha }} ./run.sh K8S_LIB_INJECTION 
+
+      - name: Kubernetes lib-injection tests
+        if: !inputs.build_lib_injection_app_images
+        id: k8s-lib-injection-tests
+        run: ./run.sh K8S_LIB_INJECTION 
+        
+
+        
+            
