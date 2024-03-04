@@ -231,7 +231,7 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_V1: missing_feature
       Test_DsmContext_Extraction_V2: missing_feature
-      Test_DsmContext_Injection: missing_feature
+      Test_DsmContext_Injection_Base64: missing_feature
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
       Test_DsmKinesis: missing_feature
