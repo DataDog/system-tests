@@ -59,8 +59,8 @@ class K8sInstance:
         self.test_weblog.deploy_app_auto(self.weblog_variant_image, self.library)
         return self.test_weblog
 
-    def apply_config_auto_inject(self):
-        self.test_agent.apply_config_auto_inject(self.library)
+    def apply_config_auto_inject(self, config_data):
+        self.test_agent.apply_config_auto_inject(self.library, config_data)
         self.test_weblog.wait_for_weblog_after_apply_configmap(f"{self.library}-app")
         return self.test_agent
 

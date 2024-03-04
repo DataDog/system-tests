@@ -5,7 +5,7 @@ from utils.tools import logger
 
 class K8sWeblog:
     def deploy_app_manual(self, app_image, library, library_init_image):
-        self.v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api()
         logger.info(
             "[Deploy weblog] Deploying weblog as pod. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
             % (app_image, library, library_init_image)
@@ -72,26 +72,6 @@ class K8sWeblog:
 
         v1.create_namespaced_pod(namespace="default", body=pod_body)
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=100)
-        # pod_ready = False
-        # for i in range(0, 10):
-        #    try:
-
-        #        pod_status = v1.read_namespaced_pod_status(name="my-app", namespace="default")
-        #        if pod_status.status.phase == "Running":
-        #            logger.info(f"Pod status weblog running!")
-        #            pod_ready = True
-        #            break
-        #        else:
-        #            time.sleep(5)
-        #    except client.exceptions.ApiException as e:
-        #        logger.info(f"Pod weblog status error: {e}")
-        #        time.sleep(5)
-
-        # if not pod_ready:
-        #    logger.error("weblog not created. Last status: %s" % pod_status)
-        #    pod_logs = v1.read_namespaced_pod_log(name="my-app", namespace="default")
-        #    logger.error(f"weblog logs: {pod_logs}")
-        #    raise Exception("Weblog not created")
 
     def deploy_app_auto(self, app_image, library):
         api = client.AppsV1Api()
@@ -136,46 +116,6 @@ class K8sWeblog:
         resp = api.create_namespaced_deployment(body=deployment, namespace="default")
         self._wait_for_deployment_complete(deployment_name, timeout=100)
 
-        # deployment_ready = False
-        # w = watch.Watch()
-        # for event in w.stream(
-        #    func=api.list_namespaced_deployment, namespace="default", label_selector=f"app={library}-app", timeout_seconds=60
-        # ):
-        #    if event["object"].status.phase == "Running":
-        #        w.stop()
-        #        logger.info("Weblog deployment started!")
-        #        deployment_ready = True
-        #        break
-
-        # if not deployment_ready:
-
-        #    deployment_status = api.read_namespaced_deployment_status(name=deployment_name, namespace='default')
-        #    logger.error("weblog deployment not created. Last status: %s" % deployment_status)
-        #    deployment_logs = api.read_namespaced_deployment(name=deployment_name, namespace="default")
-        #    logger.error(f"weblog logs: {deployment_logs}")
-        #    raise Exception("Weblog deplyment not created")
-
-    # deploy-app-auto installs a target app for auto library injection testing.
-    # It returns when the deployment is available and the rollout is finished.
-    # function deploy-app-auto() {
-    #    echo "[Deploy] deploy-app-auto: deploying app for library ${TEST_LIBRARY}"
-    #    deployment_name=test-${TEST_LIBRARY}-deployment
-    #    helm template lib-injection/common \
-    #      -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
-    #      --set library="${TEST_LIBRARY}" \
-    #      --set as_deployment="true" \
-    #      --set deployment=${deployment_name} \
-    #      --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
-    #       | kubectl apply -f -
-
-    #   echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
-    #   kubectl rollout status deployments/${deployment_name} --timeout=5m
-    #   kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
-    #   remove-terminating-pods
-    #   kubectl get pods
-    #
-    #    echo "[Deploy] deploy-app-auto: done"
-    # }
     def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
         v1 = client.CoreV1Api()
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")

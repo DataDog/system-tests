@@ -1,0 +1,20 @@
+[{
+  "id": "11777398274940883092",
+  "revision": 0,
+  "schema_version": "v1.0.0",
+  "action": "enable",
+  "lib_config": {
+    "library_language": "python",
+    "library_version": "latest",
+    "service_name": "test-python-service",
+    "env": "dev",
+    "tracing_enabled": true,
+    "tracing_sampling_rate": 0.90
+  },
+  "k8s_target": {
+    "cluster": "lib-injection-testing",
+    "kind": "deployment",
+    "name": "test-python-deployment",
+    "namespace": "default"
+  }
+}]

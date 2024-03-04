@@ -1,5 +1,6 @@
 import time
 from kubernetes import client, watch
+from kubernetes.utils import create_from_yaml
 from utils.tools import logger
 from utils.k8s_lib_injection.k8s_command_utils import helm_add_repo, helm_install_chart, execute_command
 import os
@@ -8,8 +9,7 @@ import json
 
 class K8sDatadogClusterTestAgent:
     def desploy_test_agent(self):
-        logger.info("Deploying Datadog test agent")
-        v1 = client.CoreV1Api()
+        logger.info("[Test agent] Deploying Datadog test agent")
         apps_api = client.AppsV1Api()
         container = client.V1Container(
             name="trace-agent",
@@ -72,38 +72,8 @@ class K8sDatadogClusterTestAgent:
         )
 
         result = apps_api.create_namespaced_daemon_set(namespace="default", body=daemonset)
-
-        daemonset_created = False
-        daemonset_status = None
-        # Wait for the daemonset to be created
-        for i in range(0, 10):
-            try:
-                daemonset_status = apps_api.read_namespaced_daemon_set_status(name="datadog", namespace="default")
-                if daemonset_status.status.number_ready > 0:
-                    logger.info(f"daemonset status datadog running!")
-                    daemonset_created = True
-                    break
-                else:
-                    time.sleep(5)
-            except client.exceptions.ApiException as e:
-                logger.info(f"daemonset status error: {e}")
-                time.sleep(5)
-
-        if not daemonset_created:
-            logger.info("Daemonset not created. Last status: %s" % daemonset_status)
-            raise Exception("Daemonset not created")
-
-        logger.info("Daemonset created")
-
-        w = watch.Watch()
-        for event in w.stream(
-            func=v1.list_namespaced_pod, namespace="default", label_selector="app=datadog", timeout_seconds=60
-        ):
-            if event["object"].status.phase == "Running":
-                w.stop()
-                end_time = time.time()
-                logger.info("Datadog test agent started!")
-                break
+        self.wait_for_test_agent()
+        logger.info("[Test agent] Daemonset created")
 
     def deploy_operator_manual(self, use_uds=False):
 
@@ -134,25 +104,103 @@ class K8sDatadogClusterTestAgent:
         datadog_cluster_name = pods.items[0].metadata.name
         logger.info(f"[Deploy operator] Waiting for the operator ready on cluster name: {datadog_cluster_name}")
 
-        # operator_ready = False
-        # w = watch.Watch()
-        # for event in w.stream(
-        #     func=v1.list_namespaced_pod, namespace="default", field_selector=f'metadata.name={datadog_cluster_name}', timeout_seconds=60
-        # ):
-        #     if event["object"].status.phase == "Running" and event["object"].status.container_statuses[0].ready:
-        #         w.stop()
-        #         logger.info("[Deploy operator] Operator started!")
-        #         operator_ready = True
-        #         break
+        self._wait_for_operator_ready()
 
-        # if not operator_ready:
-        #    pod_status = v1.read_namespaced_pod_status(name=datadog_cluster_name, namespace="default")
-        #    logger.error("[Deploy operator] Operator not created. Last status: %s" % pod_status)
-        #    pod_logs = v1.read_namespaced_pod_log(name=datadog_cluster_name, namespace="default")
-        #    logger.error(f"[Deploy operator] Operator logs: {pod_logs}")
-        #    raise Exception("[Deploy operator] Operator not created")
+    def deploy_operator_auto(self, use_uds=False):
+        logger.info("[Deploy operator] Using Patcher")
+        operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-auto.yaml"
+
+        self.create_configmap_auto_inject()
+        logger.info("[Deploy operator] Configuring helm repository")
+        helm_add_repo("datadog", "https://helm.datadoghq.com", update=True)
+
+        logger.info(f"[Deploy operator] helm install datadog with config file [{operator_file}]")
+
+        helm_install_chart(
+            "datadog",
+            "datadog/datadog",
+            value_file=operator_file,
+            set_dict={"datadog.apiKey": os.getenv("DD_API_KEY"), "datadog.appKey": os.getenv("DD_APP_KEY")},
+        )
+        self._wait_for_operator_ready()
+
+        # TODO: This is a hack until the patching permission is added in the official helm chart.
+        logger.info("[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole")
+        execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
+
+        v1 = client.CoreV1Api()
 
         self._wait_for_operator_ready()
+
+    def _apply_config_auto_inject(self, library):
+        execute_command(f"kubectl apply -f lib-injection/build/docker/{library}/config.yaml")
+        res = create_from_yaml(client.ApiClient(), f"lib-injection/build/docker/{library}/config.yaml")
+        logger.info(f"Configmap created: {res}")
+        logger.info("[Auto Config] Waiting on the cluster agent to pick up the changes")
+        time.sleep(90)
+
+    def apply_config_auto_inject(self, library, config_data):
+        logger.info(f"[Auto Config] Applying config for auto-inject: {config_data}")
+        v1 = client.CoreV1Api()
+        metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
+        with open(f"lib-injection/build/docker/{library}/config.json", "r") as f:
+            file_content = f.read()
+        configmap = client.V1ConfigMap(kind="ConfigMap", data={"auto-instru.json": file_content,}, metadata=metadata)
+        r = v1.replace_namespaced_config_map(name="auto-instru", namespace="default", body=configmap)
+        logger.info(f"[Auto Config] Configmap replaced: {r}")
+        time.sleep(90)
+
+    def create_configmap_auto_inject(self):
+        logger.info("[Auto Config] Creating configmap for auto-inject")
+        v1 = client.CoreV1Api()
+        metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
+        configmap = client.V1ConfigMap(
+            kind="ConfigMap",
+            data={
+                "auto-instru.json": """| 
+                []""",
+            },
+            metadata=metadata,
+        )
+        try:
+            v1.create_namespaced_config_map(namespace="default", body=configmap)
+        except Exception as e:
+            logger.error("Exception when calling CoreV1Api->create_namespaced_config_map: %s\n" % e)
+            raise e
+        time.sleep(5)
+
+    def wait_for_test_agent(self):
+        v1 = client.CoreV1Api()
+        apps_api = client.AppsV1Api()
+        daemonset_created = False
+        daemonset_status = None
+        # Wait for the daemonset to be created
+        for i in range(0, 10):
+            try:
+                daemonset_status = apps_api.read_namespaced_daemon_set_status(name="datadog", namespace="default")
+                if daemonset_status.status.number_ready > 0:
+                    logger.info(f"[Test agent] daemonset status datadog running!")
+                    daemonset_created = True
+                    break
+                else:
+                    time.sleep(5)
+            except client.exceptions.ApiException as e:
+                logger.info(f"[Test agent] daemonset status error: {e}")
+                time.sleep(5)
+
+        if not daemonset_created:
+            logger.info("[Test agent] Daemonset not created. Last status: %s" % daemonset_status)
+            raise Exception("Daemonset not created")
+
+        w = watch.Watch()
+        for event in w.stream(
+            func=v1.list_namespaced_pod, namespace="default", label_selector="app=datadog", timeout_seconds=60
+        ):
+            if event["object"].status.phase == "Running":
+                w.stop()
+                end_time = time.time()
+                logger.info("Datadog test agent started!")
+                break
 
     def _wait_for_operator_ready(self):
         v1 = client.CoreV1Api()
@@ -160,7 +208,7 @@ class K8sDatadogClusterTestAgent:
         datadog_cluster_name = pods.items[0].metadata.name
 
         operator_ready = False
-        for i in range(0, 10):
+        for i in range(0, 15):
             try:
                 operator_status = v1.read_namespaced_pod_status(name=datadog_cluster_name, namespace="default")
                 if (
@@ -182,76 +230,4 @@ class K8sDatadogClusterTestAgent:
             logger.error(f"Operator logs: {operator_logs}")
             raise Exception("Operator not created")
         # At this point the operator should be ready, we are going to wait a little bit more to make sure the operator is ready (some times the operator is ready but the cluster agent is not ready yet)
-        time.sleep(5)
-
-    def deploy_operator_auto(self, use_uds=False):
-        logger.info("[Deploy operator] Using Patcher")
-        operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-auto.yaml"
-
-        self.create_configmap_auto_inject()
-        logger.info("[Deploy operator] Configuring helm repository")
-        helm_add_repo("datadog", "https://helm.datadoghq.com", update=True)
-
-        logger.info(f"[Deploy operator] helm install datadog with config file [{operator_file}]")
-
-        helm_install_chart(
-            "datadog",
-            "datadog/datadog",
-            value_file=operator_file,
-            set_dict={"datadog.apiKey": os.getenv("DD_API_KEY"), "datadog.appKey": os.getenv("DD_APP_KEY")},
-        )
-        self._wait_for_operator_ready()
-        # body_patch='[{"op": "add", "path": "/rules/0", "value":{ "apiGroups": ["apps"], "resources": ["deployments"], "verbs": ["patch"]}}]'
-        # execute_command( f"kubectl patch clusterrole datadog-cluster-agent --type=json -p {body_patch} ")
-
-        # TODO: This is a hack until the patching permission is added in the official helm chart.
-        execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
-
-        # logger.info("[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole")
-        v1 = client.CoreV1Api()
-        # apps_api = client.AppsV1Api()
-        # logger.info("[Deploy operator] ---------------------------------- 1")
-        # body_patch='[{"op": "add", "path": "/rules/0", "value":{ "apiGroups": ["apps"], "resources": ["deployments"], "verbs": ["patch"]}}]'
-        # api_instance = client.RbacAuthorizationV1Api(v1)
-        # logger.info("[Deploy operator] ---------------------------------- 2")
-        # ret = api_instance.patch_cluster_role(name="datadog-cluster-agent", body=json.loads(body_patch))
-        # logger.info("[Deploy operator] ---------------------------------- 3")
-        # logger.info("[Deploy operator] Waiting for the operator to be ready")
-
-        self._wait_for_operator_ready()
-
-    def create_configmap_auto_inject(self):
-        exec_command = "kubectl create -f utils/k8s_lib_injection/resources/operator/templates/configmap.yaml"
-        execute_command(exec_command)
-        # Simple sleep. TODO: Add a better way to wait for the configmap to be created
-        time.sleep(5)
-
-    def apply_config_auto_inject(self, library):
-        execute_command(f"kubectl apply -f lib-injection/build/docker/{library}/config.yaml")
-        logger.info("[Auto Config] Waiting on the cluster agent to pick up the changes")
-        time.sleep(90)
-
-    # execute_command("kubectl rollout status deployments/test-python-deployment --timeout=5m")
-
-    # result = v1.list_namespaced_pod( "default", label_selector="label_key=label_value",watch=False)
-
-    # TODO create configmap for auto-inject programatically
-    def _create_configmap_auto_inject(self):
-        v1 = client.CoreV1Api()
-        # Configureate ConfigMap metadata
-        metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
-        # Get File Content
-        with open("utils/k8s_lib_injection/resources/operator/templates/configmap.yaml", "r") as f:
-            file_content = f.read()
-        # Instantiate the configmap object
-        configmap = client.V1ConfigMap(
-            api_version="v1", kind="ConfigMap", data=dict(test=file_content), metadata=metadata
-        )
-
-        try:
-            api_response = v1.create_namespaced_config_map(namespace="default", body=configmap)
-        except Exception as e:
-            logger.error("Exception when calling CoreV1Api->create_namespaced_config_map: %s\n" % e)
-            raise e
-        # Simple sleep. TODO: Add a better way to wait for the configmap to be created
         time.sleep(5)
