@@ -599,12 +599,6 @@ class DsmHelper:
         messages = []
 
         def process_message(body, message):
-            print(body)
-            print(message)
-            print(message.body)
-            print(message.headers)
-            print(message.properties)
-            print(message.payload)
             message.ack()
             messages.append(message)
 
