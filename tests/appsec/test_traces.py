@@ -337,6 +337,7 @@ class Test_DistributedTraceInfo:
 
 
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
+@features.security_events_metadata
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):
         self.r = weblog.get(
