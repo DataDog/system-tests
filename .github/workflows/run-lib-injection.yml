@@ -188,7 +188,7 @@ jobs:
         uses: bots-house/ghcr-delete-image-action@v1.1.0
         with:
           owner: datadog
-          name: system-tests/${{ matrix.variant.library }}
+          name: system-tests/${{ matrix.variant.weblog-variant }}
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.sha }}
         
