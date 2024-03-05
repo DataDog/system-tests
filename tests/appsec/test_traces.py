@@ -354,13 +354,6 @@ class Test_ExternalWafRequestsIdentification:
             },
         )
 
-    @missing_feature(library="golang", reason="Not implemented yet")
-    @missing_feature(library="java", reason="Not implemented yet")
-    @missing_feature(library="dotnet", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(library="ruby", reason="Not implemented yet")
-    @missing_feature(library="php", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not supported yet")
     def test_external_wafs_header_collection(self):
         """
         Collect external wafs request identifier and other security info when appsec is enabled.
