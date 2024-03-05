@@ -911,10 +911,7 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
-      Test_DsmContext_Extraction_V1: 
-        "*": irrelevant
-        spring-boot: v1.12.1
-      Test_DsmContext_Extraction_V2: 
+      Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
         spring-boot: v1.12.1
       Test_DsmContext_Injection_Base64: 

@@ -2028,17 +2028,7 @@ class features:
         return test_object
 
     @staticmethod
-    def datastreams_monitoring_support_for_v1_encoding(test_object):
-        """
-        DataStreams Monitoring support for V1 Encoding using dd-pathway-ctx
-
-        https://feature-parity.us1.prod.dog/#/?feature=283
-        """
-        pytest.mark.features(feature_id=283)(test_object)
-        return test_object
-
-    @staticmethod
-    def datastreams_monitoring_support_for_v2_base64_encoding(test_object):
+    def datastreams_monitoring_support_for_base64_encoding(test_object):
         """
         DataStreams Monitoring support for V2 Base64 Encoding using dd-pathway-ctx/dd-pathway-ctx-base64
 

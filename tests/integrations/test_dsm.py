@@ -356,7 +356,6 @@ class Test_DsmContext_Injection_Base64:
         self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
 
     @missing_feature(library="python", reason="dd-trace-py uses V1 encoding by default.")
-    @missing_feature(library="nodejs", reason="dd-trace-js does not yet support V2 Base64 injection")
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
@@ -418,62 +417,22 @@ class Test_DsmContext_Injection_Base64:
             assert 1 == 0, "Tracer should support DSM Base64 Pathway encoding"
 
 
-@features.datastreams_monitoring_support_for_v1_encoding
+@features.datastreams_monitoring_support_for_base64_encoding
 @scenarios.integrations
-class Test_DsmContext_Extraction_V1:
-    """ Verify DSM context is extracted using "dd-pathway-ctx" """
-
-    def setup_dsmcontext_extraction_v1(self):
-        queue = "dsm-propagation-test-v1-encoding-queue"
-        exchange = "dsm-propagation-test-v1-encoding-exchange"
-
-        # send initial message with v1 pathway context encoding
-        self.produce_response = DsmHelper.produce_rabbitmq_message_v1_propagation(queue, exchange)
-
-        self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
-
-    @missing_feature(library="java", reason="dd-trace-java cannot extract DSM V1 Byte Headers")
-    @missing_feature(library="nodejs", reason="dd-trace-js cannot extract DSM V1 Byte Headers")
-    def test_dsmcontext_extraction_v1(self):
-        assert self.produce_response == "ok"
-        assert "error" not in self.r.text
-
-        language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 9235368231858162135, "consumer": 6273982990684090851,},
-            "default": {
-                "producer": 9235368231858162135,
-                "consumer": 6884439977898629893,
-            },  # confirmed that this is correct consumer hash
-        }
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-
-        queue = "dsm-propagation-test-v1-encoding-queue"
-        edge_tags_in = ("direction:in", f"topic:{queue}", "type:rabbitmq")
-
-        DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
-        )
-
-
-@features.datastreams_monitoring_support_for_v2_base64_encoding
-@scenarios.integrations
-class Test_DsmContext_Extraction_V2:
+class Test_DsmContext_Extraction_Base64:
     """ Verify DSM context is extracted using "dd-pathway-ctx/dd-pathway-ctx-base64" """
 
-    def setup_dsmcontext_extraction_v2_base64(self):
-        queue = "dsm-propagation-test-v2-encoding-queue"
-        exchange = "dsm-propagation-test-v2-encoding-exchange"
+    def setup_dsmcontext_extraction_base64(self):
+        queue = "dsm-propagation-test-base64-encoding-queue"
+        exchange = "dsm-propagation-test-base64-encoding-exchange"
 
         # send initial message with v2 pathway context encoding
-        self.produce_response = DsmHelper.produce_rabbitmq_message_v2_base64_propagation(queue, exchange)
+        self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange)
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
     @missing_feature(library="python", reason="dd-trace-py automatically assumes v1 encoding for rabbitmq")
-    @missing_feature(library="nodejs", reason="dd-trace-js does not yet support Base64 pathway header")
-    def test_dsmcontext_extraction_v2_base64(self):
+    def test_dsmcontext_extraction_base64(self):
         assert self.produce_response == "ok"
         assert "error" not in self.r.text
 
@@ -488,7 +447,7 @@ class Test_DsmContext_Extraction_V2:
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
 
-        queue = "dsm-propagation-test-v2-encoding-queue"
+        queue = "dsm-propagation-test-base64-encoding-queue"
         edge_tags_in = ("direction:in", f"topic:{queue}", "type:rabbitmq")
 
         DsmHelper.assert_checkpoint_presence(
@@ -535,37 +494,7 @@ class DsmHelper:
         raise ValueError("Checkpoint has not been found, please have a look in logs")
 
     @staticmethod
-    def produce_rabbitmq_message_v1_propagation(queue, exchange):
-        # Create a RabbitMQ client
-        conn = kombu.Connection("amqp://127.0.0.1:5672")
-        conn.connect()
-        producer = conn.Producer()
-
-        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
-
-        headers = {
-            "dd-pathway-ctx": b"\xd7I\xd5\xcdy\x9e*\x80\xe6\x86\x8a\xa6\xb6c\xe6\x86\x8a\xa6\xb6c"  # encoded V1 pathway from dd-trace-py, pathway hash is: 9235368231858162135
-        }
-        to_publish = {"message": "DSM Pathway Encoding V1 Test"}
-
-        try:
-            producer.publish(
-                to_publish,
-                exchange=task_queue.exchange,
-                routing_key=task_queue.routing_key,
-                declare=[task_queue],
-                headers=headers,
-            )
-            logging.info("System Tests RabbitMQ message using V1 DSM Pathway Encoding sent successfully")
-            conn.close()
-            return "ok"
-        except Exception as e:
-            logging.info(f"Error during DSM RabbitMQ publish message using V1 DSM Pathway Encoding: {e}")
-            conn.close()
-            return "error"
-
-    @staticmethod
-    def produce_rabbitmq_message_v2_base64_propagation(queue, exchange):
+    def produce_rabbitmq_message_base64_propagation(queue, exchange):
         # Create a RabbitMQ client
         conn = kombu.Connection("amqp://127.0.0.1:5672")
         conn.connect()
@@ -577,7 +506,7 @@ class DsmHelper:
             "dd-pathway-ctx": "10nVzXmeKoCM1uautmOM1uautmM=",  # base64 encoded V2 pathway from dd-trace-py, pathway hash is: 9235368231858162135
             "dd-pathway-ctx-base64": "10nVzXmeKoCM1uautmOM1uautmM=",
         }
-        to_publish = {"message": "DSM Pathway Encoding V2 Test"}
+        to_publish = {"message": "DSM Pathway Encoding V2 Base64 Test"}
 
         try:
             producer.publish(
