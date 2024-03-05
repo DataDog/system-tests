@@ -21,6 +21,8 @@ from ddtrace.opentelemetry import TracerProvider
 
 import ddtrace
 from ddtrace import Span
+from ddtrace import config
+from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.context import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
@@ -82,8 +84,8 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
     for link in args.links:
-        link_parent_id = link["parent_id"]
-        if link_parent_id != 0:  # we have a parent_id to create link instead
+        link_parent_id = link.get("parent_id", 0)
+        if link_parent_id > 0:  # we have a parent_id to create link instead
             link_parent = spans[link_parent_id]
             span.link_span(link_parent.context, link.get("attributes"))
         else:
@@ -232,6 +234,36 @@ def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
     linked_span = spans[args.parent_id]
     span.link_span(linked_span.context, attributes=args.attributes)
     return TraceSpanAddLinkReturn()
+
+
+class HttpClientRequestArgs(BaseModel):
+    method: str
+    url: str
+    headers: List[Tuple[str, str]]
+    body: str
+
+
+class HttpClientRequestReturn(BaseModel):
+    pass
+
+
+@app.post("/http/client/request")
+def http_client_request(args: HttpClientRequestArgs) -> HttpClientRequestReturn:
+    """Creates and finishes a span similar to the ones created during HTTP request/response cycles"""
+    # falcon config doesn't really matter here - any config object with http header tracing enabled will work
+    integration_config = config.falcon
+    request_headers = {k: v for k, v in args.headers}
+    response_headers = {"Content-Length": "14"}
+    with ddtrace.tracer.trace("fake-request") as request_span:
+        set_http_meta(
+            request_span, integration_config, request_headers=request_headers, response_headers=response_headers
+        )
+        spans[request_span.span_id] = request_span
+    # this cache invalidation happens in most web frameworks as a side effect of their multithread design
+    # it's made explicit here to allow test expectations to be precise
+    config.http._reset()
+    config._header_tag_name.invalidate()
+    return HttpClientRequestReturn()
 
 
 class OtelStartSpanArgs(BaseModel):

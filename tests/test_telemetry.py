@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, coverage, features
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -472,7 +472,7 @@ class Test_Telemetry:
             "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "java": {"trace.agent.port": 8126, "telemetry.heartbeat.interval": 2},
+            "java": {"trace_agent_port": 8126, "telemetry_heartbeat_interval": 2},
         }
         configuration_map = test_configuration[context.library.library]
 
@@ -482,9 +482,12 @@ class Test_Telemetry:
                 configurations = content["payload"]["configuration"]
                 configurations_present = []
                 for cnf in configurations:
-                    if cnf["name"] in configuration_map:
-                        configuration_name = cnf["name"]
-                        expected_value = str(configuration_map.get(cnf["name"]))
+                    configuration_name = cnf["name"]
+                    if context.library.library == "java":
+                        # support for older versions of Java Tracer
+                        configuration_name = configuration_name.replace(".", "_")
+                    if configuration_name in configuration_map:
+                        expected_value = str(configuration_map.get(configuration_name))
                         configuration_value = str(cnf["value"])
                         if configuration_value != expected_value:
                             raise Exception(
@@ -660,7 +663,6 @@ class Test_MessageBatch:
 
 
 @features.telemetry_api_v2_implemented
-@coverage.basic
 class Test_Log_Generation:
     """Assert that logs reported by default, and not reported when logs generation is disabled in telemetry"""
 

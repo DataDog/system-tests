@@ -1,5 +1,7 @@
 package com.datadoghq.system_tests.springboot;
 
+import com.datadoghq.system_tests.springboot.aws.KinesisConnector;
+import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
@@ -69,6 +71,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
@@ -292,7 +295,7 @@ public class App {
     ResponseEntity<String> kafkaProduce(@RequestParam(required = true) String topic) {
         KafkaConnector kafka = new KafkaConnector(topic);
         try {
-            kafka.produceMessageWithoutNewThread("DistributedTracing");
+            kafka.produceMessageWithoutNewThread("DistributedTracing from Java");
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start producing message...");
             e.printStackTrace();
@@ -325,7 +328,7 @@ public class App {
     ResponseEntity<String> sqsProduce(@RequestParam(required = true) String queue) {
         SqsConnector sqs = new SqsConnector(queue);
         try {
-            sqs.produceMessageWithoutNewThread("DistributedTracing SQS");
+            sqs.produceMessageWithoutNewThread("DistributedTracing SQS from Java");
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -340,7 +343,7 @@ public class App {
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread();
+            consumed = sqs.consumeMessageWithoutNewThread("SQS");
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start consuming message...");
@@ -349,11 +352,69 @@ public class App {
         }
     }
 
+    @RequestMapping("/sns/produce")
+    ResponseEntity<String> snsProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String topic) {
+        SnsConnector sns = new SnsConnector(topic);
+        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        try {
+            sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS from Java", sqs);
+        } catch (Exception e) {
+            System.out.println("[SNS->SQS] Failed to start producing message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[SNS->SQS] failed to start producing messages", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("produce ok", HttpStatus.OK);
+    }
+
+    @RequestMapping("/sns/consume")
+    ResponseEntity<String> snsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        if (timeout == null) timeout = 60;
+        boolean consumed = false;
+        try {
+            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS");
+            return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println("[SNS->SQS] Failed to start consuming message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[SNS->SQS] failed to start consuming messages", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping("/kinesis/produce")
+    ResponseEntity<String> kinesisProduce(@RequestParam(required = true) String stream) {
+        KinesisConnector kinesis = new KinesisConnector(stream);
+        try {
+            String jsonString = "{\"message\":\"DistributedTracing Kinesis from Java\"}";
+            kinesis.produceMessageWithoutNewThread(jsonString);
+        } catch (Exception e) {
+            System.out.println("[Kinesis] Failed to start producing message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[Kinesis] failed to start producing messages", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("produce ok", HttpStatus.OK);
+    }
+
+    @RequestMapping("/kinesis/consume")
+    ResponseEntity<String> kinesisConsume(@RequestParam(required = true) String stream, @RequestParam(required = false) Integer timeout) {
+        KinesisConnector kinesis = new KinesisConnector(stream);
+        if (timeout == null) timeout = 60;
+        boolean consumed = false;
+        try {
+            consumed = kinesis.consumeMessageWithoutNewThread(timeout);
+            return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println("[Kinesis] Failed to start consuming message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[Kinesis] failed to start consuming messages", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @RequestMapping("/rabbitmq/produce")
-    ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue) {
+    ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         try {
-            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test", queue);
+            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start producing message...");
             e.printStackTrace();
@@ -363,12 +424,16 @@ public class App {
     }
 
     @RequestMapping("/rabbitmq/consume")
-    ResponseEntity<String> rabbitmqConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> rabbitmqConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String exchange,
+        @RequestParam(required = false) Integer timeout
+    ) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = rabbitmq.startConsumingMessagesWithQueue(queue, timeout).get();
+            consumed = rabbitmq.startConsumingMessagesWithQueue(queue, exchange, timeout).get();
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start consuming message...");
@@ -378,7 +443,12 @@ public class App {
     }
 
     @RequestMapping("/dsm")
-    String publishToKafka(@RequestParam(required = true, name = "integration") String integration) {
+    String publishToKafka(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = false, name = "topic") String topic,
+        @RequestParam(required = false, name = "queue") String queue,
+        @RequestParam(required = false, name = "stream") String stream
+    ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector();
             try {
@@ -453,11 +523,45 @@ public class App {
                 return "[SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages();
+                sqs.startConsumingMessages("SQS");
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
                 e.printStackTrace();
                 return "[SQS] failed to start consuming message";
+            }
+        } else if ("sns".equals(integration)) {
+            SnsConnector sns = new SnsConnector(topic != null ? topic : "dsm-system-tests-topic-java");
+            SqsConnector sqs = new SqsConnector(queue != null ? queue : "dsm-system-tests-queue-java", "http://localstack-main:4566");
+            try {
+                sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+            } catch (Exception e) {
+                System.out.println("[SNS->SQS] Failed to start producing message...");
+                e.printStackTrace();
+                return "[SNS->SQS] failed to start producing message";
+            }
+            try {
+                sqs.startConsumingMessages("SNS->SQS");
+            } catch (Exception e) {
+                System.out.println("[SNS->SQS] Failed to start consuming message...");
+                e.printStackTrace();
+                return "[SNS->SQS] failed to start consuming message";
+            }
+        } else if ("kinesis".equals(integration)) {
+            KinesisConnector kinesis = new KinesisConnector(stream);
+            try {
+                String jsonString = "{\"message\":\"DSM Test Kinesis from Java\"}";
+                kinesis.produceMessageWithoutNewThread(jsonString);
+            } catch (Exception e) {
+                System.out.println("[Kinesis] Failed to start producing message...");
+                e.printStackTrace();
+                return "[Kinesis] failed to start producing message";
+            }
+            try {
+                kinesis.consumeMessageWithoutNewThread(60);
+            } catch (Exception e) {
+                System.out.println("[Kinesis] Failed to start consuming message...");
+                e.printStackTrace();
+                return "[Kinesis] failed to start consuming message";
             }
         } else {
             return "unknown integration: " + integration;
@@ -664,6 +768,33 @@ public class App {
         parentSpan.finish(nowMicros + 2*tenSecMicros);
 
         return "OK";
+    }
+
+    @PostMapping(value = "/shell_execution", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<String> shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
+        Process p;
+        if (request.options.shell) {
+            throw new RuntimeException("Not implemented");
+        } else {
+            final String[] args = request.args.split("\\s+");
+            final String[] command = new String[args.length + 1];
+            command[0] = request.command;
+            System.arraycopy(args, 0, command, 1, args.length);
+            p = new ProcessBuilder(command).start();
+        }
+        p.waitFor(10, TimeUnit.SECONDS);
+        final int exitCode = p.exitValue();
+        return new ResponseEntity<>("OK: " + exitCode, HttpStatus.OK);
+    }
+
+    private static class ShellExecutionRequest {
+        public String command;
+        public String args;
+        public Options options;
+
+        static class Options {
+            public boolean shell;
+        }
     }
 
     @EventListener(ApplicationReadyEvent.class)

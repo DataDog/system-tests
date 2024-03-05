@@ -65,14 +65,19 @@ def _set_rc(test_agent, config: Dict[str, Any]) -> None:
     )
 
 
+def _create_rc_config(config_overrides: Dict[str, Any]) -> Dict:
+    rc_config = _default_config(TEST_SERVICE, TEST_ENV)
+    for k, v in config_overrides.items():
+        rc_config["lib_config"][k] = v
+    return rc_config
+
+
 def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
     """
-    rc_config = _default_config(TEST_SERVICE, TEST_ENV)
-    for k, v in config_overrides.items():
-        rc_config["lib_config"][k] = v
+    rc_config = _create_rc_config(config_overrides)
 
     _set_rc(test_agent, rc_config)
 
@@ -99,6 +104,78 @@ ENV_SAMPLING_RULE_RATE = 0.55
 
 @scenarios.parametric
 @features.dynamic_configuration
+class TestDynamicConfigHeaderTags:
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2,Content-Length:content_length_env",
+            },
+        ],
+    )
+    def test_tracing_client_http_header_tags(
+        self, library_env, test_agent, test_library, test_agent_hostname, test_agent_port
+    ):
+        """Ensure the tracing http header tags can be set via RC.
+
+        Testing is done using a http client request RPC and asserting the span tags.
+
+        Requests are made to the test agent.
+        """
+
+        # Test without RC.
+        test_library.http_client_request(
+            method="GET",
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
+        )
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
+        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+
+        # Set and test with RC.
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_header_tags": [
+                    {"header": "X-Test-Header", "tag_name": "test_header_rc"},
+                    {"header": "X-Test-Header-2", "tag_name": "test_header_rc2"},
+                    {"header": "Content-Length", "tag_name": ""},
+                ]
+            },
+        )
+        test_library.http_client_request(
+            method="GET",
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
+        )
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_rc2"] == "test-value-2"
+        assert trace[0][0]["meta"]["http.request.headers.content-length"] == "0"
+        assert (
+            trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
+        ), "response content-length header tag value matches the header value set by the server"
+        assert "test_header_env" not in trace[0][0]["meta"]
+        assert "test_header_env2" not in trace[0][0]["meta"]
+
+        # Unset RC.
+        set_and_wait_rc(test_agent, config_overrides={})
+        test_library.http_client_request(
+            method="GET",
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
+        )
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
+        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+
+
+@scenarios.parametric
+@features.dynamic_configuration
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
@@ -109,9 +186,10 @@ class TestDynamicConfigTracingEnabled:
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
-        if library_env.get("DD_TRACE_ENABLED", True):
+        trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
+        if trace_enabled_env:
             with test_library:
-                with test_library.start_span("test"):
+                with test_library.start_span("allowed"):
                     pass
             test_agent.wait_for_num_traces(num=1, clear=True)
             assert True, (
@@ -119,22 +197,43 @@ class TestDynamicConfigTracingEnabled:
                 "wait_for_num_traces does not raise an exception."
             )
 
-        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
+        # if tracing is disabled via DD_TRACE_ENABLED, the RC should not re-enable it
+        # nor should it send RemoteConfig apply state
+        if trace_enabled_env:
+            test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
         with test_library:
-            with test_library.start_span("test"):
+            with test_library.start_span("disabled"):
                 pass
-        with pytest.raises(ValueError, "no traces are sent after RC response with tracing_enabled: false"):
+        with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
+        assert True, "no traces are sent after RC response with tracing_enabled: false"
 
-        set_and_wait_rc(test_agent, config_overrides={})
+    @parametrize(
+        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+    )
+    @irrelevant(
+        library="python",
+        reason="The Python client library doesn't support the one-way lock functionality of tracing_enabled",
+    )
+    @irrelevant(library="golang")
+    def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
+        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        _set_rc(test_agent, _create_rc_config({}))
         with test_library:
             with test_library.start_span("test"):
                 pass
-        with pytest.raises(
-            ValueError,
-            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting",
-        ):
+
+        with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
+        assert (
+            True
+        ), "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+
+
+def reverse_case(s):
+    return "".join([char.lower() if char.isupper() else char.upper() for char in s])
 
 
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
@@ -146,7 +245,6 @@ class TestDynamicConfigV1:
     v1 includes support for:
         - tracing_sampling_rate
         - log_injection_enabled
-        - tracing_header_tags
     """
 
     @parametrize("library_env", [{"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"}])
@@ -173,37 +271,6 @@ class TestDynamicConfigV1:
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2)
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
-
-    @missing_feature(context.library in ["java", "dotnet", "ruby", "nodejs"], reason="Not implemented yet")
-    @parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                # Override service and env
-                "DD_SERVICE": s,
-                "DD_ENV": e,
-            }
-            for (s, e) in [
-                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"]),
-                (DEFAULT_ENVVARS["DD_SERVICE"], DEFAULT_ENVVARS["DD_ENV"] + "-override"),
-                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"] + "-override"),
-            ]
-        ],
-    )
-    def test_not_match_service_target(self, library_env, test_agent, test_library):
-        """Test that the library reports an erroneous apply_state when the service targeting is not correct.
-
-        This can occur if the library requests Remote Configuration with an initial service + env pair and then
-        one or both of the values changes.
-
-        We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ from the service
-        target in the RC record.
-        """
-        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3)
-        assert cfg_state["apply_state"] == 3
-        assert cfg_state["apply_error"] != ""
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_trace_sampling_rate_override_default(self, test_agent, test_library):
@@ -310,74 +377,76 @@ class TestDynamicConfigV1:
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
-    @missing_feature(
-        context.library in ["java", "dotnet", "python", "golang", "nodejs"], reason="RPC not implemented yet"
-    )
+
+@rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
+@scenarios.parametric
+@features.dynamic_configuration
+class TestDynamicConfigV1_ServiceTargets:
+    """Tests covering the Service Target matching of the dynamic configuration feature.
+
+        - ignore mismatching targets
+        - matching service target case-insensitively
+    """
+
     @parametrize(
         "library_env",
         [
             {
                 **DEFAULT_ENVVARS,
-                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2,Content-Length:content_length_env",
-            },
+                # Override service and env
+                "DD_SERVICE": s,
+                "DD_ENV": e,
+            }
+            for (s, e) in [
+                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"]),
+                (DEFAULT_ENVVARS["DD_SERVICE"], DEFAULT_ENVVARS["DD_ENV"] + "-override"),
+                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"] + "-override"),
+            ]
         ],
     )
-    def test_tracing_client_http_header_tags(
-        self, library_env, test_agent, test_library, test_agent_hostname, test_agent_port
-    ):
-        """Ensure the tracing http header tags can be set via RC.
+    def test_not_match_service_target(self, library_env, test_agent, test_library):
+        """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
-        Testing is done using a http client request RPC and asserting the span tags.
+        This can occur if the library requests Remote Configuration with an initial service + env pair and then
+        one or both of the values changes.
 
-        Requests are made to the test agent.
+        We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ from the service
+        target in the RC record.
         """
+        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3)
+        assert cfg_state["apply_state"] == 3
+        assert cfg_state["apply_error"] != ""
 
-        # Test without RC.
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
-        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+    @missing_feature(context.library in ["golang"], reason="Go Tracer does case-sensitive checks for service and env")
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                # Override service and env
+                "DD_SERVICE": s,
+                "DD_ENV": e,
+            }
+            for (s, e) in [
+                (reverse_case(DEFAULT_ENVVARS["DD_SERVICE"]), DEFAULT_ENVVARS["DD_ENV"]),
+                (DEFAULT_ENVVARS["DD_SERVICE"], reverse_case(DEFAULT_ENVVARS["DD_ENV"])),
+                (reverse_case(DEFAULT_ENVVARS["DD_SERVICE"]), reverse_case(DEFAULT_ENVVARS["DD_ENV"])),
+            ]
+        ],
+    )
+    def test_match_service_target_case_insensitively(self, library_env, test_agent, test_library):
+        """Test that the library reports a non-erroneous apply_state when the service targeting is correct but differ in case.
 
-        # Set and test with RC.
-        set_and_wait_rc(
-            test_agent,
-            config_overrides={
-                "tracing_header_tags": [
-                    {"header": "X-Test-Header", "tag_name": "test_header_rc",},
-                    {"header": "X-Test-Header-2", "tag_name": "test_header_rc2",},
-                    {"header": "Content-Length", "tag_name": "",},
-                ]
-            },
-        )
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_rc2"] == "test-value-2"
-        assert trace[0][0]["meta"]["http.request.headers.content-length"] == "0"
-        assert trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
-        assert "test_header_env" not in trace[0][0]["meta"]
-        assert "test_header_env2" not in trace[0][0]["meta"]
+        This can occur if the library requests Remote Configuration with an initial service + env pair and then
+        one or both of the values changes its case.
 
-        # Unset RC.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_header_tags": None})
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
-        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+        We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ only in case from the service
+        target in the RC record.
+        """
+        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2)
+        assert cfg_state["apply_state"] == 2
 
 
 @rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")

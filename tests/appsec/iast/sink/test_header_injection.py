@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, features, missing_feature
+from utils import context, features, missing_feature
 from .._test_iast_fixtures import BaseSinkTest
 
 
 @features.iast_sink_header_injection
-@coverage.basic
 class TestHeaderInjection(BaseSinkTest):
     """Verify Header injection detection"""
 

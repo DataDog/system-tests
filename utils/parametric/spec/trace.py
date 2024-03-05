@@ -3,6 +3,7 @@ Tracing constants, data structures and helper methods.
 
 These are used to specify, test and work with trace data and protocols.
 """
+import json
 import math
 from typing import Dict
 from typing import List
@@ -20,6 +21,8 @@ from ddsketch.store import CollapsingLowestDenseStore
 from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchPb
 from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
+from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
+
 
 # Key used in the meta map to indicate the span origin
 ORIGIN = "_dd.origin"
@@ -270,3 +273,29 @@ def assert_trace_has_tags(trace: Trace, tags: Dict[str, Union[int, str, float, b
     """Assert that the trace has the given tags."""
     for span in trace:
         assert_span_has_tags(span, tags)
+
+
+def retrieve_span_links(span):
+    if span.get("span_links") is not None:
+        return span["span_links"]
+
+    if span["meta"].get("_dd.span_links") is not None:
+        # Convert span_links tags into msgpack v0.4 format
+        json_links = json.loads(span["meta"].get("_dd.span_links"))
+        links = []
+        for json_link in json_links:
+            link = {}
+            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
+            link["span_id"] = int(json_link["span_id"], base=16)
+            if len(json_link["trace_id"]) > 16:
+                link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
+            if "attributes" in json_link:
+                link["attributes"] = json_link.get("attributes")
+            if "tracestate" in json_link:
+                link["tracestate"] = json_link.get("tracestate")
+            if "flags" in json_link:
+                link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
+            else:
+                link["flags"] = 0
+            links.append(link)
+        return links

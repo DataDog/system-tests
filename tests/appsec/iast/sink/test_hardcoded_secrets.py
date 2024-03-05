@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, interfaces, weblog, features, context
+from utils import interfaces, weblog, features, context
 
 # Test_HardcodedSecrets doesn't inherit from BaseSinkTest
 # Hardcode secrets detection implementation change a lot between different languages
@@ -11,13 +11,12 @@ from utils import coverage, interfaces, weblog, features, context
 
 
 @features.iast_sink_hardcoded_secrets
-@coverage.basic
 class Test_HardcodedSecrets:
     """Test Hardcoded secrets detection."""
 
     location_map = {
         "java": "com.datadoghq.system_tests.springboot.AppSecIast",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
     }
 
     def setup_hardcoded_secrets_exec(self):

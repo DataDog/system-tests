@@ -157,6 +157,16 @@
             <artifactId>sqs</artifactId>
             <version>2.17.51</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sns</artifactId>
+            <version>2.17.51</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>kinesis</artifactId>
+            <version>2.17.51</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -224,6 +234,10 @@
         </profile>
         <profile>
             <id>openliberty</id>
+            <properties>
+                <!-- Defaults to latest OpenLiberty version, which might break during releases. -->
+                <liberty.runtime.version>23.0.0.12</liberty.runtime.version>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
@@ -235,7 +249,7 @@
                     <plugin>
                         <groupId>io.openliberty.tools</groupId>
                         <artifactId>liberty-maven-plugin</artifactId>
-                        <version>3.5.1</version>
+                        <version>3.10</version>
                         <configuration>
                             <appsDirectory>apps</appsDirectory>
                             <installAppPackages>spring-boot-project</installAppPackages>

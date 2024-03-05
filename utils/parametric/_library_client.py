@@ -39,6 +39,7 @@ class APMLibraryClient:
         origin: str,
         http_headers: List[Tuple[str, str]],
         links: List[Link],
+        tags: List[Tuple[str, str]],
     ) -> StartSpanResponse:
         raise NotImplementedError
 
@@ -137,6 +138,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         origin: str,
         http_headers: Optional[List[Tuple[str, str]]],
         links: Optional[List[Link]],
+        tags: Optional[List[Tuple[str, str]]],
     ):
         resp = self._session.post(
             self._url("/trace/span/start"),
@@ -241,13 +243,12 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout}).json()
         return resp["success"]
 
-    # TODO: test and implement this endpoint for test_dynamic_configuration tests
-    # def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
-    #     resp = self._session.post(
-    #         self._url("/http/client/request"),
-    #         json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
-    #     ).json()
-    #     return resp
+    def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
+        resp = self._session.post(
+            self._url("/http/client/request"),
+            json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
+        ).json()
+        return resp
 
 
 class _TestSpan:
@@ -315,15 +316,22 @@ class APMLibraryClientGRPC:
         origin: str,
         http_headers: List[Tuple[str, str]],
         links: List[Link],
+        tags: List[Tuple[str, str]],
     ):
         distributed_message = pb.DistributedHTTPHeaders()
         for key, value in http_headers:
             distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
+        pb_tags = []
+        for key, value in tags:
+            pb_tags.append(pb.HeaderTuple(key=key, value=value))
+
         pb_links = []
         for link in links:
             pb_link = pb.SpanLink()
-            if link.get("parent_id") > 0:
+            if link.get("parent_id") and link.get("http_headers"):
+                raise ValueError("Link cannot have both parent_id and http_headers")
+            if link.get("parent_id"):
                 pb_link.parent_id = link["parent_id"]
             else:
                 link_headers = pb.DistributedHTTPHeaders()
@@ -344,6 +352,7 @@ class APMLibraryClientGRPC:
                 origin=origin,
                 http_headers=distributed_message,
                 span_links=pb_links,
+                span_tags=pb_tags,
             )
         )
         return {
@@ -368,6 +377,8 @@ class APMLibraryClientGRPC:
         pb_links = []
         for link in links:
             pb_link = pb.SpanLink(attributes=convert_to_proto(link.get("attributes")))
+            if link.get("parent_id") and link.get("http_headers"):
+                raise ValueError("Link cannot have both parent_id and http_headers")
             if link.get("parent_id") is not None:
                 pb_link.parent_id = link["parent_id"]
             else:
@@ -481,6 +492,7 @@ class APMLibrary:
         origin: str = "",
         http_headers: Optional[List[Tuple[str, str]]] = None,
         links: Optional[List[Link]] = None,
+        tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
             name=name,
@@ -491,6 +503,7 @@ class APMLibrary:
             origin=origin,
             http_headers=http_headers if http_headers is not None else [],
             links=links if links is not None else [],
+            tags=tags if tags is not None else [],
         )
         span = _TestSpan(self._client, resp["span_id"])
         yield span

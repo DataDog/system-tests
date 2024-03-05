@@ -1,0 +1,17 @@
+weblog:
+    name: test-app-ruby-container
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64]
+    install:
+      - os_type: linux
+
+        copy_files:
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-container/test-app-ruby_docker_compose_run.sh
+
+          - name: copy-docker-compose-file
+            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-container/docker-compose.yml
+
+          - name: copy-ruby-rails-app
+            local_path: lib-injection/build/docker/ruby
+
+        remote-command: sh test-app-ruby_docker_compose_run.sh

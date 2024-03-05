@@ -1,6 +1,9 @@
 import json
 
 import pytest
+import random
+
+from utils import rfc, scenarios, missing_feature, context
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
@@ -140,6 +143,51 @@ class Test_Trace_Sampling_Globs:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+
+
+@features.trace_sampling
+@scenarios.parametric
+@rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
+class Test_Trace_Sampling_Globs_Feb2024_Revision:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1},]
+                ),
+            },
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [{"name": "web.non-matching*", "sample_rate": 0}, {"name": "wEb.*", "sample_rate": 1}]
+                ),
+            },
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [
+                        {"service": "webserv?r.non-matching", "name": "wEb.req*", "sample_rate": 0},
+                        {"service": "webserv?r", "name": "web.req*.non-matching", "sample_rate": 0},
+                        {"service": "webserv?r", "name": "web.req*", "sample_rate": 1},
+                    ]
+                ),
+            },
+        ],
+    )
+    def test_trace_sampled_by_trace_sampling_rule_insensitive_glob_match(self, test_agent, test_library):
+        """Test that a trace is sampled by the glob matching trace sampling rule"""
+        with test_library:
+            with test_library.start_span(name="web.reqUEst", service="wEbServer"):
+                pass
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.reqUEst", service="wEbServer"))
+
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
 
 
 @features.trace_sampling
@@ -344,3 +392,184 @@ class Test_Trace_Sampling_Tags:
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+
+
+def tag_sampling_env(tag_glob_pattern):
+    return {
+        "DD_TRACE_SAMPLE_RATE": 0,
+        "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
+        "DD_TRACE_SAMPLING_RULES": json.dumps([{"tags": {"tag": tag_glob_pattern}, "sample_rate": 1.0}]),
+    }
+
+
+@scenarios.parametric
+@rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
+@features.trace_sampling
+class Test_Trace_Sampling_Tags_Feb2024_Revision:
+    def assert_matching_span(self, test_agent, **kwargs):
+        matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(**kwargs))
+
+        assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
+
+    def assert_mismatching_span(self, test_agent, **kwargs):
+        mismatching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(**kwargs))
+
+        assert mismatching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+        assert mismatching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            tag_sampling_env("foo"),
+            tag_sampling_env("fo*"),
+            tag_sampling_env("f??"),
+            tag_sampling_env("?o*"),
+            tag_sampling_env("???"),
+            tag_sampling_env("*"),
+            tag_sampling_env("**"),
+        ],
+    )
+    def test_globs_same_casing(self, test_agent, test_library):
+        """Test tag matching with string of matching case"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_meta("tag", "foo")
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
+    )
+    def test_globs_different_casing(self, test_agent, test_library):
+        """Test tag matching with string of matching case"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_meta("tag", "foo")
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+    @pytest.mark.parametrize("library_env", [tag_sampling_env("[abc]")])
+    def test_no_set_support(self, test_agent, test_library):
+        """Test verifying that common glob set extension is NOT supported"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_meta("tag", "[abc]")
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+    @pytest.mark.parametrize("library_env", [tag_sampling_env("[a-c]")])
+    def test_no_range_support(self, test_agent, test_library):
+        """Test verifying that common glob range extension is NOT supported"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_meta("tag", "[a-c]")
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+    @pytest.mark.parametrize("library_env", [tag_sampling_env("^(foo|bar)[]\\$")])
+    def test_regex_special_chars(self, test_agent, test_library):
+        """Test verifying that regex special chars doesn't break glob matching"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_meta("tag", "^(foo|bar)[]\\$")
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+    @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
+    def test_meta_existence(self, test_agent, test_library):
+        """Tests that any patterns are equivalent to an existence check for meta"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_meta("tag", random.choice(["foo", "bar", "baz", "quux"]))
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+    @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
+    def test_metric_existence(self, test_agent, test_library):
+        """Tests that any patterns are equivalent to an existence check for metrics"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_metric("tag", random.choice([-100, -0.5, 0, 5, 1000]))
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+    @pytest.mark.parametrize(
+        "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
+    )
+    def test_metric_matching(self, test_agent, test_library):
+        """Tests that any patterns are equivalent to an existence check for metrics"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_metric("tag", 20.0)
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+    @pytest.mark.parametrize("library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?")])
+    def test_metric_mismatch_non_integer(self, test_agent, test_library):
+        """Tests that any non-integer metrics mismatch patterns -- other than any patterns"""
+        with test_library:
+            with test_library.start_span(name="mismatching-span", service="test") as span:
+                span.set_metric("tag", 20.1)
+
+        self.assert_mismatching_span(test_agent, name="mismatching-span", service="test")
+
+    @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
+    def test_metric_matching(self, test_agent, test_library):
+        """Tests that any patterns are equivalent to an existence check for metrics"""
+        with test_library:
+            with test_library.start_span(name="matching-span", service="test") as span:
+                span.set_metric("tag", 20.3)
+
+        self.assert_matching_span(test_agent, name="matching-span", service="test")
+
+
+@scenarios.parametric
+@rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
+@features.trace_sampling
+class Test_Trace_Sampling_With_W3C:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [
+                        {"tags": {"tag2": "val2"}, "sample_rate": 0},
+                        {"tags": {"tag1": "val1"}, "sample_rate": 1},
+                        {"tags": {"tag0": "val*"}, "sample_rate": 0},
+                    ]
+                ),
+            },
+        ],
+    )
+    def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent, test_library):
+        """Test that a trace is sampled by the rule and the sampling decision is locked"""
+
+        with test_library:
+            with test_library.start_span(
+                name="web.request", service="webserver", resource="/bar", tags=[["tag0", "val0"]]
+            ) as span:
+                # based on the Tag("tag0", "val0") start span option, span sampling would be 'drop',
+
+                # setting new tags doesn't trigger re-sampling,
+                # but injecting headers does. In such case, headers will reflect the state
+                # after new pair of tags was set
+                # based on the Tag("tag1", "val1"), span sampling would be 'keep'
+                span.set_meta("tag1", "val1")
+                headers = {k.lower(): v for k, v in test_library.inject_headers(span.span_id)}
+
+                # based on the Tag("tag2", "val2"), span sampling would be usually 'drop',
+                # but since headers were injected already, the sampling priority won't change
+                span.set_meta("tag2", "val2")
+
+        span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver", resource="/bar")
+        )
+
+        # sampling priority in headers reflects the state after new pair of tags was set
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1

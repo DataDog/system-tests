@@ -3,14 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 import json
 
-from utils import weblog, coverage, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, features
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@coverage.basic
 @scenarios.appsec_request_blocking
 @features.appsec_request_blocking
 class Test_AppSecRequestBlocking:

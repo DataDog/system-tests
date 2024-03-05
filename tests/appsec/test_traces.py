@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import weblog, bug, context, coverage, interfaces, irrelevant, rfc, missing_feature, scenarios, features
+from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
 
 
@@ -11,7 +11,6 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
-@coverage.good
 @features.security_events_metadata
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -52,7 +51,6 @@ class Test_RetainTraces:
         interfaces.library.validate_spans(self.r, validate_appsec_event_span_tags)
 
 
-@coverage.good
 @features.security_events_metadata
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
@@ -144,7 +142,6 @@ class Test_AppSecEventSpanTags:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@coverage.good
 @features.sensitive_data_obfuscation
 @features.security_events_metadata
 class Test_AppSecObfuscator:
@@ -307,7 +304,6 @@ class Test_AppSecObfuscator:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@coverage.good
 @features.security_events_metadata
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""

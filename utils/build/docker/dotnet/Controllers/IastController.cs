@@ -135,6 +135,21 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
+        
+        [HttpGet("/iast/source/path/test")]
+        public IActionResult pathTest()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Request.Path);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
 
         [HttpGet("insecure_cipher/test_insecure_algorithm")]
         public IActionResult test_insecure_weakCipher()
@@ -197,6 +212,22 @@ namespace weblog
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
+        }        
+        
+        [HttpGet("hstsmissing/test_insecure")]
+        public IActionResult test_insecure_hstsmissing()
+        {
+            Response.Headers.Add("Strict-Transport-Security", "max-age=-3153");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
+        }
+
+        [HttpGet("hstsmissing/test_secure")]
+        public IActionResult test_secure_hstsmissing()
+        {
+            Response.Headers.Append("Strict-Transport-Security", "max-age=31536000");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
         }
         
         [HttpGet("no-samesite-cookie/test_insecure")]
@@ -512,5 +543,73 @@ namespace weblog
                 return StatusCode(500, "Error executing query.");
             }               
         }
+
+        [HttpPost("mongodb-nosql-injection/test_insecure")]
+        public IActionResult test_insecure_mongodb_injection([FromForm]string key)
+        {
+            try
+            {
+                var mongoDbHelper = new MongoDbHelper("mongodb://localhost:27017", "test-db");
+                var filter = "{ \"user\": \"" + key + "\" }";
+                mongoDbHelper.Find("users", filter);
+                
+                return Content("Executed injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        [HttpPost("mongodb-nosql-injection/test_secure")]
+        public IActionResult test_secure_mongodb_injection([FromForm]string key)
+        {
+            try
+            {
+                var mongoDbHelper = new MongoDbHelper("mongodb://localhost:27017", "test-db");
+                var filter = MongoDbHelper.CreateSimpleDocument("user", key);
+                mongoDbHelper.Find("users", filter);
+                
+                return Content("Executed secure injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        [HttpPost("reflection_injection/test_insecure")]
+        public IActionResult test_insecure_reflection_injection([FromForm]string param)
+        {
+            try
+            {
+                var type = Type.GetType(param);
+                Activator.CreateInstance(type);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+
+            return Content("Executed reflection injection");
+        }
+        
+        [HttpPost("reflection_injection/test_secure")]
+        public IActionResult test_secure_reflection_injection([FromForm]string param)
+        {
+            try
+            {
+                var type = Type.GetType("System.String")!;
+                Activator.CreateInstance(type);
+                return Content("Executed secure injection");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error executing safe reflection.");
+            }
+        }
+
     }
 }
