@@ -423,8 +423,8 @@ class Test_DsmContext_Extraction_Base64:
     """ Verify DSM context is extracted using "dd-pathway-ctx/dd-pathway-ctx-base64" """
 
     def setup_dsmcontext_extraction_base64(self):
-        queue = "dsm-propagation-test-base64-encoding-queue"
-        exchange = "dsm-propagation-test-base64-encoding-exchange"
+        queue = "dsm-propagation-test-v2-encoding-queue"
+        exchange = "dsm-propagation-test-v2-encoding-exchange"
 
         # send initial message with v2 pathway context encoding
         self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange)
@@ -447,7 +447,7 @@ class Test_DsmContext_Extraction_Base64:
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
 
-        queue = "dsm-propagation-test-base64-encoding-queue"
+        queue = "dsm-propagation-test-v2-encoding-queue"
         edge_tags_in = ("direction:in", f"topic:{queue}", "type:rabbitmq")
 
         DsmHelper.assert_checkpoint_presence(
