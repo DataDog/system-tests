@@ -165,18 +165,14 @@ jobs:
         if: inputs.build_lib_injection_app_images
         env:
           DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
+          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
         run: |
           cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
-          export APP_DOCKER_IMAGE_REPO=ghcr.io/datadog/system-tests/$WEBLOG_VARIANT       
           LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:${{ github.sha }} ./build.sh
           cd ..
 
       - name: Install runner
-        uses: ./.github/actions/install_runner     
-
-      - name: Build system-tests runner
-        id: build-runner
-        run: ./build.sh -i runner   
+        uses: ./.github/actions/install_runner       
 
       - name: Kubernetes lib-injection tests (using custom weblog image tag)
         if: inputs.build_lib_injection_app_images
@@ -187,7 +183,15 @@ jobs:
         if: inputs.build_lib_injection_app_images != true
         id: k8s-lib-injection-tests
         run: ./run.sh K8S_LIB_INJECTION 
-        
+
+      - name: Delete image
+        if: inputs.build_lib_injection_app_images
+        uses: chipkent/action-cleanup-package@v1.0.1
+        with:
+          package-name: system-tests/${{ matrix.variant.library }}
+          tag: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
 
         
             
