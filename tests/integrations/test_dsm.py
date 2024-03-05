@@ -606,6 +606,7 @@ class DsmHelper:
             with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]):
                 conn.drain_events(timeout=timeout)
 
+            conn.close()
             if messages:
                 logging.info("System Tests RabbitMQ testing injection and consume from weblog successfully")
                 return {"result": messages}
