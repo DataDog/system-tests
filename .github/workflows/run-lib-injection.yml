@@ -185,13 +185,11 @@ jobs:
         run: ./run.sh K8S_LIB_INJECTION 
 
       - name: Delete image
-        if: inputs.build_lib_injection_app_images
-        uses: chipkent/action-cleanup-package@v1.0.1
+        uses: bots-house/ghcr-delete-image-action@v1.1.0
         with:
-          package-name: datadog/system-tests/${{ matrix.variant.library }}
+          owner: datadog
+          name: system-tests/${{ matrix.variant.library }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.sha }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-
         
             
