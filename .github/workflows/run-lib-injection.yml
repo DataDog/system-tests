@@ -188,7 +188,7 @@ jobs:
         if: inputs.build_lib_injection_app_images
         uses: chipkent/action-cleanup-package@v1.0.1
         with:
-          package-name: system-tests/${{ matrix.variant.library }}
+          package-name: datadog/system-tests/${{ matrix.variant.library }}
           tag: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 

@@ -26,7 +26,7 @@ def test_k8s_instance():
     logger.info("K8sInstance created")
     yield k8s_instance
     logger.info("K8sInstance destroying")
-    #  k8s_instance.destroy_instance()
+    k8s_instance.destroy_instance()
     logger.info("K8sInstance destroyed")
 
 
