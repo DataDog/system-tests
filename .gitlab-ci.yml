@@ -13,8 +13,6 @@ stages:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   before_script:
-    - apt-get update
-    - apt-get install -y jq
     # Setup AWS Credentials
     - mkdir -p ~/.aws
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
@@ -183,12 +181,15 @@ onboarding_parse_results:
   script:
       - |
         for folder in reports/logs*/ ; do
-          curl -X POST ${FP_IMPORT_URL} \
-            --fail \
-            --header "Content-Type: application/json" \
-            --header "FP_API_KEY: ${FP_API_KEY}" \
-            --data "@./${folder}feature_parity.json" \
-            --include
+          if [ -e ./${folder}feature_parity.json ]
+          then
+            curl -X POST ${FP_IMPORT_URL} \
+              --fail \
+              --header "Content-Type: application/json" \
+              --header "FP_API_KEY: ${FP_API_KEY}" \
+              --data "@./${folder}feature_parity.json" \
+              --include
+          fi
         done
 
 check_merge_labels:
