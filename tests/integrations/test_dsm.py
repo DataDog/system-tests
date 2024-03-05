@@ -557,9 +557,11 @@ class DsmHelper:
                 headers=headers,
             )
             logging.info("System Tests RabbitMQ message using V1 DSM Pathway Encoding sent successfully")
+            conn.close()
             return "ok"
         except Exception as e:
             logging.info(f"Error during DSM RabbitMQ publish message using V1 DSM Pathway Encoding: {e}")
+            conn.close()
             return "error"
 
     @staticmethod
@@ -586,9 +588,11 @@ class DsmHelper:
                 headers=headers,
             )
             logging.info("System Tests RabbitMQ message using V2 DSM Pathway Encoding sent successfully")
+            conn.close()
             return "ok"
         except Exception as e:
             logging.info(f"Error during DSM RabbitMQ publish message using V2 DSM Pathway Encoding: {e}")
+            conn.close()
             return "error"
 
     @staticmethod
