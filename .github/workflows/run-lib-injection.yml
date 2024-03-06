@@ -15,7 +15,6 @@ env:
 
 jobs:
   manual-lib-injection-tests:
-    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -187,7 +186,8 @@ jobs:
 
         
   delete-images:
-    if: inputs.build_lib_injection_app_images
+    if: ${{ false }} #Enable when Github support fix the problem with the image versions. 
+    #if inputs.build_lib_injection_app_images 
     needs:
     - new-lib-injection-tests
     runs-on: ubuntu-latest
