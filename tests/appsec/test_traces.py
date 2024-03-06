@@ -370,7 +370,7 @@ class Test_ExternalWafRequestsIdentification:
                 "cf-ray",
                 "x-cloud-trace-context",
                 "x-appgw-trace-id",
-                "x-sigsci-request-id",
+                "x-sigsci-requestid",
                 "x-sigsci-tags",
                 "akamai-user-risk",
             ]:
