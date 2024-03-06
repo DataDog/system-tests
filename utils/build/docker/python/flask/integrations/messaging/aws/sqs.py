@@ -42,8 +42,9 @@ def sqs_consume(queue, timeout=60):
             response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
+                    logging.info("Consumed the following SQS message with params: " + message)
                     consumed_message = message["Body"]
-                    logging.info("Consumed the following: " + consumed_message)
+                    logging.info("Consumed the following SQS message: " + consumed_message)
         except Exception as e:
             logging.warning(e)
         time.sleep(1)

@@ -416,6 +416,7 @@ def dsm():
 
     # force flush stats to ensure they're available to agent after test setup is complete
     tracer.data_streams_processor.periodic()
+    data_streams_processor().periodic()
     return response
 
 
