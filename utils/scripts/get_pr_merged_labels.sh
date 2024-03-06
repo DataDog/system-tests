@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# shellcheck disable=SC2164
 #Check the commit message to figure out if we are merging a PR.
 #We extract the PR number and using GitHub API we check the PR labels.
 #If the PR contains the label "build-buddies-images" we launch the build and push process
