@@ -5,6 +5,9 @@ from utils.tools import logger
 
 class K8sWeblog:
     def deploy_app_manual(self, app_image, library, library_init_image):
+        """ Installs a target app for manual library injection testing.
+            It returns when the app pod is ready."""
+
         v1 = client.CoreV1Api()
         logger.info(
             "[Deploy weblog] Deploying weblog as pod. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
@@ -75,6 +78,8 @@ class K8sWeblog:
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=100)
 
     def deploy_app_auto(self, app_image, library):
+        """ Installs a target app for auto library injection testing.
+            It returns when the deployment is available and the rollout is finished."""
         api = client.AppsV1Api()
         deployment_name = f"test-{library}-deployment"
 

@@ -9,6 +9,8 @@ import json
 
 class K8sDatadogClusterTestAgent:
     def desploy_test_agent(self):
+        """ Installs the test agent pod."""
+
         logger.info("[Test agent] Deploying Datadog test agent")
         apps_api = client.AppsV1Api()
         container = client.V1Container(
@@ -76,6 +78,8 @@ class K8sDatadogClusterTestAgent:
         logger.info("[Test agent] Daemonset created")
 
     def deploy_operator_manual(self, use_uds=False):
+        """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
+            It returns when the Cluster Agent pod is ready."""
 
         v1 = client.CoreV1Api()
 
@@ -107,6 +111,9 @@ class K8sDatadogClusterTestAgent:
         self._wait_for_operator_ready()
 
     def deploy_operator_auto(self, use_uds=False):
+        """ Installs the Datadog Cluster Agent via helm for auto library injection testing.
+            It returns when the Cluster Agent pod is ready."""
+
         logger.info("[Deploy operator] Using Patcher")
         operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-auto.yaml"
 
@@ -133,6 +140,9 @@ class K8sDatadogClusterTestAgent:
         self._wait_for_operator_ready()
 
     def apply_config_auto_inject(self, library, config_data):
+        """ Applies an configuration change for auto injection.
+            It returns when the targeted deployment finishes the rollout."""
+
         logger.info(f"[Auto Config] Applying config for auto-inject: {config_data}")
         v1 = client.CoreV1Api()
         metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
@@ -142,6 +152,7 @@ class K8sDatadogClusterTestAgent:
         time.sleep(90)
 
     def create_configmap_auto_inject(self):
+        """ Minimal configuration needed when we install operator auto """
         logger.info("[Auto Config] Creating configmap for auto-inject")
         v1 = client.CoreV1Api()
         metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)

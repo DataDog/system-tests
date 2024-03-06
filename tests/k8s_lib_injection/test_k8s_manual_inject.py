@@ -7,9 +7,7 @@ from utils.tools import logger
 from utils import scenarios, context, features
 
 
-@features.host_auto_instrumentation
-@scenarios.k8s_lib_injection
-class TestKubernetes:
+class _TestKubernetes:
     def _get_dev_agent_traces(self, retry=10):
         for _ in range(retry):
             logger.info(f"[Check traces] Checking traces:")
@@ -21,7 +19,11 @@ class TestKubernetes:
             time.sleep(2)
         return []
 
-    def test_inject_admission_controller(self, test_k8s_instance):
+
+@features.k8s_admission_controller
+@scenarios.k8s_lib_injection
+class TestAdmisionController(_TestKubernetes):
+    def _test_inject_admission_controller(self, test_k8s_instance):
         logger.info(f"Launching test test_manual_install")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_manual()
