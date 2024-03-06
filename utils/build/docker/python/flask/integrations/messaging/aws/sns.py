@@ -38,6 +38,10 @@ def sns_consume(queue, timeout=60):
     """
     The goal of this function is to trigger sqs consumer calls
     """
+    import ddtrace
+
+    ddtrace.patch_all()
+
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
 

@@ -300,10 +300,6 @@ class Test_DsmKinesis:
         self.r = weblog.get("/dsm?integration=kinesis&timeout=60&stream=dsm-system-tests-stream", timeout=61,)
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
-    @missing_feature(
-        library="python",
-        reason="DSM always creates a new pathway on consume, and does not try to read from injected context",
-    )
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
@@ -355,7 +351,6 @@ class Test_DsmContext_Injection_Base64:
         # consume message using helper and check propagation type
         self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
 
-    @missing_feature(library="python", reason="dd-trace-py uses V1 encoding by default.")
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
@@ -431,7 +426,6 @@ class Test_DsmContext_Extraction_Base64:
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
-    @missing_feature(library="python", reason="dd-trace-py automatically assumes v1 encoding for rabbitmq")
     def test_dsmcontext_extraction_base64(self):
         assert self.produce_response == "ok"
         assert "error" not in self.r.text

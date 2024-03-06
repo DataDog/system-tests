@@ -8,6 +8,10 @@ def sqs_produce(queue, message):
     """
     The goal of this function is to trigger sqs producer calls
     """
+    import ddtrace
+
+    ddtrace.patch_all()
+
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
