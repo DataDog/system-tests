@@ -114,7 +114,7 @@ function ensure-cluster() {
 }
 
 # ensure-buildx creates a builder instance named "lib-injection-testing" or use it if it already exists.
-function ensure-buildx___() {
+function ensure-buildx() {
     if ! [[ "$(docker buildx ls)" =~ "lib-injection-testing" ]] ;  then
         docker buildx create --name lib-injection-testing
     fi

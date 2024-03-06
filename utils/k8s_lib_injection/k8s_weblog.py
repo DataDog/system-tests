@@ -52,6 +52,7 @@ class K8sWeblog:
                         )
                     ),
                 ),
+                client.V1EnvVar(name="DD_TRACE_DEBUG", value="1"),
             ],
             readiness_probe=client.V1Probe(
                 timeout_seconds=5,

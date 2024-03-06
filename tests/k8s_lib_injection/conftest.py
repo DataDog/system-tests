@@ -44,8 +44,7 @@ class K8sInstance:
         config.load_kube_config()
 
     def destroy_instance(self):
-        # destroy_cluster()
-        pass
+        destroy_cluster()
 
     def deploy_test_agent(self):
         self.test_agent.desploy_test_agent()

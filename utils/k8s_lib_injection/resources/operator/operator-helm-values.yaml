@@ -5,7 +5,7 @@ agents:
 datadog:
   clusterName: lib-injection-testing
   tags: []
- # logLevel: DEBUG
+  logLevel: DEBUG
   # datadog.kubelet.tlsVerify should be `false` on kind and minikube
   # to establish communication with the kubelet
   kubelet:

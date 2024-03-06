@@ -11,8 +11,8 @@ export BASE_DIR=$(dirname "${SCRIPT_PATH}")
 echo "[run-lib-injection] Running library injection test cases"
 ${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents-manual
 echo "[run-lib-injection] Deploying pre-modified pod "
-#${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-app-manual
+${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-app-manual
 echo "[run-lib-injection] Running tests"
-#${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER test-for-traces
+${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER test-for-traces
 
 echo "[run-lib-injection] Completed successfully"
