@@ -796,7 +796,10 @@ class Test_Headers_Tracecontext:
         Ensure the last parent id is propagated according to the W3C spec
         """
         with test_library:
-            with test_library.start_span(name="new_span") as span:
+            with test_library.start_span(name="new_span", http_headers=[
+                ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ["tracestate", "dd=s:2;p:0123456789abcdef"],
+            ]) as span:
                 headers = test_library.inject_headers(span.span_id)
 
             tracestate_headers = list(filter(lambda h: h[0].lower() == "tracestate", headers))
