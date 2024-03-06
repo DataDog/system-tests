@@ -184,12 +184,30 @@ jobs:
         id: k8s-lib-injection-tests
         run: ./run.sh K8S_LIB_INJECTION 
 
+
+        
+  delete-images:
+    if: inputs.build_lib_injection_app_images
+    needs:
+    - new-lib-injection-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+        matrix:
+          weblog-variant: [dd-lib-java-init-test-app, sample-app, dd-lib-python-init-test-django]
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+        with:
+          registry: ghcr.io/datadog
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete image
         uses: bots-house/ghcr-delete-image-action@v1.1.0
         with:
           owner: datadog
-          name: system-tests/${{ matrix.variant.weblog-variant }}
+          name: system-tests/${{ matrix.weblog-variant }}
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.sha }}
-        
-            

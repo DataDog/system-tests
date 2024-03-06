@@ -9,14 +9,13 @@ from utils.k8s_lib_injection.k8s_command_utils import ensure_cluster, destroy_cl
 from utils.k8s_lib_injection.k8s_datadog_cluster_agent import K8sDatadogClusterTestAgent
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from kubernetes import config
-from utils import scenarios
 
 
 @pytest.fixture
 def test_k8s_instance():
-
+    library = "js" if context.scenario.library.library == "nodejs" else context.scenario.library.library
     k8s_instance = K8sInstance(
-        context.scenario.library.library,
+        library,
         context.scenario.weblog_variant,
         context.scenario._weblog_variant_image,
         context.scenario._library_init_image,
@@ -45,7 +44,8 @@ class K8sInstance:
         config.load_kube_config()
 
     def destroy_instance(self):
-        destroy_cluster()
+        # destroy_cluster()
+        pass
 
     def deploy_test_agent(self):
         self.test_agent.desploy_test_agent()
