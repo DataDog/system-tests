@@ -50,7 +50,9 @@ def sns_consume(queue, timeout=60):
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     consumed_message = message["Body"]
-                    print("[SNS->SQS] Consumed the following: " + consumed_message)
+                    logging.info("[SNS->SQS] Consumed the following message with params:")
+                    logging.info(message)
+                    logging.info("[SNS->SQS] Consumed the following: " + consumed_message)
         except Exception as e:
             logging.warning("[SNS->SQS] " + str(e))
         time.sleep(1)
