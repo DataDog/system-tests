@@ -22,10 +22,12 @@ function flush () {
   // does have a callback :)
   const promises = []
 
+  /* profiling crashes in nextjs ?
   const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
   if (profiler?._collect) {
     promises.push(profiler._collect('on_shutdown'))
   }
+  */
 
   if (tracer._tracer?._exporter?._writer?.flush) {
     promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
