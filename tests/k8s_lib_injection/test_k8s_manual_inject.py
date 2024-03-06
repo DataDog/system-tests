@@ -23,7 +23,7 @@ class _TestKubernetes:
 @features.k8s_admission_controller
 @scenarios.k8s_lib_injection
 class TestAdmisionController(_TestKubernetes):
-    def _test_inject_admission_controller(self, test_k8s_instance):
+    def test_inject_admission_controller(self, test_k8s_instance):
         logger.info(f"Launching test test_manual_install")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_manual()
