@@ -20,7 +20,7 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
 
     is_build_buddies=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-buddies-images"))');
     is_build_lib_injections_apps=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-lib-injection-app-images"))');
-
+    is_build_lib_injections_apps="true"
     if [ -z "$is_build_buddies" ]
     then
         echo "The PR $PR_NUMBER doesn't contain the 'build-buddies-images' label "
