@@ -160,7 +160,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build weblog base images
+      - name: Build weblog base images (PR)
         if: inputs.build_lib_injection_app_images
         env:
           DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
@@ -168,6 +168,16 @@ jobs:
         run: |
           cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
           LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:${{ github.sha }} ./build.sh
+          cd ..
+
+      - name: Build weblog latest base images
+        if: github.ref == 'refs/heads/main'
+        env:
+          DOCKER_IMAGE_WEBLOG_TAG: latest
+          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
+        run: |
+          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
+          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:latest ./build.sh
           cd ..
 
       - name: Install runner
