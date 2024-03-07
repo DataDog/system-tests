@@ -2,9 +2,16 @@ name: Lib-injection tests
 
 on:
   workflow_call:
-  
+    inputs:
+      build_lib_injection_app_images:
+        description: "Shall we build python base images for tests on python tracer"
+        default: false
+        required: false
+        type: boolean 
 env:
   REGISTRY: ghcr.io
+
+
 
 jobs:
   manual-lib-injection-tests:
@@ -98,3 +105,109 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           test-script: ./lib-injection/run-auto-lib-injection.sh
+
+  #TODO rename this job after migration completed!
+  new-lib-injection-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        variant:
+        - library: java
+          weblog-variant: dd-lib-java-init-test-app
+
+        - library: nodejs
+          weblog-variant: sample-app
+
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django
+
+        version: 
+          - latest #Production tag
+          - latest_snapshot
+
+      fail-fast: false
+    env:
+      TEST_LIBRARY: ${{ matrix.variant.library }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
+      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
+      DOCKER_IMAGE_TAG: ${{ matrix.version }}
+      BUILDX_PLATFORMS: linux/amd64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+          
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3  # 3.0.0
+  
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # 3.0.0
+        with:
+          install: true
+          config-inline: |
+            [worker.oci]
+              max-parallelism = 1
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+        with:
+          registry: ghcr.io/datadog
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build weblog base images
+        if: inputs.build_lib_injection_app_images
+        env:
+          DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
+          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
+        run: |
+          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
+          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:${{ github.sha }} ./build.sh
+          cd ..
+
+      - name: Install runner
+        uses: ./.github/actions/install_runner       
+
+      - name: Kubernetes lib-injection tests (using custom weblog image tag)
+        if: inputs.build_lib_injection_app_images
+        id: k8s-lib-injection-tests-custom-weblog-tag
+        run: DOCKER_IMAGE_WEBLOG_TAG=${{ github.sha }} ./run.sh K8S_LIB_INJECTION 
+
+      - name: Kubernetes lib-injection tests
+        if: inputs.build_lib_injection_app_images != true
+        id: k8s-lib-injection-tests
+        run: ./run.sh K8S_LIB_INJECTION 
+
+
+        
+  delete-images:
+    if: ${{ false }} #Enable when Github support fix the problem with the image versions. 
+    #if inputs.build_lib_injection_app_images 
+    needs:
+    - new-lib-injection-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+        matrix:
+          weblog-variant: [dd-lib-java-init-test-app, sample-app, dd-lib-python-init-test-django]
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+        with:
+          registry: ghcr.io/datadog
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete image
+        uses: bots-house/ghcr-delete-image-action@v1.1.0
+        with:
+          owner: datadog
+          name: system-tests/${{ matrix.weblog-variant }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.sha }}
