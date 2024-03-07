@@ -194,7 +194,7 @@ onboarding_parse_results:
 
 check_merge_labels:
   #image: registry.ddbuild.io/images/ci_docker_base
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  image: ghcr.io/datadog/dd-trace-java-docker-build:v23.10-base
   tags: ["runner:docker"]
   stage: before_tests
   before_script:
