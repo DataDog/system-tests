@@ -15,7 +15,6 @@ env:
 
 jobs:
   manual-lib-injection-tests:
-    if: ${{ false }} 
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -161,7 +160,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build weblog base images
+      - name: Build weblog base images (PR)
         if: inputs.build_lib_injection_app_images
         env:
           DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
@@ -172,9 +171,7 @@ jobs:
           cd ..
 
       - name: Build weblog latest base images
-        #if github.ref_name == ''
-        #if github.ref == 'refs/heads/main'
-        if: github.ref == 'refs/pull/2207/merge'
+        if: github.ref == 'refs/heads/main'
         env:
           DOCKER_IMAGE_WEBLOG_TAG: latest
           APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
@@ -194,10 +191,7 @@ jobs:
       - name: Kubernetes lib-injection tests
         if: inputs.build_lib_injection_app_images != true
         id: k8s-lib-injection-tests
-        run: |
-          echo " github.event.workflow_run.head_commit.message: ${{ github.event.workflow_run.head_commit.message }}"
-          echo "github.event.head_commit.message: ${{ github.event.head_commit.message }}"
-          ./run.sh K8S_LIB_INJECTION 
+        run: ./run.sh K8S_LIB_INJECTION 
 
 
         
