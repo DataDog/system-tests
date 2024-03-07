@@ -15,6 +15,7 @@ env:
 
 jobs:
   manual-lib-injection-tests:
+    if: ${{ false }} 
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -171,7 +172,8 @@ jobs:
           cd ..
 
       - name: Build weblog latest base images
-        if: github.ref_name == 'fix_pr_labels_lib_injection'
+        #if github.ref_name == ''
+        if: github.ref == 'refs/heads/robertomonteromiguel/fix_pr_labels_lib_injection'
         env:
           DOCKER_IMAGE_WEBLOG_TAG: latest
           APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
@@ -191,7 +193,10 @@ jobs:
       - name: Kubernetes lib-injection tests
         if: inputs.build_lib_injection_app_images != true
         id: k8s-lib-injection-tests
-        run: ./run.sh K8S_LIB_INJECTION 
+        run: |
+          echo "THE REFFFFFFFFFFFF: ${{github.ref}}"
+          echo "THE NAME: ${{github.ref.name}}"
+          ./run.sh K8S_LIB_INJECTION 
 
 
         
