@@ -6,7 +6,7 @@
 
 ##################################################
         echo "TESTTTTTTTTTTTTT"
-        docker buildx create --name multiarch --driver docker-container --use
+        #docker buildx create --name multiarch --driver docker-container --use
 
         echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
         export DOCKER_IMAGE_WEBLOG_TAG="latest"
