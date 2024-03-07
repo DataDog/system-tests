@@ -75,7 +75,7 @@ class K8sWeblog:
         pod_body = client.V1Pod(api_version="v1", kind="Pod", metadata=pod_metadata, spec=pod_spec)
 
         v1.create_namespaced_pod(namespace="default", body=pod_body)
-        self.wait_for_weblog_ready_by_label_app("my-app", timeout=100)
+        self.wait_for_weblog_ready_by_label_app("my-app", timeout=120)
 
     def deploy_app_auto(self, app_image, library):
         """ Installs a target app for auto library injection testing.

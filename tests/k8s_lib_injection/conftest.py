@@ -62,6 +62,3 @@ class K8sInstance:
         self.test_agent.apply_config_auto_inject(self.library, config_data)
         self.test_weblog.wait_for_weblog_after_apply_configmap(f"{self.library}-app")
         return self.test_agent
-
-    def say_hello(self):
-        logger.info("Hello, World!")
