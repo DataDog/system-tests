@@ -201,7 +201,7 @@ check_merge_labels:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text) 
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text) 
   script:
-    - apt install default-jdk
+    - apt install -y default-jdk
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "robertomonteromiguel/fix_pr_labels_lib_injection"
