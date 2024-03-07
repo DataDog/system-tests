@@ -77,6 +77,11 @@ on:
         default: false
         required: false
         type: boolean
+      build_lib_injection_app_images:
+          description: "Shall we build and push k8s lib injection weblog images"
+          default: false
+          required: false
+          type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -101,6 +106,8 @@ jobs:
     if: inputs.run_libinjection || inputs.run_all
     uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
+    with:
+      build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
 
   end-to-end:
     uses: ./.github/workflows/run-end-to-end.yml

@@ -2076,3 +2076,13 @@ class features:
         """
         pytest.mark.features(feature_id=286)(test_object)
         return test_object
+
+    @staticmethod
+    def k8s_admission_controller(test_object):
+        """
+        Auto inject the tracer library for k8s enviroments using admission controller
+
+        https://feature-parity.us1.prod.dog/#/?feature=288
+        """
+        pytest.mark.features(feature_id=288)(test_object)
+        return test_object
