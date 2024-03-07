@@ -3,7 +3,7 @@ current_dir = Dir.pwd
 $LOAD_PATH.unshift(current_dir) unless $LOAD_PATH.include?(current_dir)
 
 require 'grpc'
-require 'ddtrace'
+require 'datadog'
 require 'datadog/tracing/contrib/grpc/distributed/propagation' # Loads optional `Datadog::Tracing::Contrib::GRPC::Distributed`
 require 'apm_test_client_services_pb'
 

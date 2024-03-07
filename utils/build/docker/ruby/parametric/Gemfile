@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem 'ddtrace'
+gem 'datadog'
 gem 'grpc'
 gem 'grpc-tools'
 
