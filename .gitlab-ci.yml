@@ -193,6 +193,8 @@ onboarding_parse_results:
         done
 
 check_merge_labels:
+  tags: ["arch:amd64"]
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:24.0.4-gbi-focal
   #image: registry.ddbuild.io/images/ci_docker_base
   #image: ghcr.io/datadog/dd-trace-java-docker-build:v23.10-base
   #tags: ["runner:docker"]
