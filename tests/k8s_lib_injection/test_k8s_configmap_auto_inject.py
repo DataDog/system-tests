@@ -120,7 +120,7 @@ class TestConfigMapAutoInject:
         time.sleep(30)
         test_k8s_instance.test_weblog.wait_for_weblog_after_apply_configmap(f"{test_k8s_instance.library}-app")
 
-    def check_for_no_pod_metadata(self, test_k8s_instance):
+    def _check_for_no_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
         v1 = client.CoreV1Api()
         app_name = f"{test_k8s_instance.library}-app"
@@ -128,9 +128,18 @@ class TestConfigMapAutoInject:
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
 
         assert (
+            "admission.datadoghq.com/enabled" not in pods.items[0].metadata.labels
+        ), "annotation 'admission.datadoghq.com/enabled' is present but it shouldn't be there"
+
+    def _check_for_disabled_pod_metadata(self, test_k8s_instance):
+        """ Ensures the targeted pod doesn't have admission labels. """
+        v1 = client.CoreV1Api()
+        app_name = f"{test_k8s_instance.library}-app"
+        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        assert (
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
-        pass
 
     @irrelevant(
         condition=not hasattr(context.scenario, "_library_init_image_tag")
@@ -143,7 +152,7 @@ class TestConfigMapAutoInject:
            - apply config
            - check for traces """
         test_k8s_instance.deploy_weblog_as_deployment()
-        logger.info(f"Launching test test_auto_install")
+        logger.info(f"Launching test _test_fileprovider_configmap_case1")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
@@ -249,7 +258,7 @@ class TestConfigMapAutoInject:
         or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def _test_fileprovider_configmap_case4(self, test_k8s_instance):
+    def test_fileprovider_configmap_case4(self, test_k8s_instance):
         """  Mismatching config:
                - deploy app & agent
                - apply config with non-matching cluster name
@@ -261,6 +270,32 @@ class TestConfigMapAutoInject:
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
         default_config_data[0]["k8s_target"]["cluster"] = "lib-injection-testing-no-match"
         test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
-        self.check_for_no_pod_metadata(test_k8s_instance)
+        self._check_for_no_pod_metadata(test_k8s_instance)
 
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
+
+    def test_fileprovider_configmap_case5(self, test_k8s_instance):
+        """ Config change to action:disable
+                - deploy app & agent
+                - apply matching config
+                - check that deployment instrumented
+                - apply config with action:disable
+                - check that deployment is not longer instrumented
+       """
+        test_k8s_instance.deploy_weblog_as_deployment()
+        logger.info(f"Launching test _test_fileprovider_configmap_case5")
+        test_agent = test_k8s_instance.deploy_test_agent()
+        test_agent.deploy_operator_auto()
+        default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
+
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        traces_json = self._get_dev_agent_traces()
+        logger.debug(f"Traces: {traces_json}")
+        assert len(traces_json) > 0, "No traces found"
+
+        logger.debug("Apply disabled config")
+        default_config_data = self._get_default_auto_inject_config(test_k8s_instance, rc_rev=2)
+        default_config_data[0]["action"] = "disable"
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        self._check_for_disabled_pod_metadata(test_k8s_instance)
+        logger.info(f"Test _test_fileprovider_configmap_case5 finished")
