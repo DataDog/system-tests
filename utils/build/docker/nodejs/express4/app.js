@@ -4,6 +4,7 @@ const tracer = require('dd-trace').init({
   debug: true
 })
 
+const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
 const fs = require('fs')
@@ -474,6 +475,37 @@ app.get('/createextraservice', (req, res) => {
 iast.initRoutes(app, tracer)
 
 require('./auth')(app, passport, tracer)
+
+// try to flush as much stuff as possible from the library
+app.get('/flush', (req, res) => {
+  // doesn't have a callback :(
+  // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
+  tracer.dogstatsd?.flush?.()
+  tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+
+  // does have a callback :)
+  const promises = []
+
+  const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+  if (profiler?._collect) {
+    promises.push(profiler._collect('on_shutdown'))
+  }
+
+  if (tracer._tracer?._exporter?._writer?.flush) {
+    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
+  }
+
+  if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
+    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+  }
+
+  Promise.all(promises).then(() => {
+    res.status(200).send('OK')
+  }).catch((err) => {
+    res.status(500).send(err)
+  })
+})
+
 require('./graphql')(app).then(() => {
   app.listen(7777, '0.0.0.0', () => {
     tracer.trace('init.service', () => {})
