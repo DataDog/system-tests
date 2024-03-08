@@ -104,10 +104,6 @@ class TestConfigMapAutoInject:
             deployment.metadata.annotations["admission.datadoghq.com/rc.rev"] == rc_rev
         ), f"Deployment annotation 'admission.datadoghq.com/rc.rev' not equal [{rc_rev}]. Deployment description: {deployment}"
 
-    @irrelevant(
-        condition=context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
     def trigger_app_rolling_update(self, test_k8s_instance):
         """Starts a rolling update of the target deployment by injecting an environment variable.
           It returns when the deployment is available and the rollout is finished. 
