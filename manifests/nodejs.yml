@@ -351,6 +351,12 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: 
+        "*": irrelevant
+        express4: v5.6.0
+      Test_DsmContext_Injection_Base64: 
+        "*": irrelevant
+        express4: v5.6.0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': v4.4.0

@@ -28,6 +28,8 @@ def rabbitmq_consume(queue, exchange, timeout=60):
         Pin.override(consumer, tracer=tracer)
         conn.drain_events(timeout=timeout)
 
+    conn.close()
+
     if messages:
         return {"result": messages}
     else:

@@ -289,6 +289,18 @@ def consume_kinesis_message():
 
 @app.route("/rabbitmq/produce")
 def produce_rabbitmq_message():
+    # force reset DSM context for global tracer and global DSM processor
+    try:
+        del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+    try:
+        from ddtrace.internal.datastreams import data_streams_processor
+
+        del data_streams_processor()._current_context.value
+    except AttributeError:
+        pass
+
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
     message = "Hello from Python RabbitMQ Context Propagation Test"
@@ -404,6 +416,7 @@ def dsm():
 
     # force flush stats to ensure they're available to agent after test setup is complete
     tracer.data_streams_processor.periodic()
+    data_streams_processor().periodic()
     return response
 
 

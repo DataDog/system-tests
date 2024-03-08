@@ -5,6 +5,12 @@
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
 from utils.tools import logger
 
+import base64
+import logging
+import struct
+
+import kombu
+
 
 @features.datastreams_monitoring_support_for_kafka
 @scenarios.integrations
@@ -294,10 +300,6 @@ class Test_DsmKinesis:
         self.r = weblog.get("/dsm?integration=kinesis&timeout=60&stream=dsm-system-tests-stream", timeout=61,)
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
-    @missing_feature(
-        library="python",
-        reason="DSM always creates a new pathway on consume, and does not try to read from injected context",
-    )
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
@@ -314,7 +316,7 @@ class Test_DsmKinesis:
             },
             "default": {
                 "producer": 12766628368524791023,
-                "consumer": 17643872031898844474,
+                "consumer": 10129046175894237233,
                 "edge_tags_out": ("direction:out", f"topic:{stream_arn}", "type:kinesis"),
                 "edge_tags_in": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),
             },
@@ -328,6 +330,119 @@ class Test_DsmKinesis:
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
         )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
+        )
+
+
+@features.datastreams_monitoring_support_context_injection_base64
+@scenarios.integrations
+class Test_DsmContext_Injection_Base64:
+    """ Verify DSM context is injected using correct encoding (base64) """
+
+    def setup_dsmcontext_injection_base64(self):
+        queue = "dsm-propagation-test-injection"
+        exchange = "dsm-propagation-test-injection-exchange"
+
+        # send initial message with via weblog
+        self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
+
+        # consume message using helper and check propagation type
+        self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
+
+    def test_dsmcontext_injection_base64(self):
+        assert self.r.status_code == 200
+
+        assert "error" not in self.r.text
+        assert "error" not in self.consume_response
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 5171947544405521872, "consumer": 1272731766871501641,},
+            "python": {
+                "producer": 12830291756145931912,  # python is producing 12830291756145931912, since it includes 'has_routing_key:<value>', which Java SHOULD too but isnt
+                "consumer": 6273982990684090851,
+            },
+            "default": {
+                "producer": 8303078309451632155,  # Java should be producing the same as python, but for some reason isn't including the routing key tag in the created hash
+                "consumer": 6884439977898629893,
+            },
+        }
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+
+        exchange = "dsm-propagation-test-injection-exchange"
+        edge_tags_out = ("direction:out", f"exchange:{exchange}", "has_routing_key:true", "type:rabbitmq")
+
+        message = self.consume_response["result"][0]
+
+        if "dd-pathway-ctx-base64" in message.headers:
+            encoded_pathway_b64 = message.headers["dd-pathway-ctx-base64"]
+
+            # assert that this is base64
+            assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
+
+            encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
+
+            # nodejs uses big endian, others use little endian
+            _format = "<Q"
+            if context.library.library == "nodejs":
+                _format = ">Q"
+            decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
+
+            assert producer_hash == decoded_pathway
+
+            DsmHelper.assert_checkpoint_presence(
+                hash_=decoded_pathway, parent_hash=0, tags=edge_tags_out,
+            )
+
+        elif "dd-pathway-ctx" in message.headers:
+            encoded_pathway = message.headers["dd-pathway-ctx"]
+            # nodejs uses big endian, others use little endian
+            _format = "<Q"
+            if context.library.library == "nodejs":
+                _format = ">Q"
+            decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
+
+            DsmHelper.assert_checkpoint_presence(
+                hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
+            )
+
+            # We autofail here since we anticipate the base64 header
+            assert 1 == 0, "Tracer should support DSM Base64 Pathway encoding"
+
+
+@features.datastreams_monitoring_support_for_base64_encoding
+@scenarios.integrations
+class Test_DsmContext_Extraction_Base64:
+    """ Verify DSM context is extracted using "dd-pathway-ctx/dd-pathway-ctx-base64" """
+
+    def setup_dsmcontext_extraction_base64(self):
+        queue = "dsm-propagation-test-v2-encoding-queue"
+        exchange = "dsm-propagation-test-v2-encoding-exchange"
+
+        # send initial message with v2 pathway context encoding
+        self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange)
+
+        self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
+
+    def test_dsmcontext_extraction_base64(self):
+        assert self.produce_response == "ok"
+        assert "error" not in self.r.text
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 15513165469939804800, "consumer": 5454773345580223976,},
+            "default": {
+                "producer": 9235368231858162135,
+                "consumer": 7819692959683983563,
+            },  # java/python decode to consumer hash of 7819692959683983563
+        }
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+
+        queue = "dsm-propagation-test-v2-encoding-queue"
+        edge_tags_in = ("direction:in", f"topic:{queue}", "type:rabbitmq")
+
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
@@ -370,3 +485,59 @@ class DsmHelper:
 
         logger.error("Checkpoint not found 🚨")
         raise ValueError("Checkpoint has not been found, please have a look in logs")
+
+    @staticmethod
+    def produce_rabbitmq_message_base64_propagation(queue, exchange):
+        # Create a RabbitMQ client
+        conn = kombu.Connection("amqp://127.0.0.1:5672")
+        conn.connect()
+        producer = conn.Producer()
+
+        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+
+        headers = {
+            "dd-pathway-ctx": "10nVzXmeKoCM1uautmOM1uautmM=",  # base64 encoded V2 pathway from dd-trace-py, pathway hash is: 9235368231858162135
+            "dd-pathway-ctx-base64": "10nVzXmeKoCM1uautmOM1uautmM=",
+        }
+        to_publish = {"message": "DSM Pathway Encoding V2 Base64 Test"}
+
+        try:
+            producer.publish(
+                to_publish,
+                exchange=task_queue.exchange,
+                routing_key=task_queue.routing_key,
+                declare=[task_queue],
+                headers=headers,
+            )
+            logging.info("System Tests RabbitMQ message using V2 DSM Pathway Encoding sent successfully")
+            conn.close()
+            return "ok"
+        except Exception as e:
+            logging.info(f"Error during DSM RabbitMQ publish message using V2 DSM Pathway Encoding: {e}")
+            conn.close()
+            return "error"
+
+    @staticmethod
+    def consume_rabbitmq_injection(queue, exchange, timeout):
+        # Create a RabbitMQ client
+        conn = kombu.Connection("amqp://127.0.0.1:5672")
+        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+        messages = []
+
+        def process_message(body, message):
+            message.ack()
+            messages.append(message)
+
+        try:
+            with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]):
+                conn.drain_events(timeout=timeout)
+
+            conn.close()
+            if messages:
+                logging.info("System Tests RabbitMQ testing injection and consume from weblog successfully")
+                return {"result": messages}
+            else:
+                return {"error": "Message not received"}
+        except Exception as e:
+            logging.info(f"Error during DSM RabbitMQ publish message using V2 DSM Pathway Encoding: {e}")
+            return "error"

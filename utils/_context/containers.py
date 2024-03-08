@@ -639,6 +639,7 @@ class RabbitMqContainer(TestedContainer):
             name="rabbitmq",
             host_log_folder=host_log_folder,
             allow_old_container=True,
+            ports={"5672": ("127.0.0.1", 5672)},
         )
 
 
