@@ -913,10 +913,10 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
-        spring-boot: v1.12.1
+        spring-boot: v0.1  # version unknown
       Test_DsmContext_Injection_Base64: 
         "*": irrelevant
-        spring-boot: v1.12.1
+        spring-boot: v0.1  # version unknown
       Test_DsmHttp:
         '*': missing_feature
         spring-boot: v1.12.1
