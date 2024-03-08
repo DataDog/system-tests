@@ -65,7 +65,7 @@ class TestConfigMapAutoInject:
                     break
             assert env_var_found, f"Env var {expected_env_var['name']} not found"
 
-    def _test_simple_auto_install(self, test_k8s_instance):
+    def test_simple_auto_install(self, test_k8s_instance):
 
         test_k8s_instance.deploy_weblog_as_deployment()
         logger.info(f"Launching test test_auto_install")
