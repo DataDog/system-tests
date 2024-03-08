@@ -21,7 +21,7 @@ TEST_TRACESTATE = "dd=t.dm:-0"
 TEST_ATTRIBUTES = {"arg1": "val1"}
 
 
-@features.f_interoperability
+@features.f_otel_interoperability
 @scenarios.parametric
 class Test_Otel_SDK_Interoperability:
     @staticmethod

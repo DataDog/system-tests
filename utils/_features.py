@@ -2068,16 +2068,6 @@ class features:
         return test_object
 
     @staticmethod
-    def f_interoperability(test_object):
-        """
-        Interoperability
-
-        https://feature-parity.us1.prod.dog/#/?feature=285
-        """
-        pytest.mark.features(feature_id=285)(test_object)
-        return test_object
-
-    @staticmethod
     def embeded_git_reference(test_object):
         """
         Embedding Git references to build artifacts
@@ -2085,7 +2075,7 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=286
         """
         pytest.mark.features(feature_id=286)(test_object)
-        return test_object
+        return
 
     @staticmethod
     def k8s_admission_controller(test_object):
@@ -2095,4 +2085,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=288
         """
         pytest.mark.features(feature_id=288)(test_object)
+        return test_object
+
+    @staticmethod
+    def f_otel_interoperability(test_object):
+        """
+        OTel Interoperability
+
+        https://feature-parity.us1.prod.dog/#/?feature=289
+        """
+        pytest.mark.features(feature_id=289)(test_object)
         return test_object
