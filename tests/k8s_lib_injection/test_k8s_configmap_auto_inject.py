@@ -108,7 +108,26 @@ class TestConfigMapAutoInject:
         condition=context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def test_fileprovider_configmap_case1(self, test_k8s_instance):
+    def trigger_app_rolling_update(self, test_k8s_instance):
+        """Starts a rolling update of the target deployment by injecting an environment variable.
+          It returns when the deployment is available and the rollout is finished. 
+        """
+        deployment_name = f"test-{test_k8s_instance.library}-deployment"
+        api = client.AppsV1Api()
+        deploy_data = api.read_namespaced_deployment(deployment_name, "default")
+        # get envs from deployment's first container
+        dep_envs = deploy_data.spec.template.spec.containers[0].env
+        dep_envs.append(client.V1EnvVar(name="ENV_FOO", value="ENV_BAR"))
+        deploy_data.spec.template.spec.containers[0].env = dep_envs
+        api.patch_namespaced_deployment(deployment_name, "default", deploy_data)
+        test_k8s_instance.test_weblog.wait_for_weblog_after_apply_configmap(f"{test_k8s_instance.library}-app")
+
+    @irrelevant(
+        condition=not hasattr(context.scenario, "_library_init_image_tag")
+        or context.scenario._library_init_image_tag != "latest",
+        reason="We only can test the latest release of the library",
+    )
+    def _test_fileprovider_configmap_case1(self, test_k8s_instance):
         """ Nominal case:
            - deploy app & agent
            - apply config
@@ -131,13 +150,14 @@ class TestConfigMapAutoInject:
         self._check_for_pod_metadata(test_k8s_instance)
         self._check_for_deploy_metadata(test_k8s_instance)
 
-        logger.info(f"Test test_auto_install finished")
+        logger.info(f"Test test_fileprovider_configmap_case1 finished")
 
     @irrelevant(
-        condition=context.scenario._library_init_image_tag != "latest",
+        condition=not hasattr(context.scenario, "_library_init_image_tag")
+        or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def test_fileprovider_configmap_case2(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case2(self, test_k8s_instance):
         """ Config change:
                - deploy app & agent
                - apply config
@@ -149,7 +169,7 @@ class TestConfigMapAutoInject:
         logger.info(f"Launching test test_auto_install")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
-        default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
+        default_config_data = self._get_default_auto_inject_config(test_k8s_instance, rc_rev=1)
 
         default_config_data[0]["lib_config"]["tracing_sampling_rate"] = 0.50
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.50"}]
@@ -162,6 +182,51 @@ class TestConfigMapAutoInject:
 
         self._check_for_env_vars(test_k8s_instance, expected_env_vars)
         self._check_for_pod_metadata(test_k8s_instance)
+        self._check_for_deploy_metadata(test_k8s_instance, rc_rev=1)
+
+        logger.info(f"Test test_fileprovider_configmap_case2 finished")
+
+    @irrelevant(
+        condition=not hasattr(context.scenario, "_library_init_image_tag")
+        or context.scenario._library_init_image_tag != "latest",
+        reason="We only can test the latest release of the library",
+    )
+    def test_fileprovider_configmap_case3(self, test_k8s_instance):
+        """  Config persistence:
+               - deploy app & agent
+               - apply config
+               - check for traces
+               - trigger unrelated rolling-update
+               - check for traces
+         """
+        test_k8s_instance.deploy_weblog_as_deployment()
+        logger.info(f"Launching test test_auto_install")
+        test_agent = test_k8s_instance.deploy_test_agent()
+        test_agent.deploy_operator_auto()
+        default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
+
+        expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
+
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        traces_json = self._get_dev_agent_traces()
+
+        logger.debug(f"Traces: {traces_json}")
+        assert len(traces_json) > 0, "No traces found"
+
+        self._check_for_env_vars(test_k8s_instance, expected_env_vars)
+        self._check_for_pod_metadata(test_k8s_instance)
         self._check_for_deploy_metadata(test_k8s_instance)
 
-        logger.info(f"Test test_auto_install finished")
+        logger.debug(" Trigger unrelated rolling-update")
+        self.trigger_app_rolling_update(test_k8s_instance)
+
+        logger.debug(f"Running tests after trigger unrelated rolling-update")
+        traces_json = self._get_dev_agent_traces()
+        logger.debug(f"Traces: {traces_json}")
+        assert len(traces_json) > 0, "No traces found after trigger unrelated rolling-update"
+
+        self._check_for_env_vars(test_k8s_instance, expected_env_vars)
+        self._check_for_pod_metadata(test_k8s_instance)
+        self._check_for_deploy_metadata(test_k8s_instance)
+
+        logger.info(f"Test test_fileprovider_configmap_case3 finished")
