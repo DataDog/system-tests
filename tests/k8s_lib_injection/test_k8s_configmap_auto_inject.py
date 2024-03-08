@@ -105,7 +105,7 @@ class TestConfigMapAutoInject:
             deployment.metadata.annotations["admission.datadoghq.com/rc.rev"] == rc_rev
         ), f"Deployment annotation 'admission.datadoghq.com/rc.rev' not equal [{rc_rev}]. Deployment description: {deployment}"
 
-    def trigger_app_rolling_update(self, test_k8s_instance):
+    def _trigger_app_rolling_update(self, test_k8s_instance):
         """Starts a rolling update of the target deployment by injecting an environment variable.
           It returns when the deployment is available and the rollout is finished. 
         """
@@ -117,7 +117,20 @@ class TestConfigMapAutoInject:
         dep_envs.append(client.V1EnvVar(name="ENV_FOO", value="ENV_BAR"))
         deploy_data.spec.template.spec.containers[0].env = dep_envs
         api.patch_namespaced_deployment(deployment_name, "default", deploy_data)
+        time.sleep(30)
         test_k8s_instance.test_weblog.wait_for_weblog_after_apply_configmap(f"{test_k8s_instance.library}-app")
+
+    def check_for_no_pod_metadata(self, test_k8s_instance):
+        """ Ensures the targeted pod doesn't have admission labels. """
+        v1 = client.CoreV1Api()
+        app_name = f"{test_k8s_instance.library}-app"
+        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+
+        assert (
+            pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
+        ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
+        pass
 
     @irrelevant(
         condition=not hasattr(context.scenario, "_library_init_image_tag")
@@ -218,7 +231,7 @@ class TestConfigMapAutoInject:
         self._check_for_deploy_metadata(test_k8s_instance)
 
         logger.debug(" Trigger unrelated rolling-update")
-        self.trigger_app_rolling_update(test_k8s_instance)
+        self._trigger_app_rolling_update(test_k8s_instance)
 
         logger.debug(f"Running tests after trigger unrelated rolling-update")
         traces_json = self._get_dev_agent_traces()
@@ -230,3 +243,24 @@ class TestConfigMapAutoInject:
         self._check_for_deploy_metadata(test_k8s_instance)
 
         logger.info(f"Test test_fileprovider_configmap_case3 finished")
+
+    @irrelevant(
+        condition=not hasattr(context.scenario, "_library_init_image_tag")
+        or context.scenario._library_init_image_tag != "latest",
+        reason="We only can test the latest release of the library",
+    )
+    def _test_fileprovider_configmap_case4(self, test_k8s_instance):
+        """  Mismatching config:
+               - deploy app & agent
+               - apply config with non-matching cluster name
+               - check that metadata does not exist """
+        test_k8s_instance.deploy_weblog_as_deployment()
+        logger.info(f"Launching test _test_fileprovider_configmap_case4")
+        test_agent = test_k8s_instance.deploy_test_agent()
+        test_agent.deploy_operator_auto()
+        default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
+        default_config_data[0]["k8s_target"]["cluster"] = "lib-injection-testing-no-match"
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        self.check_for_no_pod_metadata(test_k8s_instance)
+
+        logger.info(f"Test test_fileprovider_configmap_case4 finished")
