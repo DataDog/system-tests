@@ -89,7 +89,7 @@ class TestConfigMapAutoInject:
             f"admission.datadoghq.com/{test_k8s_instance.library}-lib.version" in pods.items[0].metadata.annotations
         ), f"annotation 'admission.datadoghq.com/{test_k8s_instance.library}-lib.version' not found"
 
-    def _check_for_deploy_metadata(self, test_k8s_instance, rc_rev=0):
+    def _check_for_deploy_metadata(self, test_k8s_instance, rc_rev="0"):
         """evaluates whether the expected admission annotations are applied to the targeted deployment."""
 
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
@@ -97,6 +97,7 @@ class TestConfigMapAutoInject:
 
         api = client.AppsV1Api()
         deployment = api.read_namespaced_deployment(deployment_name, "default")
+        logger.info("Deployment description: %s", deployment)
         assert (
             deployment.metadata.annotations["admission.datadoghq.com/rc.id"] == rc_id
         ), f"Deployment annotation 'admission.datadoghq.com/rc.id' not equal [{rc_id}]. Deployment description: {deployment}"
@@ -123,7 +124,7 @@ class TestConfigMapAutoInject:
         or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def _test_fileprovider_configmap_case1(self, test_k8s_instance):
+    def test_fileprovider_configmap_case1(self, test_k8s_instance):
         """ Nominal case:
            - deploy app & agent
            - apply config
@@ -153,7 +154,7 @@ class TestConfigMapAutoInject:
         or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def _test_fileprovider_configmap_case2(self, test_k8s_instance):
+    def test_fileprovider_configmap_case2(self, test_k8s_instance):
         """ Config change:
                - deploy app & agent
                - apply config
@@ -178,7 +179,7 @@ class TestConfigMapAutoInject:
 
         self._check_for_env_vars(test_k8s_instance, expected_env_vars)
         self._check_for_pod_metadata(test_k8s_instance)
-        self._check_for_deploy_metadata(test_k8s_instance, rc_rev=1)
+        self._check_for_deploy_metadata(test_k8s_instance, rc_rev="1")
 
         logger.info(f"Test test_fileprovider_configmap_case2 finished")
 
@@ -209,8 +210,11 @@ class TestConfigMapAutoInject:
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
 
+        logger.debug(" _check_for_env_vars")
         self._check_for_env_vars(test_k8s_instance, expected_env_vars)
+        logger.debug(" _check_for_pod_metadata")
         self._check_for_pod_metadata(test_k8s_instance)
+        logger.debug(" _check_for_deploy_metadata")
         self._check_for_deploy_metadata(test_k8s_instance)
 
         logger.debug(" Trigger unrelated rolling-update")
