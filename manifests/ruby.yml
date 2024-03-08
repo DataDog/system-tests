@@ -205,6 +205,7 @@ tests/:
       Test_AppSecObfuscator: v1.0.0
       Test_CollectRespondHeaders: v1.0.0.beta1
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)

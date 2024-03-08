@@ -835,6 +835,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (No AppSec support)
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces:
         '*': v0.92.0
         akka-http: v1.22.0
