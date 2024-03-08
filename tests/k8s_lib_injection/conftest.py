@@ -19,6 +19,7 @@ def test_k8s_instance():
         context.scenario.weblog_variant,
         context.scenario._weblog_variant_image,
         context.scenario._library_init_image,
+        context.scenario._library_init_image_tag,
     )
     logger.info("K8sInstance creating")
     k8s_instance.start_instance()
@@ -30,11 +31,12 @@ def test_k8s_instance():
 
 
 class K8sInstance:
-    def __init__(self, library, weblog_variant, weblog_variant_image, library_init_image):
+    def __init__(self, library, weblog_variant, weblog_variant_image, library_init_image, library_init_image_tag):
         self.library = library
         self.weblog_variant = weblog_variant
         self.weblog_variant_image = weblog_variant_image
         self.library_init_image = library_init_image
+        self.library_init_image_tag = library_init_image_tag
 
         self.test_agent = K8sDatadogClusterTestAgent()
         self.test_weblog = K8sWeblog()
