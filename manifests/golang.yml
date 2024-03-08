@@ -156,7 +156,8 @@ tests/:
       test_blocking.py:
         Test_Blocking: v1.50.0-rc.1
         Test_CustomBlockingResponse:
-          '*': v1.53.0
+          '*': v1.62.0-dev
+          gin: bug (gin preprends to the original response)
           uds-echo: bug
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
