@@ -193,7 +193,17 @@ jobs:
         id: k8s-lib-injection-tests
         run: ./run.sh K8S_LIB_INJECTION 
 
+      - name: Compress logs
+        id: compress_logs
+        if: always()
+        run: tar -czvf artifact.tar.gz $(ls | grep logs)
 
+      - name: Upload artifact
+        if: always() && steps.compress_logs.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs_k82_lib_injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version }}
+          path: artifact.tar.gz
         
   delete-images:
     if: ${{ false }} #Enable when Github support fix the problem with the image versions. 

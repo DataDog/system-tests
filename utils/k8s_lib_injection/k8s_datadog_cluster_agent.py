@@ -3,6 +3,8 @@ from kubernetes import client, watch
 from kubernetes.utils import create_from_yaml
 from utils.tools import logger
 from utils.k8s_lib_injection.k8s_command_utils import helm_add_repo, helm_install_chart, execute_command
+from utils.k8s_lib_injection.k8s_logger import k8s_logger
+
 import os
 import json
 
@@ -233,3 +235,51 @@ class K8sDatadogClusterTestAgent:
             raise Exception("Operator not created")
         # At this point the operator should be ready, we are going to wait a little bit more to make sure the operator is ready (some times the operator is ready but the cluster agent is not ready yet)
         time.sleep(5)
+
+    def export_debug_info(self, output_folder, test_name):
+        """ Exports debug information for the test agent and the operator."""
+        v1 = client.CoreV1Api()
+        api = client.AppsV1Api()
+
+        # Get all pods
+        ret = v1.list_pod_for_all_namespaces(watch=False)
+        for i in ret.items:
+            k8s_logger(output_folder, test_name, "get.pods").info(
+                "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+            )
+
+        # Get all deployments
+        deployments = api.list_deployment_for_all_namespaces()
+        for deployment in deployments.items:
+            k8s_logger(output_folder, test_name, "get.deployments").info(deployment)
+
+        # Daemonset describe
+        try:
+            api_response = api.read_namespaced_daemon_set(name="datadog", namespace="default")
+            k8s_logger(output_folder, test_name, "daemon.set.describe").info(api_response)
+        except Exception as e:
+            k8s_logger(output_folder, test_name, "daemon.set.describe").info(
+                "Exception when calling CoreV1Api->read_namespaced_daemon_set: %s\n" % e
+            )
+
+        # Cluster logs, admission controller
+        try:
+            pods = v1.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+            if len(pods.items) > 0:
+                api_response = v1.read_namespaced_pod_log(name=pods.items[0].metadata.name, namespace="default")
+                k8s_logger(output_folder, test_name, "datadog-cluster-agent").info(api_response)
+
+                # Export: Telemetry datadog-cluster-agent
+                execute_command(
+                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry > '{output_folder}/{pods.items[0].metadata.name}_telemetry.log'"
+                )
+
+                # Export: Status datadog-cluster-agent
+                # Sometimes this command fails. Ignore this error
+                execute_command(
+                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent status > '{output_folder}/{pods.items[0].metadata.name}_status.log' || true "
+                )
+        except Exception as e:
+            k8s_logger(output_folder, test_name, "daemon.set.describe").info(
+                "Exception when calling CoreV1Api->datadog-cluster-agent logs: %s\n" % e
+            )

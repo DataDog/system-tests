@@ -51,6 +51,71 @@ class TestConfigMapAutoInject:
             }
         ]
 
+    def _get_default_auto_inject_config_all_libraries(self, test_k8s_instance, rc_rev=0):
+        """ Returns a list of config objects for all supported libraries. """
+        return [
+            {
+                "id": "11777398274940883092",
+                "revision": 0,
+                "schema_version": "v1.0.0",
+                "action": "enable",
+                "lib_config": {
+                    "library_language": "all",
+                    "library_version": "latest",
+                    "service_name": "test-service",
+                    "env": "dev",
+                    "tracing_enabled": True,
+                    "tracing_sampling_rate": 0.90,
+                },
+                "k8s_target": {
+                    "cluster": "lib-injection-testing",
+                    "kind": "deployment",
+                    "name": "test-python-deployment",
+                    "namespace": "default",
+                },
+            },
+            {
+                "id": "11777398274940883092",
+                "revision": 0,
+                "schema_version": "v1.0.0",
+                "action": "enable",
+                "lib_config": {
+                    "library_language": "all",
+                    "library_version": "latest",
+                    "service_name": "test-service",
+                    "env": "dev",
+                    "tracing_enabled": True,
+                    "tracing_sampling_rate": 0.90,
+                },
+                "k8s_target": {
+                    "cluster": "lib-injection-testing",
+                    "kind": "deployment",
+                    "name": "test-java-deployment",
+                    "namespace": "default",
+                },
+            },
+            {
+                "id": "11777398274940883092",
+                "revision": 0,
+                "schema_version": "v1.0.0",
+                "action": "enable",
+                "lib_config": {
+                    "library_language": "all",
+                    "library_version": "latest",
+                    "service_name": "test-service",
+                    "env": "dev",
+                    "tracing_enabled": True,
+                    "tracing_sampling_rate": 0.90,
+                },
+                "k8s_target": {
+                    "cluster": "lib-injection-testing",
+                    "kind": "deployment",
+                    "name": "test-nodejs-deployment",
+                    "namespace": "default",
+                },
+            },
+        ]
+
     def _check_for_env_vars(self, test_k8s_instance, expected_env_vars):
         """ evaluates whether the expected tracer config is reflected in the env vars of the targeted pod. """
 
@@ -84,10 +149,28 @@ class TestConfigMapAutoInject:
         assert (
             pods.items[0].metadata.annotations[f"admission.datadoghq.com/{test_k8s_instance.library}-lib.version"]
             == f"{library_version}"
-        ), f"annotation 'admission.datadoghq.com/python-lib.version' wasn't '{library_version}'"
+        ), f"annotation 'admission.datadoghq.com/{test_k8s_instance.library}-lib.version' wasn't '{library_version}'"
         assert (
             f"admission.datadoghq.com/{test_k8s_instance.library}-lib.version" in pods.items[0].metadata.annotations
         ), f"annotation 'admission.datadoghq.com/{test_k8s_instance.library}-lib.version' not found"
+
+    def _check_for_pod_metadata_all_libraries(self, test_k8s_instance):
+        """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
+        v1 = client.CoreV1Api()
+        library_version = test_k8s_instance.library_init_image_tag
+        app_name = f"{test_k8s_instance.library}-app"
+        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+
+        assert (
+            pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "true"
+        ), "annotation 'admission.datadoghq.com/enabled' wasn't 'true'"
+        assert (
+            pods.items[0].metadata.annotations[f"admission.datadoghq.com/all-lib.version"] == f"{library_version}"
+        ), f"annotation 'admission.datadoghq.com/all-lib.version' wasn't 'all'"
+        assert (
+            f"admission.datadoghq.com/all-lib.version" in pods.items[0].metadata.annotations
+        ), f"annotation 'admission.datadoghq.com/all-lib.version' not found"
 
     def _check_for_deploy_metadata(self, test_k8s_instance, rc_rev="0"):
         """evaluates whether the expected admission annotations are applied to the targeted deployment."""
@@ -299,3 +382,37 @@ class TestConfigMapAutoInject:
         test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
         self._check_for_disabled_pod_metadata(test_k8s_instance)
         logger.info(f"Test _test_fileprovider_configmap_case5 finished")
+
+    @irrelevant(
+        condition=not hasattr(context.scenario, "_library_init_image_tag")
+        or context.scenario._library_init_image_tag != "latest",
+        reason="We only can test the latest release of the library",
+    )
+    def test_fileprovider_configmap_case6(self, test_k8s_instance):
+        """  Inject-all case (for batch instrumentation)
+           - use language name "all" in RC config
+           - all supported language libraries should be injected into the container
+           - ensure traces are produced and the pods are modified correctly 
+        """
+        test_k8s_instance.deploy_weblog_as_deployment()
+        logger.info(f"Launching test _test_fileprovider_configmap_case6")
+        test_agent = test_k8s_instance.deploy_test_agent()
+        test_agent.deploy_operator_auto()
+        default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
+
+        expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
+
+        #  test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+
+        all_config_data = self._get_default_auto_inject_config_all_libraries(test_k8s_instance)
+        test_k8s_instance.apply_config_auto_inject(json.dumps(all_config_data), timeout=300)
+
+        traces_json = self._get_dev_agent_traces()
+        logger.debug(f"Traces: {traces_json}")
+        assert len(traces_json) > 0, "No traces found"
+
+        self._check_for_env_vars(test_k8s_instance, expected_env_vars)
+        self._check_for_pod_metadata_all_libraries(test_k8s_instance)
+        self._check_for_deploy_metadata(test_k8s_instance)
+
+        logger.info(f"Test test_fileprovider_configmap_case6 finished")
