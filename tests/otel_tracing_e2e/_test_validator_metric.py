@@ -3,15 +3,19 @@
 import dictdiffer
 
 # Validates the JSON logs from backend and returns the OTel log trace attributes
-def validate_metrics(metrics_agent: list[dict], metrics_collector: list[dict]):
-    diff = list(dictdiffer.diff(metrics_agent[0], metrics_collector[0]))
-    assert len(diff) == 0, f"Diff between count metrics from Agent vs. from Collector: {diff}"
-    validate_example_counter(metrics_agent[0])
+def validate_metrics(
+    metrics_1: list[dict], metrics_2: list[dict], metrics_source1: str, metrics_source2: str,
+):
+    diff = list(dictdiffer.diff(metrics_1[0], metrics_2[0]))
+    assert len(diff) == 0, f"Diff between count metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
+    validate_example_counter(metrics_1[0])
     idx = 1
     for histogram_suffix in ["", ".sum", ".count"]:
-        diff = list(dictdiffer.diff(metrics_agent[idx], metrics_collector[idx]))
-        assert len(diff) == 0, f"Diff between histogram{histogram_suffix} metrics from Agent vs. from Collector: {diff}"
-        validate_example_histogram(metrics_agent[idx], histogram_suffix)
+        diff = list(dictdiffer.diff(metrics_1[idx], metrics_2[idx]))
+        assert (
+            len(diff) == 0
+        ), f"Diff between histogram{histogram_suffix} metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
+        validate_example_histogram(metrics_1[idx], histogram_suffix)
         idx += 1
 
 
