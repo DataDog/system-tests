@@ -371,7 +371,9 @@ class TestConfigMapAutoInject:
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
 
-        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        test_k8s_instance.apply_config_auto_inject(
+            json.dumps(default_config_data), timeout=250
+        )  # We can decrease this timeout, when we purge registry image tags
         traces_json = self._get_dev_agent_traces()
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
