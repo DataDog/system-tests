@@ -268,14 +268,24 @@ function initRoutes (app, tracer) {
   })
 
   app.get('/iast/hardcoded_secrets/test_insecure', (req, res) => {
-    const secret = 'A3TMAWZUKIWR6O0OGR7B'
-    const datadogSecret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
-    res.send(`OK:${secret}:${datadogSecret}`)
+    const s3cret = 'A3TMAWZUKIWR6O0OGR7B'
+    const datadogS3cret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
+    res.send(`OK:${s3cret}:${datadogS3cret}`)
   })
 
   app.get('/iast/hardcoded_secrets/test_secure', (req, res) => {
-    const secret = 'unknown_secret'
-    res.send(`OK:${secret}`)
+    const s3cret = 'unknown_secret'
+    res.send(`OK:${s3cret}`)
+  })
+
+  app.get('/iast/hardcoded_passwords/test_insecure', (req, res) => {
+    const hashpwd = 'hpu0-ig=3o5slyr0rkqszidgxw-bc23tivq8e1-qvt.4191vlwm8ddk.ce64m4q0kga'
+    res.send(`OK:${hashpwd}`)
+  })
+
+  app.get('/iast/hardcoded_passwords/test_secure', (req, res) => {
+    const token = 'unknown_secret'
+    res.send(`OK:${token}`)
   })
 
   app.post('/iast/header_injection/test_insecure', (req, res) => {

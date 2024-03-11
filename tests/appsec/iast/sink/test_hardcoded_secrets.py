@@ -30,7 +30,7 @@ class Test_HardcodedSecrets:
         vuln = hardcode_secrets[0]
         assert vuln["location"]["path"] == self._get_expectation(self.location_map)
 
-    # the rules from the extended set for secret detection need to know the variable name in addition to the literal value
+    # rules from the extended set for secret detection need to know the variable name in addition to the literal value
     @missing_feature(library="golang", reason="Not implemented yet")
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
@@ -40,10 +40,10 @@ class Test_HardcodedSecrets:
     @missing_feature(library="cpp", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_hardcoded_secrets_extended_exec(self):
-        hardcode_secrets = self.get_hardcoded_secret_vulnerabilities()
-        hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "datadog-access-token"]
-        assert len(hardcode_secrets) == 1
-        vuln = hardcode_secrets[0]
+        hardcoded_secrets = self.get_hardcoded_secret_vulnerabilities()
+        hardcoded_secrets = [v for v in hardcoded_secrets if v["evidence"]["value"] == "datadog-access-token"]
+        assert len(hardcoded_secrets) == 1
+        vuln = hardcoded_secrets[0]
         assert vuln["location"]["path"] == self._get_expectation(self.location_map)
 
     def get_hardcoded_secret_vulnerabilities(self):
@@ -56,9 +56,9 @@ class Test_HardcodedSecrets:
         vulnerabilities = [event.get("vulnerabilities") for event in iast_events if event.get("vulnerabilities")]
         assert vulnerabilities, "No vulnerabilities found"
         vulnerabilities = sum(vulnerabilities, [])  # set all the vulnerabilities in a single list
-        hadcoded_secrets = [vuln for vuln in vulnerabilities if vuln.get("type") == "HARDCODED_SECRET"]
-        assert hadcoded_secrets, "No hardcoded secrets found"
-        return hadcoded_secrets
+        hardcoded_secrets = [vuln for vuln in vulnerabilities if vuln.get("type") == "HARDCODED_SECRET"]
+        assert hardcoded_secrets, "No hardcoded secrets found"
+        return hardcoded_secrets
 
     def _get_expectation(self, d):
         expected = d.get(context.library.library)
