@@ -110,7 +110,7 @@ class TestConfigMapAutoInject:
                 "k8s_target": {
                     "cluster": "lib-injection-testing",
                     "kind": "deployment",
-                    "name": "test-nodejs-deployment",
+                    "name": "test-js-deployment",
                     "namespace": "default",
                 },
             },
