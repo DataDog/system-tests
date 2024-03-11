@@ -357,6 +357,11 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
 
+    @irrelevant(
+        condition=not hasattr(context.scenario, "_library_init_image_tag")
+        or context.scenario._library_init_image_tag != "latest",
+        reason="We only can test the latest release of the library",
+    )
     def test_fileprovider_configmap_case5(self, test_k8s_instance):
         """ Config change to action:disable
                 - deploy app & agent
@@ -371,9 +376,7 @@ class TestConfigMapAutoInject:
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
 
-        test_k8s_instance.apply_config_auto_inject(
-            json.dumps(default_config_data), timeout=250
-        )  # We can decrease this timeout, when we purge registry image tags
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
         traces_json = self._get_dev_agent_traces()
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
