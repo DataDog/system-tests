@@ -19,7 +19,7 @@ bundle config set --local without test development
 bundle remove ddtrace
 bundle update datadog
 
-bundle list | grep datadog > SYSTEM_TESTS_LIBRARY_VERSION
+bundle info datadog | grep -m 1 datadog > SYSTEM_TESTS_LIBRARY_VERSION
 bundle list | grep libddwaf > SYSTEM_TESTS_LIBDDWAF_VERSION || true
 
 cat "$(bundle info datadog | grep 'Path:' | awk '{ print $2 }')"/lib/datadog/appsec/assets/waf_rules/recommended.json | ruby -rjson -e 'puts JSON.parse(STDIN.read).fetch("metadata", {}).fetch("rules_version", "1.2.5")' > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
