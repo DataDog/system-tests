@@ -16,6 +16,7 @@ else
 fi
 
 bundle config set --local without test development
+bundle remove ddtrace
 bundle update datadog
 
 bundle list | grep datadog > SYSTEM_TESTS_LIBRARY_VERSION
