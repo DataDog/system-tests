@@ -347,8 +347,11 @@ class Test_DsmContext_Injection_Base64:
         # send initial message with via weblog
         self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
-        # consume message using helper and check propagation type
-        self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
+        if not context.scenario.replay:
+            # consume message using helper and check propagation type
+            self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
+        else:
+            self.consume_response = "ok"
 
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
