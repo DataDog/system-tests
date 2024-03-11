@@ -350,13 +350,14 @@ class Test_DsmContext_Injection_Base64:
         if not context.scenario.replay:
             # consume message using helper and check propagation type
             self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
-        else:
-            self.consume_response = "ok"
 
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
         assert "error" not in self.r.text
+        if context.scenario.replay:
+            # This test doesn't work in replay mode
+            return
         assert "error" not in self.consume_response
 
         language_hashes = {
