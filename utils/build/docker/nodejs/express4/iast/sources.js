@@ -195,7 +195,11 @@ function init (app, tracer) {
       await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
           const vulnKey = message.key.toString()
-          readFileSync(vulnKey)
+          try {
+            readFileSync(vulnKey)
+          } catch {
+            // do nothing
+          }
 
           deferred.resolve()
         }
