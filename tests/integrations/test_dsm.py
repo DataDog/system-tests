@@ -347,13 +347,17 @@ class Test_DsmContext_Injection_Base64:
         # send initial message with via weblog
         self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
-        # consume message using helper and check propagation type
-        self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
+        if not context.scenario.replay:
+            # consume message using helper and check propagation type
+            self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
 
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
         assert "error" not in self.r.text
+        if context.scenario.replay:
+            # This test doesn't work in replay mode
+            return
         assert "error" not in self.consume_response
 
         language_hashes = {
@@ -420,8 +424,11 @@ class Test_DsmContext_Extraction_Base64:
         queue = "dsm-propagation-test-v2-encoding-queue"
         exchange = "dsm-propagation-test-v2-encoding-exchange"
 
-        # send initial message with v2 pathway context encoding
-        self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange)
+        if not context.scenario.replay:
+            # send initial message with v2 pathway context encoding
+            self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange)
+        else:
+            self.produce_response = "ok"
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
