@@ -420,8 +420,11 @@ class Test_DsmContext_Extraction_Base64:
         queue = "dsm-propagation-test-v2-encoding-queue"
         exchange = "dsm-propagation-test-v2-encoding-exchange"
 
-        # send initial message with v2 pathway context encoding
-        self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange)
+        if not context.scenario.replay:
+            # send initial message with v2 pathway context encoding
+            self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange)
+        else:
+            self.produce_response = "ok"
 
         self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
 
