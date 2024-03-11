@@ -496,14 +496,6 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-    - name: Run Integration in replay mode
-      if: always() 
-      run: ./run.sh INTEGRATIONS --replay
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success' && inputs.run_replay
       run: |
