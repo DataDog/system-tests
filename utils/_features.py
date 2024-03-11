@@ -2075,7 +2075,7 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=286
         """
         pytest.mark.features(feature_id=286)(test_object)
-        return
+        return test_object
 
     @staticmethod
     def k8s_admission_controller(test_object):
