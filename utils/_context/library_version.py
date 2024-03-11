@@ -114,8 +114,8 @@ class Version(version_module.Version):
 
         if component == "ruby":
             pattern = RUBY_VERSION_PATTERN
-            if version.startswith("* ddtrace"):
-                version = re.sub(r"\* *ddtrace *\((.*)\)", r"\1", version)
+            if version.startswith("* datadog"):
+                version = re.sub(r"\* *datadog *\((.*)\)", r"\1", version)
 
         elif component == "libddwaf":
             if version.startswith("* libddwaf"):
