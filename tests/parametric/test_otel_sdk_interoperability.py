@@ -6,7 +6,7 @@ from ddapm_test_agent.trace import Span, root_span
 
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
 from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER, OtelSpan
-from utils.parametric.spec.trace import find_trace_by_root, find_span
+from utils.parametric.spec.trace import find_trace_by_root, find_span, retrieve_span_links
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -16,7 +16,10 @@ pytestmark = pytest.mark.parametrize(
 )
 
 TEST_TRACE_ID = "ff0000000000051791e0000000000041"
+TEST_TRACE_ID_HIGH = 18374686479671624983  # ff00000000000517
+TEST_TRACE_ID_LOW = 10511401530282737729  # 91e0000000000041
 TEST_SPAN_ID = "ff00000000000516"
+TEST_SPAN_ID_INT = 18374686479671624982  # ff00000000000516
 TEST_TRACESTATE = "dd=t.dm:-0"
 TEST_ATTRIBUTES = {"arg1": "val1"}
 
@@ -28,12 +31,14 @@ class Test_Otel_SDK_Interoperability:
     def assert_span_link(trace):
         assert len(trace) == 1
         root = root_span(trace)
-        span_links = json.loads(root["meta"]["_dd.span_links"])
+        span_links = retrieve_span_links(root)
         assert len(span_links) == 1
+
         link = span_links[0]
-        assert link["trace_id"] == TEST_TRACE_ID
-        assert link["span_id"] == TEST_SPAN_ID
-        assert link["trace_state"] == TEST_TRACESTATE
+        assert link["trace_id"] == TEST_TRACE_ID_LOW
+        assert link["trace_id_high"] == TEST_TRACE_ID_HIGH
+        assert link["span_id"] == TEST_SPAN_ID_INT
+        assert "t.dm:-0" in link["tracestate"]
         assert link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
 
     def test_set_update_remove_meta(self, test_agent, test_library):
