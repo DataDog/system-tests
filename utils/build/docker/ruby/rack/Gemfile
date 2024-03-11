@@ -4,4 +4,4 @@ gem 'rack-contrib'
 gem 'puma'
 gem 'pry'
 
-gem 'datadog'
+gem 'ddtrace', '~> 1.0.0.a'
