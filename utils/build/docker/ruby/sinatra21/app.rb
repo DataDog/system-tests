@@ -4,7 +4,7 @@ require "net/http"
 require "uri"
 require 'json'
 
-require 'ddtrace/auto_instrument'
+require 'datadog/auto_instrument'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
