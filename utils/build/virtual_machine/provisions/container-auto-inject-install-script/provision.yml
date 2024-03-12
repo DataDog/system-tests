@@ -34,6 +34,6 @@ install-agent:
       remote-command: cat docker-compose-agent-prod.yml
 
 autoinjection_install_script:
-  install: !include utils/build/virtual_machine/provisions/container-auto-inject/auto-inject_container_script.yml
+  install: !include utils/build/virtual_machine/provisions/container-auto-inject-install-script/auto-inject_container_script.yml
 
 

@@ -32,101 +32,83 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection:
-            '*': missing_feature
-            express4: v3.11.0
-            express4-typescript: v3.11.0
+            '*': v3.11.0
+            nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
-            '*': missing_feature
-            express4: v4.18.0
-            express4-typescript: v4.18.0
+            '*': v4.18.0
+            nextjs: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
-            '*': missing_feature
-            express4: v4.21.0
-            express4-typescript: v4.21.0
+            '*': v4.21.0
+            nextjs: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
-            '*': missing_feature
-            express4: v4.8.0
-            express4-typescript: v4.8.0
+            '*': v4.8.0
+            nextjs: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
-            '*': missing_feature
-            express4: v4.1.0
-            express4-typescript: v4.1.0
+            '*': v4.1.0
+            nextjs: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
-            '*': missing_feature
-            express4: v4.1.0
-            express4-typescript: v4.1.0
+            '*': v4.1.0
+            nextjs: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
-            '*': missing_feature
-            express4: v4.3.0
-            express4-typescript: v4.3.0
+            '*': v4.3.0
+            nextjs: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
-            '*': missing_feature
-            express4: v4.3.0
-            express4-typescript: v4.3.0
+            '*': v4.3.0
+            nextjs: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
-            '*': missing_feature
-            express4: v4.17.0
-            express4-typescript: v4.17.0
+            '*': v4.17.0
+            nextjs: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
-            '*': missing_feature
-            express4: v3.19.0
-            express4-typescript: v3.19.0
+            '*': v3.19.0
+            nextjs: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
-            '*': missing_feature
-            express4: v3.11.0
-            express4-typescript: v3.11.0
+            '*': v3.11.0
+            nextjs: missing_feature
         test_ssrf.py:
           TestSSRF:
-            '*': missing_feature
-            express4: v4.1.0
-            express4-typescript: v4.1.0
+            '*': v4.1.0
+            nextjs: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
-            '*': missing_feature
-            express4: v4.3.0
-            express4-typescript: v4.3.0
+            '*': v4.3.0
+            nextjs: missing_feature
           TestUnvalidatedRedirect:
-            '*': missing_feature
-            express4: v4.3.0
-            express4-typescript: v4.3.0
+            '*': v4.3.0
+            nextjs: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
           TestWeakCipher:
-            '*': missing_feature
-            express4: v3.6.0
-            express4-typescript: v3.6.0
+            '*': v3.6.0
+            nextjs: missing_feature
         test_weak_hash.py:
           TestWeakHash:
-            '*': missing_feature
-            express4: v3.11.0
-            express4-typescript: v3.11.0
+            '*': v3.11.0
+            nextjs: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
-            '*': missing_feature
-            express4: v5.1.0
-            express4-typescript: v5.1.0
+            '*': v5.1.0
+            nextjs: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
-            '*': missing_feature
-            express4: v4.8.0
-            express4-typescript: v4.8.0
+            '*': v4.8.0
+            nextjs: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
         test_xss.py:
@@ -134,16 +116,14 @@ tests/:
       source/:
         test_body.py:
           TestRequestBody:
-            '*': missing_feature
-            express4: v3.19.0
-            express4-typescript: v3.19.0
+            '*': v3.19.0
+            nextjs: missing_feature
         test_cookie_name.py:
           TestCookieName: missing_feature
         test_cookie_value.py:
           TestCookieValue:
-            '*': missing_feature
-            express4: v4.3.0
-            express4-typescript: v4.3.0
+            '*': v4.3.0
+            nextjs: missing_feature
         test_graphql_resolver.py:
           TestGraphqlResolverArgument:
             '*': v5.4.0
@@ -152,9 +132,8 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue:
-            '*': missing_feature
-            express4: v4.3.0
-            express4-typescript: v4.3.0
+            '*': v4.3.0
+            nextjs: missing_feature
         test_kafka_key.py:
           TestKafkaKey:
             '*': v5.4.0
@@ -169,9 +148,8 @@ tests/:
           TestParameterName: missing_feature
         test_parameter_value.py:
           TestParameterValue:
-            '*': missing_feature
-            express4: v3.19.0
-            express4-typescript: v3.19.0
+            '*': v3.19.0
+            nextjs: missing_feature
         test_path.py:
           TestPath: missing_feature
         test_uri.py:
@@ -321,6 +299,7 @@ tests/:
       Test_AppSecObfuscator: v2.6.0
       Test_CollectRespondHeaders: v2.0.0
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
@@ -372,6 +351,12 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: 
+        "*": irrelevant
+        express4: v5.6.0
+      Test_DsmContext_Injection_Base64: 
+        "*": irrelevant
+        express4: v5.6.0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': v4.4.0
@@ -403,8 +388,8 @@ tests/:
       TestDynamicConfigV2: v4.23.0
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Defaults: missing_feature
-      Test_Environment: missing_feature
+      Test_Defaults: v5.6.0
+      Test_Environment: v5.6.0
       Test_TelemetryInstallSignature: v4.23.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature

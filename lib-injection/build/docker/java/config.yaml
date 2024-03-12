@@ -2,6 +2,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: auto-instru
+  labels:
+    reloader: enabled
 data:
   auto-instru.json: |
     [{

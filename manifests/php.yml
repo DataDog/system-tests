@@ -171,6 +171,7 @@ tests/:
       Test_ShellExecution: v0.95.0
     test_traces.py:
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
@@ -202,6 +203,8 @@ tests/:
     test_dbm.py:
       Test_Dbm: v0.91.1
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: missing_feature
+      Test_DsmContext_Injection_Base64: missing_feature
       Test_DsmHttp: missing_feature
       Test_DsmKafka: missing_feature
       Test_DsmKinesis: missing_feature

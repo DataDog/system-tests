@@ -2,12 +2,17 @@ name: Lib-injection tests
 
 on:
   workflow_call:
-  
+    inputs:
+      build_lib_injection_app_images:
+        description: "Shall we build python base images for tests on python tracer"
+        default: false
+        required: false
+        type: boolean 
 env:
   REGISTRY: ghcr.io
 
 jobs:
-  manual-lib-injection-tests:
+  k8s-lib-injection-tests:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -23,14 +28,6 @@ jobs:
 
         - library: python
           weblog-variant: dd-lib-python-init-test-django
-
-        lib-injection-connection: 
-          - uds
-          - network
-
-        lib-injection-use-admission-controller:
-          - use-admission-controller
-          - ''
 
         version: 
           - latest #Production tag
@@ -40,61 +37,75 @@ jobs:
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
-      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
-      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-use-admission-controller }}
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: ${{ matrix.version }}
-      DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
       BUILDX_PLATFORMS: linux/amd64
-      MODE: manual
-    steps:
-      - name: lib-injection test runner
-        id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@main
-        with:
-          docker-registry: ghcr.io
-          docker-registry-username: ${{ github.actor }}
-          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          test-script: ./lib-injection/run-manual-lib-injection.sh
 
-  auto-lib-injection-tests:
-    runs-on: ubuntu-latest
-    if: ${{ false }}  #disable until fix: https://datadoghq.atlassian.net/browse/AIT-7722
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        variant:
-        - library: java
-          weblog-variant: dd-lib-java-init-test-app
-        - library: nodejs
-          weblog-variant: sample-app
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django
-        test-case: 
-          - TestCase1
-          - TestCase2
-          - TestCase3
-          - TestCase4
-          - TestCase5
-          - TestCase6
-      fail-fast: false
-    env:
-      TEST_LIBRARY: ${{ matrix.variant.library }}
-      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
-      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
-      DOCKER_IMAGE_TAG: latest
-      DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
-      BUILDX_PLATFORMS: linux/amd64
-      MODE: auto-${{ matrix.test-case }}
-      TEST_CASE: ${{ matrix.test-case }}
     steps:
-      - name: lib-injection test runner
-        id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@main
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          docker-registry: ghcr.io
-          docker-registry-username: ${{ github.actor }}
-          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          test-script: ./lib-injection/run-auto-lib-injection.sh
+          repository: 'DataDog/system-tests'
+          
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3  # 3.0.0
+  
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # 3.0.0
+        with:
+          install: true
+          config-inline: |
+            [worker.oci]
+              max-parallelism = 1
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+        with:
+          registry: ghcr.io/datadog
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build weblog base images (PR)
+        if: inputs.build_lib_injection_app_images
+        env:
+          DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
+          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
+        run: |
+          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
+          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:${{ github.sha }} ./build.sh
+          cd ..
+
+      - name: Build weblog latest base images
+        if: github.ref == 'refs/heads/main'
+        env:
+          DOCKER_IMAGE_WEBLOG_TAG: latest
+          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
+        run: |
+          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
+          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:latest ./build.sh
+          cd ..
+
+      - name: Install runner
+        uses: ./.github/actions/install_runner       
+
+      - name: Kubernetes lib-injection tests (using custom weblog image tag)
+        if: inputs.build_lib_injection_app_images
+        id: k8s-lib-injection-tests-custom-weblog-tag
+        run: DOCKER_IMAGE_WEBLOG_TAG=${{ github.sha }} ./run.sh K8S_LIB_INJECTION 
+
+      - name: Kubernetes lib-injection tests
+        if: inputs.build_lib_injection_app_images != true
+        id: k8s-lib-injection-tests
+        run: ./run.sh K8S_LIB_INJECTION 
+
+      - name: Compress logs
+        id: compress_logs
+        if: always()
+        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+
+      - name: Upload artifact
+        if: always() && steps.compress_logs.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs_k82_lib_injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version }}
+          path: artifact.tar.gz

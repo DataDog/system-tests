@@ -2028,6 +2028,26 @@ class features:
         return test_object
 
     @staticmethod
+    def datastreams_monitoring_support_for_base64_encoding(test_object):
+        """
+        DataStreams Monitoring support for V2 Base64 Encoding using dd-pathway-ctx/dd-pathway-ctx-base64
+
+        https://feature-parity.us1.prod.dog/#/?feature=284
+        """
+        pytest.mark.features(feature_id=284)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_context_injection_base64(test_object):
+        """
+        Datastreams Monitoring support for V2 Base64 Encoding injection using dd-pathway-ctx-base64
+
+        https://feature-parity.us1.prod.dog/#/?feature=287
+        """
+        pytest.mark.features(feature_id=287)(test_object)
+        return test_object
+
+    @staticmethod
     def datastreams_monitoring_support_for_kinesis(test_object):
         """
         DataStreams Monitoring support for AWS Kinesis
@@ -2055,4 +2075,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=286
         """
         pytest.mark.features(feature_id=286)(test_object)
+        return test_object
+
+    @staticmethod
+    def k8s_admission_controller(test_object):
+        """
+        Auto inject the tracer library for k8s enviroments using admission controller
+
+        https://feature-parity.us1.prod.dog/#/?feature=288
+        """
+        pytest.mark.features(feature_id=288)(test_object)
         return test_object

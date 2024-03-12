@@ -500,6 +500,7 @@ jobs:
       run: ./run.sh DEBUGGER_MIX_LOG_PROBE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success' && inputs.run_replay
       run: |

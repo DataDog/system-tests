@@ -6,6 +6,9 @@ using System;
 using System.Net;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
+using Amazon.SQS;
+using Amazon.SQS.Model;
 using RabbitMQ.Client;
 
 namespace weblog
@@ -36,6 +39,14 @@ namespace weblog
                     producerThread.Start();
                     consumerThread.Start();
                     await context.Response.WriteAsync("ok");
+                }
+                else if ("sqs".Equals(integration))
+                {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                    Task.Run(SqsProducer.DoWork);
+                    Task.Run(SqsConsumer.DoWork);
+#pragma warning restore CS4014
+                    await context.Response.WriteAsync("ok");
                 } else {
                     await context.Response.WriteAsync("unknown integration: " + integration);
                 }
@@ -48,12 +59,12 @@ namespace weblog
             KafkaHelper.CreateTopics("kafka:9092", new List<string>{"dsm-system-tests-queue"});
             using (var producer = KafkaHelper.GetProducer("kafka:9092")) {
                 using (Datadog.Trace.Tracer.Instance.StartActive("KafkaProduce")) {
-                    producer.Produce("dsm-system-tests-queue", new Message<long, string>{
-                        Key = DateTime.UtcNow.Ticks,
+                    producer.Produce("dsm-system-tests-queue", new Message<Null, string>
+                    {
                         Value = "Produced to dsm-system-tests-queue"
                     });
                     producer.Flush();
-                    Console.WriteLine("Done with message producing");
+                    Console.WriteLine("[Kafka] Done with message producing");
                 }
             }
         }
@@ -69,12 +80,12 @@ namespace weblog
                     using (Datadog.Trace.Tracer.Instance.StartActive("KafkaConsume")) {
                         var result = consumer.Consume(1000);
                         if (result == null) {
+                            Console.WriteLine("[Kafka] No messages to consume at this time");
                             Thread.Sleep(1000);
-                            Console.WriteLine("No messages to consume at this time");
                             continue;
                         }
 
-                        Console.WriteLine($"Consumed message from {result.Topic}: {result.Message}");
+                        Console.WriteLine($"[Kafka] Consumed message from {result.Topic}: {result.Message.Value}");
                     }
                 }
             }
@@ -146,6 +157,54 @@ namespace weblog
             {
                 Console.WriteLine("[rabbitmq_fanout] Consumed message: " + message);
             });
+        }
+    }
+
+    class SqsProducer
+    {
+        public static async Task DoWork()
+        {
+            var sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = "http://elasticmq:9324" });
+            // create queue
+            CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync("dsm-system-tests-queue");
+            var qUrl = responseCreate.QueueUrl;
+            using (Datadog.Trace.Tracer.Instance.StartActive("SqsProduce"))
+            {
+                await sqsClient.SendMessageAsync(qUrl, "this is a test sqs message");
+                Console.WriteLine("[SQS] Done with message producing");
+            }
+        }
+    }
+
+    class SqsConsumer
+    {
+        public static async Task DoWork()
+        {
+            var sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = "http://elasticmq:9324" });
+            // create queue
+            CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync("dsm-system-tests-queue");
+            var qUrl = responseCreate.QueueUrl;
+            Console.WriteLine($"[SQS] looking for messages in queue {qUrl}");
+            while (true)
+            {
+                using (Datadog.Trace.Tracer.Instance.StartActive("SqsConsume"))
+                {
+                    var result = await sqsClient.ReceiveMessageAsync(new ReceiveMessageRequest
+                    {
+                        QueueUrl = qUrl,
+                        MaxNumberOfMessages = 1,
+                        WaitTimeSeconds = 1
+                    });
+                    if (result == null || result.Messages.Count == 0)
+                    {
+                        Console.WriteLine("[SQS] No messages to consume at this time");
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    Console.WriteLine($"[SQS] Consumed message from {qUrl}: {result.Messages[0].Body}");
+                }
+            }
         }
     }
 }
