@@ -21,18 +21,21 @@ if [ "$PKG" == "" ]; then
   unset PKG
 fi
 
+INI_FILE=/etc/php/php.ini
 echo "Installing php package ${PKG-"{default}"} with setup script $SETUP"
 if [[ $IS_APACHE -eq 0 ]]; then
       php $SETUP --php-bin all ${PKG+"--file=$PKG"}
+      PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+      INI_FILE=/etc/php/$PHP_VERSION/fpm/conf.d/98-ddtrace.ini
 else
       PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"}
- fi
+fi
 
 #There is a bug on 0.98.1 which config when it shouldnt. Delete this line when hotfix
-sed -i "/datadog.appsec.enabled/s/^/;/g" /etc/php/php.ini
-
+sed -i "/datadog.appsec.enabled/s/^/;/g" $INI_FILE
 #Parametric tests don't need appsec
-[ ! -z ${NO_EXTRACT_VERSION+x} ] && echo "datadog.appsec.enabled = Off" >> /etc/php/php.ini
+[ ! -z ${NO_EXTRACT_VERSION+x} ] && echo "datadog.appsec.enabled = Off" >> $INI_FILE
+
 #Ensure parametric test compatibility
 [ ! -z ${NO_EXTRACT_VERSION+x} ] && exit 0
 
