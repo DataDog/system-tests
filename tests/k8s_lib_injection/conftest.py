@@ -5,7 +5,7 @@ import os
 from utils import context
 from utils.tools import logger
 import json
-from utils.k8s_lib_injection.k8s_command_utils import ensure_cluster, destroy_cluster
+from utils.k8s_lib_injection.k8s_kind_cluster import ensure_cluster, destroy_cluster
 from utils.k8s_lib_injection.k8s_datadog_cluster_agent import K8sDatadogClusterTestAgent
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from kubernetes import config
@@ -27,9 +27,9 @@ def test_k8s_instance(request):
     logger.info("K8sInstance created")
     yield k8s_instance
     logger.info("K8sInstance Exporting debug info")
-    k8s_instance.export_debug_info(test_name)
+    # k8s_instance.export_debug_info(test_name)
     logger.info("K8sInstance destroying")
-    k8s_instance.destroy_instance()
+    # k8s_instance.destroy_instance()
     logger.info("K8sInstance destroyed")
 
 
@@ -43,13 +43,16 @@ class K8sInstance:
 
         self.test_agent = K8sDatadogClusterTestAgent()
         self.test_weblog = K8sWeblog()
+        self.k8s_kind_cluster = None
 
     def start_instance(self):
-        ensure_cluster()
+        self.k8s_kind_cluster = ensure_cluster()
         config.load_kube_config()
+        self.test_agent.configure(self.k8s_kind_cluster)
+        self.test_weblog.configure(self.k8s_kind_cluster)
 
     def destroy_instance(self):
-        destroy_cluster()
+        destroy_cluster(self.k8s_kind_cluster)
 
     def deploy_test_agent(self):
         self.test_agent.desploy_test_agent()

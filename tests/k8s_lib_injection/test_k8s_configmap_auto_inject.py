@@ -5,7 +5,7 @@ import requests
 from utils import scenarios, features
 from utils.tools import logger
 from utils import scenarios, context, features
-from kubernetes import client, watch
+from kubernetes import client, config, watch
 from utils import irrelevant
 
 
@@ -16,10 +16,10 @@ class TestConfigMapAutoInject:
         Check: https://datadoghq.atlassian.net/wiki/spaces/AO/pages/2983035648/Cluster+Agent+Development
     """
 
-    def _get_dev_agent_traces(self, retry=10):
+    def _get_dev_agent_traces(self, agent_port, retry=10):
         for _ in range(retry):
             logger.info(f"[Check traces] Checking traces:")
-            response = requests.get("http://localhost:18126/test/traces")
+            response = requests.get(f"http://localhost:{agent_port}/test/traces")
             traces_json = response.json()
             if len(traces_json) > 0:
                 logger.debug(f"Test traces response: {traces_json}")
@@ -43,7 +43,7 @@ class TestConfigMapAutoInject:
                     "tracing_sampling_rate": 0.90,
                 },
                 "k8s_target": {
-                    "cluster": "lib-injection-testing",
+                    "cluster": test_k8s_instance.k8s_kind_cluster.cluster_name,
                     "kind": "deployment",
                     "name": f"test-{test_k8s_instance.library}-deployment",
                     "namespace": "default",
@@ -68,7 +68,7 @@ class TestConfigMapAutoInject:
                     "tracing_sampling_rate": 0.90,
                 },
                 "k8s_target": {
-                    "cluster": "lib-injection-testing",
+                    "cluster": test_k8s_instance.k8s_kind_cluster.cluster_name,
                     "kind": "deployment",
                     "name": "test-python-deployment",
                     "namespace": "default",
@@ -88,7 +88,7 @@ class TestConfigMapAutoInject:
                     "tracing_sampling_rate": 0.90,
                 },
                 "k8s_target": {
-                    "cluster": "lib-injection-testing",
+                    "cluster": test_k8s_instance.k8s_kind_cluster.cluster_name,
                     "kind": "deployment",
                     "name": "test-java-deployment",
                     "namespace": "default",
@@ -108,7 +108,7 @@ class TestConfigMapAutoInject:
                     "tracing_sampling_rate": 0.90,
                 },
                 "k8s_target": {
-                    "cluster": "lib-injection-testing",
+                    "cluster": test_k8s_instance.k8s_kind_cluster.cluster_name,
                     "kind": "deployment",
                     "name": "test-js-deployment",
                     "namespace": "default",
@@ -119,7 +119,9 @@ class TestConfigMapAutoInject:
     def _check_for_env_vars(self, test_k8s_instance, expected_env_vars):
         """ evaluates whether the expected tracer config is reflected in the env vars of the targeted pod. """
 
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(
+            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
+        )
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
@@ -137,7 +139,9 @@ class TestConfigMapAutoInject:
 
     def _check_for_pod_metadata(self, test_k8s_instance):
         """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(
+            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
+        )
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
@@ -156,7 +160,9 @@ class TestConfigMapAutoInject:
 
     def _check_for_pod_metadata_all_libraries(self, test_k8s_instance):
         """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(
+            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
+        )
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
@@ -178,7 +184,9 @@ class TestConfigMapAutoInject:
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
         rc_id = "11777398274940883092"
 
-        api = client.AppsV1Api()
+        api = client.AppsV1Api(
+            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
+        )
         deployment = api.read_namespaced_deployment(deployment_name, "default")
         logger.info("Deployment description: %s", deployment)
         assert (
@@ -193,7 +201,9 @@ class TestConfigMapAutoInject:
           It returns when the deployment is available and the rollout is finished. 
         """
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
-        api = client.AppsV1Api()
+        api = client.AppsV1Api(
+            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
+        )
         deploy_data = api.read_namespaced_deployment(deployment_name, "default")
         # get envs from deployment's first container
         dep_envs = deploy_data.spec.template.spec.containers[0].env
@@ -205,7 +215,9 @@ class TestConfigMapAutoInject:
 
     def _check_for_no_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(
+            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
+        )
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
@@ -216,7 +228,9 @@ class TestConfigMapAutoInject:
 
     def _check_for_disabled_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(
+            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
+        )
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
@@ -234,8 +248,11 @@ class TestConfigMapAutoInject:
            - deploy app & agent
            - apply config
            - check for traces """
+
+        logger.info(
+            f"Launching test test_fileprovider_configmap_case1: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
+        )
         test_k8s_instance.deploy_weblog_as_deployment()
-        logger.info(f"Launching test _test_fileprovider_configmap_case1")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
@@ -243,7 +260,7 @@ class TestConfigMapAutoInject:
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
 
         test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
-        traces_json = self._get_dev_agent_traces()
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
 
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
@@ -267,8 +284,11 @@ class TestConfigMapAutoInject:
                - apply different tracers config
                - check for traces """
 
+        logger.info(
+            f"Launching test test_fileprovider_configmap_case2: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
+        )
+
         test_k8s_instance.deploy_weblog_as_deployment()
-        logger.info(f"Launching test test_auto_install")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance, rc_rev=1)
@@ -277,7 +297,7 @@ class TestConfigMapAutoInject:
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.50"}]
 
         test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
-        traces_json = self._get_dev_agent_traces()
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
 
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
@@ -301,8 +321,10 @@ class TestConfigMapAutoInject:
                - trigger unrelated rolling-update
                - check for traces
          """
+        logger.info(
+            f"Launching test test_fileprovider_configmap_case3: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
+        )
         test_k8s_instance.deploy_weblog_as_deployment()
-        logger.info(f"Launching test test_auto_install")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
@@ -310,7 +332,7 @@ class TestConfigMapAutoInject:
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
 
         test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
-        traces_json = self._get_dev_agent_traces()
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
 
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
@@ -326,7 +348,7 @@ class TestConfigMapAutoInject:
         self._trigger_app_rolling_update(test_k8s_instance)
 
         logger.debug(f"Running tests after trigger unrelated rolling-update")
-        traces_json = self._get_dev_agent_traces()
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found after trigger unrelated rolling-update"
 
@@ -346,8 +368,11 @@ class TestConfigMapAutoInject:
                - deploy app & agent
                - apply config with non-matching cluster name
                - check that metadata does not exist """
+
+        logger.info(
+            f"Launching test test_fileprovider_configmap_case4: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
+        )
         test_k8s_instance.deploy_weblog_as_deployment()
-        logger.info(f"Launching test _test_fileprovider_configmap_case4")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
@@ -370,14 +395,16 @@ class TestConfigMapAutoInject:
                 - apply config with action:disable
                 - check that deployment is not longer instrumented
        """
+        logger.info(
+            f"Launching test test_fileprovider_configmap_case5: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
+        )
         test_k8s_instance.deploy_weblog_as_deployment()
-        logger.info(f"Launching test _test_fileprovider_configmap_case5")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
 
         test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
-        traces_json = self._get_dev_agent_traces()
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
 
@@ -399,8 +426,11 @@ class TestConfigMapAutoInject:
            - all supported language libraries should be injected into the container
            - ensure traces are produced and the pods are modified correctly 
         """
+        logger.info(
+            f"Launching test test_fileprovider_configmap_case6: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
+        )
+
         test_k8s_instance.deploy_weblog_as_deployment()
-        logger.info(f"Launching test _test_fileprovider_configmap_case6")
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
@@ -412,7 +442,7 @@ class TestConfigMapAutoInject:
         all_config_data = self._get_default_auto_inject_config_all_libraries(test_k8s_instance)
         test_k8s_instance.apply_config_auto_inject(json.dumps(all_config_data), timeout=300)
 
-        traces_json = self._get_dev_agent_traces()
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
 

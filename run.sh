@@ -322,6 +322,13 @@ function main() {
       done
     fi
 
+    # evaluate max pytest number of process for K8s_lib_injection
+    for scenario in "${scenarios[@]}"; do
+        if [[ "${scenario}" == "K8S_LIB_INJECTION" ]]; then
+            pytest_numprocesses=$(nproc)
+        fi
+    done
+    
     case "${pytest_numprocesses}" in
         0|1)
             ;;

@@ -1,8 +1,13 @@
 import time
-from kubernetes import client, watch
+from kubernetes import client, config, watch
 from kubernetes.utils import create_from_yaml
 from utils.tools import logger
-from utils.k8s_lib_injection.k8s_command_utils import helm_add_repo, helm_install_chart, execute_command
+from utils.k8s_lib_injection.k8s_command_utils import (
+    helm_add_repo,
+    helm_install_chart,
+    execute_command,
+    path_clusterrole,
+)
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 import os
@@ -10,11 +15,20 @@ import json
 
 
 class K8sDatadogClusterTestAgent:
+    def __init__(self):
+        self.k8s_kind_cluster = None
+
+    def configure(self, k8s_kind_cluster):
+        self.k8s_kind_cluster = k8s_kind_cluster
+
     def desploy_test_agent(self):
         """ Installs the test agent pod."""
 
-        logger.info("[Test agent] Deploying Datadog test agent")
-        apps_api = client.AppsV1Api()
+        logger.info(f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_kind_cluster.cluster_name}")
+
+        apps_api = client.AppsV1Api(
+            api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
+        )
         container = client.V1Container(
             name="trace-agent",
             image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
@@ -83,7 +97,7 @@ class K8sDatadogClusterTestAgent:
         """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
             It returns when the Cluster Agent pod is ready."""
 
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
         logger.info("[Deploy operator] Deploying Datadog Operator")
 
@@ -93,11 +107,12 @@ class K8sDatadogClusterTestAgent:
             operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-uds.yaml"
 
         logger.info("[Deploy operator] Configuring helm repository")
-        helm_add_repo("datadog", "https://helm.datadoghq.com", update=True)
+        helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_kind_cluster, update=True)
 
         logger.info(f"[Deploy operator] helm install datadog with config file [{operator_file}]")
 
         helm_install_chart(
+            self.k8s_kind_cluster,
             "datadog",
             "datadog/datadog",
             value_file=operator_file,
@@ -121,11 +136,12 @@ class K8sDatadogClusterTestAgent:
 
         self.create_configmap_auto_inject()
         logger.info("[Deploy operator] Configuring helm repository")
-        helm_add_repo("datadog", "https://helm.datadoghq.com", update=True)
+        helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_kind_cluster, update=True)
 
         logger.info(f"[Deploy operator] helm install datadog with config file [{operator_file}]")
 
         helm_install_chart(
+            self.k8s_kind_cluster,
             "datadog",
             "datadog/datadog",
             value_file=operator_file,
@@ -135,9 +151,7 @@ class K8sDatadogClusterTestAgent:
 
         # TODO: This is a hack until the patching permission is added in the official helm chart.
         logger.info("[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole")
-        execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
-
-        v1 = client.CoreV1Api()
+        path_clusterrole(self.k8s_kind_cluster)
 
         self._wait_for_operator_ready()
 
@@ -146,7 +160,7 @@ class K8sDatadogClusterTestAgent:
             It returns when the targeted deployment finishes the rollout."""
 
         logger.info(f"[Auto Config] Applying config for auto-inject: {config_data}")
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
         configmap = client.V1ConfigMap(kind="ConfigMap", data={"auto-instru.json": config_data,}, metadata=metadata)
         r = v1.replace_namespaced_config_map(name="auto-instru", namespace="default", body=configmap)
@@ -156,7 +170,7 @@ class K8sDatadogClusterTestAgent:
     def create_configmap_auto_inject(self):
         """ Minimal configuration needed when we install operator auto """
         logger.info("[Auto Config] Creating configmap for auto-inject")
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
         configmap = client.V1ConfigMap(
             kind="ConfigMap",
@@ -174,8 +188,10 @@ class K8sDatadogClusterTestAgent:
         time.sleep(5)
 
     def wait_for_test_agent(self):
-        v1 = client.CoreV1Api()
-        apps_api = client.AppsV1Api()
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        apps_api = client.AppsV1Api(
+            api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
+        )
         daemonset_created = False
         daemonset_status = None
         # Wait for the daemonset to be created
@@ -207,7 +223,7 @@ class K8sDatadogClusterTestAgent:
                 break
 
     def _wait_for_operator_ready(self):
-        v1 = client.CoreV1Api()
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         pods = v1.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
         datadog_cluster_name = pods.items[0].metadata.name
 
@@ -238,8 +254,8 @@ class K8sDatadogClusterTestAgent:
 
     def export_debug_info(self, output_folder, test_name):
         """ Exports debug information for the test agent and the operator."""
-        v1 = client.CoreV1Api()
-        api = client.AppsV1Api()
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
         # Get all pods
         ret = v1.list_pod_for_all_namespaces(watch=False)
