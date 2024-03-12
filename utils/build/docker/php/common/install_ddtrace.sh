@@ -28,6 +28,9 @@ else
       PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"}
  fi
 
+#There is a bug on 0.98.1 which config when it shouldnt. Delete this line when hotfix
+sed -i "/datadog.appsec.enabled/s/^/;/g" /etc/php/php.ini
+
 #Parametric tests don't need appsec
 [ ! -z ${NO_EXTRACT_VERSION+x} ] && echo "datadog.appsec.enabled = Off" >> /etc/php/php.ini
 #Ensure parametric test compatibility
