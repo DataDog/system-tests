@@ -47,9 +47,9 @@ int main() {
   datadog::tracing::TracerConfig config;
   config.logger = logger;
   config.agent.event_scheduler = event_scheduler;
-  config.defaults.service = "cpp-parametric-test";
-  config.defaults.environment = "staging";
-  config.defaults.name = "http.request";
+  config.service = "cpp-parametric-test";
+  config.environment = "staging";
+  config.name = "http.request";
 
   auto finalized_config = datadog::tracing::finalize_config(config);
   if (auto error = finalized_config.if_error()) {
