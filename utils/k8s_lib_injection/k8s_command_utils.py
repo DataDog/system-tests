@@ -1,5 +1,7 @@
 import subprocess, datetime, os, time, signal
 from utils.tools import logger
+from utils import context
+from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
 
 
 def execute_command(command, timeout=None):
@@ -42,34 +44,54 @@ def execute_command(command, timeout=None):
     return output
 
 
-def ensure_cluster():
-    execute_command(
-        "kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name lib-injection-testing --config utils/k8s_lib_injection/resources/kind-config.yaml"
-    )
-    execute_command("kubectl wait --for=condition=Ready nodes --all --timeout=5m")
+def execute_command_sync(command, k8s_kind_cluster, timeout=None):
+
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
+        execute_command(command, timeout=timeout)
 
 
-def destroy_cluster():
-    execute_command("kind delete cluster --name lib-injection-testing")
-    execute_command("docker rm -f lib-injection-testing-control-plane")
+def helm_add_repo(name, url, k8s_kind_cluster, update=False):
+
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
+        execute_command(f"helm repo add {name} {url}")
+        if update:
+            execute_command(f"helm repo update")
 
 
-def helm_add_repo(name, url, update=False):
-
-    execute_command(f"helm repo add {name} {url}")
-    if update:
-        execute_command(f"helm repo update")
-
-
-def helm_install_chart(name, chart, set_dict={}, value_file=None):
-    set_str = ""
-    if set_dict:
-        for key, value in set_dict.items():
-            set_str += f" --set {key}={value}"
-
-    command = f"helm install {name} --wait {set_str} {chart}"
+def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None):
+    # Copy and replace cluster name in the value file
+    custom_value_file = None
     if value_file:
-        # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
-        command = f"helm install {name} {set_str} -f {value_file} {chart}"
+        with open(value_file, "r") as file:
+            value_data = file.read()
 
-    execute_command(command, timeout=90)
+        value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_kind_cluster.cluster_name))
+
+        custom_value_file = f"{context.scenario.host_log_folder}/{k8s_kind_cluster.cluster_name}_help_values.yaml"
+
+        with open(custom_value_file, "w") as fp:
+            fp.write(value_data)
+            fp.seek(0)
+
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
+        set_str = ""
+        if set_dict:
+            for key, value in set_dict.items():
+                set_str += f" --set {key}={value}"
+
+        command = f"helm install {name} --wait {set_str} {chart}"
+        if custom_value_file:
+            # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
+            command = f"helm install {name} {set_str} -f {custom_value_file} {chart}"
+
+        execute_command(command, timeout=90)
+
+
+def path_clusterrole(k8s_kind_cluster):
+    """ This is a hack until the patching permission is added in the official helm chart."""
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
+        execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")

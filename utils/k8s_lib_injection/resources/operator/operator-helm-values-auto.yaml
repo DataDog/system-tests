@@ -1,7 +1,7 @@
 agents:
   enabled: false
 datadog:
-  clusterName: lib-injection-testing
+  clusterName: $$CLUSTER_NAME$$
   logLevel: DEBUG
   apm:
     enabled: true
@@ -22,8 +22,8 @@ clusterAgent:
   image:
     #tag: master
     #repository: datadog/cluster-agent-dev
-    tag: liliya-belaus-7-52-0-rc2-test
-    repository: datadog/cluster-agent-dev
+    #tag: liliya-belaus-7-52-0-rc2-test
+    #repository: datadog/cluster-agent-dev
     pullPolicy: Always
     doNotCheckTag: true
   env:
