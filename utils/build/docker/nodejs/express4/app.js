@@ -371,6 +371,7 @@ app.get('/rabbitmq/produce', (req, res) => {
   const queue = req.query.queue
   const exchange = req.query.exchange
   const routingKey = 'systemTestDirectRoutingKeyContextPropagation'
+  console.log('[RabbitMQ] produce')
 
   rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
     .then(() => {
@@ -385,6 +386,7 @@ app.get('/rabbitmq/produce', (req, res) => {
 app.get('/rabbitmq/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
+  console.log('[RabbitMQ] consume')
 
   rabbitmqConsume(queue, timeout * 1000)
     .then(() => {

@@ -2,11 +2,13 @@
 /utils/build/docker/dotnet*/ @DataDog/apm-dotnet @DataDog/asm-dotnet @DataDog/system-tests-core
 /utils/build/docker/golang*/ @DataDog/apm-go @DataDog/system-tests-core
 /utils/build/docker/java*/ @DataDog/apm-java @DataDog/asm-java @DataDog/system-tests-core
+/utils/build/docker/java_otel/ @DataDog/opentelemetry @DataDog/system-tests-core
 /utils/build/docker/nodejs*/ @DataDog/apm-js @DataDog/asm-js @DataDog/system-tests-core
 /utils/build/docker/php*/ @DataDog/apm-php @DataDog/system-tests-core
 /utils/build/docker/python*/ @DataDog/apm-python @DataDog/asm-python @DataDog/system-tests-core
 /utils/build/docker/ruby*/ @DataDog/apm-ruby @DataDog/asm-ruby @DataDog/system-tests-core
 /parametric/ @Kyle-Verhoog @DataDog/system-tests-core
+/tests/otel_tracing_e2e/ @DataDog/opentelemetry @DataDog/system-tests-core
 /tests/remote_config/ @DataDog/system-tests-core @DataDog/remote-config @DataDog/system-tests-core
 /tests/appsec/ @DataDog/asm-libraries @DataDog/system-tests-core
 /manifests/cpp.yml @DataDog/system-tests-core
