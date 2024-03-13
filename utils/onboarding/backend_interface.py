@@ -23,7 +23,6 @@ def _query_for_trace_id(trace_id):
             root_id = trace_data["trace"]["root_id"]
             start_time = trace_data["trace"]["spans"][root_id]["start"]
             start_date = datetime.fromtimestamp(start_time)
-            now = datetime.now()
             if (datetime.now() - start_date).days > 1:
                 logger.warn("Backend trace is too old")
                 return -1
