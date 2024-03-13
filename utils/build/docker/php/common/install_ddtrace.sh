@@ -32,7 +32,7 @@ else
 fi
 
 if test -f $INI_FILE; then
-  #There is a bug on 0.98.1 which config when it shouldnt. Delete this line when hotfix
+  #There is a bug on 0.98.1 which disable explicitly appsec when it shouldnt. Delete this line when hotfix
   sed -i "/datadog.appsec.enabled/s/^/;/g" $INI_FILE
   #Parametric tests don't need appsec
   [ ! -z ${NO_EXTRACT_VERSION+x} ] && echo "datadog.appsec.enabled = Off" >> $INI_FILE
