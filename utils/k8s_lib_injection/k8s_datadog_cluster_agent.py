@@ -5,7 +5,7 @@ from utils.tools import logger
 from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
     helm_install_chart,
-    execute_command,
+    execute_command_sync,
     path_clusterrole,
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
@@ -89,15 +89,13 @@ class K8sDatadogClusterTestAgent:
             api_version="apps/v1", kind="DaemonSet", metadata=client.V1ObjectMeta(name="datadog"), spec=spec
         )
 
-        result = apps_api.create_namespaced_daemon_set(namespace="default", body=daemonset)
+        apps_api.create_namespaced_daemon_set(namespace="default", body=daemonset)
         self.wait_for_test_agent()
         logger.info("[Test agent] Daemonset created")
 
     def deploy_operator_manual(self, use_uds=False):
         """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
             It returns when the Cluster Agent pod is ready."""
-
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
         logger.info("[Deploy operator] Deploying Datadog Operator")
 
@@ -120,11 +118,6 @@ class K8sDatadogClusterTestAgent:
         )
 
         logger.info("[Deploy operator] Waiting for the operator to be ready")
-        pods = v1.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
-
-        datadog_cluster_name = pods.items[0].metadata.name
-        logger.info(f"[Deploy operator] Waiting for the operator ready on cluster name: {datadog_cluster_name}")
-
         self._wait_for_operator_ready()
 
     def deploy_operator_auto(self, use_uds=False):
@@ -180,11 +173,7 @@ class K8sDatadogClusterTestAgent:
             },
             metadata=metadata,
         )
-        try:
-            v1.create_namespaced_config_map(namespace="default", body=configmap)
-        except Exception as e:
-            logger.error("Exception when calling CoreV1Api->create_namespaced_config_map: %s\n" % e)
-            raise e
+        v1.create_namespaced_config_map(namespace="default", body=configmap)
         time.sleep(5)
 
     def wait_for_test_agent(self):
@@ -195,15 +184,14 @@ class K8sDatadogClusterTestAgent:
         daemonset_created = False
         daemonset_status = None
         # Wait for the daemonset to be created
-        for i in range(0, 10):
+        for i in range(10):
             try:
                 daemonset_status = apps_api.read_namespaced_daemon_set_status(name="datadog", namespace="default")
                 if daemonset_status.status.number_ready > 0:
                     logger.info(f"[Test agent] daemonset status datadog running!")
                     daemonset_created = True
                     break
-                else:
-                    time.sleep(5)
+                time.sleep(5)
             except client.exceptions.ApiException as e:
                 logger.info(f"[Test agent] daemonset status error: {e}")
                 time.sleep(5)
@@ -218,7 +206,6 @@ class K8sDatadogClusterTestAgent:
         ):
             if event["object"].status.phase == "Running":
                 w.stop()
-                end_time = time.time()
                 logger.info("Datadog test agent started!")
                 break
 
@@ -228,7 +215,7 @@ class K8sDatadogClusterTestAgent:
         datadog_cluster_name = pods.items[0].metadata.name
 
         operator_ready = False
-        for i in range(0, 15):
+        for i in range(15):
             try:
                 operator_status = v1.read_namespaced_pod_status(name=datadog_cluster_name, namespace="default")
                 if (
@@ -238,8 +225,7 @@ class K8sDatadogClusterTestAgent:
                     logger.info(f"[Deploy operator] Operator datadog running!")
                     operator_ready = True
                     break
-                else:
-                    time.sleep(5)
+                time.sleep(5)
             except client.exceptions.ApiException as e:
                 logger.info(f"Pod status error: {e}")
                 time.sleep(5)
@@ -286,13 +272,13 @@ class K8sDatadogClusterTestAgent:
                 k8s_logger(output_folder, test_name, "datadog-cluster-agent").info(api_response)
 
                 # Export: Telemetry datadog-cluster-agent
-                execute_command(
+                execute_command_sync(
                     f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry > '{output_folder}/{pods.items[0].metadata.name}_telemetry.log'"
                 )
 
                 # Export: Status datadog-cluster-agent
                 # Sometimes this command fails. Ignore this error
-                execute_command(
+                execute_command_sync(
                     f"kubectl exec -it {pods.items[0].metadata.name} -- agent status > '{output_folder}/{pods.items[0].metadata.name}_status.log' || true "
                 )
         except Exception as e:

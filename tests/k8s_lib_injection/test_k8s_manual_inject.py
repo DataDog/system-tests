@@ -36,7 +36,7 @@ class TestAdmisionController:
         logger.info(
             f"Launching test _test_inject_without_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
-        test_agent = test_k8s_instance.deploy_test_agent()
+        test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False)
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert len(traces_json) > 0, "No traces found"
@@ -46,7 +46,7 @@ class TestAdmisionController:
         logger.info(
             f"Launching test test_inject_uds_without_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
-        test_agent = test_k8s_instance.deploy_test_agent()
+        test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False, use_uds=True)
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert len(traces_json) > 0, "No traces found"

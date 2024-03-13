@@ -3,7 +3,7 @@ targetSystem: "linux"
 agents:
   enabled: false
 datadog:
-  clusterName: lib-injection-testing
+  clusterName: $$CLUSTER_NAME$$
   tags: []
   logLevel: DEBUG
   # datadog.kubelet.tlsVerify should be `false` on kind and minikube

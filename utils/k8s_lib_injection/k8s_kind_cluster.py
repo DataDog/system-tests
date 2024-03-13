@@ -27,10 +27,10 @@ def ensure_cluster():
         fp.write(kind_data)
         fp.seek(0)
         execute_command(
-            f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {k8s_kind_cluster.cluster_name} --config {cluster_config}"
+            f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {k8s_kind_cluster.cluster_name} --config {cluster_config} --wait 1m"
         )
 
-        time.sleep(20)
+        # time.sleep(20)
 
     return k8s_kind_cluster
 

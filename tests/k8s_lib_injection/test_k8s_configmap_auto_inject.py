@@ -337,11 +337,8 @@ class TestConfigMapAutoInject:
         logger.debug(f"Traces: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
 
-        logger.debug(" _check_for_env_vars")
         self._check_for_env_vars(test_k8s_instance, expected_env_vars)
-        logger.debug(" _check_for_pod_metadata")
         self._check_for_pod_metadata(test_k8s_instance)
-        logger.debug(" _check_for_deploy_metadata")
         self._check_for_deploy_metadata(test_k8s_instance)
 
         logger.debug(" Trigger unrelated rolling-update")
@@ -433,11 +430,8 @@ class TestConfigMapAutoInject:
         test_k8s_instance.deploy_weblog_as_deployment()
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_auto()
-        default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
 
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
-
-        #  test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
 
         all_config_data = self._get_default_auto_inject_config_all_libraries(test_k8s_instance)
         test_k8s_instance.apply_config_auto_inject(json.dumps(all_config_data), timeout=300)
