@@ -1,9 +1,8 @@
 import os
 import time
-import requests
 from datetime import datetime
+import requests
 from utils.tools import logger
-
 
 def _query_for_trace_id(trace_id):
     path = f"/api/v1/trace/{trace_id}"
