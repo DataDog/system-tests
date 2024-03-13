@@ -314,6 +314,7 @@ tests/:
         '*': v1.36.2
         gin: v1.37.0
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces:
         '*': v1.36.0
         gin: v1.37.0
@@ -361,6 +362,12 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: 
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmContext_Injection_Base64: 
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         "*": irrelevant

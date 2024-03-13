@@ -299,6 +299,7 @@ tests/:
       Test_AppSecObfuscator: v2.6.0
       Test_CollectRespondHeaders: v2.0.0
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
@@ -350,6 +351,12 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: 
+        "*": irrelevant
+        express4: v5.6.0
+      Test_DsmContext_Injection_Base64: 
+        "*": irrelevant
+        express4: v5.6.0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': v4.4.0
@@ -381,8 +388,8 @@ tests/:
       TestDynamicConfigV2: v4.23.0
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Defaults: missing_feature
-      Test_Environment: missing_feature
+      Test_Defaults: v5.6.0
+      Test_Environment: v5.6.0
       Test_TelemetryInstallSignature: v4.23.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature

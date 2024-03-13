@@ -200,6 +200,7 @@ tests/:
       Test_AppSecObfuscator: v2.7.0
       Test_CollectRespondHeaders: v2.5.1
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
@@ -229,6 +230,8 @@ tests/:
       Test_MySql: missing_feature
       Test_Postgres: missing_feature
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: missing_feature
+      Test_DsmContext_Injection_Base64: missing_feature
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
       Test_DsmKinesis: missing_feature

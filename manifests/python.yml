@@ -427,6 +427,7 @@ tests/:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
@@ -481,13 +482,19 @@ tests/:
         '*': missing_feature (Missing on weblog)
         flask-poc: v0.1 # real version not known
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: 
+        "*": irrelevant
+        flask-poc: v2.8.0
+      Test_DsmContext_Injection_Base64: 
+        "*": irrelevant
+        flask-poc: v2.8.0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': irrelevant
         flask-poc: v1.20.3
       Test_DsmKinesis:
         '*': irrelevant
-        flask-poc: v1.16.0
+        flask-poc: v2.8.0
       Test_DsmRabbitmq:
         '*': irrelevant
         flask-poc: v2.6.0

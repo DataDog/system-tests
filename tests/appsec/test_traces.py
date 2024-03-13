@@ -330,3 +330,47 @@ class Test_DistributedTraceInfo:
 
     def test_main(self):
         assert False, "Test not implemented"
+
+
+@rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
+@features.security_events_metadata
+class Test_ExternalWafRequestsIdentification:
+    def setup_external_wafs_header_collection(self):
+        self.r = weblog.get(
+            "/headers",
+            headers={
+                "X-Amzn-Trace-Id": "Root=1-65ae48bc-04fb551979979b6c57973027",
+                "CloudFront-Viewer-Ja3-Fingerprint": "e7d705a3286e19ea42f587b344ee6865",
+                "Cf-Ray": "230b030023ae2822-SJC",
+                "X-Cloud-Trace-Context": "105445aa7843bc8bf206b12000100000/1",
+                "X-Appgw-Trace-id": "ac882cd65a2712a0fe1289ec2bb6aee7",
+                "X-SigSci-RequestID": "55c24b96ca84c02201000001",
+                "X-SigSci-Tags": "SQLI, XSS",
+                "Akamai-User-Risk": "uuid=913c4545-757b-4d8d-859d-e1361a828361;status=0",
+            },
+        )
+
+    def test_external_wafs_header_collection(self):
+        """
+        Collect external wafs request identifier and other security info when appsec is enabled.
+        """
+
+        def assertHeaderInSpanMeta(span, header):
+            if header not in span["meta"]:
+                raise Exception(f"Can't find {header} in span's meta")
+
+        def validate_request_headers(span):
+            for header in [
+                "x-amzn-trace-id",
+                "cloudfront-viewer-ja3-fingerprint",
+                "cf-ray",
+                "x-cloud-trace-context",
+                "x-appgw-trace-id",
+                "x-sigsci-requestid",
+                "x-sigsci-tags",
+                "akamai-user-risk",
+            ]:
+                assertHeaderInSpanMeta(span, f"http.request.headers.{header}")
+            return True
+
+        interfaces.library.validate_spans(self.r, validate_request_headers)
