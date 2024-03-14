@@ -238,11 +238,6 @@ class TestConfigMapAutoInject:
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
 
-    # @irrelevant(
-    #     condition=not hasattr(context.scenario, "_library_init_image_tag")
-    #     or context.scenario._library_init_image_tag != "latest",
-    #     reason="We only can test the latest release of the library",
-    # )
     def test_fileprovider_configmap_case1(self, test_k8s_instance):
         """ Nominal case:
            - deploy app & agent
