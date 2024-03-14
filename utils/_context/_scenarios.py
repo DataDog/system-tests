@@ -1132,7 +1132,6 @@ class _KubernetesScenario(_Scenario):
         ), "DOCKER_REGISTRY_IMAGES_PATH is not set. IE: ghcr.io/datadog"
 
         prefix_library_injection_init_image, library_injection_init_image = self._get_library_injection_init_image()
-        logger.info(f"RMM PREFIX INITI IMAGE;:;;;;; {prefix_library_injection_init_image}")
         library_injection_test_app_image = self._get_library_injection_test_app_image()
 
         self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")

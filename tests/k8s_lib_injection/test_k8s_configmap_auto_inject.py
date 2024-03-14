@@ -238,7 +238,7 @@ class TestConfigMapAutoInject:
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
 
-    def _test_fileprovider_configmap_case1(self, test_k8s_instance):
+    def test_fileprovider_configmap_case1(self, test_k8s_instance):
         """ Nominal case:
            - deploy app & agent
            - apply config
@@ -266,7 +266,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case1 finished")
 
-    def _test_fileprovider_configmap_case2(self, test_k8s_instance):
+    def test_fileprovider_configmap_case2(self, test_k8s_instance):
         """ Config change:
                - deploy app & agent
                - apply config
@@ -298,7 +298,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case2 finished")
 
-    def _test_fileprovider_configmap_case3(self, test_k8s_instance):
+    def test_fileprovider_configmap_case3(self, test_k8s_instance):
         """  Config persistence:
                - deploy app & agent
                - apply config
@@ -340,7 +340,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case3 finished")
 
-    def _test_fileprovider_configmap_case4(self, test_k8s_instance):
+    def test_fileprovider_configmap_case4(self, test_k8s_instance):
         """  Mismatching config:
                - deploy app & agent
                - apply config with non-matching cluster name
@@ -359,7 +359,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
 
-    def _test_fileprovider_configmap_case5(self, test_k8s_instance):
+    def test_fileprovider_configmap_case5(self, test_k8s_instance):
         """ Config change to action:disable
                 - deploy app & agent
                 - apply matching config
@@ -387,6 +387,11 @@ class TestConfigMapAutoInject:
         self._check_for_disabled_pod_metadata(test_k8s_instance)
         logger.info(f"Test _test_fileprovider_configmap_case5 finished")
 
+    @irrelevant(
+        condition=not hasattr(context.scenario, "_library_init_image_tag")
+        or context.scenario._library_init_image_tag != "latest",
+        reason="We only can test the latest release of the library",
+    )
     def test_fileprovider_configmap_case6(self, test_k8s_instance):
         """  Inject-all case (for batch instrumentation)
            - use language name "all" in RC config
@@ -404,7 +409,6 @@ class TestConfigMapAutoInject:
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
 
         all_config_data = self._get_default_auto_inject_config_all_libraries(test_k8s_instance)
-        logger.info(f"RMM all config data: {all_config_data}")
         test_k8s_instance.apply_config_auto_inject(json.dumps(all_config_data), timeout=300)
 
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
