@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -34,6 +34,7 @@ def enable_none_invalid() -> Any:
 
 
 @scenarios.parametric
+@features.datadog_headers_propagation
 class Test_Headers_None:
     @enable_none()
     def test_headers_none_extract(self, test_agent, test_library):
