@@ -55,7 +55,7 @@ class Test_Defaults:
         configuration_by_name = {item["name"]: item for item in configuration}
         for (apm_telemetry_name, value) in [
             ("trace_sample_rate", (1.0, None, "1.0")),
-            ("logs_injection_enabled", ("false", False)),
+            ("logs_injection_enabled", ("false", False, "true", True)),
             ("trace_header_tags", ""),
             ("trace_tags", ""),
             ("trace_enabled", ("true", True)),
