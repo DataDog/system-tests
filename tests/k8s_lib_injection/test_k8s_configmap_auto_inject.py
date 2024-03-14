@@ -266,12 +266,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case1 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
-    def _test_fileprovider_configmap_case2(self, test_k8s_instance):
+    def test_fileprovider_configmap_case2(self, test_k8s_instance):
         """ Config change:
                - deploy app & agent
                - apply config
@@ -303,12 +298,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case2 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
-    def _test_fileprovider_configmap_case3(self, test_k8s_instance):
+    def test_fileprovider_configmap_case3(self, test_k8s_instance):
         """  Config persistence:
                - deploy app & agent
                - apply config
@@ -350,12 +340,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case3 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
-    def _test_fileprovider_configmap_case4(self, test_k8s_instance):
+    def test_fileprovider_configmap_case4(self, test_k8s_instance):
         """  Mismatching config:
                - deploy app & agent
                - apply config with non-matching cluster name
@@ -374,12 +359,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
-    def _test_fileprovider_configmap_case5(self, test_k8s_instance):
+    def test_fileprovider_configmap_case5(self, test_k8s_instance):
         """ Config change to action:disable
                 - deploy app & agent
                 - apply matching config
@@ -407,12 +387,7 @@ class TestConfigMapAutoInject:
         self._check_for_disabled_pod_metadata(test_k8s_instance)
         logger.info(f"Test _test_fileprovider_configmap_case5 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
-    def _test_fileprovider_configmap_case6(self, test_k8s_instance):
+    def test_fileprovider_configmap_case6(self, test_k8s_instance):
         """  Inject-all case (for batch instrumentation)
            - use language name "all" in RC config
            - all supported language libraries should be injected into the container
