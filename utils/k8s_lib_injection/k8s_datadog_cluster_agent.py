@@ -275,13 +275,15 @@ class K8sDatadogClusterTestAgent:
 
                 # Export: Telemetry datadog-cluster-agent
                 execute_command_sync(
-                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry > '{output_folder}/{pods.items[0].metadata.name}_telemetry.log'"
+                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry > '{output_folder}/{pods.items[0].metadata.name}_telemetry.log'",
+                    self.k8s_kind_cluster,
                 )
 
                 # Export: Status datadog-cluster-agent
                 # Sometimes this command fails. Ignore this error
                 execute_command_sync(
-                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent status > '{output_folder}/{pods.items[0].metadata.name}_status.log' || true "
+                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent status > '{output_folder}/{pods.items[0].metadata.name}_status.log' || true ",
+                    self.k8s_kind_cluster,
                 )
         except Exception as e:
             k8s_logger(output_folder, test_name, "daemon.set.describe").info(

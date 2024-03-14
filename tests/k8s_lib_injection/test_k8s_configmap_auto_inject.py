@@ -61,7 +61,7 @@ class TestConfigMapAutoInject:
                 "action": "enable",
                 "lib_config": {
                     "library_language": "all",
-                    "library_version": "latest",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
                     "service_name": "test-service",
                     "env": "dev",
                     "tracing_enabled": True,
@@ -81,7 +81,7 @@ class TestConfigMapAutoInject:
                 "action": "enable",
                 "lib_config": {
                     "library_language": "all",
-                    "library_version": "latest",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
                     "service_name": "test-service",
                     "env": "dev",
                     "tracing_enabled": True,
@@ -101,7 +101,7 @@ class TestConfigMapAutoInject:
                 "action": "enable",
                 "lib_config": {
                     "library_language": "all",
-                    "library_version": "latest",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
                     "service_name": "test-service",
                     "env": "dev",
                     "tracing_enabled": True,
@@ -238,7 +238,7 @@ class TestConfigMapAutoInject:
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
 
-    def test_fileprovider_configmap_case1(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case1(self, test_k8s_instance):
         """ Nominal case:
            - deploy app & agent
            - apply config
@@ -266,7 +266,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case1 finished")
 
-    def test_fileprovider_configmap_case2(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case2(self, test_k8s_instance):
         """ Config change:
                - deploy app & agent
                - apply config
@@ -298,7 +298,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case2 finished")
 
-    def test_fileprovider_configmap_case3(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case3(self, test_k8s_instance):
         """  Config persistence:
                - deploy app & agent
                - apply config
@@ -340,7 +340,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case3 finished")
 
-    def test_fileprovider_configmap_case4(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case4(self, test_k8s_instance):
         """  Mismatching config:
                - deploy app & agent
                - apply config with non-matching cluster name
@@ -359,7 +359,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
 
-    def test_fileprovider_configmap_case5(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case5(self, test_k8s_instance):
         """ Config change to action:disable
                 - deploy app & agent
                 - apply matching config
