@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import bug, missing_feature, context, irrelevant, scenarios
+from utils import bug, missing_feature, context, irrelevant, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -86,6 +86,7 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 
 
 @scenarios.parametric
+@features.datadog_headers_propagation
 class Test_Headers_Precedence:
     @irrelevant(context.library == "dotnet", reason="Implements the new 'datadog,tracecontext' default")
     @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
