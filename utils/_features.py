@@ -2096,3 +2096,13 @@ class features:
         """
         pytest.mark.features(feature_id=289)(test_object)
         return test_object
+		
+    @staticmethod
+    def debugger_pii_redaction(test_object):
+        """
+        PII Redaction
+
+        https://feature-parity.us1.prod.dog/#/?feature=291
+        """
+        pytest.mark.features(feature_id=291)(test_object)
+        return test_object
