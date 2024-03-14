@@ -106,7 +106,7 @@ class K8sWeblog:
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         pod_body = self._get_base_weblog_pod()
         v1.create_namespaced_pod(namespace="default", body=pod_body)
-        self.wait_for_weblog_ready_by_label_app("my-app", timeout=120)
+        self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
     def install_weblog_pod_without_admission_controller(self, use_uds):
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
@@ -162,7 +162,7 @@ class K8sWeblog:
         pod_body.spec.volumes = volumes
 
         v1.create_namespaced_pod(namespace="default", body=pod_body)
-        self.wait_for_weblog_ready_by_label_app("my-app", timeout=120)
+        self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
     def deploy_app_auto(self):
         """ Installs a target app for auto library injection testing.
