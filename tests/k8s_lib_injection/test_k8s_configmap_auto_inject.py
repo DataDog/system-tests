@@ -404,6 +404,7 @@ class TestConfigMapAutoInject:
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
 
         all_config_data = self._get_default_auto_inject_config_all_libraries(test_k8s_instance)
+        logger.info(f"RMM all config data: {all_config_data}")
         test_k8s_instance.apply_config_auto_inject(json.dumps(all_config_data), timeout=300)
 
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
