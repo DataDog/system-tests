@@ -6,6 +6,7 @@ from utils import scenarios, interfaces, weblog, features, missing_feature, cont
 from utils.tools import logger
 import test_debugger_base as base
 
+
 @features.debugger
 @scenarios.debugger_probes_status
 class Test_Debugger_Probe_Statuses:
@@ -33,6 +34,7 @@ class Test_Debugger_Probe_Statuses:
         }
 
         base.validate_probes(expected_probes)
+
 
 @features.debugger
 @scenarios.debugger_method_probes_snapshot

@@ -6,18 +6,19 @@ from utils import scenarios, interfaces, weblog, features, missing_feature, cont
 from utils.tools import logger
 import test_debugger_base as base
 
+
 def validate_pii_redaction(should_redact_field_names):
     agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
     not_redacted = []
-    not_found = list(set(should_redact_field_names)) 
+    not_found = list(set(should_redact_field_names))
 
     for request in agent_logs_endpoint_requests:
         content = request["request"]["content"]
-        
+
         if content is not None:
             for content in content:
                 debugger = content["debugger"]
-                
+
                 if "snapshot" in debugger:
                     for field_name in should_redact_field_names:
                         fields = debugger["snapshot"]["captures"]["return"]["locals"]["pii"]["fields"]
@@ -27,17 +28,18 @@ def validate_pii_redaction(should_redact_field_names):
 
                             if "value" in fields[field_name]:
                                 not_redacted.append(field_name)
-    error_message = ''
+    error_message = ""
     if not_redacted:
         not_redacted.sort()
-        error_message = "Fields not properly redacted: " + ''.join([f"{item}, " for item in not_redacted])
+        error_message = "Fields not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
 
     if not_found:
         not_found.sort()
-        error_message += ". Fields not found: " + ''.join([f"{item}, " for item in not_found])
+        error_message += ". Fields not found: " + "".join([f"{item}, " for item in not_found])
 
-    if error_message != '':
+    if error_message != "":
         raise ValueError(error_message)
+
 
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction

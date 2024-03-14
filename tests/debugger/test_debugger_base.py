@@ -94,6 +94,7 @@ def validate_spans(expected_spans):
     for expected_trace in expected_spans:
         check_trace(expected_trace, span_map)
 
+
 class _Base_Debugger_Snapshot_Test:
     expected_probe_ids = []
 
