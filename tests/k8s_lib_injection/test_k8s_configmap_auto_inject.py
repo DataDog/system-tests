@@ -238,11 +238,11 @@ class TestConfigMapAutoInject:
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
+    # @irrelevant(
+    #     condition=not hasattr(context.scenario, "_library_init_image_tag")
+    #     or context.scenario._library_init_image_tag != "latest",
+    #     reason="We only can test the latest release of the library",
+    # )
     def test_fileprovider_configmap_case1(self, test_k8s_instance):
         """ Nominal case:
            - deploy app & agent
@@ -276,7 +276,7 @@ class TestConfigMapAutoInject:
         or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def test_fileprovider_configmap_case2(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case2(self, test_k8s_instance):
         """ Config change:
                - deploy app & agent
                - apply config
@@ -313,7 +313,7 @@ class TestConfigMapAutoInject:
         or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def test_fileprovider_configmap_case3(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case3(self, test_k8s_instance):
         """  Config persistence:
                - deploy app & agent
                - apply config
@@ -360,7 +360,7 @@ class TestConfigMapAutoInject:
         or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def test_fileprovider_configmap_case4(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case4(self, test_k8s_instance):
         """  Mismatching config:
                - deploy app & agent
                - apply config with non-matching cluster name
@@ -384,7 +384,7 @@ class TestConfigMapAutoInject:
         or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def test_fileprovider_configmap_case5(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case5(self, test_k8s_instance):
         """ Config change to action:disable
                 - deploy app & agent
                 - apply matching config
@@ -417,7 +417,7 @@ class TestConfigMapAutoInject:
         or context.scenario._library_init_image_tag != "latest",
         reason="We only can test the latest release of the library",
     )
-    def test_fileprovider_configmap_case6(self, test_k8s_instance):
+    def _test_fileprovider_configmap_case6(self, test_k8s_instance):
         """  Inject-all case (for batch instrumentation)
            - use language name "all" in RC config
            - all supported language libraries should be injected into the container

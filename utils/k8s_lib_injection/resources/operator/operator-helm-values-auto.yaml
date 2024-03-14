@@ -33,6 +33,8 @@ clusterAgent:
       value: "true"
     - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PATCHER_FALLBACK_TO_FILE_PROVIDER
       value: "true"
+    - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_CONTAINER_REGISTRY
+      value: "$$PREFIX_INIT_IMAGE$$"
   volumes:
     - name: auto-instru
       configMap:

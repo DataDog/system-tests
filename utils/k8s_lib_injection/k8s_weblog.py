@@ -5,11 +5,12 @@ from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
 class K8sWeblog:
-    def configure(self, k8s_kind_cluster):
-        self.k8s_kind_cluster = k8s_kind_cluster
-
-    def __init__(self):
+    def __init__(self, app_image, library, library_init_image):
         self.k8s_kind_cluster = None
+        self.app_image = app_image
+        self.library = library
+        self.library_init_image = library_init_image
+
         self.manual_injection_props = {
             "python": [
                 {"name": "PYTHONPATH", "value": "/datadog-lib/"},
@@ -27,14 +28,17 @@ class K8sWeblog:
             "ruby": [{"name": "RUBYOPT", "value": " -r/datadog-lib/auto_inject"}],
         }
 
-    def _get_base_weblog_pod(self, app_image, library, library_init_image):
+    def configure(self, k8s_kind_cluster):
+        self.k8s_kind_cluster = k8s_kind_cluster
+
+    def _get_base_weblog_pod(self):
         """ Installs a target app for manual library injection testing.
             It returns when the app pod is ready."""
 
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         logger.info(
             "[Deploy weblog] Deploying weblog as pod. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
-            % (app_image, library, library_init_image)
+            % (self.app_image, self.library, self.library_init_image)
         )
 
         pod_metadata = client.V1ObjectMeta(
@@ -47,13 +51,13 @@ class K8sWeblog:
                 "tags.datadoghq.com/service": "my-app",
                 "tags.datadoghq.com/version": "local",
             },
-            annotations={f"admission.datadoghq.com/{library}-lib.custom-image": f"{library_init_image}"},
+            annotations={f"admission.datadoghq.com/{self.library}-lib.custom-image": f"{self.library_init_image}"},
         )
 
         containers = []
         container1 = client.V1Container(
             name="my-app",
-            image=app_image,
+            image=self.app_image,
             env=[
                 client.V1EnvVar(name="SERVER_PORT", value="18080"),
                 client.V1EnvVar(
@@ -98,20 +102,20 @@ class K8sWeblog:
         pod_body = client.V1Pod(api_version="v1", kind="Pod", metadata=pod_metadata, spec=pod_spec)
         return pod_body
 
-    def install_weblog_pod_with_admission_controller(self, app_image, library, library_init_image):
+    def install_weblog_pod_with_admission_controller(self):
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
-        pod_body = self._get_base_weblog_pod(app_image, library, library_init_image)
+        pod_body = self._get_base_weblog_pod()
         v1.create_namespaced_pod(namespace="default", body=pod_body)
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=120)
 
-    def install_weblog_pod_without_admission_controller(self, app_image, library, library_init_image, use_uds):
+    def install_weblog_pod_without_admission_controller(self, use_uds):
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
-        pod_body = self._get_base_weblog_pod(app_image, library, library_init_image)
+        pod_body = self._get_base_weblog_pod()
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(
             command=["sh", "copy-lib.sh", "/datadog-lib"],
             name="datadog-tracer-init",
-            image=library_init_image,
+            image=self.library_init_image,
             image_pull_policy="Always",
             termination_message_path="/dev/termination-log",
             termination_message_policy="File",
@@ -120,7 +124,7 @@ class K8sWeblog:
         pod_body.spec.init_containers.append(init_container1)
         pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_LOGS_INJECTION", value="true"))
         # Env vars for manual injection. Each library has its own env vars
-        for lang_env_vars in self.manual_injection_props[library]:
+        for lang_env_vars in self.manual_injection_props[self.library]:
             pod_body.spec.containers[0].env.append(
                 client.V1EnvVar(name=lang_env_vars["name"], value=lang_env_vars["value"])
             )
@@ -160,20 +164,20 @@ class K8sWeblog:
         v1.create_namespaced_pod(namespace="default", body=pod_body)
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=120)
 
-    def deploy_app_auto(self, app_image, library):
+    def deploy_app_auto(self):
         """ Installs a target app for auto library injection testing.
             It returns when the deployment is available and the rollout is finished."""
         api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
-        deployment_name = f"test-{library}-deployment"
+        deployment_name = f"test-{self.library}-deployment"
 
         deployment_metadata = client.V1ObjectMeta(
-            name=deployment_name, namespace="default", labels={"app": f"{library}-app"},
+            name=deployment_name, namespace="default", labels={"app": f"{self.library}-app"},
         )
 
         # Configureate Pod template container
         container = client.V1Container(
-            name=f"{library}-app",
-            image=app_image,
+            name=f"{self.library}-app",
+            image=self.app_image,
             env=[client.V1EnvVar(name="SERVER_PORT", value="18080"),],
             readiness_probe=client.V1Probe(
                 timeout_seconds=5,
@@ -188,13 +192,13 @@ class K8sWeblog:
 
         # Create and configure a spec section
         template = client.V1PodTemplateSpec(
-            metadata=client.V1ObjectMeta(labels={"app": f"{library}-app"}),
+            metadata=client.V1ObjectMeta(labels={"app": f"{self.library}-app"}),
             spec=client.V1PodSpec(containers=[container], restart_policy="Always"),
         )
 
         # Create the specification of deployment
         spec = client.V1DeploymentSpec(
-            replicas=1, template=template, selector={"matchLabels": {"app": f"{library}-app"}}
+            replicas=1, template=template, selector={"matchLabels": {"app": f"{self.library}-app"}}
         )
 
         # Instantiate the deployment object
@@ -281,7 +285,7 @@ class K8sWeblog:
 
         raise RuntimeError(f"Waiting timeout for deployment {deployment_name}")
 
-    def export_debug_info(self, output_folder, test_name, library):
+    def export_debug_info(self, output_folder, test_name):
         """ Extracts debug info from the k8s weblog app and logs it to the specified folder."""
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
@@ -305,8 +309,8 @@ class K8sWeblog:
             )
 
         # check for weblog describe deployment if exists
-        deployment_name = f"test-{library}-deployment"
-        app_name = f"{library}-app"
+        deployment_name = f"test-{self.library}-deployment"
+        app_name = f"{self.library}-app"
         try:
             response = api.read_namespaced_deployment(deployment_name, "default")
             k8s_logger(output_folder, test_name, "deployment.desribe").info(response)
@@ -316,8 +320,8 @@ class K8sWeblog:
             )
 
         # check for weblog deployment pods if exists
-        deployment_name = f"test-{library}-deployment"
-        app_name = f"{library}-app"
+        deployment_name = f"test-{self.library}-deployment"
+        app_name = f"{self.library}-app"
         try:
             pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
             if len(pods.items) > 0:

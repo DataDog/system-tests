@@ -15,8 +15,9 @@ import json
 
 
 class K8sDatadogClusterTestAgent:
-    def __init__(self):
+    def __init__(self, prefix_library_init_image):
         self.k8s_kind_cluster = None
+        self.prefix_library_init_image = prefix_library_init_image
 
     def configure(self, k8s_kind_cluster):
         self.k8s_kind_cluster = k8s_kind_cluster
@@ -120,7 +121,7 @@ class K8sDatadogClusterTestAgent:
         logger.info("[Deploy operator] Waiting for the operator to be ready")
         self._wait_for_operator_ready()
 
-    def deploy_operator_auto(self, use_uds=False):
+    def deploy_operator_auto(self):
         """ Installs the Datadog Cluster Agent via helm for auto library injection testing.
             It returns when the Cluster Agent pod is ready."""
 
@@ -139,6 +140,7 @@ class K8sDatadogClusterTestAgent:
             "datadog/datadog",
             value_file=operator_file,
             set_dict={"datadog.apiKey": os.getenv("DD_API_KEY"), "datadog.appKey": os.getenv("DD_APP_KEY")},
+            prefix_library_init_image=self.prefix_library_init_image,
         )
         self._wait_for_operator_ready()
 
@@ -148,7 +150,7 @@ class K8sDatadogClusterTestAgent:
 
         self._wait_for_operator_ready()
 
-    def apply_config_auto_inject(self, library, config_data):
+    def apply_config_auto_inject(self, config_data):
         """ Applies an configuration change for auto injection.
             It returns when the targeted deployment finishes the rollout."""
 
