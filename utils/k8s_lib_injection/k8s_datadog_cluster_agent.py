@@ -244,6 +244,9 @@ class K8sDatadogClusterTestAgent:
         """ Exports debug information for the test agent and the operator."""
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        event_api = client.EventsV1Api(
+            api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
+        )
 
         # Get all pods
         ret = v1.list_pod_for_all_namespaces(watch=False)
@@ -289,3 +292,6 @@ class K8sDatadogClusterTestAgent:
             k8s_logger(output_folder, test_name, "daemon.set.describe").info(
                 "Exception when calling CoreV1Api->datadog-cluster-agent logs: %s\n" % e
             )
+
+        events = event_api.list_event_for_all_namespaces(pretty="pretty_example")
+        k8s_logger(output_folder, test_name, "pod.events").info(events)
