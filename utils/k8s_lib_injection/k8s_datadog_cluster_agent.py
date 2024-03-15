@@ -163,8 +163,7 @@ class K8sDatadogClusterTestAgent:
         r = v1.replace_namespaced_config_map(name="auto-instru", namespace="default", body=configmap)
         logger.info(f"[Auto Config] Configmap replaced!")
         k8s_logger(self.output_folder, self.test_name, "applied_configmaps").info(r)
-        self.watch_configmap_auto_inject(timeout=90)
-        # time.sleep(90)
+        self.watch_configmap_auto_inject(timeout=100)
 
     def create_configmap_auto_inject(self):
         """ Minimal configuration needed when we install operator auto """
@@ -183,14 +182,12 @@ class K8sDatadogClusterTestAgent:
         time.sleep(5)
 
     def watch_configmap_auto_inject(self, timeout=90):
+        """ log events related with config maps for 90 seconds"""
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         w = watch.Watch()
         for event in w.stream(func=v1.list_namespaced_config_map, namespace="default", timeout_seconds=timeout):
             k8s_logger(self.output_folder, self.test_name, "events_configmaps").info(event)
 
-    # w = watch.Watch()
-    # for event in w.stream(kube.coreV1.list_namespaced_config_map, namespace=TARGET_NS):
-    #   print("Event: %s %s" % (event['type'], event['object'].metadata.name))
     def wait_for_test_agent(self):
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         apps_api = client.AppsV1Api(
