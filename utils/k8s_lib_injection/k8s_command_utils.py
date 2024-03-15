@@ -4,7 +4,7 @@ from utils import context
 from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
 
 
-def execute_command(command, timeout=None):
+def execute_command(command, timeout=None, logfile=None):
     """call shell-command and either return its output or kill it
   if it doesn't normally exit within timeout seconds and return None"""
     applied_timeout = 90
@@ -12,10 +12,13 @@ def execute_command(command, timeout=None):
         applied_timeout = timeout
 
     logger.debug(f"Launching Command: {command} ")
+    command_out_redirect = subprocess.PIPE
+    if logfile:
+        command_out_redirect = open(logfile, "w")
     output = ""
     try:
         start = datetime.datetime.now()
-        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(command.split(), stdout=command_out_redirect, stderr=command_out_redirect)
 
         while process.poll() is None:
             time.sleep(0.1)
@@ -30,12 +33,13 @@ def execute_command(command, timeout=None):
                     # if we specify a timeout, we raise an exception
                     raise Exception(f"Command: {command} timed out after {applied_timeout} seconds")
 
-        output = process.stdout.read()
-        logger.debug(f"Command: {command} \n {output}")
-        if process.returncode != 0:
-            output_error = process.stderr.read()
-            logger.debug(f"Command: {command} \n {output_error}")
-            raise Exception(f"Error executing command: {command} \n {output}")
+        if not logfile:
+            output = process.stdout.read()
+            logger.debug(f"Command: {command} \n {output}")
+            if process.returncode != 0:
+                output_error = process.stderr.read()
+                logger.debug(f"Command: {command} \n {output_error}")
+                raise Exception(f"Error executing command: {command} \n {output}")
 
     except Exception as ex:
         logger.error(f"Error executing command: {command} \n {ex}")
@@ -44,11 +48,11 @@ def execute_command(command, timeout=None):
     return output
 
 
-def execute_command_sync(command, k8s_kind_cluster, timeout=None):
+def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
 
     with KubectlLock():
-        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
-        execute_command(command, timeout=timeout)
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}", logfile=logfile)
+        execute_command(command, timeout=timeout, logfile=logfile)
 
 
 def helm_add_repo(name, url, k8s_kind_cluster, update=False):

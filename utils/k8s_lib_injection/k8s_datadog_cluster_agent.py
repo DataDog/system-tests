@@ -244,15 +244,17 @@ class K8sDatadogClusterTestAgent:
         """ Exports debug information for the test agent and the operator."""
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
-        event_api = client.EventsV1Api(
-            api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
-        )
 
         # Get all pods
-        ret = v1.list_pod_for_all_namespaces(watch=False)
+        ret = v1.list_namespaced_pod(namespace="default", watch=False)
         for i in ret.items:
             k8s_logger(output_folder, test_name, "get.pods").info(
                 "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+            )
+            execute_command_sync(
+                f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
+                self.k8s_kind_cluster,
+                logfile=f"{output_folder}/{i.metadata.name}_events.log",
             )
 
         # Get all deployments
@@ -278,20 +280,19 @@ class K8sDatadogClusterTestAgent:
 
                 # Export: Telemetry datadog-cluster-agent
                 execute_command_sync(
-                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry > '{output_folder}/{pods.items[0].metadata.name}_telemetry.log'",
+                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry ",
                     self.k8s_kind_cluster,
+                    logfile=f"{output_folder}/{pods.items[0].metadata.name}_telemetry.log",
                 )
 
                 # Export: Status datadog-cluster-agent
                 # Sometimes this command fails. Ignore this error
                 execute_command_sync(
-                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent status > '{output_folder}/{pods.items[0].metadata.name}_status.log' || true ",
+                    f"kubectl exec -it {pods.items[0].metadata.name} -- agent status || true ",
                     self.k8s_kind_cluster,
+                    logfile=f"{output_folder}/{pods.items[0].metadata.name}_status.log",
                 )
         except Exception as e:
             k8s_logger(output_folder, test_name, "daemon.set.describe").info(
                 "Exception when calling CoreV1Api->datadog-cluster-agent logs: %s\n" % e
             )
-
-        events = event_api.list_event_for_all_namespaces(pretty="pretty_example")
-        k8s_logger(output_folder, test_name, "pod.events").info(events)
