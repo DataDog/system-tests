@@ -15,9 +15,11 @@ import json
 
 
 class K8sDatadogClusterTestAgent:
-    def __init__(self, prefix_library_init_image):
+    def __init__(self, prefix_library_init_image, output_folder, test_name):
         self.k8s_kind_cluster = None
         self.prefix_library_init_image = prefix_library_init_image
+        self.output_folder = output_folder
+        self.test_name = test_name
 
     def configure(self, k8s_kind_cluster):
         self.k8s_kind_cluster = k8s_kind_cluster
@@ -160,6 +162,8 @@ class K8sDatadogClusterTestAgent:
         configmap = client.V1ConfigMap(kind="ConfigMap", data={"auto-instru.json": config_data,}, metadata=metadata)
         r = v1.replace_namespaced_config_map(name="auto-instru", namespace="default", body=configmap)
         logger.info(f"[Auto Config] Configmap replaced!")
+        k8s_logger(self.output_folder, self.test_name, "applied_configmaps").info(r)
+
         time.sleep(90)
 
     def create_configmap_auto_inject(self):
@@ -240,7 +244,7 @@ class K8sDatadogClusterTestAgent:
         # At this point the operator should be ready, we are going to wait a little bit more to make sure the operator is ready (some times the operator is ready but the cluster agent is not ready yet)
         time.sleep(5)
 
-    def export_debug_info(self, output_folder, test_name):
+    def export_debug_info(self):
         """ Exports debug information for the test agent and the operator."""
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
@@ -248,26 +252,26 @@ class K8sDatadogClusterTestAgent:
         # Get all pods
         ret = v1.list_namespaced_pod(namespace="default", watch=False)
         for i in ret.items:
-            k8s_logger(output_folder, test_name, "get.pods").info(
+            k8s_logger(self.output_folder, self.test_name, "get.pods").info(
                 "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
             )
             execute_command_sync(
                 f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
                 self.k8s_kind_cluster,
-                logfile=f"{output_folder}/{i.metadata.name}_events.log",
+                logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
             )
 
         # Get all deployments
         deployments = api.list_deployment_for_all_namespaces()
         for deployment in deployments.items:
-            k8s_logger(output_folder, test_name, "get.deployments").info(deployment)
+            k8s_logger(self.output_folder, self.test_name, "get.deployments").info(deployment)
 
         # Daemonset describe
         try:
             api_response = api.read_namespaced_daemon_set(name="datadog", namespace="default")
-            k8s_logger(output_folder, test_name, "daemon.set.describe").info(api_response)
+            k8s_logger(self.output_folder, self.test_name, "daemon.set.describe").info(api_response)
         except Exception as e:
-            k8s_logger(output_folder, test_name, "daemon.set.describe").info(
+            k8s_logger(self.output_folder, self.test_name, "daemon.set.describe").info(
                 "Exception when calling CoreV1Api->read_namespaced_daemon_set: %s\n" % e
             )
 
@@ -276,13 +280,13 @@ class K8sDatadogClusterTestAgent:
             pods = v1.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
             if len(pods.items) > 0:
                 api_response = v1.read_namespaced_pod_log(name=pods.items[0].metadata.name, namespace="default")
-                k8s_logger(output_folder, test_name, "datadog-cluster-agent").info(api_response)
+                k8s_logger(self.output_folder, self.test_name, "datadog-cluster-agent").info(api_response)
 
                 # Export: Telemetry datadog-cluster-agent
                 execute_command_sync(
                     f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry ",
                     self.k8s_kind_cluster,
-                    logfile=f"{output_folder}/{pods.items[0].metadata.name}_telemetry.log",
+                    logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_telemetry.log",
                 )
 
                 # Export: Status datadog-cluster-agent
@@ -290,9 +294,9 @@ class K8sDatadogClusterTestAgent:
                 execute_command_sync(
                     f"kubectl exec -it {pods.items[0].metadata.name} -- agent status || true ",
                     self.k8s_kind_cluster,
-                    logfile=f"{output_folder}/{pods.items[0].metadata.name}_status.log",
+                    logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_status.log",
                 )
         except Exception as e:
-            k8s_logger(output_folder, test_name, "daemon.set.describe").info(
+            k8s_logger(self.output_folder, self.test_name, "daemon.set.describe").info(
                 "Exception when calling CoreV1Api->datadog-cluster-agent logs: %s\n" % e
             )

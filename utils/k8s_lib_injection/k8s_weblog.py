@@ -5,11 +5,13 @@ from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
 class K8sWeblog:
-    def __init__(self, app_image, library, library_init_image):
+    def __init__(self, app_image, library, library_init_image, output_folder, test_name):
         self.k8s_kind_cluster = None
         self.app_image = app_image
         self.library = library
         self.library_init_image = library_init_image
+        self.output_folder = output_folder
+        self.test_name = test_name
 
         self.manual_injection_props = {
             "python": [
@@ -35,7 +37,6 @@ class K8sWeblog:
         """ Installs a target app for manual library injection testing.
             It returns when the app pod is ready."""
 
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         logger.info(
             "[Deploy weblog] Deploying weblog as pod. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
             % (self.app_image, self.library, self.library_init_image)
@@ -210,6 +211,8 @@ class K8sWeblog:
         self._wait_for_deployment_complete(deployment_name, timeout=100)
 
     def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
+        """ Waits for the weblog to be ready after applying a configmap. We added a lot of debug traces 
+        because we have seen some flakiness in the past."""
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
         logger.info(f"[Weblog] Currently running pods [{app_name}]:[{len(pods.items)}]")
@@ -243,6 +246,10 @@ class K8sWeblog:
 
                 logger.info(f"[Weblog] Waiting for pod {pod_name_pending} to be running")
                 self.wait_for_weblog_ready_by_pod_name(pod_name_pending, timeout=timeout)
+                # Debug pod status after waiting
+                pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+                for pod in pods.items:
+                    logger.info(f"[Weblog (after wait)] Pod name: {pod.metadata.name} - Pod status: {pod.status.phase}")
 
     def wait_for_weblog_ready_by_label_app(self, app_name, timeout=60):
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
@@ -298,7 +305,7 @@ class K8sWeblog:
 
         raise RuntimeError(f"Waiting timeout for deployment {deployment_name}")
 
-    def export_debug_info(self, output_folder, test_name):
+    def export_debug_info(self):
         """ Extracts debug info from the k8s weblog app and logs it to the specified folder."""
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
         api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
@@ -306,18 +313,18 @@ class K8sWeblog:
         # check weblog describe pod
         try:
             api_response = v1.read_namespaced_pod("my-app", "default", pretty="true")
-            k8s_logger(output_folder, test_name, "myapp.describe").info(api_response)
+            k8s_logger(self.output_folder, self.test_name, "myapp.describe").info(api_response)
         except Exception as e:
-            k8s_logger(output_folder, test_name, "myapp.describe").info(
+            k8s_logger(self.output_folder, self.test_name, "myapp.describe").info(
                 "Exception when calling CoreV1Api->read_namespaced_pod: %s\n" % e
             )
 
         # check weblog logs for pod
         try:
             api_response = v1.read_namespaced_pod_log(name="my-app", namespace="default")
-            k8s_logger(output_folder, test_name, "myapp.logs").info(api_response)
+            k8s_logger(self.output_folder, self.test_name, "myapp.logs").info(api_response)
         except Exception as e:
-            k8s_logger(output_folder, test_name, "myapp.logs").info(
+            k8s_logger(self.output_folder, self.test_name, "myapp.logs").info(
                 "Exception when calling CoreV1Api->read_namespaced_pod_log: %s\n" % e
             )
 
@@ -326,9 +333,9 @@ class K8sWeblog:
         app_name = f"{self.library}-app"
         try:
             response = api.read_namespaced_deployment(deployment_name, "default")
-            k8s_logger(output_folder, test_name, "deployment.desribe").info(response)
+            k8s_logger(self.output_folder, self.test_name, "deployment.desribe").info(response)
         except Exception as e:
-            k8s_logger(output_folder, test_name, "deployment.describe").info(
+            k8s_logger(self.output_folder, self.test_name, "deployment.describe").info(
                 "Exception when calling CoreV1Api->read_namespaced_deployment: %s\n" % e
             )
 
@@ -339,10 +346,10 @@ class K8sWeblog:
             pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
             if len(pods.items) > 0:
                 api_response = v1.read_namespaced_pod(pods.items[0].metadata.name, "default", pretty="true")
-                k8s_logger(output_folder, test_name, "deployment.logs").info(api_response)
+                k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(api_response)
                 api_response = v1.read_namespaced_pod_log(name=pods.items[0].metadata.name, namespace="default")
-                k8s_logger(output_folder, test_name, "deployment.logs").info(api_response)
+                k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(api_response)
         except Exception as e:
-            k8s_logger(output_folder, test_name, "deployment.logs").info(
+            k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(
                 "Exception when calling deployment data: %s\n" % e
             )

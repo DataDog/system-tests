@@ -15,6 +15,12 @@ from kubernetes import config
 def test_k8s_instance(request):
     test_name = request.node.name
     library = "js" if context.scenario.library.library == "nodejs" else context.scenario.library.library
+
+    # Create a folder with the test name
+    output_folder = f"{context.scenario.host_log_folder}/{test_name}"
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
     k8s_instance = K8sInstance(
         library,
         context.scenario.weblog_variant,
@@ -22,13 +28,15 @@ def test_k8s_instance(request):
         context.scenario._library_init_image,
         context.scenario._library_init_image_tag,
         context.scenario._prefix_library_init_image,
+        output_folder,
+        test_name,
     )
     logger.info(f"K8sInstance creating -- {test_name}")
     k8s_instance.start_instance()
     logger.info("K8sInstance created")
     yield k8s_instance
     logger.info("K8sInstance Exporting debug info")
-    k8s_instance.export_debug_info(test_name)
+    k8s_instance.export_debug_info()
     logger.info("K8sInstance destroying")
     k8s_instance.destroy_instance()
     logger.info("K8sInstance destroyed")
@@ -43,6 +51,8 @@ class K8sInstance:
         library_init_image,
         library_init_image_tag,
         prefix_library_init_image,
+        output_folder,
+        test_name,
     ):
         self.library = library
         self.weblog_variant = weblog_variant
@@ -54,9 +64,10 @@ class K8sInstance:
         # but we need gcr.io/datadoghq/dd-trace-py/dd-lib-python-init:latest_snapshot
         # We use this prefix with the env prop "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_CONTAINER_REGISTRY"
         self.prefix_library_init_image = prefix_library_init_image
-
-        self.test_agent = K8sDatadogClusterTestAgent(prefix_library_init_image)
-        self.test_weblog = K8sWeblog(weblog_variant_image, library, library_init_image)
+        self.output_folder = output_folder
+        self.test_name = test_name
+        self.test_agent = K8sDatadogClusterTestAgent(prefix_library_init_image, output_folder, test_name)
+        self.test_weblog = K8sWeblog(weblog_variant_image, library, library_init_image, output_folder, test_name)
         self.k8s_kind_cluster = None
 
     def start_instance(self):
@@ -89,11 +100,6 @@ class K8sInstance:
         self.test_weblog.wait_for_weblog_after_apply_configmap(f"{self.library}-app", timeout=timeout)
         return self.test_agent
 
-    def export_debug_info(self, test_name):
-        # Create a folder with the test name
-        output_folder = f"{context.scenario.host_log_folder}/{test_name}"
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-
-        self.test_agent.export_debug_info(output_folder, test_name)
-        self.test_weblog.export_debug_info(output_folder, test_name)
+    def export_debug_info(self):
+        self.test_agent.export_debug_info()
+        self.test_weblog.export_debug_info()
