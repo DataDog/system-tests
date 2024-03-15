@@ -349,7 +349,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
 
 
 def cpp_library_factory() -> APMLibraryTestServer:
-    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric", "http")
+    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
     cpp_reldir = cpp_appdir.replace("\\", "/")
     dockerfile_content = f"""
@@ -357,23 +357,15 @@ FROM datadog/docker-library:dd-trace-cpp-ci AS build
 
 RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
 WORKDIR /usr/app
-COPY {cpp_reldir}/../install_ddtrace.sh binaries* /binaries/
-ADD {cpp_reldir}/CMakeLists.txt \
-    {cpp_reldir}/developer_noise.cpp \
-    {cpp_reldir}/developer_noise.h \
-    {cpp_reldir}/httplib.h \
-    {cpp_reldir}/json.hpp \
-    {cpp_reldir}/main.cpp \
-    {cpp_reldir}/manual_scheduler.h \
-    {cpp_reldir}/request_handler.cpp \
-    {cpp_reldir}/request_handler.h \
-    {cpp_reldir}/utils.h \
-    /usr/app
+COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
 RUN sh /binaries/install_ddtrace.sh
-RUN cmake -B .build -DCMAKE_BUILD_TYPE=Release . && cmake --build .build -j $(nproc) && cmake --install .build --prefix dist
+RUN cd /binaries/dd-trace-cpp \
+ && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=1 . \
+ && cmake --build .build -j $(nproc) \
+ && cmake --install .build --prefix /usr/app/
 
 FROM ubuntu:22.04
-COPY --from=build /usr/app/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-parametric-test
+COPY --from=build /usr/app/bin/parametric-http-server /usr/local/bin/parametric-http-server
 """
 
     return APMLibraryTestServer(
@@ -382,7 +374,7 @@ COPY --from=build /usr/app/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-
         container_name="cpp-test-client",
         container_tag="cpp-test-client",
         container_img=dockerfile_content,
-        container_cmd=["cpp-parametric-test"],
+        container_cmd=["parametric-http-server"],
         container_build_dir=cpp_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
