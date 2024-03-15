@@ -214,6 +214,8 @@ class K8sWeblog:
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
         logger.info(f"[Weblog] Currently running pods [{app_name}]:[{len(pods.items)}]")
         if len(pods.items) == 2:
+            for pod in pods.items:
+                logger.info(f"[Weblog] Pod name: {pod.metadata.name} - Pod status: {pod.status.phase}")
             if pods.items[0].status.phase == "Pending" or pods.items[1].status.phase == "Pending":
                 pod_name_pending = (
                     pods.items[0].metadata.name
@@ -228,6 +230,17 @@ class K8sWeblog:
 
                 logger.info(f"[Weblog] Deleting previous pod {pod_name_running}")
                 v1.delete_namespaced_pod(pod_name_running, "default")
+
+                # weird behavior, sometimes the pod is not deleted or a new one is created. Debug info is needed
+                time.sleep(5)
+                pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+                if len(pods.items) == 2:
+                    logger.info(
+                        f"[Weblog] Warning!! After deleting pod {pod_name_running}, there are still 2 pods running"
+                    )
+                    for pod in pods.items:
+                        logger.info(f"[ Warning!!] Pod name: {pod.metadata.name} - Pod status: {pod.status.phase}")
+
                 logger.info(f"[Weblog] Waiting for pod {pod_name_pending} to be running")
                 self.wait_for_weblog_ready_by_pod_name(pod_name_pending, timeout=timeout)
 
