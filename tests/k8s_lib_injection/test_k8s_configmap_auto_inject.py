@@ -116,12 +116,26 @@ class TestConfigMapAutoInject:
             },
         ]
 
+    def get_k8s_api(self, k8s_kind_cluster):
+        """ Get the k8s api. It retries 5 times if it fails. Sometimes there are 
+        collisions when we execute a lot of tests in parallel."""
+        for i in range(5):
+            try:
+                return self._k8s_api(k8s_kind_cluster)
+            except Exception as e:
+                self.logger.info(f"Error getting k8s api: {e}")
+                time.sleep(2)
+        raise Exception("Error getting k8s api")
+
+    def _k8s_api(self, k8s_kind_cluster):
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=k8s_kind_cluster.context_name))
+        apps_api = client.AppsV1Api(api_client=config.new_client_from_config(context=k8s_kind_cluster.context_name))
+        return v1, apps_api
+
     def _check_for_env_vars(self, test_k8s_instance, expected_env_vars):
         """ evaluates whether the expected tracer config is reflected in the env vars of the targeted pod. """
+        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
 
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
@@ -139,9 +153,7 @@ class TestConfigMapAutoInject:
 
     def _check_for_pod_metadata(self, test_k8s_instance):
         """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
+        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
@@ -160,9 +172,7 @@ class TestConfigMapAutoInject:
 
     def _check_for_pod_metadata_all_libraries(self, test_k8s_instance):
         """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
+        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
@@ -184,11 +194,8 @@ class TestConfigMapAutoInject:
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
         rc_id = "11777398274940883092"
 
-        api = client.AppsV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
+        _, api = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         deployment = api.read_namespaced_deployment(deployment_name, "default")
-        logger.info("Deployment description: %s", deployment)
         assert (
             deployment.metadata.annotations["admission.datadoghq.com/rc.id"] == rc_id
         ), f"Deployment annotation 'admission.datadoghq.com/rc.id' not equal [{rc_id}]. Deployment description: {deployment}"
@@ -201,9 +208,7 @@ class TestConfigMapAutoInject:
           It returns when the deployment is available and the rollout is finished. 
         """
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
-        api = client.AppsV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
+        _, api = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         deploy_data = api.read_namespaced_deployment(deployment_name, "default")
         # get envs from deployment's first container
         dep_envs = deploy_data.spec.template.spec.containers[0].env
@@ -215,9 +220,7 @@ class TestConfigMapAutoInject:
 
     def _check_for_no_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
+        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
@@ -228,9 +231,7 @@ class TestConfigMapAutoInject:
 
     def _check_for_disabled_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
+        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
@@ -286,7 +287,7 @@ class TestConfigMapAutoInject:
         default_config_data[0]["lib_config"]["tracing_sampling_rate"] = 0.50
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.50"}]
 
-        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data), rev=1)
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
 
         logger.debug(f"Traces: {traces_json}")
@@ -354,7 +355,10 @@ class TestConfigMapAutoInject:
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
         default_config_data[0]["k8s_target"]["cluster"] = "lib-injection-testing-no-match"
-        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        try:
+            test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        except TimeoutError as e:
+            pass  # DD agent cluster will not read this config map becausr the cluster name is not matching.
         self._check_for_no_pod_metadata(test_k8s_instance)
 
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
@@ -383,7 +387,7 @@ class TestConfigMapAutoInject:
         logger.debug("Apply disabled config")
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance, rc_rev=2)
         default_config_data[0]["action"] = "disable"
-        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data), rev=2)
         self._check_for_disabled_pod_metadata(test_k8s_instance)
         logger.info(f"Test _test_fileprovider_configmap_case5 finished")
 

@@ -72,9 +72,13 @@ class K8sInstance:
 
     def start_instance(self):
         self.k8s_kind_cluster = ensure_cluster()
-        config.load_kube_config()
         self.test_agent.configure(self.k8s_kind_cluster)
         self.test_weblog.configure(self.k8s_kind_cluster)
+        try:
+            config.load_kube_config()
+            logger.info(f"kube config loaded")
+        except Exception as e:
+            logger.error(f"Error loading kube config: {e}")
 
     def destroy_instance(self):
         destroy_cluster(self.k8s_kind_cluster)
@@ -95,8 +99,8 @@ class K8sInstance:
         self.test_weblog.deploy_app_auto()
         return self.test_weblog
 
-    def apply_config_auto_inject(self, config_data, timeout=200):
-        self.test_agent.apply_config_auto_inject(config_data)
+    def apply_config_auto_inject(self, config_data, rev=0, timeout=200):
+        self.test_agent.apply_config_auto_inject(config_data, rev=rev)
         self.test_weblog.wait_for_weblog_after_apply_configmap(f"{self.library}-app", timeout=timeout)
         return self.test_agent
 

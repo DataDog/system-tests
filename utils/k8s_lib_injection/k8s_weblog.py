@@ -1,6 +1,5 @@
 import time, datetime
 from kubernetes import client, config, watch
-from utils.tools import logger
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
@@ -12,6 +11,7 @@ class K8sWeblog:
         self.library_init_image = library_init_image
         self.output_folder = output_folder
         self.test_name = test_name
+        self.logger = None
 
         self.manual_injection_props = {
             "python": [
@@ -32,12 +32,31 @@ class K8sWeblog:
 
     def configure(self, k8s_kind_cluster):
         self.k8s_kind_cluster = k8s_kind_cluster
+        self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
+
+    def get_k8s_api(self):
+        """ Get the k8s api. It retries 5 times if it fails. Sometimes there are 
+        collisions when we execute a lot of tests in parallel."""
+        for i in range(5):
+            try:
+                return self._k8s_api()
+            except Exception as e:
+                self.logger.info(f"Error getting k8s api: {e}")
+                time.sleep(2)
+        raise Exception("Error getting k8s api")
+
+    def _k8s_api(self):
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        apps_api = client.AppsV1Api(
+            api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
+        )
+        return v1, apps_api
 
     def _get_base_weblog_pod(self):
         """ Installs a target app for manual library injection testing.
             It returns when the app pod is ready."""
 
-        logger.info(
+        self.logger.info(
             "[Deploy weblog] Deploying weblog as pod. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
             % (self.app_image, self.library, self.library_init_image)
         )
@@ -104,13 +123,13 @@ class K8sWeblog:
         return pod_body
 
     def install_weblog_pod_with_admission_controller(self):
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        v1, _ = self.get_k8s_api()
         pod_body = self._get_base_weblog_pod()
         v1.create_namespaced_pod(namespace="default", body=pod_body)
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
     def install_weblog_pod_without_admission_controller(self, use_uds):
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        v1, _ = self.get_k8s_api()
         pod_body = self._get_base_weblog_pod()
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(
@@ -168,7 +187,7 @@ class K8sWeblog:
     def deploy_app_auto(self):
         """ Installs a target app for auto library injection testing.
             It returns when the deployment is available and the rollout is finished."""
-        api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        _, api = self.get_k8s_api()
         deployment_name = f"test-{self.library}-deployment"
 
         deployment_metadata = client.V1ObjectMeta(
@@ -213,12 +232,12 @@ class K8sWeblog:
     def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
         """ Waits for the weblog to be ready after applying a configmap. We added a lot of debug traces 
         because we have seen some flakiness in the past."""
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        v1, _ = self.get_k8s_api()
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        logger.info(f"[Weblog] Currently running pods [{app_name}]:[{len(pods.items)}]")
+        self.logger.info(f"[Weblog] Currently running pods [{app_name}]:[{len(pods.items)}]")
         if len(pods.items) == 2:
             for pod in pods.items:
-                logger.info(f"[Weblog] Pod name: {pod.metadata.name} - Pod status: {pod.status.phase}")
+                self.logger.info(f"[Weblog] Pod name: {pod.metadata.name} - Pod status: {pod.status.phase}")
             if pods.items[0].status.phase == "Pending" or pods.items[1].status.phase == "Pending":
                 pod_name_pending = (
                     pods.items[0].metadata.name
@@ -231,28 +250,18 @@ class K8sWeblog:
                     else pods.items[1].metadata.name
                 )
 
-                logger.info(f"[Weblog] Deleting previous pod {pod_name_running}")
+                self.logger.info(f"[Weblog] Deleting previous pod {pod_name_running}")
                 v1.delete_namespaced_pod(pod_name_running, "default")
 
                 # weird behavior, sometimes the pod is not deleted or a new one is created. Debug info is needed
                 time.sleep(5)
-                pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-                if len(pods.items) == 2:
-                    logger.info(
-                        f"[Weblog] Warning!! After deleting pod {pod_name_running}, there are still 2 pods running"
-                    )
-                    for pod in pods.items:
-                        logger.info(f"[ Warning!!] Pod name: {pod.metadata.name} - Pod status: {pod.status.phase}")
 
-                logger.info(f"[Weblog] Waiting for pod {pod_name_pending} to be running")
+                self.logger.info(f"[Weblog] Waiting for pod {pod_name_pending} to be running")
                 self.wait_for_weblog_ready_by_pod_name(pod_name_pending, timeout=timeout)
-                # Debug pod status after waiting
-                pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-                for pod in pods.items:
-                    logger.info(f"[Weblog (after wait)] Pod name: {pod.metadata.name} - Pod status: {pod.status.phase}")
+                self.logger.info(f"[Weblog] Pod {pod_name_pending} is ready")
 
     def wait_for_weblog_ready_by_label_app(self, app_name, timeout=60):
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        v1, _ = self.get_k8s_api()
         pod_ready = False
         w = watch.Watch()
         for event in w.stream(
@@ -260,19 +269,19 @@ class K8sWeblog:
         ):
             if event["object"].status.phase == "Running" and event["object"].status.container_statuses[0].ready:
                 w.stop()
-                logger.info("Weblog started!")
+                self.logger.info("Weblog started!")
                 pod_ready = True
                 break
 
         if not pod_ready:
             pod_status = v1.read_namespaced_pod_status(name="my-app", namespace="default")
-            logger.error("weblog not created. Last status: %s" % pod_status)
+            self.logger.error("weblog not created. Last status: %s" % pod_status)
             pod_logs = v1.read_namespaced_pod_log(name="my-app", namespace="default")
-            logger.error(f"weblog logs: {pod_logs}")
+            self.logger.error(f"weblog logs: {pod_logs}")
             raise Exception("Weblog not created")
 
     def wait_for_weblog_ready_by_pod_name(self, pod_name, timeout=60):
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        v1, _ = self.get_k8s_api()
         start = datetime.datetime.now()
         while True:
             pod = v1.read_namespaced_pod(pod_name, "default")
@@ -284,7 +293,7 @@ class K8sWeblog:
                 raise Exception(f"Pod {pod_name} did not start in {timeout} seconds")
 
     def _wait_for_deployment_complete(self, deployment_name, timeout=60):
-        api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        _, api = self.get_k8s_api()
         start = time.time()
         while time.time() - start < timeout:
             time.sleep(2)
@@ -298,17 +307,16 @@ class K8sWeblog:
             ):
                 return True
             else:
-                logger.info(
+                self.logger.info(
                     f"[updated_replicas:{s.updated_replicas},replicas:{s.replicas}"
-                    ",available_replicas:{s.available_replicas},observed_generation:{s.observed_generation}] waiting..."
+                    f"available_replicas:{s.available_replicas},observed_generation:{s.observed_generation}] waiting..."
                 )
 
         raise RuntimeError(f"Waiting timeout for deployment {deployment_name}")
 
     def export_debug_info(self):
         """ Extracts debug info from the k8s weblog app and logs it to the specified folder."""
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
-        api = client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        v1, api = self.get_k8s_api()
 
         # check weblog describe pod
         try:
