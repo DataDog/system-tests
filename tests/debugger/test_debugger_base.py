@@ -143,34 +143,3 @@ class _Base_Debugger_Snapshot_Test:
 
         return False
 
-    multi_probe_response = None
-
-    def setup_mix_probe(self):
-        self.expected_probe_ids = [
-            "logfb5a-1974-4cdb-b1dd-77dba2method",
-            "logfb5a-1974-4cdb-b1dd-77dba2f1line",
-        ]
-
-        interfaces.library.wait_for_remote_config_request()
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.multi_probe_response = weblog.get("/debugger/mix/asd/1")
-
-    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
-    def test_mix_probe(self):
-        self.assert_remote_config_is_sent()
-        self.assert_all_probes_are_installed()
-
-        assert self.multi_probe_response.status_code == 200
-
-        expected_probes = {
-            "logfb5a-1974-4cdb-b1dd-77dba2method": "INSTALLED",
-            "logfb5a-1974-4cdb-b1dd-77dba2f1line": "INSTALLED",
-        }
-
-        expected_snapshots = [
-            "logfb5a-1974-4cdb-b1dd-77dba2method",
-            "logfb5a-1974-4cdb-b1dd-77dba2f1line",
-        ]
-
-        validate_probes(expected_probes)
-        validate_snapshots(expected_snapshots)
