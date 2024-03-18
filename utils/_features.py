@@ -2096,7 +2096,7 @@ class features:
         """
         pytest.mark.features(feature_id=289)(test_object)
         return test_object
-		
+
     @staticmethod
     def debugger_pii_redaction(test_object):
         """
