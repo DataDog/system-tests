@@ -207,25 +207,36 @@ class K8sDatadogClusterTestAgent:
         self.logger.info("[Auto Config] Waiting for the configmap to be read by the datadog-cluster-agent.")
         # First we need to wait for the configmap to be created
         v1, _ = self.get_k8s_api()
-        w = watch.Watch()
-        for event in w.stream(func=v1.list_namespaced_config_map, namespace="default", timeout_seconds=timeout):
-            k8s_logger(self.output_folder, self.test_name, "events_configmaps").info(event)
-            if event["type"] == "ADDED" and event["object"].metadata.name == "auto-instru":
-                self.logger.info("[Auto Config] Configmap applied!")
-                w.stop()
-                break
+        try:
+            w = watch.Watch()
+            for event in w.stream(func=v1.list_namespaced_config_map, namespace="default", timeout_seconds=timeout):
+                k8s_logger(self.output_folder, self.test_name, "events_configmaps").info(event)
+                if event["type"] == "ADDED" and event["object"].metadata.name == "auto-instru":
+                    self.logger.info("[Auto Config] Configmap applied!")
+                    w.stop()
+                    break
+        except Exception as e:
+            self.logger.error(f"[Auto Config] Error waiting for the configmap: {e}")
 
         # Second wait for datadog-cluster-agent read the configmap
-        pods = v1.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
-        assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
         expected_log = f'Applying Remote Config ID "{patch_id}" with revision "{rev}" and action'
+        pod_cluster_agent_name = None
         timeout = time.time() + timeout
         while True:
-            api_response = v1.read_namespaced_pod_log(name=pods.items[0].metadata.name, namespace="default")
-            for log_line in api_response.splitlines():
-                if log_line.find(expected_log) != -1:
-                    self.logger.info(f"Configmap read by datadog-cluster-agent: {log_line}")
-                    return
+            try:
+                if pod_cluster_agent_name is None:
+                    pods = v1.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+                    assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
+                    pod_cluster_agent_name = pods.items[0].metadata.name
+                api_response = v1.read_namespaced_pod_log(name=pod_cluster_agent_name, namespace="default")
+                for log_line in api_response.splitlines():
+                    if log_line.find(expected_log) != -1:
+                        self.logger.info(f"Configmap read by datadog-cluster-agent: {log_line}")
+                        return
+            except Exception as e:
+                self.logger.error(
+                    f"[Auto Config] Error waiting for the datadog-cluster-agent to read the configmap: {e}"
+                )
             if time.time() > timeout:
                 self.logger.error(f"Timeout waiting for the datadog-cluster-agent to read the configmap")
                 raise TimeoutError("Timeout waiting for the datadog-cluster-agent to read the configmap")
