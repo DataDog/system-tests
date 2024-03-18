@@ -297,20 +297,23 @@ class K8sWeblog:
         start = time.time()
         while time.time() - start < timeout:
             time.sleep(2)
-            response = api.read_namespaced_deployment_status(deployment_name, "default")
-            s = response.status
-            if (
-                s.updated_replicas == response.spec.replicas
-                and s.replicas == response.spec.replicas
-                and s.available_replicas == response.spec.replicas
-                and s.observed_generation >= response.metadata.generation
-            ):
-                return True
-            else:
-                self.logger.info(
-                    f"[updated_replicas:{s.updated_replicas},replicas:{s.replicas}"
-                    f"available_replicas:{s.available_replicas},observed_generation:{s.observed_generation}] waiting..."
-                )
+            try:
+                response = api.read_namespaced_deployment_status(deployment_name, "default")
+                s = response.status
+                if (
+                    s.updated_replicas == response.spec.replicas
+                    and s.replicas == response.spec.replicas
+                    and s.available_replicas == response.spec.replicas
+                    and s.observed_generation >= response.metadata.generation
+                ):
+                    return True
+                else:
+                    self.logger.info(
+                        f"[updated_replicas:{s.updated_replicas},replicas:{s.replicas}"
+                        f"available_replicas:{s.available_replicas},observed_generation:{s.observed_generation}] waiting..."
+                    )
+            except Exception as e:
+                self.logger.info(f"Error checking deployment status: {e}")
 
         raise RuntimeError(f"Waiting timeout for deployment {deployment_name}")
 
