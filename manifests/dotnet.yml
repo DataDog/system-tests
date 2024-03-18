@@ -210,6 +210,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: v2.33.0
       Test_Debugger_Mix_Log_Probe: v2.33.0
       Test_Debugger_Probe_Statuses: v2.33.0
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: v2.33.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -247,6 +249,8 @@ tests/:
       TestDynamicConfigV1: v2.33.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
+    test_otel_api_interoperability.py: missing_feature
+    test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature

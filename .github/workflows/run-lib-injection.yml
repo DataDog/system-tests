@@ -107,5 +107,5 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_k82_lib_injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version }}
+          name: logs_k8s_lib_injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version }}
           path: artifact.tar.gz

@@ -180,6 +180,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: irrelevant
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -220,6 +222,10 @@ tests/:
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_otel_api_interoperability.py:
+      Test_Otel_API_Interoperability: v0.94.0
+    test_otel_sdk_interoperability.py:
+      Test_Otel_SDK_Interoperability: v0.94.0
     test_otel_span_methods.py:
         Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_w3c.py:
