@@ -111,8 +111,14 @@ class K8sDatadogClusterTestAgent:
         daemonset = client.V1DaemonSet(
             api_version="apps/v1", kind="DaemonSet", metadata=client.V1ObjectMeta(name="datadog"), spec=spec
         )
+        try:
+            apps_api.create_namespaced_daemon_set(namespace="default", body=daemonset)
+        except client.exceptions.ApiException as e:
+            # Ok, let's try again
+            time.sleep(5)
+            _, apps_api = self.get_k8s_api()
+            apps_api.create_namespaced_daemon_set(namespace="default", body=daemonset)
 
-        apps_api.create_namespaced_daemon_set(namespace="default", body=daemonset)
         self.wait_for_test_agent()
         self.logger.info("[Test agent] Daemonset created")
 
@@ -290,7 +296,7 @@ class K8sDatadogClusterTestAgent:
                     operator_ready = True
                     break
                 time.sleep(5)
-            except client.exceptions.ApiException as e:
+            except Exception as e:
                 self.logger.info(f"Pod status error: {e}")
                 time.sleep(5)
 
