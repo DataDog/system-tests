@@ -37,6 +37,9 @@ jobs:
         
         - library: ruby
           weblog-variant: dd-lib-ruby-init-test-rails-gemsrb
+        
+        - library: dotnet
+          weblog-variant: dd-lib-dotnet-init-test-app
 
         version: 
           - latest #Production tag
