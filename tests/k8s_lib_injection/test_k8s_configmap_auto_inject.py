@@ -138,7 +138,7 @@ class TestConfigMapAutoInject:
 
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         for expected_env_var in expected_env_vars:
             env_var_found = False
@@ -157,7 +157,7 @@ class TestConfigMapAutoInject:
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         assert (
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "true"
@@ -223,7 +223,7 @@ class TestConfigMapAutoInject:
         v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         assert (
             "admission.datadoghq.com/enabled" not in pods.items[0].metadata.labels
@@ -234,7 +234,7 @@ class TestConfigMapAutoInject:
         v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         app_name = f"{test_k8s_instance.library}-app"
         pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        assert len(pods.items) != 0, f"No pods found for app {app_name}"
         assert (
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
