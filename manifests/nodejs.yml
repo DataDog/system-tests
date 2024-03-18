@@ -386,6 +386,8 @@ tests/:
       TestDynamicConfigV1: v4.11.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v4.23.0
+    test_otel_api_interoperability.py: missing_feature
+    test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: v5.6.0

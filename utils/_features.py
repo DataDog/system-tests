@@ -2086,3 +2086,13 @@ class features:
         """
         pytest.mark.features(feature_id=288)(test_object)
         return test_object
+
+    @staticmethod
+    def f_otel_interoperability(test_object):
+        """
+        OTel Interoperability
+
+        https://feature-parity.us1.prod.dog/#/?feature=289
+        """
+        pytest.mark.features(feature_id=289)(test_object)
+        return test_object
