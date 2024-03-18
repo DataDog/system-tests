@@ -3,6 +3,7 @@ import logging.config
 
 
 def k8s_logger(log_folder, test_name, log_name, level=logging.INFO):
+    logging.getLogger("kubernetes").setLevel(logging.ERROR)
     specified_logger = logging.getLogger(f"{test_name}_{log_name}")
     if len(specified_logger.handlers) == 0:
         formatter = logging.Formatter("%(message)s")
