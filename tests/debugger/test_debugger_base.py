@@ -142,4 +142,3 @@ class _Base_Debugger_Snapshot_Test:
                 return True
 
         return False
-
