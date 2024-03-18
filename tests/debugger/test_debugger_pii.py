@@ -46,7 +46,7 @@ def validate_pii_redaction(should_redact_field_names):
 class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
     pii_responses = []
 
-    def setup_mix_probe(self):
+    def setup_pii_redactio(self):
         self.expected_probe_ids = [
             "log170aa-acda-4453-9111-1478a6method",
         ]
@@ -62,7 +62,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
         self.pii_responses.append(weblog.get("/debugger/log/pii/6"))
 
     @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
-    def test_mix_probe(self):
+    def test_pii_redactio(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
 
