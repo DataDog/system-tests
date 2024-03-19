@@ -42,8 +42,8 @@ jobs:
           weblog-variant: dd-lib-dotnet-init-test-app
 
         version: 
-          - latest #Production tag
-          - latest_snapshot
+         # - latest #Production tag
+          - 72606379c74c7585b68e0cb917e46cdc3f40191d
 
       fail-fast: false
     env:
