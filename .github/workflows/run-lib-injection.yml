@@ -28,6 +28,15 @@ jobs:
 
         - library: python
           weblog-variant: dd-lib-python-init-test-django
+        
+        - library: ruby
+          weblog-variant: dd-lib-ruby-init-test-rails
+          
+        - library: ruby
+          weblog-variant: dd-lib-ruby-init-test-rails-explicit
+        
+        - library: ruby
+          weblog-variant: dd-lib-ruby-init-test-rails-gemsrb
 
         version: 
           - latest #Production tag
