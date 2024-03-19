@@ -495,6 +495,11 @@ jobs:
       run: ./run.sh DEBUGGER_MIX_LOG_PROBE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_PII_REDACTION scenario
+      if: always() && steps.build.outcome == 'success' && (inputs.run_debugger || inputs.run_all)
+      run: ./run.sh DEBUGGER_PII_REDACTION
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success' && inputs.run_replay
@@ -536,6 +541,7 @@ jobs:
         ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay
         ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay
         ./run.sh DEBUGGER_MIX_LOG_PROBE --replay
+        ./run.sh DEBUGGER_PII_REDACTION --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}

@@ -1633,6 +1633,14 @@ class scenarios:
         doc="Set both method and line probes at the same code",
     )
 
+    debugger_pii_redaction = EndToEndScenario(
+        "DEBUGGER_PII_REDACTION",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
+        library_interface_timeout=5,
+        doc="Check pii redaction",
+    )
+
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
 
     host_auto_injection = HostAutoInjectionScenario(

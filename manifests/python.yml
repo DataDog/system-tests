@@ -442,6 +442,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: missing_feature
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
