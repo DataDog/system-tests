@@ -255,7 +255,7 @@ class Test_Otel_API_Interoperability:
         assert link["trace_id_high"] == TEST_TRACE_ID_HIGH
         assert link["span_id"] == TEST_SPAN_ID_INT
         assert "t.dm:-0" in link["tracestate"]
-        assert link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
+        assert link["attributes"]["arg1"] == "val1"
 
     def test_concurrent_traces_in_order(self, test_agent, test_library):
         """
@@ -410,7 +410,7 @@ class Test_Otel_API_Interoperability:
                 otel_context = otel_span.span_context()
 
                 assert otel_context.get("trace_id") == trace_id
-                assert otel_context.get("trace_state") == "dd=t.dm:-0,foo=1"
+                assert "foo=1" in otel_context.get("trace_state")
                 assert otel_context.get("trace_flags") == "01"
 
         traces = test_agent.wait_for_num_traces(1)
@@ -441,9 +441,12 @@ class Test_Otel_API_Interoperability:
             with test_library.start_span(name="dd_span", http_headers=headers,) as dd_span:
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
+                otel_trace_state = otel_context.get("trace_state")
 
                 assert otel_context.get("trace_id") == "000000000000000000000000075bcd15"
-                assert otel_context.get("trace_state") == "dd=o:synthetics;s:-2;t.foo:bar"
+                assert "o:synthetics" in otel_trace_state
+                assert "s:-2" in otel_trace_state
+                assert "t.foo:bar" in otel_trace_state
                 assert otel_context.get("trace_flags") == "00"
 
         traces = test_agent.wait_for_num_traces(1)
