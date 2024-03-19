@@ -40,7 +40,7 @@ else
     echo $options >> Gemfile
 
     # Read the gem name from the Gemfile
-    export GEM_NAME=$(ruby -rbundler -e 'puts Bundler::Definition.build(ENV["BUNDLE_GEMFILE"], nil, nil).dependencies.find {|x| x.name == "ddtrace" || x.name == "datadog"}.name')
+    export GEM_NAME=$(ruby -rbundler -e 'puts Bundler::Definition.build("Gemfile", nil, nil).dependencies.find {|x| x.name == "ddtrace" || x.name == "datadog"}.name')
 fi
 
 bundle config set --local without test development
