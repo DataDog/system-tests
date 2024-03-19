@@ -1,3 +1,9 @@
+GIT
+  remote: https://github.com/swaseybridge/nokogiri
+  revision: 2e29fafd27322e8463a769d227e1ea40f6603bdf
+  ref: 2e29fafd27322e8463a769d227e1ea40f6603bdf
+  specs:
+    nokogiri (1.10.10)
 GEM
   remote: https://rubygems.org/
   specs:
@@ -86,7 +92,6 @@ GEM
     minitest (5.15.0)
     msgpack (1.4.4)
     nio4r (2.5.8)
-    nokogiri (1.10.10)
       mini_portile2 (~> 2.4.0)
     pry (0.14.1)
       coderay (~> 1.1)
@@ -184,6 +189,7 @@ DEPENDENCIES
   turbolinks
   uglifier (>= 1.3.0)
   web-console (~> 2.0)
+  nokogiri (= 1.10.10)!
 
 BUNDLED WITH
    1.17.3
