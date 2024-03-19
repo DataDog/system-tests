@@ -134,6 +134,26 @@ class TestConfigMapAutoInject:
                     "namespace": "default",
                 },
             },
+            {
+                "id": "11777398274940883092",
+                "revision": 0,
+                "schema_version": "v1.0.0",
+                "action": "enable",
+                "lib_config": {
+                    "library_language": "all",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
+                    "service_name": "test-service",
+                    "env": "dev",
+                    "tracing_enabled": True,
+                    "tracing_sampling_rate": 0.90,
+                },
+                "k8s_target": {
+                    "cluster": test_k8s_instance.k8s_kind_cluster.cluster_name,
+                    "kind": "deployment",
+                    "name": "test-dotnet-deployment",
+                    "namespace": "default",
+                },
+            },
         ]
 
     def get_k8s_api(self, k8s_kind_cluster):
