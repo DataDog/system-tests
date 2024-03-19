@@ -541,7 +541,7 @@ jobs:
         ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay
         ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay
         ./run.sh DEBUGGER_MIX_LOG_PROBE --replay
-        ./run.sh DEBUGGER_PII_REDACTIONS --replay
+        ./run.sh DEBUGGER_PII_REDACTION --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
