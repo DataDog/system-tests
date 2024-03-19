@@ -24,7 +24,9 @@ elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     #
     echo "Install prod version"
     # Support multiple versions of the gem
-    echo "gem 'datadog'" >> Gemfile
+    echo "gem 'ddtrace'" >> Gemfile
+
+    export GEM_NAME=ddtrace
 else
     #
     # Append the content of the file `/binaries/ruby-load-from-bundle-add``
