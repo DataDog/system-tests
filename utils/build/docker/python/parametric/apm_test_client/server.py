@@ -156,9 +156,10 @@ class SpanInjectReturn(BaseModel):
 
 @app.post("/trace/span/inject_headers")
 def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
-    ctx = spans[args.span_id].context
+    span = spans[args.span_id]
+    ctx = span.context
     headers = {}
-    HTTPPropagator.inject(ctx, headers)
+    HTTPPropagator.inject(ctx, headers, span)
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
