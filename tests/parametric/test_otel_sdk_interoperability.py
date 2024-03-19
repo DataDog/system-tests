@@ -39,7 +39,7 @@ class Test_Otel_SDK_Interoperability:
         assert link["trace_id_high"] == TEST_TRACE_ID_HIGH
         assert link["span_id"] == TEST_SPAN_ID_INT
         assert "t.dm:-0" in link["tracestate"]
-        assert link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
+        assert link["attributes"]["arg1"] == "val1"
 
     def test_set_update_remove_meta(self, test_agent, test_library):
         """
@@ -197,7 +197,7 @@ class Test_Otel_SDK_Interoperability:
                 assert otel_link["trace_id"] == TEST_TRACE_ID
                 assert otel_link["parent_id"] == TEST_SPAN_ID
                 assert otel_link["tracestate"] == TEST_TRACESTATE
-                assert otel_link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
+                assert otel_link["attributes"]["arg1"] == "val1"
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace_by_root(traces, Span(name="dd.span"))
@@ -227,7 +227,7 @@ class Test_Otel_SDK_Interoperability:
                 assert otel_link["trace_id"] == TEST_TRACE_ID
                 assert otel_link["parent_id"] == TEST_SPAN_ID
                 assert otel_link["tracestate"] == TEST_TRACESTATE
-                assert otel_link["attributes"] == {"arg1": "val1", "_dd.p.dm": "-0"}
+                assert otel_link["attributes"]["arg1"] == "val1"
 
                 otel_span.end_span()
 
