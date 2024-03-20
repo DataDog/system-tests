@@ -42,3 +42,6 @@ gem 'devise'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
 gem 'mini_racer', '~> 0.4.0', platforms: :ruby
 gem 'puma', '5.0.2'
+# Include fix for canonicalize glibc conflict: https://github.com/sparklemotion/nokogiri/issues/2105
+gem 'nokogiri', '1.10.10', git: 'https://github.com/swaseybridge/nokogiri',
+                           ref: '2e29fafd27322e8463a769d227e1ea40f6603bdf'
