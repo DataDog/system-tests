@@ -46,7 +46,7 @@ The following image represents, in general terms, the necessary and dependent ar
 
 ##  Kubernetes management to automate deployments
 
-In order to build a simple and automated integration test suite, the "K8s Lib Injections" tests are based on Kubernetes Python Client.
+In order to build a simple and automated integration test suite, the "K8s Lib Injection" tests are based on Kubernetes Python Client.
 [Read more about Kubernetes Python Client](https://github.com/kubernetes-client/python)
 
 ## Folders and Files structure
@@ -70,6 +70,175 @@ The following picture shows the main directories for the k8s lib injection tests
     - Deploy weblog as Kubernetes deployment and prepare the library injection using Kubernetes ConfigMaps and Datadog Admission Controller. 
     - Extract weblog debug information.
   * **k8s_command_utils.py:** Command line utils to lauch the Helm Chart commands and others shell commands.
+
+## Run the K8s Lib Injection tests in your Local
+
+These tests can run locally easily. You only have to install the environment and configure it as follow sections detail.
+
+### Prerequisites:
+- Docker environment
+- Kubernetes environment
+- Configure the tests (Configure the container images references)
+
+#### Docker enviroment
+
+You should install the docker desktop on your computer and **be loged into a personal Docker Hub account**
+
+```cat ~/my_password.txt | docker login --username my_personal_user --password-stdin ```
+
+#### Kubernetes environment
+
+You should install the kind and Helm Chart tool.
+Kind is a tool for running local Kubernetes clusters using Docker container.
+Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources. 
+
+In order to install the kind kubernetes tool you should execute this script:
+
+``` 
+KIND_VERSION='v0.17.0'
+KUBECTL_VERSION='v1.25.3'
+
+# Download appropriate version (Mac M1 arm64 arch or linux amd64)
+echo "[build] Download installable artifacts"
+ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+if [ "$ARCH" = "arm64" ]; then
+    curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-amd64
+    KUBECTL_DOWNLOAD="darwin/arm64/kubectl"
+else
+    curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
+    KUBECTL_DOWNLOAD="linux/amd64/kubectl"
+fi
+curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${KUBECTL_DOWNLOAD}"
+
+echo "[build] Installing kind"
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
+echo "[build] kind install complete"
+
+echo "[build] Installing kubectl..."
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+echo "[build] kubectl install complete"
+```
+
+You also need the Helm Chart utility:
+
+```
+echo "[build] Installing helm"
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+```
+
+#### Environment variables
+
+The next step is define the environment variables. This is an example of env vars configuration for Java:
+
+```sh
+export TEST_LIBRARY=java
+export WEBLOG_VARIANT=dd-lib-java-init-test-app #Which variant do we want to use?
+export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_DOCKERHUB_USERNAME #Use your docker hub account as registry
+export BUILDX_PLATFORMS=linux/arm64 #Set your CPU arch. In this sample, we are using a Mac M1
+export DOCKER_IMAGE_TAG=local #Tag for dd-lib-java-init. Use tag 'latest' to test latest release
+export DOCKER_IMAGE_WEBLOG_TAG=local #Tag for current weblog image
+```
+
+## Build and Push weblog image
+
+You need to build and push weblog application to docker registry. You can use this script:
+
+```sh
+  cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
+  export APP_DOCKER_IMAGE_REPO=$DOCKER_REGISTRY_IMAGES_PATH/$WEBLOG_VARIANT
+  LIBRARY_INJECTION_TEST_APP_IMAGE="$APP_DOCKER_IMAGE_REPO:$DOCKER_IMAGE_WEBLOG_TAG" ./build.sh
+```
+## Build and Push init image
+
+If you want to test the latest dd-lib-<lang>-init image, you can skip this step.
+If you want to test your own dd-lib-<lang>-init image, you can build by yourself from source code or you can use a existing one:
+
+```sh
+docker pull ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot
+docker tag ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-java-init:local
+docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-java-init:local
+```
+
+## Run the tests
+
+These K8s Lib Injection tests are fully integrated into system-tests life cycle. If we followed the previous steps, we only have to execute this command:
+
+'''sh
+  ./run.sh k8s_lib_injection
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+You need to build and push weblog application to docker registry. You can use this script:
+
+You can also run the tests locally, but in this case we will create the docker init image using the corresponding tracer library.
+
+The first step is to login in docker hub, either with Docker Desktop app or with CLI (you may need to generate an access token [here](https://hub.docker.com/settings/security)):
+``` docker login --username MY_DOCKERHUB_USERNAME ```
+
+The second step is define the environment variables. This is an example of env vars configuration for Java:
+
+```sh
+export TEST_LIBRARY=java
+export WEBLOG_VARIANT=dd-lib-java-init-test-app #Which variant do we want to use?
+export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_DOCKERHUB_USERNAME #Use your docker hub account as registry
+export BUILDX_PLATFORMS=linux/arm64 #Set your CPU arch. In this sample, we are using a Mac M1
+export DOCKER_IMAGE_TAG=local #Tag for dd-lib-java-init 
+```
+
+The next is to download or compile the tracer libray that you want to test. You have to locate binary libary in the system-tests/binaries folder.
+When we have the environment ready, we have to execute this logic:
+
+* Build and push the init image
+
+  To use an existing image, you need to push it to your dockerhub account, for example:
+```sh
+docker pull ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot
+docker tag ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
+docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
+```
+
+* Build and push the app image
+* Create the Kubernetes cluster
+
+```sh
+./lib-injection/execFunction.sh build-and-push-init-image
+./lib-injection/execFunction.sh build-and-push-test-app-image
+./lib-injection/build.sh
+```
+
+* Execute the manual tests
+
+  * Make sure that init and app images are public on your dockerhub account.
+  * Comment name, tag and repository in `clusterAgent.image` section of `operator-helm-values*.yaml`
+
+```sh
+./lib-injection/run-manual-lib-injection.sh
+```
+
+* Execute the auto tests
+
+```sh
+TEST_CASE=<TestCaseN>  # define the test case
+./lib-injection/run-auto-lib-injection.sh
+```
+
 
 
 ## lib-injections tests functions
