@@ -720,7 +720,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "ruby@1.21.0", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
         """
@@ -790,7 +790,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "ruby@1.21.0", reason="Not implemented")
+    @missing_feature(context.library < "ruby@1.20.0", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
         """
