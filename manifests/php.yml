@@ -216,6 +216,8 @@ tests/:
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v0.84.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
@@ -232,8 +234,6 @@ tests/:
         Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
         Test_Otel_Tracer: v0.94.0
-    test_128_bit_traceids.py:
-      Test_128_Bit_Traceids: v0.84.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature
