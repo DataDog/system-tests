@@ -17,10 +17,10 @@ tests/:
         Test_Schema_Request_Cookies: v0.94.0
         Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
         Test_Schema_Request_Headers: v0.94.0
-        Test_Schema_Request_Json_Body: missing_feature
+        Test_Schema_Request_Json_Body: v0.98.1
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: v0.94.0
-        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body: v0.98.1
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v0.94.0
     iast/:
@@ -102,7 +102,7 @@ tests/:
           TestURI: missing_feature
     waf/:
       test_addresses.py:
-        Test_BodyJson: missing_feature
+        Test_BodyJson: v0.98.1 # TODO what is the earliest version?
         Test_BodyRaw: v0.68.3
         Test_BodyUrlEncoded: v0.68.3
         Test_BodyXml: missing_feature
@@ -232,6 +232,8 @@ tests/:
         Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
         Test_Otel_Tracer: v0.94.0
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v0.84.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature
@@ -246,10 +248,10 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v0.96.0
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v0.96.0
       Test_Trace_Sampling_Resource: v0.96.0
       Test_Trace_Sampling_Tags: v0.96.0
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v0.96.0
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
