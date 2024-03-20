@@ -11,6 +11,26 @@ import pytest
 from utils import context, scenarios, rfc, features
 
 
+telemetry_name_mapping = {
+    "trace_sample_rate": {"dotnet": "DD_TRACE_SAMPLE_RATE", "nodejs": "DD_TRACE_SAMPLE_RATE"},
+    "logs_injection_enabled": {"dotnet": "DD_LOGS_INJECTION", "nodejs": "DD_LOG_INJECTION"},
+    "trace_header_tags": {"dotnet": "DD_TRACE_HEADER_TAGS", "nodejs": "DD_TRACE_HEADER_TAGS"},
+    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS"},
+    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "tracing"},
+    "profiling_enabled": {"dotnet": "DD_PROFILING_ENABLED", "nodejs": "profiling.enabled"},
+    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED", "nodejs": "appsec.enabled"},
+    "data_streams_enabled": {"dotnet": "DD_DATA_STREAMS_ENABLED", "nodejs": "dsmEnabled"},
+}
+
+
+def _mapped_telemetry_name(context, apm_telemetry_name):
+    if apm_telemetry_name in telemetry_name_mapping:
+        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.library)
+        if mapped_name is not None:
+            return mapped_name
+    return apm_telemetry_name
+
+
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
 @features.telemetry_app_started_event
@@ -34,21 +54,26 @@ class Test_Defaults:
 
         configuration_by_name = {item["name"]: item for item in configuration}
         for (apm_telemetry_name, value) in [
-            ("trace_sample_rate", "1.0"),
-            ("logs_injection_enabled", "false"),
+            ("trace_sample_rate", (1.0, None, "1.0")),
+            ("logs_injection_enabled", ("false", False, "true", True)),
             ("trace_header_tags", ""),
             ("trace_tags", ""),
-            ("trace_enabled", "true"),
-            ("profiling_enabled", "false"),
-            ("appsec_enabled", "false"),
-            ("data_streams_enabled", "false"),
+            ("trace_enabled", ("true", True)),
+            ("profiling_enabled", ("false", False)),
+            ("appsec_enabled", ("false", False, "inactive", None)),
+            ("data_streams_enabled", ("false", False)),
         ]:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
+            apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
+
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
-            assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
+            if isinstance(value, tuple):
+                assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
+            else:
+                assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("origin") == "default", "Unexpected origin for '{}'".format(apm_telemetry_name)
 
 
@@ -69,6 +94,8 @@ class Test_Environment:
                 "DD_TRACE_HEADER_TAGS": "X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2",
                 "DD_TAGS": "team:apm,component:web",
                 "DD_TRACE_ENABLED": "true",
+                # node.js DD_TRACING_ENABLED is equivalent to DD_TRACE_ENABLED in other libraries
+                "DD_TRACING_ENABLED": "true",
                 "DD_PROFILING_ENABLED": "false",
                 "DD_APPSEC_ENABLED": "false",
                 "DD_DATA_STREAMS_ENABLED": "false",
@@ -83,21 +110,36 @@ class Test_Environment:
 
         configuration_by_name = {item["name"]: item for item in configuration}
         for (apm_telemetry_name, environment_value) in [
-            ("trace_sample_rate", "0.3"),
-            ("logs_injection_enabled", "true"),
-            ("trace_header_tags", "X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2"),
-            ("trace_tags", "team:apm,component:web"),
-            ("trace_enabled", "true"),
-            ("profiling_enabled", "false"),
-            ("appsec_enabled", "false"),
-            ("data_streams_enabled", "false"),
+            ("trace_sample_rate", ("0.3", 0.3)),
+            ("logs_injection_enabled", ("true", True)),
+            (
+                "trace_header_tags",
+                (
+                    "X-Header-Tag-1:header_tag_1,X-Header-Tag-2:header_tag_2",
+                    "x-header-tag-1:header_tag_1,x-header-tag-2:header_tag_2",
+                ),
+            ),
+            ("trace_tags", ("team:apm,component:web", "component:web,team:apm")),
+            ("trace_enabled", ("true", True)),
+            ("profiling_enabled", ("false", False)),
+            ("appsec_enabled", ("false", False)),
+            ("data_streams_enabled", ("false", False)),
         ]:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
+
+            apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
-            assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(apm_telemetry_name)
+            if isinstance(environment_value, tuple):
+                assert cfg_item.get("value") in environment_value, "Unexpected value for '{}'".format(
+                    apm_telemetry_name
+                )
+            else:
+                assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(
+                    apm_telemetry_name
+                )
             assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
 
 

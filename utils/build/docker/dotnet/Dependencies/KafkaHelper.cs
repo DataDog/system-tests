@@ -4,10 +4,10 @@ using Confluent.Kafka.Admin;
 using System.Collections.Generic;
 
 public class KafkaHelper {
+    private static IProducer<Null, string> producer;
 
-    private static IProducer<long, string> producer;
-
-    public static IProducer<long, string> GetProducer(string bootstrapServers){
+    public static IProducer<Null, string> GetProducer(string bootstrapServers)
+    {
         if (producer == null) {
             var config = new ProducerConfig
                 {
@@ -20,8 +20,7 @@ public class KafkaHelper {
                     RetryBackoffMs = 1000
                 };
 
-            producer = new ProducerBuilder<long, string>(config).
-                SetKeySerializer(Serializers.Int64).
+            producer = new ProducerBuilder<Null, string>(config).
                 SetValueSerializer(Serializers.Utf8).
                 Build();
         }
@@ -29,7 +28,8 @@ public class KafkaHelper {
         return producer;
     }
 
-    public static IConsumer<long, string> GetConsumer(string bootstrapServers, string group = "default") {
+    public static IConsumer<Ignore, string> GetConsumer(string bootstrapServers, string group = "default")
+    {
         var config = new ConsumerConfig
         {
             BootstrapServers = bootstrapServers,
@@ -38,7 +38,7 @@ public class KafkaHelper {
             AutoOffsetReset = AutoOffsetReset.Earliest
         };
 
-        return new ConsumerBuilder<long, string>(config).Build();
+        return new ConsumerBuilder<Ignore, string>(config).Build();
     }
 
     public static void CreateTopics(string bootstrapServers, IEnumerable<string> topics) {

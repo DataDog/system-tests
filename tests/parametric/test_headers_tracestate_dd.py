@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import bug, missing_feature, context, scenarios
+from utils import bug, missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -18,6 +18,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 
 
 @scenarios.parametric
+@features.datadog_headers_propagation
 class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_samplingpriority(self, test_agent, test_library):
@@ -328,6 +329,7 @@ class Test_Headers_Tracestate_DD:
         context.library == "golang",
         reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
     )
+    @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent

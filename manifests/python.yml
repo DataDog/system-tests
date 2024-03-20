@@ -25,95 +25,37 @@ tests/:
           uwsgi-poc: v2.6.0dev
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling:
-          '*': missing_feature
-          django-poc: v2.5.0
-          fastapi: v2.5.0
-          flask-poc: v2.5.0
-          python3.12: v2.5.0
-          uds-flask: v2.5.0
-          uwsgi-poc: v2.5.0
+        Test_API_Security_sampling: missing_feature
       test_schemas.py:
         Test_Scanners:
-          '*': missing_feature
-          django-poc: v2.4.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.4.0.dev
-          python3.12: v2.4.0.dev
-          uds-flask: v2.4.0dev
-          uwsgi-poc: v2.4.0dev
+          '*': v2.4.0
+          fastapi: v2.5.0
         Test_Schema_Request_Cookies:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.1.0
+          fastapi: v2.5.0
         Test_Schema_Request_FormUrlEncoded_Body:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.1.0
+          fastapi: v2.5.0
         Test_Schema_Request_Headers:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.1.0
+          fastapi: v2.5.0
         Test_Schema_Request_Json_Body:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.1.0
+          fastapi: v2.5.0
         Test_Schema_Request_Path_Parameters:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.1.0
+          fastapi: v2.5.0
         Test_Schema_Request_Query_Parameters:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.1.0
+          fastapi: v2.5.0
         Test_Schema_Response_Body:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.1.0
+          fastapi: v2.5.0
         Test_Schema_Response_Body_env_var:
-          '*': missing_feature
-          django-poc: v2.6.0.dev
-          fastapi: v2.6.0.dev1
-          flask-poc: v2.6.0.dev
-          python3.12: v2.6.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.6.0
         Test_Schema_Response_Headers:
-          '*': missing_feature
-          django-poc: v2.1.0.dev
-          fastapi: v2.5.0.dev1
-          flask-poc: v2.1.0.dev
-          python3.12: v2.1.0.dev
-          uds-flask: v2.1.0dev
-          uwsgi-poc: v2.1.0dev
+          '*': v2.1.0
+          fastapi: v2.5.0
     iast/:
       sink/:
         test_command_injection.py:
@@ -485,6 +427,7 @@ tests/:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
@@ -499,6 +442,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: missing_feature
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -539,13 +484,19 @@ tests/:
         '*': missing_feature (Missing on weblog)
         flask-poc: v0.1 # real version not known
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: 
+        "*": irrelevant
+        flask-poc: v2.8.0
+      Test_DsmContext_Injection_Base64: 
+        "*": irrelevant
+        flask-poc: v2.8.0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': irrelevant
         flask-poc: v1.20.3
       Test_DsmKinesis:
         '*': irrelevant
-        flask-poc: v1.16.0
+        flask-poc: v2.8.0
       Test_DsmRabbitmq:
         '*': irrelevant
         flask-poc: v2.6.0
@@ -568,6 +519,8 @@ tests/:
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_otel_api_interoperability.py: missing_feature
+    test_otel_sdk_interoperability.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature

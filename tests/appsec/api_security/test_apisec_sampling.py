@@ -1,6 +1,8 @@
 from utils import (
+    context,
     features,
     interfaces,
+    irrelevant,
     rfc,
     scenarios,
     weblog,
@@ -37,6 +39,9 @@ class Test_API_Security_sampling:
             for _ in range(self.N ** 2)
         ]
 
+    @irrelevant(
+        context.library not in ["nodejs"], reason="RFC is deprecated by a newer RFC. New tests will be implemented"
+    )
     def test_sampling_rate(self):
         """can provide request header schema"""
         N = self.N

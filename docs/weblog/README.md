@@ -417,3 +417,6 @@ It supports the following body fields:
 - `options`: a record with the following options:
   - `shell`: boolean in order to instruct if the program should be executed within a shell.
 - `args`: arguments passed to the program.
+
+### GET /flush
+This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.

@@ -25,14 +25,6 @@ get_version_from_binaries() {
     echo "$current_version" | tr -d '"'> SYSTEM_TESTS_LIBRARY_VERSION
 }
 
-configure_cmake_to_fetch_from_dir() {
-    sed -i 's@GIT_REPOSITORY@SOURCE_DIR "/binaries/dd-trace-cpp" #GIT_REPOSITORY@g' /usr/app/CMakeLists.txt
-    sed -i "s/GIT_TAG/#GIT_TAG/g" /usr/app/CMakeLists.txt
-    sed -i "s/GIT_SHALLOW/#GIT_SHALLOW/g" /usr/app/CMakeLists.txt
-    sed -i "s/GIT_PROGRESS/#GIT_PROGRESS/g" /usr/app/CMakeLists.txt
-}
-
-
 cd /usr/app
 
 if [ -e /binaries/cpp-load-from-git ]; then
@@ -50,4 +42,3 @@ else
     echo "install from latest tracer release"
     git_clone_latest_release
 fi
-configure_cmake_to_fetch_from_dir

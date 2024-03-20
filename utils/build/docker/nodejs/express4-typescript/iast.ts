@@ -481,7 +481,11 @@ function initSourceRoutes (app: Express): void {
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
           const vulnKey = message.key.toString()
-          readFileSync(vulnKey)
+          try {
+            readFileSync(vulnKey)
+          } catch {
+            // do nothing
+          }
 
           deferred.resolve?.()
         }

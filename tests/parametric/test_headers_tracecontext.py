@@ -13,7 +13,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -34,6 +34,7 @@ def temporary_enable_optin_tracecontext_single_key() -> Any:
 
 
 @scenarios.parametric
+@features.datadog_headers_propagation
 class Test_Headers_Tracecontext:
     @temporary_enable_optin_tracecontext()
     def test_both_traceparent_and_tracestate_missing(self, test_agent, test_library):

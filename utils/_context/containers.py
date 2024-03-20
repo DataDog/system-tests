@@ -215,18 +215,20 @@ class TestedContainer:
     def stop(self):
         self._container.stop()
 
+    def collect_logs(self):
+        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
+            f.write(self._container.logs(stdout=True, stderr=False))
+
+        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
+            f.write(self._container.logs(stdout=False, stderr=True))
+
     def remove(self):
         logger.debug(f"Removing container {self.name}")
 
         if self._container:
             try:
                 # collect logs before removing
-                with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-                    f.write(self._container.logs(stdout=True, stderr=False))
-
-                with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-                    f.write(self._container.logs(stdout=False, stderr=True))
-
+                self.collect_logs()
                 self._container.remove(force=True)
             except:
                 # Sometimes, the container does not exists.
@@ -437,6 +439,8 @@ class WeblogContainer(TestedContainer):
 
         from utils import weblog
 
+        self.port = weblog.port
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
@@ -446,8 +450,8 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail --silent --show-error localhost:{weblog.port}", "retries": 60},
-            ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
+            healthcheck={"test": f"curl --fail --silent --show-error localhost:{self.port}", "retries": 60},
+            ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
         )
 
@@ -529,6 +533,10 @@ class WeblogContainer(TestedContainer):
     @property
     def telemetry_heartbeat_interval(self):
         return 2
+
+    def request(self, method, url, **kwargs):
+        """ perform an HTTP request on the weblog, must NOT be used for tests """
+        return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)
 
 
 class PostgresContainer(SqlDbTestedContainer):
@@ -631,6 +639,7 @@ class RabbitMqContainer(TestedContainer):
             name="rabbitmq",
             host_log_folder=host_log_folder,
             allow_old_container=True,
+            ports={"5672": ("127.0.0.1", 5672)},
         )
 
 

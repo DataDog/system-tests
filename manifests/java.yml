@@ -835,6 +835,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: missing_feature (No AppSec support)
       Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
       Test_RetainTraces:
         '*': v0.92.0
         akka-http: v1.22.0
@@ -868,6 +869,11 @@ tests/:
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
       Test_Debugger_Probe_Statuses:
+        '*': missing_feature
+        spring-boot: v0.1  # real version not known
+        uds-spring-boot: v0.1  # real version not known
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction:         
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
@@ -911,6 +917,12 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64: 
+        "*": irrelevant
+        spring-boot: v0.1  # version unknown
+      Test_DsmContext_Injection_Base64: 
+        "*": irrelevant
+        spring-boot: v0.1  # version unknown
       Test_DsmHttp:
         '*': missing_feature
         spring-boot: v1.12.1
@@ -943,9 +955,11 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: v1.17.0      
+      TestDynamicConfigV1: v1.17.0
       TestDynamicConfigV1_ServiceTargets: v1.31.0
-      TestDynamicConfigV2: v1.31.0      
+      TestDynamicConfigV2: v1.31.0
+    test_otel_api_interoperability.py: missing_feature
+    test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature
