@@ -305,7 +305,9 @@ function main() {
     fi
 
     # ensure environment
-    if [[ "${run_mode}" == direct ]] || ! is_using_nix; then
+    if [[ "${run_mode}" == "docker" ]] || is_using_nix; then
+        : # no venv needed
+    else
         activate_venv
     fi
 

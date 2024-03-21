@@ -213,10 +213,6 @@ jobs:
       - build-apps
     name: Test (${{ matrix.app }}, ${{ matrix.scenario }})
     steps:
-      - name: Setup python 3.9
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
       - name: Checkout
         uses: actions/checkout@v4
         with:
