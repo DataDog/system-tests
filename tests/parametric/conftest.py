@@ -698,13 +698,15 @@ class _TestAgentAPI:
                     if event["request_type"] == "message-batch":
                         for message in event["payload"]:
                             if message["request_type"] == event_name:
-                                if clear:
-                                    self.clear()
-                                return message
+                                if message.get("application", {}).get("language_version") != "SIDECAR":
+                                    if clear:
+                                        self.clear()
+                                    return message
                     elif event["request_type"] == event_name:
-                        if clear:
-                            self.clear()
-                        return event
+                        if event.get("application", {}).get("language_version") != "SIDECAR":
+                            if clear:
+                                self.clear()
+                            return event
             time.sleep(0.01)
         raise AssertionError("Telemetry event %r not found" % event_name)
 
