@@ -176,7 +176,12 @@ function run_scenario() {
             cmd+=(
               docker run
               --network system-tests_default
-              --rm -it
+              --rm -i
+            )
+            if [ -t 1 ]; then
+                cmd+=(-t)
+            fi
+            cmd+=(
               -v "${PWD}"/.env:/app/.env
               -v /var/run/docker.sock:/var/run/docker.sock
               -v "${PWD}/${log_dir}":"/app/${log_dir}"
