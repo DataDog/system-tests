@@ -253,7 +253,7 @@ class K8sDatadogClusterTestAgent:
         daemonset_created = False
         daemonset_status = None
         # Wait for the daemonset to be created
-        for i in range(10):
+        for i in range(20):
             try:
                 daemonset_status = apps_api.read_namespaced_daemon_set_status(name="datadog", namespace="default")
                 if daemonset_status.status.number_ready > 0:

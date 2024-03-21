@@ -329,7 +329,7 @@ class Test_Headers_Tracestate_DD:
         context.library == "golang",
         reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
     )
-    @bug(context.library == "python@2.7.2", reason="AIT-9945")
+    @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent

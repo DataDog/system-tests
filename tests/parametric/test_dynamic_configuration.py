@@ -219,7 +219,7 @@ class TestDynamicConfigTracingEnabled:
     )
     @irrelevant(library="golang")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
-        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": "false"})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": False})
         _set_rc(test_agent, _create_rc_config({}))
         with test_library:
             with test_library.start_span("test"):
