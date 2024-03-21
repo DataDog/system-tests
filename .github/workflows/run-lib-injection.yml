@@ -42,9 +42,10 @@ jobs:
           weblog-variant: dd-lib-dotnet-init-test-app
 
         version:      
+          - latest
           - latest_snapshot
           #https://github.com/DataDog/dd-trace-dotnet/actions/runs/8342711450/job/22831649790
-          - 72606379c74c7585b68e0cb917e46cdc3f40191d
+          #- 72606379c74c7585b68e0cb917e46cdc3f40191d
 
       fail-fast: false
     env:
