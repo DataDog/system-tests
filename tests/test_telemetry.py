@@ -608,13 +608,19 @@ class Test_ProductsDisabled:
     @scenarios.telemetry_app_started_products_disabled
     def test_app_started_product_disabled(self):
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        if len(telemetry_data) == 0:
-            raise Exception("No telemetry data to validate on")
+        data_found = False
+        app_started_found = False
+
+        telemetry_data = interfaces.library.get_telemetry_data()
 
         for data in telemetry_data:
+            data_found = True
+
             if get_request_type(data) != "app-started":
                 continue
+
+            app_started_found = True
+
             payload = data["request"]["content"]["payload"]
 
             assert (
@@ -625,6 +631,12 @@ class Test_ProductsDisabled:
                 assert (
                     details.get("enabled") is False
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
+
+        if not data_found:
+            raise ValueError("No telemetry data to validate on")
+
+        if not app_started_found:
+            raise ValueError("app-started event not found in telemetry data")
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
