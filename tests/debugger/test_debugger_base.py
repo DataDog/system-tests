@@ -12,19 +12,21 @@ _DEBUGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 
+
 def read_data():
     tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
-    
+
     if tracer["language"] == "java":
-        tracer_version = version.parse(tracer["tracer_version"].split('+')[0])
+        tracer_version = version.parse(tracer["tracer_version"].split("+")[0])
         if tracer_version > version.parse("1.27.0"):
             path = _DEBUGER_PATH
         else:
             path = _LOGS_PATH
     else:
         path = _LOGS_PATH
-        
+
     return list(interfaces.agent.get_data(path))
+
 
 def get_probes_map(data_set):
     probe_hash = {}
@@ -48,11 +50,9 @@ def get_probes_map(data_set):
 
     return probe_hash
 
+
 def validate_probes(expected_probes):
-
     def check_probe_status(expected_id, expected_status, probe_status_map):
-        print(probe_status_map)
-
         if expected_id not in probe_status_map:
             raise ValueError("Probe " + expected_id + " was not received.")
 
@@ -66,7 +66,6 @@ def validate_probes(expected_probes):
                 + ", but expected for "
                 + expected_status
             )
-
 
     probe_map = get_probes_map(read_data())
     for expected_id, expected_status in expected_probes.items():
@@ -125,6 +124,7 @@ def validate_spans(expected_spans):
     for expected_trace in expected_spans:
         check_trace(expected_trace, span_map)
 
+
 class _Base_Debugger_Snapshot_Test:
     expected_probe_ids = []
     all_probes_installed = False
@@ -136,7 +136,7 @@ class _Base_Debugger_Snapshot_Test:
                 return
 
         raise ValueError("I was expecting a remote config")
-    
+
     def _is_all_probes_installed(self, probes_map):
         if probes_map is None:
             return False
@@ -161,7 +161,7 @@ class _Base_Debugger_Snapshot_Test:
                 self.all_probes_installed = True
 
         return self.all_probes_installed
-    
+
     def assert_all_probes_are_installed(self):
         if not self.all_probes_installed:
             raise ValueError("At least one probe is missing")
