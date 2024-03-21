@@ -6,6 +6,7 @@ from utils import interfaces
 from utils.tools import logger
 from packaging import version
 import json
+import re
 
 _CONFIG_PATH = "/v0.7/config"
 _DEBUGER_PATH = "/api/v2/debugger"
@@ -17,7 +18,7 @@ def read_data():
     tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
 
     if tracer["language"] == "java":
-        tracer_version = version.parse(tracer["tracer_version"].split("+")[0])
+        tracer_version = version.parse(re.sub(r'[^0-9.].*$', '', tracer["tracer_version"]))
         if tracer_version > version.parse("1.27.0"):
             path = _DEBUGER_PATH
         else:
