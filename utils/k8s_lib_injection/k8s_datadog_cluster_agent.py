@@ -268,15 +268,19 @@ class K8sDatadogClusterTestAgent:
         if not daemonset_created:
             self.logger.info("[Test agent] Daemonset not created. Last status: %s" % daemonset_status)
             raise Exception("Daemonset not created")
-
-        w = watch.Watch()
-        for event in w.stream(
-            func=v1.list_namespaced_pod, namespace="default", label_selector="app=datadog", timeout_seconds=60
-        ):
-            if event["object"].status.phase == "Running":
-                w.stop()
-                self.logger.info("Datadog test agent started!")
-                break
+        try:
+            w = watch.Watch()
+            for event in w.stream(
+                func=v1.list_namespaced_pod, namespace="default", label_selector="app=datadog", timeout_seconds=60
+            ):
+                if event["object"].status.phase == "Running":
+                    w.stop()
+                    self.logger.info("Datadog test agent started!")
+                    break
+        except Exception as e:
+            self.logger.error(f"Error waiting for the test agent: {e}")
+            # Wait 10 second and continue. Sometimes we have conflict when we run a lot of tests in parallel
+            time.sleep(10)
 
     def _wait_for_operator_ready(self):
         datadog_cluster_name = None
