@@ -33,7 +33,7 @@ else
 fi
 
 apt-get install -y binutils #we need 'strings' command to extract assembly version which is part of binutils package
-version=$(strings /opt/datadog/netstandard2.0/Datadog.Trace.dll | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
+version=$(strings /opt/datadog/net6.0/Datadog.Trace.dll | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
 echo "${version:0:-2}" > /app/SYSTEM_TESTS_LIBRARY_VERSION
 
 LD_LIBRARY_PATH=/opt/datadog dotnet fsi --langversion:preview /binaries/query-versions.fsx
