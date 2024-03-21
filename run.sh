@@ -145,6 +145,21 @@ function activate_venv() {
     source venv/bin/activate
 }
 
+function network_name() {
+    perl -ne '/_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
+}
+
+function ensure_network() {
+    local network_name
+    network_name="$(network_name)"
+
+    if docker network ls | grep -q "${network_name}"; then
+        : # network exists
+    else
+        docker network create "${network_name}"
+    fi
+}
+
 function run_scenario() {
     local dry="$1"
     shift
@@ -398,6 +413,10 @@ function main() {
         for scenario in "${scenarios[@]}"; do
             echo "    - ${scenario}"
         done
+    fi
+
+    if [[ "${run_mode}" == "docker" ]]; then
+        ensure_network >/dev/null
     fi
 
     for scenario in "${scenarios[@]}"; do
