@@ -196,8 +196,12 @@ function run_scenario() {
             if [ -t 1 ]; then
                 cmd+=(-t)
             fi
+            if [[ -f .env ]]; then
+              cmd+=(
+                -v "${PWD}"/.env:/app/.env
+              )
+            fi
             cmd+=(
-              -v "${PWD}"/.env:/app/.env
               -v /var/run/docker.sock:/var/run/docker.sock
               -v "${PWD}/${log_dir}":"/app/${log_dir}"
               -e SYSTEM_TESTS_WEBLOG_HOST=weblog
