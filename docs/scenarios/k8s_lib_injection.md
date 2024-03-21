@@ -71,22 +71,22 @@ The following picture shows the main directories for the k8s lib injection tests
     - Extract weblog debug information.
   * **k8s_command_utils.py:** Command line utils to lauch the Helm Chart commands and others shell commands.
 
-## Run the K8s Lib Injection tests in your Local
+# Run the K8s Lib Injection tests in your Local
 
 These tests can run locally easily. You only have to install the environment and configure it as follow sections detail.
 
-### Prerequisites:
+## Prerequisites:
 - Docker environment
 - Kubernetes environment
 - Configure the tests (Configure the container images references)
 
-#### Docker enviroment
+### Docker enviroment
 
 You should install the docker desktop on your computer and **be loged into a personal Docker Hub account**
 
 ```cat ~/my_password.txt | docker login --username my_personal_user --password-stdin ```
 
-#### Kubernetes environment
+### Kubernetes environment
 
 You should install the kind and Helm Chart tool.
 Kind is a tool for running local Kubernetes clusters using Docker container.
@@ -129,7 +129,7 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 ```
 
-#### Environment variables
+### Environment variables
 
 The next step is define the environment variables. This is an example of env vars configuration for Java:
 
@@ -166,15 +166,168 @@ docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-java-init:local
 
 These K8s Lib Injection tests are fully integrated into system-tests life cycle. If we followed the previous steps, we only have to execute this command:
 
-'''sh
-  ./run.sh k8s_lib_injection
-'''
+```sh
+  ./run.sh K8S_LIB_INJECTION
+```
 
+# Run the K8s Lib Injection tests in your CI
 
+If you are going to run the K8s lib injection tests on your CI pipeline, check this example:
 
+```yml
+  jobs:
+  k8s-lib-injection-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        variant:
+        - library: java
+          weblog-variant: dd-lib-java-init-test-app
 
+        - library: nodejs
+          weblog-variant: sample-app
 
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django
+        
+        - library: ruby
+          weblog-variant: dd-lib-ruby-init-test-rails
+          
+        - library: ruby
+          weblog-variant: dd-lib-ruby-init-test-rails-explicit
+        
+        - library: ruby
+          weblog-variant: dd-lib-ruby-init-test-rails-gemsrb
 
+        - library: dotnet
+          weblog-variant: dd-lib-dotnet-init-test-app
+
+        version: 
+          - latest #Production tag
+          - latest_snapshot
+
+      fail-fast: false
+    env:
+      TEST_LIBRARY: ${{ matrix.variant.library }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
+      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
+      DOCKER_IMAGE_TAG: ${{ matrix.version }}
+      BUILDX_PLATFORMS: linux/amd64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+    
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+          config-inline: |
+            [worker.oci]
+              max-parallelism = 1
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+        with:
+          registry: ghcr.io/datadog
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build weblog latest base images
+        env:
+          DOCKER_IMAGE_WEBLOG_TAG: latest
+          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
+        run: |
+          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
+          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:latest ./build.sh
+          cd ..
+
+      - name: Install runner
+        uses: ./.github/actions/install_runner       
+
+      - name: Kubernetes lib-injection tests
+        id: k8s-lib-injection-tests
+        run: ./run.sh K8S_LIB_INJECTION 
+
+      - name: Compress logs
+        id: compress_logs
+        if: always()
+        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+
+      - name: Upload artifact
+        if: always() && steps.compress_logs.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs_k8s_lib_injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version }}
+          path: artifact.tar.gz
+```
+
+# Test development
+
+All test cases for K8S_LIB_INJECTION will run on an isolated Kubernetes environment. For each test case we are going to start up a Kubernetes Cluster. In this way we can run the tests in parallel.
+Each test case will receive a "test_k8s_instance" object with these main properties laoded:
+* **library:** Current testing library (java, python...)
+* **weblog_variant:** Current sample application name (weblog name)
+* **weblog_variant_image:** Reference to the weblog image in the registry
+* **library_init_image:** Reference to the library init image in the registry
+* **library_init_image_tag:** Library init image tag to be used
+* **prefix_library_init_image:** Tricky part. If we inject the library using configmap and cluster agent, we need to use the prefix_library_init_image only for snapshot images. The agent builds image names like “gcr.io/datadoghq/dd-lib-python-init:latest_snapshot” but we need gcr.io/datadoghq/dd-trace-py/dd-lib-python-init:latest_snapshot. We use this prefix with the env prop "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_CONTAINER_REGISTRY"
+* **output_folder:** Path to log folder for the current test.
+* **test_name:** Name of the current test.
+* **test_agent:** = Instance of the object that contains the main methods to access to Datadog Cluster Agent (Deploy agent, deploy operator, apply configmaps...). See utils/k8s_lib_injection/k8s_datadog_cluster_agent.py.
+* **test_weblog:** = Instance of the object that contains the main methods to access to weblog variant funtionalities (Deploy pod, deployments...). See utils/k8s_lib_injection/k8s_weblog.py.
+* **k8s_kind_cluster:** Contains the information of the Kubernetes cluster associated to the test.
+  - cluster_name: Random name associated to the cluster.
+  - context_name: Kind cluster name
+  - agent_port: Agent port
+  - weblog_port: Weblog port
+
+The "test_k8s_instance" also contains some basic methods, that you can use directly instead of working with either "k8s_datadog_cluster_agent" or "k8s_weblog":
+* start_instance
+* destroy_instance
+* deploy_test_agent
+* deploy_weblog_as_pod
+* deploy_weblog_as_deployment
+* apply_config_auto_inject
+* export_debug_info
+
+Feel free to use the methods listed above or use the methods encapsulated in both "k8s_datadog_cluster_agent" and "k8s_weblog" or directly use the Kubernates Python Client to manipulate the Kunernates cluster components.
+
+An example of a Kubernetes test that uses all the APIs:
+
+```python
+@features.k8s_admission_controller
+@scenarios.k8s_lib_injection
+class TestExample:
+    def test_example(self, test_k8s_instance):
+        #Deploy test agent
+        test_agent = test_k8s_instance.deploy_test_agent()
+        #Deploy admission controller
+        test_agent.deploy_operator_manual()
+        #Deploy weblog
+        test_k8s_instance.deploy_weblog_as_pod()
+        #Check that app was auto instrumented
+        response = requests.get(f"http://localhost:{test_k8s_instance.k8s_kind_cluster.agent_port}/test/traces")
+        traces_json = response.json()
+        assert len(traces_json) > 0, "No traces found"
+        #Use Kubernetes python client to check how many pods have been created
+        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+        ret = v1.list_namespaced_pod(namespace="default", watch=False)
+        assert len(ret.items) > 2, "Incorrect number of pods"
+```
+
+# How to debug your kubernetes environment and tests results
+
+dfafsadf
 
 
 
