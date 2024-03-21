@@ -157,16 +157,8 @@ class SpanInjectReturn(BaseModel):
 @app.post("/trace/span/inject_headers")
 def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     span = spans[args.span_id]
-    ctx = span.context
     headers = {}
-    # If there is an active span, HTTPPropagator.inject will automatically run sampling on it
-    # In this unique case we don't have an active span, and therefore need to run sampling manually here
-    if ctx.sampling_priority is None:
-        if span._is_top_level():
-            ddtrace.tracer.sample(span)
-        else:
-            ddtrace.tracer.sample(span.local_root)
-    HTTPPropagator.inject(ctx, headers)
+    HTTPPropagator.inject(span.context, headers, span)
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
