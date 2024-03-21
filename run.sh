@@ -96,8 +96,36 @@ function die() {
 
 function lookup_scenario_group() {
     local group="$1"
+    local mode="$2"
 
-    cat < scenario_groups.yml | python -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]' "${group}"
+    local python=()
+
+    case "${mode}" in
+        'docker')
+            echo 'docker' 1>&2
+            python+=(
+              docker run
+              --rm -i
+              system_tests/runner
+              venv/bin/python
+            )
+            ;;
+        'direct')
+            echo 'direct' 1>&2
+            python+=(pytest)
+            ;;
+        *)
+            die "unsupported run mode: ${mode}"
+            ;;
+    esac
+
+    python+=(
+        -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]'
+    )
+
+    echo "${python[*]}" 1>&2
+
+    cat < scenario_groups.yml | "${python[@]}" "${group}"
 }
 
 function upcase() {
@@ -181,15 +209,10 @@ function main() {
     local docker="${DOCKER_MODE:-0}"
     local verbosity=0
     local dry=0
-    local scenarios=()
+    local scenario_args=()
     local libraries=()
     local pytest_args=()
     local pytest_numprocesses='auto'
-
-    # ensure environment
-    if ! is_using_nix; then
-        activate_venv
-    fi
 
     ## handle environment variables
 
@@ -221,9 +244,7 @@ function main() {
                   exit 64
                 fi
                 # upcase via ${2^^} is unsupported on bash 3.x
-                # bash 3.x does not support mapfile, dance around with tr and IFS
-                IFS=',' read -r -a group <<< "$(lookup_scenario_group "$(echo "$2" | upcase)" | tr '\n' ',')"
-                scenarios+=("${group[@]}")
+                scenario_args+=("$(echo "$2" | upcase)")
                 shift
                 ;;
             +S|++scenario|-S|--scenario)
@@ -235,7 +256,7 @@ function main() {
                   exit 64
                 fi
                 # upcase via ${2^^} is unsupported on bash 3.x
-                scenarios+=("$(echo "$2" | upcase)")
+                scenario_args+=("$(echo "$2" | upcase)")
                 shift
                 ;;
             +l|++library)
@@ -260,12 +281,8 @@ function main() {
                 ;;
             *)
                 # handle positional arguments
-                if [[ "$1" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
-                    # bash 3.x does not support mapfile, dance around with tr and IFS
-                    IFS=',' read -r -a group <<< "$(lookup_scenario_group "$1" | tr '\n' ',')"
-                    scenarios+=("${group[@]}")
-                elif [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
-                    scenarios+=("$1")
+                if [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
+                    scenario_args+=("$1")
                 else
                     # pass any unmatched arguments to pytest
                     pytest_args+=("$1")
@@ -279,6 +296,33 @@ function main() {
     pytest_args+=("$@")
 
     ## prepare commands
+
+    # set run mode
+    if [[ "${docker}" == 1 ]]; then
+        run_mode='docker'
+    else
+        run_mode='direct'
+    fi
+
+    # ensure environment
+    if [[ "${run_mode}" == direct ]] || ! is_using_nix; then
+        activate_venv
+    fi
+
+    # process scenario list
+    local scenarios=()
+
+    # expand scenario groups
+    # bash 3.x does not support mapfile, dance around with tr and IFS
+    for i in "${scenario_args[@]}"; do
+        if [[ "${i}" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
+                # bash 3.x does not support mapfile, dance around with tr and IFS
+                IFS=',' read -r -a group <<< "$(lookup_scenario_group "${i}" "${run_mode}" | tr '\n' ',')"
+                scenarios+=("${group[@]}")
+        else
+                scenarios+=("${i}")
+        fi
+    done
 
     # when no scenario is provided, use a nice default
     if [[ "${#scenarios[@]}" -lt 1 ]]; then
@@ -328,7 +372,7 @@ function main() {
             pytest_numprocesses=$(nproc)
         fi
     done
-    
+
     case "${pytest_numprocesses}" in
         0|1)
             ;;
@@ -338,12 +382,6 @@ function main() {
     esac
 
     ## run tests
-
-    if [[ "${docker}" == 1 ]]; then
-        run_mode='docker'
-    else
-        run_mode='direct'
-    fi
 
     if [[ "${verbosity}" -gt 0 ]]; then
         echo "plan:"
