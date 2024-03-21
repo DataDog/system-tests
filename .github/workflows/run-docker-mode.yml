@@ -240,17 +240,11 @@ jobs:
         run: ./run.sh ++docker ${{ matrix.scenario }}
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      - name: Archive logs (per scenario)
-        uses: actions/upload-artifact@v3
+      - name: Archive logs
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: system-tests-${{ matrix.library }}-${{ matrix.app }}-${{ matrix.scenario }}-logs-gha${{ github.run_id }}-g${{ github.sha }}
-          path: logs*
-      - name: Archive logs (aggregated)
-        uses: actions/upload-artifact@v3
-        if: ${{ always() }}
-        with:
-          name: system-tests-${{ matrix.library }}-${{ matrix.app }}-logs-gha${{ github.run_id }}-g${{ github.sha }}
           path: logs*
 
   all_test_successful:
@@ -299,9 +293,10 @@ jobs:
         with:
           repository: 'DataDog/system-tests'
       - name: Retrieve logs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: system-tests-${{ matrix.library }}-${{ matrix.app }}-logs-gha${{ github.run_id }}-g${{ github.sha }}
+          pattern: system-tests-${{ matrix.library }}-${{ matrix.app }}-*-logs-gha${{ github.run_id }}-g${{ github.sha }}
+          merge-multiple: true
           path: .
       - name: Print fancy log report
         run: |
