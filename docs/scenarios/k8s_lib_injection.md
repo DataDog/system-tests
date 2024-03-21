@@ -327,266 +327,32 @@ class TestExample:
 
 # How to debug your kubernetes environment and tests results
 
-dfafsadf
-
-
-
-
-
-
-
-
-
-
-You need to build and push weblog application to docker registry. You can use this script:
-
-You can also run the tests locally, but in this case we will create the docker init image using the corresponding tracer library.
-
-The first step is to login in docker hub, either with Docker Desktop app or with CLI (you may need to generate an access token [here](https://hub.docker.com/settings/security)):
-``` docker login --username MY_DOCKERHUB_USERNAME ```
-
-The second step is define the environment variables. This is an example of env vars configuration for Java:
-
-```sh
-export TEST_LIBRARY=java
-export WEBLOG_VARIANT=dd-lib-java-init-test-app #Which variant do we want to use?
-export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_DOCKERHUB_USERNAME #Use your docker hub account as registry
-export BUILDX_PLATFORMS=linux/arm64 #Set your CPU arch. In this sample, we are using a Mac M1
-export DOCKER_IMAGE_TAG=local #Tag for dd-lib-java-init 
-```
-
-The next is to download or compile the tracer libray that you want to test. You have to locate binary libary in the system-tests/binaries folder.
-When we have the environment ready, we have to execute this logic:
-
-* Build and push the init image
-
-  To use an existing image, you need to push it to your dockerhub account, for example:
-```sh
-docker pull ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot
-docker tag ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
-docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
-```
-
-* Build and push the app image
-* Create the Kubernetes cluster
-
-```sh
-./lib-injection/execFunction.sh build-and-push-init-image
-./lib-injection/execFunction.sh build-and-push-test-app-image
-./lib-injection/build.sh
-```
-
-* Execute the manual tests
-
-  * Make sure that init and app images are public on your dockerhub account.
-  * Comment name, tag and repository in `clusterAgent.image` section of `operator-helm-values*.yaml`
-
-```sh
-./lib-injection/run-manual-lib-injection.sh
-```
-
-* Execute the auto tests
-
-```sh
-TEST_CASE=<TestCaseN>  # define the test case
-./lib-injection/run-auto-lib-injection.sh
-```
-
-
-
-## lib-injections tests functions
-
-`functions.sh` contains the "logic" of these tests. 
-We can find some environment variables that we need to define previously:
-
-* **TEST_LIBRARY:** Language that we want to test. Possible values: java, python, nodejs
-* **WEBLOG_VARIANT:** Sample application that we want to use. We could have more that one application for each language. The sample applications are stored in build/docker folder.
-* **DOCKER_REGISTRY_IMAGES_PATH:** Docker Registry with which we are going to operate. In GitHub CI environment we are going to work with GHCR, but if we run tests in local laptop probably we will use Docker Hub registry. 
-* **DOCKER_IMAGE_TAG:** Tag for init image we want to tests.
-* **DOCKER_IMAGE_WEBLOG_TAG:** Tag for weblog image we want to test.
-* **BUILDX_PLATFORMS:** Architectures/Platforms for which we will generate the docker images for the example applications
-* **LIBRARY_INJECTION_CONNECTION:** Test with or without UDS.
-* **LIBRARY_INJECTION_ADMISSION_CONTROLLER:** Test autoinstrumentation with or without admission controller.
-
-`functions.sh` contains some remarkable functions:
-
-* **ensure-cluster:** It creates a Kubernetes cluster using configuration file: test/resources/kind-config.yaml.
-* **deploy-operator:** Deploys Datadog operator in the case that we are using Admission Controller. It uses common/operator-helm-values.yaml or common/operator-helm-values-uds.yaml to configure Admission Controller.
-* **deploy-test-agent:** Deploys Datadog Agent in Kubernetes cluster, using configuration file: test/resources/dd-apm-test-agent-config.yaml.
-* **deploy-app:** Deploys sample application/weblog in Kubernetes cluster, using template file: lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml.
-* **print-debug-info:** prints and log debug information for kubernertes cluster and library injection tests
-
-## How to run the lib-injection tests in CI
-
-To run lib-injection tests in your CI you need:
-
-- Configure environment variables
-- Use "runner" shared action
-
-```
-  test:
-    needs:
-      - build-and-publish-init-image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        lib-injection-connection: ['network','uds']
-        lib-injection-use-admission-controller: ['', 'use-admission-controller']
-        weblog-variant: ['dd-lib-python-init-test-django','dd-lib-python-init-test-django-gunicorn','dd-lib-python-init-test-django-uvicorn']
-      fail-fast: false
-    env:
-      TEST_LIBRARY: python
-      WEBLOG_VARIANT: ${{ matrix.weblog-variant }}
-      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
-      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-use-admission-controller }}
-      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
-      DOCKER_IMAGE_TAG: ${{ github.sha }}
-    steps:    
-      - name: lib-injection test runner
-        id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@main
-        with:
-          docker-registry: ghcr.io
-          docker-registry-username: ${{ github.repository_owner }}
-          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-```
-
-## How to run the manual lib-injection tests in Local
-
-You can also run the tests locally, but in this case we will create the docker init image using the corresponding tracer library.
-
-The first step is to login in docker hub, either with Docker Desktop app or with CLI (you may need to generate an access token [here](https://hub.docker.com/settings/security)):
-``` docker login --username MY_DOCKERHUB_USERNAME ```
-
-The second step is define the environment variables:
-
-```sh
-export TEST_LIBRARY=java
-export WEBLOG_VARIANT=dd-lib-java-init-test-app
-export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_DOCKERHUB_USERNAME
-export LIBRARY_INJECTION_CONNECTION=‘network’
-export LIBRARY_INJECTION_ADMISSION_CONTROLLER='use-admission-controller'
-export BUILDX_PLATFORMS=linux/arm64
-```
-
-The next is to download or compile the tracer libray that you want to test. You have to locate binary libary in the system-tests/binaries folder.
-When we have the environment ready, we have to execute this logic:
-
-* Build and push the init image
-
-  To use an existing image, you need to push it to your dockerhub account, for example:
-```sh
-docker pull ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot
-docker tag ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
-docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
-```
-
-* Build and push the app image
-* Create the Kubernetes cluster
-
-```sh
-./lib-injection/execFunction.sh build-and-push-init-image
-./lib-injection/execFunction.sh build-and-push-test-app-image
-./lib-injection/build.sh
-```
-
-* Execute the manual tests
-
-  * Make sure that init and app images are public on your dockerhub account.
-  * Comment name, tag and repository in `clusterAgent.image` section of `operator-helm-values*.yaml`
-
-```sh
-./lib-injection/run-manual-lib-injection.sh
-```
-
-* Execute the auto tests
-
-```sh
-TEST_CASE=<TestCaseN>  # define the test case
-./lib-injection/run-auto-lib-injection.sh
-```
-
-## How to debug your kubernetes environment
-
-After running the tests you can always run the following command to export all the information from the kubernetes cluster to the logs folder:
-
-```sh
-./lib-injection/execFunction.sh $LIBRARY_INJECTION_ADMISSION_CONTROLLER print-debug-info
-```
-
-## How to create init images in your tracer repository
-
-The construction of the images init docker the lib-injection is not the responsibility of the system-test, although for the tests to be launched, we will need the docker images to be correctly tagged in a docker registry, that is why the system-tests offer a shared github action that can be used in the tracer repositories to extract the tags with which the images will be generated.
-
-```
-    - name: lib-injection-tags
-      id: lib-injection-tags
-      uses: DataDog/system-tests/lib-injection/docker-tags@robertomonteromiguel/lib_injection_integration_v2
-      with:
-        init-image-name: 'dd-lib-python-init'
-        main-branch-name: 'robertomonteromiguel-lib_injection_system_tests_integration'
-    ...
-    - name: Docker Build
-      ...    
-      with:
-        ...
-        tags: ${{ steps.lib-injection-tags.outputs.tag-names }}
-...
-```
-
-In the generation of the labels for the docker init images there are three cases:
-
-![tracer init images docker registry tags](../docs/lib-injection/lib-injection-tags.png "tracer init images docker registry tags")
-
-> **_NOTE:_**  When we run the lib-injection tests from the system-tests repository we will test the latest release and the latest snapshot of each tracer repository, i.e. we will use the tags latest and latest-snapshot. When we run the lib-injection tests from the repository of a tracer repository, for example dd-trace-java, we will only launch the lib-injection tests for the current build, we will use the github-sha as the init image tag.
-
-Although, as we have mentioned above, it is not the responsibility of the system-tests to generate the init images of the tracer, but we encourage the different teams to use the Github actions plugins for the generation of these images. For example:
-
-```
-jobs:
-
-  build-and-publish-init-image:
-    runs-on: ubuntu-latest
-    steps:
-    
-    - name: Checkout repository
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # 2.3.4
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8 # 2.0.0
-
-    - name: Set up Docker Buildx
-      id: buildx
-      uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6 # 2.0.0
-
-    - name: Set up Docker platforms
-      id: buildx-platforms
-      run:  |
-        BUILDX_PLATFORMS=`docker buildx imagetools inspect --raw busybox:latest | jq -r 'reduce (.manifests[] | [ .platform.os, .platform.architecture, .platform.variant ] | join("/") | sub("\\/$"; "")) as $item (""; . + "," + $item)' | sed 's/,//'`
-        echo "$BUILDX_PLATFORMS"
-        echo "platforms=$BUILDX_PLATFORMS" >> $GITHUB_OUTPUT
-
-    - name: lib-injection-tags
-      id: lib-injection-tags
-      uses: DataDog/system-tests/lib-injection/docker-tags@main
-      with:
-        init-image-name: 'dd-lib-java-init'
-        main-branch-name: 'robertomonteromiguel-lib_injection_system_tests_integration'
-
-    - name: Build dd-java-agent.jar
-      run:  ./lib-injection/build_java_agent.sh
-
-    - name: Login to Docker
-      run: docker login -u publisher -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
-
-    - name: Docker Build
-      uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # 3.2.0
-      with:
-        push: true
-        tags: ${{ steps.lib-injection-tags.outputs.tag-names }}
-        platforms: ${{ steps.buildx-platforms.outputs.platforms }}
-        context: ./lib-injection
-```
+In the testing kubernetes scenarios. multiple components are involved and sometimes can be painfull to debug a failure. Even more so when running all tests in parallel.
+You can find a folder named "logs_k8s_lib_injection" with separe folder per test case.
+In the following image you can see the log folder content:
+
+![Log folder structure](../lib-injection/k8s_lib_injections_log_folders.png "Log folder structure")
+
+These are the main important log/data files:
+
+* **test.log:** General log generated by system-tests.
+* **report.json:** Pytest results report.
+* **feature_parity.json:** Report to push the results to Feature Parity Dashboard.
+* **lib-injection-testing-xyz-config.yaml:** The kind cluster configuration. In this file you can check the open ports for each cluster and test case.
+* **lib-injection-testing-xyz_help_values:** Helm chart operator values for each test case.
+* **<testcase_folder>/applied_configmaps.log:** ConfigMaps applied in the testcase (it could be empty if there are no configmaps applied).
+* **<testcase_folder>/daemon.set.describe.log:** Datadog Cluster daemon set logs.
+* **<testcase_folder>/datadog-XYZ_events.log:** Kubernetes events for Datadog Agent.
+* **<testcase_folder>/datadog-cluster-agent-XYZ_status.log:** Datadog Cluster Agent current status.
+* **<testcase_folder>/datadog-cluster-agent-XYZ_telemetry.log:** Telemetry for Datadog Cluster Agent.
+* **<testcase_folder>/datadog-cluster-agent.log:** Logs generated by Datadog Cluster Agent.
+* **<testcase_folder>/datadog-cluster-agent-XYZ_event.log:** Kubernetes events for Datadog Cluster Agent.
+* **<testcase_folder>/deployment.describe.log:** Describe all deployment in the Kubernetes cluster.
+* **<testcase_folder>/deployment.logs.log:** All deployments logs.
+* **<testcase_folder>/events_configmaps.log:** Events generated when we apply a configmap.
+* **<testcase_folder>/get.deployments.log:** Deployments list.
+* **<testcase_folder>/get.pods.log:** Current started pod list.
+* **<testcase_folder>/k8s_logger.log:** Specific logs for current test case.
+* **<testcase_folder>/myapp.describe.log:** Describe weblog pod.
+* **<testcase_folder>/myapp.logs.log:** Current weblog pod logs. It could be empty if we are deploying the weblog as Kubernetes deployment.
+* **<testcase_folder>/test-<lang>-deployment-XYZ_events.log:** Current weblog deployment events. Here you can see the events generated by auto instrumention process. It could be empty if we are deploying the weblog application as Pod.
