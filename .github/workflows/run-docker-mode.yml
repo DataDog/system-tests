@@ -33,8 +33,8 @@ jobs:
           repository: 'DataDog/system-tests'
       - name: Pull released image
         run: |
-          if docker pull ${{ env.REPO }}/system-tests/${{ matrix.image.name }}:latest; then
-            docker tag ${{ env.REPO }}/system-tests/${{ matrix.image.name }}:latest ${{ matrix.image.internal }}
+          if docker pull ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest; then
+            docker tag ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest ${{ matrix.image.internal }}
           fi
       - name: Build image
         run: ./build.sh --images ${{ matrix.image.name }} --docker --extra-docker-args '--cache-from ${{ matrix.image.internal }}'
@@ -46,18 +46,18 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
       - name: Tag image for CI run
         run:
-          docker tag ${{ matrix.image.internal }} ${{ env.REPO }}/system-tests/${{ matrix.image.name }}:gha${{ github.run_id }}-g${{ github.sha }}
+          docker tag ${{ matrix.image.internal }} ${{ env.REPO }}/docker/${{ matrix.image.name }}:gha${{ github.run_id }}-g${{ github.sha }}
       - name: Push image for CI run
         run: |
-          docker push ${{ env.REPO }}/system-tests/${{ matrix.image.name }}:gha${{ github.run_id }}-g${{ github.sha }}
+          docker push ${{ env.REPO }}/docker/${{ matrix.image.name }}:gha${{ github.run_id }}-g${{ github.sha }}
       - name: Tag image for release
         if: ${{ github.ref == 'refs/heads/master' }}
         run:
-          docker tag ${{ matrix.image.internal }} ${{ env.REPO }}/system-tests/${{ matrix.image.name }}:latest
+          docker tag ${{ matrix.image.internal }} ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest
       - name: Push image for release
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          docker push ${{ env.REPO }}/system-tests/${{ matrix.image.name }}:latest
+          docker push ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest
 
   build-apps:
     strategy:
@@ -99,8 +99,8 @@ jobs:
           path: 'binaries/${{ matrix.library.path }}'
       - name: Pull released image
         run: |
-          if docker pull ${{ env.REPO }}/system-tests/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest; then
-            docker tag ${{ env.REPO }}/system-tests/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest system_tests/${{ matrix.image }}:latest
+          if docker pull ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest; then
+            docker tag ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest system_tests/${{ matrix.image }}:latest
           fi
       - name: Log in to the Container registry
         run: |
@@ -109,18 +109,18 @@ jobs:
         run: ./build.sh --library ${{ matrix.library.name }} --weblog-variant ${{ matrix.app }} --images ${{ matrix.image }} --extra-docker-args '--cache-from system_tests/${{ matrix.image }}:latest'
       - name: Tag image for CI run
         run:
-          docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/system-tests/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }}
+          docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }}
       - name: Push image for CI run
         run: |
-          docker push ${{ env.REPO }}/system-tests/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }}
+          docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }}
       - name: Tag image for release
         if: ${{ github.ref == 'refs/heads/master' }}
         run:
-          docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/system-tests/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
+          docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
       - name: Push image for release
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          docker push ${{ env.REPO }}/system-tests/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
+          docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
 
   test:
     strategy:
@@ -219,20 +219,20 @@ jobs:
           repository: 'DataDog/system-tests'
       - name: Pull runner image
         run: |
-          docker pull ${{ env.REPO }}/system-tests/runner:gha${{ github.run_id }}-g${{ github.sha }}
-          docker tag ${{ env.REPO }}/system-tests/runner:gha${{ github.run_id }}-g${{ github.sha }} system_tests/runner:latest
+          docker pull ${{ env.REPO }}/docker/runner:gha${{ github.run_id }}-g${{ github.sha }}
+          docker tag ${{ env.REPO }}/docker/runner:gha${{ github.run_id }}-g${{ github.sha }} system_tests/runner:latest
       - name: Pull proxy image
         run: |
-          docker pull ${{ env.REPO }}/system-tests/proxy:gha${{ github.run_id }}-g${{ github.sha }}
-          docker tag ${{ env.REPO }}/system-tests/proxy:gha${{ github.run_id }}-g${{ github.sha }} datadog/system-tests:proxy-v1
+          docker pull ${{ env.REPO }}/docker/proxy:gha${{ github.run_id }}-g${{ github.sha }}
+          docker tag ${{ env.REPO }}/docker/proxy:gha${{ github.run_id }}-g${{ github.sha }} datadog/system-tests:proxy-v1
       - name: Pull agent image
         run: |
-          docker pull ${{ env.REPO }}/system-tests/agent:gha${{ github.run_id }}-g${{ github.sha }}
-          docker tag ${{ env.REPO }}/system-tests/agent:gha${{ github.run_id }}-g${{ github.sha }} system_tests/agent:latest
+          docker pull ${{ env.REPO }}/docker/agent:gha${{ github.run_id }}-g${{ github.sha }}
+          docker tag ${{ env.REPO }}/docker/agent:gha${{ github.run_id }}-g${{ github.sha }} system_tests/agent:latest
       - name: Pull app image
         run: |
-          docker pull ${{ env.REPO }}/system-tests/${{ matrix.library }}/weblog-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }}
-          docker tag ${{ env.REPO }}/system-tests/${{ matrix.library }}/weblog-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }} system_tests/weblog:latest
+          docker pull ${{ env.REPO }}/docker/${{ matrix.library }}/weblog-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }}
+          docker tag ${{ env.REPO }}/docker/${{ matrix.library }}/weblog-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }} system_tests/weblog:latest
       - name: List images
         run: |
           docker image list
