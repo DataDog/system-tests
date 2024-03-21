@@ -334,21 +334,10 @@ jobs:
       - name: Log in to the Container registry
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-      # there seems to be a bug: https://github.com/actions/delete-package-versions/issues/101
-      # workaround: https://github.com/actions/delete-package-versions/issues/101#issuecomment-1551293874
-      - name: Get Version ID
-        id: version-id
-        run: |
-          curl -X GET -H "Authorization: Bearer ${{env.GITHUB_TOKEN}}" https://api.github.com/orgs/DataDog/packages/container/system-tests/${{ matrix.image }}/versions >> $HOME/versionIds.json
-            echo "VERSION_ID=$(jq -r '.[] | select(.metadata.container.tags | index("gha${{ github.run_id }}-g${{ github.sha }}")).id' $HOME/versionIds.json)" >> $GITHUB_OUTPUT
-      - name: Print Version ID
-        run: echo "The selected Version ID is ${{ steps.version-id.outputs.VERSION_ID }}"
-      - uses: actions/delete-package-versions@v4
+      - uses: actions/delete-package-versions@v5
         with:
-          # should be:
-          # package-version-ids: 'gha${{ github.run_id }}-g${{ github.sha }}'
-          package-version-ids: '${{ steps.version-id.outputs.VERSION_ID }}'
           package-name: 'system-tests/${{ matrix.image }}'
           package-type: 'container'
+          min-versions-to-keep: 30
         continue-on-error: true
 
