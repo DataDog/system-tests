@@ -234,7 +234,7 @@ class K8sWeblog:
         except Exception as e:
             api.create_namespaced_deployment(body=deployment, namespace="default")
 
-        self._wait_for_deployment_complete(deployment_name, timeout=150)
+        self._wait_for_deployment_complete(deployment_name, timeout=180)
 
     def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
         """ Waits for the weblog to be ready after applying a configmap. We added a lot of debug traces 

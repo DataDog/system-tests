@@ -109,6 +109,7 @@ def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=No
             set_dict=set_dict,
             value_file=value_file,
             prefix_library_init_image=prefix_library_init_image,
+            upgrade=True,
         )
 
 

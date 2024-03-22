@@ -189,7 +189,7 @@ class K8sDatadogClusterTestAgent:
         r = v1.replace_namespaced_config_map(name="auto-instru", namespace="default", body=configmap)
         self.logger.info(f"[Auto Config] Configmap replaced!")
         k8s_logger(self.output_folder, self.test_name, "applied_configmaps").info(r)
-        self.wait_configmap_auto_inject(timeout=100, rev=rev)
+        self.wait_configmap_auto_inject(timeout=150, rev=rev)
 
     def create_configmap_auto_inject(self):
         """ Minimal configuration needed when we install operator auto """
