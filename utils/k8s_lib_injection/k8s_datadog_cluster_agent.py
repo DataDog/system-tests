@@ -286,6 +286,8 @@ class K8sDatadogClusterTestAgent:
         datadog_cluster_name = None
         v1, _ = self.get_k8s_api()
         operator_ready = False
+        operator_status = None
+
         for i in range(15):
             try:
                 if datadog_cluster_name is None:
