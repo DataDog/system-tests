@@ -112,7 +112,7 @@ function lookup_scenario_group() {
             ;;
         'direct')
             echo 'direct' 1>&2
-            python+=(pytest)
+            python+=(python)
             ;;
         *)
             die "unsupported run mode: ${mode}"
