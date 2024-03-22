@@ -196,7 +196,7 @@ function run_scenario() {
             if [ -t 1 ]; then
                 cmd+=(-t)
             fi
-            if [[ -n "${DD_API_KEY}" ]]; then
+            if [[ -n "${DD_API_KEY:-}" ]]; then
               cmd+=(
                 -e DD_API_KEY="${DD_API_KEY}"
               )
