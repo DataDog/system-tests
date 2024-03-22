@@ -228,8 +228,12 @@ class K8sWeblog:
         deployment = client.V1Deployment(
             api_version="apps/v1", kind="Deployment", metadata=deployment_metadata, spec=spec,
         )
-        # Create deployment
-        resp = api.create_namespaced_deployment(body=deployment, namespace="default")
+        # Create deployment. retry if it fails
+        try:
+            api.create_namespaced_deployment(body=deployment, namespace="default")
+        except Exception as e:
+            api.create_namespaced_deployment(body=deployment, namespace="default")
+
         self._wait_for_deployment_complete(deployment_name, timeout=150)
 
     def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
