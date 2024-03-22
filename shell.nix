@@ -13,10 +13,7 @@ let
 
   # use this pyton version, and include the abvoe packages
   python = pinned.python39.withPackages python_packages;
-
-  # control llvm/clang version (e.g for packages built form source)
-  llvm = pinned.llvmPackages_12;
-in llvm.stdenv.mkDerivation {
+in pinned.stdenv.mkDerivation {
   # unique project name for this environment derivation
   name = "system-tests.devshell";
 
@@ -31,9 +28,6 @@ in llvm.stdenv.mkDerivation {
     pinned.bash
     pinned.fswatch
     pinned.rsync
-
-    # for c++ dependencies such as grpcio-tools
-    llvm.libcxx.dev
   ];
 
   shellHook = ''
@@ -45,7 +39,5 @@ in llvm.stdenv.mkDerivation {
     unset SOURCE_DATE_EPOCH
     export PATH="$PIP_PREFIX/bin:$PATH"
 
-    # for grpcio-tools, which is building from source but doesn't pick up the proper include
-    export CFLAGS="-I${llvm.libcxx.dev}/include/c++/v1"
   '';
 }
