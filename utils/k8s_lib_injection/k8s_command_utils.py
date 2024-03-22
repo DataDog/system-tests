@@ -49,6 +49,18 @@ def execute_command(command, timeout=None, logfile=None):
 
 
 def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
+    """ wrap the execute_command_sync to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _execute_command_sync(command, k8s_kind_cluster, timeout=timeout, logfile=logfile)
+    except Exception as ex:
+        logger.error(f"Error executing command: {command} \n {ex}")
+        logger.error(f"Retrying command: {command}")
+        _execute_command_sync(command, k8s_kind_cluster, timeout=timeout, logfile=logfile)
+
+
+def _execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
+    """ Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
 
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}", logfile=logfile)
@@ -56,6 +68,17 @@ def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
 
 
 def helm_add_repo(name, url, k8s_kind_cluster, update=False):
+    """ wrap the execute_command_sync to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _helm_add_repo(name, url, k8s_kind_cluster, update=update)
+    except Exception as ex:
+        logger.error(f"Error executing helm add repo: {name} {url} \n {ex}")
+        logger.error(f"Retrying helm add repo: {name} {url}")
+        _helm_add_repo(name, url, k8s_kind_cluster, update=update)
+
+
+def _helm_add_repo(name, url, k8s_kind_cluster, update=False):
 
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
@@ -65,6 +88,34 @@ def helm_add_repo(name, url, k8s_kind_cluster, update=False):
 
 
 def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None):
+    """ wrap the helm_install_chart to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _helm_install_chart(
+            k8s_kind_cluster,
+            name,
+            chart,
+            set_dict=set_dict,
+            value_file=value_file,
+            prefix_library_init_image=prefix_library_init_image,
+        )
+    except Exception as ex:
+        logger.error(f"Error executing helm install: {name} {chart} \n {ex}")
+        logger.error(f"Retrying helm install: {name} {chart}")
+        _helm_install_chart(
+            k8s_kind_cluster,
+            name,
+            chart,
+            set_dict=set_dict,
+            value_file=value_file,
+            prefix_library_init_image=prefix_library_init_image,
+            upgrade=True,
+        )
+
+
+def _helm_install_chart(
+    k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None, upgrade=False
+):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -89,9 +140,13 @@ def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=No
                 set_str += f" --set {key}={value}"
 
         command = f"helm install {name} --wait {set_str} {chart}"
+        if upgrade:
+            command = f"helm upgrade {name} --install --wait {set_str} {chart}"
         if custom_value_file:
             # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
             command = f"helm install {name} {set_str} -f {custom_value_file} {chart}"
+            if upgrade:
+                command = f"helm upgrade {name} {set_str}  --install -f {custom_value_file} {chart}"
 
         execute_command(command, timeout=90)
 
