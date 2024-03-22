@@ -39,5 +39,7 @@ in pinned.stdenv.mkDerivation {
     unset SOURCE_DATE_EPOCH
     export PATH="$PIP_PREFIX/bin:$PATH"
 
+    # hack: can't find libstdc++.so.8 otherwise
+    export LD_LIBRARY_PATH="${pinned.stdenv.cc.cc.lib}/lib"
   '';
 }
