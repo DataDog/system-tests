@@ -261,7 +261,7 @@ class K8sDatadogClusterTestAgent:
                     daemonset_created = True
                     break
                 time.sleep(5)
-            except client.exceptions.ApiException as e:
+            except Exception as e:
                 self.logger.info(f"[Test agent] daemonset status error: {e}")
                 time.sleep(5)
 
@@ -316,18 +316,25 @@ class K8sDatadogClusterTestAgent:
         time.sleep(5)
 
     def export_debug_info(self):
-        """ Exports debug information for the test agent and the operator."""
+        """ Exports debug information for the test agent and the operator.
+        We shouldn't raise any exception here, we just log the errors."""
         v1, api = self.get_k8s_api()
-        # Get all pods
-        ret = v1.list_namespaced_pod(namespace="default", watch=False)
-        for i in ret.items:
+
+        try:
+            # Get all pods
+            ret = v1.list_namespaced_pod(namespace="default", watch=False)
+            for i in ret.items:
+                k8s_logger(self.output_folder, self.test_name, "get.pods").info(
+                    "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+                )
+                execute_command_sync(
+                    f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
+                    self.k8s_kind_cluster,
+                    logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
+                )
+        except Exception as e:
             k8s_logger(self.output_folder, self.test_name, "get.pods").info(
-                "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
-            )
-            execute_command_sync(
-                f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
-                self.k8s_kind_cluster,
-                logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
+                "Exception when calling CoreV1Api->list_namespaced_pod: %s\n" % e
             )
 
         # Get all deployments
