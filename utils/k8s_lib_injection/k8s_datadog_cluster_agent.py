@@ -288,7 +288,7 @@ class K8sDatadogClusterTestAgent:
         operator_ready = False
         operator_status = None
 
-        for i in range(15):
+        for i in range(20):
             try:
                 if datadog_cluster_name is None:
                     pods = v1.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")

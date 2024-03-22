@@ -49,6 +49,18 @@ def execute_command(command, timeout=None, logfile=None):
 
 
 def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
+    """ wrap the execute_command_sync to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _execute_command_sync(command, k8s_kind_cluster, timeout=timeout, logfile=logfile)
+    except Exception as ex:
+        logger.error(f"Error executing command: {command} \n {ex}")
+        logger.error(f"Retrying command: {command}")
+        _execute_command_sync(command, k8s_kind_cluster, timeout=timeout, logfile=logfile)
+
+
+def _execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
+    """ Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
 
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}", logfile=logfile)
@@ -56,6 +68,17 @@ def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
 
 
 def helm_add_repo(name, url, k8s_kind_cluster, update=False):
+    """ wrap the execute_command_sync to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _helm_add_repo(name, url, k8s_kind_cluster, update=update)
+    except Exception as ex:
+        logger.error(f"Error executing helm add repo: {name} {url} \n {ex}")
+        logger.error(f"Retrying helm add repo: {name} {url}")
+        _helm_add_repo(name, url, k8s_kind_cluster, update=update)
+
+
+def _helm_add_repo(name, url, k8s_kind_cluster, update=False):
 
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
