@@ -205,7 +205,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "golang", reason="not implemented")
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "php", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog"}],
