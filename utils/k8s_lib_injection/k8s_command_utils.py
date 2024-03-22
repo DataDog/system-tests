@@ -112,7 +112,9 @@ def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=No
         )
 
 
-def _helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None):
+def _helm_install_chart(
+    k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None, upgrade=False
+):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -137,9 +139,13 @@ def _helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=N
                 set_str += f" --set {key}={value}"
 
         command = f"helm install {name} --wait {set_str} {chart}"
+        if upgrade:
+            command = f"helm upgrade {name} --install --wait {set_str} {chart}"
         if custom_value_file:
             # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
             command = f"helm install {name} {set_str} -f {custom_value_file} {chart}"
+            if upgrade:
+                command = f"helm upgrade {name} {set_str}  --install -f {custom_value_file} {chart}"
 
         execute_command(command, timeout=90)
 
