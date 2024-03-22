@@ -88,6 +88,31 @@ def _helm_add_repo(name, url, k8s_kind_cluster, update=False):
 
 
 def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None):
+    """ wrap the helm_install_chart to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _helm_install_chart(
+            k8s_kind_cluster,
+            name,
+            chart,
+            set_dict=set_dict,
+            value_file=value_file,
+            prefix_library_init_image=prefix_library_init_image,
+        )
+    except Exception as ex:
+        logger.error(f"Error executing helm install: {name} {chart} \n {ex}")
+        logger.error(f"Retrying helm install: {name} {chart}")
+        _helm_install_chart(
+            k8s_kind_cluster,
+            name,
+            chart,
+            set_dict=set_dict,
+            value_file=value_file,
+            prefix_library_init_image=prefix_library_init_image,
+        )
+
+
+def _helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
