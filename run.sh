@@ -102,7 +102,6 @@ function lookup_scenario_group() {
 
     case "${mode}" in
         'docker')
-            echo 'docker' 1>&2
             python+=(
               docker run
               --rm -i
@@ -111,7 +110,6 @@ function lookup_scenario_group() {
             )
             ;;
         'direct')
-            echo 'direct' 1>&2
             python+=(python)
             ;;
         *)
