@@ -73,7 +73,6 @@ def _assert_sampling_tags(
 @scenarios.parametric
 @features.trace_sampling
 class Test_Sampling_Span_Tags:
-    @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="nodejs", reason="NodeJS does not set priority on parent span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
@@ -96,7 +95,6 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
-    @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
     @bug(library="golang", reason="golang sets dm tag -3 on first span")
@@ -117,7 +115,6 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
-    @bug(library="python", reason="Python sets dm tag -0")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
     @bug(library="cpp", reason="unknown")
@@ -138,7 +135,6 @@ class Test_Sampling_Span_Tags:
             "be either set to the default rate or unset",
         )
 
-    @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
     @bug(library="golang", reason="golang sets limit_psr")
@@ -164,7 +160,6 @@ class Test_Sampling_Span_Tags:
     @bug(library="dotnet", reason="Dotnet sets rate tag 9.9999 on parent span")
     @bug(library="nodejs", reason="NodeJS does not set dm tag on first span")
     @bug(library="golang", reason="golang does not set dm tag on first span")
-    @bug(library="python", reason="python does not set dm tag on first span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="cpp", reason="c++ does not set dm tag on first span")
     @bug(library="php", reason="php sets dm tag -1 on first span")
@@ -183,7 +178,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given rate",
         )
 
-    @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
     @bug(library="golang", reason="golang sets limit_psr")
@@ -211,7 +205,6 @@ class Test_Sampling_Span_Tags:
     @bug(library="nodejs", reason="NodeJS does not set dm tag on first span")
     @bug(library="php", reason="php does not set dm tag on first span")
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
-    @bug(library="python", reason="python does not set dm tag on first span")
     @bug(library="cpp", reason="c++ does not set dm tag on first span")
     @bug(library="java", reason="java does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
@@ -235,11 +228,10 @@ class Test_Sampling_Span_Tags:
         )
 
     @bug(library="golang", reason="golang does not set dm tag")
-    @bug(library="python", reason="python does not set dm tag")
     @bug(library="dotnet", reason="dotnet does not set dm tag")
     @bug(library="nodejs", reason="nodejs does not set dm tag")
     @bug(library="ruby", reason="ruby does not set dm tag")
-    @bug(library="php", reason="php does not set limit_psr")
+    @bug(library="php", reason="PHP sets sampling priority 2")
     @bug(library="cpp", reason="this test times out with the c++ tracer")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}])
     def test_tags_defaults_rate_1_and_rate_limit_0_sst008(self, test_agent, test_library):
@@ -249,17 +241,17 @@ class Test_Sampling_Span_Tags:
             child_span,
             first_span,
             "-3",
-            2,
+            -1,
             limit_rate=AnyRatio(),
             rule_rate=1,
             description="When DD_TRACE_SAMPLE_RATE=1 is set and DD_TRACE_RATE_LIMIT=0 is set, "
-            "decisionmaker should be -3, priority should be 2, the rule sample rate tag should "
-            "be set to the given sample rate (1), and the limit sample rate tag should be set ",
+            "decisionmaker should be -3, priority should be -1 (because rate limit 0 overrides all other sampling "
+            "rules), the rule sample rate tag should be set to the given sample rate (1), and the limit sample rate "
+            "tag should be set.",
         )
 
     @bug(library="golang", reason="golang sets priority tag 2")
     @bug(library="php", reason="php does not set dm tag")
-    @bug(library="python", reason="python does not set dm tag")
     @bug(library="dotnet", reason="dotnet does not set dm tag")
     @bug(library="java", reason="java does not set dm tag")
     @bug(library="nodejs", reason="nodejs does not set dm tag")
@@ -293,7 +285,6 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="golang", reason="golang sets dm tag -1")
     @bug(library="php", reason="php sets dm tag -1")
-    @bug(library="python", reason="python does not set dm tag")
     @bug(library="dotnet", reason="dotnet does not set dm tag")
     @bug(library="java", reason="java sets dm tag -1")
     @bug(library="nodejs", reason="nodejs sets dm tag -0")
