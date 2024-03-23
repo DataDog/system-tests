@@ -1,4 +1,4 @@
-FROM nginx:1.17.3
+FROM nginx:1.25.4
 
 RUN apt-get update && \
   apt-get install -y wget tar jq curl xz-utils \
