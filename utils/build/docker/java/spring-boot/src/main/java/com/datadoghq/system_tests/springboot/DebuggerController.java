@@ -2,9 +2,9 @@ package com.datadoghq.system_tests.springboot;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
-// Dummy line
-// Dummy line
-// Dummy line
+// The `debugger` feature allows attachment to specific lines of code. 
+// Due to differences in line numbering between `dotnet` and `java`, 
+// 'dummy lines' are used to standardize this functionality.
 // Dummy line
 // Dummy line
 // Dummy line
