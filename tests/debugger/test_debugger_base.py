@@ -34,22 +34,20 @@ def read_data():
 def get_probes_map(data_set):
     probe_hash = {}
 
+    def process_debugger(debugger):
+        if "diagnostics" in debugger:
+            diagnostics = debugger["diagnostics"]
+            probe_hash[diagnostics["probeId"]] = diagnostics
+
     for data in data_set:
-        contents = data["request"].get("content", [])
-        if contents is not None:
-            for content in contents:
-                if "content" in content:
-                    d_contents = json.loads(content["content"])
-                    for d_content in d_contents:
-                        debugger = d_content["debugger"]
-                        if "diagnostics" in debugger:
-                            probe_id = debugger["diagnostics"]["probeId"]
-                            probe_hash[probe_id] = debugger["diagnostics"]
-                else:
-                    debugger = content["debugger"]
-                    if "diagnostics" in debugger:
-                        probe_id = debugger["diagnostics"]["probeId"]
-                        probe_hash[probe_id] = debugger["diagnostics"]
+        contents = data["request"].get("content", []) or []  # Ensures contents is a list
+        for content in contents:
+            if "content" in content:
+                d_contents = json.loads(content["content"])
+                for d_content in d_contents:
+                    process_debugger(d_content["debugger"])
+            else:
+                process_debugger(content["debugger"])
 
     return probe_hash
 
