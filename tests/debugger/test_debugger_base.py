@@ -2,11 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces
-from utils.tools import logger
-from packaging import version
 import json
 import re
+
+from packaging import version
+
+from utils import interfaces
+from utils.tools import logger
 
 _CONFIG_PATH = "/v0.7/config"
 _DEBUGER_PATH = "/api/v2/debugger"

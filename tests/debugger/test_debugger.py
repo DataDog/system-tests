@@ -2,8 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import scenarios, interfaces, weblog, features
 import test_debugger_base as base
+
+from utils import scenarios, interfaces, weblog, features
 
 
 @features.debugger
