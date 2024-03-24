@@ -16,7 +16,7 @@ _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 
 
-def read_data():
+def read_diagnostic_data():
     tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
 
     if tracer["language"] == "java":
@@ -68,7 +68,7 @@ def validate_probes(expected_probes):
                 + expected_status
             )
 
-    probe_map = get_probes_map(read_data())
+    probe_map = get_probes_map(read_diagnostic_data())
     for expected_id, expected_status in expected_probes.items():
         check_probe_status(expected_id, expected_status, probe_map)
 
