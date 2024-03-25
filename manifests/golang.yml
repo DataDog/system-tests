@@ -459,7 +459,7 @@ tests/:
     Test_StandardTagsUrl: v1.40.0
     Test_StandardTagsUserAgent: v1.39.0
   test_telemetry.py:
-    Test_DependencyEnable: missing_feature
+    Test_DependencyEnable: v1.49.0
     Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: missing_feature
