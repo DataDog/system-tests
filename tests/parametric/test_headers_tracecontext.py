@@ -803,7 +803,7 @@ class Test_Headers_Tracecontext:
             headers = test_library.inject_headers(span.span_id)
 
             tracestate_headers = list(filter(lambda h: h[0].lower() == "tracestate", headers))
-            assert len(tracestate_headers) == 1
+            assert len(tracestate_headers) == 1, headers
 
             tracestate = tracestate_headers[0][1]
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
