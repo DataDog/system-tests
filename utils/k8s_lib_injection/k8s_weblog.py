@@ -235,7 +235,7 @@ class K8sWeblog:
                 )
 
                 self.logger.info(f"[Weblog] Deleting previous pod {pod_name_running}")
-                v1.delete_namespaced_pod(pod_name_running, "default")
+                self.k8s_wrapper.delete_namespaced_pod(pod_name_running, "default")
 
                 # weird behavior, sometimes the pod is not deleted or a new one is created. Debug info is needed
                 time.sleep(5)
@@ -297,9 +297,10 @@ class K8sWeblog:
             time.sleep(2)
             try:
                 response = self.k8s_wrapper.read_namespaced_deployment_status(deployment_name, "default")
-                s = response.status
+                s = response.status if response is not None else None
                 if (
-                    s.updated_replicas == response.spec.replicas
+                    s is not None
+                    and s.updated_replicas == response.spec.replicas
                     and s.replicas == response.spec.replicas
                     and s.available_replicas == response.spec.replicas
                     and s.observed_generation >= response.metadata.generation
@@ -307,10 +308,11 @@ class K8sWeblog:
                     self.logger.info("[Deploy weblog] Weblog deployment completed!")
                     return True
                 else:
-                    self.logger.info(
-                        f"[updated_replicas:{s.updated_replicas},replicas:{s.replicas}"
-                        f"available_replicas:{s.available_replicas},observed_generation:{s.observed_generation}] waiting..."
-                    )
+                    if s is not None:
+                        self.logger.info(
+                            f"[updated_replicas:{s.updated_replicas},replicas:{s.replicas}"
+                            f"available_replicas:{s.available_replicas},observed_generation:{s.observed_generation}] waiting..."
+                        )
             except Exception as e:
                 self.logger.info(f"Error checking deployment status: {e}")
         self.logger.error(f"[Deploy weblog: {deployment_name}] weblog deployment did not start in {timeout} seconds")

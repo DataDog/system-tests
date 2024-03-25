@@ -32,9 +32,11 @@ class K8sWrapper:
     def __init__(self, k8s_kind_cluster):
         self.k8s_kind_cluster = k8s_kind_cluster
 
+    @retry(max_retries=5, wait_time=1)
     def core_v1_api(self):
         return client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
+    @retry(max_retries=5, wait_time=1)
     def apps_api(self):
         return client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
@@ -97,3 +99,11 @@ class K8sWrapper:
     @retry(max_retries=5, wait_time=1)
     def read_namespaced_deployment(self, deployment_name, namespace="default"):
         return self.apps_api().read_namespaced_deployment(deployment_name, namespace=namespace)
+
+    @retry(max_retries=5, wait_time=1)
+    def patch_namespaced_deployment(self, deployment_name, namespace, deploy_data):
+        return self.apps_api().patch_namespaced_deployment(deployment_name, namespace, deploy_data)
+
+    @retry(max_retries=5, wait_time=1)
+    def delete_namespaced_pod(self, pod_name_running, namespace):
+        return self.core_v1_api().delete_namespaced_pod(pod_name_running, namespace=namespace)
