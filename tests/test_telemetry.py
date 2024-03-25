@@ -118,9 +118,6 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
 
-    @missing_feature(library="python")
-    @flaky(library="ruby", reason="AIT-8418")
-    @flaky(library="java", reason="AIT-9152")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
