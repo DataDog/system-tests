@@ -28,6 +28,7 @@ from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
 from ddtrace.propagation.http import HTTPPropagator
+from ddtrace.internal.utils.version import parse_version
 
 
 spans: Dict[int, Span] = {}
@@ -158,7 +159,11 @@ class SpanInjectReturn(BaseModel):
 def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     span = spans[args.span_id]
     headers = {}
-    HTTPPropagator.inject(span.context, headers, span)
+    # span was added as a kwarg for inject in ddtrace 2.8
+    if get_ddtrace_version() >= (2, 8, 0):
+        HTTPPropagator.inject(span.context, headers, span)
+    else:
+        HTTPPropagator.inject(span.context, headers)
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
@@ -473,6 +478,10 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
     attributes = args.attributes
     span.set_attributes(attributes)
     return OtelSetAttributesReturn()
+
+
+def get_ddtrace_version() -> Tuple[int, int, int]:
+    return parse_version(getattr(ddtrace, "__version__", ""))
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests

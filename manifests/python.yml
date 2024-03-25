@@ -533,6 +533,14 @@ tests/:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: v2.5.0
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: v1.9.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Globs: v2.8.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
+      Test_Trace_Sampling_Resource: v2.8.0
+      Test_Trace_Sampling_Tags: v2.8.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v2.8.0
+      Test_Trace_Sampling_With_W3C: v2.8.0
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
       Test_TracerUniversalServiceTagging: v0.36.0
