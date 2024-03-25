@@ -43,7 +43,8 @@ class K8sWeblog:
             except Exception as e:
                 self.logger.info(f"Error getting k8s api: {e}")
                 time.sleep(2)
-        raise Exception("Error getting k8s api")
+        self.logger.error(f"RMM Error getting k8s api")
+        raise Exception("RMM Error getting k8s api")
 
     def _k8s_api(self):
         v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))

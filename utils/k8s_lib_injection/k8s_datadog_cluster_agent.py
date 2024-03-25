@@ -194,7 +194,11 @@ class K8sDatadogClusterTestAgent:
             func=self.k8s_wrapper.list_namespaced_config_map, namespace="default", timeout_seconds=timeout
         ):
             k8s_logger(self.output_folder, self.test_name, "events_configmaps").info(event)
-            if event["type"] == "ADDED" and event["object"].metadata.name == "auto-instru":
+            if (
+                event["type"] == "ADDED"
+                and hasattr(event["object"], "metadata")
+                and event["object"].metadata.name == "auto-instru"
+            ):
                 self.logger.info("[Auto Config] Configmap applied!")
                 w.stop()
                 break
@@ -235,9 +239,12 @@ class K8sDatadogClusterTestAgent:
 
         w = watch.Watch()
         for event in w.stream(
-            func=self.k8s_wrapper.list_namespaced_pod, label_selector="app=datadog", timeout_seconds=60
+            func=self.k8s_wrapper.list_namespaced_pod,
+            namespace="default",
+            label_selector="app=datadog",
+            timeout_seconds=60,
         ):
-            if event["object"].status.phase == "Running":
+            if hasattr(event["object"], "status") and event["object"].status.phase == "Running":
                 w.stop()
                 self.logger.info("Datadog test agent started!")
                 break
@@ -246,7 +253,7 @@ class K8sDatadogClusterTestAgent:
         operator_ready = False
         operator_status = None
 
-        pods = self.k8s_wrapper.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+        pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
         datadog_cluster_name = pods.items[0].metadata.name
 
         for i in range(20):
@@ -292,22 +299,27 @@ class K8sDatadogClusterTestAgent:
         k8s_logger(self.output_folder, self.test_name, "daemon.set.describe").info(api_response)
 
         # Cluster logs, admission controller
-        pods = self.k8s_wrapper.list_namespaced_pod(label_selector="app=datadog-cluster-agent")
-        assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
-        api_response = self.k8s_wrapper.read_namespaced_pod_log(name=pods.items[0].metadata.name, namespace="default")
-        k8s_logger(self.output_folder, self.test_name, "datadog-cluster-agent").info(api_response)
+        try:
+            pods = self.k8s_wrapper.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+            assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
+            api_response = self.k8s_wrapper.read_namespaced_pod_log(
+                name=pods.items[0].metadata.name, namespace="default"
+            )
+            k8s_logger(self.output_folder, self.test_name, "datadog-cluster-agent").info(api_response)
 
-        # Export: Telemetry datadog-cluster-agent
-        execute_command_sync(
-            f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry ",
-            self.k8s_kind_cluster,
-            logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_telemetry.log",
-        )
+            # Export: Telemetry datadog-cluster-agent
+            execute_command_sync(
+                f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry ",
+                self.k8s_kind_cluster,
+                logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_telemetry.log",
+            )
 
-        # Export: Status datadog-cluster-agent
-        # Sometimes this command fails. Ignore this error
-        execute_command_sync(
-            f"kubectl exec -it {pods.items[0].metadata.name} -- agent status || true ",
-            self.k8s_kind_cluster,
-            logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_status.log",
-        )
+            # Export: Status datadog-cluster-agent
+            # Sometimes this command fails. Ignore this error
+            execute_command_sync(
+                f"kubectl exec -it {pods.items[0].metadata.name} -- agent status || true ",
+                self.k8s_kind_cluster,
+                logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_status.log",
+            )
+        except Exception as e:
+            self.logger.error(f"Error exporting datadog-cluster-agent logs: {e}")

@@ -59,12 +59,12 @@ class K8sWrapper:
         return self.core_v1_api().create_namespaced_config_map(namespace=namespace, body=body)
 
     @retry(max_retries=5, wait_time=1)
-    def list_namespaced_config_map(self, namespace="default", timeout_seconds=None):
-        return self.core_v1_api().list_namespaced_config_map(namespace=namespace, timeout_seconds=timeout_seconds)
+    def list_namespaced_config_map(self, namespace, **kwargs):
+        return self.core_v1_api().list_namespaced_config_map(namespace, **kwargs)
 
     @retry(max_retries=5, wait_time=1)
-    def list_namespaced_pod(self, namespace="default", label_selector="app=datadog-cluster-agent"):
-        return self.core_v1_api().list_namespaced_pod(namespace=namespace, label_selector=label_selector)
+    def list_namespaced_pod(self, namespace, **kwargs):
+        return self.core_v1_api().list_namespaced_pod(namespace, **kwargs)
 
     @retry(max_retries=5, wait_time=1)
     def read_namespaced_pod_log(self, name=None, namespace="default"):
