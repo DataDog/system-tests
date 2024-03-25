@@ -230,7 +230,6 @@ class Test_CustomBlockingResponse:
         context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
         reason="Do not check the configured redirect status code",
     )
-    @bug(context.library == "golang", reason="Do not check the configured redirect status code")
     def test_custom_redirect_wrong_status_code(self):
         """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
         assert self.r_cr.status_code == 303
@@ -240,7 +239,6 @@ class Test_CustomBlockingResponse:
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False)
 
     @bug(context.library == "java", reason="Do not check the configured redirect location value")
-    @bug(context.library == "golang", reason="Do not check the configured redirect location value")
     def test_custom_redirect_missing_location(self):
         """Block with an default page because location parameter is missing from redirect request configuration"""
         assert self.r_cr.status_code == 403

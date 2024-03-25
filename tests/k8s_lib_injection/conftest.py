@@ -1,7 +1,7 @@
 import requests
 import pytest
 import os
-
+import time
 from utils import context
 from utils.tools import logger
 import json
@@ -101,6 +101,9 @@ class K8sInstance:
 
     def apply_config_auto_inject(self, config_data, rev=0, timeout=200):
         self.test_agent.apply_config_auto_inject(config_data, rev=rev)
+        # After coonfigmap is applied, we need to wait for the weblog to be restarted.
+        # But let's give the kubernetes cluster 5 seconds to react by launching the redeployments.
+        time.sleep(5)
         self.test_weblog.wait_for_weblog_after_apply_configmap(f"{self.library}-app", timeout=timeout)
         return self.test_agent
 

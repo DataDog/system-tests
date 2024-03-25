@@ -134,6 +134,26 @@ class TestConfigMapAutoInject:
                     "namespace": "default",
                 },
             },
+            {
+                "id": "11777398274940883092",
+                "revision": 0,
+                "schema_version": "v1.0.0",
+                "action": "enable",
+                "lib_config": {
+                    "library_language": "all",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
+                    "service_name": "test-service",
+                    "env": "dev",
+                    "tracing_enabled": True,
+                    "tracing_sampling_rate": 0.90,
+                },
+                "k8s_target": {
+                    "cluster": test_k8s_instance.k8s_kind_cluster.cluster_name,
+                    "kind": "deployment",
+                    "name": "test-dotnet-deployment",
+                    "namespace": "default",
+                },
+            },
         ]
 
     def get_k8s_api(self, k8s_kind_cluster):
@@ -152,12 +172,26 @@ class TestConfigMapAutoInject:
         apps_api = client.AppsV1Api(api_client=config.new_client_from_config(context=k8s_kind_cluster.context_name))
         return v1, apps_api
 
+    def list_namespaced_pod(self, test_k8s_instance, namespace="default", label_selector=None):
+        """ Get list namespace pod and retry if it fails. """
+        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
+        try:
+            return v1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
+        except Exception as e:
+            return v1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
+
+    def read_namespaced_deployment(self, test_k8s_instance, deployment_name=None):
+        """ Get deployment and retry if it fails."""
+        _, api = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
+        try:
+            return api.read_namespaced_deployment(deployment_name, "default")
+        except Exception as e:
+            return api.read_namespaced_deployment(deployment_name, "default")
+
     def _check_for_env_vars(self, test_k8s_instance, expected_env_vars):
         """ evaluates whether the expected tracer config is reflected in the env vars of the targeted pod. """
-        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
-
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        pods = self.list_namespaced_pod(test_k8s_instance, label_selector=f"app={app_name}")
         assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         for expected_env_var in expected_env_vars:
@@ -173,10 +207,9 @@ class TestConfigMapAutoInject:
 
     def _check_for_pod_metadata(self, test_k8s_instance):
         """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
-        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        pods = self.list_namespaced_pod(test_k8s_instance, label_selector=f"app={app_name}")
         assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         assert (
@@ -192,10 +225,9 @@ class TestConfigMapAutoInject:
 
     def _check_for_pod_metadata_all_libraries(self, test_k8s_instance):
         """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
-        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        pods = self.list_namespaced_pod(test_k8s_instance, label_selector=f"app={app_name}")
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
 
         assert (
@@ -213,9 +245,7 @@ class TestConfigMapAutoInject:
 
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
         rc_id = "11777398274940883092"
-
-        _, api = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
-        deployment = api.read_namespaced_deployment(deployment_name, "default")
+        deployment = self.read_namespaced_deployment(test_k8s_instance, deployment_name)
         assert (
             deployment.metadata.annotations["admission.datadoghq.com/rc.id"] == rc_id
         ), f"Deployment annotation 'admission.datadoghq.com/rc.id' not equal [{rc_id}]. Deployment description: {deployment}"
@@ -229,7 +259,7 @@ class TestConfigMapAutoInject:
         """
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
         _, api = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
-        deploy_data = api.read_namespaced_deployment(deployment_name, "default")
+        deploy_data = self.read_namespaced_deployment(test_k8s_instance, deployment_name)
         # get envs from deployment's first container
         dep_envs = deploy_data.spec.template.spec.containers[0].env
         dep_envs.append(client.V1EnvVar(name="ENV_FOO", value="ENV_BAR"))
@@ -240,9 +270,8 @@ class TestConfigMapAutoInject:
 
     def _check_for_no_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
-        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        pods = self.list_namespaced_pod(test_k8s_instance, label_selector=f"app={app_name}")
         assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         assert (
@@ -251,9 +280,9 @@ class TestConfigMapAutoInject:
 
     def _check_for_disabled_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
-        v1, _ = self.get_k8s_api(test_k8s_instance.k8s_kind_cluster)
+
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        pods = self.list_namespaced_pod(test_k8s_instance, label_selector=f"app={app_name}")
         assert len(pods.items) != 0, f"No pods found for app {app_name}"
         assert (
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
