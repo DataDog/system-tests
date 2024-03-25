@@ -67,6 +67,10 @@ class K8sWrapper:
         return self.core_v1_api().list_namespaced_pod(namespace, **kwargs)
 
     @retry(max_retries=5, wait_time=1)
+    def read_namespaced_pod(self, pod_name, namespace="default"):
+        return self.core_v1_api().read_namespaced_pod(pod_name, namespace=namespace)
+
+    @retry(max_retries=5, wait_time=1)
     def read_namespaced_pod_log(self, name=None, namespace="default"):
         return self.core_v1_api().read_namespaced_pod_log(name=name, namespace=namespace)
 
@@ -77,3 +81,19 @@ class K8sWrapper:
     @retry(max_retries=5, wait_time=1)
     def list_deployment_for_all_namespaces(self):
         return self.apps_api().list_deployment_for_all_namespaces()
+
+    @retry(max_retries=5, wait_time=1)
+    def create_namespaced_pod(self, namespace="default", body=None):
+        return self.core_v1_api().create_namespaced_pod(namespace=namespace, body=body)
+
+    @retry(max_retries=5, wait_time=1)
+    def create_namespaced_deployment(self, body=None, namespace="default"):
+        return self.apps_api().create_namespaced_deployment(namespace=namespace, body=body)
+
+    @retry(max_retries=5, wait_time=1)
+    def read_namespaced_deployment_status(self, deployment_name, namespace="default"):
+        return self.apps_api().read_namespaced_deployment_status(deployment_name, namespace=namespace)
+
+    @retry(max_retries=5, wait_time=1)
+    def read_namespaced_deployment(self, deployment_name, namespace="default"):
+        return self.apps_api().read_namespaced_deployment(deployment_name, namespace=namespace)

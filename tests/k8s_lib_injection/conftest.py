@@ -76,7 +76,7 @@ class K8sInstance:
         self.k8s_kind_cluster = ensure_cluster()
         self.k8s_wrapper = K8sWrapper(self.k8s_kind_cluster)
         self.test_agent.configure(self.k8s_kind_cluster, self.k8s_wrapper)
-        self.test_weblog.configure(self.k8s_kind_cluster)
+        self.test_weblog.configure(self.k8s_kind_cluster, self.k8s_wrapper)
         try:
             config.load_kube_config()
             logger.info(f"kube config loaded")

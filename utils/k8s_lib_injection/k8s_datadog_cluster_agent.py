@@ -227,7 +227,7 @@ class K8sDatadogClusterTestAgent:
         # Wait for the daemonset to be created
         for i in range(20):
             daemonset_status = self.k8s_wrapper.read_namespaced_daemon_set_status(name="datadog")
-            if daemonset_status.status.number_ready > 0:
+            if daemonset_status is not None and daemonset_status.status.number_ready > 0:
                 self.logger.info(f"[Test agent] daemonset status datadog running!")
                 daemonset_created = True
                 break
@@ -244,7 +244,7 @@ class K8sDatadogClusterTestAgent:
             label_selector="app=datadog",
             timeout_seconds=60,
         ):
-            if hasattr(event["object"], "status") and event["object"].status.phase == "Running":
+            if "status" in event["object"] and event["object"]["status"]["phase"] == "Running":
                 w.stop()
                 self.logger.info("Datadog test agent started!")
                 break
