@@ -96,7 +96,7 @@ class K8sWrapper:
     def read_namespaced_deployment_status(self, deployment_name, namespace="default"):
         return self.apps_api().read_namespaced_deployment_status(deployment_name, namespace=namespace)
 
-    @retry(max_retries=5, wait_time=1)
+    @retry(max_retries=10, wait_time=1)
     def read_namespaced_deployment(self, deployment_name, namespace="default"):
         return self.apps_api().read_namespaced_deployment(deployment_name, namespace=namespace)
 
