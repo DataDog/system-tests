@@ -210,6 +210,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ######################################################
 
+    def assert_iast_implemented(self):
+        for _, span in self.get_root_spans():
+            if "_dd.iast.enabled" in span.get("metrics", {}):
+                return
+
+        raise ValueError("_dd.iast.enabled has not been found in any metrics")
+
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate(validator, path_filters=path_filter, success_by_default=True)
