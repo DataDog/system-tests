@@ -205,7 +205,7 @@ class K8sDatadogClusterTestAgent:
 
         # Second wait for datadog-cluster-agent read the configmap
         expected_log = f'Applying Remote Config ID "{patch_id}" with revision "{rev}" and action'
-        pods = self.k8s_wrapper.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+        pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
         assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
         pod_cluster_agent_name = pods.items[0].metadata.name
         timeout = time.time() + timeout
@@ -283,8 +283,8 @@ class K8sDatadogClusterTestAgent:
         We shouldn't raise any exception here, we just log the errors."""
 
         # Get all pods
-        ret = self.k8s_wrapper.list_namespaced_pod(namespace="default", watch=False)
-        if ret is None:
+        ret = self.k8s_wrapper.list_namespaced_pod("default", watch=False)
+        if ret is not None:
             for i in ret.items:
                 k8s_logger(self.output_folder, self.test_name, "get.pods").info(
                     "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
@@ -307,7 +307,7 @@ class K8sDatadogClusterTestAgent:
 
         # Cluster logs, admission controller
         try:
-            pods = self.k8s_wrapper.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+            pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
             assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
             api_response = self.k8s_wrapper.read_namespaced_pod_log(
                 name=pods.items[0].metadata.name, namespace="default"
