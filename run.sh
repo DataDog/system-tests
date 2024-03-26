@@ -96,8 +96,34 @@ function die() {
 
 function lookup_scenario_group() {
     local group="$1"
+    local mode="$2"
 
-    cat < scenario_groups.yml | python -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]' "${group}"
+    local python=()
+
+    case "${mode}" in
+        'docker')
+            python+=(
+              docker run
+              --rm -i
+              system_tests/runner
+              venv/bin/python
+            )
+            ;;
+        'direct')
+            python+=(python)
+            ;;
+        *)
+            die "unsupported run mode: ${mode}"
+            ;;
+    esac
+
+    python+=(
+        -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]'
+    )
+
+    echo "${python[*]}" 1>&2
+
+    cat < scenario_groups.yml | "${python[@]}" "${group}"
 }
 
 function upcase() {
@@ -115,6 +141,21 @@ function is_using_nix() {
 function activate_venv() {
     # shellcheck disable=SC1091
     source venv/bin/activate
+}
+
+function network_name() {
+    perl -ne '/_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
+}
+
+function ensure_network() {
+    local network_name
+    network_name="$(network_name)"
+
+    if docker network ls | grep -q "${network_name}"; then
+        : # network exists
+    else
+        docker network create "${network_name}"
+    fi
 }
 
 function run_scenario() {
@@ -148,8 +189,22 @@ function run_scenario() {
             cmd+=(
               docker run
               --network system-tests_default
-              --rm -it
-              -v "${PWD}"/.env:/app/.env
+              --rm -i
+            )
+            if [ -t 1 ]; then
+                cmd+=(-t)
+            fi
+            if [[ -n "${DD_API_KEY:-}" ]]; then
+              cmd+=(
+                -e DD_API_KEY="${DD_API_KEY}"
+              )
+            fi
+            if [[ -f .env ]]; then
+              cmd+=(
+                -v "${PWD}"/.env:/app/.env
+              )
+            fi
+            cmd+=(
               -v /var/run/docker.sock:/var/run/docker.sock
               -v "${PWD}/${log_dir}":"/app/${log_dir}"
               -e SYSTEM_TESTS_WEBLOG_HOST=weblog
@@ -181,15 +236,10 @@ function main() {
     local docker="${DOCKER_MODE:-0}"
     local verbosity=0
     local dry=0
-    local scenarios=()
+    local scenario_args=()
     local libraries=()
     local pytest_args=()
     local pytest_numprocesses='auto'
-
-    # ensure environment
-    if ! is_using_nix; then
-        activate_venv
-    fi
 
     ## handle environment variables
 
@@ -221,9 +271,7 @@ function main() {
                   exit 64
                 fi
                 # upcase via ${2^^} is unsupported on bash 3.x
-                # bash 3.x does not support mapfile, dance around with tr and IFS
-                IFS=',' read -r -a group <<< "$(lookup_scenario_group "$(echo "$2" | upcase)" | tr '\n' ',')"
-                scenarios+=("${group[@]}")
+                scenario_args+=("$(echo "$2" | upcase)")
                 shift
                 ;;
             +S|++scenario|-S|--scenario)
@@ -235,7 +283,7 @@ function main() {
                   exit 64
                 fi
                 # upcase via ${2^^} is unsupported on bash 3.x
-                scenarios+=("$(echo "$2" | upcase)")
+                scenario_args+=("$(echo "$2" | upcase)")
                 shift
                 ;;
             +l|++library)
@@ -260,12 +308,8 @@ function main() {
                 ;;
             *)
                 # handle positional arguments
-                if [[ "$1" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
-                    # bash 3.x does not support mapfile, dance around with tr and IFS
-                    IFS=',' read -r -a group <<< "$(lookup_scenario_group "$1" | tr '\n' ',')"
-                    scenarios+=("${group[@]}")
-                elif [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
-                    scenarios+=("$1")
+                if [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
+                    scenario_args+=("$1")
                 else
                     # pass any unmatched arguments to pytest
                     pytest_args+=("$1")
@@ -279,6 +323,35 @@ function main() {
     pytest_args+=("$@")
 
     ## prepare commands
+
+    # set run mode
+    if [[ "${docker}" == 1 ]]; then
+        run_mode='docker'
+    else
+        run_mode='direct'
+    fi
+
+    # ensure environment
+    if [[ "${run_mode}" == "docker" ]] || is_using_nix; then
+        : # no venv needed
+    else
+        activate_venv
+    fi
+
+    # process scenario list
+    local scenarios=()
+
+    # expand scenario groups
+    # bash 3.x does not support mapfile, dance around with tr and IFS
+    for i in "${scenario_args[@]}"; do
+        if [[ "${i}" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
+                # bash 3.x does not support mapfile, dance around with tr and IFS
+                IFS=',' read -r -a group <<< "$(lookup_scenario_group "${i}" "${run_mode}" | tr '\n' ',')"
+                scenarios+=("${group[@]}")
+        else
+                scenarios+=("${i}")
+        fi
+    done
 
     # when no scenario is provided, use a nice default
     if [[ "${#scenarios[@]}" -lt 1 ]]; then
@@ -322,6 +395,13 @@ function main() {
       done
     fi
 
+    # evaluate max pytest number of process for K8s_lib_injection
+    for scenario in "${scenarios[@]}"; do
+        if [[ "${scenario}" == "K8S_LIB_INJECTION" ]]; then
+            pytest_numprocesses=$(nproc)
+        fi
+    done
+
     case "${pytest_numprocesses}" in
         0|1)
             ;;
@@ -332,12 +412,6 @@ function main() {
 
     ## run tests
 
-    if [[ "${docker}" == 1 ]]; then
-        run_mode='docker'
-    else
-        run_mode='direct'
-    fi
-
     if [[ "${verbosity}" -gt 0 ]]; then
         echo "plan:"
         echo "  mode: ${run_mode}"
@@ -346,6 +420,10 @@ function main() {
         for scenario in "${scenarios[@]}"; do
             echo "    - ${scenario}"
         done
+    fi
+
+    if [[ "${run_mode}" == "docker" ]]; then
+        ensure_network >/dev/null
     fi
 
     for scenario in "${scenarios[@]}"; do

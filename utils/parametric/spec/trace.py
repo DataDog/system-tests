@@ -293,6 +293,8 @@ def retrieve_span_links(span):
                 link["attributes"] = json_link.get("attributes")
             if "tracestate" in json_link:
                 link["tracestate"] = json_link.get("tracestate")
+            elif "trace_state" in json_link:
+                link["tracestate"] = json_link.get("trace_state")
             if "flags" in json_link:
                 link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
             else:

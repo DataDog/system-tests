@@ -13,7 +13,6 @@ from utils.tools import logger
 @bug(
     context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427",
 )
-@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 @scenarios.appsec_rate_limiter
 @features.appsec_rate_limiter
 class Test_Main:

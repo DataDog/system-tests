@@ -1113,7 +1113,7 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
         )
 
 
-class _KubernetesMachineScenario(_Scenario):
+class _KubernetesScenario(_Scenario):
     """ Scenario that tests kubernetes lib injection """
 
     def __init__(self, name, doc) -> None:
@@ -1131,12 +1131,13 @@ class _KubernetesMachineScenario(_Scenario):
             "DOCKER_REGISTRY_IMAGES_PATH" in os.environ
         ), "DOCKER_REGISTRY_IMAGES_PATH is not set. IE: ghcr.io/datadog"
 
-        library_injection_init_image = self._get_library_injection_init_image()
+        prefix_library_injection_init_image, library_injection_init_image = self._get_library_injection_init_image()
         library_injection_test_app_image = self._get_library_injection_test_app_image()
 
         self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
         self._weblog_variant = os.getenv("WEBLOG_VARIANT")
         self._weblog_variant_image = library_injection_test_app_image
+        self._prefix_library_init_image = prefix_library_injection_init_image
         self._library_init_image = library_injection_init_image
         self._library_init_image_tag = os.getenv("DOCKER_IMAGE_TAG")
 
@@ -1176,19 +1177,24 @@ class _KubernetesMachineScenario(_Scenario):
         docker_registry_images_path = os.getenv("DOCKER_REGISTRY_IMAGES_PATH")
 
         init_docker_image_repo = ""
+        prefix_init_docker_image_repo = ""
         if docker_image_tag == "latest":
             # Release version are published in docker.io
             init_docker_image_repo = f"docker.io/datadog/dd-lib-{init_image_alias}-init"
+            prefix_init_docker_image_repo = f"docker.io/datadog"
         elif docker_image_tag == "local":
             # Docker hub doesn't allow multi level repo paths
+            # TODO review this
             init_docker_image_repo = f"{docker_registry_images_path}/dd-lib-{init_image_alias}-init"
+            prefix_init_docker_image_repo = f"{docker_registry_images_path}"
         else:
             init_docker_image_repo = (
                 f"{docker_registry_images_path}/dd-trace-{init_image_repo_alias}/dd-lib-{init_image_alias}-init"
             )
+            prefix_init_docker_image_repo = f"{docker_registry_images_path}/dd-trace-{init_image_repo_alias}"
 
         library_injection_init_image = f"{init_docker_image_repo}:{docker_image_tag}"
-        return library_injection_init_image
+        return prefix_init_docker_image_repo, library_injection_init_image
 
     @property
     def library(self):
@@ -1637,6 +1643,14 @@ class scenarios:
         doc="Set both method and line probes at the same code",
     )
 
+    debugger_pii_redaction = EndToEndScenario(
+        "DEBUGGER_PII_REDACTION",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
+        library_interface_timeout=5,
+        doc="Check pii redaction",
+    )
+
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
 
     host_auto_injection = HostAutoInjectionScenario(
@@ -1667,7 +1681,7 @@ class scenarios:
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
     )
-    k8s_lib_injection = _KubernetesMachineScenario("K8S_LIB_INJECTION", doc=" Kubernetes Instrumentation scenario")
+    k8s_lib_injection = _KubernetesScenario("K8S_LIB_INJECTION", doc=" Kubernetes Instrumentation scenario")
 
 
 def _main():

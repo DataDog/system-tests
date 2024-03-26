@@ -1,8 +1,10 @@
 import subprocess, datetime, os, time, signal
 from utils.tools import logger
+from utils import context
+from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
 
 
-def execute_command(command, timeout=None):
+def execute_command(command, timeout=None, logfile=None):
     """call shell-command and either return its output or kill it
   if it doesn't normally exit within timeout seconds and return None"""
     applied_timeout = 90
@@ -10,10 +12,13 @@ def execute_command(command, timeout=None):
         applied_timeout = timeout
 
     logger.debug(f"Launching Command: {command} ")
+    command_out_redirect = subprocess.PIPE
+    if logfile:
+        command_out_redirect = open(logfile, "w")
     output = ""
     try:
         start = datetime.datetime.now()
-        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(command.split(), stdout=command_out_redirect, stderr=command_out_redirect)
 
         while process.poll() is None:
             time.sleep(0.1)
@@ -28,12 +33,13 @@ def execute_command(command, timeout=None):
                     # if we specify a timeout, we raise an exception
                     raise Exception(f"Command: {command} timed out after {applied_timeout} seconds")
 
-        output = process.stdout.read()
-        logger.debug(f"Command: {command} \n {output}")
-        if process.returncode != 0:
-            output_error = process.stderr.read()
-            logger.debug(f"Command: {command} \n {output_error}")
-            raise Exception(f"Error executing command: {command} \n {output}")
+        if not logfile:
+            output = process.stdout.read()
+            logger.debug(f"Command: {command} \n {output}")
+            if process.returncode != 0:
+                output_error = process.stderr.read()
+                logger.debug(f"Command: {command} \n {output_error}")
+                raise Exception(f"Error executing command: {command} \n {output}")
 
     except Exception as ex:
         logger.error(f"Error executing command: {command} \n {ex}")
@@ -42,34 +48,111 @@ def execute_command(command, timeout=None):
     return output
 
 
-def ensure_cluster():
-    execute_command(
-        "kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name lib-injection-testing --config utils/k8s_lib_injection/resources/kind-config.yaml"
-    )
-    execute_command("kubectl wait --for=condition=Ready nodes --all --timeout=5m")
+def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
+    """ wrap the execute_command_sync to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _execute_command_sync(command, k8s_kind_cluster, timeout=timeout, logfile=logfile)
+    except Exception as ex:
+        logger.error(f"Error executing command: {command} \n {ex}")
+        logger.error(f"Retrying command: {command}")
+        _execute_command_sync(command, k8s_kind_cluster, timeout=timeout, logfile=logfile)
 
 
-def destroy_cluster():
-    execute_command("kind delete cluster --name lib-injection-testing")
-    execute_command("docker rm -f lib-injection-testing-control-plane")
+def _execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
+    """ Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
+
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}", logfile=logfile)
+        execute_command(command, timeout=timeout, logfile=logfile)
 
 
-def helm_add_repo(name, url, update=False):
+def helm_add_repo(name, url, k8s_kind_cluster, update=False):
+    """ wrap the execute_command_sync to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _helm_add_repo(name, url, k8s_kind_cluster, update=update)
+    except Exception as ex:
+        logger.error(f"Error executing helm add repo: {name} {url} \n {ex}")
+        logger.error(f"Retrying helm add repo: {name} {url}")
+        _helm_add_repo(name, url, k8s_kind_cluster, update=update)
 
-    execute_command(f"helm repo add {name} {url}")
-    if update:
-        execute_command(f"helm repo update")
+
+def _helm_add_repo(name, url, k8s_kind_cluster, update=False):
+
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
+        execute_command(f"helm repo add {name} {url}")
+        if update:
+            execute_command(f"helm repo update")
 
 
-def helm_install_chart(name, chart, set_dict={}, value_file=None):
-    set_str = ""
-    if set_dict:
-        for key, value in set_dict.items():
-            set_str += f" --set {key}={value}"
+def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None):
+    """ wrap the helm_install_chart to retry the command again if it fails.
+    Sometimes there are colissions locking the kubectl context."""
+    try:
+        _helm_install_chart(
+            k8s_kind_cluster,
+            name,
+            chart,
+            set_dict=set_dict,
+            value_file=value_file,
+            prefix_library_init_image=prefix_library_init_image,
+        )
+    except Exception as ex:
+        logger.error(f"Error executing helm install: {name} {chart} \n {ex}")
+        logger.error(f"Retrying helm install: {name} {chart}")
+        _helm_install_chart(
+            k8s_kind_cluster,
+            name,
+            chart,
+            set_dict=set_dict,
+            value_file=value_file,
+            prefix_library_init_image=prefix_library_init_image,
+            upgrade=True,
+        )
 
-    command = f"helm install {name} --wait {set_str} {chart}"
+
+def _helm_install_chart(
+    k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None, upgrade=False
+):
+    # Copy and replace cluster name in the value file
+    custom_value_file = None
     if value_file:
-        # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
-        command = f"helm install {name} {set_str} -f {value_file} {chart}"
+        with open(value_file, "r") as file:
+            value_data = file.read()
 
-    execute_command(command, timeout=90)
+        value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_kind_cluster.cluster_name))
+        if prefix_library_init_image:
+            value_data = value_data.replace("$$PREFIX_INIT_IMAGE$$", prefix_library_init_image)
+
+        custom_value_file = f"{context.scenario.host_log_folder}/{k8s_kind_cluster.cluster_name}_help_values.yaml"
+
+        with open(custom_value_file, "w") as fp:
+            fp.write(value_data)
+            fp.seek(0)
+
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
+        set_str = ""
+        if set_dict:
+            for key, value in set_dict.items():
+                set_str += f" --set {key}={value}"
+
+        command = f"helm install {name} --wait {set_str} {chart}"
+        if upgrade:
+            command = f"helm upgrade {name} --install --wait {set_str} {chart}"
+        if custom_value_file:
+            # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
+            command = f"helm install {name} {set_str} -f {custom_value_file} {chart}"
+            if upgrade:
+                command = f"helm upgrade {name} {set_str}  --install -f {custom_value_file} {chart}"
+
+        execute_command(command, timeout=90)
+
+
+def path_clusterrole(k8s_kind_cluster):
+    """ This is a hack until the patching permission is added in the official helm chart."""
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
+        execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
