@@ -486,17 +486,17 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
-        flask-poc: v2.8.0
+        flask-poc: v2.8.0.dev
       Test_DsmContext_Injection_Base64: 
         "*": irrelevant
-        flask-poc: v2.8.0
+        flask-poc: v2.8.0.dev
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': irrelevant
         flask-poc: v1.20.3
       Test_DsmKinesis:
         '*': irrelevant
-        flask-poc: v2.8.0
+        flask-poc: v2.8.0.dev
       Test_DsmRabbitmq:
         '*': irrelevant
         flask-poc: v2.6.0
@@ -518,7 +518,7 @@ tests/:
       TestDynamicConfigTracingEnabled: v2.6.0
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV1_ServiceTargets: missing_feature
-      TestDynamicConfigV2: missing_feature
+      TestDynamicConfigV2: v2.8.0.dev
     test_otel_api_interoperability.py: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_sampling_delegation.py:
@@ -553,7 +553,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   test_distributed.py:
     Test_DistributedHttp:
@@ -566,7 +566,7 @@ tests/:
   test_library_conf.py:
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1 # was marked as ? when we used decorators
-    Test_HeaderTags_Colon_Trailing: bug (AIT-8601)
+    Test_HeaderTags_Colon_Trailing: v2.8.0.dev
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
     Test_HeaderTags_Whitespace_Header: missing_feature
@@ -594,7 +594,7 @@ tests/:
       '*': v2.4.0.dev
     Test_StandardTagsUserAgent: v1.5.0rc1.dev
   test_telemetry.py:
-    Test_DependencyEnable: missing_feature
+    Test_DependencyEnable: v2.8.0.dev
     Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: missing_feature
