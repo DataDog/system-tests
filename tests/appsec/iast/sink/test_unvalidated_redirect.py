@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, irrelevant, features
+from utils import context, irrelevant, features, missing_feature
 from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
@@ -41,6 +41,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
         super().test_insecure()
 
     @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
+    @missing_feature(library="dotnet", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 

@@ -26,6 +26,7 @@ class TestSSRF(BaseSinkTest):
         super().test_insecure()
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
+    @missing_feature(library="dotnet", reason="Endpoint responds 500")
     def test_secure(self):
         super().test_secure()
 
