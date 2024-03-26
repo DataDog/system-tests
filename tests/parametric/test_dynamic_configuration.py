@@ -224,7 +224,7 @@ class TestDynamicConfigTracingEnabled:
         _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
         if trace_enabled_env:
             test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)            
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
 
         _set_rc(test_agent, _create_rc_config({}))
         with test_library:
