@@ -31,5 +31,6 @@ class TestPathTraversal(BaseSinkTest):
         super().test_telemetry_metric_executed_sink()
 
     @missing_feature(library="dotnet", reason="Endpoint responds 500")
+    @missing_feature(library="java", reason="Endpoint not implemented")
     def test_secure(self):
         return super().test_secure()

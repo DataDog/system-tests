@@ -42,6 +42,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
 
     @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     @missing_feature(library="dotnet", reason="weblog does not respond")
+    @missing_feature(library="java", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 
