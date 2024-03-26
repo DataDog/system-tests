@@ -1,13 +1,14 @@
 import requests
 import pytest
 import os
-
+import time
 from utils import context
 from utils.tools import logger
 import json
 from utils.k8s_lib_injection.k8s_kind_cluster import ensure_cluster, destroy_cluster
 from utils.k8s_lib_injection.k8s_datadog_cluster_agent import K8sDatadogClusterTestAgent
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
+from utils.k8s_lib_injection.k8s_wrapper import K8sWrapper
 from kubernetes import config
 
 
@@ -69,11 +70,13 @@ class K8sInstance:
         self.test_agent = K8sDatadogClusterTestAgent(prefix_library_init_image, output_folder, test_name)
         self.test_weblog = K8sWeblog(weblog_variant_image, library, library_init_image, output_folder, test_name)
         self.k8s_kind_cluster = None
+        self.k8s_wrapper = None
 
     def start_instance(self):
         self.k8s_kind_cluster = ensure_cluster()
-        self.test_agent.configure(self.k8s_kind_cluster)
-        self.test_weblog.configure(self.k8s_kind_cluster)
+        self.k8s_wrapper = K8sWrapper(self.k8s_kind_cluster)
+        self.test_agent.configure(self.k8s_kind_cluster, self.k8s_wrapper)
+        self.test_weblog.configure(self.k8s_kind_cluster, self.k8s_wrapper)
         try:
             config.load_kube_config()
             logger.info(f"kube config loaded")
@@ -101,6 +104,9 @@ class K8sInstance:
 
     def apply_config_auto_inject(self, config_data, rev=0, timeout=200):
         self.test_agent.apply_config_auto_inject(config_data, rev=rev)
+        # After coonfigmap is applied, we need to wait for the weblog to be restarted.
+        # But let's give the kubernetes cluster 5 seconds to react by launching the redeployments.
+        time.sleep(5)
         self.test_weblog.wait_for_weblog_after_apply_configmap(f"{self.library}-app", timeout=timeout)
         return self.test_agent
 

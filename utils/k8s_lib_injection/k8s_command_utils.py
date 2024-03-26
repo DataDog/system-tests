@@ -2,6 +2,7 @@ import subprocess, datetime, os, time, signal
 from utils.tools import logger
 from utils import context
 from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
+from utils.k8s_lib_injection.k8s_wrapper import retry
 
 
 def execute_command(command, timeout=None, logfile=None):
@@ -48,13 +49,16 @@ def execute_command(command, timeout=None, logfile=None):
     return output
 
 
+@retry(max_retries=5, wait_time=1)
 def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
+    """ Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
 
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}", logfile=logfile)
         execute_command(command, timeout=timeout, logfile=logfile)
 
 
+@retry(max_retries=5, wait_time=1)
 def helm_add_repo(name, url, k8s_kind_cluster, update=False):
 
     with KubectlLock():
@@ -64,7 +68,10 @@ def helm_add_repo(name, url, k8s_kind_cluster, update=False):
             execute_command(f"helm repo update")
 
 
-def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None):
+@retry(max_retries=5, wait_time=1)
+def helm_install_chart(
+    k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None, upgrade=False
+):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -89,9 +96,13 @@ def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=No
                 set_str += f" --set {key}={value}"
 
         command = f"helm install {name} --wait {set_str} {chart}"
+        if upgrade:
+            command = f"helm upgrade {name} --install --wait {set_str} {chart}"
         if custom_value_file:
             # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"
             command = f"helm install {name} {set_str} -f {custom_value_file} {chart}"
+            if upgrade:
+                command = f"helm upgrade {name} {set_str}  --install -f {custom_value_file} {chart}"
 
         execute_command(command, timeout=90)
 

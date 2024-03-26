@@ -38,8 +38,11 @@ jobs:
         - library: ruby
           weblog-variant: dd-lib-ruby-init-test-rails-gemsrb
 
-        version: 
-          - latest #Production tag
+        - library: dotnet
+          weblog-variant: dd-lib-dotnet-init-test-app
+
+        version:      
+          - latest
           - latest_snapshot
 
       fail-fast: false
