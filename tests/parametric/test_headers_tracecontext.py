@@ -798,9 +798,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             with test_library.start_span(name="new_span") as span:
-                pass
-
-            headers = test_library.inject_headers(span.span_id)
+                headers = test_library.inject_headers(span.span_id)
 
             tracestate_headers = list(filter(lambda h: h[0].lower() == "tracestate", headers))
             assert len(tracestate_headers) == 1, headers
