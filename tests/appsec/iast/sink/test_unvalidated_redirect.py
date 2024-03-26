@@ -60,3 +60,9 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     secure_endpoint = "/iast/unvalidated_redirect/test_secure_header"
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
+
+    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 405")
+    @missing_feature(context.weblog_variant == "resteasy-netty3", reason="Endpoint responds 405")
+    @missing_feature(context.weblog_variant == "vertx3", reason="Endpoint responds 403")
+    def test_secure(self):
+        return super().test_secure()
