@@ -258,7 +258,9 @@ class K8sDatadogClusterTestAgent:
             if datadog_cluster_name is None:
                 pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
                 datadog_cluster_name = pods.items[0].metadata.name if pods and len(pods.items) > 0 else None
-            operator_status = self.k8s_wrapper.read_namespaced_pod_status(name=datadog_cluster_name)
+            operator_status = (
+                self.k8s_wrapper.read_namespaced_pod_status(name=datadog_cluster_name) if datadog_cluster_name else None
+            )
             if (
                 operator_status
                 and operator_status.status.phase == "Running"
