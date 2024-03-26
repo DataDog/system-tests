@@ -89,7 +89,10 @@ jobs:
           cd ..
 
       - name: Build weblog latest base images
-        if: github.ref == 'refs/heads/main'
+        #If we execute on system-tests-dashboard, we can't push the images because we don't have the permissions.
+        #To asign the permissions, we need to configure the image on ghcr, but due to a issue we can't do it
+        #The case is opened with github support
+        if: github.ref == 'refs/heads/main' && github.event_name != 'schedule'
         env:
           DOCKER_IMAGE_WEBLOG_TAG: latest
           APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
