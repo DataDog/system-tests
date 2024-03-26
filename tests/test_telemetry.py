@@ -178,7 +178,7 @@ class Test_Telemetry:
                         f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
                     )
 
-    @bug(library="ruby", reason="app-started not sent")
+    @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
@@ -197,7 +197,7 @@ class Test_Telemetry:
 
         assert all((count == 1 for count in count_by_runtime_id.values()))
 
-    @bug(library="ruby", reason="app-started not sent")
+    @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
@@ -283,6 +283,7 @@ class Test_Telemetry:
     @irrelevant(library="dotnet")
     @irrelevant(library="golang")
     @irrelevant(library="python")
+    @missing_feature(context.library >= "ruby@1.22.0", reason="Telemetry V2 sends app-dependencies-loaded")
     @features.dd_telemetry_dependency_collection_enabled_supported
     def test_app_dependencies_loaded_not_sent(self):
         """app-dependencies-loaded request should not be sent"""
@@ -353,7 +354,7 @@ class Test_Telemetry:
     @irrelevant(library="cpp")
     @irrelevant(library="golang")
     @irrelevant(library="python")
-    @irrelevant(library="ruby")
+    @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @bug(
         library="java",
         reason="""
@@ -368,6 +369,7 @@ class Test_Telemetry:
             "dotnet": {"NodaTime": False},
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
+            "ruby": {"bundler": False},
         }
 
         test_defined_dependencies = {
@@ -405,6 +407,7 @@ class Test_Telemetry:
                 "unboundid-ldapsdk": False,
                 "httpclient": False,
             },
+            "ruby": {},
         }
 
         seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
@@ -457,8 +460,9 @@ class Test_Telemetry:
 
     @irrelevant(library="cpp")
     @missing_feature(
-        context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
+        context.library in ("golang", "cpp", "php"), reason="Telemetry is not implemented yet. ",
     )
+    @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @bug(
         library="python",
         reason="""
@@ -473,6 +477,7 @@ class Test_Telemetry:
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
             "java": {"trace_agent_port": 8126, "telemetry_heartbeat_interval": 2},
+            "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
         }
         configuration_map = test_configuration[context.library.library]
 
@@ -585,7 +590,7 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
-    @missing_feature(library="ruby", reason="dd-client-library-version missing")
+    @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(library="python", reason="library versions do not match due to different origins")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads """
