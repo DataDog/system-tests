@@ -279,20 +279,22 @@ class K8sDatadogClusterTestAgent:
 
         # Get all pods
         ret = self.k8s_wrapper.list_namespaced_pod(namespace="default", watch=False)
-        for i in ret.items:
-            k8s_logger(self.output_folder, self.test_name, "get.pods").info(
-                "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
-            )
-            execute_command_sync(
-                f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
-                self.k8s_kind_cluster,
-                logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
-            )
+        if ret is None:
+            for i in ret.items:
+                k8s_logger(self.output_folder, self.test_name, "get.pods").info(
+                    "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+                )
+                execute_command_sync(
+                    f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
+                    self.k8s_kind_cluster,
+                    logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
+                )
 
         # Get all deployments
         deployments = self.k8s_wrapper.list_deployment_for_all_namespaces()
-        for deployment in deployments.items:
-            k8s_logger(self.output_folder, self.test_name, "get.deployments").info(deployment)
+        if deployments is not None:
+            for deployment in deployments.items:
+                k8s_logger(self.output_folder, self.test_name, "get.deployments").info(deployment)
 
         # Daemonset describe
         api_response = self.k8s_wrapper.read_namespaced_daemon_set(name="datadog")

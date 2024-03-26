@@ -7,21 +7,22 @@ def retry(max_retries, wait_time):
     """ Decorator to retry a function if it fails."""
 
     def decorator(func):
-        def wrapper(*args, **kwargs):
-            retries = 0
-            if retries < max_retries:
+        def newfn(*args, **kwargs):
+            attempt = 0
+            while attempt < max_retries:
                 try:
-                    result = func(*args, **kwargs)
-                    if result is not None:
-                        return result
-                except Exception as e:
-                    retries += 1
+                    res = func(*args, **kwargs)
+                    if res is not None:
+                        return res
+                except Exception:
+                    logger.info(
+                        "Exception thrown when attempting to run %s, attempt " "%d of %d" % (func, attempt, max_retries)
+                    )
+                    attempt += 1
                     time.sleep(wait_time)
-            else:
-                logger.error(f"Max retries of function {func} exceeded")
-                raise Exception(f"Max retries of function {func} exceeded")
+            return func(*args, **kwargs)
 
-        return wrapper
+        return newfn
 
     return decorator
 
