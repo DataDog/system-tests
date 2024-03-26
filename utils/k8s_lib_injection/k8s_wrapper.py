@@ -1,5 +1,6 @@
 import time
 from kubernetes import client, config, watch
+from utils.tools import logger
 
 
 def retry(max_retries, wait_time):
@@ -17,6 +18,7 @@ def retry(max_retries, wait_time):
                     retries += 1
                     time.sleep(wait_time)
             else:
+                logger.error(f"Max retries of function {func} exceeded")
                 raise Exception(f"Max retries of function {func} exceeded")
 
         return wrapper

@@ -281,7 +281,7 @@ class K8sWeblog:
         start = datetime.datetime.now()
         while True:
             pod = self.k8s_wrapper.read_namespaced_pod(pod_name)
-            if pod.status.phase == "Running" and pod.status.container_statuses[0].ready:
+            if pod is not None and pod.status.phase == "Running" and pod.status.container_statuses[0].ready:
                 self.logger.info("[Deploy weblog] Weblog pod started!")
                 return
             time.sleep(1)
