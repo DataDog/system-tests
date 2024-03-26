@@ -11,7 +11,8 @@ def retry(max_retries, wait_time):
             if retries < max_retries:
                 try:
                     result = func(*args, **kwargs)
-                    return result
+                    if result is not None:
+                        return result
                 except Exception as e:
                     retries += 1
                     time.sleep(wait_time)
