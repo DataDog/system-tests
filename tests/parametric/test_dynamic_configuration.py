@@ -219,7 +219,13 @@ class TestDynamicConfigTracingEnabled:
     )
     @irrelevant(library="golang")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
-        set_and_wait_rc(test_agent, config_overrides={"tracing_enabled": False})
+        trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
+
+        _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
+        if trace_enabled_env:
+            test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)            
+
         _set_rc(test_agent, _create_rc_config({}))
         with test_library:
             with test_library.start_span("test"):
