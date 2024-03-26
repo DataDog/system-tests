@@ -40,9 +40,12 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     def test_insecure(self):
         super().test_insecure()
 
+    # there is probably an issue with how system test handles redirection
+    # it's suspicious that three deifferent languages have the same issue
     @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     @missing_feature(library="dotnet", reason="weblog does not respond")
     @missing_feature(library="java", reason="weblog does not respond")
+    @missing_feature(library="nodejs", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 
