@@ -6,6 +6,13 @@ datadog:
   clusterName: $$CLUSTER_NAME$$
   tags: []
   logLevel: DEBUG
+  asm:
+    threats:
+      enabled: true
+    sca:
+      enabled: true
+    iast:
+      enabled: true  
   # datadog.kubelet.tlsVerify should be `false` on kind and minikube
   # to establish communication with the kubelet
   kubelet:

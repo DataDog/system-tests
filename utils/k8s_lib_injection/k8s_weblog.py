@@ -128,6 +128,9 @@ class K8sWeblog:
         )
         pod_body.spec.init_containers.append(init_container1)
         pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_LOGS_INJECTION", value="true"))
+        pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_IAST_ENABLED", value="true"))
+        pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_APPSEC_SCA_ENABLED", value="true"))
+        pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_APPSEC_ENABLED", value="true"))
         # Env vars for manual injection. Each library has its own env vars
         for lang_env_vars in self.manual_injection_props[self.library]:
             pod_body.spec.containers[0].env.append(
