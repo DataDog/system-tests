@@ -67,7 +67,7 @@ public class App {
                     .setEndpoint("http://proxy:8126/api/v0.2/traces")  // send to the proxy first
                     .addHeader("dd-protocol", "otlp")
                     .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
-                    .addHeader("dd-otlp-path", "intake")
+                    .addHeader("dd-otlp-path", "intake-traces")
                     .addHeader("dd-otlp-source", "datadog")
                     .build());
         }
@@ -102,6 +102,17 @@ public class App {
                             .setEndpoint("http://proxy:8126/v1/metrics")
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-otlp-path", "agent")
+                            .setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred())
+                            .build());
+        }
+        if (isIntakeEnabled()) {
+            metricExporters.add(
+                    OtlpHttpMetricExporter.builder()
+                            .setEndpoint("http://proxy:8126/api/intake/otlp/v1/metrics")  // send to the proxy first
+                            .addHeader("dd-protocol", "otlp")
+                            .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
+                            .addHeader("dd-otlp-path", "intake-metrics")
+                            .addHeader("dd-otel-metric-config", "{\"histograms\": {\"send_aggregation_metrics\": true}}")
                             .setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred())
                             .build());
         }

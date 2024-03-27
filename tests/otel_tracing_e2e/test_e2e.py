@@ -101,6 +101,19 @@ class Test_OTelMetricE2E:
                 for metric in self.expected_metrics
             ]
 
+            # The 2nd account has metrics via the backend OTLP intake endpoint
+            metrics_intake = [
+                interfaces.backend.query_timeseries(
+                    start=self.start,
+                    end=end,
+                    rid=rid,
+                    metric=metric,
+                    dd_api_key=os.environ["DD_API_KEY_2"],
+                    dd_app_key=os.environ.get("DD_APP_KEY_2"),
+                )
+                for metric in self.expected_metrics
+            ]
+
             # The 3rd account has metrics sent by OTel Collector
             metrics_collector = [
                 interfaces.backend.query_timeseries(
@@ -118,7 +131,8 @@ class Test_OTelMetricE2E:
             logger.warning("Backend does not provide series")
             return
 
-        validate_metrics(metrics_agent, metrics_collector)
+        validate_metrics(metrics_agent, metrics_collector, "Agent", "Collector")
+        validate_metrics(metrics_agent, metrics_intake, "Agent", "Intake")
 
 
 @scenarios.otel_log_e2e

@@ -1580,7 +1580,7 @@ class scenarios:
     )
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
 
     library_conf_custom_header_tags = EndToEndScenario(
