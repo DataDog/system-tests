@@ -205,7 +205,7 @@ class K8sDatadogClusterTestAgent:
 
         # Second wait for datadog-cluster-agent read the configmap
         expected_log = f'Applying Remote Config ID "{patch_id}" with revision "{rev}" and action'
-        pods = self.k8s_wrapper.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+        pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
         assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
         pod_cluster_agent_name = pods.items[0].metadata.name
         timeout = time.time() + timeout
@@ -252,13 +252,20 @@ class K8sDatadogClusterTestAgent:
     def _wait_for_operator_ready(self):
         operator_ready = False
         operator_status = None
-
-        pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
-        datadog_cluster_name = pods.items[0].metadata.name
+        datadog_cluster_name = None
 
         for i in range(20):
-            operator_status = self.k8s_wrapper.read_namespaced_pod_status(name=datadog_cluster_name)
-            if operator_status.status.phase == "Running" and operator_status.status.container_statuses[0].ready == True:
+            if datadog_cluster_name is None:
+                pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
+                datadog_cluster_name = pods.items[0].metadata.name if pods and len(pods.items) > 0 else None
+            operator_status = (
+                self.k8s_wrapper.read_namespaced_pod_status(name=datadog_cluster_name) if datadog_cluster_name else None
+            )
+            if (
+                operator_status
+                and operator_status.status.phase == "Running"
+                and operator_status.status.container_statuses[0].ready == True
+            ):
                 self.logger.info(f"[Deploy operator] Operator datadog running!")
                 operator_ready = True
                 break
@@ -278,21 +285,23 @@ class K8sDatadogClusterTestAgent:
         We shouldn't raise any exception here, we just log the errors."""
 
         # Get all pods
-        ret = self.k8s_wrapper.list_namespaced_pod(namespace="default", watch=False)
-        for i in ret.items:
-            k8s_logger(self.output_folder, self.test_name, "get.pods").info(
-                "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
-            )
-            execute_command_sync(
-                f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
-                self.k8s_kind_cluster,
-                logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
-            )
+        ret = self.k8s_wrapper.list_namespaced_pod("default", watch=False)
+        if ret is not None:
+            for i in ret.items:
+                k8s_logger(self.output_folder, self.test_name, "get.pods").info(
+                    "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+                )
+                execute_command_sync(
+                    f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
+                    self.k8s_kind_cluster,
+                    logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
+                )
 
         # Get all deployments
         deployments = self.k8s_wrapper.list_deployment_for_all_namespaces()
-        for deployment in deployments.items:
-            k8s_logger(self.output_folder, self.test_name, "get.deployments").info(deployment)
+        if deployments is not None:
+            for deployment in deployments.items:
+                k8s_logger(self.output_folder, self.test_name, "get.deployments").info(deployment)
 
         # Daemonset describe
         api_response = self.k8s_wrapper.read_namespaced_daemon_set(name="datadog")
@@ -300,7 +309,7 @@ class K8sDatadogClusterTestAgent:
 
         # Cluster logs, admission controller
         try:
-            pods = self.k8s_wrapper.list_namespaced_pod(namespace="default", label_selector="app=datadog-cluster-agent")
+            pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
             assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
             api_response = self.k8s_wrapper.read_namespaced_pod_log(
                 name=pods.items[0].metadata.name, namespace="default"

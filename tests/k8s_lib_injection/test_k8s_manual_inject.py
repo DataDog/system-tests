@@ -7,9 +7,7 @@ from utils.tools import logger
 from utils import scenarios, context, features
 
 
-@features.k8s_admission_controller
-@scenarios.k8s_lib_injection
-class TestAdmisionController:
+class _TestAdmisionController:
     def _get_dev_agent_traces(self, agent_port, retry=10):
         for _ in range(retry):
             logger.info(f"[Check traces] Checking traces:")
@@ -21,7 +19,7 @@ class TestAdmisionController:
             time.sleep(2)
         return []
 
-    def _test_inject_admission_controller(self, test_k8s_instance):
+    def test_inject_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test _test_inject_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
@@ -32,7 +30,7 @@ class TestAdmisionController:
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_admission_controller finished")
 
-    def _test_inject_without_admission_controller(self, test_k8s_instance):
+    def test_inject_without_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test _test_inject_without_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
@@ -42,7 +40,7 @@ class TestAdmisionController:
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_without_admission_controller finished")
 
-    def _test_inject_uds_without_admission_controller(self, test_k8s_instance):
+    def test_inject_uds_without_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test test_inject_uds_without_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
@@ -51,3 +49,15 @@ class TestAdmisionController:
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_inject_uds_without_admission_controller finished")
+
+
+@features.k8s_admission_controller
+@scenarios.k8s_lib_injection_basic
+class TestAdmisionControllerBasic(_TestAdmisionController):
+    pass
+
+
+@features.k8s_admission_controller
+@scenarios.k8s_lib_injection_full
+class TestAdmisionControllerComplete(_TestAdmisionController):
+    pass

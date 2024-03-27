@@ -217,7 +217,7 @@ class K8sWeblog:
     def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
         """ Waits for the weblog to be ready after applying a configmap. We added a lot of debug traces 
         because we have seen some flakiness in the past."""
-        pods = self.k8s_wrapper.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
         self.logger.info(f"[Weblog] Currently running pods [{app_name}]:[{len(pods.items)}]")
         if len(pods.items) == 2:
             for pod in pods.items:
@@ -323,7 +323,7 @@ class K8sWeblog:
 
         # check weblog describe pod
         try:
-            api_response = self.k8s_wrapper.read_namespaced_pod("my-app", "default", pretty="true")
+            api_response = self.k8s_wrapper.read_namespaced_pod("my-app")
             k8s_logger(self.output_folder, self.test_name, "myapp.describe").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, self.test_name, "myapp.describe").info(
@@ -332,7 +332,7 @@ class K8sWeblog:
 
         # check weblog logs for pod
         try:
-            api_response = self.k8s_wrapper.read_namespaced_pod_log(name="my-app", namespace="default")
+            api_response = self.k8s_wrapper.read_namespaced_pod_log(name="my-app")
             k8s_logger(self.output_folder, self.test_name, "myapp.logs").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, self.test_name, "myapp.logs").info(
@@ -343,7 +343,7 @@ class K8sWeblog:
         deployment_name = f"test-{self.library}-deployment"
         app_name = f"{self.library}-app"
         try:
-            response = self.k8s_wrapper.read_namespaced_deployment(deployment_name, "default")
+            response = self.k8s_wrapper.read_namespaced_deployment(deployment_name)
             k8s_logger(self.output_folder, self.test_name, "deployment.desribe").info(response)
         except Exception as e:
             k8s_logger(self.output_folder, self.test_name, "deployment.describe").info(
@@ -354,15 +354,11 @@ class K8sWeblog:
         deployment_name = f"test-{self.library}-deployment"
         app_name = f"{self.library}-app"
         try:
-            pods = self.k8s_wrapper.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+            pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
             if len(pods.items) > 0:
-                api_response = self.k8s_wrapper.read_namespaced_pod(
-                    pods.items[0].metadata.name, "default", pretty="true"
-                )
+                api_response = self.k8s_wrapper.read_namespaced_pod(pods.items[0].metadata.name)
                 k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(api_response)
-                api_response = self.k8s_wrapper.read_namespaced_pod_log(
-                    name=pods.items[0].metadata.name, namespace="default"
-                )
+                api_response = self.k8s_wrapper.read_namespaced_pod_log(name=pods.items[0].metadata.name)
                 k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(
