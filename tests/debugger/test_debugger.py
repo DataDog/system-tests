@@ -2,15 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, context
-from utils.tools import logger
 import test_debugger_base as base
+
+from utils import scenarios, interfaces, weblog, features
 
 
 @features.debugger
 @scenarios.debugger_probes_status
 class Test_Debugger_Probe_Statuses:
-    @missing_feature(context.library >= "java@1.27", reason="Sending probe status to DEBUGGER track")
     def test_method_probe_status(self):
         expected_probes = {
             "loga0cf2-meth-45cf-9f39-591received": "RECEIVED",
@@ -25,7 +24,6 @@ class Test_Debugger_Probe_Statuses:
 
         base.validate_probes(expected_probes)
 
-    @missing_feature(context.library >= "java@1.27", reason="Sending probe status to DEBUGGER track")
     def test_line_probe_status(self):
         expected_probes = {
             "loga0cf2-line-45cf-9f39-59installed": "INSTALLED",
@@ -59,7 +57,6 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Snapshot_Test):
         self.span_probe_response = weblog.get("/debugger/span")
         self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
-    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_method_probe_snaphots(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
@@ -103,7 +100,6 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Snapshot_Test):
         self.metric_probe_response = weblog.get("/debugger/metric/1")
         self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
 
-    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_line_probe_snaphots(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
@@ -140,7 +136,6 @@ class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Snapshot_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.multi_probe_response = weblog.get("/debugger/mix/asd/1")
 
-    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
     def test_mix_probe(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()

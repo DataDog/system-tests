@@ -2,9 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, context
-from utils.tools import logger
 import test_debugger_base as base
+
+from utils import scenarios, interfaces, weblog, features, missing_feature, context
 
 
 def validate_pii_redaction(should_redact_field_names):
@@ -61,7 +61,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
         self.pii_responses.append(weblog.get("/debugger/log/pii/5"))
         self.pii_responses.append(weblog.get("/debugger/log/pii/6"))
 
-    @missing_feature(context.library >= "java@1.27", reason="introduction of new EMITTING probe status")
+    @missing_feature(context.library >= "java@1.27", reason="not implemented yet")
     def test_pii_redaction(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()

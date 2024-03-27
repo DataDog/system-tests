@@ -2,32 +2,63 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, context
+import json
+import re
+
+from packaging import version
+
+from utils import interfaces
 from utils.tools import logger
+
+_CONFIG_PATH = "/v0.7/config"
+_DEBUGER_PATH = "/api/v2/debugger"
+_LOGS_PATH = "/api/v2/logs"
+_TRACES_PATH = "/api/v0.2/traces"
+
+
+def read_diagnostic_data():
+    tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
+
+    if tracer["language"] == "java":
+        tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
+        if tracer_version > version.parse("1.27.0"):
+            path = _DEBUGER_PATH
+        else:
+            path = _LOGS_PATH
+    else:
+        path = _LOGS_PATH
+
+    return list(interfaces.agent.get_data(path))
+
+
+def get_probes_map(data_set):
+    probe_hash = {}
+
+    def process_debugger(debugger):
+        if "diagnostics" in debugger:
+            diagnostics = debugger["diagnostics"]
+            probe_hash[diagnostics["probeId"]] = diagnostics
+
+    for data in data_set:
+        contents = data["request"].get("content", []) or []  # Ensures contents is a list
+        for content in contents:
+            if "content" in content:
+                d_contents = json.loads(content["content"])
+                for d_content in d_contents:
+                    process_debugger(d_content["debugger"])
+            else:
+                process_debugger(content["debugger"])
+
+    return probe_hash
 
 
 def validate_probes(expected_probes):
-    def get_probes_map():
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
-        probe_hash = {}
-
-        for request in agent_logs_endpoint_requests:
-            content = request["request"]["content"]
-            if content is not None:
-                for content in content:
-                    debugger = content["debugger"]
-                    if "diagnostics" in debugger:
-                        probe_id = debugger["diagnostics"]["probeId"]
-                        probe_hash[probe_id] = debugger["diagnostics"]
-
-        return probe_hash
-
     def check_probe_status(expected_id, expected_status, probe_status_map):
         if expected_id not in probe_status_map:
             raise ValueError("Probe " + expected_id + " was not received.")
 
         actual_status = probe_status_map[expected_id]["status"]
-        if actual_status != expected_status:
+        if actual_status != expected_status and not (expected_status == "INSTALLED" and actual_status == "EMITTING"):
             raise ValueError(
                 "Received probe "
                 + expected_id
@@ -37,14 +68,14 @@ def validate_probes(expected_probes):
                 + expected_status
             )
 
-    probe_map = get_probes_map()
+    probe_map = get_probes_map(read_diagnostic_data())
     for expected_id, expected_status in expected_probes.items():
         check_probe_status(expected_id, expected_status, probe_map)
 
 
 def validate_snapshots(expected_snapshots):
     def get_snapshot_map():
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
+        agent_logs_endpoint_requests = list(interfaces.agent.get_data(_LOGS_PATH))
         snapshot_hash = {}
 
         for request in agent_logs_endpoint_requests:
@@ -69,7 +100,7 @@ def validate_snapshots(expected_snapshots):
 
 def validate_spans(expected_spans):
     def get_span_map():
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v0.2/traces"))
+        agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
         span_hash = {}
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
@@ -97,28 +128,25 @@ def validate_spans(expected_spans):
 
 class _Base_Debugger_Snapshot_Test:
     expected_probe_ids = []
+    all_probes_installed = False
 
     def assert_remote_config_is_sent(self):
-        for data in interfaces.library.get_data("/v0.7/config"):
+        for data in interfaces.library.get_data(_CONFIG_PATH):
             logger.debug(f"Found config in {data['log_filename']}")
             if "client_configs" in data.get("response", {}).get("content", {}):
                 return
 
         raise ValueError("I was expecting a remote config")
 
-    def _is_all_probes_installed(self, data):
-        contents = data.get("request", {}).get("content", [])
-
-        if contents is None:
+    def _is_all_probes_installed(self, probes_map):
+        if probes_map is None:
             return False
 
         installed_ids = set()
-        for content in contents:
-            diagnostics = content.get("debugger", {}).get("diagnostics", {})
-            if diagnostics.get("status") == "INSTALLED":
-                installed_ids.add(diagnostics.get("probeId"))
-
-        logger.debug(f"Found probes in {data['log_filename']}:\n    {installed_ids}")
+        for expected_id in self.expected_probe_ids:
+            if expected_id in probes_map:
+                if probes_map[expected_id]["status"] == "INSTALLED":
+                    installed_ids.add(expected_id)
 
         if set(self.expected_probe_ids).issubset(installed_ids):
             logger.debug(f"Succes: found probes {installed_ids}")
@@ -128,17 +156,13 @@ class _Base_Debugger_Snapshot_Test:
 
         logger.debug(f"Found some probes, but not all of them. Missing probes are {missings_ids}")
 
-    def assert_all_probes_are_installed(self):
-        logger.debug(f"Checking if I found all my probes:\n    {self.expected_probe_ids}")
-        for data in interfaces.agent.get_data("/api/v2/logs"):
-            if self._is_all_probes_installed(data):
-                return
-
-        raise ValueError("At least one probe is missing")
-
     def wait_for_all_probes_installed(self, data):
-        if data["path"] == "/api/v2/logs":
-            if self._is_all_probes_installed(data):
-                return True
+        if data["path"] == _DEBUGER_PATH or data["path"] == _LOGS_PATH:
+            if self._is_all_probes_installed(get_probes_map([data])):
+                self.all_probes_installed = True
 
-        return False
+        return self.all_probes_installed
+
+    def assert_all_probes_are_installed(self):
+        if not self.all_probes_installed:
+            raise ValueError("At least one probe is missing")

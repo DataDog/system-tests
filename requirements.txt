@@ -41,3 +41,5 @@ kombu==5.3.5
 
 #lib-injection kubernetes
 kubernetes==29.0.0
+
+retry==0.9.2

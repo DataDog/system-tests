@@ -145,6 +145,11 @@ tests/:
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra22: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra30: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra31: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
       Test_Login_Events_Extended:
         '*': v1.14.0
@@ -155,6 +160,11 @@ tests/:
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra22: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra30: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra31: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.0.0
@@ -213,12 +223,12 @@ tests/:
       Test_Events: v0.54.2
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
-      Test_Debugger_Probe_Statuses: irrelevant
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: irrelevant
+      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:

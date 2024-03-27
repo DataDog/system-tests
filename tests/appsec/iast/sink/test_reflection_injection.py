@@ -25,3 +25,6 @@ class TestReflectionInjection(BaseSinkTest):
     @missing_feature(library="java", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+    def test_secure(self):
+        super().test_secure()
