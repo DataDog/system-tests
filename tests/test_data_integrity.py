@@ -140,7 +140,6 @@ class Test_LibraryHeaders:
         interfaces.library.validate(validator, success_by_default=True)
 
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp", reason="not implemented yet")
