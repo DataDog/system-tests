@@ -28,7 +28,3 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
     @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
-
-    @missing_feature(library="dotnet", reason="Endpoint does not responds")
-    def test_secure(self):
-        return super().test_secure()

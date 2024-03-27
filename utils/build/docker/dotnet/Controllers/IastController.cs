@@ -565,7 +565,7 @@ namespace weblog
         {
             try
             {
-                var mongoDbHelper = new MongoDbHelper("mongodb://localhost:27017", "test-db");
+                var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
                 var filter = "{ \"user\": \"" + key + "\" }";
                 mongoDbHelper.Find("users", filter);
                 
@@ -583,7 +583,7 @@ namespace weblog
         {
             try
             {
-                var mongoDbHelper = new MongoDbHelper("mongodb://localhost:27017", "test-db");
+                var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
                 var filter = MongoDbHelper.CreateSimpleDocument("user", key);
                 mongoDbHelper.Find("users", filter);
                 
