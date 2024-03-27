@@ -69,6 +69,7 @@ class Test_BlockingAddresses:
     @missing_feature(
         context.library == "java" and context.weblog_variant == "akka-http", reason="path parameters not supported"
     )
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-52335")
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
     def test_path_params(self):
@@ -103,6 +104,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
     @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
+    @bug(weblog_variant="spring-boot-payara", reason="Not blocking")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
@@ -123,6 +125,7 @@ class Test_BlockingAddresses:
             "spring-boot-jetty",
             "spring-boot-undertow",
             "spring-boot-openliberty",
+            "spring-boot-payara",
             "jersey-grizzly2",
             "resteasy-netty3",
             "ratpack",
