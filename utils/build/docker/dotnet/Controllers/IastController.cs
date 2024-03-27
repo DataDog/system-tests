@@ -630,6 +630,11 @@ namespace weblog
                 return StatusCode(500, "Error executing safe reflection.");
             }
         }
-
+        
+        [HttpGet("insecure-auth-protocol/test")]
+        public IActionResult test_insecure_auth_protocol()
+        {
+            return StatusCode(200);
+        }
     }
 }
