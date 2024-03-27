@@ -63,6 +63,8 @@ tests/:
             '*': v2.2.0
             fastapi: missing_feature
             python3.12: missing_feature
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
         test_header_injection.py:

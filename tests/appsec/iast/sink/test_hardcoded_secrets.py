@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, weblog, features, context
+from utils import interfaces, weblog, features, context, missing_feature
 
 # Test_HardcodedSecrets doesn't inherit from BaseSinkTest
 # Hardcode secrets detection implementation change a lot between different languages
@@ -30,6 +30,21 @@ class Test_HardcodedSecrets:
         vuln = hardcode_secrets[0]
         assert vuln["location"]["path"] == self._get_expectation(self.location_map)
 
+    # rules from the extended set for secret detection need to know the variable name in addition to the literal value
+    @missing_feature(library="golang", reason="Not implemented yet")
+    @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
+    @missing_feature(library="ruby", reason="Not implemented yet")
+    @missing_feature(library="php", reason="Not implemented yet")
+    @missing_feature(library="cpp", reason="Not implemented yet")
+    def test_hardcoded_secrets_extended_exec(self):
+        hardcoded_secrets = self.get_hardcoded_secret_vulnerabilities()
+        hardcoded_secrets = [v for v in hardcoded_secrets if v["evidence"]["value"] == "datadog-access-token"]
+        assert len(hardcoded_secrets) == 1
+        vuln = hardcoded_secrets[0]
+        assert vuln["location"]["path"] == self._get_expectation(self.location_map)
+
     def get_hardcoded_secret_vulnerabilities(self):
         spans = [s for _, s in interfaces.library.get_root_spans()]
         assert spans, "No spans found"
@@ -40,9 +55,9 @@ class Test_HardcodedSecrets:
         vulnerabilities = [event.get("vulnerabilities") for event in iast_events if event.get("vulnerabilities")]
         assert vulnerabilities, "No vulnerabilities found"
         vulnerabilities = sum(vulnerabilities, [])  # set all the vulnerabilities in a single list
-        hadcoded_secrets = [vuln for vuln in vulnerabilities if vuln.get("type") == "HARDCODED_SECRET"]
-        assert hadcoded_secrets, "No hardcoded secrets found"
-        return hadcoded_secrets
+        hardcoded_secrets = [vuln for vuln in vulnerabilities if vuln.get("type") == "HARDCODED_SECRET"]
+        assert hardcoded_secrets, "No hardcoded secrets found"
+        return hardcoded_secrets
 
     def _get_expectation(self, d):
         expected = d.get(context.library.library)

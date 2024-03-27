@@ -1309,6 +1309,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_sink_hardcoded_passwords(test_object):
+        """
+        IAST sink: Hardcoded passwords detection
+
+        https://feature-parity.us1.prod.dog/#/?feature=290
+        """
+        pytest.mark.features(feature_id=290)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_hardcoded_secrets(test_object):
         """
         IAST sink: Hardcoded secrets detection
