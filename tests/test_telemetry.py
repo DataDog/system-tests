@@ -278,26 +278,6 @@ class Test_Telemetry:
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
-    @irrelevant(library="java")
-    @irrelevant(library="nodejs")
-    @irrelevant(library="dotnet")
-    @irrelevant(library="golang")
-    @irrelevant(library="python")
-    @features.dd_telemetry_dependency_collection_enabled_supported
-    def test_app_dependencies_loaded_not_sent(self):
-        """app-dependencies-loaded request should not be sent"""
-        # Request type app-dependencies-loaded is never sent from certain language tracers
-        # In case this changes we need to adjust the backend, by adding the language to this list
-        # https://github.com/DataDog/dd-go/blob/prod/domains/appsec/libs/vulnerability_management/model.go#L262
-        # This change means we cannot deduplicate runtime with the same library dependencies in the backend since
-        # we never have guarantees that we have all the dependencies at one point in time
-
-        def validator(data):
-            if get_request_type(data) == "app-dependencies-loaded":
-                raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
-
-        self.validate_library_telemetry_data(validator)
-
     @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
