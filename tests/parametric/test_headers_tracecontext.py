@@ -716,11 +716,11 @@ class Test_Headers_Tracecontext:
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
         """
@@ -786,11 +786,11 @@ class Test_Headers_Tracecontext:
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
         """
@@ -798,15 +798,14 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             with test_library.start_span(name="new_span") as span:
-                pass
-
-            headers = test_library.inject_headers(span.span_id)
+                headers = test_library.inject_headers(span.span_id)
 
             tracestate_headers = list(filter(lambda h: h[0].lower() == "tracestate", headers))
             assert len(tracestate_headers) == 1
 
             tracestate = tracestate_headers[0][1]
-            assert "p:{:016x}".format(span.span_id) in tracestate
+            # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
+            assert "p:{:016x}".format(int(span.span_id)) in tracestate
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
