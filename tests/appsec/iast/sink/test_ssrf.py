@@ -26,6 +26,8 @@ class TestSSRF(BaseSinkTest):
         super().test_insecure()
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
+    @missing_feature(library="python", reason="Endpoint responds 403")
+    @missing_feature(library="java", reason="Endpoint not implemented")
     def test_secure(self):
         super().test_secure()
 
