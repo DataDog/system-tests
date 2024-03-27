@@ -211,10 +211,11 @@ class K8sDatadogClusterTestAgent:
         timeout = time.time() + timeout
         while True:
             api_response = self.k8s_wrapper.read_namespaced_pod_log(name=pod_cluster_agent_name)
-            for log_line in api_response.splitlines():
-                if log_line.find(expected_log) != -1:
-                    self.logger.info(f"Configmap read by datadog-cluster-agent: {log_line}")
-                    return
+            if api_response is not None:
+                for log_line in api_response.splitlines():
+                    if log_line.find(expected_log) != -1:
+                        self.logger.info(f"Configmap read by datadog-cluster-agent: {log_line}")
+                        return
             if time.time() > timeout:
                 self.logger.error(f"Timeout waiting for the datadog-cluster-agent to read the configmap")
                 raise TimeoutError("Timeout waiting for the datadog-cluster-agent to read the configmap")
