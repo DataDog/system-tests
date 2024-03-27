@@ -445,11 +445,6 @@ jobs:
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_SCA_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
-      run: ./run.sh APPSEC_SCA_ENABLED
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && (inputs.run_sampling || inputs.run_all)
       run: ./run.sh SAMPLING
@@ -542,7 +537,6 @@ jobs:
         ./run.sh APPSEC_API_SECURITY_RC --replay
         ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY --replay
         ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING --replay
-        ./run.sh APPSEC_SCA_ENABLED --replay
         ./run.sh SAMPLING --replay
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
         ./run.sh DEBUGGER_PROBES_STATUS --replay

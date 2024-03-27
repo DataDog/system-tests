@@ -465,7 +465,6 @@ class Test_Telemetry:
             configuration is not properly populating for python
         """,
     )
-    @scenarios.appsec_sca_enabled
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {

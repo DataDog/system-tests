@@ -468,6 +468,7 @@ class WeblogContainer(TestedContainer):
 
         if appsec_enabled:
             self.environment["DD_APPSEC_ENABLED"] = "true"
+            self.environment["DD_APPSEC_SCA_ENABLED"] = "true"
 
         if tracer_sampling_rate:
             self.environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
