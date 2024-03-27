@@ -196,6 +196,16 @@ jobs:
         - library: ruby
           weblog: sinatra21
         - library: ruby
+          weblog: sinatra22
+        - library: ruby
+          weblog: sinatra30
+        - library: ruby
+          weblog: sinatra31
+        - library: ruby
+          weblog: sinatra32
+        - library: ruby
+          weblog: sinatra40
+        - library: ruby
           weblog: uds-sinatra
         - library: ruby
           weblog: rails32

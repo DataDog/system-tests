@@ -149,10 +149,16 @@ class BaseSinkTestWithoutTelemetry:
         self.secure_request = self.__class__.secure_request
 
     def test_secure(self):
+        # to avoid false positive, we need to check that iast is implemented
+        # AND that the secure endpoint is not vulnerable
+        interfaces.library.assert_iast_implemented()
+        self.test_insecure()
+
         self.assert_no_iast_event(self.secure_request)
 
     @staticmethod
     def assert_no_iast_event(request):
+        assert request.status_code == 200, f"Request failed with status code {request.status_code}"
         meta = _get_span_meta(request=request)
         iast_json = meta.get("_dd.iast.json")
         assert iast_json is None, f"Unexpected vulnerabilities reported: {iast_json}"
