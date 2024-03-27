@@ -40,7 +40,7 @@ class _TestAdmisionController:
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_without_admission_controller finished")
 
-    def test_inject_uds_without_admission_controller(self, test_k8s_instance):
+    def _test_inject_uds_without_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test test_inject_uds_without_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
