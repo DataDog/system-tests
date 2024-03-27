@@ -117,9 +117,6 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
 
-    @missing_feature(library="python")
-    @flaky(library="ruby", reason="AIT-8418")
-    @flaky(library="java", reason="AIT-9152")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -145,9 +142,10 @@ class Test_Telemetry:
                 curr_message_time = datetime.strptime(timestamp_start, FMT)
                 logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
-                if 200 <= data["response"]["status_code"] < 300:
-                    seq_ids.append((seq_id, data["log_filename"]))
-                else:
+                # IDs should be sent sequentially, even if there are errors
+                seq_ids.append((seq_id, data["log_filename"]))
+
+                if not (200 <= data["response"]["status_code"] < 300):
                     logger.info(f"Response is {data['response']['status_code']}, tracer should resend the message")
 
                 if seq_id > max_seq_id:
