@@ -426,7 +426,7 @@ class EndToEndScenario(_DockerScenario):
                 self.library_interface_timeout = 25
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs",):
+            elif self.weblog_container.library.library in ("nodejs", "ruby"):
                 self.library_interface_timeout = 0
             elif self.weblog_container.library.library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
