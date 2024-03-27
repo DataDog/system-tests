@@ -24,9 +24,8 @@ class TestParameterValue(BaseSourceTest):
     )
     source_names = ["table"]
 
-    def test_source_reported(self):
-        # overwrite the base test, to handle the source_type spcial use case in node
-        ...
+    # remove the base test, to handle the source_type spcial use case in node
+    test_source_reported = None
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 

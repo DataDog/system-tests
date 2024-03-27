@@ -8,6 +8,7 @@ import json
 from utils.k8s_lib_injection.k8s_kind_cluster import ensure_cluster, destroy_cluster
 from utils.k8s_lib_injection.k8s_datadog_cluster_agent import K8sDatadogClusterTestAgent
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
+from utils.k8s_lib_injection.k8s_wrapper import K8sWrapper
 from kubernetes import config
 
 
@@ -69,11 +70,13 @@ class K8sInstance:
         self.test_agent = K8sDatadogClusterTestAgent(prefix_library_init_image, output_folder, test_name)
         self.test_weblog = K8sWeblog(weblog_variant_image, library, library_init_image, output_folder, test_name)
         self.k8s_kind_cluster = None
+        self.k8s_wrapper = None
 
     def start_instance(self):
         self.k8s_kind_cluster = ensure_cluster()
-        self.test_agent.configure(self.k8s_kind_cluster)
-        self.test_weblog.configure(self.k8s_kind_cluster)
+        self.k8s_wrapper = K8sWrapper(self.k8s_kind_cluster)
+        self.test_agent.configure(self.k8s_kind_cluster, self.k8s_wrapper)
+        self.test_weblog.configure(self.k8s_kind_cluster, self.k8s_wrapper)
         try:
             config.load_kube_config()
             logger.info(f"kube config loaded")
