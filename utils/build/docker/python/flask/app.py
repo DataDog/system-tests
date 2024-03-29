@@ -328,9 +328,12 @@ def dsm():
     logging.basicConfig(
         format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S",
     )
-    queue = "dsm-system-tests-queue"
-    topic = "dsm-system-tests-topic"
     integration = flask_request.args.get("integration")
+    queue = flask_request.args.get("queue")
+    topic = flask_request.args.get("topic")
+    stream = flask_request.args.get("stream")
+    exchange = flask_request.args.get("exchange")
+    routing_key = flask_request.args.get("routing_key")
 
     logging.info(f"[DSM] Got request with integration: {integration}")
 
@@ -378,9 +381,9 @@ def dsm():
     elif integration == "rabbitmq":
         timeout = int(flask_request.args.get("timeout", 60))
         produce_thread = threading.Thread(
-            target=rabbitmq_produce, args=(queue, queue, "Hello, RabbitMQ from DSM python!")
+            target=rabbitmq_produce, args=(queue, exchange, routing_key, "Hello, RabbitMQ from DSM python!")
         )
-        consume_thread = threading.Thread(target=rabbitmq_consume, args=(queue, queue, timeout))
+        consume_thread = threading.Thread(target=rabbitmq_consume, args=(queue, exchange, routing_key, timeout))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -388,12 +391,8 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        sns_queue = queue + "-sns"
-        sns_topic = topic + "-sns"
-        produce_thread = threading.Thread(
-            target=sns_produce, args=(sns_queue, sns_topic, "Hello, SNS->SQS from DSM python!",)
-        )
-        consume_thread = threading.Thread(target=sns_consume, args=(sns_queue,))
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",))
+        consume_thread = threading.Thread(target=sns_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -401,7 +400,6 @@ def dsm():
         logging.info("[SNS->SQS] Returning response")
         response = Response("ok")
     elif integration == "kinesis":
-        stream = flask_request.args.get("stream")
         timeout = int(flask_request.args.get("timeout", "60"))
         message = json.dumps({"message": "Hello from Python DSM Kinesis test"})
 

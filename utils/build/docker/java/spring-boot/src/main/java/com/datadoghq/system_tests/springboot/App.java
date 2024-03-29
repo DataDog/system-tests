@@ -447,10 +447,12 @@ public class App {
         @RequestParam(required = true, name = "integration") String integration,
         @RequestParam(required = false, name = "topic") String topic,
         @RequestParam(required = false, name = "queue") String queue,
-        @RequestParam(required = false, name = "stream") String stream
+        @RequestParam(required = false, name = "stream") String stream,
+        @RequestParam(required = false, name = "routing_key") String routing_key,
+        @RequestParam(required = false, name = "exchange") String exchange
     ) {
         if ("kafka".equals(integration)) {
-            KafkaConnector kafka = new KafkaConnector();
+            KafkaConnector kafka = new KafkaConnector(queue);
             try {
                 kafka.startProducingMessage("hello world!");
             } catch (Exception e) {
@@ -459,14 +461,14 @@ public class App {
                 return "failed to start producing message";
             }
             try {
-                kafka.startConsumingMessages("");
+                kafka.startConsumingMessages(queue);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
                 return "failed to start consuming message";
             }
         } else if ("rabbitmq".equals(integration)) {
-            RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange();
+            RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange(queue, exchange, routing_key);
             try {
                 rabbitmq.startProducingMessages();
             } catch (Exception e) {
@@ -514,7 +516,7 @@ public class App {
                 return "failed to start consuming message";
             }
         } else if ("sqs".equals(integration)) {
-            SqsConnector sqs = new SqsConnector("dsm-system-tests-queue-java");
+            SqsConnector sqs = new SqsConnector(queue);
             try {
                 sqs.startProducingMessage("hello world from SQS Dsm Java!");
             } catch (Exception e) {
@@ -530,8 +532,8 @@ public class App {
                 return "[SQS] failed to start consuming message";
             }
         } else if ("sns".equals(integration)) {
-            SnsConnector sns = new SnsConnector(topic != null ? topic : "dsm-system-tests-topic-java");
-            SqsConnector sqs = new SqsConnector(queue != null ? queue : "dsm-system-tests-queue-java", "http://localstack-main:4566");
+            SnsConnector sns = new SnsConnector(topic);
+            SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
             try {
                 sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
             } catch (Exception e) {
