@@ -40,7 +40,10 @@ class Test_Main:
 
         logger.debug(f"Sent 50 requests in {(datetime.datetime.now() - start_time).total_seconds()} s")
 
-    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="_sampling_priority_v1 is missing")
+    @bug(
+        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0",
+        reason="_sampling_priority_v1 is missing"
+    )
     @flaky("rails" in context.weblog_variant, reason="APPSEC-10303")
     def test_main(self):
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
