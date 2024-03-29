@@ -64,12 +64,21 @@ class _Test_RabbitMQ:
 
         self.production_response = weblog.get(
             "/rabbitmq/produce",
-            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE, "routing_key": self.WEBLOG_TO_BUDDY_ROUTING_KEY},
+            params={
+                "queue": self.WEBLOG_TO_BUDDY_QUEUE,
+                "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE,
+                "routing_key": self.WEBLOG_TO_BUDDY_ROUTING_KEY,
+            },
             timeout=60,
         )
         self.consume_response = self.buddy.get(
             "/rabbitmq/consume",
-            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE, "routing_key": self.WEBLOG_TO_BUDDY_ROUTING_KEY, "timeout": 60},
+            params={
+                "queue": self.WEBLOG_TO_BUDDY_QUEUE,
+                "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE,
+                "routing_key": self.WEBLOG_TO_BUDDY_ROUTING_KEY,
+                "timeout": 60,
+            },
             timeout=61,
         )
 
@@ -122,12 +131,21 @@ class _Test_RabbitMQ:
 
         self.production_response = self.buddy.get(
             "/rabbitmq/produce",
-            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "exchange": self.BUDDY_TO_WEBLOG_EXCHANGE, "routing_key": self.BUDDY_TO_WEBLOG_ROUTING_KEY},
+            params={
+                "queue": self.BUDDY_TO_WEBLOG_QUEUE,
+                "exchange": self.BUDDY_TO_WEBLOG_EXCHANGE,
+                "routing_key": self.BUDDY_TO_WEBLOG_ROUTING_KEY,
+            },
             timeout=60,
         )
         self.consume_response = weblog.get(
             "/rabbitmq/consume",
-            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE, "routing_key": self.BUDDY_TO_WEBLOG_ROUTING_KEY, "timeout": 60},
+            params={
+                "queue": self.BUDDY_TO_WEBLOG_QUEUE,
+                "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE,
+                "routing_key": self.BUDDY_TO_WEBLOG_ROUTING_KEY,
+                "timeout": 60,
+            },
             timeout=61,
         )
 

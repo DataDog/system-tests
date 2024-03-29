@@ -84,7 +84,10 @@ class Test_DsmRabbitmq:
             f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}"
         )
 
-    @bug(library="java", reason="Java calculates 16129003365833597547 as producer hash by not using 'routing_key:true' in edge tags.")
+    @bug(
+        library="java",
+        reason="Java calculates 16129003365833597547 as producer hash by not using 'routing_key:true' in edge tags.",
+    )
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -336,7 +339,9 @@ class Test_DsmContext_Injection_Base64:
         routing_key = "dsm-propagation-test-injection-routing-key"
 
         # send initial message with via weblog
-        self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&routing_key={routing_key}&timeout=60", timeout=61,)
+        self.r = weblog.get(
+            f"/rabbitmq/produce?queue={queue}&exchange={exchange}&routing_key={routing_key}&timeout=60", timeout=61,
+        )
 
         if not context.scenario.replay:
             # consume message using helper and check propagation type
@@ -422,7 +427,9 @@ class Test_DsmContext_Extraction_Base64:
         else:
             self.produce_response = "ok"
 
-        self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&routing_key={routing_key}&timeout=60", timeout=61,)
+        self.r = weblog.get(
+            f"/rabbitmq/consume?queue={queue}&exchange={exchange}&routing_key={routing_key}&timeout=60", timeout=61,
+        )
 
     def test_dsmcontext_extraction_base64(self):
         assert self.produce_response == "ok"
