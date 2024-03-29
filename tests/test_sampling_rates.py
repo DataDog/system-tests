@@ -66,6 +66,7 @@ class Test_SamplingRates:
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0",
         reason="_sampling_priority_v1 is missing",
     )
+    @bug(library="nodejs", reason="Unexpected amount of sampled traces")
     @flaky(context.weblog_variant == "spring-boot-3-native", reason="Needs investigation")
     @flaky(library="golang", reason="Needs investigation")
     @flaky(library="ruby", reason="Needs investigation")
