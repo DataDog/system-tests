@@ -300,8 +300,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="ruby", reason="ruby does not set dm tag")
     @bug(library="cpp", reason="c++ sets dm tag -0")
     @pytest.mark.parametrize(
-        "library_env",
-        [{"DD_TRACE_RATE_LIMIT": 3}],
+        "library_env", [{"DD_TRACE_RATE_LIMIT": 3}],
     )
     def test_tags_defaults_rate_1_and_rate_limit_3_sst010(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -326,8 +325,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="ruby", reason="ruby does not set dm tag")
     @bug(library="cpp", reason="c++ sets dm tag -0")
     @pytest.mark.parametrize(
-        "library_env",
-        [{"DD_APPSEC_ENABLED": 1}],
+        "library_env", [{"DD_APPSEC_ENABLED": 1}],
     )
     def test_tags_appsec_enabled_sst011(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)

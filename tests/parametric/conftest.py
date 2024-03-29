@@ -117,9 +117,7 @@ ENV DD_PATCH_MODULES="fastapi:false"
         container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[
-            (os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),
-        ],
+        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
         env={},
         port="",
     )
@@ -185,9 +183,7 @@ RUN go install
         container_cmd=["main"],
         container_build_dir=golang_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[
-            (os.path.join(golang_absolute_appdir), "/client"),
-        ],
+        volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
         env={},
         port="",
     )
@@ -310,9 +306,7 @@ ADD {php_reldir}/server.php .
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[
-            (os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),
-        ],
+        volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
         env={},
         port="",
     )
@@ -415,9 +409,7 @@ def apm_test_server_definition() -> APMLibraryTestServer:
     yield _libs[context.scenario.library.library]()
 
 
-def build_apm_test_server_image(
-    apm_test_server_definition: APMLibraryTestServer,
-) -> str:
+def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer,) -> str:
     log_path = f"{context.scenario.host_log_folder}/outputs/docker_build_log.log"
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     log_file = open(log_path, "w+")
@@ -557,11 +549,7 @@ class _TestAgentAPI:
 
     def set_remote_config(self, path, payload):
         resp = self._session.post(
-            self._url("/test/session/responses/config/path"),
-            json={
-                "path": path,
-                "msg": payload,
-            },
+            self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,},
         )
         assert resp.status_code == 202
 
@@ -897,8 +885,7 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     r = subprocess.run(cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
-            "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr),
-            pytrace=False,
+            "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
         )
     elif r.returncode == 1:
         cmd = [
@@ -979,11 +966,7 @@ def test_agent_hostname(test_agent_container_name: str) -> str:
 
 @pytest.fixture
 def test_agent(
-    docker_network: str,
-    request,
-    test_agent_container_name: str,
-    test_agent_port,
-    test_agent_log_file: TextIO,
+    docker_network: str, request, test_agent_container_name: str, test_agent_port, test_agent_log_file: TextIO,
 ):
     env = {}
     if os.getenv("DEV_MODE") is not None:
