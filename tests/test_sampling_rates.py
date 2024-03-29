@@ -62,7 +62,7 @@ class Test_SamplingRates:
             weblog.get(p)
 
     @bug(library="python", reason="When stats are activated, all traces are emitted")
-    @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="_sampling_priority_v1 is missing")
     @flaky(context.weblog_variant == "spring-boot-3-native", reason="Needs investigation")
     @flaky(library="golang", reason="Needs investigation")
     @flaky(library="ruby", reason="Needs investigation")
@@ -173,7 +173,7 @@ class Test_SamplingDecisions:
             )
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
-    @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="_sampling_priority_v1 is missing")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
