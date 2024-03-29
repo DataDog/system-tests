@@ -34,7 +34,7 @@ def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
     with test_library.start_span(**span_kwargs):
         pass
     test_library.flush()
-    traces = test_agent.wait_for_num_traces(num=1, clear=True, wait_loops=100)
+    traces = test_agent.wait_for_num_traces(num=1, clear=True)
     assert len(traces) == 1
     return traces[0]
 
@@ -297,22 +297,14 @@ class TestDynamicConfigV1:
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
         set_and_wait_rc(
-            test_agent,
-            config_overrides={
-                "id": "827eacf8dbc3ab1434d321cb81dfbf7afe654a4b6111cf1660b71ccf89781938",
-                "tracing_sampling_rate": 0.5,
-            },
+            test_agent, config_overrides={"tracing_sampling_rate": 0.5,},
         )
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
         # Unset the RC sample rate to ensure the default setting is used.
         set_and_wait_rc(
-            test_agent,
-            config_overrides={
-                "id": "827eacf8dbc3ab1434d321cb81dfbf7afe654a4b6111cf1660b71ccf89781938",
-                "tracing_sampling_rate": None,
-            },
+            test_agent, config_overrides={"tracing_sampling_rate": None,},
         )
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
