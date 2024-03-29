@@ -237,7 +237,7 @@ class Test_BodyRaw:
     @missing_feature(reason="no rule with body raw yet")
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
-        interfaces.library.assert_waf_attack(self.r, address="server.request.body")
+        interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
 
 
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
