@@ -93,8 +93,8 @@ class Test_DsmRabbitmq:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            producer_hash = 5080618047473654667
-            consumer_hash = 12436096712734841122
+            producer_hash = 5246740674878013159
+            consumer_hash = 10215641161150038469
             # node does not have access to the queue argument and defaults to using the routing key
             edge_tags_in = ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq")
             edge_tags_out = (
@@ -104,8 +104,8 @@ class Test_DsmRabbitmq:
                 "type:rabbitmq",
             )
         else:
-            producer_hash = 3519882823224826180
-            consumer_hash = 13984784774671877513
+            producer_hash = 8945717757344503539
+            consumer_hash = 247866491670975357
             edge_tags_in = ("direction:in", f"topic:{DSM_QUEUE}", "type:rabbitmq")
             edge_tags_out = (
                 "direction:out",
@@ -113,17 +113,6 @@ class Test_DsmRabbitmq:
                 "has_routing_key:true",
                 "type:rabbitmq",
             )
-
-        # else:
-        #     producer_hash = 6176024609184775446
-        #     consumer_hash = 1648106384315938543
-        #     edge_tags_in = ("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq")
-        #     edge_tags_out = (
-        #         "direction:out",
-        #         "exchange:systemTestDirectExchange",
-        #         "has_routing_key:true",
-        #         "type:rabbitmq",
-        #     )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
@@ -276,8 +265,8 @@ class Test_DsmSNS:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 1231913865272259685, "consumer": 6273982990684090851,},
-            "default": {"producer": 5712665980795799642, "consumer": 17643872031898844474,},
+            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
+            "default": {"producer": 5674710414915297150, "consumer": 13847866872847822852,},
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
