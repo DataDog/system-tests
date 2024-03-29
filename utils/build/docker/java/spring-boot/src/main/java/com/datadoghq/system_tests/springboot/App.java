@@ -449,7 +449,8 @@ public class App {
         @RequestParam(required = false, name = "queue") String queue,
         @RequestParam(required = false, name = "stream") String stream,
         @RequestParam(required = false, name = "routing_key") String routing_key,
-        @RequestParam(required = false, name = "exchange") String exchange
+        @RequestParam(required = false, name = "exchange") String exchange,
+        @RequestParam(required = false, name = "group") String group
     ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);

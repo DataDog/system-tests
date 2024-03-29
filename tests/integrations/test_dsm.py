@@ -32,7 +32,7 @@ class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
     def setup_dsm_kafka(self):
-        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}")
+        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
@@ -84,7 +84,7 @@ class Test_DsmRabbitmq:
             f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}"
         )
 
-    @bug(library="dotnet", reason="bug in dotnet behavior")
+    @bug(library="java", reason="Java calculates 16129003365833597547 as producer hash by not using 'routing_key:true' in edge tags.")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -333,13 +333,14 @@ class Test_DsmContext_Injection_Base64:
     def setup_dsmcontext_injection_base64(self):
         queue = "dsm-propagation-test-injection"
         exchange = "dsm-propagation-test-injection-exchange"
+        routing_key = "dsm-propagation-test-injection-routing-key"
 
         # send initial message with via weblog
-        self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
+        self.r = weblog.get(f"/rabbitmq/produce?queue={queue}&exchange={exchange}&routing_key={routing_key}&timeout=60", timeout=61,)
 
         if not context.scenario.replay:
             # consume message using helper and check propagation type
-            self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, 61)
+            self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, routing_key, 61)
 
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
@@ -413,14 +414,15 @@ class Test_DsmContext_Extraction_Base64:
     def setup_dsmcontext_extraction_base64(self):
         queue = "dsm-propagation-test-v2-encoding-queue"
         exchange = "dsm-propagation-test-v2-encoding-exchange"
+        routing_key = "dsm-propagation-test-v2-encoding-routing-key"
 
         if not context.scenario.replay:
             # send initial message with v2 pathway context encoding
-            self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange)
+            self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange, routing_key)
         else:
             self.produce_response = "ok"
 
-        self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&timeout=60", timeout=61,)
+        self.r = weblog.get(f"/rabbitmq/consume?queue={queue}&exchange={exchange}&routing_key={routing_key}&timeout=60", timeout=61,)
 
     def test_dsmcontext_extraction_base64(self):
         assert self.produce_response == "ok"
@@ -484,13 +486,13 @@ class DsmHelper:
         raise ValueError("Checkpoint has not been found, please have a look in logs")
 
     @staticmethod
-    def produce_rabbitmq_message_base64_propagation(queue, exchange):
+    def produce_rabbitmq_message_base64_propagation(queue, exchange, routing_key):
         # Create a RabbitMQ client
         conn = kombu.Connection("amqp://127.0.0.1:5672")
         conn.connect()
         producer = conn.Producer()
 
-        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=routing_key)
 
         headers = {
             "dd-pathway-ctx": "10nVzXmeKoCM1uautmOM1uautmM=",  # base64 encoded V2 pathway from dd-trace-py, pathway hash is: 9235368231858162135
@@ -515,10 +517,10 @@ class DsmHelper:
             return "error"
 
     @staticmethod
-    def consume_rabbitmq_injection(queue, exchange, timeout):
+    def consume_rabbitmq_injection(queue, exchange, routing_key, timeout):
         # Create a RabbitMQ client
         conn = kombu.Connection("amqp://127.0.0.1:5672")
-        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=routing_key)
         messages = []
 
         def process_message(body, message):

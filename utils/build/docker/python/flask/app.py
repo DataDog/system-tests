@@ -303,8 +303,9 @@ def produce_rabbitmq_message():
 
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    routing_key = flask_request.args.get("routing_key", "DistributedTracingContextPropagationRoutingKey")
     message = "Hello from Python RabbitMQ Context Propagation Test"
-    output = rabbitmq_produce(queue, exchange, message)
+    output = rabbitmq_produce(queue, exchange, routing_key, message)
     if "error" in output:
         return output, 400
     else:
@@ -315,8 +316,9 @@ def produce_rabbitmq_message():
 def consume_rabbitmq_message():
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    routing_key = flask_request.args.get("routing_key", "DistributedTracingContextPropagationRoutingKey")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = rabbitmq_consume(queue, exchange, timeout)
+    output = rabbitmq_consume(queue, exchange, routing_key, timeout)
     if "error" in output:
         return output, 400
     else:
