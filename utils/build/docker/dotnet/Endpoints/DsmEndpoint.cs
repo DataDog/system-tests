@@ -25,13 +25,6 @@ namespace weblog
                 var routing_key = context.Request.Query["routing_key"];
                 var group = context.Request.Query["group"];
 
-                Console.WriteLine($"Integration: {integration}");
-                Console.WriteLine($"queue: {queue}");
-                Console.WriteLine($"exchange: {exchange}");
-                Console.WriteLine($"routing_key: {routing_key}");
-                Console.WriteLine($"group: {group}");
-
-
                 Console.WriteLine("Hello World! Received dsm call with integration " + integration);
                 if ("kafka".Equals(integration)) {
                     Thread producerThread = new Thread(() => KafkaProducer.DoWork(queue));
@@ -68,8 +61,6 @@ namespace weblog
 
     class KafkaProducer {
         public static void DoWork(string queue) {
-            Console.WriteLine("Kafka Producer");
-            Console.WriteLine($"queue: {queue}");
             KafkaHelper.CreateTopics("kafka:9092", new List<string>{queue});
             using (var producer = KafkaHelper.GetProducer("kafka:9092")) {
                 using (Datadog.Trace.Tracer.Instance.StartActive("KafkaProduce")) {
@@ -86,9 +77,6 @@ namespace weblog
 
     class KafkaConsumer {
         public static void DoWork(string queue, string group) {
-            Console.WriteLine("Kafka Consume");
-            Console.WriteLine($"queue: {queue}");
-            Console.WriteLine($"group: {group}");
             KafkaHelper.CreateTopics("kafka:9092", new List<string>{queue});
             using (var consumer = KafkaHelper.GetConsumer("kafka:9092", group)) {
 
@@ -111,10 +99,6 @@ namespace weblog
 
     class RabbitMQProducer {
         public static void DoWork(string queue, string exchange, string routing_key) {
-            Console.WriteLine("RabbitMQ Producer");
-            Console.WriteLine($"queue: {queue}");
-            Console.WriteLine($"exchange: {exchange}");
-            Console.WriteLine($"routing_key: {routing_key}");
             var helper = new RabbitMQHelper();
             helper.ExchangeDeclare(exchange, ExchangeType.Direct);
             helper.CreateQueue(queue);
@@ -127,10 +111,6 @@ namespace weblog
 
     class RabbitMQConsumer {
         public static void DoWork(string queue, string exchange, string routing_key) {
-            Console.WriteLine("RabbitMQ Consume");
-            Console.WriteLine($"queue: {queue}");
-            Console.WriteLine($"exchange: {exchange}");
-            Console.WriteLine($"routing_key: {routing_key}");
             var helper = new RabbitMQHelper();
             helper.ExchangeDeclare(exchange, ExchangeType.Direct);
             helper.CreateQueue(queue);
