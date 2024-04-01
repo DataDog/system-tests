@@ -64,7 +64,7 @@ class Test_DsmHttp:
     def setup_dsm_http(self):
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
         # and will be instrumented as such
-        self.r = weblog.get("/dsm?integration=kafka")
+        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     def test_dsm_http(self):
         assert self.r.text == "ok"
@@ -443,7 +443,7 @@ class Test_DsmContext_Extraction_Base64:
             # it does not have access to the queue name
             "nodejs": {
                 "producer": 15513165469939804800,
-                "consumer": 5454773345580223976,
+                "consumer": 7616007432001161798,
                 "edge_tags": ("direction:in", f"topic:{routing_key}", "type:rabbitmq"),
             },
             "default": {
