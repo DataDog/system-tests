@@ -462,7 +462,7 @@ public class App {
                 return "failed to start producing message";
             }
             try {
-                kafka.startConsumingMessages(queue);
+                kafka.startConsumingMessages("");
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
