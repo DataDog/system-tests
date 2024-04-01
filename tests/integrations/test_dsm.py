@@ -432,25 +432,32 @@ class Test_DsmContext_Extraction_Base64:
         )
 
     def test_dsmcontext_extraction_base64(self):
+        queue = "dsm-propagation-test-v2-encoding-queue"
+        routing_key = "dsm-propagation-test-v2-encoding-routing-key"
+
         assert self.produce_response == "ok"
         assert "error" not in self.r.text
 
         language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 15513165469939804800, "consumer": 5454773345580223976,},
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
+            # it does not have access to the queue name
+            "nodejs": {
+                "producer": 15513165469939804800,
+                "consumer": 5454773345580223976,
+                "edge_tags": ("direction:in", f"topic:{routing_key}", "type:rabbitmq"),
+            },
             "default": {
                 "producer": 9235368231858162135,
                 "consumer": 7819692959683983563,
+                "edge_tags": ("direction:in", f"topic:{queue}", "type:rabbitmq"),
             },  # java/python decode to consumer hash of 7819692959683983563
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-
-        queue = "dsm-propagation-test-v2-encoding-queue"
-        edge_tags_in = ("direction:in", f"topic:{queue}", "type:rabbitmq")
+        edge_tags = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
         )
 
 
