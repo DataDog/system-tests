@@ -366,6 +366,21 @@ class EndToEndScenario(_DockerScenario):
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
 
+        weblog_env = dict(weblog_env) if weblog_env else {}
+        weblog_env.update(
+            {
+                "INCLUDE_POSTGRES": str(include_postgres_db).lower(),
+                "INCLUDE_CASSANDRA": str(include_cassandra_db).lower(),
+                "INCLUDE_MONGO": str(include_mongo_db).lower(),
+                "INCLUDE_KAFKA": str(include_kafka).lower(),
+                "INCLUDE_RABBITMQ": str(include_rabbitmq).lower(),
+                "INCLUDE_MYSQL": str(include_mysql_db).lower(),
+                "INCLUDE_SQLSERVER": str(include_sqlserver).lower(),
+                "INCLUDE_ELASTICMQ": str(include_elasticmq).lower(),
+                "INCLUDE_LOCALSTACK": str(include_localstack).lower(),
+            }
+        )
+
         self.weblog_container = WeblogContainer(
             self.host_log_folder,
             environment=weblog_env,
