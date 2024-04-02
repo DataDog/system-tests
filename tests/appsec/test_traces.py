@@ -323,6 +323,7 @@ class Test_CollectRespondHeaders:
 
         interfaces.library.validate_spans(self.r, validate_response_headers)
 
+
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
 class Test_CollectDefaultRequestHeader:
@@ -330,13 +331,7 @@ class Test_CollectDefaultRequestHeader:
     HEADERS = ["User-Agent", "Accept", "Content-Type"]
 
     def setup_wafs_header_collection(self):
-        self.r = weblog.get(
-            "/headers",
-            headers={
-                header: "myHeaderValue"
-                for header in self.HEADERS
-            },
-        )
+        self.r = weblog.get("/headers", headers={header: "myHeaderValue" for header in self.HEADERS},)
 
     def test_collect_default_request_headers(self):
         """
