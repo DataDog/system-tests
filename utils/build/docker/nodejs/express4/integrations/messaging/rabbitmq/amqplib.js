@@ -1,6 +1,6 @@
 const amqplib = require('amqplib')
 
-async function rabbitmqProduce (queue, exchange, routingKey, message) {
+async function rabbitmqProduceAmqplib (queue, exchange, routingKey, message) {
   const connection = await amqplib.connect('amqp://rabbitmq:5672')
   const channel = await connection.createChannel()
 
@@ -13,7 +13,7 @@ async function rabbitmqProduce (queue, exchange, routingKey, message) {
   await connection.close()
 }
 
-async function rabbitmqConsume (queue, timeout) {
+async function rabbitmqConsumeAmqplib (queue, timeout) {
   const connection = await amqplib.connect('amqp://rabbitmq:5672')
   const channel = await connection.createChannel()
 
@@ -46,6 +46,6 @@ async function rabbitmqConsume (queue, timeout) {
 }
 
 module.exports = {
-  rabbitmqProduce,
-  rabbitmqConsume
+  rabbitmqProduceAmqplib,
+  rabbitmqConsumeAmqplib
 }

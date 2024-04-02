@@ -17,7 +17,8 @@ const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
-const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
+const { rabbitmqProduceAmqplib, rabbitmqConsumeAmqplib } = require('./integrations/messaging/rabbitmq/amqplib')
+const { rabbitmqProduceRhea, rabbitmqConsumeRhea } = require('./integrations/messaging/rabbitmq/rhea')
 
 iast.initData().catch(() => {})
 
@@ -150,6 +151,7 @@ app.get('/dsm', (req, res) => {
   const exchange = req.query.exchange
   const routingKey = req.query.routing_key
   const stream = req.query.stream
+  const instrumentation = req.query.instrumentation
 
   if (integration === 'kafka') {
     const message = 'hello from kafka DSM JS'
@@ -211,21 +213,35 @@ app.get('/dsm', (req, res) => {
   } else if (integration === 'rabbitmq') {
     const message = 'hello from SQS DSM JS'
     const timeout = req.query.timeout ?? 5
+    let produceFunc
+    let consumeFunc
 
-    rabbitmqProduce(queue, exchange, routingKey, message)
+    if (instrumentation.toLowerCase() === 'rhea') {
+      produceFunc = rabbitmqProduceRhea
+      consumeFunc = rabbitmqConsumeRhea
+    } else if (instrumentation.toLowerCase() === 'amqplib') {
+      produceFunc = rabbitmqProduceAmqplib
+      consumeFunc = rabbitmqConsumeAmqplib
+    }
+
+    produceFunc(queue, exchange, routingKey, message)
       .then(() => {
-        rabbitmqConsume(queue, timeout * 1000)
+        consumeFunc(queue, timeout * 1000)
           .then(() => {
             res.status(200).send('ok')
           })
           .catch((error) => {
             console.error(error)
-            res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM consume')
+            res.status(500).send(
+              `[RabbitMQ] [${instrumentation.toUpperCase()}] Internal Server Error during RabbitMQ DSM consume`
+            )
           })
       })
       .catch((error) => {
         console.error(error)
-        res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM produce')
+        res.status(500).send(
+          `[RabbitMQ] [${instrumentation.toUpperCase()}] Internal Server Error during RabbitMQ DSM produce`
+        )
       })
   } else if (integration === 'kinesis') {
     const message = JSON.stringify({ message: 'hello from Kinesis DSM JS' })
@@ -370,7 +386,7 @@ app.get('/rabbitmq/produce', (req, res) => {
   const routingKey = 'systemTestDirectRoutingKeyContextPropagation'
   console.log('[RabbitMQ] produce')
 
-  rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
+  rabbitmqProduceAmqplib(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
     .then(() => {
       res.status(200).send('[RabbitMQ] produce ok')
     })
@@ -385,7 +401,7 @@ app.get('/rabbitmq/consume', (req, res) => {
   const timeout = parseInt(req.query.timeout) ?? 5
   console.log('[RabbitMQ] consume')
 
-  rabbitmqConsume(queue, timeout * 1000)
+  rabbitmqConsumeAmqplib(queue, timeout * 1000)
     .then(() => {
       res.status(200).send('[RabbitMQ] consume ok')
     })

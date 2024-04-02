@@ -366,7 +366,10 @@ tests/:
       Test_DsmKinesis:
         "*": irrelevant
         express4: v5.2.0
-      Test_DsmRabbitmq:
+      Test_DsmRabbitmq_NodeJS_AmqpLib:
+        "*": irrelevant
+        express4: v5.3.0
+      Test_DsmRabbitmq_NodeJS_Rhea:
         "*": irrelevant
         express4: v5.3.0
       Test_DsmRabbitmq_FanoutExchange:

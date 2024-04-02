@@ -75,14 +75,15 @@ class Test_DsmHttp:
         )
 
 
-@features.datastreams_monitoring_support_for_rabbitmq
-@scenarios.integrations
-class Test_DsmRabbitmq:
+class BaseDsmRabbitMQTestClass:
     """ Verify DSM stats points for RabbitMQ """
+
+    def __init__(self, instrumentation=""):
+        self.instrumentation = instrumentation
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get(
-            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}"
+            f"/dsm?integration=rabbitmq&instrumentation={self.instrumentation}&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}"
         )
 
     @bug(
@@ -153,6 +154,30 @@ class Test_DsmRabbitmq:
             parent_hash=12547013883960139159,
             tags=("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
         )
+
+
+@irrelevant(context.library == "nodejs", reason="Only NodeJS has multiple rabbitmq integrations")
+@features.datastreams_monitoring_support_for_rabbitmq
+@scenarios.integrations
+class Test_DsmRabbitmq(BaseDsmRabbitMQTestClass):
+    def __init__(self):
+        super().__init__()
+
+
+@irrelevant(context.library != "nodejs", reason="Only NodeJS has multiple rabbitmq integrations")
+@features.datastreams_monitoring_support_for_rabbitmq
+@scenarios.integrations
+class Test_DsmRabbitmq_NodeJS_AmqpLib(BaseDsmRabbitMQTestClass):
+    def __init__(self):
+        super().__init__("amqplib")
+
+
+@irrelevant(context.library != "nodejs", reason="Only NodeJS has multiple rabbitmq integrations")
+@features.datastreams_monitoring_support_for_rabbitmq
+@scenarios.integrations
+class Test_DsmRabbitmq_NodeJS_Rhea(BaseDsmRabbitMQTestClass):
+    def __init__(self):
+        super().__init__("rhea")
 
 
 @features.datastreams_monitoring_support_for_rabbitmq_topicexchange
