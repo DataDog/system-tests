@@ -314,7 +314,7 @@ tests/:
         '*': v1.36.2
         gin: v1.37.0
       Test_DistributedTraceInfo: missing_feature (test not implemented)
-      Test_ExternalWafRequestsIdentification: missing_feature
+      Test_ExternalWafRequestsIdentification: v1.62.0-dev
       Test_RetainTraces:
         '*': v1.36.0
         gin: v1.37.0
