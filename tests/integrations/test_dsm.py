@@ -78,8 +78,7 @@ class Test_DsmHttp:
 class BaseDsmRabbitMQTestClass:
     """ Verify DSM stats points for RabbitMQ """
 
-    def __init__(self, instrumentation=""):
-        self.instrumentation = instrumentation
+    instrumentation = ""
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get(
@@ -160,24 +159,21 @@ class BaseDsmRabbitMQTestClass:
 @features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
 class Test_DsmRabbitmq(BaseDsmRabbitMQTestClass):
-    def __init__(self):
-        super().__init__()
+    instrumentation = ""
 
 
 @irrelevant(context.library != "nodejs", reason="Only NodeJS has multiple rabbitmq integrations")
 @features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
 class Test_DsmRabbitmq_NodeJS_AmqpLib(BaseDsmRabbitMQTestClass):
-    def __init__(self):
-        super().__init__("amqplib")
+    instrumentation = "Amqplib"
 
 
 @irrelevant(context.library != "nodejs", reason="Only NodeJS has multiple rabbitmq integrations")
 @features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
 class Test_DsmRabbitmq_NodeJS_Rhea(BaseDsmRabbitMQTestClass):
-    def __init__(self):
-        super().__init__("rhea")
+    instrumentation = "Rhea"
 
 
 @features.datastreams_monitoring_support_for_rabbitmq_topicexchange
