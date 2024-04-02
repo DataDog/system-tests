@@ -28,6 +28,12 @@ jobs:
 
         - library: python
           weblog-variant: dd-lib-python-init-test-django
+
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django-gunicorn
+  
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django-uvicorn
         
         - library: ruby
           weblog-variant: dd-lib-ruby-init-test-rails
