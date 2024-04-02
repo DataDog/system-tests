@@ -330,7 +330,7 @@ class Test_CollectDefaultRequestHeader:
 
     HEADERS = ["User-Agent", "Accept", "Content-Type"]
 
-    def setup_wafs_header_collection(self):
+    def setup_collect_default_request_headers(self):
         self.r = weblog.get("/headers", headers={header: "myHeaderValue" for header in self.HEADERS},)
 
     def test_collect_default_request_headers(self):
