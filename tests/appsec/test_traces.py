@@ -323,6 +323,37 @@ class Test_CollectRespondHeaders:
 
         interfaces.library.validate_spans(self.r, validate_response_headers)
 
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
+@features.security_events_metadata
+class Test_CollectDefaultRequestHeader:
+
+    HEADERS = ["User-Agent", "Accept", "Content-Type"]
+
+    def setup_wafs_header_collection(self):
+        self.r = weblog.get(
+            "/headers",
+            headers={
+                header: "myHeaderValue"
+                for header in self.HEADERS
+            },
+        )
+
+    def test_collect_default_request_headers(self):
+        """
+        Collect User agent and other headers and other security info when appsec is enabled.
+        """
+
+        def assertHeaderInSpanMeta(span, header):
+            if header not in span["meta"]:
+                raise Exception(f"Can't find {header} in span's meta")
+
+        def validate_request_headers(span):
+            for header in self.HEADERS:
+                assertHeaderInSpanMeta(span, f"http.request.headers.{header.lower()}")
+            return True
+
+        interfaces.library.validate_spans(self.r, validate_request_headers)
+
 
 @features.security_events_metadata
 class Test_DistributedTraceInfo:
