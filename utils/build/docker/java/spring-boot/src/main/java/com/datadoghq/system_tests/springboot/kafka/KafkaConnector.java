@@ -9,11 +9,13 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Consumer;
 
 public class KafkaConnector {
     public static final String BOOTSTRAP_SERVERS = "kafka:9092";
@@ -78,11 +80,39 @@ public class KafkaConnector {
         System.out.println("Started Kafka consumer thread");
     }
 
+    public Thread startConsumingMessages(String groupName, long timeoutMs, Consumer<ConsumerRecords<String, String>> callback) throws Exception {
+        Thread thread = new Thread("KafkaConsume") {
+            public void run() {
+                try (KafkaConsumer<String, String> consumer = createKafkaConsumer(groupName)) {
+                    consumer.subscribe(Collections.singletonList(topic));
+                    while (true) {
+                        ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(timeoutMs));
+                        if (records.isEmpty()) {
+                            consumer.unsubscribe();
+                            break;
+                        }
+                        callback.accept(records);
+                    }
+                }
+            }
+        };
+        thread.start();
+        System.out.println("Started Kafka consumer thread");
+        return thread;
+    }
+
     // For APM testing, produce message without starting a new thread
     public void produceMessageWithoutNewThread(String message) throws Exception {
         KafkaTemplate<String, String> kafkaTemplate = createKafkaTemplateForProducer();
         System.out.printf("Publishing message: %s%n", message);
         kafkaTemplate.send(topic, message);
+    }
+
+    // For APM testing, produce message without starting a new thread
+    public void produceMessageWithoutNewThread(@Nonnull String key, @Nonnull String value) throws Exception {
+        KafkaTemplate<String, String> kafkaTemplate = createKafkaTemplateForProducer();
+        System.out.printf("Publishing message: %s->%s%n", key, value);
+        kafkaTemplate.send(topic, key, value);
     }
 
     // For APM testing, a consume message without starting a new thread
@@ -102,7 +132,7 @@ public class KafkaConnector {
                 return true;
             }
         }
-        
+
         return false;
     }
 }
