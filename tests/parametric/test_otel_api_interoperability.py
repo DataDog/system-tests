@@ -460,6 +460,7 @@ class Test_Otel_API_Interoperability:
         assert root["meta"]["_dd.origin"] == "synthetics"
         assert root["metrics"]["_sampling_priority_v1"] == -2
 
+    @irrelevant(context.library >= "php@0.98.1", reason="The new")
     def test_set_attribute_from_otel(self, test_agent, test_library):
         """
             - Test that attributes can be set on a Datadog span using the OTel API
