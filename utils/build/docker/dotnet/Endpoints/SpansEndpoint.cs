@@ -29,8 +29,7 @@ namespace weblog
                     Helper.GenerateSpan(garbageTags);
                 }
 
-                await context.Response.WriteAsync(
-                    String.Format("Generated {0} spans with {1} garbage tags\n", repeats, garbageTags));
+                await context.Response.WriteAsync($"Generated {repeats} spans with {garbageTags} garbage tags\n");
             });
         }
     }
