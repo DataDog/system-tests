@@ -394,7 +394,7 @@ namespace weblog
 
                     while (reader.Read())
                     {
-                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
+                        sb.AppendLine($"{reader["user"]}, {reader["pwd"]}");
                     }
 
                     return Content(sb.ToString());
