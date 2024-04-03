@@ -19,7 +19,6 @@ namespace weblog.ModelBinders
             }
 
             var subclasses = new[] { typeof(IEnumerable<string>), typeof(Model), typeof(Models.String), typeof(string) };
-            var validators = new Dictionary<Type, Func<bool>>();
             var binders = new Dictionary<Type, (ModelMetadata, IModelBinder)>();
             foreach (var type in subclasses)
             {
