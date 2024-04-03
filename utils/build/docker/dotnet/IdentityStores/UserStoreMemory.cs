@@ -9,7 +9,7 @@ namespace weblog.IdentityStores;
 
 public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserClaim<string>, IdentityUserLogin<string>, IdentityUserToken<string>>
 {
-    internal static IList<IdentityUser> AllUsers;
+    internal static IList<IdentityUser>? AllUsers;
 
     static UserStoreMemory()
     {
@@ -100,7 +100,7 @@ public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserC
 
     public override Task<IdentityResult> CreateAsync(IdentityUser user, CancellationToken cancellationToken = new CancellationToken())
     {
-        AllUsers.Add(user);
+        AllUsers?.Add(user);
         return Task.FromResult(IdentityResult.Success);
     }
 
@@ -111,35 +111,38 @@ public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserC
 
     public override Task<IdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken = new CancellationToken())
     {
-        return Task.FromResult(AllUsers.FirstOrDefault(u => u.Id == userId));
+        return Task.FromResult(AllUsers?.FirstOrDefault(u => u.Id == userId))!;
     }
 
     public override Task<IdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = new CancellationToken())
-        => Task.FromResult(AllUsers.FirstOrDefault(u => u.NormalizedEmail == normalizedEmail));
+        => Task.FromResult(AllUsers?.FirstOrDefault(u => u.NormalizedEmail == normalizedEmail))!;
 
-    public override Task<IdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) => Task.FromResult(AllUsers.FirstOrDefault(u => u.NormalizedUserName == normalizedUserName));
+    public override Task<IdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default) => Task.FromResult(AllUsers?.FirstOrDefault(u => u.NormalizedUserName == normalizedUserName))!;
 
     public override Task<IdentityResult> UpdateAsync(IdentityUser user, CancellationToken cancellationToken = new CancellationToken())
     {
-        var userToUpdate = AllUsers.FirstOrDefault(u => u.Id == user.Id);
-        if (userToUpdate != null)
+        if (AllUsers != null)
         {
-            AllUsers.Remove(userToUpdate);
-            AllUsers.Add(user);
-            return Task.FromResult(IdentityResult.Success);
+            var userToUpdate = AllUsers.FirstOrDefault(u => u.Id == user.Id);
+            if (userToUpdate != null)
+            {
+                AllUsers.Remove(userToUpdate);
+                AllUsers.Add(user);
+                return Task.FromResult(IdentityResult.Success);
+            }
         }
 
         return Task.FromResult(IdentityResult.Failed(new IdentityError { Description = "user did not exist" }));
     }
 
-    public override IQueryable<IdentityUser> Users { get; }
+    public override IQueryable<IdentityUser>? Users { get; }
 
     protected override Task<IdentityUserToken<string>> FindTokenAsync(IdentityUser user, string loginProvider, string name, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
-    protected override Task<IdentityUser> FindUserAsync(string userId, CancellationToken cancellationToken) => Task.FromResult(AllUsers.FirstOrDefault(u => u.Id == userId));
+    protected override Task<IdentityUser> FindUserAsync(string userId, CancellationToken cancellationToken) => Task.FromResult(AllUsers?.FirstOrDefault(u => u.Id == userId))!;
 
     protected override Task<IdentityUserLogin<string>> FindUserLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
     {

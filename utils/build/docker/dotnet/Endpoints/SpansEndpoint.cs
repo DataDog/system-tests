@@ -13,14 +13,14 @@ namespace weblog
             routeBuilder.MapGet("/spans", async context =>
             {
                 int repeats = 1;
-                var repeatsStr = context.Request.Query["repeats"];
+                string? repeatsStr = context.Request.Query["repeats"];
                 if (!String.IsNullOrEmpty(repeatsStr))
                 {
                     repeats = Int32.Parse(repeatsStr);
                 }
 
                 int garbageTags = 1;
-                var garbageStr = context.Request.Query["garbage"];
+                string? garbageStr = context.Request.Query["garbage"];
                 if (!String.IsNullOrEmpty(garbageStr))
                 {
                     garbageTags = Int32.Parse(garbageStr);

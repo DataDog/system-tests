@@ -11,7 +11,7 @@ namespace weblog.ModelBinders
 {
     public class ModelBinderSwitcherProvider : IModelBinderProvider
     {
-        public IModelBinder GetBinder(ModelBinderProviderContext context)
+        public IModelBinder? GetBinder(ModelBinderProviderContext context)
         {
             if (context.Metadata.ModelType != typeof(object))
             {
@@ -64,11 +64,16 @@ namespace weblog.ModelBinders
                                 continue;
                             }
                         }
-                        // Setting the ValidationState ensures properties on derived types are correctly 
-                        bindingContext.ValidationState[bindingContext.Result.Model] = new ValidationStateEntry
+
+                        // Setting the ValidationState ensures properties on derived types are correctly
+                        if (bindingContext.Result.Model != null)
                         {
-                            Metadata = modelMetadata,
-                        };
+                            bindingContext.ValidationState[bindingContext.Result.Model] = new ValidationStateEntry
+                            {
+                                Metadata = modelMetadata,
+                            };
+                        }
+
                         return;
                     }
                 }
