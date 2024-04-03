@@ -792,6 +792,7 @@ tests/:
         '*': v0.113.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders:
         '*': v0.102.0
         akka-http: v1.22.0

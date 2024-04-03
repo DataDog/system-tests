@@ -310,6 +310,9 @@ tests/:
         '*': v1.36.0
         gin: v1.37.0
       Test_AppSecObfuscator: v1.38.0
+      Test_CollectDefaultRequestHeader:
+        '*': v1.36.2
+        gin: v1.37.0
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0

@@ -423,6 +423,7 @@ tests/:
       Test_AppSecObfuscator:
         '*': v1.5.0rc1.dev
         fastapi: v2.6.0.dev1
+      Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
