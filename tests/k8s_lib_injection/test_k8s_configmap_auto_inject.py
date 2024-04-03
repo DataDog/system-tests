@@ -10,7 +10,7 @@ from utils import irrelevant
 
 
 @features.k8s_admission_controller
-@scenarios.k8s_lib_injection
+@scenarios.k8s_lib_injection_full
 class TestConfigMapAutoInject:
     """ Datadog Agent Auto-injection tests using ConfigMap
         Check: https://datadoghq.atlassian.net/wiki/spaces/AO/pages/2983035648/Cluster+Agent+Development

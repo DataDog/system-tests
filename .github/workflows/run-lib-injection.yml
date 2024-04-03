@@ -28,6 +28,12 @@ jobs:
 
         - library: python
           weblog-variant: dd-lib-python-init-test-django
+
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django-gunicorn
+  
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django-uvicorn
         
         - library: ruby
           weblog-variant: dd-lib-ruby-init-test-rails
@@ -52,6 +58,8 @@ jobs:
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: ${{ matrix.version }}
       BUILDX_PLATFORMS: linux/amd64
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: dev
+      SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
     steps:
       - name: Checkout
@@ -89,7 +97,10 @@ jobs:
           cd ..
 
       - name: Build weblog latest base images
-        if: github.ref == 'refs/heads/main'
+        #If we execute on system-tests-dashboard, we can't push the images because we don't have the permissions.
+        #To asign the permissions, we need to configure the image on ghcr, but due to a issue we can't do it
+        #The case is opened with github support
+        if: github.ref == 'refs/heads/main' && github.event_name != 'schedule'
         env:
           DOCKER_IMAGE_WEBLOG_TAG: latest
           APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
@@ -104,12 +115,12 @@ jobs:
       - name: Kubernetes lib-injection tests (using custom weblog image tag)
         if: inputs.build_lib_injection_app_images
         id: k8s-lib-injection-tests-custom-weblog-tag
-        run: DOCKER_IMAGE_WEBLOG_TAG=${{ github.sha }} ./run.sh K8S_LIB_INJECTION 
+        run: DOCKER_IMAGE_WEBLOG_TAG=${{ github.sha }} ./run.sh K8S_LIB_INJECTION_FULL
 
       - name: Kubernetes lib-injection tests
         if: inputs.build_lib_injection_app_images != true
         id: k8s-lib-injection-tests
-        run: ./run.sh K8S_LIB_INJECTION 
+        run: ./run.sh K8S_LIB_INJECTION_FULL
 
       - name: Compress logs
         id: compress_logs
@@ -120,5 +131,5 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_k8s_lib_injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version }}
+          name: logs_k8s-lib-injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version == 'latest' && 'prod' || 'dev' }}
           path: artifact.tar.gz

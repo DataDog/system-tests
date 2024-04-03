@@ -39,7 +39,6 @@ class TestSqlInjection(BaseSinkTest):
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
-    @missing_feature(library="dotnet", reason="Endpoint responds 500")
     @missing_feature(library="python", reason="Endpoint responds 500")
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 500")
     def test_secure(self):

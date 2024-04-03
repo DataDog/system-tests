@@ -167,9 +167,14 @@ docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-java-init:local
 These K8s Lib Injection tests are fully integrated into system-tests life cycle. If we followed the previous steps, we only have to execute this command:
 
 ```sh
-  ./run.sh K8S_LIB_INJECTION
+  ./run.sh K8S_LIB_INJECTION_FULL
 ```
 
+A minimum test scenario is also included. You can run it:
+
+```sh
+  ./run.sh K8S_LIB_INJECTION_BASIC
+```
 # Run the K8s Lib Injection tests in your CI
 
 If you are going to run the K8s lib injection tests on your CI pipeline, check this example:

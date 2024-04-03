@@ -170,6 +170,7 @@ tests/:
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_traces.py:
+      Test_CollectDefaultRequestHeader: missing_feature
       Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: missing_feature
     test_user_blocking_full_denylist.py:
