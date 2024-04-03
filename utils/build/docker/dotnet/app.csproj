@@ -29,4 +29,12 @@
 		</Reference>
 		<PackageReference Include="MongoDB.Driver" Version="2.23.1" />
 	</ItemGroup>
+	
+	<ItemGroup>
+		<!-- exclude "parametric" folder from build -->
+		<Compile Remove="parametric/**" />
+		<EmbeddedResource Remove="parametric/**" />
+		<Content Remove="parametric/**" />
+		<None Remove="parametric/**" />
+	</ItemGroup>
 </Project>
