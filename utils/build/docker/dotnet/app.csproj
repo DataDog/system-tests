@@ -6,6 +6,14 @@
         <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <Nullable>enable</Nullable>
+
+        <!--
+          Ignore the following warnings:
+            NU1902: Package 'System.Data.SqlClient' 4.6.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-8g2p-5pqh-5jmc
+            NU1903: Package 'System.Data.SqlClient' 4.6.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-98g6-xh36-x2p7
+            CA1416: This call site is reachable on all platforms. 'DirectoryEntry' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416)
+        -->
+        <NoWarn>NU1902;NU1903;CA1416</NoWarn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.7.0'">
         <DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
