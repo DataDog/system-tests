@@ -6,8 +6,6 @@ namespace weblog
 {
     public class SpansEndpoint : ISystemTestEndpoint
     {
-        private static Helper helper = new Helper();
-
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
         {
             routeBuilder.MapGet("/spans", async context =>
@@ -28,7 +26,7 @@ namespace weblog
 
                 for (int i = 0; i < repeats; i++)
                 {
-                    helper.GenerateSpan(garbageTags);
+                    Helper.GenerateSpan(garbageTags);
                 }
 
                 await context.Response.WriteAsync(
