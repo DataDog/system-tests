@@ -12,7 +12,7 @@ namespace weblog
             routeBuilder.MapGet("/read_file", async context =>
             {
                 var path = context.Request.Query["file"];
-                string text = File.ReadAllText(path!);
+                string text = await File.ReadAllTextAsync(path!);
                 await context.Response.WriteAsync(text);
             });
         }
