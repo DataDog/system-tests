@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace weblog
 {
-    public class ReadFilepoint : ISystemTestEndpoint
+    public class ReadFileEndpoint : ISystemTestEndpoint
     {
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
         {
