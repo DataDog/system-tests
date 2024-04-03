@@ -9,7 +9,7 @@ namespace weblog.IdentityStores;
 
 public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserClaim<string>, IdentityUserLogin<string>, IdentityUserToken<string>>
 {
-    internal static IList<IdentityUser>? AllUsers;
+    private static IList<IdentityUser>? AllUsers;
 
     static UserStoreMemory()
     {
