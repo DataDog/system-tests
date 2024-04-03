@@ -58,6 +58,8 @@ jobs:
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: ${{ matrix.version }}
       BUILDX_PLATFORMS: linux/amd64
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: dev
+      SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
     steps:
       - name: Checkout
