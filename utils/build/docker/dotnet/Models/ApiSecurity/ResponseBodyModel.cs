@@ -1,12 +1,4 @@
-using System.Collections.Generic;
-
 namespace weblog.Models.ApiSecurity;
-
-public class ResponseBodyModel
-{
-    public IDictionary<string, object> Main { get; set; }
-    public object? Nullable { get; set; }
-}
 
 public class PayloadInResponseBodyModel
 {
