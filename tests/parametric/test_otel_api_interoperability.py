@@ -487,7 +487,7 @@ class Test_Otel_API_Interoperability:
         assert root["metrics"]["float"] == 1.0
         assert root["meta"]["bool"] == "true"
         assert root["meta"]["str"] == "string"
-        assert root["meta"]["none"] == "null"
+        assert "none" not in root["meta"]
         assert root["meta"]["str_array.0"] == "a"
         assert root["meta"]["str_array.1"] == "b"
         assert root["meta"]["str_array.2"] == "c"
@@ -528,7 +528,7 @@ class Test_Otel_API_Interoperability:
         assert root["metrics"]["float"] == 1.0
         assert root["meta"]["bool"] == "true"
         assert root["meta"]["str"] == "string"
-        # assert root["meta"]["none"] == "null"
+        assert "none" not in root["meta"]
         assert root["meta"]["str_array.0"] == "a"
         assert root["meta"]["str_array.1"] == "b"
         assert root["meta"]["str_array.2"] == "c"
