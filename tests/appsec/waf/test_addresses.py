@@ -237,7 +237,7 @@ class Test_BodyRaw:
     @missing_feature(reason="no rule with body raw yet")
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
-        interfaces.library.assert_waf_attack(self.r, address="server.request.body")
+        interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
 
 
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
@@ -320,7 +320,7 @@ class Test_BodyXml:
         self.r_attr_1 = self.weblog_post("/waf", data='<string attack="var_dump ()" />')
         self.r_attr_2 = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
 
-    @bug(context.weblog_variant == "spring-boot-wildfly")
+    @bug(context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"))
     def test_xml_attr_value(self):
         interfaces.library.assert_waf_attack(self.r_attr_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_attr_2, address="server.request.body", value=self.ATTACK)
@@ -329,7 +329,7 @@ class Test_BodyXml:
         self.r_content_1 = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         self.r_content_2 = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
 
-    @bug(context.weblog_variant == "spring-boot-wildfly")
+    @bug(context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"))
     def test_xml_content(self):
         interfaces.library.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)

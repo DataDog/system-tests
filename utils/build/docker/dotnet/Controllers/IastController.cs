@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+
 #nullable disable
 
 namespace weblog
@@ -275,8 +277,14 @@ namespace weblog
                 var result = System.IO.File.ReadAllText(data.path);
                 return Content($"File content: " + result);
             }
-            catch
+            catch (UnauthorizedAccessException)
             {
+                // Normal Exception caught: The file in the test "/var/log" is not accessible
+                return StatusCode(200);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error reading file.");
             }
         }
@@ -289,8 +297,14 @@ namespace weblog
                 var result = System.IO.File.ReadAllText("file.txt");
                 return Content($"File content: " + result);
             }
-            catch
+            catch (System.IO.FileNotFoundException)
             {
+                // Normal Exception caught: The file "file.txt" hardcoded for the test does not exist
+                return StatusCode(200);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error reading file.");
             }
         }
@@ -304,7 +318,7 @@ namespace weblog
         [HttpPost("ssrf/test_secure")]
         public IActionResult TestSecureSSRF([FromForm] RequestData data)
         {
-            return MakeRequest("notAUrl");
+            return MakeRequest("https://www.datadoghq.com");
         }
         
         private IActionResult MakeRequest(string url)
@@ -312,7 +326,7 @@ namespace weblog
             try
             {
                 var result = new System.Net.Http.HttpClient().GetStringAsync(url).Result;
-                return Content($"Reponse: " + result);
+                return Content($"Response: " + result);
             }
             catch
             {
@@ -327,7 +341,7 @@ namespace weblog
             {
                 string ldapPath = "LDAP://" + username + ":" + password + "@ldap.example.com/OU=Users,DC=example,DC=com";
                 _ = new System.DirectoryServices.DirectoryEntry(ldapPath);
-                return Content($"Conection created");
+                return Content($"Connection created");
             }
             catch
             {
@@ -390,8 +404,9 @@ namespace weblog
                     return BadRequest($"No params provided");
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error executing query.");
             }        
         }
@@ -408,13 +423,13 @@ namespace weblog
                     using var conn = Sql.GetSqliteConnection();
                     conn.Open();
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT * FROM data WHERE value = $user";
-                    cmd.Parameters.Add("$user");
-                    cmd.Parameters["$user"].Value = username;
+                    cmd.CommandText = "SELECT * FROM users WHERE user = $user";
+                    cmd.Parameters.Add(new SqliteParameter("$user", username));
+
                     using var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        sb.AppendLine(reader["value"]?.ToString());
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
                     }
 
                     return Content(sb.ToString());
@@ -424,8 +439,9 @@ namespace weblog
                     return BadRequest($"No params provided");
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error executing query.");
             }
         }
@@ -549,7 +565,7 @@ namespace weblog
         {
             try
             {
-                var mongoDbHelper = new MongoDbHelper("mongodb://localhost:27017", "test-db");
+                var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
                 var filter = "{ \"user\": \"" + key + "\" }";
                 mongoDbHelper.Find("users", filter);
                 
@@ -567,7 +583,7 @@ namespace weblog
         {
             try
             {
-                var mongoDbHelper = new MongoDbHelper("mongodb://localhost:27017", "test-db");
+                var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
                 var filter = MongoDbHelper.CreateSimpleDocument("user", key);
                 mongoDbHelper.Find("users", filter);
                 
@@ -580,17 +596,20 @@ namespace weblog
             }
         }
         
+        private class ReflectionInjection { } // Class name passed as parameter in the reflection injection test
+        
         [HttpPost("reflection_injection/test_insecure")]
         public IActionResult test_insecure_reflection_injection([FromForm]string param)
         {
+            
             try
             {
                 var type = Type.GetType(param);
-                Activator.CreateInstance(type);
+                Activator.CreateInstance(type!);
             }
-            catch (Exception)
+            catch
             {
-                // ignored
+                return StatusCode(500, "Error executing reflection.");
             }
 
             return Content("Executed reflection injection");
@@ -601,12 +620,13 @@ namespace weblog
         {
             try
             {
-                var type = Type.GetType("System.String")!;
+                var type = Type.GetType("System.Text.StringBuilder")!;
                 Activator.CreateInstance(type);
                 return Content("Executed secure injection");
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error executing safe reflection.");
             }
         }
