@@ -7,7 +7,8 @@ NOT_SUPPPORTED=("K8S_LIB_INJECTION_BASIC" "K8S_LIB_INJECTION_FULL" "TRACE_PROPAG
 #fi
 
 if [ -d "logs/" ]; then
-   sh run.sh DEFAULT --replay
+    echo "[DEFAULT] Running replay mode"
+   ./run.sh DEFAULT --replay
 fi
 
 log_folder_prefix="logs_"
