@@ -366,6 +366,21 @@ class EndToEndScenario(_DockerScenario):
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
 
+        weblog_env = dict(weblog_env) if weblog_env else {}
+        weblog_env.update(
+            {
+                "INCLUDE_POSTGRES": str(include_postgres_db).lower(),
+                "INCLUDE_CASSANDRA": str(include_cassandra_db).lower(),
+                "INCLUDE_MONGO": str(include_mongo_db).lower(),
+                "INCLUDE_KAFKA": str(include_kafka).lower(),
+                "INCLUDE_RABBITMQ": str(include_rabbitmq).lower(),
+                "INCLUDE_MYSQL": str(include_mysql_db).lower(),
+                "INCLUDE_SQLSERVER": str(include_sqlserver).lower(),
+                "INCLUDE_ELASTICMQ": str(include_elasticmq).lower(),
+                "INCLUDE_LOCALSTACK": str(include_localstack).lower(),
+            }
+        )
+
         self.weblog_container = WeblogContainer(
             self.host_log_folder,
             environment=weblog_env,
@@ -426,7 +441,7 @@ class EndToEndScenario(_DockerScenario):
                 self.library_interface_timeout = 25
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs",):
+            elif self.weblog_container.library.library in ("nodejs", "ruby"):
                 self.library_interface_timeout = 0
             elif self.weblog_container.library.library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
@@ -1293,7 +1308,8 @@ class scenarios:
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
-        doc="Test sampling mechanism. Not included in default scenario because is very slow, and flaky",
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000"},
+        doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
     )
 
     trace_propagation_style_w3c = EndToEndScenario(

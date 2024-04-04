@@ -20,7 +20,7 @@ tests/:
         Test_Schema_Request_Json_Body: v0.98.1
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters: v0.94.0
-        Test_Schema_Response_Body: v0.98.1
+        Test_Schema_Response_Body: v0.99.1
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v0.94.0
     iast/:
@@ -170,6 +170,7 @@ tests/:
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_traces.py:
+      Test_CollectDefaultRequestHeader: missing_feature
       Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: missing_feature
     test_user_blocking_full_denylist.py:

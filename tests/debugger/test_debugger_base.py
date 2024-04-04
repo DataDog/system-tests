@@ -19,9 +19,14 @@ _TRACES_PATH = "/api/v0.2/traces"
 def read_diagnostic_data():
     tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
 
+    tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
     if tracer["language"] == "java":
-        tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
         if tracer_version > version.parse("1.27.0"):
+            path = _DEBUGER_PATH
+        else:
+            path = _LOGS_PATH
+    elif tracer["language"] == "dotnet":
+        if tracer_version > version.parse("2.49.0"):
             path = _DEBUGER_PATH
         else:
             path = _LOGS_PATH
@@ -164,5 +169,9 @@ class _Base_Debugger_Snapshot_Test:
         return self.all_probes_installed
 
     def assert_all_probes_are_installed(self):
+        data_debug = interfaces.agent.get_data(_DEBUGER_PATH)
+        for data in data_debug:
+            self.wait_for_all_probes_installed(data)
+
         if not self.all_probes_installed:
             raise ValueError("At least one probe is missing")

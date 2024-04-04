@@ -5,7 +5,8 @@ import random
 import subprocess
 import threading
 
-import psycopg2
+if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
+    import psycopg2
 import requests
 from flask import Flask, Response, jsonify
 from flask import request
@@ -18,19 +19,26 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
-from integrations.db.mssql import executeMssqlOperation
-from integrations.db.mysqldb import executeMysqlOperation
-from integrations.db.postgres import executePostgresOperation
+
+if os.environ.get("INCLUDE_SQLSERVER", "true") == "true":
+    from integrations.db.mssql import executeMssqlOperation
+if os.environ.get("INCLUDE_MYSQL", "true") == "true":
+    from integrations.db.mysqldb import executeMysqlOperation
+if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
+    from integrations.db.postgres import executePostgresOperation
 from integrations.messaging.aws.kinesis import kinesis_consume
 from integrations.messaging.aws.kinesis import kinesis_produce
 from integrations.messaging.aws.sns import sns_consume
 from integrations.messaging.aws.sns import sns_produce
 from integrations.messaging.aws.sqs import sqs_consume
 from integrations.messaging.aws.sqs import sqs_produce
-from integrations.messaging.kafka import kafka_consume
-from integrations.messaging.kafka import kafka_produce
-from integrations.messaging.rabbitmq import rabbitmq_consume
-from integrations.messaging.rabbitmq import rabbitmq_produce
+
+if os.environ.get("INCLUDE_KAFKA", "true") == "true":
+    from integrations.messaging.kafka import kafka_consume
+    from integrations.messaging.kafka import kafka_produce
+if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
+    from integrations.messaging.rabbitmq import rabbitmq_consume
+    from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
 
