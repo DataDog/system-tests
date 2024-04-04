@@ -19,9 +19,14 @@ _TRACES_PATH = "/api/v0.2/traces"
 def read_diagnostic_data():
     tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
 
+    tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
     if tracer["language"] == "java":
-        tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
         if tracer_version > version.parse("1.27.0"):
+            path = _DEBUGER_PATH
+        else:
+            path = _LOGS_PATH
+    elif tracer["language"] == "dotnet":
+        if tracer_version > version.parse("2.49.0"):
             path = _DEBUGER_PATH
         else:
             path = _LOGS_PATH
