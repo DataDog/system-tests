@@ -11,11 +11,11 @@ for dir in "$log_folder_prefix"*
 do
     scenario=${dir#"$log_folder_prefix"}
     scenario=$(echo "$scenario" | tr '[:lower:]' '[:upper:]')
-    if [[ ${NOT_SUPPPORTED[@]} =~ $scenario ]]
+    if [[ ${NOT_SUPPPORTED[*]} =~ $scenario ]]
     then
         echo "[$scenario] Replay mode not supported "
     else
         echo "[$scenario] Running replay mode"
-        ./run.sh $scenario --replay
+        ./run.sh "$scenario" --replay
     fi
 done
