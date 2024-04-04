@@ -377,40 +377,26 @@ class Test_DsmContext_Injection_Base64:
 
         message = self.consume_response["result"][0]
 
-        if "dd-pathway-ctx-base64" in message.headers:
-            encoded_pathway_b64 = message.headers["dd-pathway-ctx-base64"]
+        assert "dd-pathway-ctx-base64" in message.headers
 
-            # assert that this is base64
-            assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
+        encoded_pathway_b64 = message.headers["dd-pathway-ctx-base64"]
 
-            encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
+        # assert that this is base64
+        assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
 
-            # nodejs uses big endian, others use little endian
-            _format = "<Q"
-            if context.library.library == "nodejs":
-                _format = ">Q"
-            decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
+        encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
 
-            assert producer_hash == decoded_pathway
+        # nodejs uses big endian, others use little endian
+        _format = "<Q"
+        if context.library.library == "nodejs":
+            _format = ">Q"
+        decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
 
-            DsmHelper.assert_checkpoint_presence(
-                hash_=decoded_pathway, parent_hash=0, tags=edge_tags_out,
-            )
+        assert producer_hash == decoded_pathway
 
-        elif "dd-pathway-ctx" in message.headers:
-            encoded_pathway = message.headers["dd-pathway-ctx"]
-            # nodejs uses big endian, others use little endian
-            _format = "<Q"
-            if context.library.library == "nodejs":
-                _format = ">Q"
-            decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
-
-            DsmHelper.assert_checkpoint_presence(
-                hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
-            )
-
-            # We autofail here since we anticipate the base64 header
-            assert 1 == 0, "Tracer should support DSM Base64 Pathway encoding"
+        DsmHelper.assert_checkpoint_presence(
+            hash_=decoded_pathway, parent_hash=0, tags=edge_tags_out,
+        )
 
 
 @features.datastreams_monitoring_support_for_base64_encoding
