@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 from tests.integrations.crossed_integrations.test_kafka import _java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, flaky, context
+from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
 
@@ -212,7 +212,6 @@ class _Test_RabbitMQ:
 
 @scenarios.crossed_tracing_libraries
 @features.rabbitmq_span_creationcontext_propagation_with_dd_trace
-@flaky(context.library >= "dotnet@2.49.0", reason="Weblog answers 500")
 class Test_RabbitMQ_Trace_Context_Propagation(_Test_RabbitMQ):
     buddy_interface = interfaces.java_buddy
     buddy = _java_buddy
