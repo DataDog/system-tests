@@ -14,7 +14,7 @@ _CONFIG_PATH = "/v0.7/config"
 _DEBUGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
-#dummy change for triggering ci
+# dummy change for triggering ci
 
 
 def read_diagnostic_data():
