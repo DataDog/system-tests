@@ -164,4 +164,5 @@ tests/:
   test_telemetry.py:
     Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
+    Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
