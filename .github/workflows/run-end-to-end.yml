@@ -515,12 +515,12 @@ jobs:
 
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success'
-      run: utils/scripts/run_replay.sh
+      run: utils/scripts/replay_scenarios.sh
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        
+
     - name: Compress logs
       id: compress_logs
       if: always() && steps.build.outcome == 'success'
