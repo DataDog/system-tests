@@ -307,12 +307,13 @@ class Test_SamplingDecisions:
                 # Validate the sampling decision
                 trace_id = span["trace_id"]
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
-                if sampling_priority is None:
-                    raise ValueError(f"Root span of trace_id:{trace_id} has no sampling priority attached")
-                if priority_should_be_kept(sampling_priority) is not sampling_decision:
-                    raise ValueError(
-                        f"Unexpected sampling decision for trace_id:{trace_id}, expected:{sampling_decision}, priority:{sampling_priority}"
-                    )
+                assert (
+                    sampling_priority is not None
+                ), f"Root span of trace_id:{trace_id} has no sampling priority attached"
+                should_be_kept = priority_should_be_kept(sampling_priority)
+                assert (
+                    should_be_kept is sampling_decision
+                ), f"Unexpected sampling decision for trace_id:{trace_id}, expected:{should_be_kept}, priority:{sampling_priority}"
                 break
             else:
                 raise ValueError(f"Did not receive spans for req:{req.request}")
