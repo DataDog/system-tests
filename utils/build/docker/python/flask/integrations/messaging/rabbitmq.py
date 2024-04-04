@@ -1,0 +1,36 @@
+import kombu
+
+from ddtrace import tracer, Pin
+
+
+def rabbitmq_produce(queue, exchange, message):
+    conn = kombu.Connection("amqp://rabbitmq:5672")
+    conn.connect()
+    producer = conn.Producer()
+    Pin.override(producer, tracer=tracer)
+
+    task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+    to_publish = {"message": message}
+    producer.publish(to_publish, exchange=task_queue.exchange, routing_key=task_queue.routing_key, declare=[task_queue])
+    return {"result": "ok"}
+
+
+def rabbitmq_consume(queue, exchange, timeout=60):
+    conn = kombu.Connection("amqp://rabbitmq:5672")
+    task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=queue)
+    messages = []
+
+    def process_message(body, message):
+        message.ack()
+        messages.append(message.payload)
+
+    with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]) as consumer:
+        Pin.override(consumer, tracer=tracer)
+        conn.drain_events(timeout=timeout)
+
+    conn.close()
+
+    if messages:
+        return {"result": messages}
+    else:
+        return {"error": "Message not received"}

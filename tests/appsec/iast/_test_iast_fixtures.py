@@ -1,9 +1,6 @@
-from enum import Enum
 import json
 from utils import weblog, interfaces, context
 from utils.tools import logging
-
-DetectionStage = Enum("DetectionStage", ["REQUEST", "STARTUP"])
 
 
 def _get_expectation(d):
@@ -63,6 +60,24 @@ def _check_telemetry_response_from_agent():
             return
 
 
+def get_all_iast_events():
+    spans = [span[2] for span in interfaces.library.get_spans()]
+    assert spans, "No spans found"
+    spans_meta = [span.get("meta") for span in spans]
+    assert spans_meta, "No spans meta found"
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
+    assert iast_events, "No iast events found"
+
+    return iast_events
+
+
+def get_iast_sources(iast_events):
+    sources = [event.get("sources") for event in iast_events if event.get("sources")]
+    assert sources, "No sources found"
+    sources = sum(sources, [])  # set all the sources in a single list
+    return sources
+
+
 class BaseSinkTestWithoutTelemetry:
     vulnerability_type = None
     http_method = None
@@ -71,13 +86,13 @@ class BaseSinkTestWithoutTelemetry:
     params = None
     data = None
     headers = None
+    secure_headers = None
+    insecure_headers = None
     location_map = None
     evidence_map = None
 
     insecure_request = None
     secure_request = None
-
-    detection_stage = DetectionStage.REQUEST
 
     @property
     def expected_location(self):
@@ -100,14 +115,14 @@ class BaseSinkTestWithoutTelemetry:
                 path=self.insecure_endpoint,
                 params=self.params,
                 data=self.data,
-                headers=self.headers,
+                headers=self.insecure_headers if self.insecure_headers is not None else self.headers,
             )
 
         self.insecure_request = self.__class__.insecure_request
 
     def test_insecure(self):
         assert_iast_vulnerability(
-            request=self.insecure_request if self.detection_stage == DetectionStage.REQUEST else None,
+            request=self.insecure_request,
             vulnerability_count=1,
             vulnerability_type=self.vulnerability_type,
             expected_location=self.expected_location,
@@ -128,16 +143,22 @@ class BaseSinkTestWithoutTelemetry:
                 path=self.secure_endpoint,
                 params=self.params,
                 data=self.data,
-                headers=self.headers,
+                headers=self.secure_headers if self.secure_headers is not None else self.headers,
             )
 
         self.secure_request = self.__class__.secure_request
 
     def test_secure(self):
+        # to avoid false positive, we need to check that iast is implemented
+        # AND that the secure endpoint is not vulnerable
+        interfaces.library.assert_iast_implemented()
+        self.test_insecure()
+
         self.assert_no_iast_event(self.secure_request)
 
     @staticmethod
     def assert_no_iast_event(request):
+        assert request.status_code == 200, f"Request failed with status code {request.status_code}"
         meta = _get_span_meta(request=request)
         iast_json = meta.get("_dd.iast.json")
         assert iast_json is None, f"Unexpected vulnerabilities reported: {iast_json}"
@@ -232,12 +253,16 @@ class BaseSourceTest:
         for request in self.requests.values():
             self.validate_request_reported(request)
 
+    def get_sources(self, request):
+        iast = get_iast_event(request=request)
+        sources = iast["sources"]
+        return sources
+
     def validate_request_reported(self, request, source_type=None):
         if source_type is None:  # allow to overwrite source_type for parameter value node's use case
             source_type = self.source_type
 
-        iast = get_iast_event(request=request)
-        sources = iast["sources"]
+        sources = self.get_sources(request)
         assert sources, "No source reported"
         if source_type:
             assert source_type in {s.get("origin") for s in sources}

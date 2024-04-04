@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+
 #nullable disable
 
 namespace weblog
@@ -135,6 +137,21 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
+        
+        [HttpGet("/iast/source/path/test")]
+        public IActionResult pathTest()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Request.Path);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
 
         [HttpGet("insecure_cipher/test_insecure_algorithm")]
         public IActionResult test_insecure_weakCipher()
@@ -197,6 +214,22 @@ namespace weblog
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
+        }        
+        
+        [HttpGet("hstsmissing/test_insecure")]
+        public IActionResult test_insecure_hstsmissing()
+        {
+            Response.Headers.Add("Strict-Transport-Security", "max-age=-3153");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
+        }
+
+        [HttpGet("hstsmissing/test_secure")]
+        public IActionResult test_secure_hstsmissing()
+        {
+            Response.Headers.Append("Strict-Transport-Security", "max-age=31536000");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
         }
         
         [HttpGet("no-samesite-cookie/test_insecure")]
@@ -244,8 +277,14 @@ namespace weblog
                 var result = System.IO.File.ReadAllText(data.path);
                 return Content($"File content: " + result);
             }
-            catch
+            catch (UnauthorizedAccessException)
             {
+                // Normal Exception caught: The file in the test "/var/log" is not accessible
+                return StatusCode(200);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error reading file.");
             }
         }
@@ -258,8 +297,14 @@ namespace weblog
                 var result = System.IO.File.ReadAllText("file.txt");
                 return Content($"File content: " + result);
             }
-            catch
+            catch (System.IO.FileNotFoundException)
             {
+                // Normal Exception caught: The file "file.txt" hardcoded for the test does not exist
+                return StatusCode(200);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error reading file.");
             }
         }
@@ -273,7 +318,7 @@ namespace weblog
         [HttpPost("ssrf/test_secure")]
         public IActionResult TestSecureSSRF([FromForm] RequestData data)
         {
-            return MakeRequest("notAUrl");
+            return MakeRequest("https://www.datadoghq.com");
         }
         
         private IActionResult MakeRequest(string url)
@@ -281,7 +326,7 @@ namespace weblog
             try
             {
                 var result = new System.Net.Http.HttpClient().GetStringAsync(url).Result;
-                return Content($"Reponse: " + result);
+                return Content($"Response: " + result);
             }
             catch
             {
@@ -296,7 +341,7 @@ namespace weblog
             {
                 string ldapPath = "LDAP://" + username + ":" + password + "@ldap.example.com/OU=Users,DC=example,DC=com";
                 _ = new System.DirectoryServices.DirectoryEntry(ldapPath);
-                return Content($"Conection created");
+                return Content($"Connection created");
             }
             catch
             {
@@ -317,6 +362,20 @@ namespace weblog
                 return Content($"Error creating connection");
             }                
         }
+
+        [HttpPost("header_injection/test_insecure")]
+        public IActionResult test_insecure_header_injection([FromForm] string test)
+        {
+            Response.Headers.Add("returnedHeaderKey", test);
+            return Content("Ok");
+        }
+        
+        [HttpPost("header_injection/test_secure")]
+        public IActionResult test_secure_header_injection([FromForm] string test)
+        {
+            Response.Headers.Add("returnedHeaderKey", "notTainted");
+            return Content("Ok");
+        }        
         
         [HttpPost("sqli/test_insecure")]
         public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
@@ -345,8 +404,9 @@ namespace weblog
                     return BadRequest($"No params provided");
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error executing query.");
             }        
         }
@@ -363,13 +423,13 @@ namespace weblog
                     using var conn = Sql.GetSqliteConnection();
                     conn.Open();
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT * FROM data WHERE value = $user";
-                    cmd.Parameters.Add("$user");
-                    cmd.Parameters["$user"].Value = username;
+                    cmd.CommandText = "SELECT * FROM users WHERE user = $user";
+                    cmd.Parameters.Add(new SqliteParameter("$user", username));
+
                     using var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        sb.AppendLine(reader["value"]?.ToString());
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
                     }
 
                     return Content(sb.ToString());
@@ -379,8 +439,9 @@ namespace weblog
                     return BadRequest($"No params provided");
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error executing query.");
             }
         }
@@ -498,5 +559,77 @@ namespace weblog
                 return StatusCode(500, "Error executing query.");
             }               
         }
+
+        [HttpPost("mongodb-nosql-injection/test_insecure")]
+        public IActionResult test_insecure_mongodb_injection([FromForm]string key)
+        {
+            try
+            {
+                var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
+                var filter = "{ \"user\": \"" + key + "\" }";
+                mongoDbHelper.Find("users", filter);
+                
+                return Content("Executed injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        [HttpPost("mongodb-nosql-injection/test_secure")]
+        public IActionResult test_secure_mongodb_injection([FromForm]string key)
+        {
+            try
+            {
+                var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
+                var filter = MongoDbHelper.CreateSimpleDocument("user", key);
+                mongoDbHelper.Find("users", filter);
+                
+                return Content("Executed secure injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        private class ReflectionInjection { } // Class name passed as parameter in the reflection injection test
+        
+        [HttpPost("reflection_injection/test_insecure")]
+        public IActionResult test_insecure_reflection_injection([FromForm]string param)
+        {
+            
+            try
+            {
+                var type = Type.GetType(param);
+                Activator.CreateInstance(type!);
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing reflection.");
+            }
+
+            return Content("Executed reflection injection");
+        }
+        
+        [HttpPost("reflection_injection/test_secure")]
+        public IActionResult test_secure_reflection_injection([FromForm]string param)
+        {
+            try
+            {
+                var type = Type.GetType("System.Text.StringBuilder")!;
+                Activator.CreateInstance(type);
+                return Content("Executed secure injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing safe reflection.");
+            }
+        }
+
     }
 }

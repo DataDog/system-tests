@@ -96,8 +96,12 @@ class _RequestLogger:
                     flow.request.host = "system-tests-collector"
                     flow.request.port = 4318
                     flow.request.scheme = "http"
-                elif otlp_path == "intake":
+                elif otlp_path == "intake-traces":
                     flow.request.host = "trace.agent." + os.environ.get("DD_SITE", "datad0g.com")
+                    flow.request.port = 443
+                    flow.request.scheme = "https"
+                elif otlp_path == "intake-metrics":
+                    flow.request.host = "api." + os.environ.get("DD_SITE", "datad0g.com")
                     flow.request.port = 443
                     flow.request.scheme = "https"
                 else:
@@ -229,6 +233,7 @@ class _RequestLogger:
                     "DEBUGGER_LINE_PROBES_SNAPSHOT",
                     "DEBUGGER_METHOD_PROBES_SNAPSHOT",
                     "DEBUGGER_MIX_LOG_PROBE",
+                    "DEBUGGER_PII_REDACTION",
                 ):
                     response = rc_debugger.create_rcm_probe_response(
                         request_content["client"]["client_tracer"]["language"],

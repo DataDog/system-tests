@@ -2,12 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import bug, context, coverage, interfaces, weblog, features, irrelevant, rfc
+from utils import bug, context, interfaces, weblog, features, irrelevant, rfc
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
 @features.appsec_shell_execution_tracing
-@coverage.basic
+@bug(context.library < "java@1.29.0", reason="https://datadoghq.atlassian.net/browse/APPSEC-10243")
 class Test_ShellExecution:
     """Test shell execution tracing"""
 
@@ -50,14 +50,13 @@ class Test_ShellExecution:
         )
 
     @irrelevant(library="java", reason="No method for shell execution in Java")
-    @bug(library="nodejs", reason="resource name handling is inconsistent with the RFC")
     def test_track_shell_exec(self):
         span = self.fetch_command_execution_span(self.r_shell_exec)
         assert span["resource"] == "sh"
         assert span["meta"]["cmd.shell"] == "echo foo"
         assert span["meta"]["cmd.exit_code"] == "0"
 
-    def setup_truncated(self):
+    def setup_truncate_1st_argument(self):
         args = ["a" * 4096, "arg"]
         self.r_truncation = weblog.post(
             "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": args},
@@ -67,7 +66,28 @@ class Test_ShellExecution:
         context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    def test_truncated(self):
+    @bug(library="java", reason="Truncation method not aligned with the RFC")
+    @bug(library="php", reason="Truncation method not aligned with the RFC")
+    def test_truncate_1st_argument(self):
+        span = self.fetch_command_execution_span(self.r_truncation)
+        assert span["resource"] == "echo"
+        assert span["meta"]["cmd.exec"] == '["echo","aa",""]'
+        assert span["meta"]["cmd.truncated"] == "true"
+        assert span["meta"]["cmd.exit_code"] == "0"
+
+    def setup_truncate_blank_2nd_argument(self):
+        args = ["a" * 4092, "arg"]
+        self.r_truncation = weblog.post(
+            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": args},
+        )
+
+    @irrelevant(
+        context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
+        reason="For PHP 7.4+",
+    )
+    @bug(library="java", reason="Truncation method not aligned with the RFC")
+    @bug(library="php", reason="Truncation method not aligned with the RFC")
+    def test_truncate_blank_2nd_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"
         assert span["meta"]["cmd.exec"] == '["echo","' + "a" * 4092 + '",""]'

@@ -9,27 +9,26 @@ _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
 def _get_skipped_item(item, skip_reason):
+    if inspect.isfunction(item) or inspect.isclass(item):
+        if not hasattr(item, "pytestmark"):
+            setattr(item, "pytestmark", [])
 
-    if not inspect.isfunction(item) and not inspect.isclass(item):
+        item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
+
+    else:
         raise ValueError(f"Unexpected skipped object: {item}")
-
-    if not hasattr(item, "pytestmark"):
-        setattr(item, "pytestmark", [])
-
-    item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
 
     return item
 
 
 def _get_expected_failure_item(item, skip_reason):
+    if inspect.isfunction(item) or inspect.isclass(item):
+        if not hasattr(item, "pytestmark"):
+            setattr(item, "pytestmark", [])
 
-    if not inspect.isfunction(item) and not inspect.isclass(item):
+        item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
+    else:
         raise ValueError(f"Unexpected skipped object: {item}")
-
-    if not hasattr(item, "pytestmark"):
-        setattr(item, "pytestmark", [])
-
-    item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
 
     return item
 
@@ -155,16 +154,12 @@ def released(
     nodejs_otel=None,
     ruby=None,
     agent=None,
-    _is_from_manifest=False,
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
 
-    if not _is_from_manifest:
-        raise ValueError("Please use manifest file for version declaration")
-
     def wrapper(test_class):
         if not inspect.isclass(test_class):
-            raise TypeError("@released must be used only on classes")
+            raise TypeError(f"{test_class} is not a class")
 
         def compute_declaration(only_for_library, component_name, declaration, tested_version):
             if declaration is None:
@@ -177,15 +172,7 @@ def released(
                     # the tested library is not concerned by this declaration
                     return None
 
-            if not hasattr(test_class, "__released__"):
-                setattr(test_class, "__released__", {})
-
-            if component_name in test_class.__released__:
-                raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
-
             declaration = _resolve_declaration(declaration)
-
-            test_class.__released__[component_name] = declaration
 
             if declaration is None:
                 return None
@@ -245,7 +232,6 @@ def released(
 
 def rfc(link):
     def wrapper(item):
-        setattr(item, "__rfc__", link)
         return item
 
     return wrapper

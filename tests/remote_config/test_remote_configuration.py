@@ -9,7 +9,6 @@ from utils import (
     ValidationError,
     bug,
     context,
-    coverage,
     interfaces,
     irrelevant,
     missing_feature,
@@ -56,7 +55,6 @@ class RemoteConfigurationFieldsBasicTests:
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
     @bug(context.library >= "nodejs@3.14.1")
-    @bug(context.library == "php")
     def test_schemas(self):
         """Test all library schemas"""
         interfaces.library.assert_schemas()
@@ -89,11 +87,6 @@ class RemoteConfigurationFieldsBasicTests:
             allowed_errors = (
                 # value is missing in configuration object in telemetry payloads
                 r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "php":
-            allowed_errors = (
-                r"'interval' is a required property on instance \['payload'\]\['series'\]\[\d+\]",
-                r"'namespace' is a required property on instance \['payload'\]",
             )
 
         interfaces.library.assert_schemas(allowed_errors=allowed_errors)
@@ -238,7 +231,6 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
 @features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
@@ -247,7 +239,6 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
     python_request_number = 0
 
-    @bug(context.library >= "php@0.95.0", reason="Since the unified package (ddtracer + appsec) ")
     @bug(context.library == "python@1.9.2")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(
@@ -283,7 +274,6 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         interfaces.library.validate_remote_configuration(validator=validate)
 
 
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
 @features.remote_config_object_supported
 class Test_RemoteConfigurationExtraServices:
@@ -326,7 +316,6 @@ class Test_RemoteConfigurationExtraServices:
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
@@ -357,7 +346,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
@@ -391,7 +379,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features_nocache
 @features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
@@ -418,7 +405,6 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging_nocache
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
@@ -446,7 +432,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd_nocache
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):

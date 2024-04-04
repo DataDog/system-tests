@@ -34,7 +34,7 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 ### Installation
 
-Make sure you're in the `root` directory before running these commands.
+Make sure you're in the root of the repository before running these commands.
 
 The following dependencies are required to run the tests locally:
 
@@ -50,10 +50,10 @@ then, run the following command, which will create a Python virtual environment 
 
 ### Running the tests
 
-Run all the tests:
+Run all the tests for a particular tracer library:
 
 ```sh
-./run.sh PARAMETRIC
+TEST_LIBRARY=dotnet ./run.sh PARAMETRIC
 ```
 
 Run a specific test (`test_metrics_msgpack_serialization_TS001`):
@@ -74,7 +74,7 @@ Tests can be aborted using CTRL-C but note that containers maybe still be runnin
 
 For running the Go tests, see the README in apps/golang.
 
-To test unmerged PRs locally, run the following in the apps/golang directory:
+To test unmerged PRs locally, run the following in the utils/build/docker/golang/parametric directory:
 
 ```sh
 go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>

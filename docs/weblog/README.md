@@ -2,6 +2,8 @@
 
 A weblog is a web app that system uses to test the library. It mimics what would be a real instrumented HTTP application. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different endpoints.
 
+> Note: a separate document describes [GraphQL Weblog](./graphql_weblog.md).
+
 ## Disclaimer
 
 This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contains mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
@@ -162,7 +164,7 @@ Then the response should contain json with the format:
 where payload is the parsed body of the request
 
 
-Make sure to especify the Content-Type header as `application/json`
+Make sure to specify the Content-Type header as `application/json`
 
 #### Example
 
@@ -293,7 +295,7 @@ be returned.
 
 Expected query params:
   - `integration`: Name of messaging tech
-    - Possible Values: `kafka`, `rabbitmq`
+    - Possible Values: `kafka`, `rabbitmq`, `sqs`
 
 ### GET /user_login_success_event
 
@@ -415,3 +417,6 @@ It supports the following body fields:
 - `options`: a record with the following options:
   - `shell`: boolean in order to instruct if the program should be executed within a shell.
 - `args`: arguments passed to the program.
+
+### GET /flush
+This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import weblog, bug, context, coverage, interfaces, irrelevant, rfc, missing_feature, scenarios, features
+from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
 
 
@@ -11,7 +11,6 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
-@coverage.good
 @features.security_events_metadata
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -52,7 +51,6 @@ class Test_RetainTraces:
         interfaces.library.validate_spans(self.r, validate_appsec_event_span_tags)
 
 
-@coverage.good
 @features.security_events_metadata
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
@@ -144,7 +142,6 @@ class Test_AppSecEventSpanTags:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@coverage.good
 @features.sensitive_data_obfuscation
 @features.security_events_metadata
 class Test_AppSecObfuscator:
@@ -307,7 +304,6 @@ class Test_AppSecObfuscator:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@coverage.good
 @features.security_events_metadata
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
@@ -328,9 +324,79 @@ class Test_CollectRespondHeaders:
         interfaces.library.validate_spans(self.r, validate_response_headers)
 
 
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
+@features.security_events_metadata
+class Test_CollectDefaultRequestHeader:
+
+    HEADERS = ["User-Agent", "Accept", "Content-Type"]
+
+    def setup_collect_default_request_headers(self):
+        self.r = weblog.get("/headers", headers={header: "myHeaderValue" for header in self.HEADERS},)
+
+    def test_collect_default_request_headers(self):
+        """
+        Collect User agent and other headers and other security info when appsec is enabled.
+        """
+
+        def assertHeaderInSpanMeta(span, header):
+            if header not in span["meta"]:
+                raise Exception(f"Can't find {header} in span's meta")
+
+        def validate_request_headers(span):
+            for header in self.HEADERS:
+                assertHeaderInSpanMeta(span, f"http.request.headers.{header.lower()}")
+            return True
+
+        interfaces.library.validate_spans(self.r, validate_request_headers)
+
+
 @features.security_events_metadata
 class Test_DistributedTraceInfo:
     """Distributed traces info (Services, URL, trace id)"""
 
     def test_main(self):
         assert False, "Test not implemented"
+
+
+@rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
+@features.security_events_metadata
+class Test_ExternalWafRequestsIdentification:
+    def setup_external_wafs_header_collection(self):
+        self.r = weblog.get(
+            "/headers",
+            headers={
+                "X-Amzn-Trace-Id": "Root=1-65ae48bc-04fb551979979b6c57973027",
+                "CloudFront-Viewer-Ja3-Fingerprint": "e7d705a3286e19ea42f587b344ee6865",
+                "Cf-Ray": "230b030023ae2822-SJC",
+                "X-Cloud-Trace-Context": "105445aa7843bc8bf206b12000100000/1",
+                "X-Appgw-Trace-id": "ac882cd65a2712a0fe1289ec2bb6aee7",
+                "X-SigSci-RequestID": "55c24b96ca84c02201000001",
+                "X-SigSci-Tags": "SQLI, XSS",
+                "Akamai-User-Risk": "uuid=913c4545-757b-4d8d-859d-e1361a828361;status=0",
+            },
+        )
+
+    def test_external_wafs_header_collection(self):
+        """
+        Collect external wafs request identifier and other security info when appsec is enabled.
+        """
+
+        def assertHeaderInSpanMeta(span, header):
+            if header not in span["meta"]:
+                raise Exception(f"Can't find {header} in span's meta")
+
+        def validate_request_headers(span):
+            for header in [
+                "x-amzn-trace-id",
+                "cloudfront-viewer-ja3-fingerprint",
+                "cf-ray",
+                "x-cloud-trace-context",
+                "x-appgw-trace-id",
+                "x-sigsci-requestid",
+                "x-sigsci-tags",
+                "akamai-user-risk",
+            ]:
+                assertHeaderInSpanMeta(span, f"http.request.headers.{header}")
+            return True
+
+        interfaces.library.validate_spans(self.r, validate_request_headers)

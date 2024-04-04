@@ -196,16 +196,15 @@ def dotnet_library_factory():
     dotnet_reldir = dotnet_appdir.replace("\\", "/")
     server = APMLibraryTestServer(
         lang="dotnet",
-        protocol="grpc",
-        container_name="dotnet-test-client",
-        container_tag="dotnet7_0-test-client",
+        protocol="http",
+        container_name="dotnet-test-api",
+        container_tag="dotnet8_0-test-api",
         container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:7.0
-RUN apt-get update && apt-get install dos2unix
-WORKDIR /app
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 
-# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+RUN apt-get update && apt-get install -y dos2unix
+RUN apt-get update && apt-get install -y curl
+WORKDIR /app
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
 COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
@@ -213,13 +212,16 @@ RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
-COPY ["{dotnet_reldir}/ApmTestClient.csproj", "{dotnet_reldir}/nuget.config", "{dotnet_reldir}/*.nupkg", "./"]
-RUN dotnet restore "./ApmTestClient.csproj"
+COPY ["{dotnet_reldir}/ApmTestApi.csproj", "{dotnet_reldir}/nuget.config", "{dotnet_reldir}/*.nupkg", "./"]
+RUN dotnet restore "./ApmTestApi.csproj"
 
 # build and publish
 COPY {dotnet_reldir} ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /app/out
+
+# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # Set up automatic instrumentation (required for OpenTelemetry tests),
 # but don't enable it globally
@@ -233,8 +235,10 @@ ENV DD_TRACE_Grpc_ENABLED=false
 ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
+
+ENTRYPOINT ["dotnet", "ApmTestApi.dll"]
 """,
-        container_cmd=["./ApmTestClient"],
+        container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes=[],
@@ -325,7 +329,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_name="ruby-test-client",
         container_tag="ruby-test-client",
         container_img=f"""
-            FROM ruby:3.2.1-bullseye
+            FROM --platform=linux/amd64 ruby:3.2.1-bullseye
             WORKDIR /app
             COPY {ruby_reldir} .           
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
@@ -345,7 +349,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
 
 
 def cpp_library_factory() -> APMLibraryTestServer:
-    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric", "http")
+    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
     cpp_reldir = cpp_appdir.replace("\\", "/")
     dockerfile_content = f"""
@@ -353,23 +357,15 @@ FROM datadog/docker-library:dd-trace-cpp-ci AS build
 
 RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
 WORKDIR /usr/app
-COPY {cpp_reldir}/../install_ddtrace.sh binaries* /binaries/
-ADD {cpp_reldir}/CMakeLists.txt \
-    {cpp_reldir}/developer_noise.cpp \
-    {cpp_reldir}/developer_noise.h \
-    {cpp_reldir}/httplib.h \
-    {cpp_reldir}/json.hpp \
-    {cpp_reldir}/main.cpp \
-    {cpp_reldir}/manual_scheduler.h \
-    {cpp_reldir}/request_handler.cpp \
-    {cpp_reldir}/request_handler.h \
-    {cpp_reldir}/utils.h \
-    /usr/app
+COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
 RUN sh /binaries/install_ddtrace.sh
-RUN cmake -B .build -DCMAKE_BUILD_TYPE=Release . && cmake --build .build -j $(nproc) && cmake --install .build --prefix dist
+RUN cd /binaries/dd-trace-cpp \
+ && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=1 . \
+ && cmake --build .build -j $(nproc) \
+ && cmake --install .build --prefix /usr/app/
 
 FROM ubuntu:22.04
-COPY --from=build /usr/app/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-parametric-test
+COPY --from=build /usr/app/bin/parametric-http-server /usr/local/bin/parametric-http-server
 """
 
     return APMLibraryTestServer(
@@ -378,7 +374,7 @@ COPY --from=build /usr/app/dist/bin/cpp-parametric-http-test /usr/local/bin/cpp-
         container_name="cpp-test-client",
         container_tag="cpp-test-client",
         container_img=dockerfile_content,
-        container_cmd=["cpp-parametric-test"],
+        container_cmd=["parametric-http-server"],
         container_build_dir=cpp_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
@@ -702,13 +698,15 @@ class _TestAgentAPI:
                     if event["request_type"] == "message-batch":
                         for message in event["payload"]:
                             if message["request_type"] == event_name:
-                                if clear:
-                                    self.clear()
-                                return message
+                                if message.get("application", {}).get("language_version") != "SIDECAR":
+                                    if clear:
+                                        self.clear()
+                                    return message
                     elif event["request_type"] == event_name:
-                        if clear:
-                            self.clear()
-                        return event
+                        if event.get("application", {}).get("language_version") != "SIDECAR":
+                            if clear:
+                                self.clear()
+                            return event
             time.sleep(0.01)
         raise AssertionError("Telemetry event %r not found" % event_name)
 
@@ -749,7 +747,16 @@ class _TestAgentAPI:
                 for req in rc_reqs:
                     raw_caps = req["body"]["client"].get("capabilities")
                     if raw_caps:
-                        decoded_capabilities = base64.b64decode(raw_caps)
+                        # Capabilities can be a base64 encoded string or an array of numbers. This is due
+                        # to the Go json library used in the trace agent accepting and being able to decode
+                        # both: https://go.dev/play/p/fkT5Q7GE5VD
+
+                        # byte-array:
+                        if isinstance(raw_caps, list):
+                            decoded_capabilities = bytes(raw_caps)
+                        # base64-encoded string:
+                        else:
+                            decoded_capabilities = base64.b64decode(raw_caps)
                         int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
                         capabilities_seen.add(remoteconfig.human_readable_capabilities(int_capabilities))
                         if all((int_capabilities >> c) & 1 for c in capabilities):
@@ -831,7 +838,14 @@ def docker_run(
         _cmd = [docker, "kill", name]
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
-        subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=default_subprocess_run_timeout)
+        # FIXME there is some weird problem when we try to kill the container. The test is blocked and the container was not killed
+        # logger.stdout(f"Parametric: docker_run: before kill the container: {log_file}")
+        try:
+            subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=30)
+        except Exception as e:
+            logger.stdout(f"Parametric docker_run ERROR for {cmd}  -  {log_file}")
+            logger.error(e)
+        # logger.stdout(f"Parametric: docker_run: After kill the container: {log_file} ")
 
 
 @pytest.fixture(scope="session")

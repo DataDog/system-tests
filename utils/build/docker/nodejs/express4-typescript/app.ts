@@ -4,21 +4,26 @@ import { Request, Response } from "express";
 
 const tracer = require('dd-trace').init({ debug: true });
 
+const { promisify } = require('util')
 const app = require('express')();
 const axios = require('axios');
-const fs = require('fs');
 const passport = require('passport')
 const { Kafka } = require("kafkajs")
 const { spawnSync } = require('child_process');
+
+const iast = require('./iast')
+
+iast.initData().catch(() => {})
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
 
+iast.initMiddlewares(app)
+
 require('./auth')(app, passport, tracer)
-require('./graphql')(app)
-require('./iast')(app)
+iast.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
@@ -169,13 +174,13 @@ app.get("/dsm", (req: Request, res: Response) => {
     })
   }
   doKafkaOperations()
-      .then(() => {
-        res.send('ok');
-      })
-      .catch((error: Error) => {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      });
+    .then(() => {
+      res.send('ok');
+    })
+    .catch((error: Error) => {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+    });
 });
 
 app.get('/load_dependency', (req: Request, res: Response) => {
@@ -191,15 +196,28 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
     res.set(k, v && v.toString());
   }
 
-  res.status(parseInt(req.params.status) || 200).send('Value tagged');
+  res.status(parseInt(req.params.status) || 200)
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body });
+  } else {
+    res.send('Value tagged');
+  }
 });
 
 app.post('/shell_execution', (req: Request, res: Response) => {
-  const options = { shell: req?.body?.options?.shell ? true : false}
-  const args = req?.body?.args.split(' ')
+  const options = { shell: !!req?.body?.options?.shell }
+  const reqArgs = req?.body?.args
+
+  let args
+  if (typeof reqArgs === 'string') {
+    args = reqArgs.split(' ')
+  } else {
+    args = reqArgs
+  }
 
   const response = spawnSync(req?.body?.command, args, options)
-  
+
   res.send(response)
 })
 
@@ -212,7 +230,39 @@ app.get('/createextraservice', (req: Request, res: Response) => {
   res.send('OK')
 })
 
-app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => {});
-  console.log('listening');
-});
+// try to flush as much stuff as possible from the library
+app.get('/flush', (req: Request, res: Response) => {
+  // doesn't have a callback :(
+  // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
+  tracer.dogstatsd?.flush?.()
+  tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+
+  // does have a callback :)
+  const promises = []
+
+  const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+  if (profiler?._collect) {
+    promises.push(profiler._collect('on_shutdown'))
+  }
+
+  if (tracer._tracer?._exporter?._writer?.flush) {
+    promises.push(promisify((err: any) => tracer._tracer._exporter._writer.flush(err)))
+  }
+
+  if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
+    promises.push(promisify((err: any) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+  }
+
+  Promise.all(promises).then(() => {
+    res.status(200).send('OK')
+  }).catch((err) => {
+    res.status(500).send(err)
+  })
+})
+
+require('./graphql')(app).then(() => {
+  app.listen(7777, '0.0.0.0', () => {
+    tracer.trace('init.service', () => { })
+    console.log('listening')
+  })
+})

@@ -77,15 +77,12 @@ def validate_span_link(server_span: dict, message_span: dict):
     if "_dd.span_links" not in server_span["meta"]:
         return
 
-    actual = json.loads(server_span["meta"]["_dd.span_links"])
-    expected = [
-        {
-            "trace_id": message_span["meta"]["otel.trace_id"],
-            "span_id": f'{int(message_span["span_id"]):x}',
-            "attributes": {"messaging.operation": "publish"},
-        }
-    ]
-    assert actual == expected
+    links = json.loads(server_span["meta"]["_dd.span_links"])
+    assert len(links) == 1
+    link = links[0]
+    assert link["trace_id"] == message_span["meta"]["otel.trace_id"]
+    assert int(link["span_id"], 16) == int(message_span["span_id"])
+    assert link["attributes"] == {"messaging.operation": "publish"}
 
 
 # Validates fields that we don't know the values upfront for all 3 ingestion paths
@@ -113,7 +110,6 @@ KNOWN_UNMATCHED_METAS = [
     "otel.source",
     "span.kind",
     "_dd.agent_version",
-    "_dd.span_links",  # TODO: remove once Agent supports span links
     "_dd.agent_rare_sampler.enabled",
     "_dd.hostname",
     "_dd.compute_stats",

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, features
+from utils import context, features, missing_feature
 from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
 
 
@@ -17,7 +17,6 @@ def _expected_location():
 
 
 @features.iast_sink_unvalidatedforward
-@coverage.basic
 class TestUnvalidatedForward(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect forward detection."""
 
@@ -27,3 +26,7 @@ class TestUnvalidatedForward(BaseSinkTestWithoutTelemetry):
     secure_endpoint = "/iast/unvalidated_redirect/test_secure_forward"
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
+
+    @missing_feature(library="java", reason="weblog responds 500")
+    def test_secure(self):
+        super().test_secure()

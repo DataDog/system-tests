@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature, features
+from utils import context, missing_feature, features
 from .._test_iast_fixtures import BaseSinkTest
 
 
 @features.iast_sink_xcontentsniffing
-@coverage.basic
 class Test_XContentSniffing(BaseSinkTest):
     """Test missing X-Content-Options header detection."""
 
