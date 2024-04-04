@@ -1308,7 +1308,8 @@ class scenarios:
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
-        doc="Test sampling mechanism. Not included in default scenario because is very slow, and flaky",
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000"},
+        doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
     )
 
     trace_propagation_style_w3c = EndToEndScenario(
