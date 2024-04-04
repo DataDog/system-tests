@@ -256,26 +256,32 @@ class K8sDatadogClusterTestAgent:
         datadog_cluster_name = None
 
         for i in range(20):
-            if datadog_cluster_name is None:
-                pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
-                datadog_cluster_name = pods.items[0].metadata.name if pods and len(pods.items) > 0 else None
-            operator_status = (
-                self.k8s_wrapper.read_namespaced_pod_status(name=datadog_cluster_name) if datadog_cluster_name else None
-            )
-            if (
-                operator_status
-                and operator_status.status.phase == "Running"
-                and operator_status.status.container_statuses[0].ready == True
-            ):
-                self.logger.info(f"[Deploy operator] Operator datadog running!")
-                operator_ready = True
-                break
+            try:
+                if datadog_cluster_name is None:
+                    pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
+                    datadog_cluster_name = pods.items[0].metadata.name if pods and len(pods.items) > 0 else None
+                operator_status = (
+                    self.k8s_wrapper.read_namespaced_pod_status(name=datadog_cluster_name)
+                    if datadog_cluster_name
+                    else None
+                )
+                if (
+                    operator_status
+                    and operator_status.status.phase == "Running"
+                    and operator_status.status.container_statuses[0].ready == True
+                ):
+                    self.logger.info(f"[Deploy operator] Operator datadog running!")
+                    operator_ready = True
+                    break
+            except Exception as e:
+                self.logger.info(f"Error waiting for operator: {e}")
             time.sleep(5)
 
         if not operator_ready:
             self.logger.error("Operator not created. Last status: %s" % operator_status)
-            operator_logs = self.k8s_wrapper.read_namespaced_pod_log(name=datadog_cluster_name)
-            self.logger.error(f"Operator logs: {operator_logs}")
+            if datadog_cluster_name:
+                operator_logs = self.k8s_wrapper.read_namespaced_pod_log(name=datadog_cluster_name)
+                self.logger.error(f"Operator logs: {operator_logs}")
             raise Exception("Operator not created")
         # At this point the operator should be ready, we are going to wait a little bit more
         # to make sure the operator is ready (some times the operator is ready but the cluster agent is not ready yet)
