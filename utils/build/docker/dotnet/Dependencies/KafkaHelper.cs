@@ -4,7 +4,7 @@ using Confluent.Kafka.Admin;
 using System.Collections.Generic;
 
 public class KafkaHelper {
-    private static IProducer<Null, string> producer;
+    private static IProducer<Null, string>? producer;
 
     public static IProducer<Null, string> GetProducer(string bootstrapServers)
     {
