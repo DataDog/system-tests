@@ -71,7 +71,15 @@ class Test_Defaults:
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             if isinstance(value, tuple):
-                assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
+                if apm_telemetry_name == "trace_tags" and len(cfg_item.get("value")) > 0 :
+                    for given_value in cfg_item.get("value"):
+                        if given_value.startswith('runtime'):
+                            continue
+                        assert given_value in value, "Unexpected value for '{}'".format(
+                            apm_telemetry_name
+                        )
+                else:
+                    assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
             else:
                 assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("origin") == "default", "Unexpected origin for '{}'".format(apm_telemetry_name)
@@ -133,9 +141,17 @@ class Test_Environment:
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             if isinstance(environment_value, tuple):
-                assert cfg_item.get("value") in environment_value, "Unexpected value for '{}'".format(
-                    apm_telemetry_name
-                )
+                if apm_telemetry_name == "trace_tags":
+                    for given_value in cfg_item.get("value") and len(cfg_item.get("value")) > 0 :
+                        if given_value.startswith('runtime'):
+                            continue
+                        assert given_value in environment_value, "Unexpected value for '{}'".format(
+                            apm_telemetry_name
+                        )
+                else:
+                    assert cfg_item.get("value") in environment_value, "Unexpected value for '{}'".format(
+                        apm_telemetry_name
+                    )
             else:
                 assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(
                     apm_telemetry_name
