@@ -30,6 +30,10 @@ def _mapped_telemetry_name(context, apm_telemetry_name):
             return mapped_name
     return apm_telemetry_name
 
+def _get_filtered_tags(existing_value):
+    if isinstance(existing_value, str):
+        return ','.join([tag for tag in existing_value.split(',') if not tag.startswith('runtime')])
+    return existing_value
 
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
@@ -70,20 +74,11 @@ class Test_Defaults:
 
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
-            print('----')
-            print(apm_telemetry_name)
-            print(cfg_item.get("value"))
-            print(value)
+
             if isinstance(value, tuple):
-                if apm_telemetry_name == "trace_tags" and len(cfg_item.get("value")) > 0 :
-                    for given_value in cfg_item.get("value"):
-                        if given_value.startswith('runtime'):
-                            continue
-                        assert given_value in value, "Unexpected value for '{}'".format(
-                            apm_telemetry_name
-                        )
-                else:
-                    assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
+                if apm_telemetry_name == "trace_tags":
+                    cfg_item['value'] = _get_filtered_tags(cfg_item.get("value"))
+                assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
             else:
                 assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("origin") == "default", "Unexpected origin for '{}'".format(apm_telemetry_name)
@@ -119,7 +114,6 @@ class Test_Environment:
             pass
         event = test_agent.wait_for_telemetry_event("app-started")
         configuration = event["payload"]["configuration"]
-
         configuration_by_name = {item["name"]: item for item in configuration}
         for (apm_telemetry_name, environment_value) in [
             ("trace_sample_rate", ("0.3", 0.3)),
@@ -144,22 +138,13 @@ class Test_Environment:
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
-            print('----')
-            print(apm_telemetry_name)
-            print(cfg_item.get("value"))
-            print(environment_value)
             if isinstance(environment_value, tuple):
                 if apm_telemetry_name == "trace_tags":
-                    for given_value in cfg_item.get("value") and len(cfg_item.get("value")) > 0 :
-                        if given_value.startswith('runtime'):
-                            continue
-                        assert given_value in environment_value, "Unexpected value for '{}'".format(
-                            apm_telemetry_name
-                        )
-                else:
-                    assert cfg_item.get("value") in environment_value, "Unexpected value for '{}'".format(
-                        apm_telemetry_name
-                    )
+                    cfg_item['value'] = _get_filtered_tags(cfg_item.get("value"))
+                
+                assert cfg_item.get("value") in environment_value, "Unexpected value for '{}'".format(
+                    apm_telemetry_name
+                )
             else:
                 assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(
                     apm_telemetry_name
