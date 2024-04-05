@@ -397,8 +397,8 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigSamplingRules: v1.63.0
       TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigSamplingRules: v1.63.0
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
       TestDynamicConfigV1_ServiceTargets: v1.59.0
