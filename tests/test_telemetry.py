@@ -442,19 +442,12 @@ class Test_Telemetry:
         context.library in ("golang", "cpp", "php"), reason="Telemetry is not implemented yet. ",
     )
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    @bug(
-        library="python",
-        reason="""
-            configuration is not properly populating for python
-        """,
-    )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
             "dotnet": {},
             "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
-            # to-do :need to add configuration keys once python bug is fixed
-            "python": {},
+            "python": {"appsec_enabled": "true"},
             "java": {"trace_agent_port": 8126, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
         }
