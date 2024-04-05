@@ -101,6 +101,27 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
     assert trace[0]["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
 
 
+def is_sampled(trace: List[Dict]):
+    """Asserts that a trace returned from the test agent is consistent with the given sample rate.
+
+    This function assumes that all traces are sent to the agent regardless of sample rate.
+
+    For the day when that is not the case, we likely need to generate enough traces to
+        1) Validate the sample rate is effective (approx sample_rate% of traces should be received)
+        2) The `_dd.rule_psr` metric is set to the correct value.
+    """
+
+    # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
+    return trace[0]["metrics"].get("_sampling_priority_v1", 0) > 0
+
+
+def get_sampled_trace(test_library, test_agent, service, name):
+    trace = send_and_wait_trace(test_library, test_agent, service=service, name=name)
+    while not is_sampled(trace):
+        trace = send_and_wait_trace(test_library, test_agent, service=service, name=name)
+    return trace
+
+
 ENV_SAMPLING_RULE_RATE = 0.55
 
 
@@ -520,6 +541,7 @@ class TestDynamicConfigV2:
         """
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_CUSTOM_TAGS])
 
+
 @scenarios.parametric
 @features.dynamic_configuration
 class TestDynamicConfigSamplingRules:
@@ -544,34 +566,49 @@ class TestDynamicConfigSamplingRules:
         When RC is unset, the environment variable should be used.
         """
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8
-        RC_SAMPLING_RULE_RATE_DYNAMIC = 0.1
+        RC_SAMPLING_RULE_RATE_DYNAMIC = 0.4
         assert RC_SAMPLING_RULE_RATE_CUSTOMER != ENV_SAMPLING_RULE_RATE
         assert RC_SAMPLING_RULE_RATE_DYNAMIC != ENV_SAMPLING_RULE_RATE
         assert RC_SAMPLING_RULE_RATE_CUSTOMER != DEFAULT_SAMPLE_RATE
         assert RC_SAMPLING_RULE_RATE_DYNAMIC != DEFAULT_SAMPLE_RATE
 
-        # Create an initial trace to assert that the rule is correctly applied.
-        trace = send_and_wait_trace(test_library, test_agent, name="env_name")
+        trace = get_sampled_trace(test_library, test_agent, service="", name="env_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-3" (i.e., local RULE_RATE)
-        span = root_span(trace)
+        span = trace[0]
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Create a remote config entry with two rules at different sample rates.
-        set_and_wait_rc(test_agent, config_overrides={
-            "tracing_sampling_rules": json.dumps([{"sample_rate": RC_SAMPLING_RULE_RATE_CUSTOMER, "service": TEST_SERVICE, "provenance":"customer"},
-                                                  {"sample_rate": RC_SAMPLING_RULE_RATE_DYNAMIC, "service": "*", "provenance":"dynamic"}])})
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rules": [
+                    {
+                        "sample_rate": RC_SAMPLING_RULE_RATE_CUSTOMER,
+                        "service": TEST_SERVICE,
+                        "resource": "*",
+                        "provenance": "customer",
+                    },
+                    {
+                        "sample_rate": RC_SAMPLING_RULE_RATE_DYNAMIC,
+                        "service": "*",
+                        "resource": "*",
+                        "provenance": "dynamic",
+                    },
+                ]
+            },
+        )
 
-        trace = send_and_wait_trace(test_library, test_agent, service=TEST_SERVICE)
+        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_CUSTOMER)
         # Make sure `_dd.p.dm` is set to "-10" (i.e., remote user rule)
         span = root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-10"
 
-        trace = send_and_wait_trace(test_library, test_agent, service="other_service")
+        trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_DYNAMIC)
         # Make sure `_dd.p.dm` is set to "-11" (i.e., remote dynamic rule)
         span = root_span(trace)
@@ -580,32 +617,38 @@ class TestDynamicConfigSamplingRules:
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
         set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
-        trace = send_and_wait_trace(test_library, test_agent, service=TEST_SERVICE)
+        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is restored to "-3"
         span = root_span(trace)
         assert "_dd.p.dm" in span["meta"]
-        assert span["meta"]["_dd.p.dm"] k== "-3"
-        
+        assert span["meta"]["_dd.p.dm"] == "-3"
+
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate.
         """
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8
-        RC_SAMPLING_RATE = 0.1
+        RC_SAMPLING_RATE = 0.9
         assert RC_SAMPLING_RULE_RATE_CUSTOMER != DEFAULT_SAMPLE_RATE
         assert RC_SAMPLING_RATE != DEFAULT_SAMPLE_RATE
 
         # Create an initial trace to assert the default sampling settings.
-        trace = send_and_wait_trace(test_library, test_agent, service=TEST_SERVICE)
+        trace = send_and_wait_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-        set_and_wait_rc(test_agent, config_overrides={
-            "tracing_sampling_rate":RC_SAMPLING_RATE,
-            "tracing_sampling_rules": json.dumps([{"sample_rate": RC_SAMPLING_RULE_RATE_CUSTOMER, "service": TEST_SERVICE, "provenance":"customer"}])})
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rate": RC_SAMPLING_RATE,
+                "tracing_sampling_rules": [
+                    {"sample_rate": RC_SAMPLING_RULE_RATE_CUSTOMER, "service": TEST_SERVICE, "provenance": "customer"}
+                ],
+            },
+        )
 
         # trace/span matching the rule gets applied the rule's rate
-        trace = send_and_wait_trace(test_library, test_agent, service=TEST_SERVICE)
+        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_CUSTOMER)
         # Make sure `_dd.p.dm` is set to "-10" (i.e., remote user rule)
         span = root_span(trace)
@@ -613,15 +656,14 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-10"
 
         # trace/span not matching the rule gets applied the RC global rate
-        trace = send_and_wait_trace(test_library, test_agent, service="other_service")
+        trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # `_dd.p.dm` is set to "-3" (rule rate, this is the legacy behavior)
         span = root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
-        # Unset RC to ensure local settings 
+        # Unset RC to ensure local settings
         set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None, "tracing_sampling_rules": None})
-        trace = send_and_wait_trace(test_library, test_agent, service="other_service")
+        trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
-
