@@ -70,6 +70,10 @@ class Test_Defaults:
 
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            print('----')
+            print(apm_telemetry_name)
+            print(cfg_item.get("value"))
+            print(value)
             if isinstance(value, tuple):
                 if apm_telemetry_name == "trace_tags" and len(cfg_item.get("value")) > 0 :
                     for given_value in cfg_item.get("value"):
@@ -140,6 +144,10 @@ class Test_Environment:
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            print('----')
+            print(apm_telemetry_name)
+            print(cfg_item.get("value"))
+            print(environment_value)
             if isinstance(environment_value, tuple):
                 if apm_telemetry_name == "trace_tags":
                     for given_value in cfg_item.get("value") and len(cfg_item.get("value")) > 0 :
