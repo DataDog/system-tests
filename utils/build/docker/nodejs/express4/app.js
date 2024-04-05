@@ -145,15 +145,19 @@ app.get('/users', (req, res) => {
 
 app.get('/dsm', (req, res) => {
   const integration = req.query.integration
+  const topic = req.query.topic
+  const queue = req.query.queue
+  const exchange = req.query.exchange
+  const routingKey = req.query.routing_key
+  const stream = req.query.stream
 
   if (integration === 'kafka') {
-    const topic = 'dsm-system-tests-queue'
     const message = 'hello from kafka DSM JS'
     const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
 
-    kafkaProduce(topic, message)
+    kafkaProduce(queue, message)
       .then(() => {
-        kafkaConsume(topic, timeout)
+        kafkaConsume(queue, timeout)
           .then(() => {
             res.send('ok')
           })
@@ -167,7 +171,6 @@ app.get('/dsm', (req, res) => {
         res.status(500).send('[Kafka] Internal Server Error during DSM Kafka produce')
       })
   } else if (integration === 'sqs') {
-    const queue = 'dsm-system-tests-queue'
     const message = 'hello from SQS DSM JS'
     const timeout = req.query.timeout ?? 5
 
@@ -187,8 +190,6 @@ app.get('/dsm', (req, res) => {
         res.status(500).send('[SQS] Internal Server Error during DSM SQS produce')
       })
   } else if (integration === 'sns') {
-    const queue = 'dsm-system-tests-queue-sns'
-    const topic = 'dsm-system-tests-topic-sns'
     const message = 'hello from SNS DSM JS'
     const timeout = req.query.timeout ?? 5
 
@@ -208,11 +209,8 @@ app.get('/dsm', (req, res) => {
         res.status(500).send('[SNS->SQS] Internal Server Error during DSM SNS publish')
       })
   } else if (integration === 'rabbitmq') {
-    const queue = 'dsm-system-tests-queue'
     const message = 'hello from SQS DSM JS'
     const timeout = req.query.timeout ?? 5
-    const exchange = 'systemTestDirectExchange'
-    const routingKey = 'systemTestDirectRoutingKey'
 
     rabbitmqProduce(queue, exchange, routingKey, message)
       .then(() => {
@@ -232,7 +230,6 @@ app.get('/dsm', (req, res) => {
   } else if (integration === 'kinesis') {
     const message = JSON.stringify({ message: 'hello from Kinesis DSM JS' })
     const timeout = req.query.timeout ?? 60
-    const stream = req.query.stream
 
     kinesisProduce(stream, message, '1', timeout)
       .then(() => {
