@@ -5,7 +5,8 @@ import random
 import subprocess
 import threading
 
-import psycopg2
+if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
+    import psycopg2
 import requests
 from flask import Flask, Response, jsonify
 from flask import request
@@ -18,19 +19,26 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
-from integrations.db.mssql import executeMssqlOperation
-from integrations.db.mysqldb import executeMysqlOperation
-from integrations.db.postgres import executePostgresOperation
+
+if os.environ.get("INCLUDE_SQLSERVER", "true") == "true":
+    from integrations.db.mssql import executeMssqlOperation
+if os.environ.get("INCLUDE_MYSQL", "true") == "true":
+    from integrations.db.mysqldb import executeMysqlOperation
+if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
+    from integrations.db.postgres import executePostgresOperation
 from integrations.messaging.aws.kinesis import kinesis_consume
 from integrations.messaging.aws.kinesis import kinesis_produce
 from integrations.messaging.aws.sns import sns_consume
 from integrations.messaging.aws.sns import sns_produce
 from integrations.messaging.aws.sqs import sqs_consume
 from integrations.messaging.aws.sqs import sqs_produce
-from integrations.messaging.kafka import kafka_consume
-from integrations.messaging.kafka import kafka_produce
-from integrations.messaging.rabbitmq import rabbitmq_consume
-from integrations.messaging.rabbitmq import rabbitmq_produce
+
+if os.environ.get("INCLUDE_KAFKA", "true") == "true":
+    from integrations.messaging.kafka import kafka_consume
+    from integrations.messaging.kafka import kafka_produce
+if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
+    from integrations.messaging.rabbitmq import rabbitmq_consume
+    from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
 
@@ -303,8 +311,9 @@ def produce_rabbitmq_message():
 
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    routing_key = flask_request.args.get("routing_key", "DistributedTracingContextPropagationRoutingKey")
     message = "Hello from Python RabbitMQ Context Propagation Test"
-    output = rabbitmq_produce(queue, exchange, message)
+    output = rabbitmq_produce(queue, exchange, routing_key, message)
     if "error" in output:
         return output, 400
     else:
@@ -315,8 +324,9 @@ def produce_rabbitmq_message():
 def consume_rabbitmq_message():
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    routing_key = flask_request.args.get("routing_key", "DistributedTracingContextPropagationRoutingKey")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = rabbitmq_consume(queue, exchange, timeout)
+    output = rabbitmq_consume(queue, exchange, routing_key, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -328,9 +338,12 @@ def dsm():
     logging.basicConfig(
         format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S",
     )
-    queue = "dsm-system-tests-queue"
-    topic = "dsm-system-tests-topic"
     integration = flask_request.args.get("integration")
+    queue = flask_request.args.get("queue")
+    topic = flask_request.args.get("topic")
+    stream = flask_request.args.get("stream")
+    exchange = flask_request.args.get("exchange")
+    routing_key = flask_request.args.get("routing_key")
 
     logging.info(f"[DSM] Got request with integration: {integration}")
 
@@ -378,9 +391,9 @@ def dsm():
     elif integration == "rabbitmq":
         timeout = int(flask_request.args.get("timeout", 60))
         produce_thread = threading.Thread(
-            target=rabbitmq_produce, args=(queue, queue, "Hello, RabbitMQ from DSM python!")
+            target=rabbitmq_produce, args=(queue, exchange, routing_key, "Hello, RabbitMQ from DSM python!")
         )
-        consume_thread = threading.Thread(target=rabbitmq_consume, args=(queue, queue, timeout))
+        consume_thread = threading.Thread(target=rabbitmq_consume, args=(queue, exchange, routing_key, timeout))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -388,12 +401,8 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        sns_queue = queue + "-sns"
-        sns_topic = topic + "-sns"
-        produce_thread = threading.Thread(
-            target=sns_produce, args=(sns_queue, sns_topic, "Hello, SNS->SQS from DSM python!",)
-        )
-        consume_thread = threading.Thread(target=sns_consume, args=(sns_queue,))
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",))
+        consume_thread = threading.Thread(target=sns_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -401,7 +410,6 @@ def dsm():
         logging.info("[SNS->SQS] Returning response")
         response = Response("ok")
     elif integration == "kinesis":
-        stream = flask_request.args.get("stream")
         timeout = int(flask_request.args.get("timeout", "60"))
         message = json.dumps({"message": "Hello from Python DSM Kinesis test"})
 
