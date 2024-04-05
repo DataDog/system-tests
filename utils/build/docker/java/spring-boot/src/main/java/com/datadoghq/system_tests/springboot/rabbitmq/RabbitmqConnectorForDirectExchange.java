@@ -26,15 +26,21 @@ import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class RabbitmqConnectorForDirectExchange extends RabbitmqConnector {
-	private static final String DIRECT_EXCHANGE_NAME = "systemTestDirectExchange";
-	private static final String DIRECT_ROUTING_KEY = "systemTestDirectRoutingKey";
-	private static final String QUEUE = "systemTestRabbitmqQueue";
+	private String exchange = "systemTestDirectExchange";
+	private String routing_key = "systemTestDirectRoutingKey";
+	private String queue = "systemTestRabbitmqQueue";
+
+    public RabbitmqConnectorForDirectExchange(String queue, String exchange, String routing_key) {
+        this.queue = queue;
+        this.exchange = exchange;
+        this.routing_key = routing_key;
+    }
 
 	private void init(Channel channel) throws Exception {
 	    // exchange and queue declarations are idempotent.
-	    channel.exchangeDeclare(DIRECT_EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
-        channel.queueDeclare(QUEUE, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, /*arguments=*/null);
-        channel.queueBind(QUEUE, DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY);
+	    channel.exchangeDeclare(exchange, BuiltinExchangeType.DIRECT, true);
+        channel.queueDeclare(queue, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, /*arguments=*/null);
+        channel.queueBind(queue, exchange, routing_key);
 	}
 
     public void startProducingMessages() throws Exception {
@@ -44,7 +50,7 @@ public class RabbitmqConnectorForDirectExchange extends RabbitmqConnector {
                     String message = "hello world";
                     Channel channel = createChannel();
                     init(channel);
-                    channel.basicPublish(DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY, null, message.getBytes("UTF-8"));
+                    channel.basicPublish(exchange, routing_key, null, message.getBytes("UTF-8"));
                     System.out.println("[rabbitmq_direct] Published " + message);
                 } catch (Exception e) {
                     System.out.println("[rabbitmq_direct] Unable to produce message");
@@ -62,7 +68,7 @@ public class RabbitmqConnectorForDirectExchange extends RabbitmqConnector {
                     Channel channel = createChannel();
                     init(channel);
                     final Consumer consumer = createConsumer(channel, ThreadLocalRandom.current().nextInt(0, 200));
-                    channel.basicConsume(QUEUE, /*autoAck=*/false, consumer);
+                    channel.basicConsume(queue, /*autoAck=*/false, consumer);
                     System.out.println("[rabbitmq_direct] consumed messages");
                 } catch (Exception e) {
                     System.out.println("[rabbitmq_direct] Unable to consume message");
