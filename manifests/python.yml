@@ -520,6 +520,7 @@ tests/:
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.8.0.dev
+      TestDynamicConfigSamplingRules: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_sampling_delegation.py:
