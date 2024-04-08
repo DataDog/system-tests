@@ -259,10 +259,9 @@ class BaseSourceTest:
             self.validate_request_reported(request)
 
     def check_test_source_reported(self):
-        # to avoid false positive, we need to check that iast is implemented
-        # AND that the secure endpoint is not vulnerable
         interfaces.library.assert_iast_implemented()
-        self.test_source_reported()
+        if self.test_source_reported != None:
+            self.test_source_reported()
 
     def get_sources(self, request):
         iast = get_iast_event(request=request)
