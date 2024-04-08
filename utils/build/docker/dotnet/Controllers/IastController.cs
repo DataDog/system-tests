@@ -175,11 +175,11 @@ namespace weblog
                 if (!string.IsNullOrEmpty(data.cmd))
                 {
                     var result = Process.Start(data.cmd);
-                    return Content($"Process launched: " + result.ProcessName);
+                    return Content("Process launched: " + result.ProcessName);
                 }
                 else
                 {
-                    return BadRequest($"No file was provided");
+                    return BadRequest("No file was provided");
                 }
             }
             catch
@@ -194,7 +194,7 @@ namespace weblog
             try
             {
                 var result = Process.Start("ls");
-                return Content($"Process launched: " + result.ProcessName);
+                return Content("Process launched: " + result.ProcessName);
             }
             catch
             {
@@ -275,7 +275,7 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText(data.path);
-                return Content($"File content: " + result);
+                return Content("File content: " + result);
             }
             catch (UnauthorizedAccessException)
             {
@@ -295,7 +295,7 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText("file.txt");
-                return Content($"File content: " + result);
+                return Content("File content: " + result);
             }
             catch (System.IO.FileNotFoundException)
             {
@@ -326,7 +326,7 @@ namespace weblog
             try
             {
                 var result = new System.Net.Http.HttpClient().GetStringAsync(url).Result;
-                return Content($"Response: " + result);
+                return Content("Response: " + result);
             }
             catch
             {
@@ -341,11 +341,11 @@ namespace weblog
             {
                 string ldapPath = "LDAP://" + username + ":" + password + "@ldap.example.com/OU=Users,DC=example,DC=com";
                 _ = new System.DirectoryServices.DirectoryEntry(ldapPath);
-                return Content($"Connection created");
+                return Content("Connection created");
             }
             catch
             {
-                return Content($"Error creating connection");
+                return Content("Error creating connection");
             }
         }
         
@@ -355,11 +355,11 @@ namespace weblog
             try
             {        
                 _ = new System.DirectoryServices.DirectoryEntry("LDAP://ldap.example.com/OU=Users,DC=example,DC=com", username, password);
-                return Content($"Conection created");
+                return Content("Connection created");
             }
             catch
             {
-                return Content($"Error creating connection");
+                return Content("Error creating connection");
             }                
         }
 
@@ -394,14 +394,14 @@ namespace weblog
 
                     while (reader.Read())
                     {
-                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
+                        sb.AppendLine($"{reader["user"]}, {reader["pwd"]}");
                     }
 
                     return Content(sb.ToString());
                 }
                 else
                 {
-                    return BadRequest($"No params provided");
+                    return BadRequest("No params provided");
                 }
             }
             catch (Exception e)
@@ -436,7 +436,7 @@ namespace weblog
                 }
                 else
                 {
-                    return BadRequest($"No params provided");
+                    return BadRequest("No params provided");
                 }
             }
             catch (Exception e)
@@ -537,7 +537,7 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText(body.value);
-                return Content($"Executed injection");
+                return Content("Executed injection");
             }
             catch
             {
@@ -552,7 +552,7 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText(headerValue);
-                return Content($"Executed injection");
+                return Content("Executed injection");
             }
             catch
             {

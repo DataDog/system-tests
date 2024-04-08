@@ -13,7 +13,8 @@ env:
 
 jobs:
   k8s-lib-injection-tests:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: "APM Larger Runners"
     permissions:
       contents: read
       packages: write

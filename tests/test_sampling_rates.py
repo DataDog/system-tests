@@ -308,18 +308,16 @@ class Test_SamplingDecisions:
 
         for req, sampling_decision in self.requests_expected_decision:
             # Ensure the request succeeded, any failure would make the test incorrect.
-            if req.status_code != 200:
-                raise AttributeError(f"Call to /sample_rate_route/:i failed with code: {req.status_code}")
-            for _, _, span in interfaces.library.get_spans(request=req):
+            assert req.status_code == 200, "Call to /sample_rate_route/:i failed"
+
+            for data, _, span in interfaces.library.get_spans(request=req):
                 # Validate the sampling decision
                 trace_id = span["trace_id"]
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
-                if sampling_priority is None:
-                    raise ValueError(f"Root span of trace_id:{trace_id} has no sampling priority attached")
-                if priority_should_be_kept(sampling_priority) is not sampling_decision:
-                    raise ValueError(
-                        f"Unexpected sampling decision for trace_id:{trace_id}, expected:{sampling_decision}, priority:{sampling_priority}"
-                    )
+                logger.info(f"Tring to validate trace_id:{trace_id} from {data['log_filename']}")
+                logger.info(f"Sampling priority: {sampling_priority}")
+                assert sampling_priority is not None, "Root span has no sampling priority attached"
+                assert priority_should_be_kept(sampling_priority) is sampling_decision
                 break
             else:
                 raise ValueError(f"Did not receive spans for req:{req.request}")

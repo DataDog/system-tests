@@ -57,7 +57,7 @@ namespace weblog
         [Consumes("application/json", "application/xml")]
         public async Task<IActionResult> Pii(int arg)
         {
-            PiiBase pii = null;
+            PiiBase? pii;
 
             switch (arg)
             {
@@ -80,7 +80,7 @@ namespace weblog
                     pii = await Task.FromResult<PiiBase>(new Pii6());
                     break;
                 default:
-                    pii = await Task.FromResult<PiiBase>(null);
+                    pii = await Task.FromResult<PiiBase?>(null);
                     break;
             }
 
