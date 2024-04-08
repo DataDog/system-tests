@@ -684,7 +684,7 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
 
-    def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200, wait_duration=0.01):
+    def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
         for i in range(wait_loops):
             try:
@@ -705,7 +705,7 @@ class _TestAgentAPI:
                             if clear:
                                 self.clear()
                             return event
-            time.sleep(wait_duration)
+            time.sleep(0.01)
         raise AssertionError("Telemetry event %r not found" % event_name)
 
     def wait_for_rc_apply_state(

@@ -26,7 +26,7 @@ DEFAULT_ENVVARS = {
     "DD_INTERNAL_TELEMETRY_V2_ENABLED": "1",
     # Decrease the heartbeat/poll intervals to speed up the tests
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
-    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
 
 
@@ -86,9 +86,7 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     _set_rc(test_agent, rc_config)
 
     # Wait for both the telemetry event and the RC apply status.
-    return test_agent.wait_for_telemetry_event(
-        "app-client-configuration-change", clear=True, wait_loops=10, wait_duration=1
-    )
+    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True,)
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
 
 

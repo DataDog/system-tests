@@ -117,8 +117,7 @@ tests/:
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
-    test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
+    test_dynamic_configuration.py: missing_feature (float DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS not supported)
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_sdk_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
