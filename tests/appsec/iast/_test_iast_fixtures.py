@@ -290,6 +290,11 @@ class BaseSourceTest:
     setup_telemetry_metric_instrumented_source = setup_source_reported
 
     def test_telemetry_metric_instrumented_source(self):
+        # to avoid false positive, we need to check that iast is implemented
+        # AND that the secure endpoint is not vulnerable
+        interfaces.library.assert_iast_implemented()
+
+        test_source_reported(self)
 
         _check_telemetry_response_from_agent()
 
@@ -319,6 +324,11 @@ class BaseSourceTest:
     setup_telemetry_metric_executed_source = setup_source_reported
 
     def test_telemetry_metric_executed_source(self):
+        # to avoid false positive, we need to check that iast is implemented
+        # AND that the secure endpoint is not vulnerable
+        interfaces.library.assert_iast_implemented()
+
+        test_source_reported(self)
 
         _check_telemetry_response_from_agent()
 
