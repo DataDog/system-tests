@@ -230,7 +230,6 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
-    @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
     # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
     @bug(context.library < "java@1.1.0", reason="language tag implemented but not for all spans")
@@ -285,7 +284,6 @@ class Test_Meta:
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
@@ -323,7 +321,6 @@ class Test_MetaDatadogTags:
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
-    @bug(library="cpp", reason="Not implemented")
     @bug(context.library >= "java@1.3.0", reason="process_id set as tag, not metric")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
