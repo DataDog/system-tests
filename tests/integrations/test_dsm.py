@@ -42,7 +42,7 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         language_hashes = {
-            "nodejs": {"producer": 2931833227331067675, "consumer": 271115008390912609,},
+            # "nodejs": {"producer": 2931833227331067675, "consumer": 271115008390912609,},
             "default": {"producer": 4463699290244539355, "consumer": 3735318893869752335,},
         }
 
@@ -101,11 +101,11 @@ class Test_DsmRabbitmq:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         language_hashes = {
-            "nodejs": {
-                "producer": 5246740674878013159,
-                "consumer": 10215641161150038469,
-                "edge_tags_in": ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
-            },
+            # "nodejs": {
+            #     "producer": 5246740674878013159,
+            #     "consumer": 10215641161150038469,
+            #     "edge_tags_in": ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
+            # },
             "default": {
                 "producer": 8945717757344503539,
                 "consumer": 247866491670975357,
@@ -240,7 +240,7 @@ class Test_DsmSQS:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 18206246330825886989, "consumer": 5236533131035234664, "topic": DSM_QUEUE,},
+            # "nodejs": {"producer": 18206246330825886989, "consumer": 5236533131035234664, "topic": DSM_QUEUE,},
             "default": {"producer": 7228682205928812513, "consumer": 3767823103515000703, "topic": DSM_QUEUE,},
         }
 
@@ -270,7 +270,7 @@ class Test_DsmSNS:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
+            # "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
             "default": {"producer": 5674710414915297150, "consumer": 13847866872847822852,},
         }
 
@@ -303,12 +303,12 @@ class Test_DsmKinesis:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {
-                "producer": 6740568728215232522,
-                "consumer": 13484979344558289202,
-                "edge_tags_out": ("direction:out", f"topic:{stream}", "type:kinesis"),
-                "edge_tags_in": ("direction:in", f"topic:{stream}", "type:kinesis"),
-            },
+            # "nodejs": {
+            #     "producer": 6740568728215232522,
+            #     "consumer": 13484979344558289202,
+            #     "edge_tags_out": ("direction:out", f"topic:{stream}", "type:kinesis"),
+            #     "edge_tags_in": ("direction:in", f"topic:{stream}", "type:kinesis"),
+            # },
             "default": {
                 "producer": 12766628368524791023,
                 "consumer": 10129046175894237233,
@@ -360,7 +360,7 @@ class Test_DsmContext_Injection_Base64:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 5171947544405521872, "consumer": 1272731766871501641,},
+            # "nodejs": {"producer": 5171947544405521872, "consumer": 1272731766871501641,},
             "python": {
                 "producer": 12830291756145931912,  # python is producing 12830291756145931912, since it includes 'has_routing_key:<value>', which Java SHOULD too but isnt
                 "consumer": 6273982990684090851,
@@ -386,11 +386,11 @@ class Test_DsmContext_Injection_Base64:
 
         encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
 
-        # nodejs uses big endian, others use little endian
-        _format = "<Q"
-        if context.library.library == "nodejs":
-            _format = ">Q"
-        decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
+        # # nodejs uses big endian, others use little endian
+        # _format = "<Q"
+        # if context.library.library == "nodejs":
+        #     _format = ">Q"
+        decoded_pathway = struct.unpack("<Q", encoded_pathway[:8])[0]
 
         assert producer_hash == decoded_pathway
 
@@ -429,11 +429,11 @@ class Test_DsmContext_Extraction_Base64:
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
             # it does not have access to the queue name
-            "nodejs": {
-                "producer": 15513165469939804800,
-                "consumer": 7616007432001161798,
-                "edge_tags": ("direction:in", f"topic:{routing_key}", "type:rabbitmq"),
-            },
+            # "nodejs": {
+            #     "producer": 15513165469939804800,
+            #     "consumer": 7616007432001161798,
+            #     "edge_tags": ("direction:in", f"topic:{routing_key}", "type:rabbitmq"),
+            # },
             "default": {
                 "producer": 9235368231858162135,
                 "consumer": 7819692959683983563,
