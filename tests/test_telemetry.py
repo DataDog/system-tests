@@ -147,7 +147,7 @@ class Test_Telemetry:
                 seq_ids.append((seq_id, data["log_filename"]))
 
                 if not (200 <= data["response"]["status_code"] < 300):
-                    logger.info(f"Response is {data['response']['status_code']}, tracer should resend the message")
+                    logger.info(f"Response is {data['response']['status_code']}")
 
                 if seq_id > max_seq_id:
                     max_seq_id = seq_id
