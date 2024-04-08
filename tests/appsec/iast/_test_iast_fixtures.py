@@ -169,6 +169,10 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         self.setup_insecure()
 
     def test_telemetry_metric_instrumented_sink(self):
+        # to avoid false positive, we need to check that iast is implemented
+        # AND that the secure endpoint is not vulnerable
+        interfaces.library.assert_iast_implemented()
+        self.test_insecure()
 
         _check_telemetry_response_from_agent()
 
@@ -199,6 +203,10 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         self.setup_insecure()
 
     def test_telemetry_metric_executed_sink(self):
+        # to avoid false positive, we need to check that iast is implemented
+        # AND that the secure endpoint is not vulnerable
+        interfaces.library.assert_iast_implemented()
+        self.test_insecure()
 
         _check_telemetry_response_from_agent()
 
