@@ -105,6 +105,7 @@ class Test_Telemetry:
             path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"],
         )
 
+    @missing_feature(library="cpp")
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
@@ -281,6 +282,7 @@ class Test_Telemetry:
     @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(library="ruby")
     @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
@@ -426,6 +428,7 @@ class Test_Telemetry:
     @irrelevant(library="php")
     @irrelevant(library="java")
     @irrelevant(library="nodejs")
+    @irrelevant(library="cpp")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
@@ -437,9 +440,8 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
-    @irrelevant(library="cpp")
     @missing_feature(
-        context.library in ("golang", "cpp", "php"), reason="Telemetry is not implemented yet. ",
+        context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
     )
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @bug(
@@ -455,6 +457,7 @@ class Test_Telemetry:
             "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
+            "cpp": {"trace_agent_port": 8126},
             "java": {"trace_agent_port": 8126, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
         }
@@ -557,6 +560,7 @@ class Test_TelemetryV2:
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="python", reason="Product started missing in app-started payload")
+    @missing_feature(library="cpp", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
@@ -569,10 +573,11 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
+    @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(library="python", reason="library versions do not match due to different origins")
     def test_telemetry_v2_required_headers(self):
-        """Assert library add the relevant headers to telemetry v2 payloads """
+        """Assert library add the relevant headers to telemetry v2 payloads"""
 
         def validator(data):
             telemetry = data["request"]["content"]
@@ -591,7 +596,6 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_app_started_product_disabled(self):
-
         data_found = False
         app_started_found = False
 
@@ -626,7 +630,7 @@ class Test_ProductsDisabled:
 @features.dd_telemetry_dependency_collection_enabled_supported
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
-    """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
+    """Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag"""
 
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         weblog.get("/load_dependency")
@@ -641,13 +645,14 @@ class Test_DependencyEnable:
 
 @features.telemetry_message_batch
 class Test_MessageBatch:
-    """ Tests on Message batching """
+    """Tests on Message batching"""
 
     def setup_message_batch_enabled(self):
         weblog.get("/load_dependency")
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
+    # CPP: false-positive. we send batch message for app-started.
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
         event_list = []
@@ -668,11 +673,11 @@ class Test_Log_Generation:
 
     @scenarios.telemetry_log_generation_disabled
     def test_log_generation_disabled(self):
-        """ When DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false, no log should be sent"""
+        """When DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false, no log should be sent"""
         assert len(self._get_filename_with_logs()) == 0, "Library shouldn't have sent any log"
 
     def test_log_generation_enabled(self):
-        """ By default, some logs should be sent"""
+        """By default, some logs should be sent"""
         assert len(self._get_filename_with_logs()) != 0
 
 
@@ -706,12 +711,10 @@ class Test_Metric_Generation_Enabled:
         self.assert_telemetry_metrics()
 
     def assert_general_metrics(self):
-
         namespace = "general"
         self.assert_count_metric(namespace, "logs_created", expect_at_least=1)
 
     def assert_tracer_metrics(self):
-
         namespace = "tracers"
         self.assert_count_metric(namespace, "spans_created", expect_at_least=1)
         self.assert_count_metric(namespace, "spans_finished", expect_at_least=1)
@@ -724,7 +727,6 @@ class Test_Metric_Generation_Enabled:
         self.assert_count_metric(namespace, "trace_api.responses", expect_at_least=1)
 
     def assert_telemetry_metrics(self):
-
         namespace = "telemetry"
         self.assert_count_metric(namespace, "telemetry_api.requests", expect_at_least=1)
         self.assert_count_metric(namespace, "telemetry_api.responses", expect_at_least=1)
