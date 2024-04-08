@@ -118,6 +118,7 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
 
+    @flaky(library="ruby", reason="AIT-8418")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
