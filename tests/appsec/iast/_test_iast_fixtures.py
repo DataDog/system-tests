@@ -129,6 +129,12 @@ class BaseSinkTestWithoutTelemetry:
             expected_evidence=self.expected_evidence,
         )
 
+    def check_test_insecure(self):
+        # to avoid false positive, we need to check that iast is implemented
+        # AND that the secure endpoint is not vulnerable
+        interfaces.library.assert_iast_implemented()
+        self.test_insecure()
+
     def setup_secure(self):
 
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
@@ -149,10 +155,7 @@ class BaseSinkTestWithoutTelemetry:
         self.secure_request = self.__class__.secure_request
 
     def test_secure(self):
-        # to avoid false positive, we need to check that iast is implemented
-        # AND that the secure endpoint is not vulnerable
-        interfaces.library.assert_iast_implemented()
-        self.test_insecure()
+        self.check_test_insecure()
 
         self.assert_no_iast_event(self.secure_request)
 
@@ -169,10 +172,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         self.setup_insecure()
 
     def test_telemetry_metric_instrumented_sink(self):
-        # to avoid false positive, we need to check that iast is implemented
-        # AND that the secure endpoint is not vulnerable
-        interfaces.library.assert_iast_implemented()
-        self.test_insecure()
+        self.check_test_insecure()
 
         _check_telemetry_response_from_agent()
 
@@ -203,10 +203,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         self.setup_insecure()
 
     def test_telemetry_metric_executed_sink(self):
-        # to avoid false positive, we need to check that iast is implemented
-        # AND that the secure endpoint is not vulnerable
-        interfaces.library.assert_iast_implemented()
-        self.test_insecure()
+        self.check_test_insecure()
 
         _check_telemetry_response_from_agent()
 
@@ -261,6 +258,12 @@ class BaseSourceTest:
         for request in self.requests.values():
             self.validate_request_reported(request)
 
+    def check_test_source_reported(self):
+        # to avoid false positive, we need to check that iast is implemented
+        # AND that the secure endpoint is not vulnerable
+        interfaces.library.assert_iast_implemented()
+        self.test_source_reported()
+
     def get_sources(self, request):
         iast = get_iast_event(request=request)
         sources = iast["sources"]
@@ -290,11 +293,7 @@ class BaseSourceTest:
     setup_telemetry_metric_instrumented_source = setup_source_reported
 
     def test_telemetry_metric_instrumented_source(self):
-        # to avoid false positive, we need to check that iast is implemented
-        # AND that the secure endpoint is not vulnerable
-        interfaces.library.assert_iast_implemented()
-
-        test_source_reported(self)
+        self.check_test_source_reported()
 
         _check_telemetry_response_from_agent()
 
@@ -324,11 +323,7 @@ class BaseSourceTest:
     setup_telemetry_metric_executed_source = setup_source_reported
 
     def test_telemetry_metric_executed_source(self):
-        # to avoid false positive, we need to check that iast is implemented
-        # AND that the secure endpoint is not vulnerable
-        interfaces.library.assert_iast_implemented()
-
-        test_source_reported(self)
+        self.check_test_source_reported()
 
         _check_telemetry_response_from_agent()
 
