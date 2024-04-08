@@ -160,17 +160,10 @@ tests/:
   test_miscs.py: irrelevant
   test_profiling.py:
     Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
-  test_sampling_rates.py:
-    Test_SamplingRates: missing_feature (https://github.com/DataDog/dd-opentracing-cpp/issues/173)
   test_scrubbing.py: irrelevant
-  test_semantic_conventions.py:
-    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
   test_standard_tags.py: irrelevant
   test_telemetry.py:
     Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
-    Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
-    Test_Telemetry: missing_feature
-    Test_TelemetryV2: missing_feature
