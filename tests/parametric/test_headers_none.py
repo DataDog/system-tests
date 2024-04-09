@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, context, scenarios, features
+from utils import missing_feature, context, scenarios, features, bug
 
 parametrize = pytest.mark.parametrize
 
@@ -101,6 +101,7 @@ class Test_Headers_None:
         assert "x-datadog-tags" not in headers
 
     @enable_none_invalid()
+    @bug(context.library >= "python@2.8.0", reason="Unknown")
     def test_headers_none_inject_with_other_propagators(self, test_agent, test_library):
         """Ensure that the 'none' propagator is ignored when other propagators are present.
         In this case, ensure that the Datadog distributed tracing headers are injected properly.

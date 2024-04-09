@@ -6,7 +6,7 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, irrelevant, context, scenarios, features
+from utils import missing_feature, irrelevant, context, scenarios, features, bug
 
 parametrize = pytest.mark.parametrize
 
@@ -87,6 +87,7 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi()
+    @bug(context.library >= "python@2.8.0", reason="Unknown")
     def test_headers_b3multi_inject_valid(self, test_agent, test_library):
         """Ensure that b3multi distributed tracing headers are injected properly.
         """

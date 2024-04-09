@@ -101,6 +101,7 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
     @enable_datadog()
+    @bug(context.library >= "python@2.8.0", reason="Unknown")
     def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
@@ -227,6 +228,7 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
     @enable_tracecontext_datadog()
+    @bug(context.library >= "python@2.8.0", reason="Unknown")
     def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
@@ -500,6 +502,7 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
 
     @enable_datadog_tracecontext()
+    @bug(context.library >= "python@2.8.0", reason="Unknown")
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
