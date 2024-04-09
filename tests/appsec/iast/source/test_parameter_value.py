@@ -40,6 +40,7 @@ class TestParameterValue(BaseSourceTest):
     def test_source_get_reported(self):
         self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 
+    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     @missing_feature(context.library < "java@1.9.0", reason="Not implemented")
     @missing_feature(
         context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented"
@@ -52,6 +53,7 @@ class TestParameterValue(BaseSourceTest):
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
+    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     @missing_feature(context.library < "java@1.11.0", reason="Not implemented")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
