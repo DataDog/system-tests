@@ -37,12 +37,7 @@ class Test_DsmKafka:
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
-        # Hashes are created by applying the FNV-1 algorithm on
-        # checkpoint strings (e.g. service:foo)
-        # There is currently no FNV-1 library availble for node.js
-        # So we are using a different algorithm for node.js for now
         language_hashes = {
-            # "nodejs": {"producer": 2931833227331067675, "consumer": 271115008390912609,},
             "default": {"producer": 4463699290244539355, "consumer": 3735318893869752335,},
         }
 
@@ -96,16 +91,12 @@ class Test_DsmRabbitmq:
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
-        # Hashes are created by applying the FNV-1 algorithm on
-        # checkpoint strings (e.g. service:foo)
-        # There is currently no FNV-1 library availble for node.js
-        # So we are using a different algorithm for node.js for now
+        # node uses different edge tags in the hash calculation (it uses routing key since there is no access to the queue name when consuming)
         language_hashes = {
-            # "nodejs": {
-            #     "producer": 5246740674878013159,
-            #     "consumer": 10215641161150038469,
-            #     "edge_tags_in": ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
-            # },
+            "nodejs": {
+                "consumer": 4487918860004860566,
+                "edge_tags_in": ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
+            },
             "default": {
                 "producer": 8945717757344503539,
                 "consumer": 247866491670975357,
@@ -114,7 +105,7 @@ class Test_DsmRabbitmq:
             },
         }
 
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        producer_hash = language_hashes.get("default")["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
         edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
         edge_tags_out = language_hashes.get("default")["edge_tags_out"]
@@ -239,8 +230,6 @@ class Test_DsmSQS:
         assert self.r.text == "ok"
 
         language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            # "nodejs": {"producer": 18206246330825886989, "consumer": 5236533131035234664, "topic": DSM_QUEUE,},
             "default": {"producer": 7228682205928812513, "consumer": 3767823103515000703, "topic": DSM_QUEUE,},
         }
 
@@ -269,8 +258,6 @@ class Test_DsmSNS:
         assert self.r.text == "ok"
 
         language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            # "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
             "default": {"producer": 5674710414915297150, "consumer": 13847866872847822852,},
         }
 
@@ -299,16 +286,8 @@ class Test_DsmKinesis:
         assert self.r.text == "ok"
 
         stream_arn = f"arn:aws:kinesis:us-east-1:000000000000:stream/{DSM_STREAM}"
-        stream = DSM_STREAM
 
         language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            # "nodejs": {
-            #     "producer": 6740568728215232522,
-            #     "consumer": 13484979344558289202,
-            #     "edge_tags_out": ("direction:out", f"topic:{stream}", "type:kinesis"),
-            #     "edge_tags_in": ("direction:in", f"topic:{stream}", "type:kinesis"),
-            # },
             "default": {
                 "producer": 12766628368524791023,
                 "consumer": 10129046175894237233,
@@ -359,13 +338,8 @@ class Test_DsmContext_Injection_Base64:
         assert "error" not in self.consume_response
 
         language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            # "nodejs": {"producer": 5171947544405521872, "consumer": 1272731766871501641,},
-            "python": {
-                "producer": 12830291756145931912,  # python is producing 12830291756145931912, since it includes 'has_routing_key:<value>', which Java SHOULD too but isnt
-                "consumer": 6273982990684090851,
-            },
-            "default": {
+            "default": {"producer": 12830291756145931912, "consumer": 6273982990684090851,},
+            "java": {
                 "producer": 8303078309451632155,  # Java should be producing the same as python, but for some reason isn't including the routing key tag in the created hash
                 "consumer": 6884439977898629893,
             },
@@ -385,11 +359,6 @@ class Test_DsmContext_Injection_Base64:
         assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
 
         encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
-
-        # # nodejs uses big endian, others use little endian
-        # _format = "<Q"
-        # if context.library.library == "nodejs":
-        #     _format = ">Q"
         decoded_pathway = struct.unpack("<Q", encoded_pathway[:8])[0]
 
         assert producer_hash == decoded_pathway
@@ -427,20 +396,18 @@ class Test_DsmContext_Extraction_Base64:
         assert "error" not in self.r.text
 
         language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
-            # it does not have access to the queue name
-            # "nodejs": {
-            #     "producer": 15513165469939804800,
-            #     "consumer": 7616007432001161798,
-            #     "edge_tags": ("direction:in", f"topic:{routing_key}", "type:rabbitmq"),
-            # },
+            # nodejs only has access to rabbitmq routing key, not queue name
+            "nodejs": {
+                "consumer": 3283403289609669889,
+                "edge_tags": ("direction:in", f"topic:{routing_key}", "type:rabbitmq"),
+            },
             "default": {
                 "producer": 9235368231858162135,
                 "consumer": 7819692959683983563,
                 "edge_tags": ("direction:in", f"topic:{queue}", "type:rabbitmq"),
             },  # java/python decode to consumer hash of 7819692959683983563
         }
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        producer_hash = language_hashes.get("default")["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
         edge_tags = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags"]
 

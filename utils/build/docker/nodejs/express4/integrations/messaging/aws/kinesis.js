@@ -32,7 +32,7 @@ const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) =>
             ) {
               console.log('[Kinesis] Kinesis Stream is Active')
               kinesis.putRecord(
-                { StreamName: stream, Data: message, PartitionKey: partitionKey },
+                { StreamARN: data.StreamDescription.StreamARN, Data: message, PartitionKey: partitionKey },
                 (err) => {
                   if (err) {
                     console.log('[Kinesis] Error while producing message, retrying send message')
@@ -86,7 +86,7 @@ const kinesisConsume = (stream, timeout = 60000) => {
             const shardId = response.StreamDescription.Shards[0].ShardId
 
             kinesis.getShardIterator({
-              StreamName: stream,
+              StreamARN: response.StreamDescription.StreamARN,
               ShardId: shardId,
               ShardIteratorType: 'TRIM_HORIZON'
             }, (err, response) => {
