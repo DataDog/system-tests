@@ -273,7 +273,6 @@ class BaseSourceTest:
                 and method.startswith("test_")
             ):
                 try:
-                    print(method)
                     getattr(self, method)()
                     at_least_one_success = True
                 except Exception as e:
