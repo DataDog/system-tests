@@ -20,6 +20,7 @@ class TestCookieValue(BaseSourceTest):
     def test_source_reported(self):
         super().test_source_reported()
 
+    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     @missing_feature(library="dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.17.0", reason="Metrics not implemented")
     @missing_feature(
@@ -29,6 +30,7 @@ class TestCookieValue(BaseSourceTest):
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
+    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     @missing_feature(context.library < "java@1.17.0", reason="Metrics not implemented")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,

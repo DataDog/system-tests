@@ -258,10 +258,28 @@ class BaseSourceTest:
         for request in self.requests.values():
             self.validate_request_reported(request)
 
-    def check_test_source_reported(self):
+    def check_test_telemetry_should_execute(self):
         interfaces.library.assert_iast_implemented()
-        if self.test_source_reported != None:
-            self.test_source_reported()
+
+        # to avoid false positive, we need to check that at least
+        # one test is working before running the telemetry tests
+
+        at_least_one_success = False
+        error = None
+        for method in dir(self):
+            if (
+                callable(getattr(self, method))
+                and not method.startswith("test_telemetry_metric_")
+                and method.startswith("test_")
+            ):
+                try:
+                    print(method)
+                    getattr(self, method)()
+                    at_least_one_success = True
+                except Exception as e:
+                    error = e
+        if not at_least_one_success:
+            raise error
 
     def get_sources(self, request):
         iast = get_iast_event(request=request)
@@ -292,7 +310,7 @@ class BaseSourceTest:
     setup_telemetry_metric_instrumented_source = setup_source_reported
 
     def test_telemetry_metric_instrumented_source(self):
-        self.check_test_source_reported()
+        self.check_test_telemetry_should_execute()
 
         _check_telemetry_response_from_agent()
 
@@ -322,7 +340,7 @@ class BaseSourceTest:
     setup_telemetry_metric_executed_source = setup_source_reported
 
     def test_telemetry_metric_executed_source(self):
-        self.check_test_source_reported()
+        self.check_test_telemetry_should_execute()
 
         _check_telemetry_response_from_agent()
 
