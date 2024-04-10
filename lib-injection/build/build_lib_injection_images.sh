@@ -2,7 +2,7 @@
 set -e
 
 export DOCKER_IMAGE_WEBLOG_TAG=latest
-
+export BUILDX_PLATFORMS=linux/arm64/v8,linux/amd64
 declare -A variants
 #variants=(["dd-lib-dotnet-init-test-app"]="dotnet" ["dd-lib-java-init-test-app"]="java")
 variants=(["dd-lib-dotnet-init-test-app"]="dotnet" ["sample-app"]="nodejs")
