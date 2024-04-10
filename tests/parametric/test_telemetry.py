@@ -301,7 +301,9 @@ class Test_TelemetrySCAEnvVar:
                 DD_APPSEC_SCA_ENABLED = "appsec.sca_enabled"
 
             cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-            assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(
+                DD_APPSEC_SCA_ENABLED
+            )
             assert cfg_appsec_enabled.get("value") == outcome_value
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
