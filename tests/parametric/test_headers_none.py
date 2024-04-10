@@ -101,7 +101,6 @@ class Test_Headers_None:
         assert "x-datadog-tags" not in headers
 
     @enable_none_invalid()
-    @bug(context.library >= "python@2.8.0", reason="Unknown")
     def test_headers_none_inject_with_other_propagators(self, test_agent, test_library):
         """Ensure that the 'none' propagator is ignored when other propagators are present.
         In this case, ensure that the Datadog distributed tracing headers are injected properly.
