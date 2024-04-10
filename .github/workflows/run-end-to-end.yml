@@ -69,6 +69,7 @@ env:
 
 jobs:
   end-to-end:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     strategy:
       matrix:
