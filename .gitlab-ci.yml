@@ -203,4 +203,4 @@ check_merge_labels:
   script:
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
-    - if: 1 == 1 || $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+    - if: 1 == 1 #$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
