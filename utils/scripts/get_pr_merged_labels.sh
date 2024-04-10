@@ -1,11 +1,11 @@
 #!/bin/bash
-# shellcheck disable=SC2164
+# shellcheck disable=SC2164,SC2050 
 #Check the commit message to figure out if we are merging a PR.
 #We extract the PR number and using GitHub API we check the PR labels.
 #If the PR contains the label "build-buddies-images" we launch the build and push process
 
 
-PR_PATTERN='#[0-9]+'
+#PR_PATTERN='#[0-9]+'
 
 #if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
 if [[ "1" == "1" ]]; then
