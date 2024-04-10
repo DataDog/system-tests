@@ -30,13 +30,12 @@ if [[ "1" == "1" ]]; then
         echo "The PR $PR_NUMBER doesn't contain any docker build label "
         exit 0
     fi
-    
+     echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
     #BUILD BUDDIES IMAGES
     if [ -z "$is_build_buddies" ]
     then
         echo "The PR $PR_NUMBER doesn't contain the 'build-buddies-images' label "
     else
-        echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
         ./utils/build/build_tracer_buddies.sh --push
     fi
