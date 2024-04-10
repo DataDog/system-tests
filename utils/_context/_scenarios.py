@@ -210,6 +210,8 @@ class _Scenario:
 
 
 class TestTheTestScenario(_Scenario):
+    library = LibraryVersion("java", "0.66.0")
+
     @property
     def agent_version(self):
         return "0.77.0"
@@ -221,10 +223,6 @@ class TestTheTestScenario(_Scenario):
     @property
     def parametrized_tests_metadata(self):
         return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
-
-    @property
-    def library(self):
-        return LibraryVersion("java", "0.66.0")
 
     @property
     def weblog_variant(self):

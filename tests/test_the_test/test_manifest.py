@@ -81,6 +81,3 @@ def test_content():
 
             for variant in declaration:
                 assert variant in variants_map[component], f"Variant {variant} does not exists for {component}"
-
-
-test_content()
