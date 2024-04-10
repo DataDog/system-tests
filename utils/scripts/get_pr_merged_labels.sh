@@ -7,8 +7,10 @@
 
 PR_PATTERN='#[0-9]+'
 
-if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
-    PR_NUMBER=${BASH_REMATCH[1]:1}
+#if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
+if [[ "1"== "1" ) ]]; then
+    #PR_NUMBER=${BASH_REMATCH[1]:1}
+    PR_NUMBER=2321
     echo "Merged the PR number: [$PR_NUMBER]"; 
     #search for labels
     PR_DATA=$(curl -L \
