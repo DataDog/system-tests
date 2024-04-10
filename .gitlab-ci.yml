@@ -210,7 +210,7 @@ check_merge_labels:
   #  - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
 build-image:
-  stage: manual-images
+  stage: manual_images
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_PIPELINE_SOURCE == "push"
       changes:
