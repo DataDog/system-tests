@@ -304,6 +304,10 @@ class Test_TelemetrySCAEnvVar:
             assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(
                 DD_APPSEC_SCA_ENABLED
             )
+
+            if context.library in ("golang", "jvm", "dotnet"):
+                outcome_value = True if outcome_value == "true" else False
+
             assert cfg_appsec_enabled.get("value") == outcome_value
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
