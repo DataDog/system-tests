@@ -233,3 +233,58 @@ class Test_TelemetryInstallSignature:
                 assert (
                     "install_signature" not in body["payload"]
                 ), "The install signature should not be included in the telemetry event, got {}".format(body)
+
+
+@rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
+@scenarios.parametric
+@features.telemetry_app_started_event
+class Test_TelemetrySCAEnvVar:
+    """
+    This telemetry entry has the value of DD_APPSEC_SCA_ENABLED in the library.
+    """
+
+    @pytest.mark.parametrize(
+        "env_vars, outcome_value",
+        [
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, "false"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, "false"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, "false"),
+        ],
+    )
+    def test_telemetry_sca_enabled_propagated(self, env_vars, outcome_value, test_agent, test_library):
+        with test_library.start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_event("app-started")
+        requests = test_agent.raw_telemetry(clear=True)
+        assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
+        for req in requests:
+            body = json.loads(base64.b64decode(req["body"]))
+            if body["request_type"] != "app-started":
+                continue
+            assert (
+                "configuration" in body["payload"]
+            ), "The configuration should be included in the telemetry event, got {}".format(body)
+
+            assert body["payload"]["configuration"]["DD_APPSEC_SCA_ENABLED"] == outcome_value
+
+    @pytest.mark.parametrize("env_vars, outcome_value", [{**DEFAULT_ENVVARS}])
+    def test_telemetry_sca_enabled_not_propagated(self, env_vars, test_agent, test_library):
+        with test_library.start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_event("app-started")
+        requests = test_agent.raw_telemetry(clear=True)
+        assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
+        for req in requests:
+            body = json.loads(base64.b64decode(req["body"]))
+            if body["request_type"] != "app-started":
+                continue
+            assert (
+                "configuration" in body["payload"]
+            ), "The configuration should be included in the telemetry event, got {}".format(body)
+
+            assert "DD_APPSEC_SCA_ENABLED" not in body["payload"]["configuration"].keys()
