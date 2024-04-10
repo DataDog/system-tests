@@ -265,7 +265,7 @@ class Test_TelemetrySCAEnvVar:
     """
 
     @pytest.mark.parametrize(
-        "env_vars, outcome_value",
+        "library_env, outcome_value",
         [
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, "true"),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, "true"),
@@ -275,7 +275,7 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, "false"),
         ],
     )
-    def test_telemetry_sca_enabled_propagated(self, env_vars, outcome_value, test_agent, test_library):
+    def test_telemetry_sca_enabled_propagated(self, library_env, outcome_value, test_agent, test_library):
         with test_library.start_span("first_span"):
             pass
 
@@ -292,8 +292,8 @@ class Test_TelemetrySCAEnvVar:
 
             assert body["payload"]["configuration"]["DD_APPSEC_SCA_ENABLED"] == outcome_value
 
-    @pytest.mark.parametrize("env_vars, outcome_value", [{**DEFAULT_ENVVARS}])
-    def test_telemetry_sca_enabled_not_propagated(self, env_vars, test_agent, test_library):
+    @pytest.mark.parametrize("library_env, outcome_value", [{**DEFAULT_ENVVARS}])
+    def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
         with test_library.start_span("first_span"):
             pass
 
