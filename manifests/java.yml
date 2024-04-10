@@ -1019,8 +1019,12 @@ tests/:
     Test_MessageBatch:
       '*': v1.23.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    Test_Metric_Generation_Disabled: missing_feature
-    Test_Metric_Generation_Enabled: missing_feature
+    Test_Metric_Generation_Disabled:
+      '*': v1.23.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_Metric_Generation_Enabled:
+      '*': v1.23.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_ProductsDisabled:
       '*': missing_feature
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
