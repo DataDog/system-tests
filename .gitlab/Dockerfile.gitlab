@@ -1,0 +1,23 @@
+FROM registry.ddbuild.io/base:focal
+
+USER root
+
+RUN clean-apt install \
+    binutils \
+    rpm \
+    jq \
+    rubygems \
+    default-jdk \
+    awscli \
+    ruby-full \
+    build-essential \
+    ca-certificates \
+    python3-pip \
+    unzip \
+    git
+
+# Newer versions of dotenv don't work with this version of ruby
+RUN gem install dotenv -v 2.8.1
+RUN gem install fpm
+
+RUN curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && apt-get install -y nodejs

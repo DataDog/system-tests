@@ -6,6 +6,7 @@ stages:
   - dotnet_tracer
   - parse_results
   - before_tests
+  - manual_images
 
 .base_job_onboarding:
   only:
@@ -46,6 +47,9 @@ variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
+    DOCKER_REGISTRY: registry.ddbuild.io
+    CI_DOCKER_IMAGE_BASE: $DOCKER_REGISTRY/ci/system-tests
+    PROMOTION_TAG: current
     
 onboarding_nodejs:
   extends: .base_job_onboarding
@@ -204,3 +208,22 @@ check_merge_labels:
     - ./utils/scripts/get_pr_merged_labels.sh
   #rules:
   #  - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+
+build-image:
+  stage: manual-images
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_PIPELINE_SOURCE == "push"
+      changes:
+        - gitlab/Dockerfile.*
+    - when: manual
+      allow_failure: true
+  tags: [ "arch:amd64" ]
+  image: $DOCKER_REGISTRY/docker:20.10.13
+  script:
+    - >
+      docker buildx build 
+      --tag $CI_DOCKER_IMAGE_BASE/gitlab:current
+      --platform linux/amd64
+      --push
+      --file gitlab/Dockerfile.gitlab
+      .
