@@ -226,5 +226,5 @@ build-image:
       --tag $CI_DOCKER_IMAGE_BASE/gitlab:current
       --platform linux/amd64
       --push
-      --file gitlab/Dockerfile.gitlab
+      --file .gitlab/Dockerfile.gitlab
       .
