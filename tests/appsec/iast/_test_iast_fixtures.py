@@ -131,7 +131,8 @@ class BaseSinkTestWithoutTelemetry:
 
     def check_test_insecure(self):
         # to avoid false positive, we need to check that iast is implemented
-        # AND that the secure endpoint is not vulnerable
+        # AND that the insecure endpoint is vulnerable
+
         interfaces.library.assert_iast_implemented()
         self.test_insecure()
 
@@ -155,6 +156,7 @@ class BaseSinkTestWithoutTelemetry:
         self.secure_request = self.__class__.secure_request
 
     def test_secure(self):
+        # to avoid false positive, we need to check first that the insecure endpoint is vulnerable
         self.check_test_insecure()
 
         self.assert_no_iast_event(self.secure_request)
