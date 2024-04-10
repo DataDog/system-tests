@@ -207,12 +207,12 @@ tests/:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: v2.33.0
-      Test_Debugger_Method_Probe_Snaphots: v2.33.0
-      Test_Debugger_Mix_Log_Probe: v2.33.0
-      Test_Debugger_Probe_Statuses: v2.33.0
+      Test_Debugger_Line_Probe_Snaphots: bug (statuses are not reported well)
+      Test_Debugger_Method_Probe_Snaphots: bug (statuses are not reported well)
+      Test_Debugger_Mix_Log_Probe: bug (statuses are not reported well)
+      Test_Debugger_Probe_Statuses: bug (statuses are not reported well)
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: v2.33.0
+      Test_Debugger_PII_Redaction: bug (statuses are not reported well)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -246,6 +246,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigSamplingRules: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v2.33.0
       TestDynamicConfigV1_ServiceTargets: missing_feature

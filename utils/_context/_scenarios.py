@@ -66,7 +66,7 @@ class _Scenario:
         Path(path).mkdir(parents=True, exist_ok=True)
 
     def __call__(self, test_object):
-        """ handles @scenarios.scenario_name """
+        """handles @scenarios.scenario_name"""
 
         # Check that no scenario has been already declared
         for marker in getattr(test_object, "pytestmark", []):
@@ -108,7 +108,7 @@ class _Scenario:
             weblog.init_replay_mode(self.host_log_folder)
 
     def session_start(self):
-        """ called at the very begning of the process """
+        """called at the very begning of the process"""
 
         self.print_test_context()
 
@@ -126,7 +126,7 @@ class _Scenario:
             raise
 
     def pytest_sessionfinish(self, session):
-        """ called at the end of the process  """
+        """called at the end of the process"""
 
     def print_test_context(self):
         logger.terminal.write_sep("=", "test context", bold=True)
@@ -137,10 +137,10 @@ class _Scenario:
         return []
 
     def post_setup(self):
-        """ called after test setup """
+        """called after test setup"""
 
     def close_targets(self):
-        """ called after setup"""
+        """called after setup"""
 
     @property
     def host_log_folder(self):
@@ -230,7 +230,7 @@ class TestTheTestScenario(_Scenario):
 
 
 class _DockerScenario(_Scenario):
-    """ Scenario that tests docker containers """
+    """Scenario that tests docker containers"""
 
     def __init__(
         self,
@@ -300,7 +300,6 @@ class _DockerScenario(_Scenario):
         return None
 
     def _get_warmups(self):
-
         warmups = super()._get_warmups()
 
         warmups.append(create_network)
@@ -319,7 +318,7 @@ class _DockerScenario(_Scenario):
 
 
 class EndToEndScenario(_DockerScenario):
-    """ Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent """
+    """Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent"""
 
     def __init__(
         self,
@@ -563,7 +562,6 @@ class EndToEndScenario(_DockerScenario):
         from utils import interfaces
 
         if self.replay:
-
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
 
@@ -689,7 +687,7 @@ class EndToEndScenario(_DockerScenario):
 
 
 class OpenTelemetryScenario(_DockerScenario):
-    """ Scenario for testing opentelemetry"""
+    """Scenario for testing opentelemetry"""
 
     def __init__(
         self,
@@ -872,7 +870,7 @@ class PerformanceScenario(EndToEndScenario):
 
 class ParametricScenario(_Scenario):
     class PersistentParametricTestConf(dict):
-        """ Parametric tests are executed in multiple thread, we need a mechanism to persist each parametrized_tests_metadata on a file"""
+        """Parametric tests are executed in multiple thread, we need a mechanism to persist each parametrized_tests_metadata on a file"""
 
         def __init__(self, outer_inst):
             self.outer_inst = outer_inst
@@ -957,7 +955,7 @@ class ParametricScenario(_Scenario):
 
 
 class _VirtualMachineScenario(_Scenario):
-    """ Scenario that tests virtual machines """
+    """Scenario that tests virtual machines"""
 
     def __init__(
         self,
@@ -1044,7 +1042,7 @@ class _VirtualMachineScenario(_Scenario):
         self.vm_provider.configure(self.required_vms)
 
     def _check_test_environment(self):
-        """ Check if the test environment is correctly set"""
+        """Check if the test environment is correctly set"""
 
         assert self._library is not None, "Library is not set (use --vm-library)"
         assert self._env is not None, "Env is not set (use --vm-env)"
@@ -1127,7 +1125,7 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class _KubernetesScenario(_Scenario):
-    """ Scenario that tests kubernetes lib injection """
+    """Scenario that tests kubernetes lib injection"""
 
     def __init__(self, name, doc) -> None:
         super().__init__(name, doc=doc)
@@ -1312,7 +1310,10 @@ class scenarios:
 
     trace_propagation_style_w3c = EndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
-        weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
+        weblog_env={
+            "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
+        },
         doc="Test W3C trace style",
     )
 

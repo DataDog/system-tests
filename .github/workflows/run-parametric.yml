@@ -22,9 +22,6 @@ jobs:
         version:
           - prod
           - dev
-        exclude:
-          - library: cpp
-            version: prod
  
       fail-fast: false
     env:
