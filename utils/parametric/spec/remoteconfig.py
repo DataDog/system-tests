@@ -30,6 +30,7 @@ class Capabilities(enum.IntEnum):
     APM_TRACING_HTTP_HEADER_TAGS = 14
     APM_TRACING_CUSTOM_TAGS = 15
     APM_TRACING_ENABLED = 19
+    APM_TRACING_SAMPLE_RULES = 29
 
 
 def human_readable_capabilities(caps: int) -> Tuple[str]:

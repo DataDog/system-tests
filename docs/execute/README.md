@@ -22,7 +22,7 @@ The summary in stdout contains a list of test, then a list of validations. Each 
 * A capital yellow `X`: it was expected to fail, but was a success => **it's time to activate the test**
 * A capital red `F`: Test is failing! a more complete explanation will follow
 * A small yellow `s`: totally skipped. For irrelevant or flaky tests, there is no point to execute them
-* A small red `x`: should not happen, sen a message to `#libraries-system-tests` slack channel
+* A small red `x`: should not happen, send a message to `#apm-shared-testing` slack channel
 
 If system tests fails, you'll need to dig into logs. Most of the time and with some experience, standard ouput will contains enough info to understand the issue. But sometimes, you'll need to have a look [inside logs/ folder](./logs.md).
 

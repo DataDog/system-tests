@@ -14,8 +14,10 @@ namespace weblog
 
             foreach (var systemTestEndpointType in types)
             {
-                var endpoint = (ISystemTestEndpoint)Activator.CreateInstance(systemTestEndpointType);
-                endpoint.Register(routeBuilder);
+                if (Activator.CreateInstance(systemTestEndpointType) is ISystemTestEndpoint endpoint)
+                {
+                    endpoint.Register(routeBuilder);
+                }
             }
         }
     }

@@ -6,26 +6,52 @@ get_latest_release() {
     wget -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
 }
 
-NGINX_VERSION=1.17.3
+get_architecture() {
+  case "$(uname -m)" in
+    aarch64)
+      echo "arm64"
+      ;;
+    arm64)
+      echo "arm64"
+      ;;
+    x86_64)
+      echo "amd64"
+      ;;
+    amd64)
+      echo "amd64"
+      ;;
+    *)
+      echo ""
+      ;;
+  esac
+}
 
-# https://github.com/opentracing-contrib/nginx-opentracing/issues/586
-# ot16 file are missing from the latest release of nginx-opentracing
-# OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
-OPENTRACING_NGINX_VERSION="v0.33.0"
+if [ NGINX_VERSION == "" ]; then
+  echo 1>&2 "ERROR: Missing NGINX_VERSION."
+  exit 1
+fi
 
-DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
+ARCH=$(get_architecture)
 
-echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION"
-echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
-echo $DD_OPENTRACING_CPP_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
+if [ -z "$ARCH" ]; then
+    echo 1>&2 "ERROR: Architecture $(uname -m) is not supported."
+    exit 1
+fi
+
+NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
+
+BASE_IMAGE="nginx:${NGINX_VERSION}"
+BASE_IMAGE_WITHOUT_COLONS=$(echo "$BASE_IMAGE" | tr ':' '_')
+TARBALL="$BASE_IMAGE_WITHOUT_COLONS-$ARCH-ngx_http_datadog_module.so.tgz"
+
+# Install NGINX plugin
+wget "https://github.com/DataDog/nginx-datadog/releases/download/${NGINX_DATADOG_VERSION}/${TARBALL}"
+tar -xzf "${TARBALL}" -C /usr/lib/nginx/modules
+rm "$TARBALL"
+
+# Sys test stuff
+echo "DataDog/nginx-datadog version: ${NGINX_DATADOG_VERSION}"
+echo $NGINX_DATADOG_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-
-# Install NGINX plugin for OpenTracing
-wget https://github.com/opentracing-contrib/nginx-opentracing/releases/download/${OPENTRACING_NGINX_VERSION}/linux-amd64-nginx-${NGINX_VERSION}-ot16-ngx_http_module.so.tgz
-tar zxf linux-amd64-nginx-${NGINX_VERSION}-ot16-ngx_http_module.so.tgz -C /usr/lib/nginx/modules
-# Install Datadog Opentracing C++ Plugin
-wget https://github.com/DataDog/dd-opentracing-cpp/releases/download/${DD_OPENTRACING_CPP_VERSION}/linux-amd64-libdd_opentracing_plugin.so.gz
-gunzip linux-amd64-libdd_opentracing_plugin.so.gz -c > /usr/local/lib/libdd_opentracing_plugin.so
-
 echo "Library version : $(cat SYSTEM_TESTS_LIBRARY_VERSION)"

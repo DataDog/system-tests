@@ -13,7 +13,8 @@ env:
 
 jobs:
   k8s-lib-injection-tests:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: "APM Larger Runners"
     permissions:
       contents: read
       packages: write
@@ -28,6 +29,12 @@ jobs:
 
         - library: python
           weblog-variant: dd-lib-python-init-test-django
+
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django-gunicorn
+  
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django-uvicorn
         
         - library: ruby
           weblog-variant: dd-lib-ruby-init-test-rails
@@ -52,6 +59,8 @@ jobs:
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: ${{ matrix.version }}
       BUILDX_PLATFORMS: linux/amd64
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: dev
+      SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
     steps:
       - name: Checkout
@@ -123,5 +132,5 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_k8s_lib_injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version }}
+          name: logs_k8s-lib-injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version == 'latest' && 'prod' || 'dev' }}
           path: artifact.tar.gz
