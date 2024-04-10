@@ -132,7 +132,7 @@ class Test_Sampling_Span_Tags:
             ("-1", "-0"),
             1,
             agent_rate=(1, None),
-            description="When no envirionment variables related to sampling or "
+            description="When no environment variables related to sampling or "
             "rate limiting are set, decisionmaker "
             "should be either -1 or -0, priority should be 1, and the agent sample rate tag should "
             "be either set to the default rate or unset",

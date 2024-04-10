@@ -157,7 +157,6 @@ RUN /binaries/install_ddtrace.sh
 
 
 def golang_library_factory():
-
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
     golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
     golang_reldir = golang_appdir.replace("\\", "/")
@@ -314,7 +313,6 @@ ADD {php_reldir}/server.php .
 
 
 def ruby_library_factory() -> APMLibraryTestServer:
-
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
     ruby_reldir = ruby_appdir.replace("\\", "/")
@@ -551,7 +549,7 @@ class _TestAgentAPI:
 
     def set_remote_config(self, path, payload):
         resp = self._session.post(
-            self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,}
+            self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,},
         )
         assert resp.status_code == 202
 

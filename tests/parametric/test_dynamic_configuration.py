@@ -10,7 +10,7 @@ from ddapm_test_agent.trace import root_span
 
 from utils.parametric.spec.remoteconfig import Capabilities
 from utils.parametric.spec.trace import Span, assert_trace_has_tags
-from utils import context, missing_feature, irrelevant, rfc, scenarios, features
+from utils import context, bug, missing_feature, irrelevant, rfc, scenarios, features
 
 import pytest
 
@@ -35,6 +35,7 @@ DEFAULT_ENVVARS = {
 def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
     with test_library.start_span(**span_kwargs):
         pass
+    test_library.flush()
     traces = test_agent.wait_for_num_traces(num=1, clear=True)
     assert len(traces) == 1
     return traces[0]
@@ -43,6 +44,7 @@ def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
 def _default_config(service: str, env: str) -> Dict[str, Any]:
     return {
         "action": "enable",
+        "revision": 1698167126064,
         "service_target": {"service": service, "env": env},
         "lib_config": {
             # v1 dynamic config
@@ -62,6 +64,8 @@ def _default_config(service: str, env: str) -> Dict[str, Any]:
 
 def _set_rc(test_agent, config: Dict[str, Any]) -> None:
     cfg_id = hash(json.dumps(config))
+
+    config["id"] = str(cfg_id)
     test_agent.set_remote_config(
         path="datadog/2/APM_TRACING/%s/config" % cfg_id, payload=config,
     )
@@ -84,7 +88,9 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     _set_rc(test_agent, rc_config)
 
     # Wait for both the telemetry event and the RC apply status.
-    test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+    test_agent.wait_for_telemetry_event(
+        "app-client-configuration-change", clear=True,
+    )
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
 
 
@@ -313,16 +319,23 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        set_and_wait_rc(
+            test_agent, config_overrides={"tracing_sampling_rate": 0.5,},
+        )
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
         # Unset the RC sample rate to ensure the default setting is used.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        set_and_wait_rc(
+            test_agent, config_overrides={"tracing_sampling_rate": None,},
+        )
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]])
+    @parametrize(
+        "library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
+    )
+    @bug(library="cpp", reason="Trace sampling RC creates another sampler which makes the computation wrong")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 
@@ -389,7 +402,7 @@ class TestDynamicConfigV1:
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @missing_feature(library="golang", reason="The Go tracer doesn't support automatic logs injection")
+    @missing_feature(context.library in ("cpp", "golang"), reason="Tracer doesn't support automatic logs injection")
     @parametrize(
         "library_env",
         [
@@ -413,8 +426,8 @@ class TestDynamicConfigV1:
 class TestDynamicConfigV1_ServiceTargets:
     """Tests covering the Service Target matching of the dynamic configuration feature.
 
-        - ignore mismatching targets
-        - matching service target case-insensitively
+    - ignore mismatching targets
+    - matching service target case-insensitively
     """
 
     @parametrize(
@@ -443,11 +456,19 @@ class TestDynamicConfigV1_ServiceTargets:
         target in the RC record.
         """
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3)
+
+        rc_args = {}
+        if context.library == "cpp":
+            # C++ make RC requests every second -> update is a bit slower to propagate.
+            rc_args["wait_loops"] = 1000
+
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3, **rc_args)
         assert cfg_state["apply_state"] == 3
         assert cfg_state["apply_error"] != ""
 
-    @missing_feature(context.library in ["golang"], reason="Go Tracer does case-sensitive checks for service and env")
+    @missing_feature(
+        context.library in ["golang", "cpp"], reason="Tracer does case-sensitive checks for service and env"
+    )
     @parametrize(
         "library_env",
         [
@@ -518,27 +539,24 @@ class TestDynamicConfigV2:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_sample_rate(self, library_env, test_agent, test_library):
-        """Ensure the RC request contains the trace sampling rate capability.
-        """
+        """Ensure the RC request contains the trace sampling rate capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RATE])
 
-    @irrelevant(library="golang", reason="The Go tracer doesn't support automatic logs injection")
+    @irrelevant(context.library in ("cpp", "golang"), reason="Tracer doesn't support automatic logs injection")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_logs_injection(self, library_env, test_agent, test_library):
-        """Ensure the RC request contains the logs injection capability.
-        """
+        """Ensure the RC request contains the logs injection capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_LOGS_INJECTION])
 
+    @irrelevant(library="cpp", reason="The CPP tracer doesn't support automatic logs injection")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_http_header_tags(self, library_env, test_agent, test_library):
-        """Ensure the RC request contains the http header tags capability.
-        """
+        """Ensure the RC request contains the http header tags capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_HTTP_HEADER_TAGS])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_custom_tags(self, library_env, test_agent, test_library):
-        """Ensure the RC request contains the custom tags capability.
-        """
+        """Ensure the RC request contains the custom tags capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_CUSTOM_TAGS])
 
 
