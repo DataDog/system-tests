@@ -46,7 +46,7 @@ if [[ "1" == "1" ]]; then
         echo "The PR $PR_NUMBER doesn't contain the 'build-lib-injection-app-images' label "
     else
         echo "The PR $PR_NUMBER contains the 'build-lib-injection-app-images' label. Launching the images generation process "
-        echo "$GITHUB_TOKEN" | docker login ghcr.io --username "publisher" --password-stdin
+        echo "$GH_TOKEN" | docker login ghcr.io --username "publisher" --password-stdin
         ./lib-injection/build/build_lib_injection_images.sh
     fi
 
