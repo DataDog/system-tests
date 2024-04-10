@@ -6,6 +6,7 @@ export DOCKER_IMAGE_WEBLOG_TAG=latest
 declare -A variants
 #variants=(["dd-lib-dotnet-init-test-app"]="dotnet" ["dd-lib-java-init-test-app"]="java")
 variants=(["dd-lib-dotnet-init-test-app"]="dotnet" ["sample-app"]="nodejs")
+docker buildx create --name multiarch --driver docker-container --use
 
 for variant in "${!variants[@]}"; do 
     language="${variants[$variant]}"
