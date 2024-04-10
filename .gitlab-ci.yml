@@ -197,10 +197,10 @@ variables:
         done
 
 check_merge_labels:
-  #image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
   #tags: [ "arch:amd64" ]
-  image: $CI_DOCKER_IMAGE_BASE/gitlab:current
+  #image: $CI_DOCKER_IMAGE_BASE/gitlab:current
   stage: before_tests
   allow_failure: true
   before_script:
