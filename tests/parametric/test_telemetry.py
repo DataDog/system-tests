@@ -290,7 +290,19 @@ class Test_TelemetrySCAEnvVar:
                 "configuration" in body["payload"]
             ), "The configuration should be included in the telemetry event, got {}".format(body)
 
-            assert body["payload"]["configuration"]["DD_APPSEC_SCA_ENABLED"] == outcome_value
+            configuration = body["payload"]["configuration"]
+
+            configuration_by_name = {item["name"]: item for item in configuration}
+
+            DD_APPSEC_SCA_ENABLED = "DD_APPSEC_SCA_ENABLED"
+            if context.library in ("dotnet", "jvm", "nodejs"):
+                DD_APPSEC_SCA_ENABLED = "appsec.sca.enabled"
+            elif context.library == "php":
+                DD_APPSEC_SCA_ENABLED = "appsec.sca_enabled"
+
+            cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
+            assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            assert cfg_appsec_enabled.get("value") == outcome_value
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
@@ -308,4 +320,14 @@ class Test_TelemetrySCAEnvVar:
                 "configuration" in body["payload"]
             ), "The configuration should be included in the telemetry event, got {}".format(body)
 
-            assert "DD_APPSEC_SCA_ENABLED" not in body["payload"]["configuration"].keys()
+            configuration = body["payload"]["configuration"]
+
+            configuration_by_name = {item["name"]: item for item in configuration}
+
+            DD_APPSEC_SCA_ENABLED = "DD_APPSEC_SCA_ENABLED"
+            if context.library in ("dotnet", "jvm", "nodejs"):
+                DD_APPSEC_SCA_ENABLED = "appsec.sca.enabled"
+            elif context.library == "php":
+                DD_APPSEC_SCA_ENABLED = "appsec.sca_enabled"
+
+            assert DD_APPSEC_SCA_ENABLED not in configuration_by_name.keys()
