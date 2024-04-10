@@ -32,6 +32,7 @@ if [[ "1" == "1" ]]; then
     fi
     echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
 
+    #BUILD BUDDIES IMAGES
     if [ -z "$is_build_buddies" ]
     then
         echo "The PR $PR_NUMBER doesn't contain the 'build-buddies-images' label "
@@ -39,6 +40,16 @@ if [[ "1" == "1" ]]; then
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
         ./utils/build/build_tracer_buddies.sh --push
     fi
+
+    #BUILD LIB INJECTION IMAGES
+    if [ -z "$is_build_lib_injection_app_images" ]
+    then
+        echo "The PR $PR_NUMBER doesn't contain the 'build-lib-injection-app-images' label "
+    else
+        echo "The PR $PR_NUMBER contains the 'build-lib-injection-app-images' label. Launching the images generation process "
+        ./lib-injection/build/build_lib_injection_images.sh
+    fi
+
 else
     echo "The commit message $CI_COMMIT_MESSAGE doesn't contain the PR number."
 fi
