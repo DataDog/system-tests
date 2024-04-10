@@ -26,6 +26,7 @@ if [[ "1" == "1" ]]; then
     is_build_lib_injection_app_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-lib-injection-app-images"))');
 
     if [ -z "$is_build_buddies" ] && [ -z "$is_build_python_base_images" ] && [ -z "$is_build_lib_injection_app_images" ] 
+    then
         echo "The PR $PR_NUMBER doesn't contain any docker build label "
         exit 0
     fi
