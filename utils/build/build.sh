@@ -136,6 +136,18 @@ build() {
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
               if [ ! -d "venv/" ]
               then
+                  # Pick the Python version to use.
+                  # 3.9 and 3.10 work, 3.12 does not work due to
+                  # https://stackoverflow.com/questions/77490435/attributeerror-cython-sources.
+                  # CI has 3.9 installed, current Ubuntu laptops
+                  # come with 3.10 and do not have 3.9.
+                  local python_bin
+                  if python3 -V |egrep -q '^Python 3\.(9|10)\.'; then
+                      python_bin=python3
+                  else
+                      python_bin=python3.9
+                  fi
+                  
                   echo "Build virtual env"
                   python3 -m venv venv
               fi
