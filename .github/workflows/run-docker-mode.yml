@@ -1,12 +1,7 @@
 name: System Tests (docker mode)
 
 on:
-  push:
-    branches:
-      - "**"
-  workflow_dispatch: {}
-  schedule:
-    - cron:  '00 03 * * 2-6'
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io
