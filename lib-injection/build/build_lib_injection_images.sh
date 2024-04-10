@@ -15,7 +15,6 @@ variants=(["dd-lib-dotnet-init-test-app"]="dotnet"
           ["dd-lib-ruby-init-test-rails-conflict"]="ruby"
           ["dd-lib-ruby-init-test-rails-explicit"]="ruby"
           ["dd-lib-ruby-init-test-rails-gemsrb"]="ruby"
-          ["lib_injection_rails_app"]="ruby"          
           )
 docker buildx create --name multiarch --driver docker-container --use
 
