@@ -87,7 +87,6 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi()
-    @bug(context.library >= "python@2.8.0", reason="Unknown")
     def test_headers_b3multi_inject_valid(self, test_agent, test_library):
         """Ensure that b3multi distributed tracing headers are injected properly.
         """

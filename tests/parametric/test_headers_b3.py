@@ -77,7 +77,6 @@ class Test_Headers_B3:
 
     @enable_b3()
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
-    @bug(context.library >= "python@2.8.0", reason="Unknown")
     def test_headers_b3_inject_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are injected properly.
         """
