@@ -53,7 +53,7 @@ class Test_Defaults:
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
-        for (apm_telemetry_name, value) in [
+        for apm_telemetry_name, value in [
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False, "true", True)),
             ("trace_header_tags", ""),
@@ -66,6 +66,17 @@ class Test_Defaults:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
+            if context.library == "cpp":
+                unsupported_fields = (
+                    "logs_injection_enabled",
+                    "trace_header_tags",
+                    "profiling_enabled",
+                    "appsec_enabled",
+                    "data_streams_enabled",
+                    "trace_sample_rate",
+                )
+                if apm_telemetry_name in unsupported_fields:
+                    continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
             cfg_item = configuration_by_name.get(apm_telemetry_name)
@@ -109,7 +120,7 @@ class Test_Environment:
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
-        for (apm_telemetry_name, environment_value) in [
+        for apm_telemetry_name, environment_value in [
             ("trace_sample_rate", ("0.3", 0.3)),
             ("logs_injection_enabled", ("true", True)),
             (
@@ -128,6 +139,16 @@ class Test_Environment:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
+            if context.library == "cpp":
+                unsupported_fields = (
+                    "logs_injection_enabled",
+                    "trace_header_tags",
+                    "profiling_enabled",
+                    "appsec_enabled",
+                    "data_streams_enabled",
+                )
+                if apm_telemetry_name in unsupported_fields:
+                    continue
 
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
             cfg_item = configuration_by_name.get(apm_telemetry_name)
