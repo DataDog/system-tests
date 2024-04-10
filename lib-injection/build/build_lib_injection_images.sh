@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-export DOCKER_IMAGE_WEBLOG_TAG=latest
+export DOCKER_IMAGE_WEBLOG_TAG=latest_snapshot
 export BUILDX_PLATFORMS=linux/arm64/v8,linux/amd64
 declare -A variants
 variants=(["dd-lib-java-init-test-app"]="java")
