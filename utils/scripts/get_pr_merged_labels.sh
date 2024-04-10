@@ -38,6 +38,17 @@ if [[ "1" == "1" ]]; then
     else
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
         ./utils/build/build_tracer_buddies.sh --push
+        echo "------------- The buddies images have been built and pushed ------------- "
+    fi
+
+    #BUILD PYTHON BASE IMAGES
+    if [ -z "$is_build_python_base_images" ]
+    then
+        echo "The PR $PR_NUMBER doesn't contain the 'build-python-base-images' label "
+    else
+        echo "The PR $PR_NUMBER contains the 'build-python-base-images' label. Launching the images generation process "
+        ./utils/build/build_python_base_images.sh --push
+        echo "------------- The python base images have been built and pushed ------------- "
     fi
 
     #BUILD LIB INJECTION IMAGES
@@ -48,6 +59,7 @@ if [[ "1" == "1" ]]; then
         echo "The PR $PR_NUMBER contains the 'build-lib-injection-app-images' label. Launching the images generation process "
         echo "$GH_TOKEN" | docker login ghcr.io --username "publisher" --password-stdin
         ./lib-injection/build/build_lib_injection_images.sh
+        echo "------------- The lib injection weblog images have been built and pushed ------------- "
     fi
 
 else
