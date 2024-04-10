@@ -329,7 +329,7 @@ tests/:
           TestParameterValue:
             '*': v1.1.0
             akka-http: v1.12.0
-            jersey-grizzly2: v1.11.0
+            jersey-grizzly2: bug (name field of source not set)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
