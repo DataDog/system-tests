@@ -30,13 +30,13 @@ if [[ "1" == "1" ]]; then
         echo "The PR $PR_NUMBER doesn't contain any docker build label "
         exit 0
     fi
-    echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
-
+    
     #BUILD BUDDIES IMAGES
     if [ -z "$is_build_buddies" ]
     then
         echo "The PR $PR_NUMBER doesn't contain the 'build-buddies-images' label "
     else
+        echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
         ./utils/build/build_tracer_buddies.sh --push
     fi
@@ -47,6 +47,7 @@ if [[ "1" == "1" ]]; then
         echo "The PR $PR_NUMBER doesn't contain the 'build-lib-injection-app-images' label "
     else
         echo "The PR $PR_NUMBER contains the 'build-lib-injection-app-images' label. Launching the images generation process "
+        echo "$GITHUB_TOKEN" | docker login ghcr.io --username "publisher" --password-stdin
         ./lib-injection/build/build_lib_injection_images.sh
     fi
 
