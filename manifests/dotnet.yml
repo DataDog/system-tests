@@ -294,13 +294,13 @@ tests/:
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: missing_feature
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_With_W3C: missing_feature
+      Test_Trace_Sampling_Basic: v2.46.0
+      Test_Trace_Sampling_Globs: v2.46.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v2.48.0
+      Test_Trace_Sampling_Resource: v2.46.0
+      Test_Trace_Sampling_Tags: v2.46.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v2.48.0
+      Test_Trace_Sampling_With_W3C: v2.46.0
     test_tracer.py:
       # The dotnet parametric app generates trace chunks in a way that differs from the other languages
       # This causes the sci tests to fail. Before enabling these tests we must ensure that the first span in the
