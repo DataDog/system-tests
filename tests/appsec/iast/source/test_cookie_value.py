@@ -16,10 +16,6 @@ class TestCookieValue(BaseSourceTest):
     source_names = ["table"]
     source_value = "user"
 
-    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    def test_source_reported(self):
-        super().test_source_reported()
-
     @missing_feature(library="dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.17.0", reason="Metrics not implemented")
     @missing_feature(
