@@ -6,7 +6,6 @@ stages:
   - dotnet_tracer
   - parse_results
   - before_tests
-  - manual_images
 
 .base_job_onboarding:
   only:
