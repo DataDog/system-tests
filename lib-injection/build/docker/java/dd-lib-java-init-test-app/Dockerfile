@@ -3,7 +3,7 @@ RUN apk --no-cache add openjdk11 --repository=http://dl-cdn.alpinelinux.org/alpi
 RUN apk add --no-cache bash
 COPY . .
 RUN ./gradlew build
-ENTRYPOINT ["java", "-jar", "k8s-lib-injection-app-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar"]
 
 
 

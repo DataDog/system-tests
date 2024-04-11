@@ -17,7 +17,7 @@ variants2=(["dd-lib-dotnet-init-test-app"]="dotnet"
           ["dd-lib-ruby-init-test-rails-gemsrb"]="ruby"
           ["dd-lib-java-init-test-app"]="java"
           )
-docker buildx create --name multiarch --driver docker-container --use
+#docker buildx create --name multiarch --driver docker-container --use
 
 for variant in "${!variants[@]}"; do 
     language="${variants[$variant]}"
