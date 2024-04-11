@@ -424,7 +424,10 @@ function initSourceRoutes (app: Express): void {
             // do nothing
           }
 
-          deferred.resolve?.()
+          // in some occasions we consume messages from dsm tests
+          if (vulnValue === 'hello value!') {
+            deferred.resolve?.()
+          }
         }
       })
 
@@ -480,6 +483,9 @@ function initSourceRoutes (app: Express): void {
 
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
+          // in some occasions we consume messages from dsm tests
+          if (!message.key) return
+          
           const vulnKey = message.key.toString()
           try {
             readFileSync(vulnKey)
