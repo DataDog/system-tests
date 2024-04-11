@@ -1,16 +1,14 @@
 #!/bin/bash
-# shellcheck disable=SC2164,SC2050 
+# shellcheck disable=SC2164 
 #Check the commit message to figure out if we are merging a PR.
 #We extract the PR number and using GitHub API we check the PR labels.
 #If the PR contains the label "build-buddies-images" we launch the build and push process
 
 
-#PR_PATTERN='#[0-9]+'
+PR_PATTERN='#[0-9]+'
 
-#if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
-if [[ "1" == "1" ]]; then
-    #PR_NUMBER=${BASH_REMATCH[1]:1}
-    PR_NUMBER=2321
+if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
+    PR_NUMBER=${BASH_REMATCH[1]:1}
     echo "Merged the PR number: [$PR_NUMBER]"; 
     #search for labels
     PR_DATA=$(curl -L \
@@ -31,7 +29,7 @@ if [[ "1" == "1" ]]; then
         exit 0
     fi
      echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
-     
+
     #BUILD BUDDIES IMAGES
     if [ -z "$is_build_buddies" ]
     then

@@ -1,10 +1,10 @@
 stages:
-  #- ruby_tracer
-  #- nodejs_tracer
-  #- java_tracer
-  #- python_tracer
-  #- dotnet_tracer
-  #- parse_results
+  - ruby_tracer
+  - nodejs_tracer
+  - java_tracer
+  - python_tracer
+  - dotnet_tracer
+  - parse_results
   - before_tests
   - manual_images
 
@@ -47,11 +47,8 @@ variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
-    DOCKER_REGISTRY: registry.ddbuild.io
-    CI_DOCKER_IMAGE_BASE: $DOCKER_REGISTRY/ci/system-tests
-    PROMOTION_TAG: current
     
-.onboarding_nodejs:
+onboarding_nodejs:
   extends: .base_job_onboarding
   stage: nodejs_tracer
   allow_failure: true
@@ -76,7 +73,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
       
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding
   stage: java_tracer
   allow_failure: true
@@ -100,7 +97,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding
   stage: python_tracer
   allow_failure: true
@@ -124,7 +121,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_dotnet:
+onboarding_dotnet:
   extends: .base_job_onboarding
   stage: dotnet_tracer
   allow_failure: true
@@ -148,7 +145,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_ruby:
+onboarding_ruby:
   extends: .base_job_onboarding
   stage: ruby_tracer
   allow_failure: true
@@ -172,7 +169,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_parse_results:
+onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
@@ -200,8 +197,7 @@ check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
-  #tags: [ "arch:amd64" ]
-  #image: $CI_DOCKER_IMAGE_BASE/gitlab:current
+
   stage: before_tests
   allow_failure: true
   before_script:
@@ -210,24 +206,5 @@ check_merge_labels:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text) 
   script:
     - ./utils/scripts/get_pr_merged_labels.sh
-  #rules:
-  #  - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
-
-build-image:
-  stage: manual_images
   rules:
-    #- if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_PIPELINE_SOURCE == "push"
-    #  changes:
-    #    - gitlab/Dockerfile.*
-    - when: manual
-      allow_failure: true
-  tags: [ "arch:amd64" ]
-  image: $DOCKER_REGISTRY/docker:20.10.13
-  script:
-    - >
-      docker buildx build 
-      --tag $CI_DOCKER_IMAGE_BASE/gitlab:current
-      --platform linux/amd64
-      --push
-      --file .gitlab/Dockerfile.gitlab
-      .
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
