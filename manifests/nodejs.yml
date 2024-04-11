@@ -36,7 +36,7 @@ tests/:
             nextjs: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords:
-            '*': v5.7.0
+            '*': v5.11.0
             nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
