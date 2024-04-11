@@ -316,7 +316,7 @@ class Test_TelemetrySCAEnvVar:
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
         assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
 
-        if context.library in ("golang", "java", "dotnet"):
+        if context.library in ("golang", "java", "dotnet", "nodejs"):
             outcome_value = True if outcome_value == "true" else False
 
         assert cfg_appsec_enabled.get("value") == outcome_value
