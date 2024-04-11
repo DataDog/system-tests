@@ -24,6 +24,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
     def setup_empty_cookie(self):
         self.request_empty_cookie = weblog.get("/iast/no-samesite-cookie/test_empty_cookie", data={})
 
+    @missing_feature(library="python", reason="Endpoint not implemented")
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)
 

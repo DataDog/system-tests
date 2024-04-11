@@ -9,7 +9,7 @@ namespace weblog
         {
             routeBuilder.MapGet("/status", async context =>
             {
-                var status = int.Parse(context.Request.Query["code"]);
+                var status = int.Parse(context.Request.Query["code"]!);
                 context.Response.StatusCode = status;
                 await context.Response.WriteAsync($"status code: {status}\\n");
             });

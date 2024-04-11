@@ -425,6 +425,7 @@ tests/:
       Test_AppSecObfuscator:
         '*': v1.5.0rc1.dev
         fastapi: v2.6.0.dev1
+      Test_CollectDefaultRequestHeader: v2.9.0.dev40
       Test_CollectRespondHeaders:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
@@ -444,6 +445,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: missing_feature
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -486,17 +489,17 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
-        flask-poc: v2.8.0
+        flask-poc: v2.8.0.dev
       Test_DsmContext_Injection_Base64: 
         "*": irrelevant
-        flask-poc: v2.8.0
+        flask-poc: v2.8.0.dev
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': irrelevant
         flask-poc: v1.20.3
       Test_DsmKinesis:
         '*': irrelevant
-        flask-poc: v2.8.0
+        flask-poc: v2.8.0.dev
       Test_DsmRabbitmq:
         '*': irrelevant
         flask-poc: v2.6.0
@@ -515,10 +518,13 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: v2.6.0
+      TestDynamicConfigSamplingRules: missing_feature
       TestDynamicConfigTracingEnabled: v2.6.0
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV1_ServiceTargets: missing_feature
-      TestDynamicConfigV2: missing_feature
+      TestDynamicConfigV2: v2.8.0.dev
+    test_otel_api_interoperability.py: missing_feature
+    test_otel_sdk_interoperability.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature
@@ -533,12 +539,12 @@ tests/:
       Test_TelemetryInstallSignature: v2.5.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # TODO what is the earliest version?
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_With_W3C: missing_feature
+      Test_Trace_Sampling_Globs: v2.8.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
+      Test_Trace_Sampling_Resource: v2.8.0
+      Test_Trace_Sampling_Tags: v2.8.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v2.8.0
+      Test_Trace_Sampling_With_W3C: v2.8.0
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
       Test_TracerUniversalServiceTagging: v0.36.0
@@ -551,8 +557,10 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  test_data_integrity.py:
+    Test_LibraryHeaders: v2.7.0
   test_distributed.py:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
@@ -564,7 +572,7 @@ tests/:
   test_library_conf.py:
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1 # was marked as ? when we used decorators
-    Test_HeaderTags_Colon_Trailing: bug (AIT-8601)
+    Test_HeaderTags_Colon_Trailing: v2.8.0.dev
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
     Test_HeaderTags_Whitespace_Header: missing_feature
@@ -592,7 +600,7 @@ tests/:
       '*': v2.4.0.dev
     Test_StandardTagsUserAgent: v1.5.0rc1.dev
   test_telemetry.py:
-    Test_DependencyEnable: missing_feature
+    Test_DependencyEnable: v2.8.0.dev
     Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: missing_feature

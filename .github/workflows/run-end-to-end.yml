@@ -196,6 +196,16 @@ jobs:
         - library: ruby
           weblog: sinatra21
         - library: ruby
+          weblog: sinatra22
+        - library: ruby
+          weblog: sinatra30
+        - library: ruby
+          weblog: sinatra31
+        - library: ruby
+          weblog: sinatra32
+        - library: ruby
+          weblog: sinatra40
+        - library: ruby
           weblog: uds-sinatra
         - library: ruby
           weblog: rails32
@@ -217,6 +227,8 @@ jobs:
           weblog: rails61
         - library: ruby
           weblog: rails70
+        - library: ruby
+          weblog: rails71
         version:
         - prod
         - dev
@@ -495,51 +507,20 @@ jobs:
       run: ./run.sh DEBUGGER_MIX_LOG_PROBE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_PII_REDACTION scenario
+      if: always() && steps.build.outcome == 'success' && (inputs.run_debugger || inputs.run_all)
+      run: ./run.sh DEBUGGER_PII_REDACTION
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run all scenarios in replay mode
-      if: always() && steps.build.outcome == 'success' && inputs.run_replay
-      run: |
-        ./run.sh DEFAULT --replay
-        ./run.sh PROFILING --replay
-        # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
-        ./run.sh INTEGRATIONS --replay
-        # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
-        ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS --replay
-        ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE --replay
-        ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE --replay
-        ./run.sh APPSEC_MISSING_RULES --replay
-        ./run.sh APPSEC_CUSTOM_RULES --replay
-        ./run.sh APPSEC_CORRUPTED_RULES --replay
-        ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS --replay
-        ./run.sh APPSEC_BLOCKING --replay
-        ./run.sh APPSEC_DISABLED --replay
-        ./run.sh APPSEC_LOW_WAF_TIMEOUT --replay
-        ./run.sh APPSEC_CUSTOM_OBFUSCATION --replay
-        ./run.sh APPSEC_RATE_LIMITER --replay
-        ./run.sh APPSEC_BLOCKING_FULL_DENYLIST --replay
-        ./run.sh APPSEC_REQUEST_BLOCKING --replay
-        ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
-        ./run.sh APPSEC_WAF_TELEMETRY --replay
-        ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
-        ./run.sh APPSEC_API_SECURITY --replay
-        ./run.sh APPSEC_API_SECURITY_RC --replay
-        ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY --replay
-        ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING --replay
-        ./run.sh SAMPLING --replay
-        ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
-        ./run.sh DEBUGGER_PROBES_STATUS --replay
-        ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT --replay
-        ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT --replay
-        ./run.sh DEBUGGER_MIX_LOG_PROBE --replay
+      if: always() && steps.build.outcome == 'success'
+      run: utils/scripts/replay_scenarios.sh
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+
     - name: Compress logs
       id: compress_logs
       if: always() && steps.build.outcome == 'success'

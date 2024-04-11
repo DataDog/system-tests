@@ -54,7 +54,6 @@ class Test_Blocking:
 
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "python@1.16.1", reason="Bug, minify and remove new line characters")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_no_accept(self):
@@ -92,7 +91,6 @@ class Test_Blocking:
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
@@ -106,7 +104,6 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
         )
 
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
@@ -140,7 +137,6 @@ class Test_Blocking:
             },
         )
 
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
@@ -161,7 +157,6 @@ class Test_Blocking:
     @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
     @missing_feature(context.library == "ruby", reason="Support for quality not implemented")
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
@@ -230,7 +225,6 @@ class Test_CustomBlockingResponse:
         context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
         reason="Do not check the configured redirect status code",
     )
-    @bug(context.library == "golang", reason="Do not check the configured redirect status code")
     def test_custom_redirect_wrong_status_code(self):
         """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
         assert self.r_cr.status_code == 303
@@ -240,7 +234,6 @@ class Test_CustomBlockingResponse:
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False)
 
     @bug(context.library == "java", reason="Do not check the configured redirect location value")
-    @bug(context.library == "golang", reason="Do not check the configured redirect location value")
     def test_custom_redirect_missing_location(self):
         """Block with an default page because location parameter is missing from redirect request configuration"""
         assert self.r_cr.status_code == 403

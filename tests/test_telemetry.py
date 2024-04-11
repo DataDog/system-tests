@@ -105,6 +105,7 @@ class Test_Telemetry:
             path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"],
         )
 
+    @missing_feature(library="cpp")
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
@@ -117,9 +118,7 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
 
-    @missing_feature(library="python")
     @flaky(library="ruby", reason="AIT-8418")
-    @flaky(library="java", reason="AIT-9152")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -145,10 +144,11 @@ class Test_Telemetry:
                 curr_message_time = datetime.strptime(timestamp_start, FMT)
                 logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
-                if 200 <= data["response"]["status_code"] < 300:
-                    seq_ids.append((seq_id, data["log_filename"]))
-                else:
-                    logger.info(f"Response is {data['response']['status_code']}, tracer should resend the message")
+                # IDs should be sent sequentially, even if there are errors
+                seq_ids.append((seq_id, data["log_filename"]))
+
+                if not (200 <= data["response"]["status_code"] < 300):
+                    logger.info(f"Response is {data['response']['status_code']}")
 
                 if seq_id > max_seq_id:
                     max_seq_id = seq_id
@@ -178,7 +178,7 @@ class Test_Telemetry:
                         f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
                     )
 
-    @bug(library="ruby", reason="app-started not sent")
+    @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
@@ -197,7 +197,7 @@ class Test_Telemetry:
 
         assert all((count == 1 for count in count_by_runtime_id.values()))
 
-    @bug(library="ruby", reason="app-started not sent")
+    @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
@@ -278,29 +278,10 @@ class Test_Telemetry:
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
-    @irrelevant(library="java")
-    @irrelevant(library="nodejs")
-    @irrelevant(library="dotnet")
-    @irrelevant(library="golang")
-    @irrelevant(library="python")
-    @features.dd_telemetry_dependency_collection_enabled_supported
-    def test_app_dependencies_loaded_not_sent(self):
-        """app-dependencies-loaded request should not be sent"""
-        # Request type app-dependencies-loaded is never sent from certain language tracers
-        # In case this changes we need to adjust the backend, by adding the language to this list
-        # https://github.com/DataDog/dd-go/blob/prod/domains/appsec/libs/vulnerability_management/model.go#L262
-        # This change means we cannot deduplicate runtime with the same library dependencies in the backend since
-        # we never have guarantees that we have all the dependencies at one point in time
-
-        def validator(data):
-            if get_request_type(data) == "app-dependencies-loaded":
-                raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
-
-        self.validate_library_telemetry_data(validator)
-
     @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(library="ruby")
     @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
@@ -353,7 +334,7 @@ class Test_Telemetry:
     @irrelevant(library="cpp")
     @irrelevant(library="golang")
     @irrelevant(library="python")
-    @irrelevant(library="ruby")
+    @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @bug(
         library="java",
         reason="""
@@ -368,6 +349,7 @@ class Test_Telemetry:
             "dotnet": {"NodaTime": False},
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
+            "ruby": {"bundler": False},
         }
 
         test_defined_dependencies = {
@@ -405,6 +387,7 @@ class Test_Telemetry:
                 "unboundid-ldapsdk": False,
                 "httpclient": False,
             },
+            "ruby": {},
         }
 
         seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
@@ -444,6 +427,7 @@ class Test_Telemetry:
     @irrelevant(library="php")
     @irrelevant(library="java")
     @irrelevant(library="nodejs")
+    @irrelevant(library="cpp")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
@@ -455,10 +439,10 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
-    @irrelevant(library="cpp")
     @missing_feature(
-        context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
+        context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
     )
+    @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @bug(
         library="python",
         reason="""
@@ -472,7 +456,9 @@ class Test_Telemetry:
             "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
+            "cpp": {"trace_agent_port": 8126},
             "java": {"trace_agent_port": 8126, "telemetry_heartbeat_interval": 2},
+            "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
         }
         configuration_map = test_configuration[context.library.library]
 
@@ -573,6 +559,7 @@ class Test_TelemetryV2:
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="python", reason="Product started missing in app-started payload")
+    @missing_feature(library="cpp", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
@@ -585,10 +572,11 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
-    @missing_feature(library="ruby", reason="dd-client-library-version missing")
+    @missing_feature(library="cpp")
+    @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(library="python", reason="library versions do not match due to different origins")
     def test_telemetry_v2_required_headers(self):
-        """Assert library add the relevant headers to telemetry v2 payloads """
+        """Assert library add the relevant headers to telemetry v2 payloads"""
 
         def validator(data):
             telemetry = data["request"]["content"]
@@ -607,14 +595,19 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_app_started_product_disabled(self):
+        data_found = False
+        app_started_found = False
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        if len(telemetry_data) == 0:
-            raise Exception("No telemetry data to validate on")
+        telemetry_data = interfaces.library.get_telemetry_data()
 
         for data in telemetry_data:
+            data_found = True
+
             if get_request_type(data) != "app-started":
                 continue
+
+            app_started_found = True
+
             payload = data["request"]["content"]["payload"]
 
             assert (
@@ -626,11 +619,17 @@ class Test_ProductsDisabled:
                     details.get("enabled") is False
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
+        if not data_found:
+            raise ValueError("No telemetry data to validate on")
+
+        if not app_started_found:
+            raise ValueError("app-started event not found in telemetry data")
+
 
 @features.dd_telemetry_dependency_collection_enabled_supported
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
-    """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
+    """Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag"""
 
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         weblog.get("/load_dependency")
@@ -645,13 +644,14 @@ class Test_DependencyEnable:
 
 @features.telemetry_message_batch
 class Test_MessageBatch:
-    """ Tests on Message batching """
+    """Tests on Message batching"""
 
     def setup_message_batch_enabled(self):
         weblog.get("/load_dependency")
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
+    # CPP: false-positive. we send batch message for app-started.
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
         event_list = []
@@ -672,11 +672,11 @@ class Test_Log_Generation:
 
     @scenarios.telemetry_log_generation_disabled
     def test_log_generation_disabled(self):
-        """ When DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false, no log should be sent"""
+        """When DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false, no log should be sent"""
         assert len(self._get_filename_with_logs()) == 0, "Library shouldn't have sent any log"
 
     def test_log_generation_enabled(self):
-        """ By default, some logs should be sent"""
+        """By default, some logs should be sent"""
         assert len(self._get_filename_with_logs()) != 0
 
 
@@ -710,12 +710,10 @@ class Test_Metric_Generation_Enabled:
         self.assert_telemetry_metrics()
 
     def assert_general_metrics(self):
-
         namespace = "general"
         self.assert_count_metric(namespace, "logs_created", expect_at_least=1)
 
     def assert_tracer_metrics(self):
-
         namespace = "tracers"
         self.assert_count_metric(namespace, "spans_created", expect_at_least=1)
         self.assert_count_metric(namespace, "spans_finished", expect_at_least=1)
@@ -728,7 +726,6 @@ class Test_Metric_Generation_Enabled:
         self.assert_count_metric(namespace, "trace_api.responses", expect_at_least=1)
 
     def assert_telemetry_metrics(self):
-
         namespace = "telemetry"
         self.assert_count_metric(namespace, "telemetry_api.requests", expect_at_least=1)
         self.assert_count_metric(namespace, "telemetry_api.responses", expect_at_least=1)

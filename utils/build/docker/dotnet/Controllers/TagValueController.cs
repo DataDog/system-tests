@@ -1,4 +1,3 @@
-#nullable enable
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Datadog.Trace.AppSec;

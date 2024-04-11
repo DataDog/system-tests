@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using weblog.Models.Debugger;
 
 namespace weblog
 {
@@ -50,6 +51,41 @@ namespace weblog
         {
             intMixLocal = intArg * arg.Length;
             return Content($"Mixed result {intMixLocal}");
+        }
+
+        [HttpGet("log/pii/{arg}")]
+        [Consumes("application/json", "application/xml")]
+        public async Task<IActionResult> Pii(int arg)
+        {
+            PiiBase? pii;
+
+            switch (arg)
+            {
+                case 1:
+                    pii = await Task.FromResult<PiiBase>(new Pii1());
+                    break;
+                case 2:
+                    pii = await Task.FromResult<PiiBase>(new Pii2());
+                    break;
+                case 3:
+                    pii = await Task.FromResult<PiiBase>(new Pii3());
+                    break;
+                case 4:
+                    pii = await Task.FromResult<PiiBase>(new Pii4());
+                    break;
+                case 5:
+                    pii = await Task.FromResult<PiiBase>(new Pii5());
+                    break;
+                case 6:
+                    pii = await Task.FromResult<PiiBase>(new Pii6());
+                    break;
+                default:
+                    pii = await Task.FromResult<PiiBase?>(null);
+                    break;
+            }
+
+            var value = pii?.TestValue;
+            return Content($"PII {value}");
         }
     }
 }

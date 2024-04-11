@@ -147,6 +147,11 @@ tests/:
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra22: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra30: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra31: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
       Test_Login_Events_Extended:
         '*': v1.14.0
@@ -157,6 +162,11 @@ tests/:
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra22: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra30: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra31: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
+        sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.0.0
@@ -205,6 +215,7 @@ tests/:
     test_traces.py:
       Test_AppSecEventSpanTags: v0.54.2
       Test_AppSecObfuscator: v1.0.0
+      Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v1.0.0.beta1
       Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: missing_feature
@@ -215,10 +226,12 @@ tests/:
       Test_Events: v0.54.2
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
-      Test_Debugger_Probe_Statuses: irrelevant
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -282,10 +295,13 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigSamplingRules: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.13.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_otel_api_interoperability.py: missing_feature
+    test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
     test_otel_span_with_w3c.py:

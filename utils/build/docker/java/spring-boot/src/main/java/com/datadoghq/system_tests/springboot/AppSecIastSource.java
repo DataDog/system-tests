@@ -1,25 +1,32 @@
 package com.datadoghq.system_tests.springboot;
 
+import com.datadoghq.system_tests.iast.utils.PathExamples;
 import com.datadoghq.system_tests.iast.utils.SqlExamples;
 import com.datadoghq.system_tests.iast.utils.TestBean;
-import org.springframework.web.bind.annotation.*;
+import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
-
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @SuppressWarnings("Convert2MethodRef")
 @RestController
@@ -28,8 +35,11 @@ public class AppSecIastSource {
 
     private final SqlExamples sql;
 
+    private final PathExamples path;
+
     public AppSecIastSource(final DataSource dataSource) {
         this.sql = new SqlExamples(dataSource);
+        this.path = new PathExamples();
     }
 
     @GetMapping("/parameter/test")
@@ -143,16 +153,45 @@ public class AppSecIastSource {
         return "OK";
     }
 
+    @GetMapping("/kafkakey/test")
+    public ResponseEntity<String> kafkaKey() throws Exception {
+        return kafka("iast-group-key", "hello key!", "value", record -> Paths.get(record.key()).toString());
+    }
+
+    @GetMapping("/kafkavalue/test")
+    public ResponseEntity<String> kafkaValue() throws Exception {
+        return kafka("iast-group-value", "key", "hello value!", record -> Paths.get(record.value()).toString());
+    }
+
+    private ResponseEntity<String> kafka(final String group, final String key, final String value, final KafkaRecordHandler op) throws Exception {
+        final KafkaConnector connector = new KafkaConnector();
+        final long timeout = TimeUnit.SECONDS.toMillis(10);
+        final StringBuilder result = new StringBuilder();
+        final Thread thread = connector.startConsumingMessages(group, timeout, records -> {
+            for (ConsumerRecord<String, String> record : records) {
+                if (key.equals(record.key())) {
+                    System.out.println("got record! " + record.key() + ":" + record.value() + " from " + record.topic());
+                    op.handle(record);
+                    result.append("OK");
+                }
+            }
+        });
+        connector.produceMessageWithoutNewThread(key, value);
+        thread.join(timeout);
+        return result.length() == 0 ? ResponseEntity.internalServerError().body("NO_OK") : ResponseEntity.ok(result.toString());
+    }
+
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    private <E> String find(final Collection<E> list,
-                            final Predicate<E> matcher,
-                            final Function<E, String> provider) {
+    private <E> String find(final Collection<E> list, final Predicate<E> matcher, final Function<E, String> provider) {
         return provider.apply(list.stream().filter(matcher).findFirst().get());
     }
 
-    private String find(final Collection<String> list,
-                        final Predicate<String> matcher) {
+    private String find(final Collection<String> list, final Predicate<String> matcher) {
         return find(list, matcher, Function.identity());
+    }
+
+    private interface KafkaRecordHandler {
+        String handle(ConsumerRecord<String, String> record);
     }
 
 }

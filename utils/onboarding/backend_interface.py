@@ -1,6 +1,6 @@
 import os
 import time
-
+from datetime import datetime
 import requests
 from utils.tools import logger
 
@@ -15,12 +15,20 @@ def _query_for_trace_id(trace_id):
     }
     try:
         r = requests.get(f"{host}{path}", headers=headers, timeout=10)
-        # logger.info(f"Request path [{host}{path}]")
-        # logger.info(f"Trying to find trace_id [{trace_id}] in backend with result status [{r.status_code}]")
-        logger.debug(f" Backend response for trace_id [{trace_id}]: [{r}]")
+        logger.debug(f" Backend response status for trace_id [{trace_id}]: [{r.status_code}]")
+        if r.status_code == 200:
+            logger.debug(f" Backend response for trace_id [{trace_id}]: [{r.text}]")
+            # Check if it's  not a old trace
+            trace_data = r.json()
+            root_id = trace_data["trace"]["root_id"]
+            start_time = trace_data["trace"]["spans"][root_id]["start"]
+            start_date = datetime.fromtimestamp(start_time)
+            if (datetime.now() - start_date).days > 1:
+                logger.info("Backend trace is too old")
+                return -1
         return r.status_code
-    except Exception:
-        logger.error(f"Error received connecting to host: [{host}] ")
+    except Exception as e:
+        logger.error(f"Error received connecting to host: [{host}] {e} ")
         return -1
 
 

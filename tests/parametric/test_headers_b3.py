@@ -6,7 +6,8 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, context, scenarios, features
+from utils import missing_feature, context, scenarios, features, bug
+from utils.tools import logger
 
 parametrize = pytest.mark.parametrize
 
@@ -84,6 +85,7 @@ class Test_Headers_B3:
 
         span = get_span(test_agent)
         b3Arr = headers["b3"].split("-")
+        logger.info(f"b3 header is {headers['b3']}")
         b3_trace_id = b3Arr[0]
         b3_span_id = b3Arr[1]
         b3_sampling = b3Arr[2]

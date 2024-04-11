@@ -12,13 +12,194 @@ The automatic libray injection is tested on two scenarios:
 * Datadog Agent and your application deployed on the same host ([host injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=host)).
 * Datadog Agent and your application installed on containers ([containers injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=agentandappinseparatecontainers)).
 
-> For Kubernetes Datadog library injection capabilities testing check [System-tests/lib-injection](https://github.com/DataDog/system-tests/blob/main/lib-injection/README.md).   
+> For Kubernetes Datadog library injection capabilities check the [kubernetes injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=kubernetes) or take a look at the [kubernetes injection testing scenarios](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).   
+
+## Knowledge concepts
+
+We need to know some terms:
+
+* **Scenario:** In system-tests, a virtual scenario is a set of:
+  * a tested architecture, which can be a set of virtual machines or a single virtual machine. This set of VMs will be supplied thanks to the integration of system-tests framework with different providers of this technology.
+  * a list of setup executed on this tested architecture, we called as a virtual machine provision.
+  * a list of test
+
+* **Virtual Machine:** A virtual machine (VM) is a replica, in terms of behavior, of a physical computer. There is software capable of emulating these replicas of physical computers running operating systems. In this case, system-tests will be able to handle the integration of the framework itself with the virtual machines, so that we can install our software to be tested on them (provision). 
+
+* **Provision:** It will be the list of software and configurations to be installed on the virtual machines. The provisions will be specified by using yaml files.
+
+* **Weblog:** Usually It is a web application that exposes consistent endpoints across all implementations and that will be installed on the Virtual Machine. In the case of weblogs associated to the VMs, it does not always have to be a web application that exposes services, it can also be a specific configuration for the machine we want to test.
+
+* **Provider:** It refers to the integration of system-tests with the different technologies that allow interacting with virtual machines. These can be executed locally using software such as vmware, virtual box... or executed in the cloud using services such as Google Cloud or AWS.
+
+* **Tests:** Set of tests to run against a virtual machine. For example, we can make remote HTTP requests to an installed web application during the provisioning process or we can connect to it via SSH to execute different commands to check that the installed software provision is running correctly.
+
+### Define a Virtual Machine scenario
+
+In the following code you can see how we define a new VirtualMachine Scenario, setting the VMs that you want to run:
+
+```Python
+    host_auto_injection = _VirtualMachineScenario(
+        "HOST_AUTO_INJECTION",
+        vm_provision="host-auto-inject",
+        doc="Onboarding Host Single Step Instrumentation scenario",
+        include_ubuntu_22_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_18_amd64=False,
+        include_amazon_linux_2_amd64=False,
+        include_amazon_linux_2_dotnet_6=True,
+        include_amazon_linux_2023_amd64=True,
+        include_amazon_linux_2023_arm64=True,
+    )
+```
+### Virtual Machine
+
+The Virtual Machines are defined in utils/_context/virtual_machines.py.
+There are some  predefined machines. For example:
+
+```Python
+class Ubuntu22amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_22_amd64",
+            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=_VagrantConfig(box_name="bento/ubuntu-22.04"),
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu22_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+```
+### Provision
+We call provision to the configurations applied or the software installed on the machines included in the scenario. 
+
+Some properties of the provisions in system-tests are as follows:
+
+* They are defined in the Yaml files.
+* They Yaml file will be located in the folder: utils/build/virtual_machine/provisions/<provision_name>
+* The installation of the Weblog is also defined on Yaml files, but will be located in a different folder: utils/build/virtual_machine/weblogs/<lang>/<weblog_name>
+* Each provision is different, therefore, different installation steps may be defined.
+* All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions will have to define a step that extracts  the names and versions of installed components we want to test.
+* The same provision must be able to be installed on different operating systems and architectures.
+* The selection of the provision to install in a virtual machine, is the responsibility of the python code that can be found at utils/virtual_machine/virtual_machine_provisioner.py
+
+This is an example of provision file:
+
+```yaml
+#Optional: Load the environment variables
+init-environment: 
+  #This variables will be populated as env variables in all commands for each provision installation
+  - env: dev
+    agent_repo_url: datad0g.com
+    agent_dist_channel: beta
+    agent_major_version: "apm"
+
+  - env: prod
+    agent_repo_url: datadoghq.com
+    agent_dist_channel: stable
+    agent_major_version: "7"
+
+
+#Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
+tested_components:
+  install: 
+    - os_type: linux
+      os_distro: rpm
+      remote-command: |
+          echo "{'agent':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)'}"
+    - os_type: linux
+      os_distro: deb
+      remote-command: |
+          version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 )  && echo "{'agent':'${version_agent//'Version:'/}'}"
+
+#Mandatory: Steps to install provision 
+provision_steps:
+  - init-config #Very first machine action
+  - my-cutom-extra-step #secod step
+  - install-agent #Install the agent 
+
+init-config:
+  cache: true
+  install:
+    - os_type: linux
+      remote-command: echo "Hey! Hello!"
+
+my-cutom-extra-step:
+  cache: true
+  install:
+    - os_type: linux
+      os_distro: rpm
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/test.service
+
+        - name: copy-script
+          local_path: utils/build/rpm-myservice.sh
+      remote-command: sh rpm-myservice.sh
+
+    - os_type: linux
+      os_distro: deb
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/test.service
+
+        - name: copy-script
+          local_path: utils/build/deb-myservice.sh
+      remote-command: sh deb-myservice.sh
+
+install-agent:
+  install:
+    - os_type: linux
+      remote-command: |
+        REPO_URL=$DD_agent_repo_url DD_AGENT_DIST_CHANNEL=$DD_agent_dist_channel DD_AGENT_MAJOR_VERSION=$DD_agent_major_version bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+```
+
+Some of the sections listed above are detailed as follows:
+
+* **init-environment:** They are variables that will be loaded depending on the execution environment (env=dev or env=prod). These variables will be populated in all commands executed on the machines.
+* **tested_components:** This is a mandatory field. We should extract the components that we are testing. The result of the command should be a json string. As you can see the install section could be split by “os_type“ and “os_distro“ fields. You could define a command for all the machines or you could define commands by the machine type. The details of the "installation" field are explained later.
+* **provision_steps:** In this section you must define the steps for the whole installation. In this case we have three steps:
+  * init-config: Represent a step that will run the same command for all types of the linux machines.
+  * my-custom-extra-step: We divide the command, one specific for debian machines and another specific for rpm machines. Notice that we have added directives that will copy local files to the remote machine. The details of the "installation" and “copy-files” fields are explained later.
+  * install-agent: It represents the installation of the agent, valid for all Linux machines. Note that we are using the variables defined in the “init-environment“ section.
+
+#### Provision install section
+
+The install section will be part of all main sections of the provision (except the init-environment and provision_steps sections).
+
+The install section provides us:
+
+* The ability to execute remote commands.
+* The ability to execute local commands.
+* The ability to copy files from the local machine to remote VM.
+
+```yaml
+my-step:
+  install:
+    - os_type: linux
+      os_distro: rpm #Run for rpm machines
+      local-command: echo "This command will run on local"
+      copy_files:
+        - name: copy-this-file-to-home-folder-on-remote-machine
+          local_path: utils/build/test.service
+      remote-command: echo "This command will run on remote machine"
+```
+### Provider
+
+We currently support two providers:
+
+* **Pulumi AWS:** Using Pulumi AWS we can create and manage EC2 instances.
+* **Vagrant:** Vagrant enables users to create and configure lightweight, reproducible, and portable development local environments.
+
+We can find the developed providers in the folder: utils/virtual_machine.
+We can select the correct provider for out configured environment using the factory located on utils/virtual_machine/virtual_machine_provider.py.
 
 ## Prerequisites
 
 To test scenarios mentioned above, We will use the following utilities:
 
 * AWS as the infrastructure provider: We are testing onboarding installation scenarios on different types of machines and OS. AWS Cli must be configured on your computer in order to launch EC2 instances automatically.
+* Vagrant as the infrastructure local provider: For local executions, we can use Vagrant instead of AWS EC2 instances.
 * Pulumi as the orchestrator of this test infrastructure: Pulumi's open source infrastructure as code SDK enables you to create, deploy, and manage infrastructure on any cloud, using your favorite languages.
 * Pytest as testing tool (Python): System-tests is built on Pytest.
 
@@ -28,6 +209,13 @@ Configure your AWS account and AWS CLI. [Check documentation](https://docs.aws.a
 
 In order to securely store and access AWS credentials in an our test environment, we are using aws-vault. Please install and configure it. [Check documentation](https://github.com/99designs/aws-vault)
 
+### Vagrant
+
+* Install Vagrant Install Vagrant | Vagrant | HashiCorp Developer 
+* Install QEMU emulator: Download QEMU - QEMU 
+* Install python Vagrant plugin: python-vagrant 
+* Install Vagrant-QEMU provider: https://github.com/ppggff/vagrant-qemu
+
 ### Pulumi
 
 Pulumi is a universal infrastructure as code platform that allows you to use familiar programming languages and tools to build, deploy, and manage cloud infrastructure.
@@ -36,180 +224,6 @@ Please install and configure as described in the [following documentation](https
 ### Pytest
 
 All system-tests assertions and utilities are based on python and pytests. Check the documentation to configure your python environment: [system-tests requirements](https://github.com/DataDog/system-tests/blob/main/docs/execute/requirements.md)
-
-## Test matrix
-
-We want to test Datadog software on the two main scenarios described above, but keeping in mind other conditions:
-
-- We want to check the releases and the snapshot/beta versions of Datadog library injection software.
-- We want to check Datadog software installed in different machine types or distint SO distributions (Ubuntu, Centos...)
-- We want to check Datadog library injection software for different languages (Currently  supports for Java, Python, Nodejs, dotNet and Ruby)
-    - We want to test the different versions of the supported languages (Java 8, Java 11). 
-
-## Define your infraestructure
-
-YML files define the AMI machines and software to be installed (folder tests/onboarding/infra_provision/): 
-
-- **provision_onboarding_host_<lang>.yml:** All the software and the test applications installed on host.
-- **provision_onboarding_container_<lang>.yml:** Datadog Agent and the application installed on separated containers.
-
-We have also auxiliary YML files with common parts used by any languages and any scenarios:
-
-- **provision_ami.yml:** List of AMI (Amazon Machine Image) to be tested on host scenarios.
-- **provision_ami_container.yml:**  List of AMI to be tested on container scenarios.
-- **provision_agent_container.yml:** Installation process for agent deployed on docker container.
-- **provision_agent.yml:** Installation process for agent deployed on host.
-- **provision_init_vm_config.yml:** Proccess to be executed when the EC2 machine starts. For example, add linux users.
-- **provision_installation_checks.yml:** Extract versions of the software that has been installed.
-- **provision_prepare_docker.yml:** Docker installation process.
-- **provision_prepare_repos.yml:** Prepare Datadog Linux repositories to download and install DD packages.
-
-### Understanding YML files
-
-There are some main sections that they will be combined in order to create a test matrix:
-
-- **AMI:** Define AWS machine types (Ubuntu AMI, Linux Amazon...)
-    - In this section we define the AMI id, and we categorize the machines by os_type, os_distro, os_branch:
-    ```
-    - name: ubuntu-x86-18.04
-      ami_id: ami-0263e4deb427da90e
-      user: ubuntu
-      os_type: linux
-      os_distro: deb
-
-    - name: amazon-linux-x86
-      ami_id: ami-0dfcb1ef8550277af
-      user: ec2-user
-      os_type: linux
-      os_distro: rpm
-
-    - name: amazon-linux-dotnet
-      ami_id: ami-005b11f8b84489615
-      user: ec2-user
-      os_type: linux
-      os_distro: rpm
-      os_branch: amazon-netcore6
-     ```
-- **Agent:** Grouped by environment (prod for agent last release, dev for last snapshot/beta software). We can have distinc installation methods for each different os_type or os_distro. In this case we are going to use the universal linux installer:
-    ```
-    agent:
-      - env: prod
-        install:
-          - os_type: linux
-            command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-    ```
-- **Autoinjection:** Grouped by language (Java, Python, Nodejs, dotNet) and environment (prod/dev):
-    ```
-    autoinjection:
-        - env: dev
-          install: 
-            - os_type: linux
-              os_distro: deb
-              command: |
-                sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
-                dd-host-install
-
-            - os_type: linux
-              os_distro: rpm
-              command: |          
-                sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
-                dd-host-install
-          uninstall: 
-            - os_type: linux 
-              command: dd-host-install --uninstall
-        - env: prod
-          install: 
-            - os_type: linux
-              os_distro: deb
-              command: |
-                sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
-                dd-host-install
-
-            - os_type: linux
-              os_distro: rpm
-              command: |
-                sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
-                dd-host-install
-          uninstall: 
-            - os_type: linux 
-              command: dd-host-install --uninstall
-    ```
-- **language-variants:** Specially useful in the scenario that does not contain containers. This section is not mandatory. It will allow us to install different language versions:
-    ```
-    language-variants:
-        - name: OpenJDK11
-          version: 11
-          install: 
-            - os_type: linux
-              os_distro: deb
-              command: sudo apt-get -y install openjdk-11-jdk-headless
-
-            - os_type: linux
-              os_distro: rpm
-              command: sudo amazon-linux-extras install java-openjdk11
-    ```
-- **weblogs:** In this section we will define the installation process of the different test applications, grouped by language. We can use existing applications in system-tests or download some from third parties. In the following example we use the sample application from the lib-injection folder and we also define the installation of WildFly as another sample application:
-    ```
-        weblogs:
-          - java: 
-
-              - name: test-app-java
-                supported-language-versions:
-                  - 11
-                local-script: weblog/java/test-app-java/test-app-java_local_build.sh
-                install: 
-                   - os_type: linux
-                     copy_files:
-                        - name: copy-service
-                          local_path: weblog/java/test-app-java/test-app-java.service
-                          remote_path: test-app-java.service
-    
-                        - name: copy-run-weblog-script
-                          local_path: weblog/java/test-app-java/test-app-java_run.sh
-                          remote_path: test-app-java_run.sh
-
-                        - name: copy-binary
-                          local_path: ../lib-injection/build/docker/java/dd-lib-java-init-test-app/build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar 
-                          remote_path: k8s-lib-injection-app-0.0.1-SNAPSHOT.jar  
-
-                     command: sh test-app-java_run.sh
-                uninstall: 
-                  - os_type: linux
-                    command: sudo systemctl stop test-app-java.service
-              - name: wildfly
-                supported-language-versions:
-                   - 11
-                install: 
-                  - os_type: linux
-                    copy_files:
-                      - name: copy-service
-                        local_path: weblog/java/wildfly/wildfly.service
-                        remote_path: wildfly.service
-
-                      - name: copy-run-weblog-script
-                        local_path: weblog/java/wildfly/wildfly_run.sh
-                        remote_path: wildfly_run.sh
-
-                    command: sh wildfly_run.sh
-                uninstall: 
-                  - os_type: linux
-                    command: sudo systemctl stop wildfly.service
-    ```
-The node "supported-language-versions" is not mandatory, in case it is specified the tests of this weblog will be associated to the installation of the language variant. 
-
-## Tests assertions
-
-The testing process is very simple. For each machine started we will check:
-
-- The weblog application is listenning on the common port.
-- The weblog application is sending traces to Datadog backend.
-
-Check the tests assertions from *tests/test_onboarding_install.py*
-
-For uninstall test scenarios, we are going to check the following rules after uninstall DD automatic library injection software:
-
-- The weblog application is listenning on the common port.
-- The weblog application is NOT sending traces to Datadog backend (The tracer library is not injected in the application).
 
 ## Run the tests
 
@@ -231,8 +245,6 @@ Before execute the "onboarding" tests you must configure some environment variab
 - **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security groups id. 
 - **DD_API_KEY_ONBOARDING:** Datadog API key.
 - **DD_APP_KEY_ONBOARDING:** Datadog APP key.
-- **ONBOARDING_FILTER_ENV:** Posible values are 'dev' or 'prod'. You can select the software to be tested, latest releases or latest snapshots.
-- **ONBOARDING_FILTER_WEBLOG:** Weblog to be tested.
 
 To debug purposes you can create and use your own EC2 key-pair. To use it you should configure the following environment variables:
 
@@ -248,28 +260,21 @@ Opcionally you can set extra parameters to filter the type of tests that you wil
 The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios. 
 The currently supported scenarios are the following:
 
-* Test DD software on host using manual install (configuring linux repositories and installing DD packages one by one): 
-  - ONBOARDING_HOST
-  - ONBOARDING_HOST_UNINSTALL
-
-* Test DD software on host using agent installation script: 
-  - ONBOARDING_HOST_AUTO_INSTALL
-  - ONBOARDING_HOST_AUTO_INSTALL_UNINSTALL
-
-* Test DD software on container using manual install (configuring linux repositories and installing DD packages one by one): 
-  - ONBOARDING_CONTAINER
-  - ONBOARDING_CONTAINER_UNINSTALL
-
-* Test DD software on container using agent installation script:
-  - ONBOARDING_CONTAINER_AUTO_INSTALL
-  - ONBOARDING_CONTAINER_AUTO_INSTALL_UNINSTALL
+* **HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario
+* **SIMPLE_HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario (minimal test scenario)
+* **HOST_AUTO_INJECTION_BLOCK_LIST:** Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists
+* **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto install script
+* **CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario
+* **SIMPLE_CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario (minimal test scenario)
+* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto install script
 
 The 'onboarding' tests scenarios requiered three mandatory parameters:
 
-- **--obd-library**: Configure language to test (currently supported languages are: java, python, nodejs, dotnet)
-- **--obd-env**: Configure origin of the software: dev (beta software) or prod (releases)
-- **--obd-weblog**: Configure weblog to tests 
+- **--vm-library:** Configure language to test (currently supported languages are: java, python, nodejs, dotnet)
+- **--vm-env:** Configure origin of the software: dev (beta software) or prod (releases)
+- **--vm-weblog:** Configure weblog to tests 
+- **--vm-provider:** Default "aws"
 
 The following line shows an example of command line to run the tests:
 
-- './run.sh ONBOARDING_HOST --obd-weblog test-app-nodejs --obd-env dev --obd-library nodejs'
+ - './run.sh SIMPLE_HOST_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws'

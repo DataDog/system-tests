@@ -158,7 +158,7 @@ tests/:
       test_blocking.py:
         Test_Blocking: v1.50.0-rc.1
         Test_CustomBlockingResponse:
-          '*': v1.53.0
+          '*': v1.63.0-dev
           uds-echo: bug
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
@@ -312,11 +312,14 @@ tests/:
         '*': v1.36.0
         gin: v1.37.0
       Test_AppSecObfuscator: v1.38.0
+      Test_CollectDefaultRequestHeader:
+        '*': v1.36.2
+        gin: v1.37.0
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0
       Test_DistributedTraceInfo: missing_feature (test not implemented)
-      Test_ExternalWafRequestsIdentification: missing_feature
+      Test_ExternalWafRequestsIdentification: v1.63.0-dev
       Test_RetainTraces:
         '*': v1.36.0
         gin: v1.37.0
@@ -328,10 +331,12 @@ tests/:
         gin: v1.37.0
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
-      Test_Debugger_Probe_Statuses: irrelevant
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -395,10 +400,13 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigSamplingRules: v1.63.0
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
       TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
+    test_otel_api_interoperability.py: missing_feature
+    test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature

@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import bug, missing_feature, context, irrelevant, scenarios
+from utils import bug, missing_feature, context, irrelevant, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -86,6 +86,7 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 
 
 @scenarios.parametric
+@features.datadog_headers_propagation
 class Test_Headers_Precedence:
     @irrelevant(context.library == "dotnet", reason="Implements the new 'datadog,tracecontext' default")
     @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
@@ -789,7 +790,6 @@ class Test_Headers_Precedence:
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
-    @missing_feature(context.library == "php", reason="php must implement new tracestate propagation")
     @missing_feature(context.library < "python@2.3.3", reason="python must implement new tracestate propagation")
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
