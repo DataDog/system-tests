@@ -31,6 +31,7 @@ if [[ "1" == "1" ]]; then
         exit 0
     fi
      echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+     
     #BUILD BUDDIES IMAGES
     if [ -z "$is_build_buddies" ]
     then

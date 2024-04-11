@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-export DOCKER_IMAGE_WEBLOG_TAG=latest_snapshot
+export DOCKER_IMAGE_WEBLOG_TAG=latest
 export BUILDX_PLATFORMS=linux/arm64/v8,linux/amd64
 declare -A variants
-variants=(["dd-lib-java-init-test-app"]="java")
-variants2=(["dd-lib-dotnet-init-test-app"]="dotnet" 
+variants=(["dd-lib-dotnet-init-test-app"]="dotnet" 
           ["sample-app"]="nodejs" 
           ["dd-lib-python-init-test-django"]="python"
           ["dd-lib-python-init-test-django-gunicorn"]="python"
@@ -17,7 +16,7 @@ variants2=(["dd-lib-dotnet-init-test-app"]="dotnet"
           ["dd-lib-ruby-init-test-rails-gemsrb"]="ruby"
           ["dd-lib-java-init-test-app"]="java"
           )
-#docker buildx create --name multiarch --driver docker-container --use
+docker buildx create --name multiarch --driver docker-container --use
 
 for variant in "${!variants[@]}"; do 
     language="${variants[$variant]}"
