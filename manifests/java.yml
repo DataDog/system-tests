@@ -251,7 +251,7 @@ tests/:
           TestCookieValue:
             '*': v1.10.0
             akka-http: v1.12.0
-            jersey-grizzly2: v1.11.0
+            jersey-grizzly2: bug (name field of source not set)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -275,7 +275,7 @@ tests/:
           TestHeaderValue:
             '*': v1.3.0
             akka-http: v1.12.0
-            jersey-grizzly2: v1.11.0
+            jersey-grizzly2: bug (name field of source not set)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -329,7 +329,7 @@ tests/:
           TestParameterValue:
             '*': v1.1.0
             akka-http: v1.12.0
-            jersey-grizzly2: v1.11.0
+            jersey-grizzly2: bug (name field of source not set)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -836,7 +836,7 @@ tests/:
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction:         
+      Test_Debugger_PII_Redaction:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
@@ -880,10 +880,10 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: 
+      Test_DsmContext_Extraction_Base64:
         "*": irrelevant
         spring-boot: v0.1  # version unknown
-      Test_DsmContext_Injection_Base64: 
+      Test_DsmContext_Injection_Base64:
         "*": irrelevant
         spring-boot: v0.1  # version unknown
       Test_DsmHttp:
