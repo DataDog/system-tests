@@ -187,125 +187,6 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
-    test_alpha.py:
-      Test_Basic:
-        '*': v1.1.0rc2.dev
-        fastapi: v2.4.0.dev1
-    test_automated_login_events.py:
-      Test_Login_Events: missing_feature
-      Test_Login_Events_Extended: missing_feature
-    test_blocking_addresses.py:
-      Test_BlockingAddresses:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.10
-      Test_BlockingGraphqlResolvers: missing_feature
-      Test_Blocking_request_body:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.10
-      Test_Blocking_request_cookies:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.10
-      Test_Blocking_request_headers:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.10
-      Test_Blocking_request_method:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.10
-      Test_Blocking_request_path_params:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.13
-      Test_Blocking_request_query:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.10
-      Test_Blocking_request_uri:
-        '*': v1.16.1
-        django-poc: v1.15
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.15
-      Test_Blocking_response_headers:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.10
-      Test_Blocking_response_status:
-        '*': v1.16.1
-        django-poc: v1.10
-        fastapi: v2.4.0.dev1
-        flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
-    test_client_ip.py:
-      Test_StandardTagsClientIp: v1.5.0
-    test_conf.py:
-      Test_ConfigurationVariables:
-        '*': v1.1.2
-        fastapi: v2.4.0.dev1
-      Test_RuleSet_1_3_1:
-        '*': v1.2.1
-        fastapi: v2.4.0.dev1
-      Test_StaticRuleSet: missing_feature
-    test_customconf.py:
-      Test_ConfRuleSet: v1.1.0rc2.dev
-      Test_NoLimitOnWafRules: v1.1.0rc2.dev
-    test_event_tracking.py:
-      Test_CustomEvent: v1.10.0
-      Test_UserLoginFailureEvent: v1.9.0
-      Test_UserLoginSuccessEvent: v1.9.0
-    test_identify.py:
-      Test_Basic: v1.5.0rc1.dev
-    test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
-    test_logs.py:
-      Test_Standardization: missing_feature
-      Test_StandardizationBlockMode: missing_feature
-    test_reports.py:
-      Test_ExtraTagsFromRule: v1.14.0
-      Test_HttpClientIP: v1.5.0rc1.dev
-      Test_Info: v1.1.0rc2.dev
-      Test_RequestHeaders: v1.1.0rc2.dev
-      Test_StatusCode: v1.1.0rc2.dev
-    test_request_blocking.py:
-      Test_AppSecRequestBlocking:
-        '*': v1.10.0
-        fastapi: v2.4.0.dev1
-    test_runtime_activation.py:
-      Test_RuntimeActivation: missing_feature
-    test_shell_execution.py:
-      Test_ShellExecution: missing_feature
-    test_traces.py:
-      Test_AppSecEventSpanTags: v0.58.5
-      Test_AppSecObfuscator:
-        '*': v1.5.0rc1.dev
-        fastapi: v2.6.0.dev1
-      Test_CollectDefaultRequestHeader: v2.9.0.dev40
-      Test_CollectRespondHeaders:
-        '*': v1.4.0rc1.dev
-        fastapi: v2.4.0.dev1
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
-      Test_ExternalWafRequestsIdentification: missing_feature
-      Test_RetainTraces: v1.1.0rc2.dev
-    test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist:
-        '*': missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
-        # django-poc: v1.10
-        # flask-poc: v1.10
-    test_versions.py:
-      Test_Events: v0.58.5
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -438,6 +319,125 @@ tests/:
         Test_TelemetryMetrics:
           '*': v1.14.0
           fastapi: v2.4.0.dev1
+    test_PII.py:
+      Test_Scrubbing: missing_feature
+    test_alpha.py:
+      Test_Basic:
+        '*': v1.1.0rc2.dev
+        fastapi: v2.4.0.dev1
+    test_automated_login_events.py:
+      Test_Login_Events: missing_feature
+      Test_Login_Events_Extended: missing_feature
+    test_blocking_addresses.py:
+      Test_BlockingAddresses:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_request_body:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_request_cookies:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_request_headers:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_request_method:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_request_path_params:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.13
+      Test_Blocking_request_query:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_request_uri:
+        '*': v1.16.1
+        django-poc: v1.15
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.15
+      Test_Blocking_response_headers:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_response_status:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
+    test_client_ip.py:
+      Test_StandardTagsClientIp: v1.5.0
+    test_conf.py:
+      Test_ConfigurationVariables:
+        '*': v1.1.2
+        fastapi: v2.4.0.dev1
+      Test_RuleSet_1_3_1:
+        '*': v1.2.1
+        fastapi: v2.4.0.dev1
+      Test_StaticRuleSet: missing_feature
+    test_customconf.py:
+      Test_ConfRuleSet: v1.1.0rc2.dev
+      Test_NoLimitOnWafRules: v1.1.0rc2.dev
+    test_event_tracking.py:
+      Test_CustomEvent: v1.10.0
+      Test_UserLoginFailureEvent: v1.9.0
+      Test_UserLoginSuccessEvent: v1.9.0
+    test_identify.py:
+      Test_Basic: v1.5.0rc1.dev
+    test_ip_blocking_full_denylist.py:
+      Test_AppSecIPBlockingFullDenylist: missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+    test_logs.py:
+      Test_Standardization: missing_feature
+      Test_StandardizationBlockMode: missing_feature
+    test_reports.py:
+      Test_ExtraTagsFromRule: v1.14.0
+      Test_HttpClientIP: v1.5.0rc1.dev
+      Test_Info: v1.1.0rc2.dev
+      Test_RequestHeaders: v1.1.0rc2.dev
+      Test_StatusCode: v1.1.0rc2.dev
+    test_request_blocking.py:
+      Test_AppSecRequestBlocking:
+        '*': v1.10.0
+        fastapi: v2.4.0.dev1
+    test_runtime_activation.py:
+      Test_RuntimeActivation: missing_feature
+    test_shell_execution.py:
+      Test_ShellExecution: missing_feature
+    test_traces.py:
+      Test_AppSecEventSpanTags: v0.58.5
+      Test_AppSecObfuscator:
+        '*': v1.5.0rc1.dev
+        fastapi: v2.6.0.dev1
+      Test_CollectDefaultRequestHeader: v2.9.0.dev40
+      Test_CollectRespondHeaders:
+        '*': v1.4.0rc1.dev
+        fastapi: v2.4.0.dev1
+      Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: missing_feature
+      Test_RetainTraces: v1.1.0rc2.dev
+    test_user_blocking_full_denylist.py:
+      Test_UserBlocking_FullDenylist:
+        '*': missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+        # django-poc: v1.10
+        # flask-poc: v1.10
+    test_versions.py:
+      Test_Events: v0.58.5
   debugger/:
     test_debugger.py:
       Test_Debugger_Line_Probe_Snaphots: missing_feature
