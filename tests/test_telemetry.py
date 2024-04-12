@@ -118,9 +118,7 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
 
-    @missing_feature(library="python")
     @flaky(library="ruby", reason="AIT-8418")
-    @flaky(library="java", reason="AIT-9152")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -146,10 +144,11 @@ class Test_Telemetry:
                 curr_message_time = datetime.strptime(timestamp_start, FMT)
                 logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
-                if 200 <= data["response"]["status_code"] < 300:
-                    seq_ids.append((seq_id, data["log_filename"]))
-                else:
-                    logger.info(f"Response is {data['response']['status_code']}, tracer should resend the message")
+                # IDs should be sent sequentially, even if there are errors
+                seq_ids.append((seq_id, data["log_filename"]))
+
+                if not (200 <= data["response"]["status_code"] < 300):
+                    logger.info(f"Response is {data['response']['status_code']}")
 
                 if seq_id > max_seq_id:
                     max_seq_id = seq_id
@@ -706,35 +705,65 @@ class Test_Metric_Generation_Enabled:
         logger.debug("Wait complete")
 
     def test_metric_generation_enabled(self):
-        self.assert_general_metrics()
-        self.assert_tracer_metrics()
-        self.assert_telemetry_metrics()
+        found = False
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "generate-metrics":
+                continue
+            if content["payload"]["series"]:
+                found = True
+                break
+        assert found, "No metrics found in telemetry data"
 
-    def assert_general_metrics(self):
-        namespace = "general"
-        self.assert_count_metric(namespace, "logs_created", expect_at_least=1)
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_general_logs_created(self):
+        self.assert_count_metric("general", "logs_created", expect_at_least=1)
 
-    def assert_tracer_metrics(self):
-        namespace = "tracers"
-        self.assert_count_metric(namespace, "spans_created", expect_at_least=1)
-        self.assert_count_metric(namespace, "spans_finished", expect_at_least=1)
-        self.assert_count_metric(namespace, "spans_enqueued_for_serialization", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_segments_created", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_chunks_enqueued_for_serialization", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_chunks_sent", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_segments_closed", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_api.requests", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_api.responses", expect_at_least=1)
+    def test_metric_tracers_spans_created(self):
+        self.assert_count_metric("tracers", "spans_created", expect_at_least=1)
 
-    def assert_telemetry_metrics(self):
-        namespace = "telemetry"
-        self.assert_count_metric(namespace, "telemetry_api.requests", expect_at_least=1)
-        self.assert_count_metric(namespace, "telemetry_api.responses", expect_at_least=1)
+    def test_metric_tracers_spans_finished(self):
+        self.assert_count_metric("tracers", "spans_finished", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_spans_enqueued_for_serialization(self):
+        self.assert_count_metric("tracers", "spans_enqueued_for_serialization", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_segments_created(self):
+        self.assert_count_metric("tracers", "trace_segments_created", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_chunks_enqueued_for_serialization(self):
+        self.assert_count_metric("tracers", "trace_chunks_enqueued_for_serialization", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_chunks_sent(self):
+        self.assert_count_metric("tracers", "trace_chunks_sent", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_segments_closed(self):
+        self.assert_count_metric("tracers", "trace_segments_closed", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_api_requests(self):
+        self.assert_count_metric("tracers", "trace_api.requests", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_api_responses(self):
+        self.assert_count_metric("tracers", "trace_api.responses", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_telemetry_api_requests(self):
+        self.assert_count_metric("telemetry", "telemetry_api.requests", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_telemetry_api_responses(self):
+        self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)
 
     def assert_count_metric(self, namespace, metric, expect_at_least):
         series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
-        if len(series) == 0 and expect_at_least > 0:
-            raise Exception(f"No telemetry data received for metric {namespace}.{metric}")
+        assert len(series) != 0 or expect_at_least == 0, f"No telemetry data received for metric {namespace}.{metric}"
 
         count = 0
         for s in series:

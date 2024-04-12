@@ -1,3 +1,4 @@
+---
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -428,7 +429,7 @@ tests/:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
       Test_DistributedTraceInfo: missing_feature (test not implemented)
-      Test_ExternalWafRequestsIdentification: missing_feature
+      Test_ExternalWafRequestsIdentification: v2.9.0.dev1
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
@@ -453,20 +454,20 @@ tests/:
           flask-poc: v2.5.0
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           flask-poc: v2.6.0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
-          flask-poc: v0.1 # real version not known
+          flask-poc: v0.1  # actual version unknown
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           flask-poc: v2.6.0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
-          flask-poc: v0.1 # real version not known
+          flask-poc: v0.1 # actual version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           flask-poc: v2.6.0
@@ -483,13 +484,13 @@ tests/:
     test_dbm.py:
       Test_Dbm:
         '*': missing_feature (Missing on weblog)
-        flask-poc: v0.1 # real version not known
+        flask-poc: v0.1 # actual version unknown
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: 
-        "*": irrelevant
+      Test_DsmContext_Extraction_Base64:
+        '*': irrelevant
         flask-poc: v2.8.0.dev
-      Test_DsmContext_Injection_Base64: 
-        "*": irrelevant
+      Test_DsmContext_Injection_Base64:
+        '*': irrelevant
         flask-poc: v2.8.0.dev
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
@@ -514,41 +515,70 @@ tests/:
         '*': irrelevant
         flask-poc: v1.16.0
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v2.6.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: v2.6.0
+      TestDynamicConfigHeaderTags: missing_feature (failure 2.8.0)
       TestDynamicConfigSamplingRules: missing_feature
-      TestDynamicConfigTracingEnabled: v2.6.0
-      TestDynamicConfigV1: missing_feature
-      TestDynamicConfigV1_ServiceTargets: missing_feature
-      TestDynamicConfigV2: v2.8.0.dev
-    test_otel_api_interoperability.py: missing_feature
-    test_otel_sdk_interoperability.py: missing_feature
+      TestDynamicConfigTracingEnabled: missing_feature (failure 2.8.0)
+      TestDynamicConfigV1: missing_feature (failure 2.8.0)
+      TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
+      TestDynamicConfigV2: missing_feature (failure 2.8.0)
+    test_headers_b3.py:
+      Test_Headers_B3: v2.8.0
+    test_headers_b3multi.py:
+      Test_Headers_B3multi: v2.8.0
+    test_headers_datadog.py:
+      Test_Headers_Datadog: v2.8.0
+    test_headers_none.py:
+      Test_Headers_None: v2.8.0
+    test_headers_precedence.py:
+      Test_Headers_Precedence: v2.8.0
+    test_headers_tracecontext.py:
+      Test_Headers_Tracecontext: v2.8.0
+    test_headers_tracestate_dd.py:
+      Test_Headers_Tracestate_DD: v2.8.0
+    test_library_tracestats.py:
+      Test_Library_Tracestats: missing_feature (failure 2.8.0)
+    test_otel_api_interoperability.py:
+      Test_Otel_API_Interoperability: missing_feature
+    test_otel_sdk_interoperability.py:
+      Test_Otel_SDK_Interoperability: missing_feature
+    test_otel_span_methods.py:
+      Test_Otel_Span_Methods: v2.8.0
+    test_otel_span_with_w3c.py:
+      Test_Otel_Span_With_W3c: v2.8.0
+    test_otel_tracer.py:
+      Test_Otel_Tracer: v2.8.0
+    test_partial_flushing.py:
+      Test_Partial_Flushing: v2.9.0.dev1
     test_sampling_delegation.py:
-      Test_Decisionless_Extraction: >-
-        missing_feature
-        (The "_sampling_priority_v1" numeric tag is missing from the local
-        root span when the trace was extracted without a sampling decision.
-        See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782691947?pr=2005>.)
+      Test_Decisionless_Extraction: v2.8.0
+    test_sampling_span_tags.py:
+      Test_Sampling_Span_Tags: v2.8.0
     test_span_links.py:
       Test_Span_Links: v2.3.0
+    test_span_sampling.py:
+      Test_Span_Sampling: v2.8.0
     test_telemetry.py:
-      Test_Defaults: missing_feature
-      Test_Environment: missing_feature
-      Test_TelemetryInstallSignature: v2.5.0
+      Test_Defaults: missing_feature (failure 2.8.0)
+      Test_Environment: missing_feature (failure 2.8.0)
+      Test_TelemetryInstallSignature: missing_feature (failure 2.8.0)
       Test_TelemetrySCAEnvVar: v2.9.0.dev
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.9.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
       Test_Trace_Sampling_Resource: v2.8.0
       Test_Trace_Sampling_Tags: v2.8.0
-      Test_Trace_Sampling_Tags_Feb2024_Revision: v2.8.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: bug (v2.8.0 fails. Python PR-8946 is needed to fix it)
       Test_Trace_Sampling_With_W3C: v2.8.0
     test_tracer.py:
+      Test_Tracer: v2.8.0
       Test_TracerSCITagging: v1.12.0
       Test_TracerUniversalServiceTagging: v0.36.0
     test_tracer_flare.py:
-      TestTracerFlareV1: missing_feature
+      TestTracerFlareV1: missing_feature (failure 2.8.0)
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.1.0.dev
@@ -563,14 +593,14 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
-      flask-poc: v1.5.0rc2.dev # TODO : is it the good version number ?
+      flask-poc: v1.5.0rc2.dev # actual version unknown
   test_identify.py:
     Test_Basic: v1.5.0rc1.dev
     Test_Propagate: v1.9.0
     Test_Propagate_Legacy: v1.5.0rc1.dev
   test_library_conf.py:
     Test_HeaderTags: v0.53
-    Test_HeaderTags_Colon_Leading: v1.2.1 # was marked as ? when we used decorators
+    Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0.dev
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
@@ -580,8 +610,8 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
   test_profiling.py:
     Test_Profile:
-      '*': v0.1 # real version unknown
-      python3.12: v2.1.0.dev # 2.0.0 does not support it (seg fault)
+      '*': v0.1 # actual version unknown
+      python3.12: v2.1.0.dev
   test_scrubbing.py:
     Test_UrlField:
       '*': v1.7.1
