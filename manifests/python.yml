@@ -540,10 +540,6 @@ tests/:
       Test_Headers_Tracestate_DD: v2.8.0
     test_library_tracestats.py:
       Test_Library_Tracestats: missing_feature (failure 2.8.0)
-    test_otel_api_interoperability.py:
-      Test_Otel_API_Interoperability: missing_feature
-    test_otel_sdk_interoperability.py:
-      Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
     test_otel_span_with_w3c.py:
