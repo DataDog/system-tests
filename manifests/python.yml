@@ -24,7 +24,7 @@ tests/:
           python3.12: v2.6.0dev
           uds-flask: v2.6.0dev
           uwsgi-poc: v2.6.0dev
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -459,7 +459,7 @@ tests/:
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
-          flask-poc: v0.1
+          flask-poc: v0.1  # actual version unknown
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           '*': irrelevant
@@ -467,7 +467,7 @@ tests/:
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
-          flask-poc: v0.1
+          flask-poc: v0.1 # actual version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           flask-poc: v2.6.0
@@ -484,7 +484,7 @@ tests/:
     test_dbm.py:
       Test_Dbm:
         '*': missing_feature (Missing on weblog)
-        flask-poc: v0.1
+        flask-poc: v0.1 # actual version unknown
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
@@ -569,7 +569,7 @@ tests/:
       Test_Environment: missing_feature (failure 2.8.0)
       Test_TelemetryInstallSignature: missing_feature (failure 2.8.0)
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.9.0
+      Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
       Test_Trace_Sampling_Resource: v2.8.0
@@ -596,14 +596,14 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
-      flask-poc: v1.5.0rc2.dev
+      flask-poc: v1.5.0rc2.dev # actual version unknown
   test_identify.py:
     Test_Basic: v1.5.0rc1.dev
     Test_Propagate: v1.9.0
     Test_Propagate_Legacy: v1.5.0rc1.dev
   test_library_conf.py:
     Test_HeaderTags: v0.53
-    Test_HeaderTags_Colon_Leading: v1.2.1
+    Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0.dev
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
@@ -613,8 +613,8 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
   test_profiling.py:
     Test_Profile:
-      '*': v0.1
-      python3.12: v2.1.0.dev
+      '*': v0.1 # actual version unknown
+      python3.12: v2.1.0.dev # actual version unknown
   test_scrubbing.py:
     Test_UrlField:
       '*': v1.7.1
