@@ -551,7 +551,7 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_partial_flushing.py:
-      Test_Partial_Flushing: 2.9.0.dev1
+      Test_Partial_Flushing: v2.9.0.dev1
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
       # >-
