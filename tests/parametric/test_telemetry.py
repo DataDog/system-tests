@@ -293,7 +293,7 @@ class Test_TelemetrySCAEnvVar:
         DD_APPSEC_SCA_ENABLED = "DD_APPSEC_SCA_ENABLED"
         if library in ("java", "nodejs"):
             DD_APPSEC_SCA_ENABLED = "appsec.sca.enabled"
-        elif library == "php":
+        elif library in ("php", "ruby"):
             DD_APPSEC_SCA_ENABLED = "appsec.sca_enabled"
         return DD_APPSEC_SCA_ENABLED
 
@@ -316,7 +316,7 @@ class Test_TelemetrySCAEnvVar:
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
         assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
 
-        if context.library in ("golang", "java", "dotnet", "nodejs"):
+        if context.library in ("golang", "java", "dotnet", "nodejs", "ruby"):
             outcome_value = True if outcome_value == "true" else False
 
         assert cfg_appsec_enabled.get("value") == outcome_value
