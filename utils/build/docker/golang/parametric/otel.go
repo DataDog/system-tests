@@ -2,16 +2,17 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
@@ -108,9 +109,12 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		span: span,
 		ctx:  ctx,
 	}
+	tIdBytes := span.SpanContext().TraceID()
+	// convert the lower bits to a uint64
+	tId := binary.BigEndian.Uint64(tIdBytes[8:])
 	return &OtelStartSpanReturn{
 		SpanId:  hexSpanId,
-		TraceId: hex2int(span.SpanContext().TraceID().String()),
+		TraceId: tId,
 	}, nil
 }
 

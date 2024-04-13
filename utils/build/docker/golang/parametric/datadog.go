@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
-
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
@@ -51,9 +51,12 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 		span.SetTag("_dd.origin", *args.Origin)
 	}
 	s.spans[span.Context().SpanID()] = span
+	tIdBytes := span.Context().TraceIDBytes()
+	// convert the lower bits to a uint64
+	tId := binary.BigEndian.Uint64(tIdBytes[8:])
 	return &StartSpanReturn{
 		SpanId:  span.Context().SpanID(),
-		TraceId: span.Context().TraceID(),
+		TraceId: tId,
 	}, nil
 }
 
@@ -77,13 +80,13 @@ func (s *apmClientServer) FinishSpan(ctx context.Context, args *FinishSpanArgs) 
 
 func (s *apmClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error) {
 	tracer.Flush()
-	s.spans = make(map[uint64]tracer.Span)
+	s.spans = make(map[uint64]*tracer.Span)
 	return &FlushSpansReturn{}, nil
 }
 
 func (s *apmClientServer) FlushTraceStats(context.Context, *FlushTraceStatsArgs) (*FlushTraceStatsReturn, error) {
 	tracer.Flush()
-	s.spans = make(map[uint64]tracer.Span)
+	s.spans = make(map[uint64]*tracer.Span)
 	return &FlushTraceStatsReturn{}, nil
 }
 
