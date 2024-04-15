@@ -193,7 +193,7 @@ onboarding_parse_results:
         done
 
 check_merge_labels:
-  #Build docker images if it's needed. Check if the PR has the labels associated with the image build
+  #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
 
