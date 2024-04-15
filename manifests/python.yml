@@ -485,6 +485,8 @@ tests/:
       Test_Dbm:
         '*': missing_feature (Missing on weblog)
         flask-poc: v0.1 # actual version unknown
+        uds-flask: v2.9.0.dev # actual version unknown
+        uwsgi-poc: v2.9.0.dev # actual version unknown
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
