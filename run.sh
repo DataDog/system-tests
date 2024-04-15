@@ -165,6 +165,8 @@ function run_scenario() {
     shift
     local scenario="$1"
     shift
+    local manifest="$1"
+    shift
     local pytest_args=("$@")
 
     local cmd=()
@@ -204,6 +206,11 @@ function run_scenario() {
                 -v "${PWD}"/.env:/app/.env
               )
             fi
+            if [[ "${manifest}" != "" ]]; then
+              cmd+=(
+                -v "${PWD}/${manifest}":"/app/${manifest}"
+              )
+            fi
             cmd+=(
               -v /var/run/docker.sock:/var/run/docker.sock
               -v "${PWD}/${log_dir}":"/app/${log_dir}"
@@ -239,6 +246,7 @@ function main() {
     local scenario_args=()
     local libraries=()
     local pytest_args=()
+    local manifest=''
     local pytest_numprocesses='auto'
 
     ## handle environment variables
@@ -293,6 +301,16 @@ function main() {
                   exit 64
                 fi
                 libraries+=("$2")
+                shift
+                ;;
+            +m|++manifest)
+                if [[ "$#" -eq 1 ]]; then
+                  error "missing argument value for: $1"
+                  hint
+                  exit 64
+                fi
+                manifest="$2"
+                pytest_args+=("--manifest" "${manifest}")
                 shift
                 ;;
             ++)
@@ -427,7 +445,7 @@ function main() {
     fi
 
     for scenario in "${scenarios[@]}"; do
-        run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
+        run_scenario "${dry}" "${run_mode}" "${scenario}" "${manifest}" "${pytest_args[@]}"
     done
 }
 

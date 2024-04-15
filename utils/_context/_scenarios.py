@@ -79,6 +79,7 @@ class _Scenario:
 
     def configure(self, config):
         self.replay = config.option.replay
+        self.manifest = config.option.manifest
 
         if not hasattr(config, "workerinput"):
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
@@ -131,6 +132,8 @@ class _Scenario:
     def print_test_context(self):
         logger.terminal.write_sep("=", "test context", bold=True)
         logger.stdout(f"Scenario: {self.name}")
+        if self.manifest:
+            logger.stdout(f"Custom Manifest: {self.manifest}")
         logger.stdout(f"Logs folder: ./{self.host_log_folder}")
 
     def _get_warmups(self):

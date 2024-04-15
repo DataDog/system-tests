@@ -8,7 +8,7 @@ import time
 import pytest
 from pytest_jsonreport.plugin import JSONReport
 
-from manifests.parser.core import load as load_manifests
+from manifests.parser.core import load as load_manifests, load_from_file as load_manifest_from_file
 from utils import context
 from utils._context._scenarios import scenarios
 from utils.tools import logger
@@ -48,6 +48,7 @@ def pytest_addoption(parser):
         "--report-environment", type=str, action="store", default=None, help="The environment the test is run under",
     )
 
+    parser.addoption("--manifest", type=str, action="store", help="Path to custom manifest file")
 
 def pytest_configure(config):
 
@@ -151,7 +152,10 @@ def pytest_pycollect_makemodule(module_path, parent):
 
     library = context.scenario.library.library
 
-    manifests = load_manifests()
+    if context.scenario.manifest:
+        manifests = load_manifest_from_file(context.scenario.manifest, library)
+    else:
+        manifests = load_manifests()
 
     nodeid = str(module_path.relative_to(module_path.cwd()))
 
@@ -177,7 +181,10 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
     if collector.istestclass(obj, name):
 
-        manifest = load_manifests()
+        if context.scenario.manifest:
+            manifest = load_manifest_from_file(context.scenario.manifest, context.scenario.library.library)
+        else:
+            manifest = load_manifests()
 
         nodeid = f"{collector.nodeid}::{name}"
 
