@@ -77,6 +77,7 @@ jobs:
         with:
           version: v0.12.1 # 0.13.0 is causing the builds to fail
           install: true
+          provenance: false
           config-inline: |
             [worker.oci]
               max-parallelism = 1
