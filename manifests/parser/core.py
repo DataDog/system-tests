@@ -70,9 +70,10 @@ def load():
 
     return result
 
+
 @lru_cache
 def load_from_file(file, component):
-    
+
     result = defaultdict(dict)
 
     data = _load_file(file)
@@ -81,6 +82,7 @@ def load_from_file(file, component):
         result[nodeid][component] = value
 
     return result
+
 
 def assert_key_order(obj: dict, path=""):
     last_key = "/"

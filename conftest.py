@@ -50,6 +50,7 @@ def pytest_addoption(parser):
 
     parser.addoption("--manifest", type=str, action="store", help="Path to custom manifest file")
 
+
 def pytest_configure(config):
 
     # handle options that can be filled by environ
