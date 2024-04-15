@@ -66,9 +66,19 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
                 builder.asChildOf(context);
             }
             Span span = builder.start();
+
+
+            // TEMP VALUE FOR EMPTY STRING
             // Store span
-            long spanId = DDSpanId.from(span.context().toSpanId());
-            long traceId = DDTraceId.from(span.context().toTraceId()).toLong();
+            String a =  span.context().toSpanId();
+            if ("".equals(a)) {a="1";}
+            String q = span.context().toTraceId();
+            if ("".equals(q)) {q="1";}
+            long spanId = DDSpanId.from(a);
+            long traceId = DDTraceId.from(q).toLong();
+
+            
+ 
             this.spans.put(spanId, span);
             // Complete request
             responseObserver.onNext(ApmTestClient.StartSpanReturn.newBuilder()
