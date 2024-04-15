@@ -1,8 +1,4 @@
 #!/bin/bash
 
-if [ -z "${BUILDX_PLATFORMS}" ] ; then
-    BUILDX_PLATFORMS=`docker buildx imagetools inspect --raw python:3.9 | jq -r 'reduce (.manifests[] | [ .platform.os, .platform.architecture, .platform.variant ] | join("/") | sub("\\/$"; "")) as $item (""; . + "," + $item)' | sed 's/,//'`
-fi
-echo "Build for platforms: ${BUILDX_PLATFORMS}"
-echo "Docker buildx version: $(docker buildx version)"
-docker buildx build --platform ${BUILDX_PLATFORMS} --tag ${LIBRARY_INJECTION_TEST_APP_IMAGE} --push .
+docker build --tag ${LIBRARY_INJECTION_TEST_APP_IMAGE} .
+docker push ${LIBRARY_INJECTION_TEST_APP_IMAGE}
