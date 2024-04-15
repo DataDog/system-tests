@@ -146,36 +146,52 @@ class Test_RequestHeaders:
 
 @features.security_events_metadata
 class Test_TagsFromRule:
-    """Tags (Category & event type) from the rule"""
+    """Tags tags from the rule"""
 
-    def setup_basic(self):
-        self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+    def _setup(self):
+        if not hasattr(self, "r"):
+            self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-    def test_basic(self):
-        """attack timestamp is given by start property of span"""
+    def setup_type(self):
+        self._setup()
 
-        for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=self.r):
-            for trigger in appsec_data["triggers"]:
-                assert "rule" in trigger
-                assert "tags" in trigger["rule"]
-                assert "type" in trigger["rule"]["tags"]
-                assert "category" in trigger["rule"]["tags"]
+    def test_type(self):
+        """Type tag is set"""
+        for trigger in _get_appsec_triggers(self.r):
+            assert "type" in trigger["rule"]["tags"]
+
+    def setup_category(self):
+        self._setup()
+
+    def test_category(self):
+        """Category tag is set"""
+        for trigger in _get_appsec_triggers(self.r):
+            assert "category" in trigger["rule"]["tags"]
 
 
 @features.security_events_metadata
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 
-    def setup_basic(self):
+    def setup_tool_name(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    def test_basic(self):
-        for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=self.r):
-            for trigger in appsec_data["triggers"]:
-                assert "rule" in trigger
-                assert "tags" in trigger["rule"]
-                assert "tool_name" in trigger["rule"]["tags"]
+    def test_tool_name(self):
+        """Tool name tag is set"""
+        for trigger in _get_appsec_triggers(self.r):
+            assert "tool_name" in trigger["rule"]["tags"]
+
+
+def _get_appsec_triggers(request):
+    datas = [appsec_data for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=request)]
+    assert datas, "No AppSec events found"
+    assert len(datas) == 1, "Only one AppSec event was expected"
+    triggers = [trigger for trigger in datas[0]["triggers"]]
+    assert triggers, "No triggers found"
+    for trigger in triggers:
+        assert "rule" in trigger
+        assert "tags" in trigger["rule"]
+    return triggers
 
 
 @features.security_events_metadata
@@ -185,10 +201,11 @@ class Test_AttackTimestamp:
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_basic(self):
         """attack timestamp is given by start property of span"""
-
-        for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r):
+        spans = [span for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r)]
+        assert spans, "No AppSec events found"
+        assert len(spans) == 1, "Only one AppSec event was expected"
+        for span in spans:
             assert "start" in span, "span should contain start property"
             assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"
