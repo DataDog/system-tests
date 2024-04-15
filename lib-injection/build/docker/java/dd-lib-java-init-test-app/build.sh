@@ -5,4 +5,4 @@ if [ -z "${BUILDX_PLATFORMS}" ] ; then
 fi
 echo "Build for platforms: ${BUILDX_PLATFORMS}"
 echo "Docker buildx version: $(docker buildx version)"
-docker buildx build --platform ${BUILDX_PLATFORMS} --tag ${LIBRARY_INJECTION_TEST_APP_IMAGE} --push .
+docker buildx build --tag ${LIBRARY_INJECTION_TEST_APP_IMAGE} --push .
