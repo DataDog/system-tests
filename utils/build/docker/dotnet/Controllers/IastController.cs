@@ -634,7 +634,10 @@ namespace weblog
         [HttpGet("insecure-auth-protocol/test")]
         public IActionResult test_insecure_auth_protocol()
         {
-            return StatusCode(200);
+            // Print Authorization header
+            var authHeader = Request.Headers["Authorization"];
+            Console.WriteLine("Authorization header: " + authHeader);
+            return Content("Executed insecure auth protocol");
         }
     }
 }
