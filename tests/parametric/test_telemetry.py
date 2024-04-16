@@ -298,17 +298,22 @@ class Test_TelemetrySCAEnvVar:
         return DD_APPSEC_SCA_ENABLED
 
     @pytest.mark.parametrize(
-        "library_env, outcome_value",
+        "library_env, specific_libraries_support, outcome_value",
         [
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, "false"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, "false"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, "false"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, False, "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, False, "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang"), "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, "false"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, False, "false"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), "false"),
         ],
     )
-    def test_telemetry_sca_enabled_propagated(self, library_env, outcome_value, test_agent, test_library):
+    def test_telemetry_sca_enabled_propagated(
+        self, library_env, specific_libraries_support, outcome_value, test_agent, test_library
+    ):
+        if specific_libraries_support and context.library not in specific_libraries_support:
+            pytest.skip(f"unsupported value for {context.library}")
+
         configuration_by_name = self.get_app_started_configuration_by_name(library_env, test_agent, test_library)
 
         DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
