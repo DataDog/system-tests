@@ -598,7 +598,6 @@ class Test_Blocking_response_headers:
         # content-length is set by the blocking response so it should be present
         assert "content-length" in self.rm_req_block1.headers
 
-
     def setup_non_blocking(self):
         self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=en-us")
         self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
