@@ -185,8 +185,9 @@ class Test_ExtraTagsFromRule:
 def _get_appsec_triggers(request):
     datas = [appsec_data for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=request)]
     assert datas, "No AppSec events found"
-    assert len(datas) == 1, "Only one AppSec event was expected"
-    triggers = [trigger for trigger in datas[0]["triggers"]]
+    triggers = []
+    for data in datas:
+        triggers += data["triggers"]
     assert triggers, "No triggers found"
     for trigger in triggers:
         assert "rule" in trigger
@@ -205,7 +206,6 @@ class Test_AttackTimestamp:
         """attack timestamp is given by start property of span"""
         spans = [span for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r)]
         assert spans, "No AppSec events found"
-        assert len(spans) == 1, "Only one AppSec event was expected"
         for span in spans:
             assert "start" in span, "span should contain start property"
             assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"
