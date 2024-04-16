@@ -1463,7 +1463,7 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0"
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
         },
         proxy_state={"mock_remote_config_backend": "APPSEC_API_SECURITY_RC"},
         doc="""
