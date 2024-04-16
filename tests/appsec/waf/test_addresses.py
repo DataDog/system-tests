@@ -112,7 +112,6 @@ class Test_Headers:
                 self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
             )
 
-
     def setup_specific_key3(self):
         self.r_sk_5 = weblog.get("/waf/", headers={"referer": "<script >"})
         self.r_sk_6 = weblog.get("/waf/", headers={"RefErEr": "<script >"})
