@@ -634,6 +634,12 @@ namespace weblog
         [HttpGet("insecure-auth-protocol/test")]
         public IActionResult test_insecure_auth_protocol()
         {
+            // Reset the deduplication of vulnerabilities using reflection
+            var type = Type.GetType("Datadog.Trace.Iast.HashBasedDeduplication, Datadog.Trace")!;
+            var instance = type.GetProperty("Instance")!.GetValue(null);
+            var field = type.GetField("_vulnerabilityHashes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            field!.SetValue(instance, new HashSet<int>());
+            
             return StatusCode(200);
         }
     }

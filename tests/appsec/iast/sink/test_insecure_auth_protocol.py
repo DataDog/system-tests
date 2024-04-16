@@ -15,7 +15,7 @@ class Test_InsecureAuthProtocol(BaseSinkTest):
     insecure_endpoint = "/iast/insecure-auth-protocol/test"
     secure_endpoint = "/iast/insecure-auth-protocol/test"
     data = {}
-    insecure_headers = {"Authorization": "Digest dGVzd"}
+    insecure_headers = {"Authorization": "Basic dGVzd"}
 
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
