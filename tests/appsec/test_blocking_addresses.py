@@ -132,7 +132,6 @@ class Test_BlockingAddresses:
         ),
         reason="Blocking on multipart not supported yet",
     )
-    @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
@@ -204,10 +203,6 @@ class Test_BlockingAddresses:
 
         interfaces.library.assert_waf_attack(self.rsh_req, rule="tst-037-009")
         assert self.rsh_req.status_code == 403
-
-    @missing_feature(reason="No endpoint defined yet")
-    def test_response_cookies(self):
-        assert False
 
 
 def _assert_custom_event_tag_presence(expected_value):
