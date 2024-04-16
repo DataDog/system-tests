@@ -1461,10 +1461,7 @@ class scenarios:
     appsec_api_security_rc = EndToEndScenario(
         "APPSEC_API_SECURITY_RC",
         appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-        },
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0",},
         proxy_state={"mock_remote_config_backend": "APPSEC_API_SECURITY_RC"},
         doc="""
             Scenario to test API Security Remote config
