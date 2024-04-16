@@ -585,6 +585,20 @@ class Test_Blocking_response_headers:
             assert response.status_code == 403, response.request.url
             interfaces.library.assert_waf_attack(response, rule="tst-037-009")
 
+    def setup_blocking_remove_headers(self):
+        self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=en-us&session-id=123")
+
+    def test_blocking_remove_headers(self):
+        """Test if headers are removed from the blocking response"""
+        assert self.rm_req_block1.status_code == 403, self.rm_req_block1.request.url
+        interfaces.library.assert_waf_attack(self.rm_req_block1, rule="tst-037-009")
+        # these headers are set by the app so they should be not be present in the response
+        assert "content-language" not in self.rm_req_block1.headers
+        assert "session-id" not in self.rm_req_block1.headers
+        # content-length is set by the blocking response so it should be present
+        assert "content-length" in self.rm_req_block1.headers
+
+
     def setup_non_blocking(self):
         self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=en-us")
         self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
