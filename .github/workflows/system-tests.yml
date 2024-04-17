@@ -140,6 +140,11 @@ jobs:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
 
   end-to-end:
+    needs: 
+      - compute-matrix
+    strategy:
+      matrix:
+        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
@@ -154,7 +159,7 @@ jobs:
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      impacted_languages: ${{ inputs.impacted_languages }}
+      library: ${{ matrix.library }}
 
   open-telemetry:
     if: inputs.run_open_telemetry || inputs.run_all

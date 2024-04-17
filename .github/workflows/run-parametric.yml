@@ -14,8 +14,6 @@ jobs:
   parametric:
     runs-on:
       group: "APM Larger Runners"
-    needs: 
-      - compute-matrix
     strategy:
       matrix:
         version:

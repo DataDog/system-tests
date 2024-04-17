@@ -63,10 +63,9 @@ on:
         default: false
         required: false
         type: boolean
-      impacted_languages:
-        description: "List of languages impacted by the change"
-        default: "cpp,dotnet,golang,java,nodejs,php,python,ruby"
-        required: false
+      library:
+        description: "Library to test"
+        required: true
         type: string
 
 env:
@@ -122,11 +121,7 @@ jobs:
           ]
         }
 
-        result = []
-
-        for lang in "${{ inputs.impacted_languages }}".split(","):
-          for weblog in weblogs[lang]:
-            result.append({"library": lang, "weblog": weblog})
+        result = weblogs["${{ inputs.library }}"]
 
         with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             print(f'matrix={json.dumps(result)}', file=fh)
@@ -139,15 +134,15 @@ jobs:
       - compute-matrix
     strategy:
       matrix:
-        variant: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
         version:
         - prod
         - dev
 
       fail-fast: false
     env:
-      TEST_LIBRARY: ${{ matrix.variant.library }}
-      WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
+      TEST_LIBRARY: ${{ inputs.library }}
+      WEBLOG_VARIANT: ${{ matrix.weblog }}
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ matrix.version }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
@@ -162,7 +157,7 @@ jobs:
       with:
         pull-all: ${{ inputs.run_all || inputs.run_integration }}
     - name: Build python's weblog base images
-      if: matrix.variant.library == 'python' && inputs.build_python_base_images
+      if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
         docker buildx build --load --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v0 .
         docker buildx build --load --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v1 .
@@ -184,18 +179,18 @@ jobs:
     #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+      run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
     
       # quick and dirty fix, because we can't test for now the PHP released tracer
     - name: Load PHP library binary (skipping release tests, use snapshot instead)
-      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+      if: ${{ matrix.version == 'prod' && inputs.library == 'php'}}
+      run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
 
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
-      if: ${{ matrix.variant.library == 'ruby' }}
+      if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
@@ -218,7 +213,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
-      if: always() && steps.build.outcome == 'success' && matrix.variant.library != 'python' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && inputs.library != 'python' && inputs.run_all
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -440,7 +435,7 @@ jobs:
       if: always() && steps.compress_logs.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_endtoend_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
+        name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblog }}_${{ matrix.version }}
         path: artifact.tar.gz
 
     - name: Push results to Feature Parity Dashboard
