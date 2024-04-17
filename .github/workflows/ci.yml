@@ -103,6 +103,8 @@ jobs:
     needs:
     - lint
     - test_the_test
+    - impacted_languages
+    if: contains(needs.impacted_languages.outputs.impacted_languages, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
     secrets: inherit
 

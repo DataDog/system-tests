@@ -38,4 +38,4 @@ jobs:
 
       - name: Print results
         run: |
-          echo "Run all: -> ${{ steps.compute_impacted_languages.outputs.result }}"
+          echo "Impacted languages: -> ${{ steps.compute_impacted_languages.outputs.result }}"
