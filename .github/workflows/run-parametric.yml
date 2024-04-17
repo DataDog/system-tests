@@ -1,24 +1,43 @@
 name: Parametric
 on:
   workflow_call:
+    inputs:
+      impacted_languages:
+        description: "List of languages impacted by the change"
+        default: "cpp,dotnet,golang,java,nodejs,php,python,ruby"
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
 jobs:
+
+  compute-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.compute-matrix.outputs.matrix }}
+    steps:
+    - name: Compute matrix
+      id: compute-matrix
+      shell: python
+      run: |
+        import json
+        import os
+        langs = "${{ inputs.impacted_languages }}".split(",")
+
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f'matrix={json.dumps(langs)}', file=fh)
+
+        print(langs)
+
   parametric:
     runs-on:
       group: "APM Larger Runners"
+    needs: 
+      - compute-matrix
     strategy:
       matrix:
-        library:
-          - cpp
-          - dotnet
-          - golang
-          - java
-          - nodejs
-          - php
-          - python
-          - ruby
+        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
         version:
           - prod
           - dev

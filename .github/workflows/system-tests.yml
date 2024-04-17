@@ -99,6 +99,8 @@ jobs:
     if: inputs.run_parametric || inputs.run_all
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
+    with:
+      impacted_languages: ${{ inputs.impacted_languages }}
 
   graphql:
     if: inputs.run_graphql || inputs.run_all_end_to_end || inputs.run_all
