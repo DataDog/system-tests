@@ -2,6 +2,10 @@ name: system-tests
 on:
   workflow_call:
     inputs:
+      library:
+        description: "Library to test"
+        required: true
+        type: string
       run_all:
         description: "Shall we run all scenarios"
         default: false
@@ -87,76 +91,33 @@ on:
         default: false
         required: false
         type: boolean
-      impacted_languages:
-        description: "List of languages impacted by the change"
-        default: "cpp,dotnet,golang,java,nodejs,php,python,ruby"
-        required: false
-        type: string
 
 jobs:
 
-  compute-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.compute-matrix.outputs.matrix }}
-    steps:
-    - name: Compute matrix
-      id: compute-matrix
-      shell: python
-      run: |
-        import json
-        import os
-        langs = "${{ inputs.impacted_languages }}".split(",")
-
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f'matrix={json.dumps(langs)}', file=fh)
-
-        print(langs)
-
   parametric:
     if: inputs.run_parametric || inputs.run_all
-    needs: 
-      - compute-matrix
-    strategy:
-      matrix:
-        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
-      library: ${{ matrix.library }}
+      library: ${{ inputs.library }}
 
   graphql:
     if: inputs.run_graphql || inputs.run_all_end_to_end || inputs.run_all
-    needs: 
-      - compute-matrix
-    strategy:
-      matrix:
-        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
     with:
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      library: ${{ matrix.library }}
+      library: ${{ inputs.library }}
 
   lib-injection:
     if: inputs.run_libinjection || inputs.run_all
-    needs: 
-      - compute-matrix
-    strategy:
-      matrix:
-        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
     with:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
-      library: ${{ matrix.library }}
+      library: ${{ inputs.library }}
 
   end-to-end:
-    needs: 
-      - compute-matrix
-    strategy:
-      matrix:
-        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
@@ -171,17 +132,12 @@ jobs:
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      library: ${{ matrix.library }}
+      library: ${{ inputs.library }}
 
   open-telemetry:
     if: inputs.run_open_telemetry || inputs.run_all
-    needs: 
-      - compute-matrix
-    strategy:
-      matrix:
-        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      library: ${{ matrix.library }}
+      library: ${{ inputs.library }}
