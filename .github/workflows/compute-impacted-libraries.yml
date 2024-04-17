@@ -38,4 +38,4 @@ jobs:
 
       - name: Print results
         run: |
-          echo "Impacted libraries: -> ${{ steps.compute_impacted_libraries.outputs.result }}"
+          echo 'Impacted libraries: -> ${{ steps.compute_impacted_libraries.outputs.result }}'
