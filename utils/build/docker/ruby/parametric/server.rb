@@ -19,6 +19,7 @@ end
 require 'datadog/tracing/contrib/grpc/distributed/propagation' # Loads optional `Datadog::Tracing::Contrib::GRPC::Distributed`
 puts 'Loading server dependencies...'
 
+require 'datadog/tracing/span_link'
 require 'apm_test_client_services_pb'
 
 # Only used for OpenTelemetry testing.
@@ -54,11 +55,15 @@ class ServerImpl < APMClient::Service
                headers = start_span_args.http_headers.http_headers.group_by(&:key).map do |name, values|
                  [name, values.map(&:value).join(', ')]
                end
+<<<<<<< HEAD
                 if Datadog::Tracing::Contrib::GRPC.respond_to?(:extract)
                   Datadog::Tracing::Contrib::GRPC.extract(headers.to_h)
                 else
                   Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
                 end
+=======
+               Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
+>>>>>>> cd31ee19e (fix bugs in span links grpc parameteric tests + add ruby coverage)
              elsif !start_span_args.origin.empty? || start_span_args.parent_id != 0
                # DEV: Parametric tests do not differentiate between a distributed span request from a span parenting request.
                # DEV: We have to consider the parent_id being present present and origin being absent as a span parenting request.
@@ -80,6 +85,12 @@ class ServerImpl < APMClient::Service
       continue_from: digest,
     )
 
+    span.links = start_span_args.span_links.map do |link|
+      parse_grpc_link(link)
+    end if start_span_args.span_links.size > 0
+
+    @dd_spans[span.id] = span
+    @dd_traces[span.trace_id] = Datadog::Tracing.active_trace
     StartSpanReturn.new(trace_id: Datadog::Tracing::Utils::TraceId.to_low_order(span.trace_id), span_id: span.id)
   end
 
@@ -125,6 +136,12 @@ class ServerImpl < APMClient::Service
     SpanSetErrorReturn.new
   end
 
+  def span_add_link(span_add_link_args, _call)
+    link = parse_grpc_link(span_add_link_args.span_link)
+    @dd_spans[span_add_link_args.span_id].links.push(link)
+    SpanAddLinkReturn.new
+  end
+
   def http_client_request(httprequest_args, _call)
     url = URI(httprequest_args.url)
     headers = httprequest_args.headers.http_headers.map{|x|[x.key, x.value] }.to_h
@@ -156,7 +173,7 @@ class ServerImpl < APMClient::Service
     end
 
     tuples = env.map do |key, value|
-      HeaderTuple.new(key:, value:)
+      HeaderTuple.new(key, value)
     end
 
     InjectHeadersReturn.new(http_headers: DistributedHTTPHeaders.new(http_headers: tuples))
@@ -189,19 +206,25 @@ class ServerImpl < APMClient::Service
       parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
     end
 
+    otel_links = otel_start_span_args.span_links.map do |link|
+      dd_link = parse_grpc_link(link)
+      dd_link_to_otel(dd_link)
+    end
+
     span = otel_tracer.start_span(
       otel_start_span_args.name,
       with_parent: parent_context,
-      attributes: otel_parse_attributes(otel_start_span_args.attributes),
+      attributes: parse_grpc_attributes(otel_start_span_args.attributes),
       start_timestamp: otel_correct_time(otel_start_span_args.timestamp),
-      kind: OTEL_SPAN_KIND[otel_start_span_args.span_kind]
+      kind: OTEL_SPAN_KIND[otel_start_span_args.span_kind],
+      links: otel_links
     )
 
     context = span.context
 
-    @otel_spans[otel_id_to_i(context.span_id)] = span
+    @otel_spans[otel_span_id_to_dd(context.span_id)] = span
 
-    OtelStartSpanReturn.new(span_id: otel_id_to_i(context.span_id), trace_id: otel_id_to_i(context.trace_id))
+    OtelStartSpanReturn.new(span_id: otel_span_id_to_dd(context.span_id), trace_id: otel_trace_id_to_dd(context.trace_id))
   end
 
   def otel_end_span(otel_end_span_args, _call)
@@ -221,12 +244,19 @@ class ServerImpl < APMClient::Service
     context = span.context
 
     OtelSpanContextReturn.new(
-      span_id: format('%016x', otel_id_to_i(context.span_id)),
-      trace_id: format('%032x', otel_id_to_i(context.trace_id)),
+      span_id: format('%016x', otel_span_id_to_dd(context.span_id)),
+      trace_id: format('%032x', otel_trace_id_to_dd(context.trace_id)),
       trace_flags: context.trace_flags.sampled? ? '01' : '00',
       trace_state: context.tracestate.to_s,
       remote: context.remote?,
     )
+  end
+
+  def otel_add_link(otel_add_link_args, _call)
+    span = find_otel_span(otel_add_link_args.span_id)
+    dd_link = parse_grpc_link(otel_add_link_args.link)
+    otel_link = dd_link_to_otel(dd_link)
+    span.add_link(otel_link)
   end
 
   def otel_set_status(otel_set_status_args, _call)
@@ -249,7 +279,7 @@ class ServerImpl < APMClient::Service
   def otel_set_attributes(otel_set_attributes_args, _call)
     span = find_otel_span(otel_set_attributes_args.span_id
     )
-    otel_parse_attributes(otel_set_attributes_args.attributes).each do |key, value|
+    parse_grpc_attributes(otel_set_attributes_args.attributes).each do |key, value|
       span.set_attribute(key, value)
     end
 
@@ -271,6 +301,8 @@ class ServerImpl < APMClient::Service
     StopTracerReturn.new
 
     @otel_spans.clear
+    @dd_spans.clear
+    @dd_traces.clear
   end
 
   # The Ruby tracer holds spans on a per-Fiber basis.
@@ -297,8 +329,10 @@ class ServerImpl < APMClient::Service
       end
     end
 
-    # A list of OpenTelemetry Span objects that allow for retrieving spans in-between API calls.
+    # Lists of Span objects that allow for retrieving spans in-between API calls.
     @otel_spans = {}
+    @dd_spans = {}
+    @dd_traces = {}
   end
 
   # Wrap all public methods to ensure they execute in a single thread.
@@ -352,14 +386,23 @@ class ServerImpl < APMClient::Service
     span
   end
 
-  # Convert OTel's String representation to an unsigned 64-bit Integer.
-  def otel_id_to_i(span_id_or_trace_id)
-    span_id_or_trace_id.unpack1('Q')
+  # Convert OTel's binary representation to an unsigned 64-bit Integer.
+  def otel_span_id_to_dd(span_id)
+    span_id.unpack1('Q')
   end
 
-  # Convert an unsigned 64-bit Integer to OTel's String representation.
-  def i_to_otel_id(span_id_or_trace_id)
-    [span_id_or_trace_id].pack('Q')
+  def otel_trace_id_to_dd(trace_id)
+    trace_id.unpack1('H*').to_i(16)
+  end
+
+  # Convert an unsigned 64 bit integer to OTel's binary representation.
+  def i_to_otel_span_id(span_id)
+    [span_id].pack('Q')
+  end
+
+  # Convert an unsigned bignum to OTel's binary representation.
+  def i_to_otel_trace_id(trace_id)
+    [trace_id.to_s(16)].pack('H*')
   end
 
   # OTel system tests provide times in microseconds, but Ruby OTel
@@ -370,9 +413,9 @@ class ServerImpl < APMClient::Service
 
   # Convert Protobuf attributes to native Ruby objects
   # e.g. `Attributes.new(key_vals: { my_key:ListVal.new(val: [AttrVal.new(bool_val: true)])})`
-  def otel_parse_attributes(attributes)
+  def parse_grpc_attributes(attributes)
     attributes.key_vals.map do |k, v|
-      [k, v.val.map do |union|
+      [k.to_s, v.val.map do |union|
         union[union.val.to_s]
       end.yield_self do |value|
         # Flatten array of 1 element into a scalar.
@@ -385,6 +428,45 @@ class ServerImpl < APMClient::Service
         end
       end]
     end.to_h
+  end
+
+  def parse_grpc_link(link)
+    link_dg = if link.http_headers != nil && link.http_headers.http_headers.size != nil
+                headers = link.http_headers.http_headers.group_by(&:key).map do |name, values|
+                            [name, values.map(&:value).join(', ')]
+                          end
+                Datadog::Tracing::Contrib::GRPC.extract(headers.to_h)
+              elsif @dd_spans.key?(link.parent_id)
+                span_op = @dd_spans[link.parent_id]
+                trace_op = @dd_traces[span_op.trace_id]
+                Datadog::Tracing::TraceDigest.new(
+                  span_id: span_op.id,
+                  trace_id: span_op.trace_id,
+                  trace_sampling_priority: trace_op.sampling_priority,
+                  trace_flags: trace_op.sampling_priority && trace_op.sampling_priority > 0 ? 1 : 0,
+                  trace_state: trace_op.trace_state,
+                  trace_distributed_tags: trace_op.distributed_tags
+                )
+              else
+                raise "Span id in #{link} not found in span list: #{@dd_spans}"
+              end
+    link = Datadog::Tracing::SpanLink.new(
+        link_dg,
+        attributes: parse_grpc_attributes(link.attributes)
+    )
+  end
+
+  def dd_link_to_otel(dd_link)
+    puts "ddlink #{dd_link.inspect}"
+    OpenTelemetry::Trace::Link.new(
+        OpenTelemetry::Trace::SpanContext.new(
+          trace_id: i_to_otel_trace_id(dd_link.trace_id),
+          span_id: i_to_otel_span_id(dd_link.span_id),
+          trace_flags: OpenTelemetry::Trace::TraceFlags.from_byte(dd_link.trace_flags),
+          tracestate: OpenTelemetry::Trace::Tracestate.from_string(dd_link.trace_state)
+        ),
+        dd_link.attributes
+      )
   end
 
   def otel_tracer

@@ -447,18 +447,15 @@ class APMLibraryClientGRPC:
 
         pb_links = []
         for link in links:
-            pb_link = pb.SpanLink()
+            pb_link = pb.SpanLink(attributes=convert_to_proto(link.get("attributes")))
             if link.get("parent_id") and link.get("http_headers"):
                 raise ValueError("Link cannot have both parent_id and http_headers")
             if link.get("parent_id"):
                 pb_link.parent_id = link["parent_id"]
             else:
-                link_headers = pb.DistributedHTTPHeaders()
-                for key, value in link.http_headers:
-                    link_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
-                pb_link.http_headers = link_headers
+                for key, value in link["http_headers"]:
+                    pb_link.http_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
-            pb_link.attributes = convert_to_proto(link["attributes"])
             pb_links.append(pb_link)
 
         resp = self._client.StartSpan(
