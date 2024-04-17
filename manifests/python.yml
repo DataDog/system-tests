@@ -566,6 +566,7 @@ tests/:
       Test_Defaults: missing_feature (failure 2.8.0)
       Test_Environment: missing_feature (failure 2.8.0)
       Test_TelemetryInstallSignature: missing_feature (failure 2.8.0)
+      Test_TelemetrySCAEnvVar: v2.9.0.dev
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
