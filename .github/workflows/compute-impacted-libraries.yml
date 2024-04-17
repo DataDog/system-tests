@@ -13,36 +13,46 @@ jobs:
     outputs:
       impacted_libraries: ${{ steps.compute_impacted_libraries.outputs.result }}
     steps:
+      - uses: actions/checkout@v4
+      - run:  |
+          git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
+          git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
+          cat modified_files.txt
       - name: Compute impacted libraries
         id: compute_impacted_libraries
         shell: python
         run: |
           import os
           import json
+          import re
 
-          pr_title = os.environ["PR_TITLE"].lower()
+          libraries = "cpp|dotnet|golang|java|nodejs|php|python|ruby"
+          result = set()
 
-          if pr_title.startswith("[cpp]"):
-            result=["cpp"]
-          elif pr_title.startswith( "[dotnet]"):
-            result=["dotnet"]
-          elif pr_title.startswith( "[golang]"):
-            result=["golang"]
-          elif pr_title.startswith( "[java]"):
-            result=["java"]
-          elif pr_title.startswith( "[nodejs]"):
-            result=["nodejs"]
-          elif pr_title.startswith( "[php]"):
-            result=["php"]
-          elif pr_title.startswith( "[python]"):
-            result=["python"]
-          elif pr_title.startswith( "[ruby]"):
-            result=["ruby"]
+          match = re.search(rf"^\[({libraries})\]", os.environ["PR_TITLE"].lower())
+          if match:
+              result.add(match[1])
           else:
-            result=["cpp","dotnet","golang","java","nodejs","php","python","ruby"]
+              with open("modified_files.txt", "r", encoding="utf-8") as f:
+                  files = f.readlines()
 
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f'result={json.dumps(result)}', file=fh)
+              for file in files:
+                  manifest_match = re.search(rf"^manifests/({libraries}).yml", file)
+                  weblog_match = re.search(rf"^utils/build/docker/({libraries})/", file)
+
+                  if manifest_match:
+                      result.add(manifest_match[1])
+
+                  if weblog_match:
+                      result.add(weblog_match[1])
+
+                  if not manifest_match and not weblog_match:
+                      print(f"{file} may impact any library => run all of them")
+                      result |= {"cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
+                      break
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              print(f"result={json.dumps(sorted(result))}", file=fh)
 
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
