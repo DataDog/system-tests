@@ -33,7 +33,7 @@ jobs:
           elif [[ "${{ github.event.pull_request.title }}" =~ "[ruby]" ]]; then
             echo 'result=["ruby"]' >> $GITHUB_OUTPUT
           else
-            echo 'result=["cpp","dotnet","golang",java","nodejs","php","python","ruby"]' >> $GITHUB_OUTPUT
+            echo 'result=["cpp","dotnet","golang","java","nodejs","php","python","ruby"]' >> $GITHUB_OUTPUT
           fi
 
       - name: Print results
