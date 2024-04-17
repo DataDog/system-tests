@@ -520,12 +520,12 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature (failure 2.8.0)
+      TestDynamicConfigHeaderTags: flaky (failure 2.8.0/2.9.0.dev)
       TestDynamicConfigSamplingRules: missing_feature
-      TestDynamicConfigTracingEnabled: missing_feature (failure 2.8.0)
+      TestDynamicConfigTracingEnabled: flaky (failure 2.8.0/2.9.0.dev)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
-      TestDynamicConfigV2: missing_feature (failure 2.8.0)
+      TestDynamicConfigV2: flaky (failure 2.8.0/2.9.0.dev)
     test_headers_b3.py:
       Test_Headers_B3: v2.8.0
     test_headers_b3multi.py:
@@ -553,7 +553,7 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_partial_flushing.py:
-      Test_Partial_Flushing: v2.9.0.dev1
+      Test_Partial_Flushing: flaky (failure 2.8.0/2.9.0.dev)
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
@@ -563,9 +563,9 @@ tests/:
     test_span_sampling.py:
       Test_Span_Sampling: v2.8.0
     test_telemetry.py:
-      Test_Defaults: missing_feature (failure 2.8.0)
-      Test_Environment: missing_feature (failure 2.8.0)
-      Test_TelemetryInstallSignature: missing_feature (failure 2.8.0)
+      Test_Defaults: flaky (failure 2.8.0/2.9.0.dev)
+      Test_Environment: v2.9.0.dev # flaky in 2.8.0
+      Test_TelemetryInstallSignature: flaky (failure 2.8.0/2.9.0.dev)
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
