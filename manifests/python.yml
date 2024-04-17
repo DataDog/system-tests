@@ -247,6 +247,7 @@ tests/:
         Test_CustomBlockingResponse:
           '*': v1.20.0.dev
           fastapi: v2.4.0.dev1
+        Test_Blocking_strip_response_headers: missing_feature
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.16.1

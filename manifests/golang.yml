@@ -158,6 +158,7 @@ tests/:
         Test_CustomBlockingResponse:
           '*': v1.63.0-dev
           uds-echo: bug
+        Test_Blocking_strip_response_headers: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
       test_exclusions.py:
