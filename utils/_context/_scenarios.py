@@ -1126,6 +1126,22 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
         )
 
 
+class InstallerAutoInjectionScenario(_VirtualMachineScenario):
+    def __init__(self, name, doc, vm_provision="installer-auto-inject") -> None:
+        super().__init__(
+            name,
+            vm_provision=vm_provision,
+            doc=doc,
+            include_ubuntu_22_amd64=True,
+            include_ubuntu_22_arm64=True,
+            include_ubuntu_18_amd64=True,
+            include_amazon_linux_2_amd64=True,
+            include_amazon_linux_2_dotnet_6=True,
+            include_amazon_linux_2023_amd64=True,
+            include_amazon_linux_2023_arm64=True,
+        )
+
+
 class _KubernetesScenario(_Scenario):
     """Scenario that tests kubernetes lib injection"""
 
@@ -1693,6 +1709,10 @@ class scenarios:
     )
     k8s_lib_injection_full = _KubernetesScenario(
         "K8S_LIB_INJECTION_FULL", doc=" Kubernetes Instrumentation complete scenario"
+    )
+
+    installer_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
 
 

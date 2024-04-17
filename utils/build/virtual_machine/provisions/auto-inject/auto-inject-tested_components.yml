@@ -1,9 +1,24 @@
-#Get version of the installed components
+# Get version of the installed components
+# To do this, for each package installed by the updater:
+# 1. Resolve the path of the installed package from the stable version
+# 2. Remove eventual trailing "/" from the path
+# 3. Extract the version from the path (last part of the path)
+# 4. Remove artificial "-1" suffix from the version (added by release management)
 - os_type: linux
-  os_distro: rpm
   remote-command: |
-      echo "{'host':'$(hostname -I)','agent':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)','datadog-apm-inject':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)','datadog-apm-library-$DD_LANG': '$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG)','docker':'$(docker -v || true)'}"
-- os_type: linux
-  os_distro: deb
-  remote-command: |
-      version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 )&& version=$((dpkg -s datadog-apm-inject || true) | grep Version) && version_lang=$(dpkg -s datadog-apm-library-$DD_LANG| grep Version) && echo "{'host':'$(hostname -I)','agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-$DD_LANG':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
+      export agent_path="$(readlink -f /opt/datadog-packages/datadog-agent/stable)"
+      export agent_path="${agent_path%/}"
+      export agent_version="${agent_path##*/}"
+      export agent_version="${agent_version%-1}"
+
+      export inject_path="$(readlink -f /opt/datadog-packages/datadog-apm-inject/stable)"
+      export inject_path="${inject_path%/}"
+      export inject_version="${inject_path##*/}"
+      export inject_version="${inject_version%-1}"
+
+      export tracer_path="$(readlink -f /opt/datadog-packages/datadog-apm-library-$DD_LANG/stable)"
+      export tracer_path="${tracer_path%/}"
+      export tracer_version="${tracer_path##*/}"
+      export tracer_version="${tracer_version%-1}"
+
+      echo "{'host':'$(hostname -I)','agent':'$(echo $agent_version)','datadog-apm-inject':'$(echo $inject_version)','datadog-apm-library-$DD_LANG': '$(echo $tracer_version)','docker':'$(docker -v || true)'}"

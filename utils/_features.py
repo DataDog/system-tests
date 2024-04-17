@@ -2106,3 +2106,13 @@ class features:
         """
         pytest.mark.features(feature_id=291)(test_object)
         return test_object
+
+    @staticmethod
+    def installer_auto_instrumentation(test_object):
+        """
+        Installer auto-instrumentation
+
+        https://feature-parity.us1.prod.dog/#/?feature=292
+        """
+        pytest.mark.features(feature_id=292)(test_object)
+        return test_object
