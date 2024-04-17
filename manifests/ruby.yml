@@ -121,8 +121,8 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v1.11.0
-        Test_CustomBlockingResponse: missing_feature
         Test_Blocking_strip_response_headers: missing_feature
+        Test_CustomBlockingResponse: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v1.12.0
       test_exclusions.py:
