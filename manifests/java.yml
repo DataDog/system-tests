@@ -480,8 +480,6 @@ tests/:
           '*': v0.95.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_NoWafTimeout:
-          akka-http: v1.22.0
       test_reports.py:
         Test_Monitoring:
           '*': v0.100.0
@@ -733,7 +731,10 @@ tests/:
     test_reports.py:
       Test_AttackTimestamp:
         akka-http: v1.22.0
-      Test_ExtraTagsFromRule: v1.22.0    # Supported since v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_ExtraTagsFromRule:
+        '*': v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_HttpClientIP:
         '*': v0.98.1
         akka-http: v1.22.0
@@ -752,6 +753,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_TagsFromRule:
         akka-http: v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
         '*': missing_feature
@@ -929,6 +931,7 @@ tests/:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: v1.27.0
+      Test_TelemetrySCAEnvVar: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
