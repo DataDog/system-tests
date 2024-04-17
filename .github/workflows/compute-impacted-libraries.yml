@@ -15,26 +15,37 @@ jobs:
     steps:
       - name: Compute impacted libraries
         id: compute_impacted_libraries
+        shell: python
         run: |
-          if [[ "${{ github.event.pull_request.title }}" =~ "[cpp]" ]]; then
-            echo 'result=["cpp"]' >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.pull_request.title }}" =~ "[dotnet]" ]]; then
-            echo 'result=["dotnet"]' >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.pull_request.title }}" =~ "[golang]" ]]; then
-            echo 'result=["golang"]' >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.pull_request.title }}" =~ "[java]" ]]; then
-            echo 'result=["java"]' >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.pull_request.title }}" =~ "[nodejs]" ]]; then
-            echo 'result=["nodejs"]' >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.pull_request.title }}" =~ "[php]" ]]; then
-            echo 'result=["php"]' >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.pull_request.title }}" =~ "[python]" ]]; then
-            echo 'result=["python"]' >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.pull_request.title }}" =~ "[ruby]" ]]; then
-            echo 'result=["ruby"]' >> $GITHUB_OUTPUT
-          else
-            echo 'result=["cpp","dotnet","golang","java","nodejs","php","python","ruby"]' >> $GITHUB_OUTPUT
-          fi
+          import os
+          import json
+
+          pr_title = os.environ["PR_TITLE"].lower()
+
+          if pr_title.startswith("[cpp]"):
+            result=["cpp"]
+          elif pr_title.startswith( "[dotnet]"):
+            result=["dotnet"]
+          elif pr_title.startswith( "[golang]"):
+            result=["golang"]
+          elif pr_title.startswith( "[java]"):
+            result=["java"]
+          elif pr_title.startswith( "[nodejs]"):
+            result=["nodejs"]
+          elif pr_title.startswith( "[php]"):
+            result=["php"]
+          elif pr_title.startswith( "[python]"):
+            result=["python"]
+          elif pr_title.startswith( "[ruby]"):
+            result=["ruby"]
+          else:
+            result=["cpp","dotnet","golang","java","nodejs","php","python","ruby"]
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f'result={json.dumps(result)}', file=fh)
+
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
 
       - name: Print results
         run: |
