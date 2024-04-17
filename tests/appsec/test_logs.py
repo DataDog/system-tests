@@ -68,7 +68,6 @@ class Test_Standardization:
         stdout.assert_presence(r"AppSec initial configuration from .*, libddwaf version: \d+\.\d+\.\d+", level="INFO")
 
     @missing_feature(library="php", reason="rules are not analyzed, only converted to PWArgs")
-    @missing_feature(library="dotnet", reason="APPSEC-983")
     def test_i02(self):
         """Log I2: AppSec rule source"""
         stdout.assert_presence(r"AppSec loaded \d+ rules from file .*$", level="INFO")
