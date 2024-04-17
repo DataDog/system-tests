@@ -100,6 +100,32 @@ namespace weblog
             return Content("Ok");
         }
 
+        [HttpGet("api_rc_{element}/{status_code}")]
+        public IActionResult ApiSecurityRc([FromRoute(Name = "element")] string elementValue,
+            [FromRoute(Name = "status_code")] int statusCode, [FromQuery] string? key)
+        {
+            HttpContext.Response.StatusCode = statusCode;
+            return Content("Ok");
+        }
+
+         [HttpPost("api_rc_{element}/{status_code}")]
+        [Consumes("application/json")]
+        public IActionResult ApiSecurityRcJson([FromRoute(Name = "element")] string elementValue,
+            [FromRoute(Name = "status_code")] int statusCode,  [FromQuery] string? key, [FromBody] RequestMailModel bodyModel)
+        {
+            HttpContext.Response.StatusCode = statusCode;
+            return Content("Ok");
+        }
+        
+        [HttpPost("api_rc_{element}/{status_code}")]
+        [Consumes("application/x-www-form-urlencoded")]
+        public IActionResult ApiSecurityRc([FromRoute(Name = "element")] string elementValue,
+            [FromRoute(Name = "status_code")] int statusCode,  [FromQuery] string? key, [FromForm] RequestMailModel bodyModel)
+        {
+            HttpContext.Response.StatusCode = statusCode;
+            return Content("Ok");
+        }
+
         [HttpPost("payload_in_response_body_001/{status_code}")]
         [Consumes("application/x-www-form-urlencoded")]
         public IActionResult PayloadInResponseBody([FromRoute(Name = "status_code")] int statusCode,
