@@ -127,10 +127,16 @@ jobs:
 
   graphql:
     if: inputs.run_graphql || inputs.run_all_end_to_end || inputs.run_all
+    needs: 
+      - compute-matrix
+    strategy:
+      matrix:
+        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
     with:
       build_proxy_image: ${{ inputs.build_proxy_image }}
+      library: ${{ matrix.library }}
 
   lib-injection:
     if: inputs.run_libinjection || inputs.run_all
