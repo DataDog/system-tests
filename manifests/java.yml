@@ -490,8 +490,6 @@ tests/:
           '*': v0.95.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_NoWafTimeout:
-          akka-http: v1.22.0
       test_reports.py:
         Test_Monitoring:
           '*': v0.100.0
