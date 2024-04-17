@@ -14,8 +14,6 @@ on:
         type: string
 
 jobs:
-
-
   compute-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -112,6 +110,7 @@ jobs:
         path: artifact.tar.gz
 
   open-telemetry-automatic:
+    if: inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'nodejs'
     runs-on: ubuntu-latest
     needs: 
       - compute-matrix

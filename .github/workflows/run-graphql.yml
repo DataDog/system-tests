@@ -48,6 +48,7 @@ jobs:
         print(json.dumps(result, indent=2))
 
   graphql:
+    if: inputs.library == 'golang' || inputs.library == 'nodejs'
     runs-on:
       group: "APM Larger Runners"
     needs: 
