@@ -3,7 +3,6 @@
   os_distro: deb
 
   copy_files:
-
       - name: copy-helloworld-cpp
         local_path: utils/build/virtual_machine/provisions/host-auto-inject-ld-preload/main.c
 
@@ -18,43 +17,12 @@
   os_distro: rpm
 
   copy_files:
-      - name: copy-binaries
-        local_path: binaries/
-
-      - name: copy-tracer-debug-config
-        local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+      - name: copy-helloworld-cpp
+        local_path: utils/build/virtual_machine/provisions/host-auto-inject-ld-preload/main.c
 
   remote-command: | 
-    architecture=""
-    case $(uname -m) in
-        x86_64) architecture="x86_64" ;;
-        aarch64) architecture="aarch64" ;;
-    esac
-
-    if ls datadog-apm-inject-*.$architecture.rpm 1> /dev/null 2>&1; then
-        echo "Instaling datadog-apm-inject from local folder"
-        sudo yum -q list installed datadog-apm-inject &>/dev/null && sudo yum -y reinstall --disablerepo="*" datadog-apm-inject-*.$architecture.rpm || sudo yum -y install --disablerepo="*" datadog-apm-inject-*.$architecture.rpm
-    else
-        echo "Instaling datadog-apm-inject from remote repository"
-        sudo yum -q list installed datadog-apm-inject &>/dev/null && sudo yum -y reinstall --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject || sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-inject
-    fi
-
-    if ls datadog-apm-library-$DD_LANG-*.$architecture.rpm 1> /dev/null 2>&1; then
-        echo "Instaling datadog-apm-library-$DD_LANG from local folder"
-        sudo yum -q list installed datadog-apm-library-$DD_LANG &>/dev/null && sudo yum -y reinstall --disablerepo="*" datadog-apm-library-$DD_LANG-*.$architecture.rpm || sudo yum -y install --disablerepo="*" datadog-apm-library-$DD_LANG-*.$architecture.rpm
-    else
-        echo "Instaling datadog-apm-library-$DD_LANG from remote repository"
-        sudo yum -q list installed datadog-apm-library-$DD_LANG &>/dev/null && sudo yum -y reinstall --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG || sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG
-    fi
-
-    dd-host-install
-    sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
-
-    if ls datadog-apm-inject-*.$architecture.rpm 1> /dev/null 2>&1; then
-        echo "Skipping package signature verification for local package"
-    else
-        echo "Verify package signature. Fails if it isn't V4"
-        yumdownloader datadog-apm-inject
-        rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
-        echo "Package signature verified!"
-    fi
+    sudo yum groupinstall "Development Tools"
+    echo "Compiling main.c to main.so"
+    gcc -Wall -fPIC -shared -o main.so main.c -ldl
+    sudo mv main.so /usr/local/lib/
+    sudo bash -c "echo /usr/local/lib/main.so >> /etc/ld.so.preload"
