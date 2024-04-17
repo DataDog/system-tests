@@ -33,6 +33,7 @@ jobs:
           if match:
               result.add(match[1])
           else:
+              print(f"Inspect modified files to determine impacted libraries...")
               with open("modified_files.txt", "r", encoding="utf-8") as f:
                   files = f.readlines()
 
