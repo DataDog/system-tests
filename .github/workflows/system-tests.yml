@@ -175,6 +175,11 @@ jobs:
 
   open-telemetry:
     if: inputs.run_open_telemetry || inputs.run_all
+    needs: 
+      - compute-matrix
+    strategy:
+      matrix:
+        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:
