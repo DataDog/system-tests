@@ -238,3 +238,19 @@ class Test_CustomBlockingResponse:
         """Block with an default page because location parameter is missing from redirect request configuration"""
         assert self.r_cr.status_code == 403
         assert self.r_cr.text in BLOCK_TEMPLATE_JSON_ANY
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
+@scenarios.appsec_blocking
+@features.appsec_blocking_action
+class Test_Blocking_strip_response_headers:
+    def setup_strip_response_headers(self):
+        self.r_srh = weblog.get(f"/tag_value/anything/200?content-language=krypton&x-secret-header=123")
+
+    def test_strip_response_headers(self):
+        """Test if headers are stripped from the blocking response"""
+        assert self.r_srh.status_code == 403, self.r_srh.request.url
+        interfaces.library.assert_waf_attack(self.r_srh, rule="tst-037-009")
+        # x-secret-header is set by the app so is should be not be present in the response
+        assert "x-secret-header" not in self.r_srh.headers
+        # content-length is set by the blocking response so it should be present
+        assert "content-length" in self.r_srh.headers
