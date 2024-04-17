@@ -70,18 +70,18 @@ jobs:
   scenarios:
     uses: ./.github/workflows/compute-scenarios.yml
 
-  impacted_languages:
-    uses: ./.github/workflows/compute-impacted-languages.yml
+  impacted_libraries:
+    uses: ./.github/workflows/compute-impacted-libraries.yml
 
   system_tests:
     needs:
     - lint
     - test_the_test
     - scenarios
-    - impacted_languages
+    - impacted_libraries
     strategy:
       matrix:
-        library: ${{ fromJson(needs.impacted_languages.outputs.impacted_languages) }}
+        library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
     uses: ./.github/workflows/system-tests.yml
     secrets: inherit
     with:
@@ -106,8 +106,8 @@ jobs:
     needs:
     - lint
     - test_the_test
-    - impacted_languages
-    if: contains(needs.impacted_languages.outputs.impacted_languages, 'ruby')
+    - impacted_libraries
+    if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
     secrets: inherit
 

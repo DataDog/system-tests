@@ -1,20 +1,20 @@
-name: "Compute languages impacted by the change"
+name: "Compute libraries impacted by the change"
 
 on:
   workflow_call:
     outputs:
-      impacted_languages:
-        description: "Comma separated list of languages impacted by the change"
-        value: ${{ jobs.main.outputs.impacted_languages }}
+      impacted_libraries:
+        description: "JSON list of libraries impacted by the change"
+        value: ${{ jobs.main.outputs.impacted_libraries }}
 
 jobs:
   main:
     runs-on: ubuntu-latest
     outputs:
-      impacted_languages: ${{ steps.compute_impacted_languages.outputs.result }}
+      impacted_libraries: ${{ steps.compute_impacted_libraries.outputs.result }}
     steps:
-      - name: Compute impacted_languages
-        id: compute_impacted_languages
+      - name: Compute impacted libraries
+        id: compute_impacted_libraries
         run: |
           if [[ "${{ github.event.pull_request.title }}" =~ "[cpp]" ]]; then
             echo 'result=["cpp"]' >> $GITHUB_OUTPUT
@@ -38,4 +38,4 @@ jobs:
 
       - name: Print results
         run: |
-          echo "Impacted languages: -> ${{ steps.compute_impacted_languages.outputs.result }}"
+          echo "Impacted libraries: -> ${{ steps.compute_impacted_libraries.outputs.result }}"
