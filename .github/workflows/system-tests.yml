@@ -140,10 +140,16 @@ jobs:
 
   lib-injection:
     if: inputs.run_libinjection || inputs.run_all
+    needs: 
+      - compute-matrix
+    strategy:
+      matrix:
+        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
     with:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
+      library: ${{ matrix.library }}
 
   end-to-end:
     needs: 
