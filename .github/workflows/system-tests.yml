@@ -185,8 +185,3 @@ jobs:
     with:
       build_proxy_image: ${{ inputs.build_proxy_image }}
       library: ${{ matrix.library }}
-
-  exotics:
-    if: inputs.run_all
-    uses: ./.github/workflows/run-exotics.yml
-    secrets: inherit

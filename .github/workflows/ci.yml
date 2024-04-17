@@ -108,6 +108,11 @@ jobs:
     uses: ./.github/workflows/run-docker-mode.yml
     secrets: inherit
 
+  exotics:
+    if: needs.scenarios.outputs.run_all  == 'true'
+    uses: ./.github/workflows/run-exotics.yml
+    secrets: inherit
+
   update-CI-visibility:
     runs-on: ubuntu-latest
     needs:
