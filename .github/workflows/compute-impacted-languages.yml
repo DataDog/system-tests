@@ -1,0 +1,41 @@
+name: "Compute languages impacted by the change"
+
+on:
+  workflow_call:
+    outputs:
+      impacted_languages:
+        description: "Comma separated list of languages impacted by the change"
+        value: ${{ jobs.main.outputs.impacted_languages }}
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    outputs:
+      impacted_languages: ${{ steps.compute_impacted_languages.outputs.result }}
+    steps:
+      - name: Compute impacted_languages
+        id: compute_impacted_languages
+        run: |
+          if [[ "${{ github.event.pull_request.title }}" =~ "[cpp]" ]]; then
+            echo "result=cpp" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" =~ "[dotnet]" ]]; then
+            echo "result=dotnet" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" =~ "[golang]" ]]; then
+            echo "result=golang" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" =~ "[java]" ]]; then
+            echo "result=java" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" =~ "[nodejs]" ]]; then
+            echo "result=nodejs" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" =~ "[php]" ]]; then
+            echo "result=php" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" =~ "[python]" ]]; then
+            echo "result=python" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.pull_request.title }}" =~ "[ruby]" ]]; then
+            echo "result=ruby" >> $GITHUB_OUTPUT
+          else
+            echo "result=cpp,dotnet,golang,java,nodejs,php,python,ruby" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print results
+        run: |
+          echo "Run all: -> ${{ steps.compute_impacted_languages.outputs.result }}"

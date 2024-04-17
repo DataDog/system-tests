@@ -93,7 +93,7 @@ jobs:
           "java": [
             "akka-http", 
             "jersey-grizzly2", 
-            "play"
+            "play",
             "ratpack", 
             "resteasy-netty3", 
             "spring-boot-jetty", 

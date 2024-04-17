@@ -87,6 +87,11 @@ on:
         default: false
         required: false
         type: boolean
+      impacted_languages:
+        description: "List of languages impacted by the change"
+        default: "cpp,dotnet,golang,java,nodejs,php,python,ruby"
+        required: false
+        type: string
 
 jobs:
 
@@ -124,6 +129,7 @@ jobs:
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
+      impacted_languages: ${{ inputs.impacted_languages }}
 
   open-telemetry:
     if: inputs.run_open_telemetry || inputs.run_all
