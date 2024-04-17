@@ -95,12 +95,35 @@ on:
 
 jobs:
 
+  compute-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.compute-matrix.outputs.matrix }}
+    steps:
+    - name: Compute matrix
+      id: compute-matrix
+      shell: python
+      run: |
+        import json
+        import os
+        langs = "${{ inputs.impacted_languages }}".split(",")
+
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f'matrix={json.dumps(langs)}', file=fh)
+
+        print(langs)
+
   parametric:
     if: inputs.run_parametric || inputs.run_all
+    needs: 
+      - compute-matrix
+    strategy:
+      matrix:
+        library: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
-      impacted_languages: ${{ inputs.impacted_languages }}
+      library: ${{ matrix.library }}
 
   graphql:
     if: inputs.run_graphql || inputs.run_all_end_to_end || inputs.run_all
