@@ -17,13 +17,23 @@ tests/:
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
-        Test_Scanners: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
-        Test_Schema_Request_Headers: missing_feature
+        Test_Scanners:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Schema_Request_Cookies:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Schema_Request_FormUrlEncoded_Body:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Schema_Request_Headers:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Request_Query_Parameters:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
@@ -480,8 +490,6 @@ tests/:
           '*': v0.95.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_NoWafTimeout:
-          akka-http: v1.22.0
       test_reports.py:
         Test_Monitoring:
           '*': v0.100.0
