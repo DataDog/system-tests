@@ -201,7 +201,7 @@ class Test_Blocking:
 @features.appsec_blocking_action
 class Test_Blocking_strip_response_headers:
     def setup_strip_response_headers(self):
-        self.r_srh = weblog.get(f"/tag_value/anything/200?content-language=krypton&x-secret-header=123")
+        self.r_srh = weblog.get(f"/tag_value/anything/200?x-secret-header=123&content-language=krypton")
 
     def test_strip_response_headers(self):
         """Test if headers are stripped from the blocking response"""
