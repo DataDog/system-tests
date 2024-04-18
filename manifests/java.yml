@@ -460,6 +460,7 @@ tests/:
           spring-boot-3-native: missing_feature
           spring-boot-openliberty: v1.3.0
           vertx3: v1.7.0
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse:
           '*': v1.11.0
           akka-http: v1.22.0

@@ -155,6 +155,7 @@ tests/:
         Test_gRPC: v1.36.0
       test_blocking.py:
         Test_Blocking: v1.50.0-rc.1
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse:
           '*': v1.63.0-dev
           uds-echo: bug
