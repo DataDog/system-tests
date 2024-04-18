@@ -1,6 +1,5 @@
-#include <stdio.h>
-
-int main(){
-    printf("Welcome to my amazing application!\n");
-    return 0;
+void
+_start()
+{
+        asm("mov $60,%rax; mov $0,%rdi; syscall");
 }
