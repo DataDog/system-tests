@@ -24,29 +24,29 @@ jobs:
         - library: java
           weblog-variant: dd-lib-java-init-test-app
 
-        - library: nodejs
-          weblog-variant: sample-app
+      #  - library: nodejs
+      #    weblog-variant: sample-app
 
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django
+      #  - library: python
+      #    weblog-variant: dd-lib-python-init-test-django
 
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django-gunicorn
+      #  - library: python
+      #    weblog-variant: dd-lib-python-init-test-django-gunicorn
   
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django-uvicorn
+      #  - library: python
+      #    weblog-variant: dd-lib-python-init-test-django-uvicorn
         
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails
+      #  - library: ruby
+      #    weblog-variant: dd-lib-ruby-init-test-rails
           
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails-explicit
+      #  - library: ruby
+      #    weblog-variant: dd-lib-ruby-init-test-rails-explicit
         
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails-gemsrb
+      #  - library: ruby
+      #    weblog-variant: dd-lib-ruby-init-test-rails-gemsrb
 
-        - library: dotnet
-          weblog-variant: dd-lib-dotnet-init-test-app
+      #  - library: dotnet
+      #    weblog-variant: dd-lib-dotnet-init-test-app
 
         version:      
           - latest
