@@ -96,9 +96,7 @@ class APMLibraryClient:
     def otel_get_span_context(self, span_id: int):
         raise NotImplementedError
 
-    def span_add_link(
-        self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]] = None
-    ) -> None:
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
         raise NotImplementedError
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
@@ -217,17 +215,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
         )
 
-    def span_add_link(
-        self, span_id: int, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None
-    ):
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None):
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={
-                "span_id": span_id,
-                "parent_id": parent_id,
-                "attributes": attributes or {},
-                "http_headers": http_headers or [],
-            },
+            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {},},
         )
 
     def span_get_meta(self, span_id: int, key: str):
@@ -355,8 +346,8 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None):
-        self._client.span_add_link(self.span_id, parent_id, attributes, http_headers)
+    def add_link(self, parent_id: int, attributes: dict = None):
+        self._client.span_add_link(self.span_id, parent_id, attributes)
 
     def get_name(self):
         return self._client.span_get_name(self.span_id)
@@ -538,19 +529,10 @@ class APMLibraryClientGRPC:
     def span_set_error(self, span_id: int, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(pb.SpanSetErrorArgs(span_id=span_id, type=typestr, message=message, stack=stack))
 
-    def span_add_link(
-        self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]]
-    ) -> None:
-        distributed_message = pb.DistributedHTTPHeaders()
-        for key, value in http_headers:
-            distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
-
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
         self._client.SpanAddLink(
             pb.SpanAddLinkArgs(
-                span_id=span_id,
-                parent_id=parent_id,
-                attributes=convert_to_proto(attributes),
-                http_headers=distributed_message,
+                span_id=span_id, span_link=pb.SpanLink(attributes=convert_to_proto(attributes), parent_id=parent_id)
             )
         )
 
