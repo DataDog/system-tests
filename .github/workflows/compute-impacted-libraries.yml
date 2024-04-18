@@ -40,14 +40,16 @@ jobs:
               for file in files:
                   manifest_match = re.search(rf"^manifests/({libraries}).yml", file)
                   weblog_match = re.search(rf"^utils/build/docker/({libraries})/", file)
+                  injection_match = re.search(rf"^lib-injection/build/docker/({libraries})/", file)
 
                   if manifest_match:
                       result.add(manifest_match[1])
-
-                  if weblog_match:
+                  elif weblog_match:
                       result.add(weblog_match[1])
+                  elif injection_match:
+                      result.add(injection_match[1])
 
-                  if not manifest_match and not weblog_match:
+                  if not manifest_match and not weblog_match and not injection_match:
                       print(f"{file} may impact any library => run all of them")
                       result |= {"cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
                       break
