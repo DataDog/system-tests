@@ -4,8 +4,8 @@ RUN apk add --no-cache bash
 COPY . .
 RUN ./gradlew build
 RUN echo 
-#ENTRYPOINT ["java", "-jar", "build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar"]
-CMD [ "app.sh" ]
+ENTRYPOINT ["java", "-jar", "build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar"]
+
 
 
 

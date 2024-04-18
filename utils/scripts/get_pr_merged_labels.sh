@@ -21,7 +21,8 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
 
     is_build_buddies=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-buddies-images"))');
     is_build_python_base_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-python-base-images"))');
-    is_build_lib_injection_app_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-lib-injection-app-images"))');
+    #Disable build lib injection until problems with the java app are fixed
+    is_build_lib_injection_app_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-lib-injection-app-images-DISABLED"))');
 
     if [ -z "$is_build_buddies" ] && [ -z "$is_build_python_base_images" ] && [ -z "$is_build_lib_injection_app_images" ] 
     then

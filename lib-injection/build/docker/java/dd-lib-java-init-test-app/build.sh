@@ -1,4 +1,4 @@
 #!/bin/bash
 
-DOCKER_BUILDKIT=0 docker build --tag ${LIBRARY_INJECTION_TEST_APP_IMAGE} .
-DOCKER_BUILDKIT=0 docker push ${LIBRARY_INJECTION_TEST_APP_IMAGE}
+./gradlew -PdockerImageRepo=${APP_DOCKER_IMAGE_REPO} -PdockerImageTag=${DOCKER_IMAGE_WEBLOG_TAG} clean bootBuildImage
+ docker push ${APP_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_WEBLOG_TAG}
