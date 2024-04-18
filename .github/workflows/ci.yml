@@ -82,6 +82,7 @@ jobs:
     strategy:
       matrix:
         library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
+      fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     secrets: inherit
     with:

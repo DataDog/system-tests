@@ -19,7 +19,6 @@ jobs:
         version:
           - prod
           - dev
- 
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}

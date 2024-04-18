@@ -61,7 +61,6 @@ jobs:
         version:      
           - latest
           - latest_snapshot
-
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
