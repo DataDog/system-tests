@@ -22,11 +22,11 @@
 ## Reviewer checklist
 
 * [ ] [Relevant label](https://github.com/DataDog/system-tests/blob/main/docs/CI/labels.md) (`run-parametric-scenario`, `run-profiling-scenario`...) are presents
+* [ ] If PR title starts with `[<language>]`, double-check that only `<language>` is impacted by the change
 * [ ] No system-tests internal is modified. Otherwise, I have the approval from [R&P team](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
 * [ ] CI is green, or failing jobs are not related to this change (and you are 100% sure about this statement)
 * [ ] A docker base image is modified?
     * [ ] the relevant `build-XXX-image` label is present
-    * [ ] To R&P team: locally build and push the image to hub.docker.com 
 * [ ] A scenario is added (or removed)?
     * [ ] Get a review from [R&P team](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
-    * [ ] Once merged, add (or remove) it in system-test-dasboard nightly
+

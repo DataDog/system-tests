@@ -1460,6 +1460,7 @@ class scenarios:
 
     appsec_api_security_rc = EndToEndScenario(
         "APPSEC_API_SECURITY_RC",
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0",},
         proxy_state={"mock_remote_config_backend": "APPSEC_API_SECURITY_RC"},
         doc="""
             Scenario to test API Security Remote config
@@ -1674,6 +1675,12 @@ class scenarios:
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
+    )
+    # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
+    host_auto_injection_ld_preload = HostAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_LD_PRELOAD",
+        "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
+        vm_provision="host-auto-inject-ld-preload",
     )
 
     container_auto_injection = ContainerAutoInjectionScenario(

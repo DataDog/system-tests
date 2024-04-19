@@ -27,8 +27,11 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -120,6 +123,7 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v0.86.0
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: v0.86.0
       test_custom_rules.py:
         Test_CustomRules: v0.87.2
@@ -247,6 +251,7 @@ tests/:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v0.96.0

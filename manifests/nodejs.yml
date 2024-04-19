@@ -34,9 +34,16 @@ tests/:
           TestCommandInjection:
             '*': v3.11.0
             nextjs: missing_feature
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords:
+            '*': v5.11.0
+            nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': v4.18.0
+            nextjs: missing_feature
+          Test_HardcodedSecretsExtended:
+            '*': v5.11.0
             nextjs: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
@@ -189,6 +196,7 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v3.19.0
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v4.1.0
@@ -397,6 +405,7 @@ tests/:
       Test_Defaults: v5.6.0
       Test_Environment: v5.6.0
       Test_TelemetryInstallSignature: v4.23.0
+      Test_TelemetrySCAEnvVar: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature

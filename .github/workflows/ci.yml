@@ -70,14 +70,23 @@ jobs:
   scenarios:
     uses: ./.github/workflows/compute-scenarios.yml
 
+  impacted_libraries:
+    uses: ./.github/workflows/compute-impacted-libraries.yml
+
   system_tests:
     needs:
     - lint
     - test_the_test
     - scenarios
+    - impacted_libraries
+    strategy:
+      matrix:
+        library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
+      fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     secrets: inherit
     with:
+      library: ${{ matrix.library }}
       run_all: ${{ needs.scenarios.outputs.run_all  == 'true' }}
       run_replay: ${{ needs.scenarios.outputs.run_all  == 'true' }}
       run_integration: ${{ needs.scenarios.outputs.run_integration  == 'true' }}
@@ -98,7 +107,14 @@ jobs:
     needs:
     - lint
     - test_the_test
+    - impacted_libraries
+    if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
+    secrets: inherit
+
+  exotics:
+    if: needs.scenarios.outputs.run_all  == 'true'
+    uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
   update-CI-visibility:

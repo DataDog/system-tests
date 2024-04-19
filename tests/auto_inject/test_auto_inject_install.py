@@ -145,6 +145,16 @@ class TestSimpleHostAutoInjectManual(_AutoInjectBaseTest):
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
+@features.host_auto_instrumentation
+@scenarios.host_auto_injection_ld_preload
+class TestHostAutoInjectManualLdPreload(_AutoInjectBaseTest):
+    def test_install_after_ld_preload(self, virtual_machine):
+        """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+
 @features.container_auto_instrumentation
 @scenarios.container_auto_injection
 class TestContainerAutoInjectManual(_AutoInjectBaseTest):

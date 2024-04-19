@@ -12,6 +12,7 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
         test_header_injection.py: irrelevant (ASM is not implemented in C++)
         test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
@@ -124,6 +125,7 @@ tests/:
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetrySCAEnvVar: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Globs_Feb2024_Revision: bug (implementation is case-sensitive)
     test_tracer.py:

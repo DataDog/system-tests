@@ -54,7 +54,6 @@ class Test_TelemetryMetrics:
 
     setup_metric_waf_init = _setup
 
-    @flaky(context.weblog_variant == "django-poc", reason="APPSEC-10509")
     def test_metric_waf_init(self):
         """Test waf.init metric."""
         expected_metric_name = "waf.init"
