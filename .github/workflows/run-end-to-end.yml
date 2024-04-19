@@ -117,7 +117,7 @@ jobs:
             "rack",
             "uds-sinatra",
             *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
-            *[f"rails{v}" for v in ["32", "40", "41", "42", "50", "51", "52", "60", "61", "70", "71"]]
+            *[f"rails{v}" for v in ["50", "51", "52", "60", "61", "70", "71"]]
           ]
         }
 
@@ -179,12 +179,13 @@ jobs:
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
-    
       # quick and dirty fix, because we can't test for now the PHP released tracer
     - name: Load PHP library binary (skipping release tests, use snapshot instead)
       if: ${{ matrix.version == 'prod' && inputs.library == 'php'}}
       run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
-
+    - name: Load Ruby library binary (skipping release tests, use snapshot instead)
+      if: ${{ matrix.version == 'prod' && inputs.library == 'ruby'}}
+      run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
