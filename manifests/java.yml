@@ -50,6 +50,8 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': missing_feature
@@ -60,6 +62,7 @@ tests/:
             spring-boot-undertow: v1.29.0
             spring-boot-wildfly: v1.29.0
             uds-spring-boot: v1.29.0
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
             '*': missing_feature
