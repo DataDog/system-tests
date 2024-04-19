@@ -284,13 +284,12 @@ function initSinkRoutes (app: Express): void {
 
   app.get('/iast/hardcoded_secrets/test_insecure', (req: Request, res: Response): void => {
     const s3cret = 'A3TMAWZUKIWR6O0OGR7B'
-    const datadogS3cret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
-    res.send(`OK:${s3cret}:${datadogS3cret}`)
+    res.send(`OK:${s3cret}`)
   })
 
-  app.get('/iast/hardcoded_secrets/test_secure', (req: Request, res: Response): void => {
-    const s3cret: string = 'unknown_secret'
-    res.send(`OK:${s3cret}`)
+  app.get('/iast/hardcoded_secrets_extended/test_insecure', (req: Request, res: Response): void => {
+    const datadogS3cret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
+    res.send(`OK:${datadogS3cret}`)
   })
 
   app.get('/iast/hardcoded_passwords/test_insecure', (req: Request, res: Response): void => {

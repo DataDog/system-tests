@@ -52,6 +52,7 @@ tests/:
             spring-boot-undertow: v1.29.0
             spring-boot-wildfly: v1.29.0
             uds-spring-boot: v1.29.0
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
             '*': missing_feature

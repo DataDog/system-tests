@@ -269,13 +269,12 @@ function initRoutes (app, tracer) {
 
   app.get('/iast/hardcoded_secrets/test_insecure', (req, res) => {
     const s3cret = 'A3TMAWZUKIWR6O0OGR7B'
-    const datadogS3cret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
-    res.send(`OK:${s3cret}:${datadogS3cret}`)
+    res.send(`OK:${s3cret}`)
   })
 
-  app.get('/iast/hardcoded_secrets/test_secure', (req, res) => {
-    const s3cret = 'unknown_secret'
-    res.send(`OK:${s3cret}`)
+  app.get('/iast/hardcoded_secrets_extended/test_insecure', (req, res) => {
+    const datadogS3cret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
+    res.send(`OK:${datadogS3cret}`)
   })
 
   app.get('/iast/hardcoded_passwords/test_insecure', (req, res) => {
