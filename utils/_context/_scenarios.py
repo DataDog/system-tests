@@ -1676,6 +1676,12 @@ class scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
     )
+    # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
+    host_auto_injection_ld_preload = HostAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_LD_PRELOAD",
+        "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
+        vm_provision="host-auto-inject-ld-preload",
+    )
 
     container_auto_injection = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
