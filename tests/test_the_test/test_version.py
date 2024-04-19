@@ -32,12 +32,12 @@ def test_version_comparizon():
     assert "1.31.1" < Version("v1.34.1", "")
     assert Version("1.31.1", "") < Version("v1.34.1", "")
 
-    # assert Version("  * ddtrace (1.0.0.beta1)", "ruby") == Version("1.0.0.beta1", "ruby")
-    # assert Version("  * ddtrace (1.0.0.beta1)", "ruby")
-    # assert Version("  * ddtrace (1.0.0.beta1)", "ruby") < Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
-    # assert Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby") < Version("1.0.0", "ruby")
+    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") == Version("1.0.0.beta1", "ruby")
+    assert Version("  * ddtrace (1.0.0.beta1)", "ruby")
+    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") < Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
+    assert Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby") < Version("1.0.0", "ruby")
 
-    # assert Version("1.0.0beta1", "ruby") < Version("1.0.0beta1+8a50f1f", "ruby")
+    assert Version("1.0.0beta1", "ruby") < Version("1.0.0beta1+8a50f1f", "ruby")
 
     assert Version("1.1.0rc2.dev15+gc41d325d", "python") >= "1.1.0rc2.dev"
     assert Version("1.1.0", "python") > "1.1.0rc2.dev"
@@ -55,15 +55,18 @@ def test_version_serialization():
     assert v == "0.53.0.dev70+g494e6dc0"
     assert str(v) == "0.53.0.dev70+g494e6dc0"
 
-    # v = Version("  * ddtrace (0.53.0.appsec.180045)", "ruby")
-    # assert v == Version("0.53.0appsec.180045", "ruby")
-    # assert v == "0.53.0appsec.180045"
+    v = Version("  * ddtrace (0.53.0.appsec.180045)", "ruby")
+    assert v == Version("0.53.0appsec.180045", "ruby")
+    assert v == "0.53.0appsec.180045"
 
-    # v = Version("  * ddtrace (1.0.0.beta1)", "ruby")
-    # assert v == Version("1.0.0beta1", "ruby")
+    v = Version("  * ddtrace (1.0.0.beta1)", "ruby")
+    assert v == Version("1.0.0beta1", "ruby")
 
-    # v = Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
-    # assert v == Version("1.0.0beta1+de82857", "ruby")
+    v = Version("  * datadog (2.0.0.beta1)", "ruby")
+    assert v == Version("2.0.0beta1", "ruby")
+
+    v = Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
+    assert v == Version("1.0.0beta1+de82857", "ruby")
 
     v = Version("* libddwaf (1.0.14.1.0.beta1)", "libddwaf")
     assert v == Version("1.0.14.1.0.beta1", "libddwaf")
