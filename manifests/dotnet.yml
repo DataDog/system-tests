@@ -27,8 +27,11 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: v2.28.0
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection: v2.46.0
         test_hsts_missing_header.py:
