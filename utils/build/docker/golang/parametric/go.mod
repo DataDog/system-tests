@@ -7,7 +7,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.20.0
 	google.golang.org/grpc v1.57.1
 	google.golang.org/protobuf v1.30.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20240418174305-55c955707fdf
+	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20240419091955-7df262e804ad
 )
 
 require (
