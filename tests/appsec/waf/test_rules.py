@@ -76,7 +76,6 @@ class Test_LFI:
         self.r_5 = weblog.get("/waf/..")
 
     @bug(context.library < "java@0.92.0")
-    @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     @irrelevant(library="python", weblog_variant="django-poc")
     @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
     @irrelevant(
