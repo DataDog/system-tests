@@ -15,7 +15,7 @@ class Test_HardcodedPasswords:
     """Test Hardcoded passwords detection."""
 
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
     }
 
     def setup_hardcoded_passwords_exec(self):
