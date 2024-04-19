@@ -9,6 +9,7 @@ from utils import interfaces, weblog, features, context, missing_feature
 # current BaseSinkTest implementation doesn't work for all languages
 # as the vulnerability is not always set in the current request span.
 
+
 def get_hardcoded_secret_vulnerabilities():
     spans = [s for _, s in interfaces.library.get_root_spans()]
     assert spans, "No spans found"
@@ -22,6 +23,7 @@ def get_hardcoded_secret_vulnerabilities():
     hardcoded_secrets = [vuln for vuln in vulnerabilities if vuln.get("type") == "HARDCODED_SECRET"]
     assert hardcoded_secrets, "No hardcoded secrets found"
     return hardcoded_secrets
+
 
 def get_expectation(d):
     expected = d.get(context.library.library)
@@ -50,6 +52,7 @@ class Test_HardcodedSecrets:
         vuln = hardcode_secrets[0]
         assert vuln["location"]["path"] == get_expectation(self.location_map)
 
+
 @features.iast_sink_hardcoded_secrets
 class Test_HardcodedSecretsExtended:
     """Test Hardcoded secrets extended detection."""
@@ -68,4 +71,3 @@ class Test_HardcodedSecretsExtended:
         assert len(hardcoded_secrets) == 1
         vuln = hardcoded_secrets[0]
         assert vuln["location"]["path"] == get_expectation(self.location_map)
-
