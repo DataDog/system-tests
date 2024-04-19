@@ -225,7 +225,6 @@ class Test_Schema_Response_Body:
             data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234,},
         )
 
-    @bug(context.library > "php@0.99.1", reason="_dd.appsec.s.res.body is not reported")
     def test_request_method(self):
         """can provide response body schema"""
         assert self.request.status_code == 200
