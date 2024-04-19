@@ -38,6 +38,7 @@ class Test_HardcodedSecrets:
     @missing_feature(library="ruby", reason="Not implemented yet")
     @missing_feature(library="php", reason="Not implemented yet")
     @missing_feature(library="cpp", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.11.0", reason="Not implemented yet")
     def test_hardcoded_secrets_extended_exec(self):
         hardcoded_secrets = self.get_hardcoded_secret_vulnerabilities()
         hardcoded_secrets = [v for v in hardcoded_secrets if v["evidence"]["value"] == "datadog-access-token"]
