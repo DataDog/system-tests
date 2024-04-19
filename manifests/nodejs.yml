@@ -34,9 +34,16 @@ tests/:
           TestCommandInjection:
             '*': v3.11.0
             nextjs: missing_feature
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords:
+            '*': v5.11.0
+            nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': v4.18.0
+            nextjs: missing_feature
+          Test_HardcodedSecretsExtended:
+            '*': v5.11.0
             nextjs: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
