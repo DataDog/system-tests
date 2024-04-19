@@ -94,7 +94,6 @@ app.post('/trace/span/finish', (req, res) => {
   const id = req.body.span_id
   const span = spans[id]
   span.finish()
-  delete spans[id]
   res.json({});
 });
 
@@ -103,6 +102,7 @@ app.post('/trace/span/flush', (req, res) => {
   _writer.flush(() => {
     res.json({});
   })
+  spans = {}
 });
 
 app.post('/trace/span/set_meta', (req, res) => {
