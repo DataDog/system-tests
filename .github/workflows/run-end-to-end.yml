@@ -183,9 +183,6 @@ jobs:
     - name: Load PHP library binary (skipping release tests, use snapshot instead)
       if: ${{ matrix.version == 'prod' && inputs.library == 'php'}}
       run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
-    - name: Load Ruby library binary (skipping release tests, use snapshot instead)
-      if: ${{ matrix.version == 'prod' && inputs.library == 'ruby'}}
-      run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
