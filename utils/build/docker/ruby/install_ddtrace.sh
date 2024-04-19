@@ -6,6 +6,8 @@ set -eu
 sed -i -e '/gem .ddtrace./d' Gemfile
 sed -i -e '/gem .datadog./d' Gemfile
 
+cat Gemfile
+
 if [ -e "/binaries/dd-trace-rb" ]; then
     #
     # Install the gem from this local directory
@@ -24,9 +26,9 @@ elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     #
     echo "Install prod version"
     # Support multiple versions of the gem
-    echo "gem 'ddtrace'" >> Gemfile
+    echo "gem 'datadog' ~> '~> 2.0.0.beta2'" >> Gemfile
 
-    export GEM_NAME=ddtrace
+    export GEM_NAME=datadog
 else
     #
     # Append the content of the file `/binaries/ruby-load-from-bundle-add``
