@@ -102,8 +102,6 @@ class Test_Trace_Sampling_Basic:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
 
-
-
 @features.trace_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
