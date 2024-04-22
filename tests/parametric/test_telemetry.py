@@ -334,7 +334,7 @@ class Test_TelemetrySCAEnvVar:
 
         DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
 
-        if context.library == "java":
+        if context.library in ("java", "nodejs"):
             cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
             assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(
                 DD_APPSEC_SCA_ENABLED
