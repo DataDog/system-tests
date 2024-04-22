@@ -46,8 +46,16 @@ class Test_Telemetry:
         if len(telemetry_data) == 0 and not success_by_default:
             raise Exception("No telemetry data to validate on")
 
+        errors = []
         for data in telemetry_data:
-            validator(data)
+            try:
+                validator(data)
+                return;
+            except Exception as e:
+                errors.append(e)
+
+        if errors:
+            raise errors[0]
 
     def validate_agent_telemetry_data(self, validator, success_by_default=False):
         telemetry_data = list(interfaces.agent.get_telemetry_data())
@@ -439,9 +447,7 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
-    @missing_feature(
-        context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
-    )
+    @missing_feature(library="golang", reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @bug(
         library="python",
@@ -452,6 +458,7 @@ class Test_Telemetry:
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
+            "php": {"appsec.sca_enabled": "true"},
             "dotnet": {},
             "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
