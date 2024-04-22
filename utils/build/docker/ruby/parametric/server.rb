@@ -3,7 +3,17 @@ current_dir = Dir.pwd
 $LOAD_PATH.unshift(current_dir) unless $LOAD_PATH.include?(current_dir)
 
 require 'grpc'
-require 'ddtrace'
+
+# Support gem rename on both branches
+begin
+  require 'datadog'
+rescue LoadError
+end
+begin
+  require 'ddtrace'
+rescue LoadError
+end
+
 require 'datadog/tracing/contrib/grpc/distributed/propagation' # Loads optional `Datadog::Tracing::Contrib::GRPC::Distributed`
 require 'apm_test_client_services_pb'
 
