@@ -262,4 +262,4 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
             "xsrftoken",
         ]
 
-        test(self, filter(to_filter))
+        run_test(self, filter(to_filter))
