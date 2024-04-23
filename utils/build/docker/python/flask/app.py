@@ -1,6 +1,5 @@
 import json
 import logging
-import mock
 import os
 import random
 import subprocess
@@ -178,36 +177,6 @@ def users():
         scope="usr.scope",
     )
     return Response("OK")
-
-
-@app.route("/stub_dbm")
-def stub_dbm():
-    integration = flask_request.args.get("integration")
-    operation = flask_request.args.get("operation", None)
-    dbm_env = os.environ["DD_DBM_PROPAGATION_MODE"]
-    os.environ["DD_DBM_PROPAGATION_MODE"] = "service"
-
-    if integration == "psycopg":
-        postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
-        cursor = postgres_db.cursor()
-        cursor.__wrapped__ = mock.Mock()
-        if operation == "execute":
-            cursor.execute("SELECT version()")
-            return get_dbm_comment(cursor.__wrapped__, "execute", dbm_env)
-        elif operation == "executemany":
-            cursor.executemany("SELECT version()", [((),)])
-            return get_dbm_comment(cursor.__wrapped__, "executemany", dbm_env)
-        return Response(f"Cursor method is not supported: {operation}", 406)
-    return Response(f"Integration is not supported: {integration}", 406)
-
-
-def get_dbm_comment(wrapped_instance, operation, dbm_env):
-    dbm_comment = getattr(wrapped_instance, operation).call_args.args[0]
-
-    # Store response in a json object
-    response = {"status": "ok", "dbm_comment": dbm_comment}
-    os.environ["DD_DBM_PROPAGATION_MODE"] = dbm_env
-    return jsonify(response)
 
 
 @app.route("/dbm")
