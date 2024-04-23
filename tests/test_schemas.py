@@ -14,20 +14,22 @@ class Test_Library:
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
 
-    # def test_some_schema_point(self):
-    #     interfaces.library.assert_schema_point("/v0.4/traces", "$[][]['name']")
-
     def test_full(self):
         interfaces.library.assert_schema_points(
             excluded_points=[
-                # ("/v0.4/traces", "$[][]['name']")
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property")
             ]
+        )
+
+    @bug(context.library >= "nodejs@2.27.1")
+    def test_telemetry_conf_value(self):
+        interfaces.library.assert_schema_point(
+            "/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property"
         )
 
     # @bug(context.library < "golang@1.36.0")
     # @bug(context.library < "java@0.93.0")
     # @bug(context.library >= "dotnet@2.24.0")
-    # @bug(context.library >= "nodejs@2.27.1")
     # @bug(
     #     context.library >= "python@1.16.0rc2.dev37"
     #     and context.agent_version >= "7.47.0rc2"
@@ -61,11 +63,6 @@ class Test_Library:
     #             # value is missing in configuration object in telemetry payloads
     #             r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
     #         )
-    #     elif context.library == "nodejs":
-    #         allowed_errors = (
-    #             # value is missing in configuration object in telemetry payloads
-    #             r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-    #         )
     #     elif context.library == "python":
     #         allowed_errors = (r"\[\] is too short on instance \['client'\]\['products'\]",)
 
@@ -82,9 +79,16 @@ class Test_Agent:
     # @bug(context.library < "golang@1.36.0")
     # @bug(context.library < "java@0.93.0")
     # @bug(context.library >= "dotnet@2.24.0")
-    # @bug(context.library >= "nodejs@2.27.1")
     def test_full(self):
-        interfaces.agent.assert_schema_points()
+        interfaces.agent.assert_schema_points(
+            excluded_points=[("/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property")]
+        )
+
+    @bug(context.library >= "nodejs@2.27.1")
+    def test_telemetry_conf_value(self):
+        interfaces.agent.assert_schema_point(
+            "/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property"
+        )
 
     # def test_non_regression(self):
     #     """ Non-regression test on shemas """
@@ -106,11 +110,6 @@ class Test_Agent:
     #             r"'idempotency_key' is a required property on instance ",
     #         )
     #     elif context.library == "dotnet":
-    #         allowed_errors = (
-    #             # value is missing in configuration object in telemetry payloads
-    #             r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-    #         )
-    #     elif context.library == "nodejs":
     #         allowed_errors = (
     #             # value is missing in configuration object in telemetry payloads
     #             r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",

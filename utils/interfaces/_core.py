@@ -4,7 +4,6 @@
 
 """ This file contains base class used to validate interfaces """
 
-from functools import lru_cache
 import json
 from os import listdir
 from os.path import isfile, join
@@ -52,6 +51,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._lock = threading.RLock()
         self._data_list = []
         self._ingested_files = set()
+        self._schema_errors = None
 
     @property
     def _log_folder(self):
@@ -168,21 +168,21 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         self._wait_for_function = None
 
-    @lru_cache
     def get_schemas_errors(self) -> list[SchemaError]:
-        result = []
-        validator = SchemaValidator(self.name)
+        if self._schema_errors is None:
+            self._schema_errors = []
+            validator = SchemaValidator(self.name)
 
-        for data in self.get_data():
-            result.extend(validator.get_errors(data))
+            for data in self.get_data():
+                self._schema_errors.extend(validator.get_errors(data))
 
-        return result
+        return self._schema_errors
 
-    def assert_schema_point(self, endpoint, data_path):
+    def assert_schema_point(self, endpoint, data_path, assertion):
         has_error = False
 
         for error in self.get_schemas_errors():
-            if error.endpoint == endpoint and error.data_path == data_path:
+            if error.endpoint == endpoint and error.data_path == data_path and error.error.message == assertion:
                 has_error = True
                 logger.error(f"* {error.message}")
 
@@ -190,9 +190,10 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
     def assert_schema_points(self, excluded_points=None):
         has_error = False
+        excluded_points = excluded_points or []
 
         for error in self.get_schemas_errors():
-            if (error.endpoint, error.data_path) in excluded_points:
+            if (error.endpoint, error.data_path, error.error.message) in excluded_points:
                 continue
 
             has_error = True
