@@ -2,7 +2,7 @@ FROM datadog/system-tests:flask-poc.base-v2
 
 WORKDIR /app
 
-RUN pip install boto3 kombu
+RUN pip install boto3 kombu mock
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
