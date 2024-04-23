@@ -146,6 +146,7 @@ class Test_Dbm_Comment:
             print(self.r)
 
 
+@features.database_monitoring_correlation
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Psycopg:
     integration = "psycopg"
