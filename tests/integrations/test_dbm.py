@@ -4,9 +4,14 @@
 
 
 import json
+import re
 
 from utils import weblog, interfaces, context, scenarios, features
 from utils.tools import logger
+
+
+def remove_traceparent(s):
+    return re.sub(r",traceparent='[^']*'", "", s)
 
 
 @features.database_monitoring_correlation
@@ -125,25 +130,40 @@ class _Test_Dbm_Comment:
     operation_batch = None
     execute_batch = False
 
+    # comment generic info
+    dde = "system-tests"  # DD_ENV
+    ddps = "weblog"  # DD_SERVICE
+    ddpv = "1.0.0"  # DD_VERSION
+
     def setup_dbm_comment(self):
-        self.r = (weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation}),)
+        self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
+        self.r.text = json.loads(self.r.text)
+        self.expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
 
     def setup_dbm_comment_batch(self):
         if self.execute_batch:
-            self.r_batch = (
-                weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation_batch}),
+            self.r_batch = weblog.get(
+                "/stub_dbm", params={"integration": self.integration, "operation": self.operation_batch}
             )
+            self.r_batch.text = json.loads(self.r_batch.text)
+            self.expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
 
     def test_dbm_comment(self):
-        assert self.r.text != ""
-        print(self.r.text)
-        print(self.r)
+        assert self.r.text["status"] == "ok"
+        assert "traceparent" in self.r.text["dbm_comment"]
+
+        self.r.text["dbm_comment"] = remove_traceparent(self.r.text["dbm_comment"])
+
+        assert self.r.text["dbm_comment"] == self.expected_dbm_comment
 
     def test_dbm_comment_batch(self):
         if self.execute_batch:
-            assert self.r.text == "ok"
-            print(self.r.text)
-            print(self.r)
+            assert self.r_batch.text["status"] == "ok"
+            assert "traceparent" in self.r_batch.text["dbm_comment"]
+
+            self.r_batch.text["dbm_comment"] = remove_traceparent(self.r_batch.text["dbm_comment"])
+
+            assert self.r_batch.text["dbm_comment"] == self.expected_dbm_comment
 
 
 @features.database_monitoring_correlation
@@ -153,3 +173,72 @@ class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
     operation = "execute"
     operation_batch = "executemany"
     execute_batch = True
+
+    dddb = "system_tests_dbname"  # db name
+    dddbs = "system_tests_dbname"  # db name
+    ddh = "postgres"  # container name
+
+
+@features.database_monitoring_correlation
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
+    integration = "asyncpg"
+    operation = "execute"
+    operation_batch = "executemany"
+    execute_batch = False
+
+    dddb = "system_tests_dbname"  # db name
+    dddbs = "system_tests_dbname"  # db name
+    ddh = "postgres"  # container name
+
+
+@features.database_monitoring_correlation
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
+    integration = "aiomysql"
+    operation = "execute"
+    operation_batch = "executemany"
+    execute_batch = True
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@features.database_monitoring_correlation
+@scenarios.integrations
+class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
+    integration = "mysql-connector"
+    operation = "execute"
+    operation_batch = "executemany"
+    execute_batch = True
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@features.database_monitoring_correlation
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
+    integration = "mysqldb"
+    operation = "execute"
+    operation_batch = "executemany"
+    execute_batch = True
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@features.database_monitoring_correlation
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
+    integration = "pymysql"
+    operation = "execute"
+    operation_batch = "executemany"
+    execute_batch = True
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
