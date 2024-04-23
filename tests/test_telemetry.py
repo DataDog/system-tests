@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -16,8 +16,20 @@ def get_header(data, origin, name):
     return None
 
 
+def get_request_content(data):
+    return data["request"]["content"]
+
+
 def get_request_type(data):
-    return data["request"]["content"].get("request_type")
+    return get_request_content(data).get("request_type")
+
+
+def get_configurations(data):
+    return get_request_content(data)["payload"].get("configuration")
+
+
+def get_service_name(data):
+    return get_request_content(data)["application"].get("service_name")
 
 
 def not_onboarding_event(data):
@@ -25,11 +37,11 @@ def not_onboarding_event(data):
 
 
 def is_v2_payload(data):
-    return data["request"]["content"].get("api_version") == "v2"
+    return get_request_content(data).get("api_version") == "v2"
 
 
 def is_v1_payload(data):
-    return data["request"]["content"].get("api_version") == "v1"
+    return get_request_content(data).get("api_version") == "v1"
 
 
 @features.telemetry_instrumentation
@@ -776,3 +788,30 @@ class Test_Metric_Generation_Enabled:
                 count = count + p[1]
 
         assert count >= expect_at_least
+
+
+@rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
+@features.telemetry_app_started_event
+class Test_TelemetrySCAEnvVar:
+    def test_telemetry_sca_propagated(self):
+        target_service_name = "weblog"
+        target_request_type = "app-started"
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        events = []
+
+        for t in telemetry_data:
+            if get_request_type(t) == target_request_type and get_service_name(t) == target_service_name:
+                events.append(t)
+
+        assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
+
+        configurations = get_configurations(events[0])
+        found = False
+        for c in configurations:
+            if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                found = True
+                break
+
+        assert (
+            found
+        ), f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
