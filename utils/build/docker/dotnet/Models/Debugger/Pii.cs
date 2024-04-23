@@ -137,5 +137,7 @@ namespace weblog.Models.Debugger
         public string? xsrf { get; set; } = PiiBase.Value;
         public string? xsrftoken { get; set; } = PiiBase.Value;
         public string? zipcode { get; set; } = PiiBase.Value;
+
+        public string? connectionstring { get; set; } = PiiBase.Value;
     }
 }

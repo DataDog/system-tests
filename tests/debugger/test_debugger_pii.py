@@ -4,7 +4,119 @@
 
 import test_debugger_base as base
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, context
+from utils import scenarios, interfaces, weblog, features, missing_feature, irrelevant, context
+
+
+REDACTED_KEYS = [
+    "accesstoken",
+    "address",
+    "aiohttpsession",
+    "apikey",
+    "apisecret",
+    "apisignature",
+    "auth",
+    "authorization",
+    "authtoken",
+    "bankaccountnumber",
+    "birthdate",
+    "ccnumber",
+    "certificatepin",
+    "cipher",
+    "clientid",
+    "clientsecret",
+    "config",
+    "connectionstring",
+    "connectsid",
+    "cookie",
+    "credentials",
+    "creditcard",
+    "csrf",
+    "csrftoken",
+    "cvv",
+    "databaseurl",
+    "dburl",
+    "driverlicense",
+    "email",
+    "encryptionkey",
+    "encryptionkeyid",
+    "env",
+    "geolocation",
+    "gpgkey",
+    "ipaddress",
+    "jti",
+    "jwt",
+    "licensekey",
+    "licenseplate",
+    "maidenname",
+    "mailaddress",
+    "masterkey",
+    "mysqlpwd",
+    "nonce",
+    "oauth",
+    "oauthtoken",
+    "otp",
+    "passhash",
+    "passport",
+    "passportno",
+    "passportnum",
+    "passportnumber",
+    "passwd",
+    "password",
+    "passwordb",
+    "pemfile",
+    "pgpkey",
+    "phone",
+    "phoneno",
+    "phonenum",
+    "phonenumber",
+    "phpsessid",
+    "pin",
+    "pincode",
+    "pkcs8",
+    "plateno",
+    "platenum",
+    "platenumber",
+    "privatekey",
+    "province",
+    "publickey",
+    "pwd",
+    "recaptchakey",
+    "refreshtoken",
+    "remoteaddr",
+    "routingnumber",
+    "salt",
+    "secret",
+    "secretkey",
+    "secrettoken",
+    "securityanswer",
+    "securitycode",
+    "securityquestion",
+    "serviceaccountcredentials",
+    "session",
+    "sessionid",
+    "sessionkey",
+    "setcookie",
+    "signature",
+    "signaturekey",
+    "sshkey",
+    "ssn",
+    "symfony",
+    "taxidentificationnumber",
+    "telephone",
+    "token",
+    "transactionid",
+    "twiliotoken",
+    "usersession",
+    "voterid",
+    "xapikey",
+    "xauthtoken",
+    "xcsrftoken",
+    "xforwardedfor",
+    "xrealip",
+    "zipcode",
+    "xsrf",
+    "xsrftoken",
+]
 
 
 def validate_pii_redaction(should_redact_field_names):
@@ -41,8 +153,34 @@ def validate_pii_redaction(should_redact_field_names):
         raise ValueError(error_message)
 
 
+def test(self, redacted_keys):
+    self.assert_remote_config_is_sent()
+    self.assert_all_probes_are_installed()
+
+    for respone in self.pii_responses:
+        assert respone.status_code == 200
+
+    expected_probes = {
+        "log170aa-acda-4453-9111-1478a6method": "INSTALLED",
+    }
+
+    expected_snapshots = [
+        "log170aa-acda-4453-9111-1478a6method",
+    ]
+
+    base.validate_probes(expected_probes)
+    base.validate_snapshots(expected_snapshots)
+
+    validate_pii_redaction(redacted_keys)
+
+
+def filter(keys_to_filter):
+    return [item for item in REDACTED_KEYS if item not in keys_to_filter]
+
+
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
+@missing_feature(context.library >= "java@1.27", reason="not implemented yet")
 class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
     pii_responses = []
 
@@ -61,121 +199,57 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
         self.pii_responses.append(weblog.get("/debugger/log/pii/5"))
         self.pii_responses.append(weblog.get("/debugger/log/pii/6"))
 
-    @missing_feature(context.library >= "java@1.27", reason="not implemented yet")
+    @irrelevant(context.library <= "dotnet@2.50", reason="behaviour changed")
     def test_pii_redaction(self):
-        self.assert_remote_config_is_sent()
-        self.assert_all_probes_are_installed()
+        test(self, REDACTED_KEYS)
 
-        for respone in self.pii_responses:
-            assert respone.status_code == 200
+    @irrelevant(context.library != "dotnet@2.50", reason="behaviour changed")
+    def test_pii_redaction_2_50(self):
+        test(self, filter("connectionstring"))
 
-        expected_probes = {
-            "log170aa-acda-4453-9111-1478a6method": "INSTALLED",
-        }
-
-        expected_snapshots = [
-            "log170aa-acda-4453-9111-1478a6method",
-        ]
-
-        base.validate_probes(expected_probes)
-        base.validate_snapshots(expected_snapshots)
-
-        redacted_names = [
+    @missing_feature(context.library < "dotnet@2.49", reason="behaviour changed")
+    def test_pii_redaction_2_33_2_49(self):
+        to_filter = [
             "accesstoken",
-            "address",
             "aiohttpsession",
-            "apikey",
             "apisecret",
             "apisignature",
-            "auth",
-            "authorization",
             "authtoken",
             "bankaccountnumber",
-            "birthdate",
             "ccnumber",
             "certificatepin",
-            "cipher",
             "clientid",
             "clientsecret",
-            "config",
             "connectsid",
-            "cookie",
-            "credentials",
-            "creditcard",
-            "csrf",
-            "csrftoken",
-            "cvv",
             "databaseurl",
             "dburl",
             "driverlicense",
-            "email",
             "encryptionkey",
             "encryptionkeyid",
-            "env",
             "geolocation",
-            "gpgkey",
             "ipaddress",
-            "jti",
-            "jwt",
             "licensekey",
-            "licenseplate",
-            "maidenname",
-            "mailaddress",
             "masterkey",
             "mysqlpwd",
-            "nonce",
-            "oauth",
             "oauthtoken",
-            "otp",
-            "passhash",
-            "passport",
-            "passportno",
-            "passportnum",
             "passportnumber",
-            "passwd",
-            "password",
-            "passwordb",
             "pemfile",
-            "pgpkey",
-            "phone",
-            "phoneno",
-            "phonenum",
-            "phonenumber",
             "phpsessid",
-            "pin",
-            "pincode",
-            "pkcs8",
-            "plateno",
-            "platenum",
-            "platenumber",
-            "privatekey",
-            "province",
             "publickey",
-            "pwd",
             "recaptchakey",
             "refreshtoken",
             "remoteaddr",
             "routingnumber",
-            "salt",
-            "secret",
             "secretkey",
             "secrettoken",
             "securityanswer",
             "securitycode",
             "securityquestion",
             "serviceaccountcredentials",
-            "session",
-            "sessionid",
             "sessionkey",
             "setcookie",
-            "signature",
             "signaturekey",
-            "sshkey",
-            "ssn",
-            "symfony",
             "taxidentificationnumber",
-            "telephone",
-            "token",
             "transactionid",
             "twiliotoken",
             "usersession",
@@ -185,9 +259,8 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
             "xcsrftoken",
             "xforwardedfor",
             "xrealip",
-            "zipcode",
             "xsrf",
             "xsrftoken",
         ]
 
-        validate_pii_redaction(redacted_names)
+        test(self, filter(to_filter))
