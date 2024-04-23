@@ -117,7 +117,7 @@ class Test_Dbm:
 
 # @features.datastreams_monitoring_support_for_kafka
 # @scenarios.integrations
-class Test_Dbm_Comment:
+class _Test_Dbm_Comment:
     """ Verify DBM comment for given integration """
 
     integration = None
@@ -148,7 +148,7 @@ class Test_Dbm_Comment:
 
 @features.database_monitoring_correlation
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Psycopg:
+class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
     integration = "psycopg"
     operation = "execute"
     operation_batch = "executemany"
