@@ -689,7 +689,7 @@ class Test_Metric_Generation_Disabled:
         all_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=True))
         assert len(all_data) != 0, "No telemetry data to validate on"
         generate_metrics_messages = [d for d in all_data if get_request_type(d) == "generate-metrics"]
-        assert not generate_metrics_messages, "Metric generation event is sent when metric generation is disabled"
+        assert  len(generate_metrics_messages) == 0, "Metric generation event is sent when metric generation is disabled"
 
 
 @features.telemetry_metrics_collected
