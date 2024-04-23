@@ -452,6 +452,10 @@ class EndToEndScenario(_DockerScenario):
 
     def session_start(self):
         super().session_start()
+
+        if self.replay:
+            return
+
         try:
             code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
             if code:

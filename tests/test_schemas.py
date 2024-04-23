@@ -14,52 +14,62 @@ class Test_Library:
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
 
-    @bug(context.library < "golang@1.36.0")
-    @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "dotnet@2.24.0")
-    @bug(context.library >= "nodejs@2.27.1")
-    @bug(
-        context.library >= "python@1.16.0rc2.dev37"
-        and context.agent_version >= "7.47.0rc2"
-        and context.appsec_rules_file is not None,
-        reason="on /v0.7/config, client.products is an empty array",
-    )
+    # def test_some_schema_point(self):
+    #     interfaces.library.assert_schema_point("/v0.4/traces", "$[][]['name']")
+
     def test_full(self):
-        interfaces.library.assert_schemas()
+        interfaces.library.assert_schema_points(
+            excluded_points=[
+                # ("/v0.4/traces", "$[][]['name']")
+            ]
+        )
 
-    def test_non_regression(self):
-        """ Non-regression test on shemas """
+    # @bug(context.library < "golang@1.36.0")
+    # @bug(context.library < "java@0.93.0")
+    # @bug(context.library >= "dotnet@2.24.0")
+    # @bug(context.library >= "nodejs@2.27.1")
+    # @bug(
+    #     context.library >= "python@1.16.0rc2.dev37"
+    #     and context.agent_version >= "7.47.0rc2"
+    #     and context.appsec_rules_file is not None,
+    #     reason="on /v0.7/config, client.products is an empty array",
+    # )
+    # def test_full(self):
+    #     interfaces.library.assert_schemas()
 
-        # Never skip this test. As a full respect of shemas may be hard, this test ensure that
-        # at least the part that was ok stays ok.
+    # def test_non_regression(self):
+    #     """ Non-regression test on shemas """
 
-        allowed_errors = None
-        if context.library == "golang":
-            allowed_errors = (
-                r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
-                r"'protocol_version' is a required property on instance ",
-            )
-        elif context.library == "java":
-            # pylint: disable=line-too-long
-            allowed_errors = (
-                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
-                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
-                r"'idempotency_key' is a required property on instance ",
-            )
-        elif context.library == "dotnet":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "nodejs":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "python":
-            allowed_errors = (r"\[\] is too short on instance \['client'\]\['products'\]",)
+    #     # Never skip this test. As a full respect of shemas may be hard, this test ensure that
+    #     # at least the part that was ok stays ok.
 
-        interfaces.library.assert_schemas(allowed_errors=allowed_errors)
+    #     allowed_errors = None
+    #     if context.library == "golang":
+    #         allowed_errors = (
+    #             r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
+    #             r"'protocol_version' is a required property on instance ",
+    #         )
+    #     elif context.library == "java":
+    #         # pylint: disable=line-too-long
+    #         allowed_errors = (
+    #             r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
+    #             r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
+    #             r"'idempotency_key' is a required property on instance ",
+    #         )
+    #     elif context.library == "dotnet":
+    #         allowed_errors = (
+    #             # value is missing in configuration object in telemetry payloads
+    #             r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
+    #         )
+    #     elif context.library == "nodejs":
+    #         allowed_errors = (
+    #             # value is missing in configuration object in telemetry payloads
+    #             r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
+    #         )
+    #     elif context.library == "python":
+    #         allowed_errors = (r"\[\] is too short on instance \['client'\]\['products'\]",)
+
+    #     interfaces.library.assert_schemas(allowed_errors=allowed_errors)
 
 
 class Test_Agent:
@@ -69,41 +79,41 @@ class Test_Agent:
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
 
-    @bug(context.library < "golang@1.36.0")
-    @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "dotnet@2.24.0")
-    @bug(context.library >= "nodejs@2.27.1")
+    # @bug(context.library < "golang@1.36.0")
+    # @bug(context.library < "java@0.93.0")
+    # @bug(context.library >= "dotnet@2.24.0")
+    # @bug(context.library >= "nodejs@2.27.1")
     def test_full(self):
-        interfaces.agent.assert_schemas()
+        interfaces.agent.assert_schema_points()
 
-    def test_non_regression(self):
-        """ Non-regression test on shemas """
+    # def test_non_regression(self):
+    #     """ Non-regression test on shemas """
 
-        # Never skip this test. As a full respect of shemas may be hard, this test ensure that
-        # at least the part that was ok stays ok.
+    #     # Never skip this test. As a full respect of shemas may be hard, this test ensure that
+    #     # at least the part that was ok stays ok.
 
-        allowed_errors = None
-        if context.library == "golang":
-            allowed_errors = (
-                r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
-                r"'protocol_version' is a required property on instance ",
-            )
-        elif context.library == "java":
-            # pylint: disable=line-too-long
-            allowed_errors = (
-                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
-                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
-                r"'idempotency_key' is a required property on instance ",
-            )
-        elif context.library == "dotnet":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "nodejs":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
+    #     allowed_errors = None
+    #     if context.library == "golang":
+    #         allowed_errors = (
+    #             r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
+    #             r"'protocol_version' is a required property on instance ",
+    #         )
+    #     elif context.library == "java":
+    #         # pylint: disable=line-too-long
+    #         allowed_errors = (
+    #             r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
+    #             r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
+    #             r"'idempotency_key' is a required property on instance ",
+    #         )
+    #     elif context.library == "dotnet":
+    #         allowed_errors = (
+    #             # value is missing in configuration object in telemetry payloads
+    #             r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
+    #         )
+    #     elif context.library == "nodejs":
+    #         allowed_errors = (
+    #             # value is missing in configuration object in telemetry payloads
+    #             r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
+    #         )
 
-        interfaces.agent.assert_schemas(allowed_errors=allowed_errors)
+    #     interfaces.agent.assert_schemas(allowed_errors=allowed_errors)

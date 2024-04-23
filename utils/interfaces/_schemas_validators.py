@@ -7,12 +7,13 @@ Usage:
     PYTHONPATH=. python utils/interfaces/_schemas_validators.py
 """
 
+from dataclasses import dataclass
 import os
 import json
 import re
 import functools
 
-from jsonschema import Draft7Validator, RefResolver
+from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
 from utils.tools import logger
@@ -70,6 +71,22 @@ def _get_schema_validator(schema_id):
     return _ApiObjectValidator(schema, resolver=resolver, format_checker=Draft7Validator.FORMAT_CHECKER)
 
 
+@dataclass
+class SchemaError:
+    interface_name: str
+    endpoint: str
+    error: ValidationError
+    data: dict
+
+    @property
+    def message(self):
+        return f"{self.error.message} on instance {self.error.json_path} in " + self.data["log_filename"]
+
+    @property
+    def data_path(self):
+        return re.sub(r"\[\d+\]", "[]", self.error.json_path)
+
+
 class SchemaValidator:
     def __init__(self, interface, allowed_errors=None):
         self.interface = interface
@@ -78,26 +95,30 @@ class SchemaValidator:
         for pattern in allowed_errors or []:
             self.allowed_errors.append(re.compile(pattern))
 
-    def __call__(self, data):
+    def get_errors(self, data) -> list[SchemaError]:
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
         validator = _get_schema_validator(schema_id)
-        if not validator.is_valid(data["request"]["content"]):
-            messages = []
+        if validator.is_valid(data["request"]["content"]):
+            return []
 
-            for error in validator.iter_errors(data["request"]["content"]):
-                message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
-                if not any(pattern.fullmatch(message) for pattern in self.allowed_errors):
-                    messages.append(message)
+        return [
+            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data,)
+            for error in validator.iter_errors(data["request"]["content"])
+        ]
 
-            if len(messages) != 0:
-                for message in messages:
-                    logger.error(f"* {message}")
+    # def __call__(self, data):
+    #     errors = self.get_errors(data)
 
-                raise ValueError(f"Schema is invalid in {data['log_filename']}")
+    #     if len(errors) == 0:
+    #         logger.debug(f"{data['log_filename']} schema validation ok")
+    #         return
 
-        logger.debug(f"{data['log_filename']} schema validation ok")
+    #     for error in errors:
+    #         logger.error(f"* {error.message}")
+
+    #     raise ValueError(f"Schema is invalid in {data['log_filename']}")
 
 
 def _main():
