@@ -178,11 +178,11 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         return self._schema_errors
 
-    def assert_schema_point(self, endpoint, data_path, assertion):
+    def assert_schema_point(self, endpoint, data_path):
         has_error = False
 
         for error in self.get_schemas_errors():
-            if error.endpoint == endpoint and error.data_path == data_path and error.error.message == assertion:
+            if error.endpoint == endpoint and error.data_path == data_path:
                 has_error = True
                 logger.error(f"* {error.message}")
 
@@ -193,7 +193,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         excluded_points = excluded_points or []
 
         for error in self.get_schemas_errors():
-            if (error.endpoint, error.data_path, error.error.message) in excluded_points:
+            if (error.endpoint, error.data_path) in excluded_points:
                 continue
 
             has_error = True

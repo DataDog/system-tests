@@ -109,31 +109,25 @@ class SchemaValidator:
             for error in validator.iter_errors(data["request"]["content"])
         ]
 
-    # def __call__(self, data):
-    #     errors = self.get_errors(data)
 
-    #     if len(errors) == 0:
-    #         logger.debug(f"{data['log_filename']} schema validation ok")
-    #         return
+def _main():
+    for interface in ("agent", "library"):
+        validator = SchemaValidator(interface)
+        folders = [folder for folder in os.listdir(".") if os.path.isdir(folder) and folder.startswith("logs")]
+        for folder in folders:
+            path = f"{folder}/interfaces/{interface}"
 
-    #     for error in errors:
-    #         logger.error(f"* {error.message}")
+            if not os.path.exists(path):
+                continue
+            files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+            for file in files:
+                with open(os.path.join(path, file), encoding="utf-8") as f:
+                    data = json.load(f)
 
-    #     raise ValueError(f"Schema is invalid in {data['log_filename']}")
-
-
-# def _main():
-#     for interface in ("agent", "library"):
-#         validator = SchemaValidator(interface)
-#         path = f"logs/interfaces/{interface}"
-#         files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
-#         for file in files:
-#             with open(os.path.join(path, file), encoding="utf-8") as f:
-#                 data = json.load(f)
-
-#            if "request" in data and data["request"]["length"] != 0:
-#                validator(data)
+                if "request" in data and data["request"]["length"] != 0:
+                    for error in validator.get_errors(data):
+                        print(error.message)
 
 
-# if __name__ == "__main__":
-#     _main()
+if __name__ == "__main__":
+    _main()

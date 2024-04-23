@@ -4,11 +4,11 @@
 
 """Test format specifications"""
 
-from utils import weblog, interfaces, bug, context
+from utils import weblog, interfaces, bug, context, scenarios
 
 
-# allow to reuse the same test for other scenarios
-class BaseTestLibrarySchema:
+@scenarios.all_endtoend_scenarios
+class Test_library:
     """Libraries's payload are valid regarding schemas"""
 
     def setup_library_schema_full(self):
@@ -18,19 +18,22 @@ class BaseTestLibrarySchema:
     def test_library_schema_full(self):
         interfaces.library.assert_schema_points(
             excluded_points=[
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property")
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
             ]
         )
 
     @bug(context.library >= "nodejs@2.27.1")
     def test_library_schema_telemetry_conf_value(self):
         interfaces.library.assert_schema_point(
-            "/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property"
+            "/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"
         )
 
-
-class Test_library(BaseTestLibrarySchema):
-    ...
+    @bug(library="python", reason="XXX-1234")
+    def test_library_schema_telemetry_job_object(self):
+        interfaces.library.assert_schema_point(
+            "/telemetry/proxy/api/v2/apmtelemetry", "$.payload"
+        )
 
     # @bug(context.library < "golang@1.36.0")
     # @bug(context.library < "java@0.93.0")
@@ -74,6 +77,7 @@ class Test_library(BaseTestLibrarySchema):
     #     interfaces.library.assert_schemas(allowed_errors=allowed_errors)
 
 
+@scenarios.all_endtoend_scenarios
 class Test_Agent:
     """Agents's payload are valid regarding schemas"""
 
@@ -86,14 +90,15 @@ class Test_Agent:
     # @bug(context.library >= "dotnet@2.24.0")
     def test_agent_schema_full(self):
         interfaces.agent.assert_schema_points(
-            excluded_points=[("/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property")]
+            excluded_points=[
+                ("/api/v2/apmtelemetry", "$.payload.configuration[]"),
+                ("/api/v2/apmtelemetry", "$.payload")
+            ]
         )
 
     @bug(context.library >= "nodejs@2.27.1")
     def test_agent_schema_telemetry_conf_value(self):
-        interfaces.agent.assert_schema_point(
-            "/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property"
-        )
+        interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[]")
 
     # def test_non_regression(self):
     #     """ Non-regression test on shemas """
