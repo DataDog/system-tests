@@ -153,7 +153,7 @@ def validate_pii_redaction(should_redact_field_names):
         raise ValueError(error_message)
 
 
-def test(self, redacted_keys):
+def run_test(self, redacted_keys):
     self.assert_remote_config_is_sent()
     self.assert_all_probes_are_installed()
 
@@ -200,11 +200,11 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
 
     @irrelevant(context.library <= "dotnet@2.50", reason="behaviour changed")
     def test_pii_redaction(self):
-        test(self, REDACTED_KEYS)
+        run_test(self, REDACTED_KEYS)
 
     @irrelevant(context.library != "dotnet@2.50", reason="behaviour changed")
     def test_pii_redaction_2_50(self):
-        test(self, filter("connectionstring"))
+        run_test(self, filter("connectionstring"))
 
     @missing_feature(context.library < "dotnet@2.49", reason="behaviour changed")
     def test_pii_redaction_2_33_2_49(self):
