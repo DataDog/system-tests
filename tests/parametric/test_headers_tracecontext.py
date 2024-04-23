@@ -32,6 +32,12 @@ def temporary_enable_optin_tracecontext_single_key() -> Any:
     }
     return parametrize("library_env", [env])
 
+def temporary_enable_optin_extract_first() -> Any:
+    env = {
+        "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
+    }
+    return parametrize("library_env", [env])
+
 
 @scenarios.parametric
 @features.datadog_headers_propagation
@@ -806,6 +812,203 @@ class Test_Headers_Tracecontext:
             tracestate = tracestate_headers[0][1]
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert "p:{:016x}".format(int(span.span_id)) in tracestate
+
+    # W3C Phase 3 to try adding the tag if the span id matches regardless of headers order(if tracecontext is accounted)
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    def test_tracestate_w3c_p_phase_3_extract_inject(self, test_agent, test_library):
+        """
+        Ensure the last parent id tag is set according to the W3C phase 3 spec
+        """
+        with test_library:
+            # 1) Datadog and tracecontext headers, trace-id and span-id match
+            headers1 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
+                    ["x-datadog-trace-id", "1"],
+                    ["x-datadog-parent-id", "987654321"],
+                ],
+            )
+
+            # 2) Datadog and tracecontext headers, trace-id and span-id match, missing p
+            headers2 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2,foo=1"],
+                    ["x-datadog-trace-id", "2"],
+                    ["x-datadog-parent-id", "987654321"],
+                ],
+            )
+
+            # 3) Datadog and tracecontext headers, only trace-id matches
+            headers3 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
+                    ["x-datadog-trace-id", "3"],
+                    ["x-datadog-parent-id", "9876543210"],
+                ],
+            )
+
+            # 4) Datadog headers only
+            headers4 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["x-datadog-trace-id", "4"],
+                    ["x-datadog-parent-id", "987654321"],
+                ],
+            )
+
+            # 5) Datadog and tracecontext headers, no x-datadog-trace-id, only tid DD tag matches
+            headers5 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000005-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
+                    ["x-datadog-parent-id", "9876543210"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                ],
+            )
+
+            # 6) Datadog and tracecontext headers, not x-datadog-trace-id, tid and the spans id match
+            headers6 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000006-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                ],
+            )
+
+        traces = test_agent.wait_for_num_traces(6)
+
+        assert len(traces) == 6
+        case1, case2, case3, case4, case5, case6 = traces[0][0], traces[1][0], traces[2][0], traces[3][0], traces[4][0], traces[5][0]
+
+        # 1) Datadog and tracecontext headers, trace-id and span-id match
+        assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
+
+        traceparent1, tracestate1 = get_tracecontext(headers1)
+        assert traceparent1.trace_id == "11111111111111110000000000000001"
+        assert "p:{:016x}".format(int(case1["span_id"])) in tracestate1["dd"]
+        
+        # 2) Datadog and tracecontext headers, trace-id and span-id match, missing p
+        assert "_dd.parent_id" not in case2["meta"]
+
+        traceparent2, tracestate2 = get_tracecontext(headers2)
+        assert traceparent2.trace_id == "11111111111111110000000000000002"
+        assert "p:{:016x}".format(int(case2["span_id"])) in tracestate2["dd"]
+
+        # 3) Datadog and tracecontext headers, only trace-id matches
+        assert "_dd.parent_id" not in case3["meta"]
+
+        traceparent3, tracestate3 = get_tracecontext(headers3)
+        assert traceparent3.trace_id == "11111111111111110000000000000003"
+        assert "p:{:016x}".format(int(case3["span_id"])) in tracestate3["dd"]
+
+        # 4) Datadog headers only
+        assert "_dd.parent_id" not in case4["meta"]
+
+        traceparent4, tracestate4 = get_tracecontext(headers4)
+        assert "p:{:016x}".format(int(case4["span_id"])) in tracestate4["dd"]
+
+        # 5) Datadog and tracecontext headers, only tid DD tag matches
+        assert "_dd.parent_id" not in case5["meta"]
+
+        traceparent5, tracestate5 = get_tracecontext(headers5)
+        assert traceparent5.trace_id == "11111111111111110000000000000005"
+        assert "p:{:016x}".format(int(case5["span_id"])) in tracestate5["dd"]
+
+        # 6) Datadog and tracecontext headers, only tid DD tag matches
+        assert case6["meta"]["_dd.parent_id"] == "0123456789abcdef"
+
+        traceparent6, tracestate6 = get_tracecontext(headers6)
+        assert traceparent6.trace_id == "11111111111111110000000000000006"
+        assert "p:{:016x}".format(int(case6["span_id"])) in tracestate6["dd"]
+
+    # W3C Phase 3 to try adding the tag if the span id matches regardless of headers order(if tracecontext is accounted)
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @temporary_enable_optin_extract_first()
+    def test_tracestate_w3c_p_phase_3_extract_inject_extract_first(self, test_agent, test_library):
+        """
+        Ensure the last parent id tag is set according to the W3C phase 3 spec
+        """
+        with test_library:
+            # 1) Datadog and tracecontext headers, trace-id and span-id match
+            headers1 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
+                    ["x-datadog-trace-id", "1"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                ],
+            )
+
+            # 2) Datadog headers only
+            headers2 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["x-datadog-trace-id", "2"],
+                    ["x-datadog-parent-id", "987654321"],
+                ],
+            )
+
+            # 3) Datadog and tracecontext headers, not x-datadog-trace-id, tid and the spans id match
+            headers3 = make_single_request_and_get_inject_headers(
+                test_library,
+                [
+                    ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                ],
+            )
+
+        traces = test_agent.wait_for_num_traces(3)
+
+        assert len(traces) == 3
+        case1, case2, case3 = traces[0][0], traces[1][0], traces[2][0]
+
+        # 1) Datadog and tracecontext headers, trace-id and span-id match
+        assert "_dd.parent_id" not in case1["meta"]
+
+        traceparent1, tracestate1 = get_tracecontext(headers1)
+        assert traceparent1.trace_id == "11111111111111110000000000000001"
+        assert "p:{:016x}".format(int(case1["span_id"])) in tracestate1["dd"]
+        
+        # 2) Datadog headers only
+        assert "_dd.parent_id" not in case2["meta"]
+
+        traceparent2, tracestate2 = get_tracecontext(headers2)
+        assert traceparent2.trace_id != "11111111111111110000000000000002"
+        assert "p:{:016x}".format(int(case2["span_id"])) in tracestate2["dd"]
+
+        # 3) Datadog and tracecontext headers, not x-datadog-trace-id, tid and the spans id match
+        assert case3["meta"]["_dd.parent_id"] == "0123456789abcdef"
+
+        traceparent3, tracestate3 = get_tracecontext(headers3)
+        assert traceparent3.trace_id == "11111111111111110000000000000003"
+        assert "p:{:016x}".format(int(case3["span_id"])) in tracestate3["dd"]
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
