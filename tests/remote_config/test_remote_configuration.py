@@ -18,6 +18,7 @@ from utils import (
     features,
 )
 from utils.tools import logger
+from tests.test_schemas import BaseTestLibrarySchema
 
 with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
     LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
@@ -49,15 +50,15 @@ class Test_Agent:
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @features.remote_config_object_supported
-class RemoteConfigurationFieldsBasicTests:
+class RemoteConfigurationFieldsBasicTests(BaseTestLibrarySchema):
     """Misc tests on fields and values on remote configuration requests"""
 
     # @bug(context.library < "golang@1.36.0")
     # @bug(context.library < "java@0.93.0")
     # @bug(context.library >= "nodejs@3.14.1")
-    def test_schemas(self):
-        """Test all library schemas"""
-        interfaces.library.assert_schema_points()
+    # def test_schemas(self):
+    #     """Test all library schemas"""
+    #     interfaces.library.assert_schema_points()
 
     # def test_non_regression(self):
     #     """Non-regression test on shemas"""

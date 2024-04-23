@@ -7,14 +7,15 @@
 from utils import weblog, interfaces, bug, context
 
 
-class Test_Library:
+# allow to reuse the same test for other scenarios
+class BaseTestLibrarySchema:
     """Libraries's payload are valid regarding schemas"""
 
-    def setup_full(self):
+    def setup_library_schema_full(self):
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
 
-    def test_full(self):
+    def test_library_schema_full(self):
         interfaces.library.assert_schema_points(
             excluded_points=[
                 ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property")
@@ -22,10 +23,14 @@ class Test_Library:
         )
 
     @bug(context.library >= "nodejs@2.27.1")
-    def test_telemetry_conf_value(self):
+    def test_library_schema_telemetry_conf_value(self):
         interfaces.library.assert_schema_point(
             "/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property"
         )
+
+
+class Test_library(BaseTestLibrarySchema):
+    ...
 
     # @bug(context.library < "golang@1.36.0")
     # @bug(context.library < "java@0.93.0")
@@ -72,20 +77,20 @@ class Test_Library:
 class Test_Agent:
     """Agents's payload are valid regarding schemas"""
 
-    def setup_full(self):
+    def setup_agent_schema_full(self):
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
 
     # @bug(context.library < "golang@1.36.0")
     # @bug(context.library < "java@0.93.0")
     # @bug(context.library >= "dotnet@2.24.0")
-    def test_full(self):
+    def test_agent_schema_full(self):
         interfaces.agent.assert_schema_points(
             excluded_points=[("/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property")]
         )
 
     @bug(context.library >= "nodejs@2.27.1")
-    def test_telemetry_conf_value(self):
+    def test_agent_schema_telemetry_conf_value(self):
         interfaces.agent.assert_schema_point(
             "/api/v2/apmtelemetry", "$.payload.configuration[]", "'value' is a required property"
         )
