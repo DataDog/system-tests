@@ -16,8 +16,6 @@ import functools
 from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
-from utils.tools import logger
-
 
 def _is_bytes_or_string(_checker, instance):
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)
@@ -121,18 +119,18 @@ class SchemaValidator:
     #     raise ValueError(f"Schema is invalid in {data['log_filename']}")
 
 
-def _main():
-    for interface in ("agent", "library"):
-        validator = SchemaValidator(interface)
-        path = f"logs/interfaces/{interface}"
-        files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
-        for file in files:
-            with open(os.path.join(path, file), encoding="utf-8") as f:
-                data = json.load(f)
+# def _main():
+#     for interface in ("agent", "library"):
+#         validator = SchemaValidator(interface)
+#         path = f"logs/interfaces/{interface}"
+#         files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+#         for file in files:
+#             with open(os.path.join(path, file), encoding="utf-8") as f:
+#                 data = json.load(f)
 
-            if "request" in data and data["request"]["length"] != 0:
-                validator(data)
+#            if "request" in data and data["request"]["length"] != 0:
+#                validator(data)
 
 
-if __name__ == "__main__":
-    _main()
+# if __name__ == "__main__":
+#     _main()
