@@ -960,7 +960,6 @@ class Test_Headers_Tracecontext:
                     ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
                     ["x-datadog-trace-id", "1"],
                     ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
 
