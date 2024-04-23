@@ -19,21 +19,17 @@ class Test_library:
         interfaces.library.assert_schema_points(
             excluded_points=[
                 ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),
             ]
         )
 
     @bug(context.library >= "nodejs@2.27.1")
     def test_library_schema_telemetry_conf_value(self):
-        interfaces.library.assert_schema_point(
-            "/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"
-        )
+        interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]")
 
     @bug(library="python", reason="XXX-1234")
     def test_library_schema_telemetry_job_object(self):
-        interfaces.library.assert_schema_point(
-            "/telemetry/proxy/api/v2/apmtelemetry", "$.payload"
-        )
+        interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
 
     # @bug(context.library < "golang@1.36.0")
     # @bug(context.library < "java@0.93.0")
@@ -92,7 +88,7 @@ class Test_Agent:
         interfaces.agent.assert_schema_points(
             excluded_points=[
                 ("/api/v2/apmtelemetry", "$.payload.configuration[]"),
-                ("/api/v2/apmtelemetry", "$.payload")
+                ("/api/v2/apmtelemetry", "$.payload"),
             ]
         )
 
