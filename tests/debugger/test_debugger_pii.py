@@ -180,7 +180,6 @@ def filter(keys_to_filter):
 
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
-@missing_feature(context.library >= "java@1.27", reason="not implemented yet")
 class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
     pii_responses = []
 

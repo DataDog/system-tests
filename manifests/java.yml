@@ -836,10 +836,8 @@ tests/:
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction:
-        '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+      Test_Debugger_PII_Redaction: 
+        '*': missing_feature (not implemented yet)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
