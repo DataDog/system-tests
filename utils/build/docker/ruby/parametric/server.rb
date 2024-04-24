@@ -3,8 +3,22 @@ current_dir = Dir.pwd
 $LOAD_PATH.unshift(current_dir) unless $LOAD_PATH.include?(current_dir)
 
 require 'grpc'
-require 'ddtrace'
+
+# Support gem rename on both branches
+begin
+  require 'datadog'
+  puts Datadog::VERSION::STRING
+rescue LoadError
+end
+begin
+  require 'ddtrace'
+  puts DDTrace::VERSION::STRING
+rescue LoadError
+end
+
 require 'datadog/tracing/contrib/grpc/distributed/propagation' # Loads optional `Datadog::Tracing::Contrib::GRPC::Distributed`
+puts 'Loading server dependencies...'
+
 require 'apm_test_client_services_pb'
 
 # Only used for OpenTelemetry testing.
@@ -40,8 +54,11 @@ class ServerImpl < APMClient::Service
                headers = start_span_args.http_headers.http_headers.group_by(&:key).map do |name, values|
                  [name, values.map(&:value).join(', ')]
                end
-
-               Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
+                if Datadog::Tracing::Contrib::GRPC.respond_to?(:extract)
+                  Datadog::Tracing::Contrib::GRPC.extract(headers.to_h)
+                else
+                  Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
+                end
              elsif !start_span_args.origin.empty? || start_span_args.parent_id != 0
                # DEV: Parametric tests do not differentiate between a distributed span request from a span parenting request.
                # DEV: We have to consider the parent_id being present present and origin being absent as a span parenting request.
@@ -132,7 +149,11 @@ class ServerImpl < APMClient::Service
     find_span(inject_headers_args.span_id)
 
     env = {}
-    Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest, env)
+    if Datadog::Tracing::Contrib::GRPC.respond_to?(:inject)
+      Datadog::Tracing::Contrib::GRPC.inject(Datadog::Tracing.active_trace.to_digest, env)
+    else
+      Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest, env)
+    end
 
     tuples = env.map do |key, value|
       HeaderTuple.new(key:, value:)

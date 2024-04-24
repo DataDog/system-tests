@@ -1,0 +1,81 @@
+name: "Compute libraries impacted by the change"
+
+on:
+  workflow_call:
+    outputs:
+      impacted_libraries:
+        description: "JSON list of libraries impacted by the change"
+        value: ${{ jobs.main.outputs.impacted_libraries }}
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    outputs:
+      impacted_libraries: ${{ steps.compute_impacted_libraries.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+      - run:  |
+          git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
+          git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
+          cat modified_files.txt
+      - name: Compute impacted libraries
+        id: compute_impacted_libraries
+        shell: python
+        run: |
+          import json
+          import os
+          import re
+
+          github_context = json.loads(os.environ["GITHUB_CONTEXT"])
+
+          # temporary print to see what's hapenning on differents events
+          print(json.dumps(github_context, indent=2))
+
+          libraries = "cpp|dotnet|golang|java|nodejs|php|python|ruby"
+          result = set()
+
+          if github_context["ref"] == "refs/heads/main":
+              print("Merge commit to main => run all libraries")
+              result |= {"cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
+
+          elif github_context["event_name"] == "schedule":
+              print("Scheduled job => run all libraries")
+              result |= {"cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
+  
+          else:
+              pr_title = github_context["event"]["pull_request"]["title"].lower()
+              match = re.search(rf"^\[({libraries})\]", pr_title)
+              if match:
+                  print(f"PR title matchs => run {match[1]}")
+                  result.add(match[1])
+              else:
+                  print(f"Inspect modified files to determine impacted libraries...")
+                  with open("modified_files.txt", "r", encoding="utf-8") as f:
+                      files = f.readlines()
+
+                  for file in files:
+                      manifest_match = re.search(rf"^manifests/({libraries}).yml", file)
+                      weblog_match = re.search(rf"^utils/build/docker/({libraries})/", file)
+                      injection_match = re.search(rf"^lib-injection/build/docker/({libraries})/", file)
+
+                      if manifest_match:
+                          result.add(manifest_match[1])
+                      elif weblog_match:
+                          result.add(weblog_match[1])
+                      elif injection_match:
+                          result.add(injection_match[1])
+
+                      if not manifest_match and not weblog_match and not injection_match:
+                          print(f"{file} may impact any library => run all of them")
+                          result |= {"cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
+                          break
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              print(f"result={json.dumps(sorted(result))}", file=fh)
+
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+
+      - name: Print results
+        run: |
+          echo 'Impacted libraries: -> ${{ steps.compute_impacted_libraries.outputs.result }}'

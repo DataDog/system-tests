@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -16,8 +16,20 @@ def get_header(data, origin, name):
     return None
 
 
+def get_request_content(data):
+    return data["request"]["content"]
+
+
 def get_request_type(data):
-    return data["request"]["content"].get("request_type")
+    return get_request_content(data).get("request_type")
+
+
+def get_configurations(data):
+    return get_request_content(data)["payload"].get("configuration")
+
+
+def get_service_name(data):
+    return get_request_content(data)["application"].get("service_name")
 
 
 def not_onboarding_event(data):
@@ -25,11 +37,11 @@ def not_onboarding_event(data):
 
 
 def is_v2_payload(data):
-    return data["request"]["content"].get("api_version") == "v2"
+    return get_request_content(data).get("api_version") == "v2"
 
 
 def is_v1_payload(data):
-    return data["request"]["content"].get("api_version") == "v1"
+    return get_request_content(data).get("api_version") == "v1"
 
 
 @features.telemetry_instrumentation
@@ -686,9 +698,10 @@ class Test_Metric_Generation_Disabled:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
 
     def test_metric_generation_disabled(self):
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
-            if get_request_type(data) == "generate-metrics":
-                raise Exception("Metric generate event is sent when metric generation is disabled")
+        all_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=True))
+        assert len(all_data) != 0, "No telemetry data to validate on"
+        generate_metrics_messages = [d for d in all_data if get_request_type(d) == "generate-metrics"]
+        assert len(generate_metrics_messages) == 0, "Metric generation event is sent when metric generation is disabled"
 
 
 @features.telemetry_metrics_collected
@@ -705,35 +718,65 @@ class Test_Metric_Generation_Enabled:
         logger.debug("Wait complete")
 
     def test_metric_generation_enabled(self):
-        self.assert_general_metrics()
-        self.assert_tracer_metrics()
-        self.assert_telemetry_metrics()
+        found = False
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "generate-metrics":
+                continue
+            if content["payload"]["series"]:
+                found = True
+                break
+        assert found, "No metrics found in telemetry data"
 
-    def assert_general_metrics(self):
-        namespace = "general"
-        self.assert_count_metric(namespace, "logs_created", expect_at_least=1)
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_general_logs_created(self):
+        self.assert_count_metric("general", "logs_created", expect_at_least=1)
 
-    def assert_tracer_metrics(self):
-        namespace = "tracers"
-        self.assert_count_metric(namespace, "spans_created", expect_at_least=1)
-        self.assert_count_metric(namespace, "spans_finished", expect_at_least=1)
-        self.assert_count_metric(namespace, "spans_enqueued_for_serialization", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_segments_created", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_chunks_enqueued_for_serialization", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_chunks_sent", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_segments_closed", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_api.requests", expect_at_least=1)
-        self.assert_count_metric(namespace, "trace_api.responses", expect_at_least=1)
+    def test_metric_tracers_spans_created(self):
+        self.assert_count_metric("tracers", "spans_created", expect_at_least=1)
 
-    def assert_telemetry_metrics(self):
-        namespace = "telemetry"
-        self.assert_count_metric(namespace, "telemetry_api.requests", expect_at_least=1)
-        self.assert_count_metric(namespace, "telemetry_api.responses", expect_at_least=1)
+    def test_metric_tracers_spans_finished(self):
+        self.assert_count_metric("tracers", "spans_finished", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_spans_enqueued_for_serialization(self):
+        self.assert_count_metric("tracers", "spans_enqueued_for_serialization", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_segments_created(self):
+        self.assert_count_metric("tracers", "trace_segments_created", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_chunks_enqueued_for_serialization(self):
+        self.assert_count_metric("tracers", "trace_chunks_enqueued_for_serialization", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_chunks_sent(self):
+        self.assert_count_metric("tracers", "trace_chunks_sent", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_segments_closed(self):
+        self.assert_count_metric("tracers", "trace_segments_closed", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_api_requests(self):
+        self.assert_count_metric("tracers", "trace_api.requests", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_tracers_trace_api_responses(self):
+        self.assert_count_metric("tracers", "trace_api.responses", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_telemetry_api_requests(self):
+        self.assert_count_metric("telemetry", "telemetry_api.requests", expect_at_least=1)
+
+    @missing_feature(library="java", reason="Not implemented")
+    def test_metric_telemetry_api_responses(self):
+        self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)
 
     def assert_count_metric(self, namespace, metric, expect_at_least):
         series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
-        if len(series) == 0 and expect_at_least > 0:
-            raise Exception(f"No telemetry data received for metric {namespace}.{metric}")
+        assert len(series) != 0 or expect_at_least == 0, f"No telemetry data received for metric {namespace}.{metric}"
 
         count = 0
         for s in series:
@@ -746,3 +789,30 @@ class Test_Metric_Generation_Enabled:
                 count = count + p[1]
 
         assert count >= expect_at_least
+
+
+@rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
+@features.telemetry_app_started_event
+class Test_TelemetrySCAEnvVar:
+    def test_telemetry_sca_propagated(self):
+        target_service_name = "weblog"
+        target_request_type = "app-started"
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        events = []
+
+        for t in telemetry_data:
+            if get_request_type(t) == target_request_type and get_service_name(t) == target_service_name:
+                events.append(t)
+
+        assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
+
+        configurations = get_configurations(events[0])
+        found = False
+        for c in configurations:
+            if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                found = True
+                break
+
+        assert (
+            found
+        ), f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"

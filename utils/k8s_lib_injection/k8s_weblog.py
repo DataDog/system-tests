@@ -355,10 +355,13 @@ class K8sWeblog:
         app_name = f"{self.library}-app"
         try:
             pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
-            if len(pods.items) > 0:
-                api_response = self.k8s_wrapper.read_namespaced_pod(pods.items[0].metadata.name)
+            for index in range(len(pods.items)):
+                k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(
+                    "-----------------------------------------------"
+                )
+                api_response = self.k8s_wrapper.read_namespaced_pod(pods.items[index].metadata.name)
                 k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(api_response)
-                api_response = self.k8s_wrapper.read_namespaced_pod_log(name=pods.items[0].metadata.name)
+                api_response = self.k8s_wrapper.read_namespaced_pod_log(name=pods.items[index].metadata.name)
                 k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(

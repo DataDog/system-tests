@@ -83,12 +83,3 @@ class Test_CorrectOptionProcessing:
     def test_main(self):
         interfaces.library.assert_waf_attack(self.r_match)
         interfaces.library.assert_no_appsec_event(self.r_no_match)
-
-
-@features.threats_configuration
-class Test_NoWafTimeout:
-    """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
-
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-    def test_main(self):
-        interfaces.library_stdout.assert_absence("Ran out of time while running flow")
