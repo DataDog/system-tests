@@ -25,7 +25,7 @@
                     "probeId": { "type": "string" },
                     "probeVersion": { "type": "number" },
                     "runtimeId": { "type": "string" },
-                    "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING"] }
+                    "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR"] }
                   },
                   "required": [
                     "probeId",
@@ -47,8 +47,7 @@
             "ddsource",
             "debugger",
             "message",
-            "service",
-            "timestamp"
+            "service"
           ]
         }
       }
