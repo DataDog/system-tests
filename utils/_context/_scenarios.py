@@ -208,6 +208,9 @@ class _Scenario:
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
 
+    def is_part_of(self, declared_scenario):
+        return self.name == declared_scenario
+
 
 class TestTheTestScenario(_Scenario):
     @property
@@ -420,6 +423,9 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
+    def is_part_of(self, declared_scenario):
+        return declared_scenario in (self.name, "EndToEndScenario")
+
     def configure(self, config):
         from utils import interfaces
 
@@ -452,6 +458,10 @@ class EndToEndScenario(_DockerScenario):
 
     def session_start(self):
         super().session_start()
+
+        if self.replay:
+            return
+
         try:
             code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
             if code:
@@ -1219,6 +1229,19 @@ class _KubernetesScenario(_Scenario):
 
 
 class scenarios:
+    @staticmethod
+    def all_endtoend_scenarios(test_object):
+        """particular use case where a klass applies on all scenarios"""
+
+        # Check that no scenario has been already declared
+        for marker in getattr(test_object, "pytestmark", []):
+            if marker.name == "scenario":
+                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
+
+        pytest.mark.scenario("EndToEndScenario")(test_object)
+
+        return test_object
+
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")

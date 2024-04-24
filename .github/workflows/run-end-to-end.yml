@@ -240,7 +240,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -250,12 +250,12 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -265,7 +265,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
