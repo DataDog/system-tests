@@ -49,6 +49,7 @@ class Test_Agent:
         )
 
     @irrelevant(context.scenario is scenarios.crossed_tracing_libraries, reason="APPSEC-52805")
+    @irrelevant(context.scenario is scenarios.graphql_appsec, reason="APPSEC-52805")
     def test_agent_schema_telemetry_conf_value(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[]")
 
