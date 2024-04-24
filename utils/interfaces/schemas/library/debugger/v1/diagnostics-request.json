@@ -1,4 +1,22 @@
 {
-    "$id": "/library/debugger/v1/diagnostics-request.json"
+  "$id": "/library/debugger/v1/diagnostics-request.json",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "headers": {
+        "type": "object",
+        "patternProperties": {
+          ".*": { "type": "string" }
+        }
+      },
+      "content": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "headers",
+      "content"
+    ]
   }
-  
+}
