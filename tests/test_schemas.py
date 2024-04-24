@@ -48,6 +48,7 @@ class Test_Agent:
             ]
         )
 
+    @bug(context.library >= "nodejs@2.27.1", reason="APPSEC-52805")
     @irrelevant(context.scenario is scenarios.crossed_tracing_libraries, reason="APPSEC-52805")
     @irrelevant(context.scenario is scenarios.graphql_appsec, reason="APPSEC-52805")
     def test_agent_schema_telemetry_conf_value(self):
