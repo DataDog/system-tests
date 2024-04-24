@@ -6,7 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features
+from utils import weblog, interfaces, context, scenarios, features, irrelevant
 from utils.tools import logger
 
 
@@ -168,6 +168,7 @@ class _Test_Dbm_Comment:
             assert self.r_batch.text["dbm_comment"] == self.expected_dbm_comment
 
 
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_correlation
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
@@ -181,6 +182,7 @@ class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
     ddh = "postgres"  # container name
 
 
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_correlation
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
@@ -194,6 +196,7 @@ class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
     ddh = "postgres"  # container name
 
 
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_correlation
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
@@ -207,6 +210,7 @@ class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
     ddh = "mysqldb"  # container name
 
 
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_correlation
 @scenarios.integrations
 class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
@@ -220,6 +224,7 @@ class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
     ddh = "mysqldb"  # container name
 
 
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_correlation
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
@@ -233,6 +238,7 @@ class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
     ddh = "mysqldb"  # container name
 
 
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_correlation
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
