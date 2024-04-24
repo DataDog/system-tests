@@ -19,15 +19,22 @@ class Test_library:
         interfaces.library.assert_schema_points(
             excluded_points=[
                 ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
             ]
         )
 
     @bug(context.library >= "nodejs@2.27.1")
+    @bug(library="cpp")
+    @bug(library="dotnet")
+    @bug(library="golang")
+    @bug(library="java")
+    @bug(library="php")
+    @bug(library="python")
+    @bug(library="ruby")
     def test_library_schema_telemetry_conf_value(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]")
 
-    @bug(library="python", reason="XXX-1234")
+    @bug(library="python", reason="APPSEC-52845")
     def test_library_schema_telemetry_job_object(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
 
@@ -88,13 +95,24 @@ class Test_Agent:
         interfaces.agent.assert_schema_points(
             excluded_points=[
                 ("/api/v2/apmtelemetry", "$.payload.configuration[]"),
-                ("/api/v2/apmtelemetry", "$.payload"),
+                ("/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
             ]
         )
 
     @bug(context.library >= "nodejs@2.27.1")
+    @bug(library="cpp")
+    @bug(library="dotnet")
+    @bug(library="golang")
+    @bug(library="java")
+    @bug(library="php")
+    @bug(library="python")
+    @bug(library="ruby")
     def test_agent_schema_telemetry_conf_value(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[]")
+
+    @bug(library="python", reason="APPSEC-52845")
+    def test_library_schema_telemetry_job_object(self):
+        interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload")
 
     # def test_non_regression(self):
     #     """ Non-regression test on shemas """
