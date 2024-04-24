@@ -4,7 +4,7 @@
 
 import test_debugger_base as base
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, irrelevant, context
+from utils import scenarios, interfaces, weblog, features, missing_feature, bug, irrelevant, context
 
 
 REDACTED_KEYS = [
@@ -199,14 +199,18 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
         self.pii_responses.append(weblog.get("/debugger/log/pii/6"))
 
     @irrelevant(context.library <= "dotnet@2.50", reason="behaviour changed")
-    def test_pii_redaction(self):
+    @bug(
+        weblog_variant="uds" and context.library == "dotnet@2.51.0",
+        reason="Currently we have a bug with UDS protocol on latest version",
+    )
+    def test_pii_redaction_latest(self):
         run_test(self, REDACTED_KEYS)
 
-    @irrelevant(context.library != "dotnet@2.50", reason="behaviour changed")
-    def test_pii_redaction_2_50(self):
-        run_test(self, filter("connectionstring"))
+    @bug(context.library == "dotnet@2.50.0", reason="There was a problem to send probe statuses")
+    def test_pii_redaction_latest(self):
+        run_test(self, REDACTED_KEYS)
 
-    @missing_feature(context.library < "dotnet@2.49", reason="behaviour changed")
+    @irrelevant(context.library > "dotnet@2.49", reason="behaviour changed")
     def test_pii_redaction_2_33_2_49(self):
         to_filter = [
             "accesstoken",
@@ -219,6 +223,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
             "certificatepin",
             "clientid",
             "clientsecret",
+            "connectionstring",
             "connectsid",
             "databaseurl",
             "dburl",
