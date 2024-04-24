@@ -903,7 +903,6 @@ tests/:
         spring-boot: v1.12.0
     test_dbm.py:
       Test_Dbm: missing_feature
-      "*": missing_feature
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         "*": irrelevant
