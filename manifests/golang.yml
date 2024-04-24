@@ -474,4 +474,5 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.49.1
