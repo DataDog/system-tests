@@ -9,7 +9,7 @@ function getConnection () {
     host: 'mysqldb',
     user: 'mysqldb',
     password: 'mysqldb',
-    database: 'world',
+    database: 'mysql_dbname',
     multipleStatements: true
   })
 

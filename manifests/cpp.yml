@@ -106,6 +106,7 @@ tests/:
       Test_Postgres: missing_feature
     test_dbm.py:
       Test_Dbm: missing_feature
+      "*": missing_feature
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: missing_feature
       Test_DsmContext_Injection_Base64: missing_feature

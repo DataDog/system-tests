@@ -137,16 +137,18 @@ class _Test_Dbm_Comment:
 
     def setup_dbm_comment(self):
         self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
-        self.r.text = json.loads(self.r.text)
-        self.expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
+        if self.r.text not in [None, ""]:
+            self.r.text = json.loads(self.r.text)
+            self.expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
 
     def setup_dbm_comment_batch(self):
         if self.execute_batch:
             self.r_batch = weblog.get(
                 "/stub_dbm", params={"integration": self.integration, "operation": self.operation_batch}
             )
-            self.r_batch.text = json.loads(self.r_batch.text)
-            self.expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
+            if self.r_batch.text not in [None, ""]:
+                self.r_batch.text = json.loads(self.r_batch.text)
+                self.expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
 
     def test_dbm_comment(self):
         assert self.r.text["status"] == "ok"
