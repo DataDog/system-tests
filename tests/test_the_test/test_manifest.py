@@ -67,7 +67,7 @@ def test_content():
             try:
                 semver.NpmSpec(declaration)
             except Exception as e:
-                raise ValueError(f"Invalid semver spec {declaration}") from e
+                raise ValueError(f"{declaration} is neither a version, a version range or a test state (bug, flaky ...)") from e
 
     manifest = load()
 
