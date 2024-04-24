@@ -22,7 +22,8 @@ function getConnection () {
 async function launchQuery (query) {
   return new Promise(function (resolve, reject) {
     // simple query
-    getConnection().query(
+    const connection = getConnection()
+    const res = connection.query(
       query,
       function (err, results, fields) {
         if (err) {
@@ -30,7 +31,8 @@ async function launchQuery (query) {
           return resolve('Error on mysql query')
         }
         console.log('mysql query result:' + results)
-        resolve('Mysql query done!')
+        const sql = res.sql
+        resolve(sql)
       }
     )
   })
@@ -45,6 +47,13 @@ async function initData () {
 async function select () {
   const query = 'SELECT * FROM demo where id=1 or id IN (3, 4)'
   return await launchQuery(query)
+}
+
+async function selectDbm () {
+  const query = 'SELECT version()'
+  return launchQuery(query).then((result) => {
+    return result
+  })
 }
 
 async function update () {
@@ -88,6 +97,8 @@ async function doOperation (operation) {
       return await initData()
     case 'select':
       return await select()
+    case 'execute':
+      return await selectDbm()
     case 'select_error':
       return await selectError()
     case 'insert':

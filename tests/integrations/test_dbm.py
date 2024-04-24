@@ -250,3 +250,31 @@ class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
     dddb = "mysql_dbname"  # db name
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
+@features.database_monitoring_correlation
+@scenarios.integrations
+class Test_Dbm_Comment_NodeJS_mysql2(_Test_Dbm_Comment):
+    integration = "mysql2"
+    operation = "execute"
+    operation_batch = "executemany"
+    execute_batch = False
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
+@features.database_monitoring_correlation
+@scenarios.integrations
+class Test_Dbm_Comment_NodeJS_pg(_Test_Dbm_Comment):
+    integration = "pg"
+    operation = "execute"
+    operation_batch = "executemany"
+    execute_batch = False
+
+    dddb = "system_tests_dbname"  # db name
+    dddbs = "system_tests_dbname"  # db name
+    ddh = "postgres"  # container name

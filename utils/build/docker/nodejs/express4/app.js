@@ -13,6 +13,10 @@ const passport = require('passport')
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
 
+const pgsql = require('./integrations/db/postgres')
+const mysql = require('./integrations/db/mysql')
+const mssql = require('./integrations/db/mssql')
+
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
@@ -140,6 +144,24 @@ app.get('/users', (req, res) => {
     tracer.appsec.blockRequest(req, res)
   } else {
     res.send(`Hello ${user.id}`)
+  }
+})
+
+app.get('/stub_dbm', async (req, res) => {
+  const integration = req.query.integration
+  const operation = req.query.operation
+
+  if (integration === 'pg') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    const dbmComment = await pgsql.doOperation(operation)
+    res.send({ status: 'ok', dbm_comment: dbmComment })
+  } else if (integration === 'mysql2') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    const result = await mysql.doOperation(operation)
+    res.send({ status: 'ok', dbm_comment: result })
+  } else if (integration === 'mssql') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    res.send(await mssql.doOperation(operation))
   }
 })
 
@@ -432,10 +454,6 @@ app.get('/read_file', (req, res) => {
 app.get('/db', async (req, res) => {
   console.log('Service: ' + req.query.service)
   console.log('Operation: ' + req.query.operation)
-
-  const pgsql = require('./integrations/db/postgres')
-  const mysql = require('./integrations/db/mysql')
-  const mssql = require('./integrations/db/mssql')
 
   if (req.query.service === 'postgresql') {
     res.send(await pgsql.doOperation(req.query.operation))
