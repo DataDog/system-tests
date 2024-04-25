@@ -3,6 +3,10 @@ const DatabasePlugin = require('dd-trace/packages/dd-trace/src/plugins/database'
 
 let dbmQueryString
 
+function getDbmQueryString () {
+  return dbmQueryString
+}
+
 function createDBMSpy () {
   // creates a spy to get the DBM injected query string
   const dbmCommentSpy = sinon.spy(DatabasePlugin.prototype, 'injectDbmQuery')
@@ -16,5 +20,5 @@ function createDBMSpy () {
 
 module.exports = {
   createDBMSpy,
-  dbmQueryString
+  getDbmQueryString
 }

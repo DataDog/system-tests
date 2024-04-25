@@ -3,7 +3,7 @@
 const { join } = require('path')
 const { Client } = require('pg')
 const { readFileSync } = require('fs')
-const { createDBMSpy, dbmQueryString } = require('./utils')
+const { createDBMSpy, getDbmQueryString } = require('./utils')
 
 async function launchQuery (query) {
   return new Promise(function (resolve, reject) {
@@ -39,7 +39,7 @@ async function selectDbm () {
   const sql = 'SELECT version()'
   return launchQuery(sql).then(() => {
     dbmCommentSpy.restore()
-    return dbmQueryString
+    return getDbmQueryString()
   }).catch((error) => {
     console.log(error)
     dbmCommentSpy.restore()
