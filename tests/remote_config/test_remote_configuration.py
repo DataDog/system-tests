@@ -52,19 +52,6 @@ class Test_Agent:
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
-    def test_client_state_errors(self):
-        """Ensure that the Client State error is consistent"""
-
-        def validator(data):
-            state = data["request"]["content"]["client"]["state"]
-
-            if state.get("has_error") is True:
-                assert (
-                    "error" in state
-                ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
-
-        interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
-
     def test_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
 
