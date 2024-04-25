@@ -233,7 +233,7 @@ If you are going to run the K8s lib injection tests on your CI pipeline, check t
     
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
           config-inline: |
