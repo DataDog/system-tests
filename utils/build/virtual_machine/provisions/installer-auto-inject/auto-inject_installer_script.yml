@@ -12,7 +12,8 @@
     # (C) Datadog, Inc. 2010-present
     # All rights reserved
     # Licensed under Apache-2.0 License (see LICENSE)
-    export DD_PIPELINE_ID="pipeline-32652629"
+
+    export DD_PIPELINE_ID="pipeline-32887942"
     sudo mkdir -p /opt/datadog-packages
     sudo groupadd dd-agent
     sudo adduser --system dd-agent --shell /usr/sbin/nologin --home /opt/datadog-packages --no-create-home

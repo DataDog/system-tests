@@ -3,7 +3,7 @@ init-environment: !include utils/build/virtual_machine/provisions/auto-inject/au
 
 # Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
 tested_components:
-  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-installer-tested_components.yml
 
 # Mandatory: Steps to provision VM
 provision_steps:
@@ -80,9 +80,9 @@ installer-bootstrap:
       # Installer bootstrap will restart docker and kill our local registry, so it must be last
       # TODO(baptiste): Remove temporary chown commands
       remote-command: |
-        sudo /opt/datadog-installer/bin/installer/installer bootstrap -P datadog-agent
+        sudo /opt/datadog-installer/bin/installer/installer install "oci://public.ecr.aws/datadog/agent-package:latest"
         sudo chown -R dd-agent:dd-agent /etc/datadog-agent
         sudo chmod -R 755 /etc/datadog-agent
-        sudo DD_UPDATER_REGISTRY="localhost:12345/datadog" /opt/datadog-installer/bin/installer/installer bootstrap -P datadog-apm-library-${DD_LANG}
+        sudo /opt/datadog-installer/bin/installer/installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
         sleep 5
-        sudo DD_UPDATER_REGISTRY="localhost:12345/datadog" /opt/datadog-installer/bin/installer/installer bootstrap -P datadog-apm-inject
+        sudo /opt/datadog-installer/bin/installer/installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
