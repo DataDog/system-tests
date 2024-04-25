@@ -15,9 +15,9 @@
 
     export DD_PIPELINE_ID="pipeline-32887942"
     sudo mkdir -p /opt/datadog-packages
-    sudo groupadd dd-agent
     sudo adduser --system dd-agent --shell /usr/sbin/nologin --home /opt/datadog-packages --no-create-home
-    sudo usermod -a -G dd-agent dd-agent
+    sudo groupadd dd-agent || true
+    sudo usermod -a -G dd-agent dd-agent || true
     sudo chown dd-agent:dd-agent /opt/datadog-packages
     sudo chmod -R 777 /opt/datadog-packages
     sudo mkdir -p /etc/datadog-agent
