@@ -543,6 +543,7 @@ class Test_Blocking_request_body:
         assert self.rm_req_nonblock2.status_code == 200
 
     def setup_non_blocking_plain_text(self):
+        self.setup_blocking()
         self.rm_req_nonblock_plain_text = weblog.post(
             "/waf", data=b'{"value4": "bsldhkuqwgervf"}', headers={"content-type": "text/plain"}
         )
@@ -552,6 +553,7 @@ class Test_Blocking_request_body:
         reason="Blocks on text/plain if parsed to a String",
     )
     def test_non_blocking_plain_text(self):
+        self.test_blocking()
         # TODO: This test is pending a better definition of when text/plain is considered parsed body,
         # which depends on application logic.
         assert self.rm_req_nonblock_plain_text.status_code == 200
