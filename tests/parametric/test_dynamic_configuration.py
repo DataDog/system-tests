@@ -242,10 +242,6 @@ class TestDynamicConfigTracingEnabled:
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
-    @irrelevant(
-        library="python",
-        reason="The Python client library doesn't support the one-way lock functionality of tracing_enabled",
-    )
     @irrelevant(library="golang")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"

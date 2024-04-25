@@ -4,6 +4,7 @@
 
 from utils import (
     context,
+    bug,
     interfaces,
     missing_feature,
     rfc,
@@ -226,10 +227,11 @@ class Test_Schema_Response_Body:
 
     def test_request_method(self):
         """can provide response body schema"""
-        schema = get_schema(self.request, "res.body")
         assert self.request.status_code == 200
-        assert isinstance(schema, list)
-        assert len(schema) == 1
+
+        schema = get_schema(self.request, "res.body")
+        assert isinstance(schema, list), f"_dd.appsec.s.res.body meta tag should be a list, got {schema}"
+        assert len(schema) == 1, f"{schema} is not a list of length 1"
         for key in ("payload",):
             assert key in schema[0]
         payload_schema = schema[0]["payload"][0]

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, bug, context, interfaces, rfc, features
+from utils import weblog, bug, context, interfaces, rfc, features, missing_feature
 
 
 def assertTagInSpanMeta(span, tag, expected):
@@ -68,6 +68,7 @@ class Test_Propagate_Legacy:
         # Send a request to the identify-propagate endpoint
         self.r_outgoing = weblog.get("/identify-propagate")
 
+    @missing_feature(library="nodejs", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
@@ -92,6 +93,7 @@ class Test_Propagate:
         # Send a request to the identify-propagate endpoint
         self.r_outgoing = weblog.get("/identify-propagate")
 
+    @missing_feature(library="nodejs", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tagTable = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
