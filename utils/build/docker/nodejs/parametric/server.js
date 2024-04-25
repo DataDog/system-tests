@@ -33,8 +33,8 @@ const otelStatusCodes = {
   'ERROR': 2
 }
 
-const spans = {}
-const otelSpans = {}
+const spans = new Map()
+const otelSpans = new Map()
 
 // Endpoint /trace/span/inject_headers
 app.post('/trace/span/inject_headers', (req, res) => {
@@ -102,7 +102,7 @@ app.post('/trace/span/flush', (req, res) => {
   _writer.flush(() => {
     res.json({});
   })
-  spans = {}
+  spans.clear();
 });
 
 app.post('/trace/span/set_meta', (req, res) => {
@@ -193,8 +193,8 @@ app.post('/trace/otel/end_span', (req, res) => {
 
 app.post('/trace/otel/flush', async (req, res) => {
   await tracerProvider.forceFlush()
-  spans = {};
-  otelSpans = {};
+  spans.clear();
+  otelSpans.clear();
   res.json({ success: true });
 });
 
