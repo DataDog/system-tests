@@ -238,7 +238,8 @@ class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
     def setup_blocking(self):
-        self.rm_req_block = weblog.request("OPTIONS")
+        if not hasattr(self, 'rm_req_block') or self.rm_req_block is None:
+            self.rm_req_block = weblog.request("OPTIONS")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -246,10 +247,12 @@ class Test_Blocking_request_method:
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-006")
 
     def setup_non_blocking(self):
+        self.setup_blocking()
         self.rm_req_nonblock = weblog.request("GET")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         assert self.rm_req_nonblock.status_code == 200
 
     def setup_blocking_before(self):
@@ -277,9 +280,11 @@ class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = self.ruri_req = weblog.get("/waf/foo.git")
+        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+            self.rm_req_block1 = self.ruri_req = weblog.get("/waf/foo.git")
         # query parameters are part of uri
-        self.rm_req_block2 = weblog.get("/waf?foo=.git")
+        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+            self.rm_req_block2 = weblog.get("/waf?foo=.git")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -288,10 +293,12 @@ class Test_Blocking_request_uri:
             interfaces.library.assert_waf_attack(response, rule="tst-037-002")
 
     def setup_non_blocking(self):
+        self.setup_blocking()
         self.rm_req_nonblock1 = weblog.get("/waf/legit")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         assert self.rm_req_nonblock1.status_code == 200
 
     def setup_blocking_uri_raw(self):
@@ -326,8 +333,10 @@ class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.get("/params/AiKfOeRcvG45")
-        self.rm_req_block2 = weblog.get("/waf/AiKfOeRcvG45")
+        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+            self.rm_req_block1 = weblog.get("/params/AiKfOeRcvG45")
+        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+            self.rm_req_block2 = weblog.get("/waf/AiKfOeRcvG45")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -336,11 +345,13 @@ class Test_Blocking_request_path_params:
             interfaces.library.assert_waf_attack(response, rule="tst-037-007")
 
     def setup_non_blocking(self):
+        self.setup_blocking()
         # query parameters are not a part of path parameters
         self.rm_req_nonblock = weblog.get("/waf/noharm?value=AiKfOeRcvG45")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         assert self.rm_req_nonblock.status_code == 200
 
     def setup_blocking_before(self):
@@ -367,8 +378,10 @@ class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.get("/waf", params={"foo": "xtrace"})
-        self.rm_req_block2 = weblog.get("/waf?foo=xtrace")
+        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+            self.rm_req_block1 = weblog.get("/waf", params={"foo": "xtrace"})
+        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+            self.rm_req_block2 = weblog.get("/waf?foo=xtrace")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -377,6 +390,7 @@ class Test_Blocking_request_query:
             interfaces.library.assert_waf_attack(response, rule="tst-037-001")
 
     def setup_non_blocking(self):
+        self.setup_blocking()
         # path parameters are not a part of query parameters
         self.rm_req_nonblock1 = weblog.get("/waf/xtrace")
         # query parameters are blocking only on value not parameter name
@@ -384,6 +398,7 @@ class Test_Blocking_request_query:
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         for response in (self.rm_req_nonblock1, self.rm_req_nonblock2):
             assert response.status_code == 200
 
@@ -411,8 +426,10 @@ class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.get("/waf", headers={"foo": "asldhkuqwgervf"})
-        self.rm_req_block2 = weblog.get("/waf", headers={"Accept-Language": "asldhkuqwgervf"})
+        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+            self.rm_req_block1 = weblog.get("/waf", headers={"foo": "asldhkuqwgervf"})
+        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+            self.rm_req_block2 = weblog.get("/waf", headers={"Accept-Language": "asldhkuqwgervf"})
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -421,6 +438,7 @@ class Test_Blocking_request_headers:
             interfaces.library.assert_waf_attack(response, rule="tst-037-003")
 
     def setup_non_blocking(self):
+        self.setup_blocking()
         # query parameters are not a part of headers
         self.rm_req_nonblock1 = weblog.get("/waf?value=asldhkuqwgervf")
         # header parameters are blocking only on value not parameter name
@@ -428,6 +446,7 @@ class Test_Blocking_request_headers:
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         for response in (self.rm_req_nonblock1, self.rm_req_nonblock2):
             assert response.status_code == 200
 
@@ -455,8 +474,10 @@ class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.get("/waf", cookies={"foo": "jdfoSDGFkivRG_234"})
-        self.rm_req_block2 = weblog.get("/waf", cookies={"Accept-Language": "jdfoSDGFkivRG_234"})
+        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+            self.rm_req_block1 = weblog.get("/waf", cookies={"foo": "jdfoSDGFkivRG_234"})
+        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+            self.rm_req_block2 = weblog.get("/waf", cookies={"Accept-Language": "jdfoSDGFkivRG_234"})
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -465,6 +486,7 @@ class Test_Blocking_request_cookies:
             interfaces.library.assert_waf_attack(response, rule="tst-037-008")
 
     def setup_non_blocking(self):
+        self.setup_blocking()
         # headers parameters are not a part of cookies
         self.rm_req_nonblock1 = weblog.get("/waf", headers={"foo": "jdfoSDGFkivRG_234"})
         # cookies parameters are blocking only on value not parameter name
@@ -472,6 +494,7 @@ class Test_Blocking_request_cookies:
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         for response in (self.rm_req_nonblock1, self.rm_req_nonblock2):
             assert response.status_code == 200
 
@@ -499,8 +522,10 @@ class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.post("/waf", data={"value1": "bsldhkuqwgervf"})
-        self.rm_req_block2 = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
+        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+            self.rm_req_block1 = weblog.post("/waf", data={"value1": "bsldhkuqwgervf"})
+        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+            self.rm_req_block2 = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -509,6 +534,7 @@ class Test_Blocking_request_body:
             interfaces.library.assert_waf_attack(response, rule="tst-037-004")
 
     def setup_non_blocking(self):
+        self.setup_blocking()
         # raw body are never parsed
         self.rm_req_nonblock1 = weblog.post(
             "/waf", data=b'\x00{"value3": "bsldhkuqwgervf"}\xFF', headers={"content-type": "application/octet-stream"}
@@ -517,6 +543,7 @@ class Test_Blocking_request_body:
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         assert self.rm_req_nonblock1.status_code == 200
         assert self.rm_req_nonblock2.status_code == 200
 
@@ -570,6 +597,7 @@ class Test_Blocking_response_status:
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         for code, response in self.rm_req_nonblock.items():
             assert response.status_code == code, response.request.url
 
@@ -596,6 +624,7 @@ class Test_Blocking_response_headers:
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         for response in (self.rm_req_nonblock1, self.rm_req_nonblock2):
             assert response.status_code == 200
 
@@ -611,6 +640,7 @@ class Test_Suspicious_Request_Blocking:
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
+        self.test_blocking()
         assert False, "TODO"
 
     def test_blocking_before(self):
