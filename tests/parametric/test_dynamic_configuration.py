@@ -56,7 +56,6 @@ def _default_config(service: str, env: str) -> Dict[str, Any]:
             "tracing_debug": None,
             "tracing_service_mapping": None,
             "tracing_sampling_rules": None,
-            "span_sampling_rules": None,
             "data_streams_enabled": None,
         },
     }
@@ -121,10 +120,10 @@ def is_sampled(trace: List[Dict]):
     return trace[0]["metrics"].get("_sampling_priority_v1", 0) > 0
 
 
-def get_sampled_trace(test_library, test_agent, service, name):
-    trace = send_and_wait_trace(test_library, test_agent, service=service, name=name)
+def get_sampled_trace(test_library, test_agent, service, name, tags=None):
+    trace = send_and_wait_trace(test_library, test_agent, service=service, name=name, tags=tags)
     while not is_sampled(trace):
-        trace = send_and_wait_trace(test_library, test_agent, service=service, name=name)
+        trace = send_and_wait_trace(test_library, test_agent, service=service, name=name, tags=tags)
     return trace
 
 
@@ -681,3 +680,80 @@ class TestDynamicConfigSamplingRules:
         set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None, "tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": ENV_SAMPLING_RULE_RATE, "service": "*"}]),
+            }
+        ],
+    )
+    def test_trace_sampling_rules_with_tags(self, library_env, test_agent, test_library):
+        """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
+
+        When a sampling rule contains a tag clause/pattern, it should be used to match against a trace/span.
+        If span does not contain the tag or the tag value matches the pattern, sampling decisions are made using the corresponding rule rate.
+        Otherwise, sampling decision is made using the next precedence mechanism (remote global rate in our test case).
+        """
+        RC_SAMPLING_TAGS_RULE_RATE = 0.8
+        RC_SAMPLING_RATE = 0.3
+        assert RC_SAMPLING_TAGS_RULE_RATE != ENV_SAMPLING_RULE_RATE
+        assert RC_SAMPLING_RATE != ENV_SAMPLING_RULE_RATE
+
+        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")])
+        assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
+        # Make sure `_dd.p.dm` is set to "-3" (i.e., local RULE_RATE)
+        span = trace[0]
+        assert "_dd.p.dm" in span["meta"]
+        # The "-" is a separating hyphen, not a minus sign.
+        assert span["meta"]["_dd.p.dm"] == "-3"
+
+        # Create a remote config entry with two rules at different sample rates.
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rate": RC_SAMPLING_RATE,
+                "tracing_sampling_rules": [
+                    {
+                        "sample_rate": RC_SAMPLING_TAGS_RULE_RATE,
+                        "service": TEST_SERVICE,
+                        "resource": "*",
+                        "tags": [{"key":"tag-a", "value_glob":"tag-a-val*"}],
+                        "provenance": "customer",
+                    },
+                ]
+            },
+        )
+
+        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")])
+        assert_sampling_rate(trace, RC_SAMPLING_TAGS_RULE_RATE)
+        # Make sure `_dd.p.dm` is set to "-11"
+        span = trace[0]
+        assert "_dd.p.dm" in span["meta"]
+        # The "-" is a separating hyphen, not a minus sign.
+        assert span["meta"]["_dd.p.dm"] == "-11"
+
+        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "NOT-tag-a-val")])
+        assert_sampling_rate(trace, RC_SAMPLING_RATE)
+        # Make sure `_dd.p.dm` is set to "-3"
+        span = trace[0]
+        assert "_dd.p.dm" in span["meta"]
+        assert span["meta"]["_dd.p.dm"] == "-3"
+
+        # a different tag
+        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("not-tag-a", "tag-a-val")])
+        assert_sampling_rate(trace, RC_SAMPLING_RATE)
+        # Make sure `_dd.p.dm` is set to "-3"
+        span = trace[0]
+        assert "_dd.p.dm" in span["meta"]
+        assert span["meta"]["_dd.p.dm"] == "-3"
+
+        # no tag
+        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[])
+        assert_sampling_rate(trace, RC_SAMPLING_RATE)
+        # Make sure `_dd.p.dm` is set to "-3"
+        span = trace[0]
+        assert "_dd.p.dm" in span["meta"]
+        assert span["meta"]["_dd.p.dm"] == "-3"
