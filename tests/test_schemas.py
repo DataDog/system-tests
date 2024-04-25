@@ -27,7 +27,6 @@ class Test_library:
     def test_library_schema_telemetry_conf_value(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]")
 
-    @bug(library="python", reason="APPSEC-52845")
     def test_library_schema_telemetry_job_object(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
 
