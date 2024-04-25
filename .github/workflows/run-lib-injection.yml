@@ -7,55 +7,65 @@ on:
         description: "Shall we build python base images for tests on python tracer"
         default: false
         required: false
-        type: boolean 
+        type: boolean
+      library:
+        description: "Library to test"
+        required: true
+        type: string
 env:
   REGISTRY: ghcr.io
 
 jobs:
+
+  compute-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.compute-matrix.outputs.matrix }}
+    steps:
+    - name: Compute matrix
+      id: compute-matrix
+      shell: python
+      run: |
+        import json
+        import os
+
+        weblogs={
+          "cpp": [],
+          "dotnet": ["dd-lib-dotnet-init-test-app"],
+          "golang": [],
+          "java": ["dd-lib-java-init-test-app"],
+          "nodejs": ["sample-app"],
+          "php": [],
+          "python": ["dd-lib-python-init-test-django", "dd-lib-python-init-test-django-gunicorn", "dd-lib-python-init-test-django-uvicorn"],
+          "ruby": ["dd-lib-ruby-init-test-rails", "dd-lib-ruby-init-test-rails-explicit", "dd-lib-ruby-init-test-rails-gemsrb"]
+        }
+
+        result = weblogs["${{ inputs.library }}"]
+
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f'matrix={json.dumps(result)}', file=fh)
+
+        print(json.dumps(result, indent=2))
+
   k8s-lib-injection-tests:
+    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
     runs-on:
       group: "APM Larger Runners"
     permissions:
       contents: read
       packages: write
+    needs: 
+      - compute-matrix
     strategy:
       matrix:
-        variant:
-        - library: java
-          weblog-variant: dd-lib-java-init-test-app
-
-        - library: nodejs
-          weblog-variant: sample-app
-
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django
-
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django-gunicorn
-  
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django-uvicorn
-        
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails
-          
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails-explicit
-        
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails-gemsrb
-
-        - library: dotnet
-          weblog-variant: dd-lib-dotnet-init-test-app
-
+        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
         version:      
           - latest
           - latest_snapshot
-
       fail-fast: false
     env:
-      TEST_LIBRARY: ${{ matrix.variant.library }}
-      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
+      TEST_LIBRARY: ${{ inputs.library }}
+      WEBLOG_VARIANT: ${{ matrix.weblog }}
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: ${{ matrix.version }}
       BUILDX_PLATFORMS: linux/amd64
@@ -75,11 +85,13 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v2
         with:
+          version: v0.12.1 # 0.13.0 is causing the builds to fail
           install: true
+          provenance: false
           config-inline: |
             [worker.oci]
               max-parallelism = 1
-
+        
       - name: Log in to the Container registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
         with:
@@ -91,20 +103,20 @@ jobs:
         if: inputs.build_lib_injection_app_images
         env:
           DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
-          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
+          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.weblog }}
         run: |
           cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
           LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:${{ github.sha }} ./build.sh
           cd ..
-
+          
       - name: Build weblog latest base images
         #If we execute on system-tests-dashboard, we can't push the images because we don't have the permissions.
         #To asign the permissions, we need to configure the image on ghcr, but due to a issue we can't do it
         #The case is opened with github support
-        if: github.ref == 'refs/heads/main' && github.event_name != 'schedule'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
         env:
           DOCKER_IMAGE_WEBLOG_TAG: latest
-          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
+          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.weblog }}
         run: |
           cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
           LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:latest ./build.sh
@@ -132,5 +144,5 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_k8s-lib-injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version == 'latest' && 'prod' || 'dev' }}
+          name: logs_k8s-lib-injection_${{ inputs.library}}_${{matrix.weblog}}_${{ matrix.version == 'latest' && 'prod' || 'dev' }}
           path: artifact.tar.gz

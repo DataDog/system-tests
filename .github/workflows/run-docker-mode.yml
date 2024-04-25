@@ -1,12 +1,7 @@
 name: System Tests (docker mode)
 
 on:
-  push:
-    branches:
-      - "**"
-  workflow_dispatch: {}
-  schedule:
-    - cron:  '00 03 * * 2-6'
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io
@@ -95,10 +90,6 @@ jobs:
           - sinatra14
           - sinatra20
           - sinatra21
-          - rails32
-          - rails40
-          - rails41
-          - rails42
           - rails50
           - rails51
           - rails52
@@ -176,10 +167,6 @@ jobs:
           - sinatra14
           - sinatra20
           - sinatra21
-          - rails32
-          - rails40
-          - rails41
-          - rails42
           - rails50
           - rails51
           - rails52
@@ -301,10 +288,6 @@ jobs:
           - sinatra14
           - sinatra20
           - sinatra21
-          - rails32
-          - rails40
-          - rails41
-          - rails42
           - rails50
           - rails51
           - rails52

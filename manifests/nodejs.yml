@@ -34,9 +34,16 @@ tests/:
           TestCommandInjection:
             '*': v3.11.0
             nextjs: missing_feature
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords:
+            '*': v5.11.0
+            nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': v4.18.0
+            nextjs: missing_feature
+          Test_HardcodedSecretsExtended:
+            '*': v5.11.0
             nextjs: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
@@ -189,6 +196,7 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v3.19.0
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v4.1.0
@@ -385,6 +393,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigSamplingRules: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v4.11.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
@@ -396,6 +405,7 @@ tests/:
       Test_Defaults: v5.6.0
       Test_Environment: v5.6.0
       Test_TelemetryInstallSignature: v4.23.0
+      Test_TelemetrySCAEnvVar: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
@@ -421,8 +431,8 @@ tests/:
     Test_DistributedHttp: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
-    Test_Propagate: missing_feature
-    Test_Propagate_Legacy: missing_feature
+    Test_Propagate: v3.2.0
+    Test_Propagate_Legacy: v3.2.0
   test_library_conf.py:
     Test_HeaderTags: v4.11.0
     Test_HeaderTags_Colon_Leading: v4.11.0
@@ -467,4 +477,5 @@ tests/:
       '*': v3.2.0
       nextjs: missing_feature
       uds-express4: v3.7.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: missing_feature

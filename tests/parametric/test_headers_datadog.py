@@ -2,7 +2,7 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.test_agent import get_span
-from utils import features, scenarios
+from utils import features, scenarios, bug, context
 
 
 @features.datadog_headers_propagation

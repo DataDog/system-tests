@@ -42,8 +42,11 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -155,6 +158,7 @@ tests/:
         Test_gRPC: v1.36.0
       test_blocking.py:
         Test_Blocking: v1.50.0-rc.1
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse:
           '*': v1.63.0-dev
           uds-echo: bug
@@ -398,6 +402,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigSamplingRules: v1.63.0
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
       TestDynamicConfigV1_ServiceTargets: v1.59.0
@@ -409,13 +414,14 @@ tests/:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetrySCAEnvVar: v1.63.0-rc.1
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v1.60.0
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v1.64.0-dev
       Test_Trace_Sampling_Resource: v1.60.0
       Test_Trace_Sampling_Tags: v1.60.0
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v1.64.0-dev
     test_tracer.py:
       Test_TracerSCITagging: v1.48.0
     test_tracer_flare.py:
@@ -468,4 +474,5 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.49.1

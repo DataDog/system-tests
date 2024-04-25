@@ -12,6 +12,7 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
         test_header_injection.py: irrelevant (ASM is not implemented in C++)
         test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
@@ -117,28 +118,16 @@ tests/:
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
-    test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: missing_feature
-      TestDynamicConfigV1_ServiceTargets: missing_feature
-      TestDynamicConfigV2: missing_feature
+    test_dynamic_configuration.py: missing_feature (float DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS not supported)
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_sdk_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Defaults: missing_feature
-      Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetrySCAEnvVar: missing_feature
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: missing_feature
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_With_W3C: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: bug (implementation is case-sensitive)
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
@@ -166,3 +155,4 @@ tests/:
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
+    Test_TelemetrySCAEnvVar: missing_feature

@@ -3,11 +3,10 @@ import json
 import pytest
 import random
 
-from utils import rfc, scenarios, missing_feature, context
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
-from utils import rfc, scenarios, features
+from utils import rfc, scenarios, missing_feature, context, features, bug
 
 
 @features.trace_sampling
@@ -442,6 +441,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env",
         [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
     )
+    @bug(library="cpp", reason="implementation is case-sensitive")
     def test_globs_different_casing(self, test_agent, test_library):
         """Test tag matching with string of matching case"""
         with test_library:
@@ -487,6 +487,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         self.assert_matching_span(test_agent, name="matching-span", service="test")
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
+    @missing_feature(library="cpp", reason="No metric interface")
     def test_metric_existence(self, test_agent, test_library):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library:
@@ -498,6 +499,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @pytest.mark.parametrize(
         "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
     )
+    @missing_feature(library="cpp", reason="No metric interface")
     def test_metric_matching(self, test_agent, test_library):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library:
@@ -514,15 +516,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
                 span.set_metric("tag", 20.1)
 
         self.assert_mismatching_span(test_agent, name="mismatching-span", service="test")
-
-    @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
-    def test_metric_matching(self, test_agent, test_library):
-        """Tests that any patterns are equivalent to an existence check for metrics"""
-        with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
-                span.set_metric("tag", 20.3)
-
-        self.assert_matching_span(test_agent, name="matching-span", service="test")
 
 
 @scenarios.parametric

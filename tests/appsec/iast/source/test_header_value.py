@@ -19,10 +19,6 @@ class TestHeaderValue(BaseSourceTest):
     source_type = "http.request.header"
     source_value = "user"
 
-    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    def test_source_reported(self):
-        super().test_source_reported()
-
     @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(
         context.library.library == "java" and "spring-boot" not in context.weblog_variant,

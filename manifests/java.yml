@@ -17,13 +17,23 @@ tests/:
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
-        Test_Scanners: missing_feature
-        Test_Schema_Request_Cookies: missing_feature
-        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
-        Test_Schema_Request_Headers: missing_feature
+        Test_Scanners:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Schema_Request_Cookies:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Schema_Request_FormUrlEncoded_Body:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Schema_Request_Headers:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Schema_Request_Json_Body: missing_feature
         Test_Schema_Request_Path_Parameters: missing_feature
-        Test_Schema_Request_Query_Parameters: missing_feature
+        Test_Schema_Request_Query_Parameters:
+          '*': v1.31.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
@@ -40,6 +50,8 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': missing_feature
@@ -50,6 +62,7 @@ tests/:
             spring-boot-undertow: v1.29.0
             spring-boot-wildfly: v1.29.0
             uds-spring-boot: v1.29.0
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
             '*': missing_feature
@@ -151,7 +164,15 @@ tests/:
             vertx4: missing_feature (No endpoint implemented)
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation:
-            "*": "bug (APPSEC-12201)"
+            '*': v1.22.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature
+            vertx4: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': v1.15.0
@@ -251,7 +272,7 @@ tests/:
           TestCookieValue:
             '*': v1.10.0
             akka-http: v1.12.0
-            jersey-grizzly2: v1.11.0
+            jersey-grizzly2: bug (name field of source not set)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -275,7 +296,7 @@ tests/:
           TestHeaderValue:
             '*': v1.3.0
             akka-http: v1.12.0
-            jersey-grizzly2: v1.11.0
+            jersey-grizzly2: bug (name field of source not set)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -329,7 +350,7 @@ tests/:
           TestParameterValue:
             '*': v1.1.0
             akka-http: v1.12.0
-            jersey-grizzly2: v1.11.0
+            jersey-grizzly2: bug (name field of source not set)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -450,6 +471,7 @@ tests/:
           spring-boot-3-native: missing_feature
           spring-boot-openliberty: v1.3.0
           vertx3: v1.7.0
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse:
           '*': v1.11.0
           akka-http: v1.22.0
@@ -480,8 +502,6 @@ tests/:
           '*': v0.95.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_NoWafTimeout:
-          akka-http: v1.22.0
       test_reports.py:
         Test_Monitoring:
           '*': v0.100.0
@@ -733,7 +753,10 @@ tests/:
     test_reports.py:
       Test_AttackTimestamp:
         akka-http: v1.22.0
-      Test_ExtraTagsFromRule: v1.22.0    # Supported since v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_ExtraTagsFromRule:
+        '*': v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_HttpClientIP:
         '*': v0.98.1
         akka-http: v1.22.0
@@ -752,6 +775,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_TagsFromRule:
         akka-http: v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
         '*': missing_feature
@@ -836,7 +860,7 @@ tests/:
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction:         
+      Test_Debugger_PII_Redaction:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
@@ -880,10 +904,10 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: 
+      Test_DsmContext_Extraction_Base64:
         "*": irrelevant
         spring-boot: v0.1  # version unknown
-      Test_DsmContext_Injection_Base64: 
+      Test_DsmContext_Injection_Base64:
         "*": irrelevant
         spring-boot: v0.1  # version unknown
       Test_DsmHttp:
@@ -917,6 +941,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigSamplingRules: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.17.0
       TestDynamicConfigV1_ServiceTargets: v1.31.0
@@ -928,6 +953,7 @@ tests/:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: v1.27.0
+      Test_TelemetrySCAEnvVar: v1.34.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
@@ -1018,12 +1044,17 @@ tests/:
     Test_MessageBatch:
       '*': v1.23.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    Test_Metric_Generation_Disabled: missing_feature
-    Test_Metric_Generation_Enabled: missing_feature
+    Test_Metric_Generation_Disabled:
+      '*': v1.23.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_Metric_Generation_Enabled:
+      '*': v1.23.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_ProductsDisabled:
       '*': missing_feature
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Telemetry:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0
