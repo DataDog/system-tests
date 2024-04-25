@@ -620,7 +620,7 @@ tests/:
       python3.12: v2.1.0.dev
   test_schemas.py:
     Test_library:
-      test_library_schema_telemetry_job_object: v2.9.0.dev
+      '*': v2.9.0.dev
   test_scrubbing.py:
     Test_UrlField:
       '*': v1.7.1
