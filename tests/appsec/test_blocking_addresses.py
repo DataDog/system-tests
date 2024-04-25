@@ -238,7 +238,7 @@ class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
     def setup_blocking(self):
-        if not hasattr(self, 'rm_req_block') or self.rm_req_block is None:
+        if not hasattr(self, "rm_req_block") or self.rm_req_block is None:
             self.rm_req_block = weblog.request("OPTIONS")
 
     def test_blocking(self):
@@ -280,10 +280,10 @@ class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
     def setup_blocking(self):
-        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+        if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
             self.rm_req_block1 = self.ruri_req = weblog.get("/waf/foo.git")
         # query parameters are part of uri
-        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+        if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.get("/waf?foo=.git")
 
     def test_blocking(self):
@@ -333,9 +333,9 @@ class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
     def setup_blocking(self):
-        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+        if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
             self.rm_req_block1 = weblog.get("/params/AiKfOeRcvG45")
-        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+        if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.get("/waf/AiKfOeRcvG45")
 
     def test_blocking(self):
@@ -378,9 +378,9 @@ class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
     def setup_blocking(self):
-        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+        if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
             self.rm_req_block1 = weblog.get("/waf", params={"foo": "xtrace"})
-        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+        if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.get("/waf?foo=xtrace")
 
     def test_blocking(self):
@@ -426,9 +426,9 @@ class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
     def setup_blocking(self):
-        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+        if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
             self.rm_req_block1 = weblog.get("/waf", headers={"foo": "asldhkuqwgervf"})
-        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+        if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.get("/waf", headers={"Accept-Language": "asldhkuqwgervf"})
 
     def test_blocking(self):
@@ -474,9 +474,9 @@ class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
     def setup_blocking(self):
-        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+        if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
             self.rm_req_block1 = weblog.get("/waf", cookies={"foo": "jdfoSDGFkivRG_234"})
-        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+        if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.get("/waf", cookies={"Accept-Language": "jdfoSDGFkivRG_234"})
 
     def test_blocking(self):
@@ -522,9 +522,9 @@ class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
 
     def setup_blocking(self):
-        if not hasattr(self, 'rm_req_block1') or self.rm_req_block1 is None:
+        if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
             self.rm_req_block1 = weblog.post("/waf", data={"value1": "bsldhkuqwgervf"})
-        if not hasattr(self, 'rm_req_block2') or self.rm_req_block2 is None:
+        if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     def test_blocking(self):
