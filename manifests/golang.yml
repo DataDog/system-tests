@@ -400,7 +400,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: v1.63.1-dev
+      TestDynamicConfigSamplingRules: v1.63.1
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
       TestDynamicConfigV1_ServiceTargets: v1.59.0
