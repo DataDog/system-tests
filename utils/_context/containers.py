@@ -776,3 +776,25 @@ class LocalstackContainer(TestedContainer):
             ports={"4566": ("127.0.0.1", 4566)},
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
         )
+        
+class APMTestAgentContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            name="ddapm-test-agent",
+            host_log_folder=host_log_folder,
+            environment={"SNAPSHOT_CI": "0",},
+            ports={"8126": ("127.0.0.1", 8126)},
+            allow_old_container=True,
+        )
+        
+class WeblogInjectionInitContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="docker.io/library/weblog-injection-init:latest",
+            name="weblog-injection-init",
+            host_log_folder=host_log_folder,
+            environment={"DD_AGENT_HOST": "ddapm-test-agent"},#, "DD_TRACE_AGENT_PORT": "8126"
+            ports={"8080": ("127.0.0.1", 8080)},
+            allow_old_container=True,
+        )

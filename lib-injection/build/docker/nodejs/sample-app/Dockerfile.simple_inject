@@ -1,0 +1,14 @@
+FROM docker.io/datadog/dd-lib-js-init:latest  as dd-lib-nodejs-init
+
+FROM node:18
+
+# Create app directory
+WORKDIR /usr/src/app
+
+COPY . .
+COPY --from=dd-lib-nodejs-init /operator-build /datadog-lib/
+RUN npm install /datadog-lib/dd-trace.tgz
+ENV NODE_OPTIONS="--require=/datadog-lib/node_modules/dd-trace/init"
+ENV DD_TRACE_DEBUG=true
+EXPOSE 18080
+CMD [ "node", "index.js" ]

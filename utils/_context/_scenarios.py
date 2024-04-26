@@ -32,6 +32,8 @@ from utils._context.containers import (
     create_network,
     # SqlDbTestedContainer,
     BuddyContainer,
+    APMTestAgentContainer,
+    WeblogInjectionInitContainer
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -1227,6 +1229,44 @@ class _KubernetesScenario(_Scenario):
     def weblog_variant(self):
         return self._weblog_variant
 
+class _APMTestAgent(_Scenario):
+    """Scenario that runs APM test agent """
+
+    def __init__(
+        self,
+        name,
+        doc
+    ) -> None:
+        super().__init__(name, doc=doc)
+
+        self._required_containers = []
+        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(WeblogInjectionInitContainer(host_log_folder=self.host_log_folder))
+
+    def configure(self, config):
+        super().configure(config)
+
+        for container in self._required_containers:
+            container.configure(self.replay)
+
+    def _get_warmups(self):
+        warmups = super()._get_warmups()
+
+        warmups.append(create_network)
+
+        for container in self._required_containers:
+            warmups.append(container.start)
+
+        return warmups
+
+    def close_targets(self):
+        for container in reversed(self._required_containers):
+            try:
+                container.remove()
+                logger.info(f"Removing container {container}")
+            except:
+                logger.exception(f"Failed to remove container {container}")
+
 
 class scenarios:
     @staticmethod
@@ -1723,6 +1763,12 @@ class scenarios:
     )
     k8s_lib_injection_full = _KubernetesScenario(
         "K8S_LIB_INJECTION_FULL", doc=" Kubernetes Instrumentation complete scenario"
+    )
+    
+    k8s_lib_injection_validation = _APMTestAgent(
+        "K8S_LIB_INJECTION_VALIDATION",
+        #weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
+        doc="Validates the init images without kubernetes enviroment",
     )
 
 
