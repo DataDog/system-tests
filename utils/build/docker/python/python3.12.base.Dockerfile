@@ -23,3 +23,4 @@ RUN sed -i "s/ALLOWED_HOSTS\s=\s\[\]/ALLOWED_HOSTS = \[\"0.0.0.0\",\"weblog\"\,\
 # docker build --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v1 .
 # docker push datadog/system-tests:python3.12.base-v1
 
+# trigger build
