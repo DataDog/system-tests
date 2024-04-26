@@ -618,9 +618,6 @@ tests/:
     Test_Profile:
       '*': v0.1 # actual version unknown
       python3.12: v2.1.0.dev
-  test_schemas.py:
-    Test_library:
-      '*': v2.9.0.dev
   test_scrubbing.py:
     Test_UrlField:
       '*': v1.7.1

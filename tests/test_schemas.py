@@ -27,7 +27,7 @@ class Test_library:
     def test_library_schema_telemetry_conf_value(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]")
 
-@bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
+    @bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
     def test_library_schema_telemetry_job_object(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
 
@@ -54,6 +54,6 @@ class Test_Agent:
     def test_agent_schema_telemetry_conf_value(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[]")
 
-    @bug(library="python", reason="APPSEC-52845")
+    @bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
     def test_library_schema_telemetry_job_object(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload")
