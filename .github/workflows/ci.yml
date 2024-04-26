@@ -47,25 +47,26 @@ jobs:
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
-  test_the_test_platforms:
-    strategy:
-      matrix:
-        os:
-          - macos-latest
-    name: Test the test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install runner
-        uses: ./.github/actions/install_runner
-      # force /bin/bash in order to test against bash 3.2 on macOS
-      - name: Test the test (direct)
-        run: /bin/bash run.sh TEST_THE_TEST
-      - name: Test group parsing
-        run: |
-          /bin/bash run.sh ++dry APPSEC_SCENARIOS
-          /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
+  # commenting, as python 3.9 is not available anymore
+  # test_the_test_platforms:
+  #   strategy:
+  #     matrix:
+  #       os:
+  #         - macos-latest
+  #   name: Test the test (${{ matrix.os }})
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Install runner
+  #       uses: ./.github/actions/install_runner
+  #     # force /bin/bash in order to test against bash 3.2 on macOS
+  #     - name: Test the test (direct)
+  #       run: /bin/bash run.sh TEST_THE_TEST
+  #     - name: Test group parsing
+  #       run: |
+  #         /bin/bash run.sh ++dry APPSEC_SCENARIOS
+  #         /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
     uses: ./.github/workflows/compute-scenarios.yml

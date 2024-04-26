@@ -1,0 +1,88 @@
+# Optional: Load the environment variables
+init-environment: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-environment.yml
+
+# Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
+tested_components:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-installer-tested_components.yml
+
+# Mandatory: Steps to provision VM
+provision_steps:
+  - init-config # Init the VM configuration
+  - prepare-docker # Install docker
+  - setup-testing-dependencies # Pull the right docker images & install crane
+  - setup-local-registry # Setup a local registry with injector & tracer OCIs
+  - install-installer # Install the installer
+  - installer-bootstrap # Bootstrap the agent, library, and injector
+
+init-config:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
+
+prepare-docker:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/docker/auto-inject_prepare_docker.yml
+
+setup-testing-dependencies:
+  cache: true
+  install: 
+    - os_type: linux
+      os_distro: deb
+      remote-command: |
+        sudo docker pull registry:2
+        sudo rm -rf /usr/local/go
+        sudo curl https://dl.google.com/go/go1.22.1.linux-$(dpkg --print-architecture).tar.gz --output go.tar.gz
+        sudo tar -C /usr/local -xzf go.tar.gz
+        export PATH=$PATH:/usr/local/go/bin
+        export PATH=$PATH:$(go env GOPATH)/bin
+        go install github.com/google/go-containerregistry/cmd/crane@latest
+    - os_type: linux
+      os_distro: rpm
+      remote-command: |
+        sudo docker pull registry:2
+        sudo rm -rf /usr/local/go
+        sudo curl https://dl.google.com/go/go1.22.1.linux-$(rpm --eval '%{_arch}' | sed s/aarch64/arm64/ | sed s/x86_64/amd64/).tar.gz --output go.tar.gz
+        sudo tar -C /usr/local -xzf go.tar.gz
+        export PATH=$PATH:/usr/local/go/bin
+        export PATH=$PATH:$(go env GOPATH)/bin
+        go install github.com/google/go-containerregistry/cmd/crane@latest
+  
+setup-local-registry:
+  install: 
+    - os_type: linux
+      copy_files:
+        - name: copy-binaries
+          local_path: binaries
+      # By default we use the latest prod images
+      # Port 12345 is used to avoid conflict with the agent later on
+      remote-command: | 
+        export PATH=$PATH:/usr/local/go/bin
+        export PATH=$PATH:$(go env GOPATH)/bin
+        sudo systemctl start docker
+        sudo docker run -d -p 12345:5000 --restart=always --name registry registry:2
+        sleep 10
+
+        if [ ! -d ./library ]; then
+          crane pull --format=oci public.ecr.aws/datadog/apm-library-$DD_LANG-package:latest ./library
+        fi
+        crane push ./library localhost:12345/datadog/apm-library-$DD_LANG-package:latest
+
+        if [ ! -d ./inject ]; then
+          crane pull --format=oci public.ecr.aws/datadog/apm-inject-package:latest ./inject
+        fi
+        crane push ./inject localhost:12345/datadog/apm-inject-package:latest
+
+install-installer:
+  install: !include utils/build/virtual_machine/provisions/installer-auto-inject/auto-inject_installer_script.yml
+
+installer-bootstrap:
+  install:
+    - os_type: linux
+      # Installer bootstrap will restart docker and kill our local registry, so it must be last
+      # TODO(baptiste): Remove temporary chown commands
+      remote-command: |
+        sudo /opt/datadog-installer/bin/installer/installer install "oci://public.ecr.aws/datadog/agent-package:latest"
+        sudo chown -R dd-agent:dd-agent /etc/datadog-agent
+        sudo chmod -R 755 /etc/datadog-agent
+        sudo /opt/datadog-installer/bin/installer/installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
+        sleep 5
+        sudo /opt/datadog-installer/bin/installer/installer install "oci://localhost:12345/datadog/apm-inject-package:latest"

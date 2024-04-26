@@ -48,6 +48,7 @@ jobs:
         print(json.dumps(result, indent=2))
 
   k8s-lib-injection-tests:
+    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
     runs-on:
       group: "APM Larger Runners"
     permissions:
