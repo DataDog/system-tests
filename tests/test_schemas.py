@@ -55,5 +55,6 @@ class Test_Agent:
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[]")
 
     @bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
-    def test_library_schema_telemetry_job_object(self):
+    @irrelevant(context.scenario is scenarios.crossed_tracing_libraries, reason="APPSEC-52805")
+    def test_agent_schema_telemetry_job_object(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload")

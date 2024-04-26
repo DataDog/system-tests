@@ -100,6 +100,9 @@ class SchemaValidator:
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
+        if schema_id not in _get_schemas_store():
+            return []
+
         validator = _get_schema_validator(schema_id)
         if validator.is_valid(data["request"]["content"]):
             return []
