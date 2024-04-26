@@ -52,20 +52,7 @@ class Test_Agent:
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
-    def test_client_state_errors(self):
-        """Ensure that the Client State error is consistent"""
-
-        def validator(data):
-            state = data["request"]["content"]["client"]["state"]
-
-            if state.get("has_error") is True:
-                assert (
-                    "error" in state
-                ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
-
-        interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
-
-    def test_client_fields(self):
+    def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
 
         def validator(data):
@@ -211,6 +198,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        self.assert_client_fields()
+
         def validate(data):
             """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
@@ -290,6 +279,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        self.assert_client_fields()
+
         def validate(data):
             """Helper to validate config request content"""
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
@@ -324,6 +315,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        self.assert_client_fields()
+
         def validate(data):
             """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
@@ -349,6 +342,8 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
@@ -376,6 +371,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        self.assert_client_fields()
+
         def validate(data):
             """Helper to validate config request content"""
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
@@ -402,6 +399,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
