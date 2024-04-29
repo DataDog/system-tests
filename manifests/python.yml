@@ -298,6 +298,7 @@ tests/:
           '*': v2.4.0.dev1
           flask-poc: v1.5.2
           uds-flask: v1.5.2
+          uwsgi-poc: v2.9.0.dev
         Test_NoSqli:
           '*': v1.2.1
           fastapi: v2.4.0.dev1
