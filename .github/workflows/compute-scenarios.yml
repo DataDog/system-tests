@@ -247,6 +247,8 @@ jobs:
         run: ./run.sh MOCK_THE_TEST --collect-only --scenario-report
       - name: Compute impacted scenario
         id: compute_impacted_scenarios
-        run: echo "scenarios=${python utils/scripts/compute_impacted_scenario.py}" >> $GITHUB_OUTPUT
+        run: |
+          source venv/bin/activate
+          echo "scenarios=$(python utils/scripts/compute_impacted_scenario.py)" >> $GITHUB_OUTPUT
         env:
           PYTHONPATH: "."

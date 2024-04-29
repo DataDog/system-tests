@@ -3,7 +3,7 @@ from manifests.parser.core import load as load_manifests
 
 
 def main():
-    with open("logs/scenarios.json", "r", encoding="utf-8") as f:
+    with open("logs_mock_the_test/scenarios.json", "r", encoding="utf-8") as f:
         scenario_map = json.load(f)
 
     modified_nodeids = set()
