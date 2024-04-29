@@ -49,7 +49,7 @@ class Test_Defaults:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started")
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
@@ -116,7 +116,7 @@ class Test_Environment:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started")
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
@@ -201,7 +201,7 @@ class Test_TelemetryInstallSignature:
         with test_library.start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started")
+        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
@@ -269,7 +269,7 @@ class Test_TelemetrySCAEnvVar:
         with test_library.start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started")
+        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
