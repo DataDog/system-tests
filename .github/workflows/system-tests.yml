@@ -213,7 +213,7 @@ jobs:
   parametric:
     needs:
       - compute_scenarios
-    if: contains(compute_scenarios.outputs.scenarios, '"PARAMETRIC"')
+    if: contains(needs.compute_scenarios.outputs.scenarios, '"PARAMETRIC"')
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
@@ -222,7 +222,7 @@ jobs:
   graphql:
     needs:
       - compute_scenarios
-    if: contains(compute_scenarios.outputs.scenarios, '"GRAPHQL_APPSEC"')
+    if: contains(needs.compute_scenarios.outputs.scenarios, '"GRAPHQL_APPSEC"')
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
     with:
@@ -232,7 +232,7 @@ jobs:
   lib-injection:
     needs:
       - compute_scenarios
-    if: contains(compute_scenarios.outputs.scenarios, '"K8S_LIB_INJECTION_')
+    if: contains(needs.compute_scenarios.outputs.scenarios, '"K8S_LIB_INJECTION_')
     uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
     with:
@@ -249,14 +249,14 @@ jobs:
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      scenarios: ${{ compute_scenarios.outputs.scenarios }}
+      scenarios: ${{ needs.compute_scenarios.outputs.scenarios }}
 
   open-telemetry:
     needs:
       - compute_scenarios
     # quite hacky : all open telemetry scenarios starts with OTEL_
     # but it saves a whole abstraction layer
-    if: contains(compute_scenarios.outputs.scenarios, '"OTEL_')
+    if: contains(needs.compute_scenarios.outputs.scenarios, '"OTEL_')
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:
