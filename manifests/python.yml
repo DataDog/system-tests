@@ -571,7 +571,7 @@ tests/:
       Test_Defaults: flaky (failure 2.8.0/2.9.0.dev)
       Test_Environment: v2.9.0.dev # flaky in 2.8.0
       Test_TelemetryInstallSignature: flaky (failure 2.8.0/2.9.0.dev)
-      Test_TelemetrySCAEnvVar: flaky (failure 2.8.0/2.9.0.dev)
+      Test_TelemetrySCAEnvVar: v2.9.0.dev
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0

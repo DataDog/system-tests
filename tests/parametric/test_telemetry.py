@@ -269,7 +269,7 @@ class Test_TelemetrySCAEnvVar:
         with test_library.start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started")
+        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
