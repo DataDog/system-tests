@@ -479,8 +479,8 @@ class Test_Headers_Tracecontext:
         expects the tracestate to be discarded
         """
         with test_library:
-            _, tracestate1 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1"],])
-            _, tracestate2 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1,bar=2"],])
+            _, tracestate1 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1"],],)
+            _, tracestate2 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1,bar=2"],],)
 
         # Updated the test to check that the number of tracestate list-members is the same,
         # since Datadog will add an entry.
@@ -719,7 +719,6 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
@@ -774,7 +773,7 @@ class Test_Headers_Tracecontext:
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
 
         assert case2["name"] == "p_invalid"
-        assert case2["meta"]["_dd.parent_id"] == "XX!X"
+        assert "_dd.parent_id" not in case2["meta"]
 
         assert case3["name"] == "datadog_headers_used_in_propagation"
         assert case3["trace_id"] == 5
@@ -782,14 +781,13 @@ class Test_Headers_Tracecontext:
         assert "_dd.parent_id" not in case3["meta"]
 
         assert case4["name"] == "p_not_propagated"
-        assert case4["meta"]["_dd.parent_id"] == "0000000000000000"
+        assert "_dd.parent_id" not in case4["meta"]
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
