@@ -46,7 +46,7 @@ class AWSPulumiProvider(VmProvider):
             )
             self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
-        except Exception as pulumi_exception:  #
+        except Exception as pulumi_exception:
             logger.error("Exception launching aws provision infraestructure")
             logger.exception(pulumi_exception)
 

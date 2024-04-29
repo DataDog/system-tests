@@ -208,8 +208,13 @@ class _Scenario:
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
 
+    def is_part_of(self, declared_scenario):
+        return self.name == declared_scenario
+
 
 class TestTheTestScenario(_Scenario):
+    library = LibraryVersion("java", "0.66.0")
+
     @property
     def agent_version(self):
         return "0.77.0"
@@ -221,10 +226,6 @@ class TestTheTestScenario(_Scenario):
     @property
     def parametrized_tests_metadata(self):
         return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
-
-    @property
-    def library(self):
-        return LibraryVersion("java", "0.66.0")
 
     @property
     def weblog_variant(self):
@@ -420,6 +421,9 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
+    def is_part_of(self, declared_scenario):
+        return declared_scenario in (self.name, "EndToEndScenario")
+
     def configure(self, config):
         from utils import interfaces
 
@@ -452,6 +456,10 @@ class EndToEndScenario(_DockerScenario):
 
     def session_start(self):
         super().session_start()
+
+        if self.replay:
+            return
+
         try:
             code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
             if code:
@@ -1126,6 +1134,22 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
         )
 
 
+class InstallerAutoInjectionScenario(_VirtualMachineScenario):
+    def __init__(self, name, doc, vm_provision="installer-auto-inject") -> None:
+        super().__init__(
+            name,
+            vm_provision=vm_provision,
+            doc=doc,
+            include_ubuntu_22_amd64=True,
+            include_ubuntu_22_arm64=True,
+            include_ubuntu_18_amd64=True,
+            include_amazon_linux_2_amd64=True,
+            include_amazon_linux_2_dotnet_6=True,
+            include_amazon_linux_2023_amd64=True,
+            include_amazon_linux_2023_arm64=True,
+        )
+
+
 class _KubernetesScenario(_Scenario):
     """Scenario that tests kubernetes lib injection"""
 
@@ -1219,6 +1243,19 @@ class _KubernetesScenario(_Scenario):
 
 
 class scenarios:
+    @staticmethod
+    def all_endtoend_scenarios(test_object):
+        """particular use case where a klass applies on all scenarios"""
+
+        # Check that no scenario has been already declared
+        for marker in getattr(test_object, "pytestmark", []):
+            if marker.name == "scenario":
+                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
+
+        pytest.mark.scenario("EndToEndScenario")(test_object)
+
+        return test_object
+
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
@@ -1700,6 +1737,10 @@ class scenarios:
     )
     k8s_lib_injection_full = _KubernetesScenario(
         "K8S_LIB_INJECTION_FULL", doc=" Kubernetes Instrumentation complete scenario"
+    )
+
+    installer_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
 
 

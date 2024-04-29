@@ -220,7 +220,7 @@ tests/:
       Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v1.0.0.beta1
       Test_DistributedTraceInfo: missing_feature (test not implemented)
-      Test_ExternalWafRequestsIdentification: missing_feature
+      Test_ExternalWafRequestsIdentification: v1.22.0
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
@@ -319,7 +319,7 @@ tests/:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
-      Test_TelemetrySCAEnvVar: missing_feature
+      Test_TelemetrySCAEnvVar: v2.1.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: missing_feature
@@ -385,4 +385,5 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v1.4.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.11

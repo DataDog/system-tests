@@ -17,7 +17,6 @@ from utils.interfaces._library.telemetry import (
 )
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-from utils.interfaces._schemas_validators import SchemaValidator
 
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -232,10 +231,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 return
 
         raise ValueError("Nothing has been reported. No request root span with has been found")
-
-    def assert_schemas(self, allowed_errors=None):
-        validator = SchemaValidator("library", allowed_errors)
-        self.validate(validator, success_by_default=True)
 
     def assert_all_traces_requests_forwarded(self, paths):
         # TODO : move this in test class

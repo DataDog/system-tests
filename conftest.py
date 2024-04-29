@@ -205,7 +205,7 @@ def pytest_collection_modifyitems(session, config, items):
             deselected.append(item)
             continue
 
-        if declared_scenario == context.scenario.name:
+        if context.scenario.is_part_of(declared_scenario):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 

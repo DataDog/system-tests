@@ -1,6 +1,6 @@
 # Running all tests
 
-From the `/parametric` directory (`cd ../..` from this file's location), run: 
+From the `/parametric` directory (`cd ../..` from this file's location), run:
 ```sh
 CLIENTS_ENABLED=ruby ./run.sh
 ```
@@ -15,7 +15,7 @@ To run a single test:
 CLIENTS_ENABLED=ruby ./run.sh -k test_metrics_msgpack_serialization_TS001
 ```
 
-To run with a specific `ddtrace` version, push your code to GitHub and then specify `RUBY_DDTRACE_SHA`:
+To run with a specific `datadog` version, push your code to GitHub and then specify `RUBY_DDTRACE_SHA`:
 
 ```sh
 RUBY_DDTRACE_SHA=0552ebd49dc5b3bec4e739c2c74b214fb3102c2a ./run.sh ...
