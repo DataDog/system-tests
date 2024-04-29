@@ -3,6 +3,10 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
 export async function GET (request, { params }) {
+  if (process.env.DD_API_SECURITY_PARSE_RESPONSE_BODY != null) {
+    return NextResponse.json('{"error": "DD_API_SECURITY_PARSE_RESPONSE_BODY not implemented"}', { status: 501 })
+  }
+
   const tracer = global._ddtrace
   const rootSpan = tracer?.scope().active()?.context()._trace.started[0]
 

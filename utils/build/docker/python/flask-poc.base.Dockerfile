@@ -21,6 +21,6 @@ RUN pip install pymysql cryptography pyodbc
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now
 RUN pip install 'flask[async]'==2.2.4 gunicorn gevent requests pycryptodome psycopg2-binary confluent-kafka==2.1.1
 
-# docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v2 .
-# docker push datadog/system-tests:flask-poc.base-v2
+# docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v3 .
+# docker push datadog/system-tests:flask-poc.base-v3
 

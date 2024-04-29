@@ -298,6 +298,7 @@ tests/:
           '*': v2.4.0.dev1
           flask-poc: v1.5.2
           uds-flask: v1.5.2
+          uwsgi-poc: v2.9.0.dev
         Test_NoSqli:
           '*': v1.2.1
           fastapi: v2.4.0.dev1
@@ -588,14 +589,14 @@ tests/:
       Test_Defaults: flaky (failure 2.8.0/2.9.0.dev)
       Test_Environment: v2.9.0.dev # flaky in 2.8.0
       Test_TelemetryInstallSignature: flaky (failure 2.8.0/2.9.0.dev)
-      Test_TelemetrySCAEnvVar: v2.9.0.dev
+      Test_TelemetrySCAEnvVar: flaky (failure 2.8.0/2.9.0.dev)
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
       Test_Trace_Sampling_Resource: v2.8.0
       Test_Trace_Sampling_Tags: v2.8.0
-      Test_Trace_Sampling_Tags_Feb2024_Revision: bug (v2.8.0 fails. Python PR-8946 is needed to fix it)
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v2.9.0.dev
       Test_Trace_Sampling_With_W3C: v2.8.0
     test_tracer.py:
       Test_Tracer: v2.8.0
@@ -606,7 +607,7 @@ tests/:
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.1.0.dev
-      Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0.dev
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
