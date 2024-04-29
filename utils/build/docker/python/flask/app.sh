@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ${UDS_WEBLOG:-} = "1" ]; then
+if [ "${UDS_WEBLOG:-}" = "1" ]; then
     ./set-uds-transport.sh
 fi
 # CAVEAT: to debug the Python App, use these lines
