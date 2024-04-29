@@ -34,6 +34,9 @@ on:
       run_graphql:
         description: "Shall we run GraphQL scenarios"
         value: ${{ jobs.labels.outputs.run_graphql }}
+      scenarios:
+        description: "JSON array of scenarios to run"
+        value: ${{ jobs.manifests.outputs.scenarios }}
 
 jobs:
   labels:
@@ -224,3 +227,26 @@ jobs:
           echo "Run appsec: -> ${{ steps.compute_appsec.outputs.result }}"
           echo "Run integration: -> ${{ steps.compute_integration.outputs.result }}"
           echo "Run graphql: -> ${{ steps.compute_graphql.outputs.result }}"
+
+  manifests:
+    runs-on: ubuntu-latest
+    outputs:
+      scenarios: ${{ steps.compute_impacted_scenarios.outputs.scenarios }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+      - name: Get original manifest
+        run: |
+          mkdir original/
+          git --work-tree=original/ checkout HEAD -- manifests/
+      - name: Get scenario map 
+        run: ./run.sh --collect-only --scenario-report
+      - name: Compute impacted scenario
+        id: compute_impacted_scenarios
+        run: echo "scenarios=${python utils/scripts/compute_impacted_scenario.py}" >> $GITHUB_OUTPUT
+        env:
+          PYTHONPATH: "."
