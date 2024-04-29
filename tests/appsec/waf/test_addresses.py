@@ -97,6 +97,7 @@ class Test_Headers:
     def setup_specific_key2(self):
         self.r_sk_4 = weblog.get("/waf/", headers={"X_Filename": "routing.yml"})
 
+    @bug(context.weblog_variant in ("flask-poc", "django-poc", "uds-flask", "python3.12"), reason="APPSEC-52915")
     @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
