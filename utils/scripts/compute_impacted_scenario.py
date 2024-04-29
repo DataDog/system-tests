@@ -25,5 +25,6 @@ def main():
 
     print(json.dumps(list(impacted_scenarios)))
 
+
 if __name__ == "__main__":
     main()

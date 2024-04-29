@@ -230,6 +230,7 @@ def pytest_collection_modifyitems(session, config, items):
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(declared_scenarios, f, indent=2)
 
+
 def pytest_deselected(items):
     _deselected_items.extend(items)
 
