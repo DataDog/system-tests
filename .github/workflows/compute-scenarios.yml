@@ -244,7 +244,7 @@ jobs:
           mkdir original/
           git --work-tree=original/ checkout HEAD -- manifests/
       - name: Get scenario map 
-        run: ./run.sh --collect-only --scenario-report
+        run: ./run.sh MOCK_THE_TEST --collect-only --scenario-report
       - name: Compute impacted scenario
         id: compute_impacted_scenarios
         run: echo "scenarios=${python utils/scripts/compute_impacted_scenario.py}" >> $GITHUB_OUTPUT
