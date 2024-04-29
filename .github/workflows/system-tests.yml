@@ -66,6 +66,11 @@ on:
         default: false
         required: false
         type: boolean
+      scenarios: 
+        description: "JSON array of scenarios to run"
+        default: "[]"
+        required: false
+        type: string
       build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
@@ -94,15 +99,130 @@ on:
 
 jobs:
 
+  compute_scenarios:
+    runs-on: ubuntu-latest
+    outputs:
+      scenarios: ${{ steps.main.outputs.scenarios }}
+    steps:
+    - name: main
+      id: main
+      shell: python
+      run: |
+        import json
+
+        inputs = json.loads('${{ toJson(inputs) }}')
+        scenarios = set(json.loads(inputs["scenarios"]))
+
+        scenarios_families = {
+          "APM_TRACING_E2E": [],  # not executed ?
+          "APM_TRACING_E2E_OTEL": ["all", "end-to-end", "open-telemetry", ],
+          "APM_TRACING_E2E_SINGLE_SPAN": [],  # not executed ?
+          "APPSEC_API_SECURITY": ["all", "appsec", "end-to-end", ],
+          "APPSEC_API_SECURITY_NO_RESPONSE_BODY": ["all", "appsec", "end-to-end", ],
+          "APPSEC_API_SECURITY_RC": ["all", "appsec", "end-to-end", ],
+          "APPSEC_API_SECURITY_WITH_SAMPLING": ["all", "appsec", "end-to-end", ],
+          "APPSEC_AUTO_EVENTS_EXTENDED": ["all", "appsec", "end-to-end", ],
+          "APPSEC_BLOCKING": ["all", "appsec", "end-to-end", ],
+          "APPSEC_BLOCKING_FULL_DENYLIST": ["all", "appsec", "end-to-end", ],
+          "APPSEC_CORRUPTED_RULES": ["all", "appsec", "end-to-end", ],
+          "APPSEC_CUSTOM_OBFUSCATION": ["all", "appsec", "end-to-end", ],
+          "APPSEC_CUSTOM_RULES": ["all", "appsec", "end-to-end", ],
+          "APPSEC_DISABLED": ["all", "appsec", "end-to-end", ],
+          "APPSEC_LOW_WAF_TIMEOUT": ["all", "appsec", "end-to-end", ],
+          "APPSEC_MISSING_RULES": ["all", "appsec", "end-to-end", ],
+          "APPSEC_RATE_LIMITER": ["all", "appsec", "end-to-end", ],
+          "APPSEC_REQUEST_BLOCKING": ["all", "appsec", "end-to-end", ],
+          "APPSEC_RULES_MONITORING_WITH_ERRORS": ["all", "appsec", "end-to-end", ],
+          "APPSEC_RUNTIME_ACTIVATION": ["all", "appsec", "end-to-end", ],
+          "APPSEC_WAF_TELEMETRY": ["all", "appsec", "end-to-end", ],
+          "CONTAINER_AUTO_INJECTION": [],  # gitlab
+          "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT": [],  # gitlab
+          "CROSSED_TRACING_LIBRARIES": ["all", "integration", "end-to-end", ],
+          "DEBUGGER_LINE_PROBES_SNAPSHOT": ["all", "debugger", "end-to-end", ],
+          "DEBUGGER_METHOD_PROBES_SNAPSHOT": ["all", "debugger", "end-to-end", ],
+          "DEBUGGER_MIX_LOG_PROBE": ["all", "debugger", "end-to-end", ],
+          "DEBUGGER_PII_REDACTION": ["all", "debugger", "end-to-end", ],
+          "DEBUGGER_PROBES_STATUS": ["all", "debugger", "end-to-end", ],
+          "DEFAULT": ["all", "end-to-end", ],
+          "_FUZZER": [],
+          "GRAPHQL_APPSEC": ["all", "end-to-end", ],
+          "HOST_AUTO_INJECTION": [],  # gitlab
+          "HOST_AUTO_INJECTION_BLOCK_LIST": [],  # gitlab
+          "HOST_AUTO_INJECTION_INSTALL_SCRIPT": [],  # gitlab
+          "HOST_AUTO_INJECTION_LD_PRELOAD": [],  # gitlab
+          "INSTALLER_AUTO_INJECTION": [],  # gitlab
+          "INTEGRATIONS": ["all", "integration", "end-to-end", ],
+          "K8S_LIB_INJECTION_BASIC": ["all", "libinjection", ],
+          "K8S_LIB_INJECTION_FULL": ["all", "libinjection", ],
+          "LIBRARY_CONF_CUSTOM_HEADER_TAGS": ["all", "end-to-end", ],
+          "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID": ["all", "end-to-end", ],
+          "MOCK_THE_TEST": [],
+          "OTEL_INTEGRATIONS": ["all", "open-telemetry", ],
+          "OTEL_LOG_E2E": ["all", "open-telemetry", ],
+          "OTEL_METRIC_E2E": ["all", "open-telemetry", ],
+          "OTEL_TRACING_E2E": ["all", "open-telemetry", ],
+          "PARAMETRIC": ["all", "parametric", ],
+          "PERFORMANCES": [],
+          "PROFILING": ["all", "profiling", "end-to-end", ],
+          "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD": ["all", "end-to-end", "appsec", ],
+          "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE": ["all", "end-to-end", "appsec", ],
+          "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES": ["all", "end-to-end", "appsec", ],
+          "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE": ["all", "end-to-end", "appsec", ],
+          "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING": ["all", "end-to-end", ],
+          "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE": ["all", "end-to-end", ],
+          "SAMPLING": ["all", "sampling", "end-to-end", ],
+          "SIMPLE_CONTAINER_AUTO_INJECTION": [],  # nowhere ?
+          "SIMPLE_HOST_AUTO_INJECTION": ["all", ],  # nowhere ?
+          "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED": ["all", "end-to-end", ],
+          "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED": ["all", "end-to-end", ],
+          "TELEMETRY_LOG_GENERATION_DISABLED": ["all", "end-to-end", ],
+          "TELEMETRY_METRIC_GENERATION_DISABLED": ["all", "end-to-end", ],
+          "TELEMETRY_METRIC_GENERATION_ENABLED": ["all", "end-to-end", ],
+          "TEST_THE_TEST": [],
+          "TODO": [],
+          "TRACE_PROPAGATION_STYLE_W3C": ["all", "end-to-end", ],
+        }
+
+        for name in scenarios_families:
+          if inputs["run_all"] and "all" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_all_end_to_end"] and "end-to-end" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_open_telemetry"] and "open-telemetry" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_sampling"] and "sampling" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_profiling"] and "profiling" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_debugger"] and "debugger" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_integration"] and "integration" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_parametric"] and "parametric" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_libinjection"] and "libinjection" in scenarios_families[name]:
+            scenarios.add(name)
+          if inputs["run_appsec"] and "appsec" in scenarios_families[name]:
+            scenarios.add(name)
+
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f'scenarios={json.dumps(scenarios)}', file=fh)
+
+        print(json.dumps(result, indent=2))
+
   parametric:
-    if: inputs.run_parametric || inputs.run_all
+    needs:
+      - compute_scenarios
+    if: contains(compute_scenarios.outputs.scenarios, '"PARAMETRIC"')
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
       library: ${{ inputs.library }}
 
   graphql:
-    if: inputs.run_graphql || inputs.run_all_end_to_end || inputs.run_all
+    needs:
+      - compute_scenarios
+    if: contains(compute_scenarios.outputs.scenarios, '"GRAPHQL_APPSEC"')
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
     with:
@@ -110,7 +230,9 @@ jobs:
       library: ${{ inputs.library }}
 
   lib-injection:
-    if: inputs.run_libinjection || inputs.run_all
+    needs:
+      - compute_scenarios
+    if: contains(compute_scenarios.outputs.scenarios, '"K8S_LIB_INJECTION_')
     uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
     with:
@@ -118,24 +240,23 @@ jobs:
       library: ${{ inputs.library }}
 
   end-to-end:
+    needs:
+      - compute_scenarios
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
-      run_all: ${{ inputs.run_all || inputs.run_all_end_to_end }}
-      run_replay: ${{ inputs.run_replay }}
-      run_integration: ${{ inputs.run_integration }}
-      run_sampling: ${{ inputs.run_sampling }}
-      run_profiling: ${{ inputs.run_profiling }}
-      run_debugger: ${{ inputs.run_debugger }}
-      run_appsec: ${{ inputs.run_appsec }}
-      run_open_telemetry: ${{ inputs.run_open_telemetry }}
+      library: ${{ inputs.library }}
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      library: ${{ inputs.library }}
+      scenarios: ${{ compute_scenarios.outputs.scenarios }}
 
   open-telemetry:
-    if: inputs.run_open_telemetry || inputs.run_all
+    needs:
+      - compute_scenarios
+    # quite hacky : all open telemetry scenarios starts with OTEL_
+    # but it saves a whole abstraction layer
+    if: contains(compute_scenarios.outputs.scenarios, '"OTEL_')
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:

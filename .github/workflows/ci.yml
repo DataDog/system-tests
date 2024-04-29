@@ -99,6 +99,7 @@ jobs:
       run_parametric: ${{ needs.scenarios.outputs.run_parametric  == 'true' }}
       run_graphql:  ${{ needs.scenarios.outputs.run_graphql == 'true' }}
       run_libinjection: ${{ needs.scenarios.outputs.run_libinjection == 'true' }}
+      scenarios: ${{ needs.scenarios.outputs.scenarios }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
