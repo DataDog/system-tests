@@ -207,9 +207,9 @@ jobs:
             scenarios.add(name)
 
         with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f'scenarios={json.dumps(scenarios)}', file=fh)
+            print(f'scenarios={json.dumps(list(scenarios))}', file=fh)
 
-        print(json.dumps(result, indent=2))
+        print(json.dumps(list(scenarios), indent=2))
       env:
         GITHUB_WORKFLOW_INPUTS: ${{ toJSON(inputs) }}
 
