@@ -109,8 +109,9 @@ jobs:
       shell: python
       run: |
         import json
+        import os
 
-        inputs = json.loads('${{ toJson(inputs) }}')
+        inputs = json.loads(os.environ["GITHUB_WORKFLOW_INPUTS"])
         scenarios = set(json.loads(inputs["scenarios"]))
 
         scenarios_families = {
@@ -209,6 +210,8 @@ jobs:
             print(f'scenarios={json.dumps(scenarios)}', file=fh)
 
         print(json.dumps(result, indent=2))
+      env:
+        GITHUB_WORKFLOW_INPUTS: ${{ toJSON(inputs) }}
 
   parametric:
     needs:
