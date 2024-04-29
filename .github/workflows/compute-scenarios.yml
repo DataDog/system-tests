@@ -6,37 +6,37 @@ on:
     outputs:
       run_all:
         description: "Shall we run all scenarios"
-        value: ${{ jobs.main.outputs.run_all }}
+        value: ${{ jobs.labels.outputs.run_all }}
       run_open_telemetry:
         description: "Shall we run open-telemetry scenarios"
-        value: ${{ jobs.main.outputs.run_open_telemetry }}
+        value: ${{ jobs.labels.outputs.run_open_telemetry }}
       run_sampling:
         description: "Shall we run sampling scenarios"
-        value: ${{ jobs.main.outputs.run_sampling }}
+        value: ${{ jobs.labels.outputs.run_sampling }}
       run_profiling:
         description: "Shall we run profiling scenario"
-        value: ${{ jobs.main.outputs.run_profiling }}
+        value: ${{ jobs.labels.outputs.run_profiling }}
       run_parametric:
         description: "Shall we run parametric scenario"
-        value: ${{ jobs.main.outputs.run_parametric }}
+        value: ${{ jobs.labels.outputs.run_parametric }}
       run_libinjection:
         description: "Shall we run lib-injection scenarios"
-        value: ${{ jobs.main.outputs.run_libinjection }}
+        value: ${{ jobs.labels.outputs.run_libinjection }}
       run_debugger:
         description: "Shall we run debugger scenarios"
-        value: ${{ jobs.main.outputs.run_debugger }}
+        value: ${{ jobs.labels.outputs.run_debugger }}
       run_appsec:
         description: "Shall we run AppSec scenarios"
-        value: ${{ jobs.main.outputs.run_appsec }}
+        value: ${{ jobs.labels.outputs.run_appsec }}
       run_integration:
         description: "Shall we run Integrations scenarios"
-        value: ${{ jobs.main.outputs.run_integration }}
+        value: ${{ jobs.labels.outputs.run_integration }}
       run_graphql:
         description: "Shall we run GraphQL scenarios"
-        value: ${{ jobs.main.outputs.run_graphql }}
+        value: ${{ jobs.labels.outputs.run_graphql }}
 
 jobs:
-  main:
+  labels:
     runs-on: ubuntu-latest
     # Map the job outputs to step outputs
     outputs:
