@@ -909,7 +909,7 @@ class Test_Headers_Tracecontext:
 
         # 2) Datadog and tracecontext headers, trace-id and span-id match, missing p
         assert case2["name"] == "matching_trace_id_and_span_id_missing_p"
-        assert case2["meta"]["_dd.parent_id"] == "0000000000000000"
+        assert "_dd.parent_id" not in case2["meta"]
 
         # 3) Datadog and tracecontext headers, only trace-id matches
         assert case3["name"] == "matching_trace_id_only"
