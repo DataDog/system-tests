@@ -29,6 +29,10 @@ def _load_file(file):
     except FileNotFoundError:
         return {}
 
+    # this field is only used for YAML templating
+    if "refs" in data:
+        del data["refs"]
+
     return {nodeid: value for nodeid, value in _flatten("", data) if value is not None}
 
 
