@@ -237,8 +237,8 @@ tests/:
       Test_MySql: missing_feature
       Test_Postgres: missing_feature
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: missing_feature
-      Test_DsmContext_Injection_Base64: missing_feature
+      Test_DsmContext_Extraction_Base64: v2.29.0
+      Test_DsmContext_Injection_Base64: v2.29.0
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
       Test_DsmKinesis: missing_feature
