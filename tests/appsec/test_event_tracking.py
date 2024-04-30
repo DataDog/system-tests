@@ -39,15 +39,15 @@ class Test_UserLoginSuccessEvent:
 
     def setup_user_login_success_header_collection(self):
         headers = {
-            "Accept":  "text/html",
+            "Accept": "text/html",
             "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
-            "Accept-Language":  "en-GB, *;q=0.5",
+            "Accept-Language": "en-GB, *;q=0.5",
             "Content-Language": "en-GB",
             "Content-Length": "0",
             "Content-Type": "text/html; charset=utf-8",
             "Content-Encoding": "deflate, gzip",
             "Host": "127.0.0.1:1234",
-            "User-Agent": "Arachni/v1", #Benign User Agent 1.0",
+            "User-Agent": "Arachni/v1",  # Benign User Agent 1.0",
             "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
             "X-Client-IP": "42.42.42.42, 43.43.43.43",
             "X-Real-IP": "42.42.42.42, 43.43.43.43",
@@ -57,7 +57,7 @@ class Test_UserLoginSuccessEvent:
             "Forwarded": "42.42.42.42, 43.43.43.43",
             "Via": "42.42.42.42, 43.43.43.43",
             "True-Client-IP": "42.42.42.42, 43.43.43.43",
-#             "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
+            #             "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
             # "CF-Connecting-IP": "42.42.42.42",
             "Fastly-Client-IP": "42.42.42.42",
         }
@@ -68,13 +68,27 @@ class Test_UserLoginSuccessEvent:
         # Call the user login success SDK and validate tags
 
         def validate_user_login_success_header_collection(span):
-            expected_headers = ["Accept", "Accept-Encoding", "Accept-Language",
-                "Content-Language", "Content-Length", "Content-Type",
-                "Content-Encoding", "Host", "User-Agent", "X-Forwarded-For",
-                "X-Client-IP", "X-Real-IP", "X-Forwarded", "X-Cluster-Client-IP",
-                "Forwarded-For", "Forwarded", "Via", "True-Client-IP",
+            expected_headers = [
+                "Accept",
+                "Accept-Encoding",
+                "Accept-Language",
+                "Content-Language",
+                "Content-Length",
+                "Content-Type",
+                "Content-Encoding",
+                "Host",
+                "User-Agent",
+                "X-Forwarded-For",
+                "X-Client-IP",
+                "X-Real-IP",
+                "X-Forwarded",
+                "X-Cluster-Client-IP",
+                "Forwarded-For",
+                "Forwarded",
+                "Via",
+                "True-Client-IP",
                 "Fastly-Client-IP",
-#                 "CF-Connecting-IPv6",
+                #                 "CF-Connecting-IPv6",
                 # "CF-Connecting-IP",
             ]
             for header in expected_headers:
@@ -120,15 +134,15 @@ class Test_UserLoginFailureEvent:
 
     def setup_user_login_failure_header_collection(self):
         headers = {
-            "Accept":  "text/html",
+            "Accept": "text/html",
             "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
-            "Accept-Language":  "en-GB, *;q=0.5",
+            "Accept-Language": "en-GB, *;q=0.5",
             "Content-Language": "en-GB",
             "Content-Length": "0",
             "Content-Type": "text/html; charset=utf-8",
             "Content-Encoding": "deflate, gzip",
             "Host": "127.0.0.1:1234",
-            "User-Agent": "Arachni/v1", #Benign User Agent 1.0",
+            "User-Agent": "Arachni/v1",  # Benign User Agent 1.0",
             "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
             "X-Client-IP": "42.42.42.42, 43.43.43.43",
             "X-Real-IP": "42.42.42.42, 43.43.43.43",
@@ -138,7 +152,7 @@ class Test_UserLoginFailureEvent:
             "Forwarded": "42.42.42.42, 43.43.43.43",
             "Via": "42.42.42.42, 43.43.43.43",
             "True-Client-IP": "42.42.42.42, 43.43.43.43",
-#             "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
+            #             "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
             # "CF-Connecting-IP": "42.42.42.42",
             "Fastly-Client-IP": "42.42.42.42",
         }
@@ -149,13 +163,27 @@ class Test_UserLoginFailureEvent:
         # Call the user login failure SDK and validate tags
 
         def validate_user_login_failure_header_collection(span):
-            expected_headers = ["Accept", "Accept-Encoding", "Accept-Language",
-                "Content-Language", "Content-Length", "Content-Type",
-                "Content-Encoding", "Host", "User-Agent", "X-Forwarded-For",
-                "X-Client-IP", "X-Real-IP", "X-Forwarded", "X-Cluster-Client-IP",
-                "Forwarded-For", "Forwarded", "Via", "True-Client-IP",
+            expected_headers = [
+                "Accept",
+                "Accept-Encoding",
+                "Accept-Language",
+                "Content-Language",
+                "Content-Length",
+                "Content-Type",
+                "Content-Encoding",
+                "Host",
+                "User-Agent",
+                "X-Forwarded-For",
+                "X-Client-IP",
+                "X-Real-IP",
+                "X-Forwarded",
+                "X-Cluster-Client-IP",
+                "Forwarded-For",
+                "Forwarded",
+                "Via",
+                "True-Client-IP",
                 "Fastly-Client-IP",
-#                 "CF-Connecting-IPv6",
+                #                 "CF-Connecting-IPv6",
                 # "CF-Connecting-IP",
             ]
             for header in expected_headers:
@@ -163,6 +191,7 @@ class Test_UserLoginFailureEvent:
             return True
 
         interfaces.library.validate_spans(self.r, validate_user_login_failure_header_collection)
+
 
 @features.custom_business_logic_events
 class Test_CustomEvent:
