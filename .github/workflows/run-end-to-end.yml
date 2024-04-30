@@ -357,6 +357,11 @@ jobs:
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_RASP scenario
+      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      run: ./run.sh APPSEC_RASP
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && (inputs.run_sampling || inputs.run_all)
       run: ./run.sh SAMPLING

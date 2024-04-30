@@ -1743,6 +1743,10 @@ class scenarios:
         "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
 
+    appsec_rasp = EndToEndScenario(
+        "APPSEC_RASP", weblog_env={"DD_APPSEC_RASP_ENABLED": "true"}, doc="Enable APPSEC RASP"
+    )
+
 
 def _main():
     for name in dir(scenarios):

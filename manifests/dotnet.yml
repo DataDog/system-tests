@@ -148,6 +148,8 @@ tests/:
         Test_Scanners: v1.28.6
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
+    rasp/:
+      test_lfi: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:

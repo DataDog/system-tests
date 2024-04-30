@@ -2126,3 +2126,13 @@ class features:
         """
         pytest.mark.features(feature_id=292)(test_object)
         return test_object
+
+    @staticmethod
+    def rasp_local_file_inclusion(test_object):
+        """
+        Appsec RASP rule : local file inclusion
+
+        https://feature-parity.us1.prod.dog/#/?feature=293
+        """
+        pytest.mark.features(feature_id=293)(test_object)
+        return test_object
