@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
 from utils.tools import logger
 
 import base64
@@ -34,6 +34,7 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
+    @flaky(library="java", reason="Out checkpoint misses the group info")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
