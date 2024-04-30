@@ -2126,3 +2126,13 @@ class features:
         """
         pytest.mark.features(feature_id=292)(test_object)
         return test_object
+
+    @staticmethod
+    def database_monitoring_support(test_object):
+        """
+        Database Monitoring is supported by an integration
+
+        https://feature-parity.us1.prod.dog/#/?feature=293
+        """
+        pytest.mark.features(feature_id=293)(test_object)
+        return test_object

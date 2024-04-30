@@ -175,7 +175,7 @@ class _Test_Dbm_Comment:
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
-@features.database_monitoring_correlation
+@features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
     integration = "psycopg"
@@ -189,7 +189,7 @@ class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
-@features.database_monitoring_correlation
+@features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
     integration = "asyncpg"
@@ -203,7 +203,7 @@ class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
-@features.database_monitoring_correlation
+@features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
     integration = "aiomysql"
@@ -217,7 +217,7 @@ class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
-@features.database_monitoring_correlation
+@features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
     integration = "mysql-connector"
@@ -231,7 +231,7 @@ class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
-@features.database_monitoring_correlation
+@features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
     integration = "mysqldb"
@@ -245,7 +245,7 @@ class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
-@features.database_monitoring_correlation
+@features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
     integration = "pymysql"
@@ -259,7 +259,7 @@ class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
 
 
 @irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
-@features.database_monitoring_correlation
+@features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_NodeJS_mysql2(_Test_Dbm_Comment):
     integration = "mysql2"
@@ -273,7 +273,7 @@ class Test_Dbm_Comment_NodeJS_mysql2(_Test_Dbm_Comment):
 
 
 @irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
-@features.database_monitoring_correlation
+@features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_NodeJS_pg(_Test_Dbm_Comment):
     integration = "pg"
