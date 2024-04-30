@@ -184,6 +184,8 @@ jobs:
           "TRACE_PROPAGATION_STYLE_W3C": ["all", "end-to-end", ],
         }
 
+        scenarios.add("DEFAULT")  # always run default scenario
+
         for name in scenarios_families:
           if inputs["run_all"] and "all" in scenarios_families[name]:
             scenarios.add(name)
