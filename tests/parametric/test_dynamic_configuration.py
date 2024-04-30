@@ -617,17 +617,17 @@ class TestDynamicConfigSamplingRules:
 
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_CUSTOMER)
-        # Make sure `_dd.p.dm` is set to "-10" (i.e., remote user rule)
-        span = root_span(trace)
-        assert "_dd.p.dm" in span["meta"]
-        assert span["meta"]["_dd.p.dm"] == "-10"
-
-        trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
-        assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_DYNAMIC)
-        # Make sure `_dd.p.dm` is set to "-11" (i.e., remote dynamic rule)
+        # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user rule)
         span = root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-11"
+
+        trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
+        assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_DYNAMIC)
+        # Make sure `_dd.p.dm` is set to "-12" (i.e., remote dynamic rule)
+        span = root_span(trace)
+        assert "_dd.p.dm" in span["meta"]
+        assert span["meta"]["_dd.p.dm"] == "-12"
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
         set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
@@ -664,10 +664,10 @@ class TestDynamicConfigSamplingRules:
         # trace/span matching the rule gets applied the rule's rate
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_CUSTOMER)
-        # Make sure `_dd.p.dm` is set to "-10" (i.e., remote user rule)
+        # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user rule)
         span = root_span(trace)
         assert "_dd.p.dm" in span["meta"]
-        assert span["meta"]["_dd.p.dm"] == "-10"
+        assert span["meta"]["_dd.p.dm"] == "-11"
 
         # trace/span not matching the rule gets applied the RC global rate
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
