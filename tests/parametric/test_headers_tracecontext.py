@@ -809,7 +809,7 @@ class Test_Headers_Tracecontext:
 
     # W3C Phase 3 to try adding the tag if the span id matches regardless of headers order(if tracecontext is accounted)
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -929,7 +929,7 @@ class Test_Headers_Tracecontext:
 
     # W3C Phase 3 to try adding the tag if the span id matches regardless of headers order(if tracecontext is accounted)
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
