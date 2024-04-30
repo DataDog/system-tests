@@ -119,7 +119,7 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
-        pull-all: ${{ contains(inputs.scenario, '"INTEGRATIONS"') || contains(inputs.scenario, '"CROSSED_TRACING_LIBRARIES"') }}
+        pull-all: ${{ contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"') }}
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
@@ -159,223 +159,223 @@ jobs:
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
     - name: Run DEFAULT scenario
-      if: steps.build.outcome == 'success' && contains(inputs.scenario, '"DEFAULT"')
+      if: steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run CROSSED_TRACING_LIBRARIES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"CROSSED_TRACING_LIBRARIES"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
       run: ./run.sh CROSSED_TRACING_LIBRARIES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"PROFILING"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
-      if: always() && steps.build.outcome == 'success' && inputs.library != 'python' && contains(inputs.scenario, '"TRACE_PROPAGATION_STYLE_W3C"')
+      if: always() && steps.build.outcome == 'success' && inputs.library != 'python' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"INTEGRATIONS"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APM_TRACING_E2E_OTEL"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_MISSING_RULES"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_CUSTOM_RULES"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
       run: ./run.sh APPSEC_CUSTOM_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_CORRUPTED_RULES"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')
       run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_BLOCKING"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING"')
       run: ./run.sh APPSEC_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_DISABLED"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_DISABLED"')
       run: ./run.sh APPSEC_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_LOW_WAF_TIMEOUT"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LOW_WAF_TIMEOUT"')
       run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_CUSTOM_OBFUSCATION"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_OBFUSCATION"')
       run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RATE_LIMITER scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_RATE_LIMITER"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RATE_LIMITER"')
       run: ./run.sh APPSEC_RATE_LIMITER
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_BLOCKING_FULL_DENYLIST"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING_FULL_DENYLIST"')
       run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_REQUEST_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_REQUEST_BLOCKING"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_REQUEST_BLOCKING"')
       run: ./run.sh APPSEC_REQUEST_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_RUNTIME_ACTIVATION"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_WAF_TELEMETRY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_WAF_TELEMETRY"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_WAF_TELEMETRY"')
       run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_API_SECURITY"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY"')
       run: ./run.sh APPSEC_API_SECURITY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY_RC scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_API_SECURITY_RC"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_RC"')
       run: ./run.sh APPSEC_API_SECURITY_RC
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
       run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
       run: |
         ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING
         cat ./logs_appsec_api_security_with_sampling/tests.log 2>/dev/null | grep "API SECURITY" || true
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"APPSEC_AUTO_EVENTS_EXTENDED"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_EXTENDED"')
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"SAMPLING"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"TELEMETRY_LOG_GENERATION_DISABLED"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"TELEMETRY_METRIC_GENERATION_DISABLED"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_METRIC_GENERATION_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"TELEMETRY_METRIC_GENERATION_ENABLED"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_ENABLED"')
       run: ./run.sh TELEMETRY_METRIC_GENERATION_ENABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"DEBUGGER_PROBES_STATUS"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_STATUS"')
       run: ./run.sh DEBUGGER_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_METHOD_PROBES_SNAPSHOT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"DEBUGGER_METHOD_PROBES_SNAPSHOT"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_METHOD_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_LINE_PROBES_SNAPSHOT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"DEBUGGER_LINE_PROBES_SNAPSHOT"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_LINE_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_MIX_LOG_PROBE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"DEBUGGER_MIX_LOG_PROBE"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_MIX_LOG_PROBE"')
       run: ./run.sh DEBUGGER_MIX_LOG_PROBE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_PII_REDACTION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenario, '"DEBUGGER_PII_REDACTION"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
