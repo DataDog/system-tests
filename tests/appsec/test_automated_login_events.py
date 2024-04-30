@@ -45,30 +45,6 @@ class Test_Login_Events:
     BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
     BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
 
-    HEADERS = {
-        "Accept": "text/html",
-        "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
-        "Accept-Language": "en-GB, *;q=0.5",
-        "Content-Language": "en-GB",
-        "Content-Length": "0",
-        "Content-Type": "text/html; charset=utf-8",
-        "Content-Encoding": "deflate, gzip",
-        "Host": "127.0.0.1:1234",
-        "User-Agent": "Benign User Agent 1.0",
-        "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
-        "X-Client-IP": "42.42.42.42, 43.43.43.43",
-        "X-Real-IP": "42.42.42.42, 43.43.43.43",
-        "X-Forwarded": "42.42.42.42, 43.43.43.43",
-        "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
-        "Forwarded-For": "42.42.42.42, 43.43.43.43",
-        "Forwarded": "42.42.42.42, 43.43.43.43",
-        "Via": "42.42.42.42, 43.43.43.43",
-        "True-Client-IP": "42.42.42.42, 43.43.43.43",
-        "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
-        "CF-Connecting-IP": "42.42.42.42",
-        "Fastly-Client-IP": "42.42.42.42",
-    }
-
     def setup_login_pii_success_local(self):
         self.r_pii_success = weblog.post(
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
@@ -570,6 +546,8 @@ class Test_Login_Events_Extended:
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_success_headers(self):
+        # Validate that all relevant headers are included on user login success on extended mode
+
         def validate_login_success_headers(span):
             for header, _ in self.HEADERS.items():
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -592,6 +570,8 @@ class Test_Login_Events_Extended:
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_failure_headers(self):
+        # Validate that all relevant headers are included on user login failure on extended mode
+
         def validate_login_failure_headers(span):
             for header, _ in self.HEADERS.items():
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"

@@ -72,7 +72,7 @@ class Test_UserLoginSuccessEvent:
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_user_login_success_header_collection(self):
-        # Call the user login success SDK and validate tags
+        # Validate that all relevant headers are included on user login success
 
         def validate_user_login_success_header_collection(span):
             expected_headers = [
@@ -174,7 +174,7 @@ class Test_UserLoginFailureEvent:
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_user_login_failure_header_collection(self):
-        # Call the user login failure SDK and validate tags
+        # Validate that all relevant headers are included on user login failure
 
         def validate_user_login_failure_header_collection(span):
             expected_headers = [
