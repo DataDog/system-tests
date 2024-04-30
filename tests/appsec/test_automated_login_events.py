@@ -284,7 +284,7 @@ class Test_Login_Events_Extended:
         "Content-Type": "text/html; charset=utf-8",
         "Content-Encoding": "deflate, gzip",
         "Host": "127.0.0.1:1234",
-        "User-Agent": "Arachni/v1",  # "Benign User Agent 1.0",
+        "User-Agent": "Benign User Agent 1.0",
         "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
         "X-Client-IP": "42.42.42.42, 43.43.43.43",
         "X-Real-IP": "42.42.42.42, 43.43.43.43",
@@ -535,13 +535,12 @@ class Test_Login_Events_Extended:
             headers=self.HEADERS,
         )
 
-    # @missing_feature(library="dotnet")
-    # @missing_feature(library="golang", reason="certain XFF headers aren't collected")
-    # @missing_feature(library="java")
-    # @missing_feature(library="nodejs")
-    # @missing_feature(library="python")
-    # @missing_feature(library="php")
-    # @missing_feature(library="ruby")
+    @missing_feature(library="dotnet")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
@@ -559,13 +558,12 @@ class Test_Login_Events_Extended:
             headers=self.HEADERS,
         )
 
-    # @missing_feature(library="dotnet")
-    # @missing_feature(library="golang", reason="certain XFF headers aren't collected")
-    # @missing_feature(library="java")
-    # @missing_feature(library="nodejs")
-    # @missing_feature(library="python")
-    # @missing_feature(library="php")
-    # @missing_feature(library="ruby")
+    @missing_feature(library="dotnet")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 

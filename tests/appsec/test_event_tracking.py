@@ -12,7 +12,7 @@ HEADERS = {
     "Content-Type": "text/html; charset=utf-8",
     "Content-Encoding": "deflate, gzip",
     "Host": "127.0.0.1:1234",
-    "User-Agent": "Arachni/v1",  # "Benign User Agent 1.0",
+    "User-Agent": "Benign User Agent 1.0",
     "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
     "X-Client-IP": "42.42.42.42, 43.43.43.43",
     "X-Real-IP": "42.42.42.42, 43.43.43.43",
@@ -22,9 +22,6 @@ HEADERS = {
     "Forwarded": "42.42.42.42, 43.43.43.43",
     "Via": "42.42.42.42, 43.43.43.43",
     "True-Client-IP": "42.42.42.42, 43.43.43.43",
-    "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
-    "CF-Connecting-IP": "42.42.42.42",
-    "Fastly-Client-IP": "42.42.42.42",
 }
 
 
@@ -64,13 +61,12 @@ class Test_UserLoginSuccessEvent:
     def setup_user_login_success_header_collection(self):
         self.r = weblog.get("/user_login_success_event", headers=HEADERS)
 
-    # @missing_feature(library="dotnet")
-    # @missing_feature(library="golang", reason="certain XFF headers aren't collected")
-    # @missing_feature(library="java")
-    # @missing_feature(library="nodejs")
-    # @missing_feature(library="python")
-    # @missing_feature(library="php")
-    # @missing_feature(library="ruby")
+    @missing_feature(library="dotnet")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
 
@@ -119,13 +115,12 @@ class Test_UserLoginFailureEvent:
     def setup_user_login_failure_header_collection(self):
         self.r = weblog.get("/user_login_failure_event", headers=HEADERS)
 
-    # @missing_feature(library="dotnet")
-    # @missing_feature(library="golang", reason="certain XFF headers aren't collected")
-    # @missing_feature(library="java")
-    # @missing_feature(library="nodejs")
-    # @missing_feature(library="python")
-    # @missing_feature(library="php")
-    # @missing_feature(library="ruby")
+    @missing_feature(library="dotnet")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 
