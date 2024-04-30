@@ -456,6 +456,22 @@ class Test_Login_Events_Extended:
             assert meta["usr.id"] == "sdkUser"
             assert_priority(span, meta)
 
+    def setup_login_sdk_success_local_headers(self):
+        self.r_sdk_success = weblog.post(
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+        )
+
+    def test_login_sdk_success_local_headers(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "sdkUser"
+            assert_priority(span, meta)
+
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
             "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
