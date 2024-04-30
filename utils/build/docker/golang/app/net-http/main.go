@@ -121,7 +121,6 @@ func main() {
 	})
 
 	mux.HandleFunc("/kafka/produce", func(w http.ResponseWriter, r *http.Request) {
-		var server = "kafka:9092"
 		var message = "Test"
 
 		topic := r.URL.Query().Get("topic")
@@ -131,34 +130,18 @@ func main() {
 			return
 		}
 
-		cfg := sarama.NewConfig()
-		cfg.Producer.Return.Successes = true
-
-		producer, err := sarama.NewSyncProducer([]string{server}, cfg)
+		_, _, err := kafkaProduce(topic, message)
 		if err != nil {
-			panic(err)
+			w.Write([]byte(err.Error()))
+			w.WriteHeader(500)
+			return
 		}
-		defer producer.Close()
-
-		producer = saramatrace.WrapSyncProducer(cfg, producer)
-
-		msg := &sarama.ProducerMessage{
-			Topic:     topic,
-			Partition: 0,
-			Value:     sarama.StringEncoder(message),
-		}
-
-		partition, offset, _ := producer.SendMessage(msg)
-
-		log.Printf("PRODUCER SENT MESSAGE TO (partition offset): %d %d", partition, offset)
 
 		w.Write([]byte("OK"))
 		w.WriteHeader(200)
 	})
 
 	mux.HandleFunc("/kafka/consume", func(w http.ResponseWriter, r *http.Request) {
-		var server = "kafka:9092"
-
 		topic := r.URL.Query().Get("topic")
 		if len(topic) == 0 {
 			w.Write([]byte("missing param 'topic'"))
@@ -166,48 +149,18 @@ func main() {
 			return
 		}
 
-		cfg := sarama.NewConfig()
+		timeout, err := strconv.ParseInt(r.URL.Query().Get("timeout"), 10, 0)
+		if err != nil {
+			timeout = 20
+		}
 
-		consumer, err := sarama.NewConsumer([]string{server}, cfg)
+		message, status, err := kafkaConsume(topic, timeout)
 		if err != nil {
 			panic(err)
 		}
 
-		defer consumer.Close()
-
-		consumer = saramatrace.WrapConsumer(consumer)
-
-		partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
-
-		if err != nil {
-			panic(err)
-		}
-
-		defer partitionConsumer.Close()
-
-		// Added a time to avoid this issue: https://github.com/IBM/sarama/issues/2116
-		timeOutTimer := time.NewTimer(time.Second * 20)
-		defer timeOutTimer.Stop()
-		log.Printf("CONSUMING MESSAGES from topic: %s", topic)
-	ConsumeMessages:
-		for {
-			select {
-			case receivedMsg := <-partitionConsumer.Messages():
-				responseOutput := fmt.Sprintf("Consumed message.\n\tOffset: %s\n\tMessage: %s\n", fmt.Sprint(receivedMsg.Offset), string(receivedMsg.Value))
-				log.Print(responseOutput)
-				w.Write([]byte(responseOutput))
-				w.WriteHeader(200)
-				return // consume only one message. Works for now.
-				// if we want to consume more, we need to handle the return code differently in timeout,
-				// whether messages were consumed or not
-			case <-timeOutTimer.C:
-				timedOutMessage := "TimeOut"
-				log.Print(timedOutMessage)
-				w.Write([]byte(timedOutMessage))
-				w.WriteHeader(408)
-				break ConsumeMessages
-			}
-		}
+		w.Write([]byte(message))
+		w.WriteHeader(status)
 	})
 
 	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {
@@ -366,6 +319,46 @@ func main() {
 	common.InitDatadog()
 	go grpc.ListenAndServe()
 	http.ListenAndServe(":7777", mux)
+
+	mux.HandleFunc("/dsm", func(w http.ResponseWriter, r *http.Request) {
+		var message = "Test DSM Context Propagation"
+
+		integration := r.URL.Query().Get("integration")
+		if len(integration) == 0 {
+			w.Write([]byte("missing param 'integration'"))
+			w.WriteHeader(422)
+			return
+		}
+
+		if integration == "kafka" {
+			queue := r.URL.Query().Get("queue")
+			if len(queue) == 0 {
+				w.Write([]byte("missing param 'queue' for kafka dsm"))
+				w.WriteHeader(422)
+				return
+			}
+
+			_, _, err := kafkaProduce(queue, message)
+			if err != nil {
+				w.Write([]byte(err.Error()))
+				w.WriteHeader(500)
+				return
+			}
+
+			timeout, err := strconv.ParseInt(r.URL.Query().Get("timeout"), 10, 0)
+			if err != nil {
+				timeout = 20
+			}
+
+			_, _, err = kafkaConsume(queue, timeout)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		w.Write([]byte("OK"))
+		w.WriteHeader(200)
+	})
 }
 
 func write(w http.ResponseWriter, r *http.Request, d []byte) {
@@ -380,4 +373,67 @@ func headers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-length", "42")
 	w.Header().Set("content-language", "en-US")
 	w.Write([]byte("Hello, headers!"))
+}
+
+func kafkaProduce(topic, message string) (int32, int64, error) {
+	var server = "kafka:9092"
+
+	cfg := sarama.NewConfig()
+	cfg.Producer.Return.Successes = true
+
+	producer, err := sarama.NewSyncProducer([]string{server}, cfg)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer producer.Close()
+
+	producer = saramatrace.WrapSyncProducer(cfg, producer)
+
+	msg := &sarama.ProducerMessage{
+		Topic:     topic,
+		Partition: 0,
+		Value:     sarama.StringEncoder(message),
+	}
+
+	partition, offset, err := producer.SendMessage(msg)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	log.Printf("PRODUCER SENT MESSAGE TO (partition offset): %d %d", partition, offset)
+	return partition, offset, nil
+}
+
+func kafkaConsume(topic string, timeout int64) (string, int, error) {
+	var server = "kafka:9092"
+	cfg := sarama.NewConfig()
+
+	consumer, err := sarama.NewConsumer([]string{server}, cfg)
+	if err != nil {
+		return "", 0, err
+	}
+	defer consumer.Close()
+
+	consumer = saramatrace.WrapConsumer(consumer)
+	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
+	if err != nil {
+		return "", 0, err
+	}
+	defer partitionConsumer.Close()
+
+	timeOutTimer := time.NewTimer(time.Duration(timeout) * time.Second)
+	defer timeOutTimer.Stop()
+	log.Printf("CONSUMING MESSAGES from topic: %s", topic)
+	for {
+		select {
+		case receivedMsg := <-partitionConsumer.Messages():
+			responseOutput := fmt.Sprintf("Consumed message.\n\tOffset: %s\n\tMessage: %s\n", fmt.Sprint(receivedMsg.Offset), string(receivedMsg.Value))
+			log.Print(responseOutput)
+			return responseOutput, 200, nil
+		case <-timeOutTimer.C:
+			timedOutMessage := "TimeOut"
+			log.Print(timedOutMessage)
+			return timedOutMessage, 408, nil
+		}
+	}
 }
