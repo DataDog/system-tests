@@ -21,6 +21,7 @@ class Test_HardcodedPasswords:
     def setup_hardcoded_passwords_exec(self):
         self.r_hardcoded_passwords_exec = weblog.get("/iast/hardcoded_passwords/test_insecure")
 
+    @missing_feature(reason="Not implemented yet")
     def test_hardcoded_passwords_exec(self):
         assert self.r_hardcoded_passwords_exec.status_code == 200
         hardcoded_passwords = self.get_hardcoded_password_vulnerabilities()
