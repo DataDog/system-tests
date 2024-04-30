@@ -316,32 +316,28 @@ func main() {
 		w.Write([]byte(content))
 	})
 
-	common.InitDatadog()
-	go grpc.ListenAndServe()
-	http.ListenAndServe(":7777", mux)
-
 	mux.HandleFunc("/dsm", func(w http.ResponseWriter, r *http.Request) {
 		var message = "Test DSM Context Propagation"
 
 		integration := r.URL.Query().Get("integration")
 		if len(integration) == 0 {
-			w.Write([]byte("missing param 'integration'"))
 			w.WriteHeader(422)
+			w.Write([]byte("missing param 'integration'"))
 			return
 		}
 
 		if integration == "kafka" {
 			queue := r.URL.Query().Get("queue")
 			if len(queue) == 0 {
-				w.Write([]byte("missing param 'queue' for kafka dsm"))
 				w.WriteHeader(422)
+				w.Write([]byte("missing param 'queue' for kafka dsm"))
 				return
 			}
 
 			_, _, err := kafkaProduce(queue, message)
 			if err != nil {
-				w.Write([]byte(err.Error()))
 				w.WriteHeader(500)
+				w.Write([]byte(err.Error()))
 				return
 			}
 
@@ -352,13 +348,19 @@ func main() {
 
 			_, _, err = kafkaConsume(queue, timeout)
 			if err != nil {
-				panic(err)
+				w.WriteHeader(500)
+				w.Write([]byte(err.Error()))
+				return
 			}
 		}
 
-		w.Write([]byte("OK"))
 		w.WriteHeader(200)
+		w.Write([]byte("ok"))
 	})
+
+	common.InitDatadog()
+	go grpc.ListenAndServe()
+	http.ListenAndServe(":7777", mux)
 }
 
 func write(w http.ResponseWriter, r *http.Request, d []byte) {
@@ -387,7 +389,7 @@ func kafkaProduce(topic, message string) (int32, int64, error) {
 	}
 	defer producer.Close()
 
-	producer = saramatrace.WrapSyncProducer(cfg, producer)
+	producer = saramatrace.WrapSyncProducer(cfg, producer, saramatrace.WithDataStreams())
 
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
@@ -414,7 +416,7 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 	}
 	defer consumer.Close()
 
-	consumer = saramatrace.WrapConsumer(consumer)
+	consumer = saramatrace.WrapConsumer(consumer, saramatrace.WithDataStreams())
 	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
 	if err != nil {
 		return "", 0, err
