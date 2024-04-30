@@ -702,7 +702,9 @@ class TestDynamicConfigSamplingRules:
         assert RC_SAMPLING_TAGS_RULE_RATE != ENV_SAMPLING_RULE_RATE
         assert RC_SAMPLING_RATE != ENV_SAMPLING_RULE_RATE
 
-        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")])
+        trace = get_sampled_trace(
+            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")]
+        )
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-3" (i.e., local RULE_RATE)
         span = trace[0]
@@ -720,14 +722,16 @@ class TestDynamicConfigSamplingRules:
                         "sample_rate": RC_SAMPLING_TAGS_RULE_RATE,
                         "service": TEST_SERVICE,
                         "resource": "*",
-                        "tags": [{"key":"tag-a", "value_glob":"tag-a-val*"}],
+                        "tags": [{"key": "tag-a", "value_glob": "tag-a-val*"}],
                         "provenance": "customer",
                     },
-                ]
+                ],
             },
         )
 
-        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")])
+        trace = get_sampled_trace(
+            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")]
+        )
         assert_sampling_rate(trace, RC_SAMPLING_TAGS_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-11"
         span = trace[0]
@@ -735,7 +739,9 @@ class TestDynamicConfigSamplingRules:
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-11"
 
-        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "NOT-tag-a-val")])
+        trace = get_sampled_trace(
+            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "NOT-tag-a-val")]
+        )
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
         span = trace[0]
@@ -743,7 +749,9 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # a different tag
-        trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("not-tag-a", "tag-a-val")])
+        trace = get_sampled_trace(
+            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("not-tag-a", "tag-a-val")]
+        )
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
         span = trace[0]
