@@ -255,7 +255,6 @@ class Test_Login_Events:
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @scenarios.appsec_auto_events_extended
 @features.user_monitoring
-@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 
@@ -275,6 +274,30 @@ class Test_Login_Events_Extended:
 
     BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
     BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
+
+    HEADERS = {
+        "Accept": "text/html",
+        "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
+        "Accept-Language": "en-GB, *;q=0.5",
+        "Content-Language": "en-GB",
+        "Content-Length": "0",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Encoding": "deflate, gzip",
+        "Host": "127.0.0.1:1234",
+        "User-Agent": "Benign User Agent 1.0",
+        "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
+        "X-Client-IP": "42.42.42.42, 43.43.43.43",
+        "X-Real-IP": "42.42.42.42, 43.43.43.43",
+        "X-Forwarded": "42.42.42.42, 43.43.43.43",
+        "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
+        "Forwarded-For": "42.42.42.42, 43.43.43.43",
+        "Forwarded": "42.42.42.42, 43.43.43.43",
+        "Via": "42.42.42.42, 43.43.43.43",
+        "True-Client-IP": "42.42.42.42, 43.43.43.43",
+        "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
+        "CF-Connecting-IP": "42.42.42.42",
+        "Fastly-Client-IP": "42.42.42.42",
+    }
 
     def setup_login_success_local(self):
         self.r_success = weblog.post(
@@ -456,21 +479,27 @@ class Test_Login_Events_Extended:
             assert meta["usr.id"] == "sdkUser"
             assert_priority(span, meta)
 
-    def setup_login_sdk_success_local_headers(self):
+    def setup_login_sdk_success_headers(self):
         self.r_sdk_success = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
             data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+            headers=self.HEADERS,
         )
 
-    def test_login_sdk_success_local_headers(self):
-        assert self.r_sdk_success.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
-            meta = span.get("meta", {})
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
-            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-            assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, meta)
+    @missing_feature(library="dotnet")
+    @missing_feature(library="golang", reason="certain XFF headers aren't collected")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
+    def test_login_sdk_success_headers(self):
+        def validate_login_sdk_success_headers(span):
+            for header, value in self.HEADERS.items():
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r_sdk_success, validate_login_sdk_success_headers)
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
@@ -523,6 +552,28 @@ class Test_Login_Events_Extended:
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
             assert_priority(span, meta)
+
+    def setup_login_sdk_failure_headers(self):
+        self.r_sdk_failure = weblog.post(
+            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+            headers=self.HEADERS,
+        )
+
+    @missing_feature(library="dotnet")
+    @missing_feature(library="golang", reason="certain XFF headers aren't collected")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
+    def test_login_sdk_failure_headers(self):
+        def validate_login_sdk_failure_headers(span):
+            for header, value in self.HEADERS.items():
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r_sdk_failure, validate_login_sdk_failure_headers)
 
 
 def assert_priority(span, meta):
