@@ -34,7 +34,7 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
-    @flaky(library="java", reason="Out checkpoint misses the group info")
+    @flaky(library="java", reason="AIT-10206")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
