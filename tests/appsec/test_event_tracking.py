@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, features
+from utils import weblog, interfaces, features, missing_feature
 
 
 @features.user_monitoring
@@ -47,7 +47,7 @@ class Test_UserLoginSuccessEvent:
             "Content-Type": "text/html; charset=utf-8",
             "Content-Encoding": "deflate, gzip",
             "Host": "127.0.0.1:1234",
-            "User-Agent": "Arachni/v1",  # Benign User Agent 1.0",
+            "User-Agent": "Benign User Agent 1.0",
             "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
             "X-Client-IP": "42.42.42.42, 43.43.43.43",
             "X-Real-IP": "42.42.42.42, 43.43.43.43",
@@ -57,13 +57,20 @@ class Test_UserLoginSuccessEvent:
             "Forwarded": "42.42.42.42, 43.43.43.43",
             "Via": "42.42.42.42, 43.43.43.43",
             "True-Client-IP": "42.42.42.42, 43.43.43.43",
-            #             "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
-            # "CF-Connecting-IP": "42.42.42.42",
+            "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
+            "CF-Connecting-IP": "42.42.42.42",
             "Fastly-Client-IP": "42.42.42.42",
         }
 
         self.r = weblog.get("/user_login_success_event", headers=headers)
 
+    @missing_feature(library="dotnet")
+    @missing_feature(library="golang", reason="certain XFF headers aren't collected")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
     def test_user_login_success_header_collection(self):
         # Call the user login success SDK and validate tags
 
@@ -87,9 +94,9 @@ class Test_UserLoginSuccessEvent:
                 "Forwarded",
                 "Via",
                 "True-Client-IP",
+                "CF-Connecting-IPv6",
+                "CF-Connecting-IP",
                 "Fastly-Client-IP",
-                #                 "CF-Connecting-IPv6",
-                # "CF-Connecting-IP",
             ]
             for header in expected_headers:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -142,7 +149,7 @@ class Test_UserLoginFailureEvent:
             "Content-Type": "text/html; charset=utf-8",
             "Content-Encoding": "deflate, gzip",
             "Host": "127.0.0.1:1234",
-            "User-Agent": "Arachni/v1",  # Benign User Agent 1.0",
+            "User-Agent": "Benign User Agent 1.0",
             "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
             "X-Client-IP": "42.42.42.42, 43.43.43.43",
             "X-Real-IP": "42.42.42.42, 43.43.43.43",
@@ -152,13 +159,20 @@ class Test_UserLoginFailureEvent:
             "Forwarded": "42.42.42.42, 43.43.43.43",
             "Via": "42.42.42.42, 43.43.43.43",
             "True-Client-IP": "42.42.42.42, 43.43.43.43",
-            #             "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
-            # "CF-Connecting-IP": "42.42.42.42",
+            "CF-Connecting-IPv6": "::ffff:2a2a:2a2a",
+            "CF-Connecting-IP": "42.42.42.42",
             "Fastly-Client-IP": "42.42.42.42",
         }
 
         self.r = weblog.get("/user_login_failure_event", headers=headers)
 
+    @missing_feature(library="dotnet")
+    @missing_feature(library="golang", reason="certain XFF headers aren't collected")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
     def test_user_login_failure_header_collection(self):
         # Call the user login failure SDK and validate tags
 
@@ -182,9 +196,9 @@ class Test_UserLoginFailureEvent:
                 "Forwarded",
                 "Via",
                 "True-Client-IP",
+                "CF-Connecting-IPv6",
+                "CF-Connecting-IP",
                 "Fastly-Client-IP",
-                #                 "CF-Connecting-IPv6",
-                # "CF-Connecting-IP",
             ]
             for header in expected_headers:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
