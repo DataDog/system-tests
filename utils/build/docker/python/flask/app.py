@@ -66,6 +66,20 @@ app = Flask(__name__)
 tracer.trace("init.service").finish()
 
 
+def reset_dsm_context():
+    # force reset DSM context for global tracer and global DSM processor
+    try:
+        del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+    try:
+        from ddtrace.internal.datastreams import data_streams_processor
+
+        del data_streams_processor()._current_context.value
+    except AttributeError:
+        pass
+
+
 @app.route("/")
 def hello_world():
     return "Hello, World!\\n"
@@ -299,17 +313,7 @@ def consume_kinesis_message():
 
 @app.route("/rabbitmq/produce")
 def produce_rabbitmq_message():
-    # force reset DSM context for global tracer and global DSM processor
-    try:
-        del tracer.data_streams_processor._current_context.value
-    except AttributeError:
-        pass
-    try:
-        from ddtrace.internal.datastreams import data_streams_processor
-
-        del data_streams_processor()._current_context.value
-    except AttributeError:
-        pass
+    reset_dsm_context()
 
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
@@ -350,16 +354,7 @@ def dsm():
     logging.info(f"[DSM] Got request with integration: {integration}")
 
     # force reset DSM context for global tracer and global DSM processor
-    try:
-        del tracer.data_streams_processor._current_context.value
-    except AttributeError:
-        pass
-    try:
-        from ddtrace.internal.datastreams import data_streams_processor
-
-        del data_streams_processor()._current_context.value
-    except AttributeError:
-        pass
+    reset_dsm_context()
 
     response = Response(f"Integration is not supported: {integration}", 406)
 
@@ -436,6 +431,8 @@ def inject_dsm_context():
     integration = flask_request.args.get("integration")
     headers = {}
 
+    reset_dsm_context()
+
     ctx = data_streams_processor().set_checkpoint(["direction:out", "topic:" + topic, "type:" + integration])
     DsmPathwayCodec.encode(ctx, headers)
 
@@ -447,6 +444,8 @@ def extract_dsm_context():
     topic = flask_request.args.get("topic")
     integration = flask_request.args.get("integration")
     ctx = flask_request.args.get("ctx")
+
+    reset_dsm_context()
 
     ctx = DsmPathwayCodec.decode(json.loads(ctx), data_streams_processor())
     ctx.set_checkpoint(["direction:in", "topic:" + topic, "type:" + integration])
