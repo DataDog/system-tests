@@ -2136,3 +2136,13 @@ class features:
         """
         pytest.mark.features(feature_id=293)(test_object)
         return test_object
+
+    @staticmethod
+    def rasp_server_side_request_forgery(test_object):
+        """
+        Appsec RASP rule : server-side request forgery
+
+        https://feature-parity.us1.prod.dog/#/?feature=294
+        """
+        pytest.mark.features(feature_id=294)(test_object)
+        return test_object
