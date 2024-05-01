@@ -41,7 +41,11 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         language_hashes = {
-            "nodejs": {"producer": 2931833227331067675, "consumer": 271115008390912609,},
+            "nodejs": {
+                "producer": 2931833227331067675,
+                "consumer": 271115008390912609,
+                "edge_tags": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
+            },
             # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
             "golang": {
                 "producer": 4463699290244539355,
@@ -358,7 +362,7 @@ class Test_DsmContext_Injection_Base64:
             "default": {"producer": 6031446427375485596,},
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        edge_tags = ("direction:out", f"topic:dsm-injection-topic", "type:kafka")
+        edge_tags = ("direction:out", "topic:dsm-injection-topic", "type:kafka")
 
         # get json carrier object
         carrier = json.loads(self.r.text)
@@ -409,7 +413,7 @@ class Test_DsmContext_Extraction_Base64:
             "nodejs": {"producer": 11295735785862509651, "consumer": 18410421833994263340},
             "default": {"producer": 6031446427375485596, "consumer": 12795903374559614717,},
         }
-        edge_tags = ("direction:in", f"topic:dsm-injection-topic", "type:kafka")
+        edge_tags = ("direction:in", "topic:dsm-injection-topic", "type:kafka")
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
 
