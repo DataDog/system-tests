@@ -3,6 +3,9 @@ Manifest file is the usual way to declare what will be tested or not. They are l
 ## Example
 
 ```yaml
+refs:
+  - &
+
 tests/:
   specific.py: irrelevant (see this link) # let skip  an entire file
 
