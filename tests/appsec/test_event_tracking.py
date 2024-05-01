@@ -74,7 +74,7 @@ class Test_UserLoginSuccessEvent:
             if span.get("parent_id") not in (0, None):
                 return
 
-            for header in self.HEADERS:
+            for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
@@ -131,7 +131,7 @@ class Test_UserLoginFailureEvent:
             if span.get("parent_id") not in (0, None):
                 return
 
-            for header in self.HEADERS:
+            for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
