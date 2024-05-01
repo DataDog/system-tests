@@ -6,69 +6,14 @@ on:
         description: "Library to test"
         required: true
         type: string
-      run_all:
-        description: "Shall we run all scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_all_end_to_end:
-        description: "Shall we run all end-to-end scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_replay:
-        description: "Shall we run all scenarios in replay mode"
-        default: false
-        required: false
-        type: boolean
-      run_open_telemetry:
-        description: "Shall we run open-telemetry scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_sampling:
-        description: "Shall we run sampling scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_profiling:
-        description: "Shall we run profiling scenario"
-        default: false
-        required: false
-        type: boolean
-      run_debugger:
-        description: "Shall we run debugger scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_appsec:
-        description: "Shall we run AppSec scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_integration:
-        description: "Shall we run Integrations scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_parametric:
-        description: "Shall we run parametric scenario"
-        default: false
-        required: false
-        type: boolean
-      run_graphql:
-        description: "Shall we run GraphQL scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_libinjection:
-        description: "Shall we run libinjection scenarios"
-        default: false
-        required: false
-        type: boolean
       scenarios: 
         description: "JSON array of scenarios to run"
-        default: "[]"
+        default: '["DEFAULT"]'
+        required: false
+        type: string
+      scenarios_groups: 
+        description: "JSON array of scenarios groups to run"
+        default: '[]'
         required: false
         type: string
       build_python_base_images:
@@ -98,127 +43,35 @@ on:
         type: boolean
 
 jobs:
-
   compute_scenarios:
     runs-on: ubuntu-latest
     outputs:
-      scenarios: ${{ steps.main.outputs.scenarios }}
+      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
+      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
+      libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
+      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
+      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
     - name: main
       id: main
-      shell: python
       run: |
-        import json
-        import os
-
-        inputs = json.loads(os.environ["GITHUB_WORKFLOW_INPUTS"])
-        scenarios = set(json.loads(inputs["scenarios"]))
-
-        scenarios_families = {
-          "APM_TRACING_E2E": [],  # not executed ?
-          "APM_TRACING_E2E_OTEL": ["all", "end-to-end", "open-telemetry", ],
-          "APM_TRACING_E2E_SINGLE_SPAN": [],  # not executed ?
-          "APPSEC_API_SECURITY": ["all", "appsec", "end-to-end", ],
-          "APPSEC_API_SECURITY_NO_RESPONSE_BODY": ["all", "appsec", "end-to-end", ],
-          "APPSEC_API_SECURITY_RC": ["all", "appsec", "end-to-end", ],
-          "APPSEC_API_SECURITY_WITH_SAMPLING": ["all", "appsec", "end-to-end", ],
-          "APPSEC_AUTO_EVENTS_EXTENDED": ["all", "appsec", "end-to-end", ],
-          "APPSEC_BLOCKING": ["all", "appsec", "end-to-end", ],
-          "APPSEC_BLOCKING_FULL_DENYLIST": ["all", "appsec", "end-to-end", ],
-          "APPSEC_CORRUPTED_RULES": ["all", "appsec", "end-to-end", ],
-          "APPSEC_CUSTOM_OBFUSCATION": ["all", "appsec", "end-to-end", ],
-          "APPSEC_CUSTOM_RULES": ["all", "appsec", "end-to-end", ],
-          "APPSEC_DISABLED": ["all", "appsec", "end-to-end", ],
-          "APPSEC_LOW_WAF_TIMEOUT": ["all", "appsec", "end-to-end", ],
-          "APPSEC_MISSING_RULES": ["all", "appsec", "end-to-end", ],
-          "APPSEC_RATE_LIMITER": ["all", "appsec", "end-to-end", ],
-          "APPSEC_REQUEST_BLOCKING": ["all", "appsec", "end-to-end", ],
-          "APPSEC_RULES_MONITORING_WITH_ERRORS": ["all", "appsec", "end-to-end", ],
-          "APPSEC_RUNTIME_ACTIVATION": ["all", "appsec", "end-to-end", ],
-          "APPSEC_WAF_TELEMETRY": ["all", "appsec", "end-to-end", ],
-          "CONTAINER_AUTO_INJECTION": [],  # gitlab
-          "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT": [],  # gitlab
-          "CROSSED_TRACING_LIBRARIES": ["all", "integration", "end-to-end", ],
-          "DEBUGGER_LINE_PROBES_SNAPSHOT": ["all", "debugger", "end-to-end", ],
-          "DEBUGGER_METHOD_PROBES_SNAPSHOT": ["all", "debugger", "end-to-end", ],
-          "DEBUGGER_MIX_LOG_PROBE": ["all", "debugger", "end-to-end", ],
-          "DEBUGGER_PII_REDACTION": ["all", "debugger", "end-to-end", ],
-          "DEBUGGER_PROBES_STATUS": ["all", "debugger", "end-to-end", ],
-          "DEFAULT": ["all", "end-to-end", ],
-          "_FUZZER": [],
-          "GRAPHQL_APPSEC": ["all", "end-to-end", ],
-          "HOST_AUTO_INJECTION": [],  # gitlab
-          "HOST_AUTO_INJECTION_BLOCK_LIST": [],  # gitlab
-          "HOST_AUTO_INJECTION_INSTALL_SCRIPT": [],  # gitlab
-          "HOST_AUTO_INJECTION_LD_PRELOAD": [],  # gitlab
-          "INSTALLER_AUTO_INJECTION": [],  # gitlab
-          "INTEGRATIONS": ["all", "integration", "end-to-end", ],
-          "K8S_LIB_INJECTION_BASIC": ["all", "libinjection", ],
-          "K8S_LIB_INJECTION_FULL": ["all", "libinjection", ],
-          "LIBRARY_CONF_CUSTOM_HEADER_TAGS": ["all", "end-to-end", ],
-          "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID": ["all", "end-to-end", ],
-          "MOCK_THE_TEST": [],
-          "OTEL_INTEGRATIONS": ["all", "open-telemetry", ],
-          "OTEL_LOG_E2E": ["all", "open-telemetry", ],
-          "OTEL_METRIC_E2E": ["all", "open-telemetry", ],
-          "OTEL_TRACING_E2E": ["all", "open-telemetry", ],
-          "PARAMETRIC": ["all", "parametric", ],
-          "PERFORMANCES": [],
-          "PROFILING": ["all", "profiling", "end-to-end", ],
-          "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD": ["all", "end-to-end", "appsec", ],
-          "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE": ["all", "end-to-end", "appsec", ],
-          "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES": ["all", "end-to-end", "appsec", ],
-          "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE": ["all", "end-to-end", "appsec", ],
-          "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING": ["all", "end-to-end", ],
-          "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE": ["all", "end-to-end", ],
-          "SAMPLING": ["all", "sampling", "end-to-end", ],
-          "SIMPLE_CONTAINER_AUTO_INJECTION": [],  # nowhere ?
-          "SIMPLE_HOST_AUTO_INJECTION": ["all", ],  # nowhere ?
-          "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED": ["all", "end-to-end", ],
-          "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED": ["all", "end-to-end", ],
-          "TELEMETRY_LOG_GENERATION_DISABLED": ["all", "end-to-end", ],
-          "TELEMETRY_METRIC_GENERATION_DISABLED": ["all", "end-to-end", ],
-          "TELEMETRY_METRIC_GENERATION_ENABLED": ["all", "end-to-end", ],
-          "TEST_THE_TEST": [],
-          "TODO": [],
-          "TRACE_PROPAGATION_STYLE_W3C": ["all", "end-to-end", ],
-        }
-
-        scenarios.add("DEFAULT")  # always run default scenario
-
-        for name in scenarios_families:
-          if inputs["run_all"] and "all" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_all_end_to_end"] and "end-to-end" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_open_telemetry"] and "open-telemetry" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_sampling"] and "sampling" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_profiling"] and "profiling" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_debugger"] and "debugger" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_integration"] and "integration" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_parametric"] and "parametric" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_libinjection"] and "libinjection" in scenarios_families[name]:
-            scenarios.add(name)
-          if inputs["run_appsec"] and "appsec" in scenarios_families[name]:
-            scenarios.add(name)
-
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f'scenarios={json.dumps(list(scenarios))}', file=fh)
-
-        print(json.dumps(list(scenarios), indent=2))
+        source venv/bin/activate
+        python utils/scripts/get_github_scenario_map.py >> $GITHUB_OUTPUT
       env:
-        GITHUB_WORKFLOW_INPUTS: ${{ toJSON(inputs) }}
+        PYTHONPATH: "."
+        SCENARIOS: ${{ inputs.scenarios }}
+        SCENARIOS_GROUPS: ${{ inputs.scenarios_groups }}
 
   parametric:
     needs:
       - compute_scenarios
-    if: contains(needs.compute_scenarios.outputs.scenarios, '"PARAMETRIC"')
+    if: needs.compute_scenarios.outputs.parametric_scenarios != '[]'
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
@@ -227,7 +80,7 @@ jobs:
   graphql:
     needs:
       - compute_scenarios
-    if: contains(needs.compute_scenarios.outputs.scenarios, '"GRAPHQL_APPSEC"')
+    if: needs.compute_scenarios.outputs.graphql_scenarios != '[]'
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
     with:
@@ -237,7 +90,7 @@ jobs:
   lib-injection:
     needs:
       - compute_scenarios
-    if: contains(needs.compute_scenarios.outputs.scenarios, '"K8S_LIB_INJECTION_')
+    if: needs.compute_scenarios.outputs.libinjection_scenarios != '[]'
     uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
     with:
@@ -254,14 +107,12 @@ jobs:
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      scenarios: ${{ needs.compute_scenarios.outputs.scenarios }}
+      scenarios: ${{ needs.compute_scenarios.outputs.endtoend_scenarios }}
 
   open-telemetry:
     needs:
       - compute_scenarios
-    # quite hacky : all open telemetry scenarios starts with OTEL_
-    # but it saves a whole abstraction layer
-    if: contains(needs.compute_scenarios.outputs.scenarios, '"OTEL_')
+    if: needs.compute_scenarios.outputs.opentelemetry_scenarios != '[]'
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:
