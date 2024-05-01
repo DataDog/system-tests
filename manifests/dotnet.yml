@@ -266,7 +266,7 @@ tests/:
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
       Test_TelemetryInstallSignature: v2.45.0
-      Test_TelemetrySCAEnvVar: missing_feature
+      Test_TelemetrySCAEnvVar: v2.50.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
