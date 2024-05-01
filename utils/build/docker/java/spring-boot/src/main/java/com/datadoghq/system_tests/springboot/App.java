@@ -585,6 +585,9 @@ public class App {
         @RequestParam(required = true, name = "integration") String integration,
         @RequestParam(required = true, name = "topic") String topic
     ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        Span span = GlobalTracer.get().buildSpan("kafka.produce").ignoreActiveSpan().start();
+        GlobalTracer.get().activateSpan(span);
+
         Map<String, Object> headers = new HashMap<String, Object>();
         Carrier headersAdapter = new Carrier(headers);
 
@@ -593,6 +596,8 @@ public class App {
         // Convert headers map to JSON string
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(headers);
+
+        span.finish();
 
         return jsonString;
     }
@@ -603,11 +608,16 @@ public class App {
         @RequestParam(required = true, name = "topic") String topic,
         @RequestParam(required = true, name = "ctx") String ctx
     ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        Span span = GlobalTracer.get().buildSpan("kafka.consume").ignoreActiveSpan().start();
+        GlobalTracer.get().activateSpan(span);
+
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> headers = mapper.readValue(ctx, new TypeReference<Map<String, Object>>(){});
         Carrier headersAdapter = new Carrier(headers);
 
         DataStreamsCheckpointer.get().setConsumeCheckpoint(integration, topic, headersAdapter);
+
+        span.finish();
 
         return "ok";
     }
