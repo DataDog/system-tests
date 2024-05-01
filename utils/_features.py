@@ -2146,3 +2146,13 @@ class features:
         """
         pytest.mark.features(feature_id=294)(test_object)
         return test_object
+
+    @staticmethod
+    def rasp_sql_injection(test_object):
+        """
+        Appsec RASP rule : SQL injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=295
+        """
+        pytest.mark.features(feature_id=295)(test_object)
+        return test_object
