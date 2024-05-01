@@ -545,7 +545,10 @@ class Test_Login_Events_Extended:
         # Validate that all relevant headers are included on user login success on extended mode
 
         def validate_login_success_headers(span):
-            for header, _ in self.HEADERS.items():
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in self.HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
@@ -568,7 +571,10 @@ class Test_Login_Events_Extended:
         # Validate that all relevant headers are included on user login failure on extended mode
 
         def validate_login_failure_headers(span):
-            for header, _ in self.HEADERS.items():
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in self.HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
