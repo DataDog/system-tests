@@ -46,6 +46,8 @@ from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.internal.datastreams import data_streams_processor
+from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
 # Patch kombu since its not patched automatically
 ddtrace.patch_all(kombu=True)
@@ -426,6 +428,30 @@ def dsm():
     tracer.data_streams_processor.periodic()
     data_streams_processor().periodic()
     return response
+
+
+@app.route("/dsm/inject")
+def inject_dsm_context():
+    topic = flask_request.args.get("topic")
+    integration = flask_request.args.get("integration")
+    headers = {}
+
+    ctx = data_streams_processor().set_checkpoint(["direction:out", "topic:" + topic, "type:" + integration])
+    DsmPathwayCodec.encode(ctx, headers)
+
+    return Response(json.dumps(headers))
+
+
+@app.route("/dsm/extract")
+def extract_dsm_context():
+    topic = flask_request.args.get("topic")
+    integration = flask_request.args.get("integration")
+    ctx = flask_request.args.get("ctx")
+
+    ctx = DsmPathwayCodec.decode(ctx, data_streams_processor())
+    ctx.set_checkpoint(["direction:in", "topic:" + topic, "type:" + integration])
+
+    return Response("ok")
 
 
 @app.route("/iast/insecure_hashing/multiple_hash")

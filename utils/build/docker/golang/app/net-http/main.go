@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
+	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -26,6 +28,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -358,9 +361,101 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	mux.HandleFunc("/dsm/inject", func(w http.ResponseWriter, r *http.Request) {
+		topic := r.URL.Query().Get("topic")
+		if len(topic) == 0 {
+			w.WriteHeader(422)
+			w.Write([]byte("missing param 'topic'"))
+			return
+		}
+		intType := r.URL.Query().Get("integration")
+		if len(intType) == 0 {
+			w.WriteHeader(422)
+			w.Write([]byte("missing param 'integration'"))
+			return
+		}
+
+		edges := []string{"direction:out", "topic:" + topic, "type:" + intType}
+		carrier := make(carrier)
+		ctx := context.Background()
+		ctx, ok := tracer.SetDataStreamsCheckpoint(ctx, edges...)
+		if !ok {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to create DSM checkpoint"))
+			return
+		}
+		datastreams.InjectToBase64Carrier(ctx, carrier)
+
+		jsonData, err := json.Marshal(carrier)
+		if err != nil {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to convert carrier to JSON"))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(jsonData)
+	})
+
+	mux.HandleFunc("/dsm/extract", func(w http.ResponseWriter, r *http.Request) {
+		topic := r.URL.Query().Get("topic")
+		if len(topic) == 0 {
+			w.WriteHeader(422)
+			w.Write([]byte("missing param 'topic'"))
+			return
+		}
+		intType := r.URL.Query().Get("integration")
+		if len(intType) == 0 {
+			w.WriteHeader(422)
+			w.Write([]byte("missing param 'integration'"))
+			return
+		}
+		rawCtx := r.URL.Query().Get("ctx")
+		if len(rawCtx) == 0 {
+			w.WriteHeader(422)
+			w.Write([]byte("missing param 'ctx'"))
+			return
+		}
+		carrier := make(carrier)
+		err := json.Unmarshal([]byte(rawCtx), &carrier)
+		if err != nil {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to parse JSON"))
+			return
+		}
+
+		edges := []string{"direction:in", "topic:" + topic, "type:" + intType}
+		ctx := datastreams.ExtractFromBase64Carrier(context.Background(), carrier)
+		_, ok := tracer.SetDataStreamsCheckpoint(ctx, edges...)
+		if !ok {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to create DSM checkpoint"))
+			return
+		}
+
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
+	})
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
 	http.ListenAndServe(":7777", mux)
+}
+
+type carrier map[string]string
+
+func (c carrier) Set(key, val string) {
+	c[key] = val
+}
+
+func (c carrier) ForeachKey(handler func(key, val string) error) error {
+	for k, v := range c {
+		if err := handler(k, v); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func write(w http.ResponseWriter, r *http.Request, d []byte) {

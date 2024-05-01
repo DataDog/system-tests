@@ -3,6 +3,7 @@
 const tracer = require('dd-trace').init({
   debug: true
 })
+const { DsmPathwayCodec } = require('dd-trace/packages/src/datastreams/pathway')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -251,6 +252,32 @@ app.get('/dsm', (req, res) => {
       '[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS, Kinesis]'
     )
   }
+})
+
+app.get('/dsm/inject', (req, res) => {
+  const topic = req.query.topic
+  const integration = req.query.integration
+  const headers = {}
+
+  const dataStreamsContext = tracer.setCheckpoint(
+    ['direction:out', `topic:${topic}`, `type:${integration}`], null, null
+  )
+  DsmPathwayCodec.encode(dataStreamsContext, headers)
+
+  res.status(200).send(JSON.stringify(headers))
+})
+
+app.get('/dsm/extract', (req, res) => {
+  const topic = req.query.topic
+  const integration = req.query.integration
+  const ctx = req.query.ctx
+
+  tracer.decodeDataStreamsContext(JSON.parse(ctx))
+  tracer.setCheckpoint(
+    ['direction:in', `topic:${topic}`, `type:${integration}`], null, null
+  )
+
+  res.status(200).send('ok')
 })
 
 app.get('/kafka/produce', (req, res) => {
