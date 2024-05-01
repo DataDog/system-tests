@@ -149,7 +149,8 @@ tests/:
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
     rasp/:
-      test_lfi: missing_feature
+      test_lfi.py: missing_feature
+      test_ssrf.py: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:

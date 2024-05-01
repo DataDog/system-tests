@@ -324,6 +324,9 @@ tests/:
         Test_TelemetryMetrics:
           '*': v1.14.0
           fastapi: v2.4.0.dev1
+    rasp/:
+      test_lfi.py: missing_feature
+      test_ssrf.py: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:

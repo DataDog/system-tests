@@ -10,10 +10,11 @@ VARIANT=$(php-config --prefix| grep release-zts && echo release-zts || echo "")
 export TRACER_VERSION=latest
 export APPSEC_VERSION=latest
 
-mkdir -p /etc/apache2/mods-available/ /var/www/html/ /etc/php/
+mkdir -p /etc/apache2/mods-available/ /var/www/html/rasp /etc/php/
 cp -rf /tmp/php/apache-mod/php.conf /etc/apache2/mods-available/
 cp -rf /tmp/php/apache-mod/php.load /etc/apache2/mods-available/
 cp -rf /tmp/php/common/*.php /var/www/html/
+cp -rf /tmp/php/common/rasp/*.php /var/www/html/rasp/
 cp -rf /tmp/php/common/install_ddtrace.sh /
 cp -rf /tmp/php/common/php.ini /etc/php/
 

@@ -1744,7 +1744,10 @@ class scenarios:
     )
 
     appsec_rasp = EndToEndScenario(
-        "APPSEC_RASP", weblog_env={"DD_APPSEC_RASP_ENABLED": "true"}, doc="Enable APPSEC RASP"
+        "APPSEC_RASP",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
+        appsec_rules="/appsec_rasp_ruleset.json",
+        doc="Enable APPSEC RASP",
     )
 
 
