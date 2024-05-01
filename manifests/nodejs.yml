@@ -1,3 +1,6 @@
+refs:
+  - &ref_5.11.0 '>=5.11.0 || ^4.35.0 || ^3.56.0'
+
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -36,14 +39,14 @@ tests/:
             nextjs: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords:
-            '*': v5.11.0
+            '*': *ref_5.11.0
             nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': v4.18.0
             nextjs: missing_feature
           Test_HardcodedSecretsExtended:
-            '*': v5.11.0
+            '*': *ref_5.11.0
             nextjs: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
