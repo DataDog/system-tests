@@ -7,10 +7,7 @@ from utils.tools import logger
 
 import base64
 import json
-import logging
 import struct
-
-import kombu
 
 # Kafka specific
 DSM_CONSUMER_GROUP = "testgroup1"
@@ -47,6 +44,7 @@ class Test_DsmKafka:
             "nodejs": {"producer": 2931833227331067675, "consumer": 271115008390912609,},
             # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
             "golang": {
+                "producer": 4463699290244539355,
                 "consumer": 13758451224913876939,
                 "edge_tags": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
             },
@@ -356,7 +354,7 @@ class Test_DsmContext_Injection_Base64:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 11295735785862509651},
+            "nodejs": {"producer": 18431567370843181989},
             "default": {"producer": 6031446427375485596,},
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
@@ -408,7 +406,7 @@ class Test_DsmContext_Extraction_Base64:
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
             # it does not have access to the queue name
-            "nodejs": {"producer": 11295735785862509651, "consumer": 7616007432001161798},
+            "nodejs": {"producer": 11295735785862509651, "consumer": 18410421833994263340},
             "default": {"producer": 6031446427375485596, "consumer": 12795903374559614717,},
         }
         edge_tags = ("direction:in", f"topic:dsm-injection-topic", "type:kafka")

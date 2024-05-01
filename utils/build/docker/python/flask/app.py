@@ -448,7 +448,7 @@ def extract_dsm_context():
     integration = flask_request.args.get("integration")
     ctx = flask_request.args.get("ctx")
 
-    ctx = DsmPathwayCodec.decode(ctx, data_streams_processor())
+    ctx = DsmPathwayCodec.decode(json.loads(ctx), data_streams_processor())
     ctx.set_checkpoint(["direction:in", "topic:" + topic, "type:" + integration])
 
     return Response("ok")

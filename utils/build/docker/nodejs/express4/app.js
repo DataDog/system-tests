@@ -3,7 +3,7 @@
 const tracer = require('dd-trace').init({
   debug: true
 })
-const { DsmPathwayCodec } = require('dd-trace/packages/src/datastreams/pathway')
+const { DsmPathwayCodec } = require('dd-trace/packages/dd-trace/src/datastreams/pathway')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -259,7 +259,7 @@ app.get('/dsm/inject', (req, res) => {
   const integration = req.query.integration
   const headers = {}
 
-  const dataStreamsContext = tracer.setCheckpoint(
+  const dataStreamsContext = tracer._tracer.setCheckpoint(
     ['direction:out', `topic:${topic}`, `type:${integration}`], null, null
   )
   DsmPathwayCodec.encode(dataStreamsContext, headers)
@@ -272,8 +272,8 @@ app.get('/dsm/extract', (req, res) => {
   const integration = req.query.integration
   const ctx = req.query.ctx
 
-  tracer.decodeDataStreamsContext(JSON.parse(ctx))
-  tracer.setCheckpoint(
+  tracer._tracer.decodeDataStreamsContext(JSON.parse(ctx))
+  tracer._tracer.setCheckpoint(
     ['direction:in', `topic:${topic}`, `type:${integration}`], null, null
   )
 
