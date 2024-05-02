@@ -371,14 +371,14 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmContext_Injection_Base64: 
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmKinesis:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)

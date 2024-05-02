@@ -143,6 +143,7 @@ class Test_LibraryHeaders:
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="golang", reason="not implemented yet")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
