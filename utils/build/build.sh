@@ -5,6 +5,7 @@
 # Copyright 2021 Datadog, Inc.
 
 set -eu
+set -x
 
 # set .env if exists. Allow users to keep their conf via env vars
 if [[ -f "./.env" ]]; then

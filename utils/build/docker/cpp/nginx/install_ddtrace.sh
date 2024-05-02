@@ -1,57 +1,123 @@
 #!/bin/bash
 
 set -eu
+set -o pipefail
+set -x
+
+function epilogue {
+  readonly module_version=$1
+  if [[ -z $module_version ]]; then
+    echo "ERROR: Missing module version."
+    exit 1
+  fi
+
+  echo "DataDog/nginx-datadog version: ${module_version}"
+  echo "$module_version" > SYSTEM_TESTS_LIBRARY_VERSION
+
+  rm -f /etc/nginx/nginx.conf
+  if version_first_is_greater "$module_version" "v1.1.0"; then
+    ln -s nginx.conf.waf /etc/nginx/nginx.conf
+  else
+    ln -s nginx.conf.no-waf /etc/nginx/nginx.conf
+  fi
+
+  echo "1.7.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
+  echo "1.11.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+}
+
+version_first_is_greater() {
+    local v1=(${1//./ })
+    local v2=(${2//./ })
+
+    # Remove the 'v' prefix from the version numbers
+    v1[0]=${v1[0]//v/}
+    v2[0]=${v2[0]//v/}
+
+    # Compare the major, minor, and patch numbers
+    for i in {0..2}; do
+        if (( v1[i] > v2[i] )); then
+            return 0
+        elif (( v1[i] < v2[i] )); then
+            return 1
+        fi
+    done
+
+    echo 1 # equal
+}
+
+if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 0 ]]; then
+  echo "Found module in /binaries"
+
+  if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 1 ]]; then
+    echo "ERROR: Found several ngx_http_datadog_module-*.so.tgz files in binaries/, abort."
+    exit 1
+  fi
+
+  if [[ ! -f /binaries/SYSTEM_TESTS_LIBRARY_VERSION ]]; then
+    echo "ERROR: Missing binaries/SYSTEM_TESTS_LIBRARY_VERSION"
+    exit 1
+  fi
+
+  NGINX_VERSION_OF_MODULE=$(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | grep -Po '(\d+\.\d+\.\d+)')
+  if [[ $NGINX_VERSION_OF_MODULE != $NGINX_VERSION ]]; then
+    echo "ERROR: nginx mismatch: module for $NGINX_VERSION_OF_MODULE, but base image of $NGINX_VERSION"
+    exit 1
+  fi
+
+  MAIN_TARBALL=$(find /binaries -name 'ngx_http_datadog_module-*.so.tgz')
+  tar -xzvf "$MAIN_TARBALL" -C /usr/lib/nginx/modules
+  if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.debug.tgz' | wc -l) -eq 1 ]]; then
+    tar -xzvf /binaries/ngx_http_datadog_module-*.so.debug.tgz -C /usr/lib/nginx/modules
+  fi
+
+  epilogue "$(< /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
+  exit 0
+fi
 
 get_latest_release() {
-    wget -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
+    wget -qO- "https://api.github.com/repos/DataDog/nginx-datadog/releases/latest" \
+      | jq -r '.tag_name'
 }
 
 get_architecture() {
-  case "$(uname -m)" in
-    aarch64)
-      echo "arm64"
-      ;;
-    arm64)
-      echo "arm64"
-      ;;
-    x86_64)
-      echo "amd64"
-      ;;
-    amd64)
-      echo "amd64"
-      ;;
-    *)
-      echo ""
-      ;;
-  esac
+  arch | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/'
 }
+
 
 if [ NGINX_VERSION == "" ]; then
   echo 1>&2 "ERROR: Missing NGINX_VERSION."
   exit 1
 fi
 
-ARCH=$(get_architecture)
+readonly ARCH=$(get_architecture)
 
-if [ -z "$ARCH" ]; then
-    echo 1>&2 "ERROR: Architecture $(uname -m) is not supported."
+if [[ $ARCH != "amd64" && $ARCH != "arm64" ]]; then
+    echo 1>&2 "ERROR: Architecture ${ARCH} is not supported."
     exit 1
 fi
 
-NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
+readonly NGINX_DATADOG_VERSION="$(get_latest_release)"
 
-BASE_IMAGE="nginx:${NGINX_VERSION}"
-BASE_IMAGE_WITHOUT_COLONS=$(echo "$BASE_IMAGE" | tr ':' '_')
-TARBALL="$BASE_IMAGE_WITHOUT_COLONS-$ARCH-ngx_http_datadog_module.so.tgz"
+if version_first_is_greater "$NGINX_DATADOG_VERSION" "v1.1.0"; then
+  readonly TARBALLS=(
+    "ngx_http_datadog_module-WAF-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.tgz"
+    "ngx_http_datadog_module-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.debug.tgz"
+  )
+  for FILE in "${TARBALLS[@]}"; do
+    wget -O - \
+      "https://github.com/DataDog/nginx-datadog/releases/download/untagged-aa7b821fde252827b9e8/${FILE}" \
+      | tar -xzf - -C /usr/lib/nginx/modules
+  done
+else
+  # old versions
+  BASE_IMAGE="nginx:${NGINX_VERSION}"
+  BASE_IMAGE_WITHOUT_COLONS=$(echo "$BASE_IMAGE" | tr ':' '_')
+  TARBALL="$BASE_IMAGE_WITHOUT_COLONS-$ARCH-ngx_http_datadog_module.so.tgz"
 
-# Install NGINX plugin
-wget "https://github.com/DataDog/nginx-datadog/releases/download/${NGINX_DATADOG_VERSION}/${TARBALL}"
-tar -xzf "${TARBALL}" -C /usr/lib/nginx/modules
-rm "$TARBALL"
+  # Install NGINX plugin
+  wget "https://github.com/DataDog/nginx-datadog/releases/download/${NGINX_DATADOG_VERSION}/${TARBALL}"
+  tar -xzf "${TARBALL}" -C /usr/lib/nginx/modules
+  rm "$TARBALL"
+fi
 
-# Sys test stuff
-echo "DataDog/nginx-datadog version: ${NGINX_DATADOG_VERSION}"
-echo $NGINX_DATADOG_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
-touch SYSTEM_TESTS_LIBDDWAF_VERSION
-echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-echo "Library version : $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
+epilogue "${NGINX_DATADOG_VERSION:1}"
