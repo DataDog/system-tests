@@ -503,7 +503,7 @@ class EndToEndScenario(_DockerScenario):
             elif self.weblog_container.library.library in ("python",):
                 self.library_interface_timeout = 5
             else:
-                self.library_interface_timeout = 40
+                self.library_interface_timeout = 5
 
     def session_start(self):
         super().session_start()

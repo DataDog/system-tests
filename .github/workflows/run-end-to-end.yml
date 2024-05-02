@@ -148,6 +148,9 @@ jobs:
     - name: Load Ruby library binary (skipping release tests, use snapshot instead)
       if: ${{ matrix.version == 'prod' && inputs.library == 'ruby'}}
       run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
+    - name: Load dev nginx module
+      if: ${{ matrix.version == 'dev' && inputs.library == 'cpp'}}
+      run: CIRCLECI_TOKEN= ./utils/scripts/load-binary.sh nginx
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -233,7 +236,9 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
-      run: ./run.sh APPSEC_MISSING_RULES
+      run: |
+        # nginx does not start with missing rules file, thereby stalling the job
+        if [[ $WEBLOG_VARIANT != nginx ]]; then ./run.sh APPSEC_MISSING_RULES; fi
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_RULES scenario
@@ -243,7 +248,9 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
-      run: ./run.sh APPSEC_CORRUPTED_RULES
+      run: |
+        # nginx does not start with corrupted rules file, thereby stalling the job
+        if [[ $WEBLOG_VARIANT != nginx ]]; then ./run.sh APPSEC_CORRUPTED_RULES; fi
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
