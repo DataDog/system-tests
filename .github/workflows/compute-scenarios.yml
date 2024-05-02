@@ -6,7 +6,7 @@ on:
     outputs:
       scenarios:
         description: "JSON array of scenarios to run"
-        value: ${{ jobs.manifests.outputs.scenarios }}
+        value: ${{ jobs.main.outputs.scenarios }}
       scenarios_groups:
         description: "JSON array of scenarios groups to run"
         value: ${{ jobs.main.outputs.scenarios_groups }}
