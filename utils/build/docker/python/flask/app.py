@@ -256,8 +256,8 @@ async def stub_dbm():
 
 
 async def db_execute_and_retrieve_comment(operation, cursor, is_async=False):
-    cursor.__wrapped__ = mock.Mock()
     if not is_async:
+        cursor.__wrapped__ = mock.Mock()
         if operation == "execute":
             cursor.execute("SELECT version()")
             return get_dbm_comment(cursor.__wrapped__, "execute")
@@ -265,6 +265,7 @@ async def db_execute_and_retrieve_comment(operation, cursor, is_async=False):
             cursor.executemany("SELECT version()", [((),)])
             return get_dbm_comment(cursor.__wrapped__, "executemany")
     else:
+        cursor.__wrapped__ = mock.AsyncMock()
         if operation == "execute":
             await cursor.execute("SELECT version()")
             return get_dbm_comment(cursor.__wrapped__, "execute")

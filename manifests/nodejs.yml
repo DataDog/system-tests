@@ -363,10 +363,10 @@ tests/:
       Test_Dbm: missing_feature
       Test_Dbm_Comment_NodeJS_mysql2: 
         '*': missing_feature (Missing on weblog)
-        express4: v0.1  # real version unkown
+        express4: v5.13.0
       Test_Dbm_Comment_NodeJS_pg: 
         '*': missing_feature (Missing on weblog)
-        express4: v0.1  # real version unkown
+        express4: v5.13.0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
