@@ -1,7 +1,4 @@
 tests/:
-    rasp/:
-      test_lfi.py: missing_feature
-      test_ssrf.py: missing_feature
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
