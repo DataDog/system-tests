@@ -489,39 +489,35 @@ tests/:
     test_dbm.py:
       Test_Dbm:
         '*': missing_feature (Missing on weblog)
-        flask-poc: v0.1 # actual version unknown
-        uds-flask: v2.9.0.dev # actual version unknown
-        uwsgi-poc: v2.9.0.dev # actual version unknown
+        flask-poc: v0.1
+        uds-flask: v2.9.0.dev
+        uwsgi-poc: v2.9.0.dev
       Test_Dbm_Comment_Python_Aiomysql: 
         '*': missing_feature (Missing on weblog)
-        flask-poc: v2.9.1 # actual version unknown
-        uds-flask: v2.9.0.dev # actual version unknown
-        uwsgi-poc: v2.9.0.dev # actual version unknown
+        flask-poc: v2.9.1
+        uds-flask: v2.9.0.dev
+        uwsgi-poc: v2.9.0.dev
       Test_Dbm_Comment_Python_Asyncpg: 
         '*': missing_feature (Missing on weblog)
-        flask-poc: v2.9.1 # actual version unknown
-        uds-flask: v2.9.0.dev # actual version unknown
-        uwsgi-poc: v2.9.0.dev # actual version unknown
+        flask-poc: v2.9.1
+        uds-flask: v2.9.0.dev
+        uwsgi-poc: v2.9.0.dev
       Test_Dbm_Comment_Python_MysqlConnector: 
         '*': missing_feature (Missing on weblog)
-        flask-poc: v2.9.1 # actual version unknown
-        uds-flask: v2.9.0.dev # actual version unknown
-        uwsgi-poc: v2.9.0.dev # actual version unknown
+        flask-poc: v2.9.1
       Test_Dbm_Comment_Python_Mysqldb: 
         '*': missing_feature (Missing on weblog)
-        flask-poc: v2.9.1 # actual version unknown
-        uds-flask: v2.9.0.dev # actual version unknown
-        uwsgi-poc: v2.9.0.dev # actual version unknown
+        flask-poc: v2.9.1
       Test_Dbm_Comment_Python_Psycopg: 
         '*': missing_feature (Missing on weblog)
-        flask-poc: v2.9.1 # actual version unknown
-        uds-flask: v2.9.0.dev # actual version unknown
-        uwsgi-poc: v2.9.0.dev # actual version unknown
+        flask-poc: v2.9.1
+        uds-flask: v2.9.0.dev
+        uwsgi-poc: v2.9.0.dev
       Test_Dbm_Comment_Python_Pymysql: 
         '*': missing_feature (Missing on weblog)
-        flask-poc: v2.9.1 # actual version unknown
-        uds-flask: v2.9.0.dev # actual version unknown
-        uwsgi-poc: v2.9.0.dev # actual version unknown
+        flask-poc: v2.9.1
+        uds-flask: v2.9.0.dev
+        uwsgi-poc: v2.9.0.dev
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
