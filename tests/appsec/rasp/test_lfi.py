@@ -1,6 +1,7 @@
 from utils import features, weblog, interfaces, scenarios, rfc
 from . import validate_rasp_attack
 
+
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.tonjsgarlieo")
 @features.rasp_local_file_inclusion
 @scenarios.appsec_rasp
@@ -40,7 +41,7 @@ class Test_Lfi_BodyUrlEncoded:
                 "rasp-930-100",
                 {
                     "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
-                    "params": {"address": "server.request.query", "value": "../etc/passwd"},
+                    "params": {"address": "server.request.body", "value": "../etc/passwd"},
                 },
             )
 
@@ -64,7 +65,7 @@ class Test_Lfi_BodyXml:
                 "rasp-930-100",
                 {
                     "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
-                    "params": {"address": "server.request.query", "value": "../etc/passwd"},
+                    "params": {"address": "server.request.body", "value": "../etc/passwd"},
                 },
             )
 
@@ -88,7 +89,7 @@ class Test_Lfi_BodyJson:
                 "rasp-930-100",
                 {
                     "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
-                    "params": {"address": "server.request.query", "value": "../etc/passwd"},
+                    "params": {"address": "server.request.body", "value": "../etc/passwd"},
                 },
             )
 

@@ -19,8 +19,12 @@ def validate_rasp_attack(span, rule, parameters=None):
         for name, fields in parameters.items():
             address = fields["address"]
             value = None
-            if value in fields:
+            if "value" in fields:
                 value = fields["value"]
+
+            key_path = None
+            if "key_path" in fields:
+                key_path = fields["key_path"]
 
             assert name in obtained_parameters, f"parameter '{name}' not in rule match"
 
@@ -31,3 +35,5 @@ def validate_rasp_attack(span, rule, parameters=None):
             if value is not None:
                 assert obtained_param["value"] == value, f"incorrect value for '{name}', expected '{value}'"
 
+            if key_path is not None:
+                assert obtained_param["key_path"] == key_path, f"incorrect key_path for '{name}', expected '{key_path}'"

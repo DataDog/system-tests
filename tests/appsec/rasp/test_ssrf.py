@@ -1,6 +1,7 @@
 from utils import features, weblog, interfaces, scenarios, rfc
 from . import validate_rasp_attack
 
+
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.tonjsgarlieo")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
@@ -16,7 +17,7 @@ class Test_Ssrf_UrlQuery:
                 span,
                 "rasp-934-100",
                 {
-                    "resource": {"address": "server.io.net.url", "value": "169.254.169.254"},
+                    "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
                     "params": {"address": "server.request.query", "value": "169.254.169.254"},
                 },
             )
@@ -39,8 +40,8 @@ class Test_Ssrf_BodyUrlEncoded:
                 span,
                 "rasp-934-100",
                 {
-                    "resource": {"address": "server.io.net.url", "value": "169.254.169.254"},
-                    "params": {"address": "server.request.query", "value": "169.254.169.254"},
+                    "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                    "params": {"address": "server.request.body", "value": "169.254.169.254"},
                 },
             )
 
@@ -63,8 +64,8 @@ class Test_Ssrf_BodyXml:
                 span,
                 "rasp-934-100",
                 {
-                    "resource": {"address": "server.io.net.url", "value": "169.254.169.254"},
-                    "params": {"address": "server.request.query", "value": "169.254.169.254"},
+                    "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                    "params": {"address": "server.request.body", "value": "169.254.169.254"},
                 },
             )
 
@@ -87,8 +88,8 @@ class Test_Ssrf_BodyJson:
                 span,
                 "rasp-934-100",
                 {
-                    "resource": {"address": "server.io.net.url", "value": "169.254.169.254"},
-                    "params": {"address": "server.request.query", "value": "169.254.169.254"},
+                    "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                    "params": {"address": "server.request.body", "value": "169.254.169.254"},
                 },
             )
 
