@@ -4,7 +4,7 @@ Manifest file is the usual way to declare what will be tested or not. They are l
 
 ```yaml
 refs:
-  - &
+  - &5_6_and_someid_backports '>=5.6 || ^4.3.0 || ^4.3.0'
 
 tests/:
   specific.py: irrelevant (see this link) # let skip  an entire file
