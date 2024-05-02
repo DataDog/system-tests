@@ -22,12 +22,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+          ref: 'main'
+          path: 'original'
       - name: Install runner
         uses: ./.github/actions/install_runner
-      - name: Get original manifest
-        run: |
-          mkdir original/
-          git --work-tree=original/ checkout HEAD -- manifests/
       - name: Get scenario map 
         run: ./run.sh MOCK_THE_TEST --collect-only --scenario-report
       - name: Get list of modified files
