@@ -1,7 +1,10 @@
 def validate_rasp_attack(span, rule, parameters=None):
-    assert "_dd.appsec.json" in span["meta"], "_dd.appsec.json not in meta"
+    assert "_dd.appsec.json" in span["meta"], "'_dd.appsec.json' not found in 'meta'"
 
-    triggers = span["meta"]["_dd.appsec.json"]["triggers"]
+    json = span["meta"]["_dd.appsec.json"]
+    assert "triggers" in json, "'triggers' not found in '_dd.appsec.json'"
+
+    triggers = json["triggers"]
     assert len(triggers) == 1, "multiple appsec events found, only one expected"
 
     trigger = triggers[0]

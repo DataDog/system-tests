@@ -433,6 +433,11 @@ The endpoint should support the following content types in the `POST` method:
 - `application/xml`
 - `application/json`
 
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+open($file);
+```
+
 Examples:
 - `GET`: `/rasp/lfi?file=../etc/passwd`
 - `POST`: `{"file": "../etc/passwd"}`
@@ -449,9 +454,9 @@ The endpoint should support the following content types:
 - `application/xml`
 - `application/json`
 
-The final url used in the network operation should be similar to the following:
+The url used in the network operation should be similar to the following:
 ```
-https://$domain/extra-path/
+https://$domain
 ```
 
 Examples:
