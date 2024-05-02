@@ -249,7 +249,7 @@ tests/:
       Test_DsmSQS: v2.48.0
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature (temp test)
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: missing_feature
       TestDynamicConfigTracingEnabled: v2.49.0
       TestDynamicConfigV1: v2.33.0
