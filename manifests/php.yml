@@ -103,6 +103,9 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v0.98.1 # TODO what is the earliest version?
@@ -151,9 +154,6 @@ tests/:
         Test_XSS: v0.68.3
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    rasp/:
-      test_lfi.py: missing_feature
-      test_ssrf.py: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_automated_login_events.py:

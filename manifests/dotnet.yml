@@ -104,6 +104,9 @@ tests/:
           TestPath: v2.39.0
         test_uri.py:
           TestURI: irrelevant
+    rasp/:
+      test_lfi.py: missing_feature
+      test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -148,9 +151,6 @@ tests/:
         Test_Scanners: v1.28.6
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    rasp/:
-      test_lfi.py: missing_feature
-      test_ssrf.py: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:

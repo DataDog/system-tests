@@ -379,6 +379,9 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -562,9 +565,6 @@ tests/:
           '*': v1.12.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    rasp/:
-      test_lfi.py: missing_feature
-      test_ssrf.py: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:
