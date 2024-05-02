@@ -34,15 +34,19 @@ def main():
     scenarios = set()
     scenarios_groups = set()
 
-    github_context = json.loads(os.environ["GITHUB_CONTEXT"])
+    event_name = os.environ["GITHUB_EVENT_NAME"]
+    ref = os.environ["GITHUB_REF"]
 
-    if github_context["event_name"] == "schedule" or github_context["ref"] == "refs/heads/main":
+    if event_name == "schedule" or ref == "refs/heads/main":
         scenarios_groups.add(ScenarioGroup.ALL.value)
 
-    elif "pull_request" in github_context["event"]:
-        labels = [label["name"] for label in github_context["event"]["pull_request"]["labels"]]
-        handle_labels(labels, scenarios_groups)
+    elif event_name == "pull_request":
+        labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
+        label_names = [label["name"] for label in labels]
+        handle_labels(label_names, scenarios_groups)
 
+        # this file is generated with
+        # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
         with open("logs_mock_the_test/scenarios.json", "r", encoding="utf-8") as f:
             scenario_map = json.load(f)
 
@@ -68,6 +72,10 @@ def main():
                 if nodeid.startswith(modified_nodeid):
                     scenarios.add(scenario_map[nodeid])
                     break
+
+        # this file is generated with
+        #   git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
+        #   git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
 
         with open("modified_files.txt", "r", encoding="utf-8") as f:
             modified_files = [line.strip() for line in f.readlines()]

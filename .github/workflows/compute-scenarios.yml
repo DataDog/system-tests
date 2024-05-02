@@ -44,4 +44,7 @@ jobs:
           python utils/scripts/compute_impacted_scenario.py >> $GITHUB_OUTPUT
         env:
           PYTHONPATH: "."
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_PULL_REQUEST_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
+
