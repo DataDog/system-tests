@@ -30,7 +30,7 @@ class Test_HeaderTags_Short:
     def test_trace_header_tags(self):
         tags = {TAG_SHORT: HEADER_VAL_BASIC}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
@@ -47,7 +47,7 @@ class Test_HeaderTags_Long:
     def test_trace_header_tags(self):
         tags = {TAG_LONG: HEADER_VAL_BASIC}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
@@ -65,7 +65,7 @@ class Test_HeaderTags_Whitespace_Header:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_HEADER: HEADER_VAL_BASIC}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
@@ -83,7 +83,7 @@ class Test_HeaderTags_Whitespace_Tag:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_TAG: HEADER_VAL_BASIC}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
@@ -101,7 +101,7 @@ class Test_HeaderTags_Whitespace_Val_Short:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT.strip()}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
@@ -119,7 +119,7 @@ class Test_HeaderTags_Whitespace_Val_Long:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_VAL_LONG: HEADER_VAL_WHITESPACE_VAL_LONG.strip()}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
@@ -141,7 +141,7 @@ class Test_HeaderTags_Colon_Leading:
             CONFIG_COLON_LEADING.split(":")[1],
         ]
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in nottags:
                 assert tag not in span["meta"]
 
@@ -163,6 +163,6 @@ class Test_HeaderTags_Colon_Trailing:
             CONFIG_COLON_TRAILING.split(":")[1],
         ]
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in nottags:
                 assert tag not in span["meta"]

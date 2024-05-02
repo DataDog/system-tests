@@ -63,6 +63,7 @@ def main():
         for nodeid in scenario_map:
             file = nodeid.split(":", 1)[0]
             scenarios_by_files[file].add(scenario_map[nodeid])
+
             for modified_nodeid in modified_nodeids:
                 if nodeid.startswith(modified_nodeid):
                     scenarios.add(scenario_map[nodeid])
