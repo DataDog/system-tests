@@ -2,7 +2,10 @@ FROM datadog/system-tests:uwsgi-poc.base-v1
 
 WORKDIR /app
 
-RUN pip install boto3 kombu
+# this is necessary for the mysqlclient install
+RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config
+
+RUN pip install boto3 kombu mock asyncpg aiomysql mysql-connector-python pymysql mysqlclient
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

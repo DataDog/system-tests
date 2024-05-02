@@ -10,11 +10,11 @@ if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
     import asyncpg
     import psycopg2
 
-# if os.environ.get("INCLUDE_MYSQL", "true") == "true": # CHANGE THIS and below
-import aiomysql
-import mysql
-import pymysql
-import MySQLdb
+if os.environ.get("INCLUDE_MYSQL", "true") == "true":
+    import aiomysql
+    import mysql
+    import pymysql
+    import MySQLdb
 
 import requests
 from flask import Flask, Response, jsonify
@@ -204,14 +204,7 @@ async def stub_dbm():
     if integration == "psycopg":
         postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
         cursor = postgres_db.cursor()
-        cursor.__wrapped__ = mock.Mock()
-        if operation == "execute":
-            cursor.execute("SELECT version()")
-            return get_dbm_comment(cursor.__wrapped__, "execute")
-        elif operation == "executemany":
-            cursor.executemany("SELECT version()", [((),)])
-            return get_dbm_comment(cursor.__wrapped__, "executemany")
-        return Response(f"Cursor method is not supported: {operation}", 406)
+        return await db_execute_and_retrieve_comment(operation, cursor)
 
     elif integration == "asyncpg":
         conn = await asyncpg.connect(**ASYNCPG_CONFIG)
@@ -219,7 +212,6 @@ async def stub_dbm():
         orig = ddtrace.propagation._database_monitoring.set_argument_value
 
         def mock_func(args, kwargs, sql_pos, sql_kw, sql_with_dbm_tags):
-            print("using mock")
             return orig(args, kwargs, sql_pos, sql_kw, sql_with_dbm_tags)
 
         with mock.patch(
@@ -227,39 +219,21 @@ async def stub_dbm():
         ) as patched:
             if operation == "execute":
                 await conn.execute("SELECT version()")
-                print(patched.call_args_list)
-                print(patched.call_args_list[0])
-                print(patched.call_args_list[0][0])
                 return get_dbm_comment(None, "execute", patched.call_args_list[0][0][4])
             elif operation == "executemany":
                 await cursor.executemany("SELECT version()", [((),)])
-                print(patched.call_args_list)
                 return get_dbm_comment(None, "executemany", patched.call_args_list[0][0][4])
         return Response(f"Cursor method is not supported: {operation}", 406)
 
     elif integration == "aiomysql":
         conn = await aiomysql.connect(**AIOMYSQL_CONFIG)
         cursor = await conn.cursor()
-        cursor.__wrapped__ = mock.AsyncMock()
-        if operation == "execute":
-            await cursor.execute("SELECT version()")
-            return get_dbm_comment(cursor.__wrapped__, "execute")
-        elif operation == "executemany":
-            await cursor.executemany("SELECT version()", [((),)])
-            return get_dbm_comment(cursor.__wrapped__, "executemany")
-        return Response(f"Cursor method is not supported: {operation}", 406)
+        return await db_execute_and_retrieve_comment(operation, cursor, is_async=True)
 
     elif integration == "mysql-connector":
         conn = mysql.connector.connect(**AIOMYSQL_CONFIG)
         cursor = conn.cursor()
-        cursor.__wrapped__ = mock.Mock()
-        if operation == "execute":
-            cursor.execute("SELECT version()")
-            return get_dbm_comment(cursor.__wrapped__, "execute")
-        elif operation == "executemany":
-            cursor.executemany("SELECT version()", [((),)])
-            return get_dbm_comment(cursor.__wrapped__, "executemany")
-        return Response(f"Cursor method is not supported: {operation}", 406)
+        return await db_execute_and_retrieve_comment(operation, cursor)
 
     elif integration == "mysqldb":
         conn = MySQLdb.Connect(
@@ -272,27 +246,31 @@ async def stub_dbm():
             }
         )
         cursor = conn.cursor()
-        cursor.__wrapped__ = mock.Mock()
-        if operation == "execute":
-            cursor.execute("SELECT version()")
-            return get_dbm_comment(cursor.__wrapped__, "execute")
-        elif operation == "executemany":
-            cursor.executemany("SELECT version()", [((),)])
-            return get_dbm_comment(cursor.__wrapped__, "executemany")
-        return Response(f"Cursor method is not supported: {operation}", 406)
+        return await db_execute_and_retrieve_comment(operation, cursor)
 
     elif integration == "pymysql":
         conn = pymysql.connect(**AIOMYSQL_CONFIG)
         cursor = conn.cursor()
-        cursor.__wrapped__ = mock.Mock()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+    return Response(f"Integration is not supported: {integration}", 406)
+
+
+async def db_execute_and_retrieve_comment(operation, cursor, is_async=False):
+    cursor.__wrapped__ = mock.Mock()
+    if not is_async:
         if operation == "execute":
             cursor.execute("SELECT version()")
             return get_dbm_comment(cursor.__wrapped__, "execute")
         elif operation == "executemany":
             cursor.executemany("SELECT version()", [((),)])
             return get_dbm_comment(cursor.__wrapped__, "executemany")
-
-    return Response(f"Integration is not supported: {integration}", 406)
+    else:
+        if operation == "execute":
+            await cursor.execute("SELECT version()")
+            return get_dbm_comment(cursor.__wrapped__, "execute")
+        elif operation == "executemany":
+            await cursor.executemany("SELECT version()", [((),)])
+            return get_dbm_comment(cursor.__wrapped__, "executemany")
 
 
 def get_dbm_comment(wrapped_instance, operation, wrapped_call_args=None):
@@ -303,7 +281,6 @@ def get_dbm_comment(wrapped_instance, operation, wrapped_call_args=None):
 
     # Store response in a json object
     response = {"status": "ok", "dbm_comment": dbm_comment}
-
     return Response(json.dumps(response))
 
 
