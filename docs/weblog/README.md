@@ -437,7 +437,6 @@ Examples:
 - `GET`: `/rasp/lfi?file=../etc/passwd`
 - `POST`: `{"file": "../etc/passwd"}`
 
-
 ### \[GET,POST\] /rasp/ssrf
 
 This endpoint is used to test for server side request forgery attacks, consequently it must perform a network operation, e.g. an HTTP request. The chosen operation must be partially injected with the `GET` or `POST` parameter.
@@ -456,7 +455,7 @@ https://$domain/extra-path/
 ```
 
 Examples:
-- `GET`: `/rasp/ssrf?domain=169.254.169.254
+- `GET`: `/rasp/ssrf?domain=169.254.169.254`
 - `POST`: `{"domain": "169.254.169.254"}`
 
 ### \[GET,POST\] /rasp/sqli
@@ -478,5 +477,5 @@ SELECT * FROM users WHERE id='$user_id';
 ```
 
 Examples:
-- `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"
+- `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
 - `POST`: `{"user_id": "' OR 1 = 1 --"}`

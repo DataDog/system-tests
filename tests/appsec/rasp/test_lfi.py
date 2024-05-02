@@ -1,39 +1,5 @@
 from utils import features, weblog, interfaces, scenarios, rfc
-
-
-def validate_rasp_attack(span, rule, parameters=None):
-    assert "_dd.appsec.json" in span["meta"], "_dd.appsec.json not in meta"
-
-    triggers = span["meta"]["_dd.appsec.json"]["triggers"]
-    assert len(triggers) == 1, "multiple appsec events found, only one expected"
-
-    trigger = triggers[0]
-    obtained_rule_id = trigger["rule"]["id"]
-    assert trigger["rule"]["id"] == rule, f"incorrect rule id, expected {rule}"
-
-    if parameters is not None:
-        rule_matches = trigger["rule_matches"]
-        assert len(rule_matches) == 1, "multiple rule matches found, only one expected"
-
-        rule_match_params = rule_matches[0]["parameters"]
-        assert len(rule_match_params) == 1, "multiple parameters found, only one expected"
-
-        obtained_parameters = rule_match_params[0]
-        for name, fields in parameters.items():
-            address = fields["address"]
-            value = None
-            if value in fields:
-                value = fields["value"]
-
-            assert name in obtained_parameters, f"parameter '{name}' not in rule match"
-
-            obtained_param = obtained_parameters[name]
-
-            assert obtained_param["address"] == address, f"incorrect address for '{name}', expected '{address}'"
-
-            if value is not None:
-                assert obtained_param["value"] == value, f"incorrect value for '{name}', expected '{value}'"
-
+from . import validate_rasp_attack
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.tonjsgarlieo")
 @features.rasp_local_file_inclusion
