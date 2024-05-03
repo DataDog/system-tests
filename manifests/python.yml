@@ -191,9 +191,13 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
-      test_lfi.py: missing_feature
+      test_lfi.py:
+        '*': missing_feature
+        flask-poc: v2.10.0.dev
       test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
+      test_ssrf.py:
+        '*': missing_feature
+        flask-poc: v2.10.0.dev
     waf/:
       test_addresses.py:
         Test_BodyJson:
