@@ -7,13 +7,13 @@ on:
         required: true
         type: string
       scenarios: 
-        description: "JSON array of scenarios to run"
-        default: '["DEFAULT"]'
+        description: "Comma-separated list scenarios to run"
+        default: DEFAULT
         required: false
         type: string
       scenarios_groups: 
-        description: "JSON array of scenarios groups to run"
-        default: '[]'
+        description: "Comma-separated list of scenarios groups to run"
+        default: ''
         required: false
         type: string
       build_python_base_images:

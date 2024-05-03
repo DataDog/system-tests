@@ -87,8 +87,8 @@ def main():
             if file in scenarios_by_files:
                 scenarios.update(scenarios_by_files[file])
 
-    print("scenarios=" + json.dumps(list(scenarios)))
-    print("scenarios_groups=" + json.dumps(list(scenarios_groups)))
+    print("scenarios=" + ",".join(scenarios))
+    print("scenarios_groups=" + ",".join(scenarios_groups))
 
 
 if __name__ == "__main__":

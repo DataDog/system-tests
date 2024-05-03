@@ -5,10 +5,10 @@ on:
     # Map the workflow outputs to job outputs
     outputs:
       scenarios:
-        description: "JSON array of scenarios to run"
+        description: "Comma-separated list of scenarios to run"
         value: ${{ jobs.main.outputs.scenarios }}
       scenarios_groups:
-        description: "JSON array of scenarios groups to run"
+        description: "Comma-separated list of scenarios groups to run"
         value: ${{ jobs.main.outputs.scenarios_groups }}
 
 jobs:
@@ -47,4 +47,5 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_PULL_REQUEST_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
+          TEMP_TEST: ${{ toJSON(github.doesntexists) }}
 

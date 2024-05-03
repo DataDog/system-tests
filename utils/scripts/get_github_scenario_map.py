@@ -6,6 +6,9 @@ from utils._context._scenarios import get_all_scenarios, ScenarioGroup
 def get_github_workflow_map(scenarios, scenarios_groups):
     result = {}
 
+    scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
+    scenarios = [scenario.strip() for scenario in scenarios if scenario.strip()]
+
     for group in scenarios_groups:
         try:
             ScenarioGroup(group)
@@ -32,7 +35,7 @@ def get_github_workflow_map(scenarios, scenarios_groups):
 
 def main():
     scnenario_map = get_github_workflow_map(
-        json.loads(os.environ["SCENARIOS"]), json.loads(os.environ["SCENARIOS_GROUPS"])
+        os.environ["SCENARIOS"].split(","), os.environ["SCENARIOS_GROUPS"].split(",")
     )
     for github_workflow, scnearios in scnenario_map.items():
         print(f"{github_workflow}_scenarios={json.dumps(scnearios)}")
