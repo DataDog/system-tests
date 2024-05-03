@@ -444,8 +444,7 @@ class ServerImpl < APMClient::Service
                   trace_id: span_op.trace_id,
                   trace_sampling_priority: trace_op.sampling_priority,
                   trace_flags: trace_op.sampling_priority && trace_op.sampling_priority > 0 ? 1 : 0,
-                  trace_state: trace_op.trace_state,
-                  trace_distributed_tags: trace_op.distributed_tags
+                  trace_state: trace_op.trace_state
                 )
               else
                 raise "Span id in #{link} not found in span list: #{@dd_spans}"
