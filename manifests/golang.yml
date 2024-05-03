@@ -371,14 +371,14 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmContext_Injection_Base64: 
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmKinesis:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
@@ -400,7 +400,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: v1.63.0
+      TestDynamicConfigSamplingRules: v1.64.0-dev
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
       TestDynamicConfigV1_ServiceTargets: v1.59.0

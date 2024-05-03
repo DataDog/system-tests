@@ -46,6 +46,8 @@ from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.internal.datastreams import data_streams_processor
+from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
 # Patch kombu since its not patched automatically
 ddtrace.patch_all(kombu=True)
@@ -62,6 +64,20 @@ POSTGRES_CONFIG = dict(
 app = Flask(__name__)
 
 tracer.trace("init.service").finish()
+
+
+def reset_dsm_context():
+    # force reset DSM context for global tracer and global DSM processor
+    try:
+        del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+    try:
+        from ddtrace.internal.datastreams import data_streams_processor
+
+        del data_streams_processor()._current_context.value
+    except AttributeError:
+        pass
 
 
 @app.route("/")
@@ -297,17 +313,7 @@ def consume_kinesis_message():
 
 @app.route("/rabbitmq/produce")
 def produce_rabbitmq_message():
-    # force reset DSM context for global tracer and global DSM processor
-    try:
-        del tracer.data_streams_processor._current_context.value
-    except AttributeError:
-        pass
-    try:
-        from ddtrace.internal.datastreams import data_streams_processor
-
-        del data_streams_processor()._current_context.value
-    except AttributeError:
-        pass
+    reset_dsm_context()
 
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
@@ -348,16 +354,7 @@ def dsm():
     logging.info(f"[DSM] Got request with integration: {integration}")
 
     # force reset DSM context for global tracer and global DSM processor
-    try:
-        del tracer.data_streams_processor._current_context.value
-    except AttributeError:
-        pass
-    try:
-        from ddtrace.internal.datastreams import data_streams_processor
-
-        del data_streams_processor()._current_context.value
-    except AttributeError:
-        pass
+    reset_dsm_context()
 
     response = Response(f"Integration is not supported: {integration}", 406)
 
@@ -426,6 +423,34 @@ def dsm():
     tracer.data_streams_processor.periodic()
     data_streams_processor().periodic()
     return response
+
+
+@app.route("/dsm/inject")
+def inject_dsm_context():
+    topic = flask_request.args.get("topic")
+    integration = flask_request.args.get("integration")
+    headers = {}
+
+    reset_dsm_context()
+
+    ctx = data_streams_processor().set_checkpoint(["direction:out", "topic:" + topic, "type:" + integration])
+    DsmPathwayCodec.encode(ctx, headers)
+
+    return Response(json.dumps(headers))
+
+
+@app.route("/dsm/extract")
+def extract_dsm_context():
+    topic = flask_request.args.get("topic")
+    integration = flask_request.args.get("integration")
+    ctx = flask_request.args.get("ctx")
+
+    reset_dsm_context()
+
+    ctx = DsmPathwayCodec.decode(json.loads(ctx), data_streams_processor())
+    ctx.set_checkpoint(["direction:in", "topic:" + topic, "type:" + integration])
+
+    return Response("ok")
 
 
 @app.route("/iast/insecure_hashing/multiple_hash")
@@ -534,7 +559,10 @@ def view_iast_source_parameter():
 @app.route("/iast/path_traversal/test_insecure", methods=["POST"])
 def view_iast_path_traversal_insecure():
     path = flask_request.form["path"]
-    os.mkdir(path)
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
     return Response("OK")
 
 
