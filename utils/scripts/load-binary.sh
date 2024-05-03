@@ -182,7 +182,7 @@ elif [ "$TARGET" = "python" ]; then
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
-    echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
+    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz

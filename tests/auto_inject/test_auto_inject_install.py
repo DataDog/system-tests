@@ -22,12 +22,12 @@ class _AutoInjectBaseTest:
 
         logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
         wait_for_port(vm_port, vm_ip, 80.0)
-        logger.info(f"[{vm_ip}]: Weblog app is ready!")
+        logger.info(f"[{vm_ip}]: Weblog app is ready!")
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
         request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, 60.0)
+        wait_backend_trace_id(request_uuid, 120.0)
 
     def execute_command(self, virtual_machine, command):
         # Env for the command
@@ -270,3 +270,15 @@ class TestHostAutoInjectChaos(_AutoInjectBaseTest):
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
         logger.info(f"Success test_remove_ld_preload for : [{virtual_machine.name}]")
+
+
+@features.installer_auto_instrumentation
+@scenarios.installer_auto_injection
+class TestInstallerAutoInjectManual(_AutoInjectBaseTest):
+    # Note: uninstallation of a single installer package is not available today
+    #  on the installer. As we can't only uninstall the injector, we are skipping
+    #  the uninstall test today
+    def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")

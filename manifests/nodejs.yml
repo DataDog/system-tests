@@ -431,8 +431,8 @@ tests/:
     Test_DistributedHttp: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
-    Test_Propagate: missing_feature
-    Test_Propagate_Legacy: missing_feature
+    Test_Propagate: v3.2.0
+    Test_Propagate_Legacy: v3.2.0
   test_library_conf.py:
     Test_HeaderTags: v4.11.0
     Test_HeaderTags_Colon_Leading: v4.11.0
@@ -477,4 +477,5 @@ tests/:
       '*': v3.2.0
       nextjs: missing_feature
       uds-express4: v3.7.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: missing_feature

@@ -229,7 +229,7 @@ tests/:
         Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (not read in dotnet)
+          "*": v0.1  # version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": v2.48.0
     test_db_integrations_sql.py:
@@ -328,4 +328,5 @@ tests/:
     Test_Metric_Generation_Enabled: v2.35.0
     Test_ProductsDisabled: v2.12.0
     Test_Telemetry: v2.12.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v2.35.0
