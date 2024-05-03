@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, interfaces, scenarios, rfc
-from . import validate_rasp_attack
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
@@ -18,17 +17,14 @@ class Test_Ssrf_UrlQuery:
     def test_ssrf_get(self):
         assert self.r.status_code == 403
 
-        for _, span in interfaces.library.get_root_spans(request=self.r):
-            validate_rasp_attack(
-                span,
-                "rasp-934-100",
-                {
-                    "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
-                    "params": {"address": "server.request.query", "value": "169.254.169.254"},
-                },
-            )
-
-        return True
+        interfaces.library.assert_rasp_attack(
+            self.r,
+            "rasp-934-100",
+            {
+                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                "params": {"address": "server.request.query", "value": "169.254.169.254"},
+            },
+        )
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
@@ -43,17 +39,14 @@ class Test_Ssrf_BodyUrlEncoded:
     def test_ssrf_post_urlencoded(self):
         assert self.r.status_code == 403
 
-        for _, span in interfaces.library.get_root_spans(request=self.r):
-            validate_rasp_attack(
-                span,
-                "rasp-934-100",
-                {
-                    "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
-                    "params": {"address": "server.request.body", "value": "169.254.169.254"},
-                },
-            )
-
-        return True
+        interfaces.library.assert_rasp_attack(
+            self.r,
+            "rasp-934-100",
+            {
+                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                "params": {"address": "server.request.body", "value": "169.254.169.254"},
+            },
+        )
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
@@ -69,17 +62,14 @@ class Test_Ssrf_BodyXml:
     def test_ssrf_post_xml(self):
         assert self.r.status_code == 403
 
-        for _, span in interfaces.library.get_root_spans(request=self.r):
-            validate_rasp_attack(
-                span,
-                "rasp-934-100",
-                {
-                    "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
-                    "params": {"address": "server.request.body", "value": "169.254.169.254"},
-                },
-            )
-
-        return True
+        interfaces.library.assert_rasp_attack(
+            self.r,
+            "rasp-934-100",
+            {
+                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                "params": {"address": "server.request.body", "value": "169.254.169.254"},
+            },
+        )
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
@@ -95,14 +85,11 @@ class Test_Ssrf_BodyJson:
     def test_ssrf_post_json(self):
         assert self.r.status_code == 403
 
-        for _, span in interfaces.library.get_root_spans(request=self.r):
-            validate_rasp_attack(
-                span,
-                "rasp-934-100",
-                {
-                    "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
-                    "params": {"address": "server.request.body", "value": "169.254.169.254"},
-                },
-            )
-
-        return True
+        interfaces.library.assert_rasp_attack(
+            self.r,
+            "rasp-934-100",
+            {
+                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                "params": {"address": "server.request.body", "value": "169.254.169.254"},
+            },
+        )
