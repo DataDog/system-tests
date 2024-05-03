@@ -773,7 +773,7 @@ class Test_Headers_Tracecontext:
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
 
         assert case2["name"] == "p_invalid"
-        assert "_dd.parent_id" not in case2["meta"]
+        assert case2["meta"]["_dd.parent_id"] == "0000000000000000"
 
         assert case3["name"] == "datadog_headers_used_in_propagation"
         assert case3["trace_id"] == 5
@@ -781,7 +781,7 @@ class Test_Headers_Tracecontext:
         assert "_dd.parent_id" not in case3["meta"]
 
         assert case4["name"] == "p_not_propagated"
-        assert "_dd.parent_id" not in case4["meta"]
+        assert case4["meta"]["_dd.parent_id"] == "0000000000000000"
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
