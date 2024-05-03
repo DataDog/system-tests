@@ -2130,9 +2130,9 @@ class features:
     @staticmethod
     def database_monitoring_support(test_object):
         """
-        Database Monitoring is supported by an integration
+        DBM: Database Monitoring is supported by an integration
 
-        https://feature-parity.us1.prod.dog/#/?feature=293
+        https://feature-parity.us1.prod.dog/#/?feature=296
         """
-        pytest.mark.features(feature_id=293)(test_object)
+        pytest.mark.features(feature_id=296)(test_object)
         return test_object
