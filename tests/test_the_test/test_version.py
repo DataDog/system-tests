@@ -62,6 +62,9 @@ def test_version_serialization():
     v = Version("  * ddtrace (1.0.0.beta1)", "ruby")
     assert v == Version("1.0.0beta1", "ruby")
 
+    v = Version("  * datadog (2.0.0.beta1)", "ruby")
+    assert v == Version("2.0.0beta1", "ruby")
+
     v = Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
     assert v == Version("1.0.0beta1+de82857", "ruby")
 

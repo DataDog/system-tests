@@ -164,7 +164,15 @@ tests/:
             vertx4: missing_feature (No endpoint implemented)
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation:
-            "*": "bug (APPSEC-12201)"
+            '*': v1.22.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature
+            vertx4: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': v1.15.0
@@ -945,7 +953,7 @@ tests/:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: v1.27.0
-      Test_TelemetrySCAEnvVar: missing_feature
+      Test_TelemetrySCAEnvVar: v1.34.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
@@ -1048,4 +1056,5 @@ tests/:
     Test_Telemetry:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0

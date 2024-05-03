@@ -23,7 +23,6 @@ tests/:
         Test_Schema_Request_Cookies:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
-          uds-echo: bug (APPSEC-18224)
         Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers:
           '*': v1.60.0-dev
@@ -160,8 +159,7 @@ tests/:
         Test_Blocking: v1.50.0-rc.1
         Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse:
-          '*': v1.63.0-dev
-          uds-echo: bug
+          '*': v1.63.0
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
       test_exclusions.py:
@@ -279,12 +277,12 @@ tests/:
     test_ip_blocking_full_denylist.py:
       Test_AppSecIPBlockingFullDenylist:
         '*': v1.47.0
-        uds-echo: bug
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
-      Test_ExtraTagsFromRule: missing_feature
+      Test_ExtraTagsFromRule: 
+        '*': v1.62.0
       Test_HttpClientIP:
         '*': v1.34.0
         chi: v1.36.0
@@ -373,14 +371,14 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmContext_Injection_Base64: 
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmKinesis:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
@@ -402,7 +400,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: v1.63.0
+      TestDynamicConfigSamplingRules: v1.64.0-dev
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
       TestDynamicConfigV1_ServiceTargets: v1.59.0
@@ -474,4 +472,5 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.49.1

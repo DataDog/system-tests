@@ -19,7 +19,7 @@
       "type": "string"
     },
     "tracer_time": {
-      "type": "string"
+      "type": "number"
     }
   }
 }

@@ -420,3 +420,9 @@ It supports the following body fields:
 
 ### GET /flush
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.
+
+### GET /dsm/inject
+This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
+
+### GET /dsm/extract
+This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.

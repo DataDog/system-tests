@@ -76,7 +76,6 @@ class Test_LFI:
         self.r_5 = weblog.get("/waf/..")
 
     @bug(context.library < "java@0.92.0")
-    @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     @irrelevant(library="python", weblog_variant="django-poc")
     @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
     @irrelevant(
@@ -268,7 +267,7 @@ class Test_NoSqli:
         self.r_3 = weblog.get("/waf/", params={"[$ne]": "value"})
         self.r_4 = weblog.get("/waf/", params={"$nin": "value"})
 
-    @missing_feature(context.library in ["golang", "php"], reason="Need to use last WAF version")
+    @missing_feature(context.library in ["php"], reason="Need to use last WAF version")
     @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     @irrelevant(library="nodejs", reason="brackets are interpreted as arrays and thus truncated")
