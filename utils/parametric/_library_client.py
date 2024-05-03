@@ -96,7 +96,9 @@ class APMLibraryClient:
     def otel_get_span_context(self, span_id: int):
         raise NotImplementedError
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
+    def span_add_link(
+        self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]] = None
+    ) -> None:
         raise NotImplementedError
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
@@ -215,7 +217,9 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
         )
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None):
+    def span_add_link(
+        self, span_id: int, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None
+    ):
         self._session.post(
             self._url("/trace/span/add_link"),
             json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {},},
@@ -346,8 +350,8 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict = None):
-        self._client.span_add_link(self.span_id, parent_id, attributes)
+    def add_link(self, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None):
+        self._client.span_add_link(self.span_id, parent_id, attributes, http_headers)
 
     def get_name(self):
         return self._client.span_get_name(self.span_id)
@@ -529,10 +533,21 @@ class APMLibraryClientGRPC:
     def span_set_error(self, span_id: int, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(pb.SpanSetErrorArgs(span_id=span_id, type=typestr, message=message, stack=stack))
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict) -> None:
+    def span_add_link(
+        self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]]
+    ) -> None:
+        pb_link = pb.SpanLink(attributes=convert_to_proto(attributes))
+        if parent_id > 0:
+            pb_link.parent_id = parent_id
+        elif http_headers:
+            for key, value in http_headers:
+                pb_link.http_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
+        else:
+            raise ValueError("Link must have either parent_id or http_headers")
+
         self._client.SpanAddLink(
             pb.SpanAddLinkArgs(
-                span_id=span_id, span_link=pb.SpanLink(attributes=convert_to_proto(attributes), parent_id=parent_id)
+                span_id=span_id, span_link=pb_link,
             )
         )
 
