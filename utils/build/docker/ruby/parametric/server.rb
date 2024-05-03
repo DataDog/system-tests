@@ -55,15 +55,11 @@ class ServerImpl < APMClient::Service
                headers = start_span_args.http_headers.http_headers.group_by(&:key).map do |name, values|
                  [name, values.map(&:value).join(', ')]
                end
-<<<<<<< HEAD
                 if Datadog::Tracing::Contrib::GRPC.respond_to?(:extract)
                   Datadog::Tracing::Contrib::GRPC.extract(headers.to_h)
                 else
                   Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
                 end
-=======
-               Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
->>>>>>> cd31ee19e (fix bugs in span links grpc parameteric tests + add ruby coverage)
              elsif !start_span_args.origin.empty? || start_span_args.parent_id != 0
                # DEV: Parametric tests do not differentiate between a distributed span request from a span parenting request.
                # DEV: We have to consider the parent_id being present present and origin being absent as a span parenting request.
@@ -449,14 +445,13 @@ class ServerImpl < APMClient::Service
               else
                 raise "Span id in #{link} not found in span list: #{@dd_spans}"
               end
-    link = Datadog::Tracing::SpanLink.new(
-        link_dg,
-        attributes: parse_grpc_attributes(link.attributes)
+    Datadog::Tracing::SpanLink.new(
+      link_dg,
+      attributes: parse_grpc_attributes(link.attributes)
     )
   end
 
   def dd_link_to_otel(dd_link)
-    puts "ddlink #{dd_link.inspect}"
     OpenTelemetry::Trace::Link.new(
         OpenTelemetry::Trace::SpanContext.new(
           trace_id: i_to_otel_trace_id(dd_link.trace_id),
