@@ -1,4 +1,10 @@
-FROM docker.io/datadog/dd-lib-js-init:latest  as dd-lib-nodejs-init
+ARG LIB_INIT_ENV=prod
+
+FROM docker.io/datadog/dd-lib-js-init:latest as dd-lib-init_prod
+
+FROM ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot as dd-lib-init_dev
+
+FROM dd-lib-init_${LIB_INIT_ENV} as dd-lib-nodejs-init
 
 FROM node:18
 
@@ -7,8 +13,8 @@ WORKDIR /usr/src/app
 
 COPY . .
 COPY --from=dd-lib-nodejs-init /operator-build /datadog-lib/
-RUN npm install /datadog-lib/dd-trace.tgz
 ENV NODE_OPTIONS="--require=/datadog-lib/node_modules/dd-trace/init"
+ENV CI_USE_TEST_AGENT="true"
 ENV DD_TRACE_DEBUG=true
 EXPOSE 18080
 CMD [ "node", "index.js" ]

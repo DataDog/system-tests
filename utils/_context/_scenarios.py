@@ -33,7 +33,7 @@ from utils._context.containers import (
     # SqlDbTestedContainer,
     BuddyContainer,
     APMTestAgentContainer,
-    WeblogInjectionInitContainer
+    WeblogInjectionInitContainer,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -1229,14 +1229,11 @@ class _KubernetesScenario(_Scenario):
     def weblog_variant(self):
         return self._weblog_variant
 
-class _APMTestAgent(_Scenario):
+
+class APMTestAgentScenario(_Scenario):
     """Scenario that runs APM test agent """
 
-    def __init__(
-        self,
-        name,
-        doc
-    ) -> None:
+    def __init__(self, name, doc) -> None:
         super().__init__(name, doc=doc)
 
         self._required_containers = []
@@ -1258,6 +1255,9 @@ class _APMTestAgent(_Scenario):
             warmups.append(container.start)
 
         return warmups
+
+    def pytest_sessionfinish(self, session):
+        self.close_targets()
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -1764,10 +1764,10 @@ class scenarios:
     k8s_lib_injection_full = _KubernetesScenario(
         "K8S_LIB_INJECTION_FULL", doc=" Kubernetes Instrumentation complete scenario"
     )
-    
-    k8s_lib_injection_validation = _APMTestAgent(
-        "K8S_LIB_INJECTION_VALIDATION",
-        #weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
+
+    lib_injection_validation = APMTestAgentScenario(
+        "LIB_INJECTION_VALIDATION",
+        # weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
         doc="Validates the init images without kubernetes enviroment",
     )
 

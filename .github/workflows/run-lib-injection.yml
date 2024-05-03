@@ -47,6 +47,65 @@ jobs:
 
         print(json.dumps(result, indent=2))
 
+  lib-injection-init-image-validator:
+    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
+    runs-on:
+      group: "APM Larger Runners"
+    permissions:
+      contents: read
+      packages: read
+    needs: 
+      - compute-matrix
+    strategy:
+      matrix:
+        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+        version:      
+          - prod
+          - dev
+      fail-fast: false
+    env:
+      TEST_LIBRARY: ${{ inputs.library }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+    
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+        
+      - name: Log in to the Container registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+        with:
+          registry: ghcr.io/datadog
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build weblog init image validator
+        run: lib-injection/build/build_lib_injection_image_validator.sh -w ${{ matrix.weblog }} -e ${{ matrix.version }}         
+
+      - name: Install runner
+        uses: ./.github/actions/install_runner       
+
+      - name: Validate init image
+        run: ./run.sh LIB_INJECTION_VALIDATION
+
+      - name: Compress logs
+        id: compress_logs
+        if: always()
+        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+
+      - name: Upload artifact
+        if: always() && steps.compress_logs.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs_lib-injection_validation${{ inputs.library}}_${{matrix.weblog}}_${{ matrix.version }}
+          path: artifact.tar.gz
+
   k8s-lib-injection-tests:
     if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
     runs-on:
