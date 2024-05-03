@@ -115,7 +115,10 @@ def waf(*args, **kwargs):
         return "Value tagged", kwargs["status_code"], flask_request.args
     return "Hello, World!\n"
 
+
 ### BEGIN EXPLOIT PREVENTION
+
+
 @app.route("/rasp/lfi", methods=["GET", "POST"])
 def rasp_lfi(*args, **kwargs):
     file = None
@@ -142,7 +145,6 @@ def rasp_lfi(*args, **kwargs):
         return f"{file} could not be open: {e!r}"
 
 
-### BEGIN EXPLOIT PREVENTION
 @app.route("/rasp/ssrf", methods=["GET", "POST"])
 def rasp_ssrf(*args, **kwargs):
     domain = None
@@ -170,8 +172,8 @@ def rasp_ssrf(*args, **kwargs):
         return f"url http://{domain} could not be open: {e!r}"
 
 
-
 ### END EXPLOIT PREVENTION
+
 
 @app.route("/read_file", methods=["GET"])
 def read_file():
