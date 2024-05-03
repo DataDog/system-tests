@@ -135,8 +135,6 @@ class _Test_Dbm_Comment:
         self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
 
     def test_dbm_comment(self):
-        print(self.r.status_code)
-        print(self.r.text)
         if self.r.text not in [None, ""]:
             try:
                 self.r.text = json.loads(self.r.text)
