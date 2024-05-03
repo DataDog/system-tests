@@ -545,11 +545,7 @@ class APMLibraryClientGRPC:
         else:
             raise ValueError("Link must have either parent_id or http_headers")
 
-        self._client.SpanAddLink(
-            pb.SpanAddLinkArgs(
-                span_id=span_id, span_link=pb_link,
-            )
-        )
+        self._client.SpanAddLink(pb.SpanAddLinkArgs(span_id=span_id, span_link=pb_link,))
 
     def finish_span(self, span_id: int):
         self._client.FinishSpan(pb.FinishSpanArgs(id=span_id))
