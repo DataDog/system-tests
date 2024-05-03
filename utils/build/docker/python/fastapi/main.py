@@ -1,8 +1,11 @@
+import http.client
 import logging
 import os
 import random
 import subprocess
+import sys
 import typing
+import urllib.request
 
 import fastapi
 import psycopg2
@@ -94,6 +97,67 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
             {"payload": dict(await request.form())}, status_code=status_code, headers=request.query_params,
         )
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
+
+
+### BEGIN EXPLOIT PREVENTION
+
+
+@app.get("/rasp/lfi")
+async def rasp_lfi(request: Request):
+    file = None
+    if request.method == "GET":
+        file = request.query_params.get("file")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            file = ((await request.form()) or json.loads(body) or {}).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if file is None:
+                file = xmltodict.parse(body).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+    if file is None:
+        return Response("missing file parameter", status=400)
+    try:
+        with open(file, "rb") as f_in:
+            f_in.seek(0, os.SEEK_END)
+            return f"{file} open with {f_in.tell()} bytes"
+    except OSError as e:
+        return f"{file} could not be open: {e!r}"
+
+
+@app.route("/rasp/ssrf", methods=["GET", "POST"])
+async def rasp_ssrf(request: Request):
+    domain = None
+    if request.method == "GET":
+        domain = request.query_params.get("domain")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            domain = ((await request.form()) or json.loads(body) or {}).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if domain is None:
+                domain = xmltodict.parse(body).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if domain is None:
+        return Response("missing domain parameter", status=400)
+    try:
+        with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
+
+            return f"url http://{domain} open with {len(url_in.read())} bytes"
+    except http.client.HTTPException as e:
+        return f"url http://{domain} could not be open: {e!r}"
+
+
+### END EXPLOIT PREVENTION
 
 
 @app.get("/read_file", response_class=PlainTextResponse)
