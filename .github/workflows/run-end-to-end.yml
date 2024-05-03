@@ -39,6 +39,7 @@ env:
 jobs:
 
   compute-matrix:
+    name: Get weblogs for end-to-end tests
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.compute-matrix.outputs.matrix }}

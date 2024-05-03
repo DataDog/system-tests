@@ -44,6 +44,7 @@ on:
 
 jobs:
   compute_scenarios:
+    name: Get scenarios list
     runs-on: ubuntu-latest
     outputs:
       endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
