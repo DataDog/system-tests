@@ -1853,6 +1853,8 @@ class scenarios:
         weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
         appsec_rules="/appsec_rasp_ruleset.json",
         doc="Enable APPSEC RASP",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
 
