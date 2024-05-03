@@ -456,7 +456,7 @@ The endpoint should support the following content types:
 
 The url used in the network operation should be similar to the following:
 ```
-https://$domain
+http://$domain
 ```
 
 Examples:
