@@ -30,7 +30,7 @@ runs:
         uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # 2.2.1
         with:
           install: true
-          config-inline: |
+          buildkitd-config-inline: |
             [worker.oci]
               max-parallelism = 1
 

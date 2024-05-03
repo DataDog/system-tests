@@ -484,3 +484,9 @@ SELECT * FROM users WHERE id='$user_id';
 Examples:
 - `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
 - `POST`: `{"user_id": "' OR 1 = 1 --"}`
+
+### GET /dsm/inject
+This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
+
+### GET /dsm/extract
+This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.

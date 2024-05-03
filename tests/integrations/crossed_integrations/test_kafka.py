@@ -92,18 +92,6 @@ class _Test_Kafka:
         )
 
     @missing_feature(
-        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
         library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
     )
     def test_produce_trace_equality(self):
@@ -145,18 +133,6 @@ class _Test_Kafka:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(
-        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     @missing_feature(
         library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
     )
