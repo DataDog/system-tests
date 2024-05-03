@@ -215,6 +215,8 @@ class _Scenario:
 
 
 class TestTheTestScenario(_Scenario):
+    library = LibraryVersion("java", "0.66.0")
+
     @property
     def agent_version(self):
         return "0.77.0"
@@ -226,10 +228,6 @@ class TestTheTestScenario(_Scenario):
     @property
     def parametrized_tests_metadata(self):
         return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
-
-    @property
-    def library(self):
-        return LibraryVersion("java", "0.66.0")
 
     @property
     def weblog_variant(self):
@@ -1138,6 +1136,22 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
         )
 
 
+class InstallerAutoInjectionScenario(_VirtualMachineScenario):
+    def __init__(self, name, doc, vm_provision="installer-auto-inject") -> None:
+        super().__init__(
+            name,
+            vm_provision=vm_provision,
+            doc=doc,
+            include_ubuntu_22_amd64=True,
+            include_ubuntu_22_arm64=True,
+            include_ubuntu_18_amd64=True,
+            include_amazon_linux_2_amd64=True,
+            include_amazon_linux_2_dotnet_6=True,
+            include_amazon_linux_2023_amd64=True,
+            include_amazon_linux_2023_arm64=True,
+        )
+
+
 class _KubernetesScenario(_Scenario):
     """Scenario that tests kubernetes lib injection"""
 
@@ -1769,6 +1783,10 @@ class scenarios:
         "LIB_INJECTION_VALIDATION",
         # weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
         doc="Validates the init images without kubernetes enviroment",
+    )
+
+    installer_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
 
 

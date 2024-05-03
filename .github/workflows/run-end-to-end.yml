@@ -158,11 +158,7 @@ jobs:
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
-        docker buildx build --load --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v0 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v1 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v2 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v1 .
+        ./utils/build/build_python_base_images.sh
     - name: Build buddies weblog images
       if: inputs.build_buddies_images
       run: ./utils/build/build_tracer_buddies.sh
