@@ -222,7 +222,12 @@ class APMLibraryClientHTTP(APMLibraryClient):
     ):
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {},},
+            json={
+                "span_id": span_id,
+                "parent_id": parent_id,
+                "attributes": attributes or {},
+                "http_headers": http_headers or [],
+            },
         )
 
     def span_get_meta(self, span_id: int, key: str):
