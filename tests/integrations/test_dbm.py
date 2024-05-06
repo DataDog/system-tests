@@ -55,7 +55,7 @@ class Test_Dbm:
                 ),
 
     def _get_db_span(self, response):
-        assert response.status_code == 200, f"Request: {self.scenario} wasn't successful."
+        assert response.status_code == 200, f"Request: {context.scenario.name} wasn't successful."
 
         spans = []
         # we do not use get_spans: the span we look for is not directly the span that carry the request information
