@@ -259,7 +259,7 @@ tests/:
           django-poc: v1.10
           fastapi: v2.4.0.dev1
           flask-poc: v1.10
-        Test_Blocking_strip_response_headers: missing_feature
+        Test_Blocking_strip_response_headers: v2.10.0.dev
         Test_CustomBlockingResponse:
           '*': v1.20.0.dev
           fastapi: v2.4.0.dev1
