@@ -318,7 +318,8 @@ tests/:
         (The "_sampling_priority_v1" numeric tag is missing from the local
         root span when the trace was extracted without a sampling decision.
         See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782693568?pr=2005>.)
-    test_span_links.py: v2.0.0
+    test_span_links.py: 
+      Test_Span_Links: v2.0.0
     test_telemetry.py:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
