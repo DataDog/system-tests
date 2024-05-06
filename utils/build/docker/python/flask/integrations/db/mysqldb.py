@@ -30,7 +30,7 @@ def connect_db():
     return pymysql.connect(
         user="mysqldb",
         password="mysqldb",
-        database="world",
+        database="mysql_dbname",
         autocommit=True,
         charset="utf8mb4",
         host="mysqldb",

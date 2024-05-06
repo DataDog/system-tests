@@ -104,6 +104,10 @@ tests/:
           TestPath: v2.39.0
         test_uri.py:
           TestURI: irrelevant
+    rasp/:
+      test_lfi.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -236,6 +240,8 @@ tests/:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
       Test_Postgres: missing_feature
+    test_dbm.py:
+      Test_Dbm: v0.1  # missing version
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: missing_feature
       Test_DsmContext_Injection_Base64: missing_feature
@@ -276,7 +282,10 @@ tests/:
       Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
-      Test_TracerSCITagging: v2.47.0
+      # The dotnet parametric app generates trace chunks in a way that differs from the other languages
+      # This causes the sci tests to fail. Before enabling these tests we must ensure that the first span in the
+      # trace chunk is always the local root span.
+      Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
   remote_config/:

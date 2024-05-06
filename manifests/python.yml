@@ -190,6 +190,18 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
+    rasp/:
+      test_lfi.py:
+        Test_Lfi_BodyJson: v2.10.0.dev
+        Test_Lfi_BodyUrlEncoded: v2.10.0.dev
+        Test_Lfi_BodyXml: v2.10.0.dev
+        Test_Lfi_UrlQuery: v2.10.0.dev
+      test_sqli.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson: v2.10.0.dev
+        Test_Ssrf_BodyUrlEncoded: v2.10.0.dev
+        Test_Ssrf_BodyXml: v2.10.0.dev
+        Test_Ssrf_UrlQuery: v2.10.0.dev
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -489,9 +501,56 @@ tests/:
     test_dbm.py:
       Test_Dbm:
         '*': missing_feature (Missing on weblog)
-        flask-poc: v0.1 # actual version unknown
-        uds-flask: v2.9.0.dev # actual version unknown
-        uwsgi-poc: v2.9.0.dev # actual version unknown
+        flask-poc: v0.1
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
+      Test_Dbm_Comment_Batch_Python_Aiomysql: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
+      Test_Dbm_Comment_Batch_Python_MysqlConnector: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+      Test_Dbm_Comment_Batch_Python_Mysqldb: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+      Test_Dbm_Comment_Batch_Python_Psycopg: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.8.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
+      Test_Dbm_Comment_Batch_Python_Pymysql: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
+      Test_Dbm_Comment_Python_Aiomysql: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
+      Test_Dbm_Comment_Python_Asyncpg: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
+      Test_Dbm_Comment_Python_MysqlConnector: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+      Test_Dbm_Comment_Python_Mysqldb: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+      Test_Dbm_Comment_Python_Psycopg: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.8.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
+      Test_Dbm_Comment_Python_Pymysql: 
+        '*': missing_feature (Missing on weblog)
+        flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant

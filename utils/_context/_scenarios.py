@@ -1848,6 +1848,15 @@ class scenarios:
         "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
 
+    appsec_rasp = EndToEndScenario(
+        "APPSEC_RASP",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
+        appsec_rules="/appsec_rasp_ruleset.json",
+        doc="Enable APPSEC RASP",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
 
 def get_all_scenarios() -> list[_Scenario]:
     result = []

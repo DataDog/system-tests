@@ -379,6 +379,10 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
