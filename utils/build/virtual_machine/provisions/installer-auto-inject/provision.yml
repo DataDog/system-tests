@@ -49,9 +49,6 @@ setup-testing-dependencies:
 setup-local-registry:
   install: 
     - os_type: linux
-      copy_files:
-        - name: copy-binaries
-          local_path: binaries
       # By default we use the latest prod images
       # Port 12345 is used to avoid conflict with the agent later on
       remote-command: | 
@@ -61,15 +58,19 @@ setup-local-registry:
         sudo docker run -d -p 12345:5000 --restart=always --name registry registry:2
         sleep 10
 
-        if [ ! -d ./library ]; then
-          crane pull --format=oci public.ecr.aws/datadog/apm-library-$DD_LANG-package:latest ./library
+        if [ "${DD_LIBRARY_VERSION}" != "" ]; then
+          export LIBRARY_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-library-{$DD_LANG}-package:${DD_LIBRARY_VERSION}"
+        else
+          export LIBRARY_OCI_URL="public.ecr.aws/datadog/apm-library-$DD_LANG-package:latest"
         fi
-        crane push ./library localhost:12345/datadog/apm-library-$DD_LANG-package:latest
+        crane copy "${LIBRARY_OCI_URL}" localhost:12345/datadog/apm-library-$DD_LANG-package:latest
 
-        if [ ! -d ./inject ]; then
-          crane pull --format=oci public.ecr.aws/datadog/apm-inject-package:latest ./inject
+        if [ "${DD_INJECT_VERSION}" != "" ]; then
+          export INJECT_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INJECT_VERSION}"
+        else
+          export INJECT_OCI_URL="public.ecr.aws/datadog/apm-inject-package:latest"
         fi
-        crane push ./inject localhost:12345/datadog/apm-inject-package:latest
+        crane copy "${INJECT_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
 
 install-installer:
   install: !include utils/build/virtual_machine/provisions/installer-auto-inject/auto-inject_installer_script.yml
@@ -78,11 +79,8 @@ installer-bootstrap:
   install:
     - os_type: linux
       # Installer bootstrap will restart docker and kill our local registry, so it must be last
-      # TODO(baptiste): Remove temporary chown commands
       remote-command: |
-        sudo /opt/datadog-installer/bin/installer/installer install "oci://public.ecr.aws/datadog/agent-package:latest"
-        sudo chown -R dd-agent:dd-agent /etc/datadog-agent
-        sudo chmod -R 755 /etc/datadog-agent
-        sudo /opt/datadog-installer/bin/installer/installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
+        sudo datadog-installer install "oci://public.ecr.aws/datadog/agent-package:latest"
+        sudo datadog-installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
         sleep 5
-        sudo /opt/datadog-installer/bin/installer/installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
+        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
