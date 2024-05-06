@@ -6,8 +6,8 @@ import random
 import subprocess
 import sys
 import typing
-import urllib.request
 import xmltodict
+import requests
 
 import fastapi
 import psycopg2
@@ -134,7 +134,7 @@ async def rasp_lfi(request: Request):
 
 @app.get("/rasp/ssrf")
 @app.post("/rasp/ssrf")
-def rasp_ssrf(request: Request):
+async def rasp_ssrf(request: Request):
     print("rasp_ssrf", repr(request), file=sys.stderr)
     domain = None
     if request.method == "GET":
@@ -156,7 +156,8 @@ def rasp_ssrf(request: Request):
         return PlainTextResponse("missing domain parameter", status_code=400)
     try:
         print("rasp_ssrf", f"http://{domain}", file=sys.stderr)
-        with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
+        # DEV: use requests here due to permission error with urllib
+        with requests.get(f"http://{domain}", timeout=1) as url_in:
             return PlainTextResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
     except Exception as e:
         print(repr(e), file=sys.stderr)
