@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
+from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features, flaky
 from utils.tools import nested_lookup
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
@@ -108,6 +108,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < "java@0.113.0")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
+    @flaky(context.weblog_variant == "fastapi", reason="APPSEC-53058")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
