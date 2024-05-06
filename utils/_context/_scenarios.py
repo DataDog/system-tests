@@ -1304,8 +1304,8 @@ class _KubernetesScenario(_Scenario):
 class APMTestAgentScenario(_Scenario):
     """Scenario that runs APM test agent """
 
-    def __init__(self, name, doc) -> None:
-        super().__init__(name, doc=doc)
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
         self._required_containers = []
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
