@@ -300,8 +300,8 @@ tests/:
         rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: missing_feature
+      TestDynamicConfigHeaderTags: v2.0.0
+      TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.13.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
@@ -326,9 +326,9 @@ tests/:
       Test_TelemetrySCAEnvVar: v2.1.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
+      Test_Trace_Sampling_Globs: v2.0.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v2.0.0
+      Test_Trace_Sampling_Resource: v2.0.0
       Test_Trace_Sampling_Tags: missing_feature
       Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
