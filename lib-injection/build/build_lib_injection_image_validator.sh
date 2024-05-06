@@ -33,5 +33,9 @@ LIB_INIT_ENV="${LIB_INIT_ENV:-prod}"
 echo "Building docker init image validator using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}] for [${LIB_INIT_ENV}] environment"
 CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
+
+if test -f "pre_build_lib_init_validator.sh"; then
+    sh pre_build_lib_init_validator.sh
+fi
 docker build --build-arg="LIB_INIT_ENV=${LIB_INIT_ENV}" -t weblog-injection-init:latest -f Dockerfile.lib_init_validator .
 cd $CURRENT_DIR
