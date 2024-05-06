@@ -87,6 +87,14 @@ def main():
             if file in scenarios_by_files:
                 scenarios.update(scenarios_by_files[file])
 
+            if file.startswith("tests/") and file.endswith("/utils.py"):
+                # particular use case for modification in tests/<path>/utils.py
+                # in that situation, takes all scenarios executed in tests/<path>/
+                folder = file[: -len("utils.py")]
+                for sub_file in scenarios_by_files:
+                    if sub_file.startswith(folder):
+                        scenarios.update(scenarios_by_files[sub_file])
+
     print("scenarios=" + ",".join(scenarios))
     print("scenarios_groups=" + ",".join(scenarios_groups))
 
