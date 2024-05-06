@@ -4,7 +4,7 @@
 
 from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
-from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
 

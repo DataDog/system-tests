@@ -1,9 +1,10 @@
+from collections import defaultdict
 from utils._weblog import _Weblog
 
 
 class _Buddy(_Weblog):
     def __init__(self, port, language, domain="localhost"):
-        from collections import defaultdict
+        super().__init__()
 
         self.port = port
         self.domain = domain
