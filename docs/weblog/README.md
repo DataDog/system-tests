@@ -420,3 +420,73 @@ It supports the following body fields:
 
 ### GET /flush
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.
+
+### \[GET,POST\] /rasp/lfi
+
+This endpoint is used to test for local file inclusion / path traversal attacks, consequently it must perform an operation on a file or directory, e.g. `open` with a relative path. The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `file`: containing the string to inject on the file operation.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+open($file);
+```
+
+Examples:
+- `GET`: `/rasp/lfi?file=../etc/passwd`
+- `POST`: `{"file": "../etc/passwd"}`
+
+### \[GET,POST\] /rasp/ssrf
+
+This endpoint is used to test for server side request forgery attacks, consequently it must perform a network operation, e.g. an HTTP request. The chosen operation must be partially injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `domain`: containing the string to partially inject on the network operation.
+
+The endpoint should support the following content types:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The url used in the network operation should be similar to the following:
+```
+http://$domain
+```
+
+Examples:
+- `GET`: `/rasp/ssrf?domain=169.254.169.254`
+- `POST`: `{"domain": "169.254.169.254"}`
+
+### \[GET,POST\] /rasp/sqli
+
+This endpoint is used to test for SQL injection attacks, consequently it must perform a database query. The chosen operation must be partially injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `user_id`: containing the string to partially inject on the SQL query.
+
+The endpoint should support the following content types:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The statement used in the query should be similar to the following:
+
+```sql
+SELECT * FROM users WHERE id='$user_id';
+```
+
+Examples:
+- `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
+- `POST`: `{"user_id": "' OR 1 = 1 --"}`
+
+### GET /dsm/inject
+This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
+
+### GET /dsm/extract
+This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.

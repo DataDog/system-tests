@@ -104,6 +104,10 @@ tests/:
           TestPath: v2.39.0
         test_uri.py:
           TestURI: irrelevant
+    rasp/:
+      test_lfi.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -229,7 +233,7 @@ tests/:
         Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (not read in dotnet)
+          "*": v0.1  # version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": v2.48.0
     test_db_integrations_sql.py:

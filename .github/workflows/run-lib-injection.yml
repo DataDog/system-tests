@@ -18,6 +18,7 @@ env:
 jobs:
 
   compute-matrix:
+    name: Get weblogs for Lib-Injection tests
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.compute-matrix.outputs.matrix }}
@@ -79,16 +80,15 @@ jobs:
           repository: 'DataDog/system-tests'
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
     
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           version: v0.12.1 # 0.13.0 is causing the builds to fail
           install: true
-          provenance: false
-          config-inline: |
+          buildkitd-config-inline: |
             [worker.oci]
               max-parallelism = 1
         

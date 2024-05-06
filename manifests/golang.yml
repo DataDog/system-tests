@@ -117,6 +117,10 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0
@@ -371,14 +375,14 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmContext_Injection_Base64: 
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         "*": irrelevant
-        net-http: missing_feature (Endpoint not implemented)
+        net-http: v0.1  # real version unknown
       Test_DsmKinesis:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
