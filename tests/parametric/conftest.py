@@ -654,6 +654,10 @@ class _TestAgentAPI:
                 if num_received == num:
                     if clear:
                         self.clear()
+                    for trace in traces:
+                        # Due to partial flushing the testagent may receive trace chunks out of order
+                        # so we must sort the spans by start time
+                        trace.sort(key=lambda x: x["start"])
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError(
