@@ -28,7 +28,7 @@ WORKDIR /app
 EXPOSE 18080
 ENV ASPNETCORE_URLS=http://+:18080
 COPY --from=publish /publish .
-COPY --from=dd-lib-dotnet-init /datadog-init/monitoring-home/* /datadog-lib/
+COPY --from=dd-lib-dotnet-init /datadog-init/monitoring-home/ /datadog-lib/
 
 ENV CORECLR_ENABLE_PROFILING="1"
 ENV CORECLR_PROFILER="{846F5F1C-F9AE-4B07-969E-05C26BC060D8}"
