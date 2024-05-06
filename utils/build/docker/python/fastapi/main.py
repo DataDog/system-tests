@@ -37,7 +37,7 @@ except ImportError:
 app = FastAPI()
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
 )
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 

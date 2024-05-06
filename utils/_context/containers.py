@@ -558,7 +558,7 @@ class PostgresContainer(SqlDbTestedContainer):
             db_user="system_tests_user",
             db_password="system_tests",
             db_host="postgres",
-            db_instance="system_tests",
+            db_instance="system_tests_dbname",
         )
 
 
@@ -650,7 +650,7 @@ class MySqlContainer(SqlDbTestedContainer):
             name="mysqldb",
             command="--default-authentication-plugin=mysql_native_password",
             environment={
-                "MYSQL_DATABASE": "world",
+                "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",
                 "MYSQL_ROOT_PASSWORD": "mysqldb",
                 "MYSQL_PASSWORD": "mysqldb",
@@ -662,7 +662,7 @@ class MySqlContainer(SqlDbTestedContainer):
             db_user="mysqldb",
             db_password="mysqldb",
             db_host="mysqldb",
-            db_instance="world",
+            db_instance="mysql_dbname",
         )
 
 

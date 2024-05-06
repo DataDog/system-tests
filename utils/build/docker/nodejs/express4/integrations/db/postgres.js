@@ -3,6 +3,7 @@
 const { join } = require('path')
 const { Client } = require('pg')
 const { readFileSync } = require('fs')
+const { createDBMSpy, getDbmQueryString } = require('./utils')
 
 async function launchQuery (query) {
   return new Promise(function (resolve, reject) {
@@ -32,6 +33,24 @@ async function select () {
   const sql = 'SELECT * FROM demo where id=1 or id IN (3, 4)'
   return await launchQuery(sql)
 }
+
+async function selectDbm () {
+  const dbmCommentSpy = createDBMSpy()
+  const sql = 'SELECT version()'
+  return launchQuery(sql).then(() => {
+    dbmCommentSpy.restore()
+    return getDbmQueryString()
+  }).catch((error) => {
+    console.log(error)
+    dbmCommentSpy.restore()
+    return error
+  })
+}
+
+// async function selectManyDbm () {
+//   const sql = 'SELECT version()'
+//   return await launchQuery(sql)
+// }
 
 async function update () {
   const sql = "update demo set age=22 where name like '%tes%' "
@@ -65,6 +84,8 @@ async function doOperation (operation) {
       return await initData()
     case 'select':
       return await select()
+    case 'execute':
+      return await selectDbm()
     case 'select_error':
       return await selectError()
     case 'insert':
