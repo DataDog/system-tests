@@ -136,5 +136,8 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         elif get_rid_from_span(span) == rid:
                             yield data, span
 
+    def get_spans_list(self, request):
+        return [span for _, span in self.get_spans(request)]
+
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")
