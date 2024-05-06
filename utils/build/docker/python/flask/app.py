@@ -4,6 +4,10 @@ import os
 import random
 import subprocess
 import threading
+import http.client
+import urllib.request
+import xmltodict
+import sys
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
     import psycopg2
@@ -110,6 +114,65 @@ def waf(*args, **kwargs):
 
         return "Value tagged", kwargs["status_code"], flask_request.args
     return "Hello, World!\n"
+
+
+### BEGIN EXPLOIT PREVENTION
+
+
+@app.route("/rasp/lfi", methods=["GET", "POST"])
+def rasp_lfi(*args, **kwargs):
+    file = None
+    if request.method == "GET":
+        file = flask_request.args.get("file")
+    elif request.method == "POST":
+        try:
+            file = (request.form or request.json or {}).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if file is None:
+                file = xmltodict.parse(flask_request.data).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+    if file is None:
+        return Response("missing file parameter", status=400)
+    try:
+        with open(file, "rb") as f_in:
+            f_in.seek(0, os.SEEK_END)
+            return f"{file} open with {f_in.tell()} bytes"
+    except OSError as e:
+        return f"{file} could not be open: {e!r}"
+
+
+@app.route("/rasp/ssrf", methods=["GET", "POST"])
+def rasp_ssrf(*args, **kwargs):
+    domain = None
+    if request.method == "GET":
+        domain = flask_request.args.get("domain")
+    elif request.method == "POST":
+        try:
+            domain = (request.form or request.json or {}).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if domain is None:
+                domain = xmltodict.parse(flask_request.data).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if domain is None:
+        return Response("missing domain parameter", status=400)
+    try:
+        with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
+
+            return f"url http://{domain} open with {len(url_in.read())} bytes"
+    except http.client.HTTPException as e:
+        return f"url http://{domain} could not be open: {e!r}"
+
+
+### END EXPLOIT PREVENTION
 
 
 @app.route("/read_file", methods=["GET"])

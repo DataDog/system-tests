@@ -104,6 +104,10 @@ tests/:
           TestPath: v2.39.0
         test_uri.py:
           TestURI: irrelevant
+    rasp/:
+      test_lfi.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
