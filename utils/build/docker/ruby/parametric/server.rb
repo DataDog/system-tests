@@ -55,11 +55,7 @@ class ServerImpl < APMClient::Service
                headers = start_span_args.http_headers.http_headers.group_by(&:key).map do |name, values|
                  [name, values.map(&:value).join(', ')]
                end
-                if Datadog::Tracing::Contrib::GRPC.respond_to?(:extract)
-                  Datadog::Tracing::Contrib::GRPC.extract(headers.to_h)
-                else
-                  Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
-                end
+               extract_grpc_headers(headers)
              elsif !start_span_args.origin.empty? || start_span_args.parent_id != 0
                # DEV: Parametric tests do not differentiate between a distributed span request from a span parenting request.
                # DEV: We have to consider the parent_id being present present and origin being absent as a span parenting request.
@@ -162,14 +158,10 @@ class ServerImpl < APMClient::Service
     find_span(inject_headers_args.span_id)
 
     env = {}
-    if Datadog::Tracing::Contrib::GRPC.respond_to?(:inject)
-      Datadog::Tracing::Contrib::GRPC.inject(Datadog::Tracing.active_trace.to_digest, env)
-    else
-      Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest, env)
-    end
+    extract_grpc_headers(headers)
 
     tuples = env.map do |key, value|
-      HeaderTuple.new(key, value)
+      HeaderTuple.new(key:, value:)
     end
 
     InjectHeadersReturn.new(http_headers: DistributedHTTPHeaders.new(http_headers: tuples))
@@ -431,7 +423,7 @@ class ServerImpl < APMClient::Service
                 headers = link.http_headers.http_headers.group_by(&:key).map do |name, values|
                             [name, values.map(&:value).join(', ')]
                           end
-                Datadog::Tracing::Contrib::GRPC.extract(headers.to_h)
+                extract_grpc_headers(headers)
               elsif @dd_spans.key?(link.parent_id)
                 span_op = @dd_spans[link.parent_id]
                 trace_op = @dd_traces[span_op.trace_id]
@@ -465,6 +457,14 @@ class ServerImpl < APMClient::Service
 
   def otel_tracer
     OpenTelemetry.tracer_provider.tracer('otel-tracer')
+  end
+
+  def extract_grpc_headers(headers)
+    if Datadog::Tracing::Contrib::GRPC.respond_to?(:extract)
+      Datadog::Tracing::Contrib::GRPC.extract(headers.to_h)
+    else
+      Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.extract(headers.to_h)
+    end
   end
 end
 
