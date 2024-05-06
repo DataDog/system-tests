@@ -104,7 +104,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_lib-injection_validation${{ inputs.library}}_${{matrix.weblog}}_${{ matrix.version }}
+          name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog}}_${{ matrix.version }}
           path: artifact.tar.gz
 
   k8s-lib-injection-tests:
