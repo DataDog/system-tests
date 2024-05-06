@@ -158,7 +158,11 @@ class ServerImpl < APMClient::Service
     find_span(inject_headers_args.span_id)
 
     env = {}
-    extract_grpc_headers(headers)
+    if Datadog::Tracing::Contrib::GRPC.respond_to?(:inject)
+      Datadog::Tracing::Contrib::GRPC.inject(Datadog::Tracing.active_trace.to_digest, env)
+    else
+      Datadog::Tracing::Contrib::GRPC::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest, env)
+    end
 
     tuples = env.map do |key, value|
       HeaderTuple.new(key:, value:)
