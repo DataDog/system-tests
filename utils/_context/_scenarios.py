@@ -1888,6 +1888,8 @@ class scenarios:
         "LIB_INJECTION_VALIDATION",
         # weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
         doc="Validates the init images without kubernetes enviroment",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
 
     installer_auto_injection = InstallerAutoInjectionScenario(
