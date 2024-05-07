@@ -83,14 +83,18 @@ def main():
         for file in modified_files:
             if file.startswith("utils/interfaces/schemas") or file == "tests/test_schemas.py":
                 scenarios_groups.add(ScenarioGroup.END_TO_END.value)
+            elif file.startswith("lib-injection/"):
+                scenarios_groups.add(ScenarioGroup.LIB_INJECTION.value)
 
             if file in scenarios_by_files:
                 scenarios.update(scenarios_by_files[file])
 
-            if file.startswith("tests/") and file.endswith("/utils.py"):
-                # particular use case for modification in tests/<path>/utils.py
+            if file.startswith("tests/") and (file.endswith("/utils.py") or file.endswith("/conftest.py")):
+                # particular use case for modification in tests/ of a file utils.py or conftest.py
                 # in that situation, takes all scenarios executed in tests/<path>/
-                folder = file[: -len("utils.py")]
+
+                folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
+
                 for sub_file in scenarios_by_files:
                     if sub_file.startswith(folder):
                         scenarios.update(scenarios_by_files[sub_file])
