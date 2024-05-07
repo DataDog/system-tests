@@ -10,6 +10,7 @@ from .waf.utils import rules
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 
+
 @features.threats_configuration
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
@@ -119,8 +120,8 @@ class Test_ConfigurationVariables:
         return series
 
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}"*(i+1)) for i in range(255)))
-        long_headers = {f"key_{i}"*(i+1): f"value_{i}"*(i+1) for i in range(254)}
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}" * (i + 1)) for i in range(255)))
+        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(254)}
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
@@ -133,8 +134,8 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_waf_timeout_telemetry(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}"*(i+1)) for i in range(255)))
-        long_headers = {f"key_{i}"*(i+1): f"value_{i}"*(i+1) for i in range(254)}
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}" * (i + 1)) for i in range(255)))
+        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(254)}
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout_telemetry = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
