@@ -147,7 +147,8 @@ class Test_ConfigurationVariables:
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", "waf.requests")
         assert series
-        assert any("waf_timeout:true" in s.get("tags", []) for s in series)
+        tags = [s.get("tags", []) for s in series]
+        assert any("waf_timeout:true" in tag for tag in tags), tags
 
     def setup_obfuscation_parameter_key(self):
         self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})
