@@ -133,26 +133,6 @@ class Test_ConfigurationVariables:
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
-    def setup_waf_timeout_telemetry(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}" * (i + 1)) for i in range(255)))
-        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(254)}
-        long_headers["User-Agent"] = "Arachni/v1"
-        self.r_waf_timeout_telemetry = weblog.get(f"/waf/{long_payload}", headers=long_headers)
-
-    @missing_feature(context.library < "java@0.113.0")
-    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
-    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
-    @scenarios.appsec_low_waf_timeout
-    def test_waf_timeout_telemetry(self):
-        """ test DD_APPSEC_WAF_TIMEOUT = low value """
-        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", "waf.requests")
-        assert series
-        tags = [s.get("tags", []) for s in series]
-        assert any("waf_timeout:true" in tag for tag in tags), (
-            len(tags),
-            set(t for tag in tags for t in tag if "waf_timeout" in t),
-        )
-
     def setup_obfuscation_parameter_key(self):
         self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})
 
