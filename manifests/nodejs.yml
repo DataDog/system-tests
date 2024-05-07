@@ -415,7 +415,7 @@ tests/:
       Test_Defaults: v5.6.0
       Test_Environment: v5.6.0
       Test_TelemetryInstallSignature: v4.23.0
-      Test_TelemetrySCAEnvVar: missing_feature
+      Test_TelemetrySCAEnvVar: v5.13.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
