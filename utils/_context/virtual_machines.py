@@ -11,6 +11,7 @@ class AWSInfraConfig:
         # Mandatory parameters
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
+        self.iam_instance_profile = os.getenv("ONBOARDING_AWS_INFRA_IAM_INSTANCE_PROFILE")
 
         # if None in (self.subnet_id, self.vpc_security_group_ids):
         #    logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
@@ -22,6 +23,10 @@ class DataDogConfig:
         self.dd_app_key = os.getenv("DD_APP_KEY_ONBOARDING")
         self.docker_login = os.getenv("DOCKER_LOGIN")
         self.docker_login_pass = os.getenv("DOCKER_LOGIN_PASS")
+        self.installer_versions = {}
+        self.installer_versions["library"] = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
+        self.installer_versions["agent"] = os.getenv("DD_INSTALLER_AGENT_VERSION")
+        self.installer_versions["injector"] = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
 
         # if None in (self.dd_api_key, self.dd_app_key):
         #    logger.warn("Datadog agent is not configured correctly for auto-injection testing")
@@ -122,6 +127,12 @@ class _VirtualMachine:
             command_env["DD_API_KEY"] = self.datadog_config.dd_api_key
         if self.datadog_config.dd_app_key:
             command_env["DD_APP_KEY"] = self.datadog_config.dd_app_key
+        if self.datadog_config.installer_versions["agent"]:
+            command_env["DD_INSTALLER_AGENT_VERSION"] = self.datadog_config.installer_versions["agent"]
+        if self.datadog_config.installer_versions["library"]:
+            command_env["DD_INSTALLER_LIBRARY_VERSION"] = self.datadog_config.installer_versions["library"]
+        if self.datadog_config.installer_versions["injector"]:
+            command_env["DD_INSTALLER_INJECTOR_VERSION"] = self.datadog_config.installer_versions["injector"]
         # Docker
         if self.datadog_config.docker_login:
             command_env["DD_DOCKER_LOGIN"] = self.datadog_config.docker_login

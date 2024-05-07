@@ -24,7 +24,7 @@ prepare-docker:
 
 setup-testing-dependencies:
   cache: true
-  install: 
+  install:
     - os_type: linux
       os_distro: deb
       remote-command: |
@@ -35,6 +35,9 @@ setup-testing-dependencies:
         export PATH=$PATH:/usr/local/go/bin
         export PATH=$PATH:$(go env GOPATH)/bin
         go install github.com/google/go-containerregistry/cmd/crane@latest
+        go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
+        sudo mkdir -p ~/.docker
+        echo '{"credHelpers":{"669783387624.dkr.ecr.us-east-1.amazonaws.com": "ecr-login"}}' | sudo tee ~/.docker/config.json
     - os_type: linux
       os_distro: rpm
       remote-command: |
@@ -45,32 +48,42 @@ setup-testing-dependencies:
         export PATH=$PATH:/usr/local/go/bin
         export PATH=$PATH:$(go env GOPATH)/bin
         go install github.com/google/go-containerregistry/cmd/crane@latest
-  
+        go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
+        sudo mkdir -p ~/.docker
+        echo '{"credHelpers":{"669783387624.dkr.ecr.us-east-1.amazonaws.com": "ecr-login"}}' | sudo tee ~/.docker/config.json
+
 setup-local-registry:
-  install: 
+  install:
     - os_type: linux
       # By default we use the latest prod images
       # Port 12345 is used to avoid conflict with the agent later on
-      remote-command: | 
+      remote-command: |
         export PATH=$PATH:/usr/local/go/bin
         export PATH=$PATH:$(go env GOPATH)/bin
         sudo systemctl start docker
         sudo docker run -d -p 12345:5000 --restart=always --name registry registry:2
         sleep 10
 
-        if [ "${DD_LIBRARY_VERSION}" != "" ]; then
-          export LIBRARY_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-library-{$DD_LANG}-package:${DD_LIBRARY_VERSION}"
+        if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
+          export LIBRARY_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-library-${DD_LANG}-package:${DD_INSTALLER_LIBRARY_VERSION}"
         else
-          export LIBRARY_OCI_URL="public.ecr.aws/datadog/apm-library-$DD_LANG-package:latest"
+          export LIBRARY_OCI_URL="public.ecr.aws/datadog/apm-library-${DD_LANG}-package:latest"
         fi
-        crane copy "${LIBRARY_OCI_URL}" localhost:12345/datadog/apm-library-$DD_LANG-package:latest
+        crane copy "${LIBRARY_OCI_URL}" localhost:12345/datadog/apm-library-${DD_LANG}-package:latest
 
-        if [ "${DD_INJECT_VERSION}" != "" ]; then
-          export INJECT_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INJECT_VERSION}"
+        if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
+          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INSTALLER_INJECTOR_VERSION}"
         else
-          export INJECT_OCI_URL="public.ecr.aws/datadog/apm-inject-package:latest"
+          export INJECTOR_OCI_URL="public.ecr.aws/datadog/apm-inject-package:latest"
         fi
-        crane copy "${INJECT_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
+        crane copy "${INJECTOR_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
+
+        if [ -n "${DD_INSTALLER_AGENT_VERSION}" ]; then
+          export AGENT_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/agent-package:${DD_INSTALLER_AGENT_VERSION}"
+        else
+          export AGENT_OCI_URL="public.ecr.aws/datadog/agent-package:latest"
+        fi
+        crane copy "${AGENT_OCI_URL}" localhost:12345/datadog/agent-package:latest
 
 install-installer:
   install: !include utils/build/virtual_machine/provisions/installer-auto-inject/auto-inject_installer_script.yml
@@ -79,8 +92,9 @@ installer-bootstrap:
   install:
     - os_type: linux
       # Installer bootstrap will restart docker and kill our local registry, so it must be last
+      # TODO(baptiste): Remove sleep when the above is fixed
       remote-command: |
-        sudo datadog-installer install "oci://public.ecr.aws/datadog/agent-package:latest"
+        sudo datadog-installer install "oci://localhost:12345/datadog/agent-package:latest"
         sudo datadog-installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
         sleep 5
         sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
