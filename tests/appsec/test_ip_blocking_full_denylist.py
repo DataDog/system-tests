@@ -74,6 +74,7 @@ class Test_AppSecIPBlockingFullDenylist:
         ]
 
     @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
+    @missing_feature(library="python")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 
