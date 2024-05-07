@@ -2,6 +2,9 @@ name: Prune Injection images
 on:
   schedule:
     - cron: '15 3 * * *'
+  push:
+    # only trigger on branches, not on tags
+    branches: '**'
   workflow_dispatch:
 
 jobs:
@@ -33,3 +36,45 @@ jobs:
         prune-tags-regexes: |
           ^[a-z0-9]{40}$
         prune-untagged: true
+
+  clean-images:
+    name: Prune dd-lib-java-init docker images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        weblog-variant: 
+          - dd-lib-java-init-test-app
+          - sample-app
+          - dd-lib-python-init-test-django
+          - dd-lib-python-init-test-django-gunicorn
+          - dd-lib-python-init-test-django-uvicorn
+
+      fail-fast: false
+    steps:
+      - name: Clean images
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+            echo "Cleaning images for system-tests/${{ matrix.weblog-variant }}"
+            for i in 0{1..2}
+            do
+            json_response=$(curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/orgs/DataDog/packages/container/system-tests%2F${{ matrix.weblog-variant }}/versions)
+            
+            echo "$json_response" | jq '.[].id' | while read -r prune_id; do echo "Deleting node: $prune_id" &&
+            curl -L \
+              -X DELETE \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/orgs/DataDog/packages/container/system-tests%2F${{ matrix.weblog-variant }}/versions/$prune_id;
+            
+              done;
+            
+              done
