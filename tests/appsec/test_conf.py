@@ -143,7 +143,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
     @scenarios.appsec_low_waf_timeout
-    def test_waf_timeout(self):
+    def test_waf_timeout_telemetry(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", "waf.requests")
         assert series
