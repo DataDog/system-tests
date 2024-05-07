@@ -2,11 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features, flaky
+from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
+
+TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 
 @features.threats_configuration
 class Test_StaticRuleSet:
@@ -101,18 +103,50 @@ class Test_ConfigurationVariables:
         """ test DD_APPSEC_RULES = custom rules file """
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
+    def _find_series(self, request_type, namespace, metric):
+        series = []
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != request_type:
+                continue
+            fallback_namespace = content["payload"].get("namespace")
+            for serie in content["payload"]["series"]:
+                computed_namespace = serie.get("namespace", fallback_namespace)
+                # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+                serie["_computed_namespace"] = computed_namespace
+                if computed_namespace == namespace and serie["metric"] == metric:
+                    series.append(serie)
+        return series
+
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(10_000)))
-        self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"})
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}"*(i+1)) for i in range(255)))
+        long_headers = {f"key_{i}"*(i+1): f"value_{i}"*(i+1) for i in range(254)}
+        long_headers["User-Agent"] = "Arachni/v1"
+        self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
     @missing_feature(context.library < "java@0.113.0")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
-    @flaky(context.weblog_variant == "fastapi", reason="APPSEC-53058")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
+
+    def setup_waf_timeout_telemetry(self):
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}"*(i+1)) for i in range(255)))
+        long_headers = {f"key_{i}"*(i+1): f"value_{i}"*(i+1) for i in range(254)}
+        long_headers["User-Agent"] = "Arachni/v1"
+        self.r_waf_timeout_telemetry = weblog.get(f"/waf/{long_payload}", headers=long_headers)
+
+    @missing_feature(context.library < "java@0.113.0")
+    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
+    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
+    @scenarios.appsec_low_waf_timeout
+    def test_waf_timeout(self):
+        """ test DD_APPSEC_WAF_TIMEOUT = low value """
+        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", "waf.requests")
+        assert series
+        assert any("waf_timeout:true" in s.get("tags", []) for s in series)
 
     def setup_obfuscation_parameter_key(self):
         self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})
