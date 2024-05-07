@@ -8,6 +8,8 @@ from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
 
+TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
+
 @features.threats_configuration
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
@@ -102,7 +104,7 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(10_000)))
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(256)))
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"})
 
     @missing_feature(context.library < "java@0.113.0")
@@ -111,7 +113,10 @@ class Test_ConfigurationVariables:
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
-        interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
+        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", "waf.timeout")
+        print(series)
+        assert series
+        #interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_obfuscation_parameter_key(self):
         self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})

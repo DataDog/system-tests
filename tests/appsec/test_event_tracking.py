@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, features, missing_feature
+from utils import weblog, interfaces, features, missing_feature, context
 
 HEADERS = {
     "Accept": "text/html",
@@ -64,7 +64,7 @@ class Test_UserLoginSuccessEvent:
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
     @missing_feature(library="nodejs")
-    @missing_feature(library="python")
+    @missing_feature(context.library =="python" and context.weblog_variant in ["fastapi", "flask-poc", "uds-flask", "uwsgi-poc"])
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_user_login_success_header_collection(self):
@@ -121,7 +121,7 @@ class Test_UserLoginFailureEvent:
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
     @missing_feature(library="nodejs")
-    @missing_feature(library="python")
+    @missing_feature(context.library =="python" and context.weblog_variant in ["fastapi", "flask-poc", "uds-flask", "uwsgi-poc"])
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_user_login_failure_header_collection(self):
