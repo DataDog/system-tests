@@ -1,7 +1,8 @@
 name: Prune Injection images
 on:
   schedule:
-    - cron: '15 3 * * *'
+    #- cron: '15 3 * * *'
+    - cron: '0 */5 * * *'
   push:
     # only trigger on branches, not on tags
     branches: '**'
@@ -38,7 +39,7 @@ jobs:
         prune-untagged: true
 
   clean-images:
-    name: Prune dd-lib-java-init docker images
+    name: Prune docker images
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -46,7 +47,7 @@ jobs:
     strategy:
       matrix:
         weblog-variant: 
-          - dd-lib-java-init-test-app
+         # - dd-lib-java-init-test-app
           - sample-app
           - dd-lib-python-init-test-django
           - dd-lib-python-init-test-django-gunicorn
@@ -59,7 +60,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
             echo "Cleaning images for system-tests/${{ matrix.weblog-variant }}"
-            for i in 0{1..2}
+            for i in 0{1..500}
             do
             json_response=$(curl -L \
               -H "Accept: application/vnd.github+json" \
