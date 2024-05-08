@@ -416,8 +416,12 @@ tests/:
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
-      Test_UserLoginFailureEvent: v1.9.0
-      Test_UserLoginSuccessEvent: v1.9.0
+      Test_UserLoginFailureEvent:
+        '*': v1.9.0
+        python3.12: bug (APPSEC-53079)
+      Test_UserLoginSuccessEvent:
+        '*': v1.9.0
+        python3.12: bug (APPSEC-53079)
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
