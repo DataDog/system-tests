@@ -389,13 +389,13 @@ def view_iast_source_body(request):
 
 def view_iast_source_cookie_name(request):
     param = [key for key in request.COOKIES.keys() if key == "user"]
-    _sink_point_path_traversal(id=param[0])
+    _sink_point_path_traversal(param[0])
     return HttpResponse("OK")
 
 
 def view_iast_source_cookie_value(request):
     table = request.COOKIES.get("table")
-    _sink_point_sqli(table=table)
+    _sink_point_path_traversal(table)
     return HttpResponse("OK")
 
 
