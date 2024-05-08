@@ -658,60 +658,71 @@ def view_weak_cipher_secure():
     return Response("OK")
 
 
-def _sink_point(table="user", id="1"):
+def _sink_point_sqli(table="user", id="1"):
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
+
+
+def _sink_point_path_traversal(tainted_str="user"):
+    try:
+        m = open(tainted_str)
+        _ = m.read()
+    except Exception:
+        pass
 
 
 @app.route("/iast/source/body/test", methods=["POST"])
 def view_iast_source_body():
     table = flask_request.json.get("name")
     user = flask_request.json.get("value")
-    _sink_point(table=table, id=user)
+    _sink_point_sqli(table=table, id=user)
     return Response("OK")
 
 
 @app.route("/iast/source/cookiename/test")
 def view_iast_source_cookie_name():
     param = [key for key in flask_request.cookies.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_path_traversal(param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/cookievalue/test")
 def view_iast_source_cookie_value():
     table = flask_request.cookies.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
 @app.route("/iast/source/headername/test")
 def view_iast_source_header_name():
     param = [key for key in flask_request.headers.keys() if key == "User"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/header/test")
 def view_iast_source_header_value():
     table = flask_request.headers.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
 @app.route("/iast/source/parametername/test", methods=["GET"])
 def view_iast_source_parametername_get():
     param = [key for key in flask_request.args.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/parametername/test", methods=["POST"])
 def view_iast_source_parametername_post():
     param = [key for key in flask_request.json.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
@@ -721,7 +732,7 @@ def view_iast_source_parameter():
         table = flask_request.args.get("table")
     else:
         table = flask_request.json.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
@@ -777,6 +788,22 @@ def view_iast_ssrf_secure():
         pass
 
     return Response("OK")
+
+
+@app.route("/iast/header_injection/test_insecure", methods=["POST"])
+def view_iast_header_injection_insecure():
+    header = flask_request.form["test"]
+    resp = Response("OK")
+    resp.headers["Header-Injection"] = header
+    return resp
+
+
+@app.route("/iast/header_injection/test_secure", methods=["POST"])
+def view_iast_header_injection_secure():
+    header = flask_request.form["test"]
+    resp = Response("OK")
+    resp.headers["Vary"] = header
+    return resp
 
 
 _TRACK_METADATA = {
