@@ -1,4 +1,5 @@
-FROM adoptopenjdk/openjdk15:jdk15u-alpine-nightly
+FROM adoptopenjdk/openjdk15:jdk15u-nightly 
+RUN apk --no-cache add openjdk11 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
 RUN apk add --no-cache bash
 COPY build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar /usr/local/app/
 

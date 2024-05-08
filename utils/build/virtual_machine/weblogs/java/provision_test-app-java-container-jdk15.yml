@@ -11,23 +11,23 @@ lang_variant:
         remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
 
 weblog:
-    name: test-app-java-alpine-jdk15
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64, ubuntu22_arm64, amazon_linux2023_arm64]
+    name: test-app-java-container
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64]
     install:
       - os_type: linux
         copy_files:
           - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/test-app-java_docker_compose_run.sh
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/test-app-java_docker_compose_run.sh
 
           - name: copy-docker-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/Dockerfile.alpine-jdk15
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/Dockerfile.jdk15
             remote_path: Dockerfile
-
+        
           - name: copy-entrypoint-docker
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/docker_entrypoint_docker.sh
 
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/docker-compose.yml
 
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app

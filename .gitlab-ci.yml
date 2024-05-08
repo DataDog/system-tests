@@ -112,7 +112,7 @@ onboarding_java15:
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-alpine-jdk15, test-app-java-alpine-jdk21]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-alpine-jdk15, test-app-java-alpine-jdk21,test-app-java-container-jdk15]
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
  
   script:
