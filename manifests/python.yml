@@ -415,7 +415,7 @@ tests/:
       Test_CustomEvent: v1.10.0
       Test_UserLoginFailureEvent:
         '*': v1.9.0
-        python3.12: bug (stars v2.8.0)
+        python3.12: bug (APPSEC-53079)
       Test_UserLoginSuccessEvent:
         '*': v1.9.0
         python3.12: bug (stars v2.8.0)
