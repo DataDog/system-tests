@@ -662,7 +662,10 @@ def _sink_point(table="user", id="1"):
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
 
 
 @app.route("/iast/source/body/test", methods=["POST"])
