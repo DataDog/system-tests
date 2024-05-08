@@ -560,8 +560,7 @@ class TestDynamicConfigV2:
 class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_sample_rules(self, library_env, test_agent, test_library):
-        """Ensure the RC request contains the trace sampling rules capability.
-        """
+        """Ensure the RC request contains the trace sampling rules capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RULES])
 
     @parametrize(
@@ -639,8 +638,7 @@ class TestDynamicConfigSamplingRules:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
-        """The RC sampling rules should override the RC sampling rate.
-        """
+        """The RC sampling rules should override the RC sampling rate."""
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8
         RC_SAMPLING_RATE = 0.9
         assert RC_SAMPLING_RULE_RATE_CUSTOMER != DEFAULT_SAMPLE_RATE
@@ -729,16 +727,18 @@ class TestDynamicConfigSamplingRules:
             },
         )
 
+        # A span with matching tag and value. The remote matching tag rule should apply.
         trace = get_sampled_trace(
             test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")]
         )
         assert_sampling_rate(trace, RC_SAMPLING_TAGS_RULE_RATE)
-        # Make sure `_dd.p.dm` is set to "-11"
+        # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user RULE_RATE)
         span = trace[0]
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-11"
 
+        # A span with the tag but value does not match. Remote global rate should apply.
         trace = get_sampled_trace(
             test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "NOT-tag-a-val")]
         )
@@ -748,7 +748,7 @@ class TestDynamicConfigSamplingRules:
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
-        # a different tag
+        # A different tag key, value does not matter. Remote global rate should apply.
         trace = get_sampled_trace(
             test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("not-tag-a", "tag-a-val")]
         )
@@ -758,7 +758,7 @@ class TestDynamicConfigSamplingRules:
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
-        # no tag
+        # A span without the tag. Remote global rate should apply.
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[])
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
