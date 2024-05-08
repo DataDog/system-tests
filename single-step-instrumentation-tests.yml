@@ -11,6 +11,9 @@
     - export ONBOARDING_AWS_INFRA_SUBNET_ID=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.aws-infra-subnet-id --with-decryption --query "Parameter.Value" --out text)
     - export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.aws-infra-securiy-groups-id --with-decryption --query "Parameter.Value" --out text)
     - export PULUMI_CONFIG_PASSPHRASE=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.pulumi-config-passphrase --with-decryption --query "Parameter.Value" --out text) 
+    - export ONBOARDING_AWS_INFRA_KEYPAIR_NAME=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.aws-infra-keypair-name --with-decryption --query "Parameter.Value" --out text)
+    - aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.aws-infra-key-pem --with-decryption --query "Parameter.Value" --out text >> ~/${CI_PROJECT_NAME}.pem
+    - export ONBOARDING_AWS_INFRA_KEY_PATH=~/${CI_PROJECT_NAME}.pem
     #Install plugins for PULUMI you need connect to gh. Sometimes this problem arises: GitHub rate limit exceeded
     - export GITHUB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.gh-token --with-decryption --query "Parameter.Value" --out text) 
     #Avoid dockerhub rate limits
