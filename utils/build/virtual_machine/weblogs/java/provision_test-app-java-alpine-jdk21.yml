@@ -1,5 +1,6 @@
 lang_variant:
     name: OpenJDK11
+    #We compile with jdk 11, but we run the app with java 21
     cache: true
     install:
       - os_type: linux

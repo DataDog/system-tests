@@ -1,4 +1,5 @@
 lang_variant:
+    #We compile with jdk 11, but we run the app with java 15
     name: OpenJDK11
     cache: true
     install:
