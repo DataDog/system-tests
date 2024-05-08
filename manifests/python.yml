@@ -413,7 +413,9 @@ tests/:
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
-      Test_UserLoginFailureEvent: v1.9.0
+      Test_UserLoginFailureEvent:
+        '*': v1.9.0
+        python3.12: bug (stars v2.8.0)
       Test_UserLoginSuccessEvent:
         '*': v1.9.0
         python3.12: bug (stars v2.8.0)
