@@ -662,7 +662,10 @@ def _sink_point_sqli(table="user", id="1"):
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
 
 
 def _sink_point_path_traversal(tainted_str="user"):
