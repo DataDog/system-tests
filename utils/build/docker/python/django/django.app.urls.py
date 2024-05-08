@@ -375,6 +375,7 @@ def _sink_point_path_traversal(tainted_str="user"):
     except Exception:
         pass
 
+
 @csrf_exempt
 def view_iast_source_body(request):
     # TODO: migrate to a django rest framework view with request.data

@@ -672,6 +672,7 @@ def _sink_point_path_traversal(tainted_str="user"):
     except Exception:
         pass
 
+
 @app.route("/iast/source/body/test", methods=["POST"])
 def view_iast_source_body():
     table = flask_request.json.get("name")
@@ -790,7 +791,7 @@ def view_iast_ssrf_secure():
 def view_iast_header_injection_insecure():
     header = flask_request.form["test"]
     resp = Response("OK")
-    resp.headers['Header-Injection'] = header
+    resp.headers["Header-Injection"] = header
     return resp
 
 
@@ -800,6 +801,7 @@ def view_iast_header_injection_secure():
     resp = Response("OK")
     resp.headers["Vary"] = header
     return resp
+
 
 _TRACK_METADATA = {
     "metadata0": "value0",
