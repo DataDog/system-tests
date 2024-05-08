@@ -697,8 +697,10 @@ class TestDynamicConfigSamplingRules:
         """
         RC_SAMPLING_TAGS_RULE_RATE = 0.8
         RC_SAMPLING_RATE = 0.3
+        RC_SAMPLING_ADAPTIVE_RATE = 0.1
         assert RC_SAMPLING_TAGS_RULE_RATE != ENV_SAMPLING_RULE_RATE
         assert RC_SAMPLING_RATE != ENV_SAMPLING_RULE_RATE
+        assert RC_SAMPLING_ADAPTIVE_RATE != ENV_SAMPLING_RULE_RATE
 
         trace = get_sampled_trace(
             test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")]
@@ -765,3 +767,36 @@ class TestDynamicConfigSamplingRules:
         span = trace[0]
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
+
+        # RC config using dynamic sampling
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "dynamic_sampling_enabled": "true",
+                "tracing_sampling_rules": [
+                    {
+                        "sample_rate": RC_SAMPLING_TAGS_RULE_RATE,
+                        "service": TEST_SERVICE,
+                        "resource": "*",
+                        "tags": [{"key": "tag-a", "value_glob": "tag-a-val*"}],
+                        "provenance": "customer",
+                    },
+                    {
+                        "sample_rate": RC_SAMPLING_ADAPTIVE_RATE,
+                        "service": "*",
+                        "resource": "*",
+                        "provenance": "dynamic",
+                    },
+                ],
+            },
+        )
+
+        # A span with non-matching tags. Adaptive rate should apply.
+        trace = get_sampled_trace(
+            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "NOT-tag-a-val")]
+        )
+        assert_sampling_rate(trace, RC_SAMPLING_ADAPTIVE_RATE)
+        # Make sure `_dd.p.dm` is set to "-12" (i.e., remote adaptive/dynamic sampling RULE_RATE)
+        span = trace[0]
+        assert "_dd.p.dm" in span["meta"]
+        assert span["meta"]["_dd.p.dm"] == "-12"
