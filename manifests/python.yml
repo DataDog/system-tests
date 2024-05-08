@@ -187,8 +187,8 @@ tests/:
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0.dev
-            python3.12: bug (should have been v1.18.0)
             fastapi: missing_feature
+            python3.12: bug (should have been v1.18.0)
         test_path.py:
           TestPath: missing_feature
         test_uri.py:
