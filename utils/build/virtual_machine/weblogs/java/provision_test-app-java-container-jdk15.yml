@@ -24,7 +24,7 @@ weblog:
             remote_path: Dockerfile
         
           - name: copy-entrypoint-docker
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/docker_entrypoint_docker.sh
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/docker_entrypoint_docker.sh
 
           - name: copy-docker-compose-file
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/docker-compose.yml

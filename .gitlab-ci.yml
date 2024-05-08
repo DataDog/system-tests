@@ -14,8 +14,6 @@ stages:
   tags: ["arch:amd64"]
   before_script:
     # Setup AWS Credentials
-    - echo "CI_PROJECT_NAME-->$CI_PROJECT_NAME"
-    - echo "CI_PROJECT_TITLE-->$CI_PROJECT_TITLE"
     - mkdir -p ~/.aws
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
     - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
