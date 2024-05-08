@@ -1,4 +1,7 @@
-FROM adoptopenjdk/openjdk15:jdk15u-alpine-nightly
+FROM adoptopenjdk/openjdk15:jdk15u-alpine-nightly as build_amd64
+FROM adoptopenjdk/openjdk15:jdk15u-nightly as build_arm64
+ARG ARCH=amd64
+FROM build_${ARCH} as build
 RUN apk add --no-cache bash
 COPY build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar /usr/local/app/
 
