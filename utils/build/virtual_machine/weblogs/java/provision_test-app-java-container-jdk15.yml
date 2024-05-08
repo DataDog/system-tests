@@ -11,7 +11,7 @@ lang_variant:
         remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
 
 weblog:
-    name: test-app-java-container
+    name: test-app-java-container-jdk15
     excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64]
     install:
       - os_type: linux
