@@ -99,18 +99,21 @@ class Test_Dbm:
     # Test Methods
     @scenarios.appsec_disabled
     def test_trace_payload_disabled(self):
+        assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()
 
     setup_trace_payload_service = weblog_trace_payload
 
     @scenarios.default
     def test_trace_payload_service(self):
+        assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()
 
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
     def test_trace_payload_full(self):
+        assert self.requests, "No requests to validate"
         for request in self.requests:
             span = self._get_db_span(request)
 
