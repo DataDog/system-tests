@@ -944,9 +944,9 @@ tests/:
       Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: v1.34.0
+      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.34.0
-      TestDynamicConfigTracingEnabled: v1.34.0
+      TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.17.0
       TestDynamicConfigV1_ServiceTargets: v1.31.0
       TestDynamicConfigV2: v1.31.0
