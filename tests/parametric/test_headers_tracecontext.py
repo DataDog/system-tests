@@ -831,30 +831,33 @@ class Test_Headers_Tracecontext:
                     ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
                     ["x-datadog-trace-id", "1"],
                     ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             ):
                 pass
 
-            # 2) Datadog and tracecontext headers, trace ids and parent ids match, missing p
+            # 2) Datadog and tracecontext headers, only trace ids matches
             with test_library.start_span(
-                name="matching_trace_id_and_span_id_missing_p",
+                name="matching_trace_ids",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2,foo=1"],
+                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
                     ["x-datadog-trace-id", "2"],
-                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-parent-id", "987654320"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             ):
                 pass
 
-            # 3) Datadog and tracecontext headers, only trace ids matches
+            # 3) Datadog and tracecontext headers, only trace ids matches,  missing p
             with test_library.start_span(
-                name="matching_trace_id_only",
+                name="matching_trace_ids_missing_p",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
+                    ["tracestate", "dd=s:2,foo=1"],
                     ["x-datadog-trace-id", "3"],
-                    ["x-datadog-parent-id", "9876543210"],
+                    ["x-datadog-parent-id", "987654320"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             ):
                 pass
@@ -866,66 +869,31 @@ class Test_Headers_Tracecontext:
             ):
                 pass
 
-            # 5) Datadog and tracecontext headers, no x-datadog-trace-id, only tid DD tag matches
-            with test_library.start_span(
-                name="only_tid_and_tracecontext_trace_id_match",
-                http_headers=[
-                    ["traceparent", "00-00000000000000000000000000000005-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
-                    ["x-datadog-parent-id", "9876543210"],
-                    ["x-datadog-trace-id", "8"],
-                    ["x-datadog-tags", "_dd.p.tid=5"],
-                ],
-            ):
-                pass
+        traces = test_agent.wait_for_num_traces(4)
 
-            # 6) Datadog and tracecontext headers, not x-datadog-trace-id, tid and the parent ids match
-            with test_library.start_span(
-                name="matching_tid_and_span_id",
-                http_headers=[
-                    ["traceparent", "00-00000000000000000000000000000006-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-tags", "_dd.p.tid=6"],
-                ],
-            ):
-                pass
-
-        traces = test_agent.wait_for_num_traces(6)
-
-        assert len(traces) == 6
-        case1, case2, case3, case4, case5, case6 = (
+        assert len(traces) == 4
+        case1, case2, case3, case4 = (
             traces[0][0],
             traces[1][0],
             traces[2][0],
             traces[3][0],
-            traces[4][0],
-            traces[5][0],
         )
 
         # 1) Datadog and tracecontext headers, trace-id and span-id match
         assert case1["name"] == "matching_trace_id_and_span_id"
-        assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
+        assert "_dd.parent_id" not in case1["meta"]
 
-        # 2) Datadog and tracecontext headers, trace-id and span-id match, missing p
-        assert case2["name"] == "matching_trace_id_and_span_id_missing_p"
-        assert "_dd.parent_id" not in case2["meta"]
+        # 2) Datadog and tracecontext headers, only trace-id match,
+        assert case2["name"] == "matching_trace_ids"
+        assert case2["meta"]["_dd.parent_id"] == "0123456789abcdef"
 
-        # 3) Datadog and tracecontext headers, only trace-id matches
-        assert case3["name"] == "matching_trace_id_only"
-        assert "_dd.parent_id" not in case3["meta"]
+        # 3) Datadog and tracecontext headers, only trace-id match, missing p
+        assert case3["name"] == "matching_trace_ids_missing_p"
+        assert case3["meta"]["_dd.parent_id"] == "0000000000000000"
 
         # 4) Datadog headers only
         assert case4["name"] == "only_datadog_headers"
         assert "_dd.parent_id" not in case4["meta"]
-
-        # 5) Datadog and tracecontext headers, only tid DD tag matches
-        assert case5["name"] == "only_tid_and_tracecontext_trace_id_match"
-        assert "_dd.parent_id" not in case5["meta"]
-
-        # 6) Datadog and tracecontext headers, not x-datadog-trace-id, tid and the spans id match
-        assert case6["name"] == "matching_tid_and_span_id"
-        assert case6["meta"]["_dd.parent_id"] == "0123456789abcdef"
 
     # W3C Phase 3 to try adding the tag if the span id matches regardless of headers order(if tracecontext is accounted)
     @missing_feature(context.library == "python", reason="Not implemented")
@@ -945,14 +913,15 @@ class Test_Headers_Tracecontext:
         Ensure the last parent id tag is set according to the W3C phase 3 spec
         """
 
-        # 1) Datadog and tracecontext headers, trace ids and parent ids match
+        # 1) Datadog and tracecontext headers, trace ids match
         with test_library.start_span(
-            name="matching_trace_id_and_span_id",
+            name="matching_trace_ids",
             http_headers=[
-                ["traceparent", "00-00000000000000000000000000000001-000000003ade68b1-01"],
-                ["tracestate", "dd=s:2,foo=1"],
+                ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
+                ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
                 ["x-datadog-trace-id", "1"],
-                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-parent-id", "987654320"],
+                ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
             ],
         ):
             pass
@@ -963,7 +932,7 @@ class Test_Headers_Tracecontext:
         case1 = traces[0][0]
 
         # 1) Datadog and tracecontext headers, trace-id and span-id match
-        assert case1["name"] == "matching_trace_id_and_span_id"
+        assert case1["name"] == "matching_trace_ids"
         assert "_dd.parent_id" not in case1["meta"]
 
     @temporary_enable_optin_tracecontext()
