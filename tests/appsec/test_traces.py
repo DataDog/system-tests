@@ -62,31 +62,17 @@ class Test_AppSecEventSpanTags:
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
-        def validate_custom_span_tags(span):
-            if span.get("type") != "web":
-                return
-
-            if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
-
-            if "_dd.appsec.enabled" not in span["metrics"]:
-                raise Exception("Can't find _dd.appsec.enabled in span's metrics")
-
-            if "_dd.runtime_family" not in span["meta"]:
-                raise Exception("Can't find _dd.runtime_family in span's meta")
-
-            if span["metrics"]["_dd.appsec.enabled"] != 1:
-                raise Exception(
-                    "_dd.appsec.enabled in span's metrics should be 1 or 1.0, "
-                    f'not {span["metrics"]["_dd.appsec.enabled"]}'
-                )
-
-            if span["meta"]["_dd.runtime_family"] not in RUNTIME_FAMILIES:
-                raise Exception(f"_dd.runtime_family {span['_dd.runtime_family']}, should be in {RUNTIME_FAMILIES}")
-
-            return True
-
-        interfaces.library.validate_spans(validator=validate_custom_span_tags)
+        spans = [span for _, span in interfaces.library.get_root_spans()]
+        assert spans, "No root spans to validate"
+        spans = [s for s in spans if s.get("type") == "web"]
+        assert spans, "No spans of type web to validate"
+        for span in spans:
+            assert "_dd.appsec.enabled" in span["metrics"], "Cannot find _dd.appsec.enabled in span metrics"
+            assert span["metrics"]["_dd.appsec.enabled"] == 1, "_dd.appsec.enabled should be 1 or 1.0"
+            assert "_dd.runtime_family" in span["meta"], "Cannot find _dd.runtime_family in span meta"
+            assert (
+                span["meta"]["_dd.runtime_family"] in RUNTIME_FAMILIES
+            ), f"_dd.runtime_family should be in {RUNTIME_FAMILIES}"
 
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
@@ -99,46 +85,34 @@ class Test_AppSecEventSpanTags:
         AppSec should collect some headers for http.request and http.response and store them in span tags.
         Note that this test checks for collection, not data.
         """
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r)]
+        assert spans, "No spans to validate"
+        for span in spans:
+            required_request_headers = ["user-agent", "host", "content-type"]
+            required_request_headers = [f"http.request.headers.{header}" for header in required_request_headers]
+            missing_request_headers = set(required_request_headers) - set(span.get("meta", {}).keys())
+            assert not missing_request_headers, f"Missing request headers: {missing_request_headers}"
 
-        def assertHeaderInSpanMeta(span, header):
-            if header not in span["meta"]:
-                raise Exception(f"Can't find {header} in span's meta")
-
-        def validate_request_headers(span):
-            for header in ["user-agent", "host", "content-type"]:
-                assertHeaderInSpanMeta(span, f"http.request.headers.{header}")
-            return True
-
-        def validate_response_headers(span):
-            for header in ["content-type", "content-length", "content-language"]:
-                assertHeaderInSpanMeta(span, f"http.response.headers.{header}")
-            return True
-
-        interfaces.library.validate_spans(self.r, validate_request_headers)
-        interfaces.library.validate_spans(self.r, validate_response_headers)
+            required_response_headers = ["content-type", "content-length", "content-language"]
+            required_response_headers = [f"http.response.headers.{header}" for header in required_response_headers]
+            missing_response_headers = set(required_response_headers) - set(span.get("meta", {}).keys())
+            assert not missing_response_headers, f"Missing response headers: {missing_response_headers}"
 
     @bug(context.library < "java@0.93.0")
     def test_root_span_coherence(self):
-        """Appsec tags are not on span where type is not web"""
-
-        def validator(span):
-            if (
-                span.get("type") not in ["web", "http", "rpc"]
-                and "metrics" in span
-                and "_dd.appsec.enabled" in span["metrics"]
-            ):
-                raise Exception("_dd.appsec.enabled should be present only when span type is web")
-
-            if (
-                span.get("type") not in ["web", "http", "rpc"]
-                and "meta" in span
-                and "_dd.runtime_family" in span["meta"]
-            ):
-                raise Exception("_dd.runtime_family should be present only when span type is web")
-
-            return True
-
-        interfaces.library.validate_spans(validator=validator)
+        """Appsec tags are not on span where type is not web, http or rpc"""
+        valid_appsec_span_types = ["web", "http", "rpc"]
+        spans = [span for _, _, span in interfaces.library.get_spans()]
+        assert spans, "No AppSec events found"
+        for span in spans:
+            if span.get("type") in valid_appsec_span_types:
+                continue
+            assert "_dd.appsec.enabled" not in span.get(
+                "metrics", {}
+            ), f"_dd.appsec.enabled should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
+            assert "_dd.runtime_family" not in span.get(
+                "meta", {}
+            ), f"_dd.runtime_family should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
