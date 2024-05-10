@@ -2,18 +2,15 @@
 Test the dynamic configuration via Remote Config (RC) feature of the APM libraries.
 """
 import json
-from typing import Any
-from typing import Dict
-from typing import List
-
-from ddapm_test_agent.trace import root_span
-
-from utils.parametric.spec.remoteconfig import Capabilities
-from utils.parametric.spec.trace import Span, assert_trace_has_tags
-from utils import context, bug, missing_feature, irrelevant, rfc, scenarios, features
+from typing import Any, Dict, List
 
 import pytest
+from ddapm_test_agent.trace import root_span
 
+from utils import (bug, context, features, irrelevant, missing_feature, rfc,
+                   scenarios)
+from utils.parametric.spec.remoteconfig import Capabilities
+from utils.parametric.spec.trace import Span, assert_trace_has_tags
 
 parametrize = pytest.mark.parametrize
 
@@ -121,8 +118,8 @@ def is_sampled(trace: List[Dict]):
 
 
 def get_sampled_trace(test_library, test_agent, service, name, tags=None):
-    trace = send_and_wait_trace(test_library, test_agent, service=service, name=name, tags=tags)
-    while not is_sampled(trace):
+    trace = None
+    while not trace or not is_sampled(trace):
         trace = send_and_wait_trace(test_library, test_agent, service=service, name=name, tags=tags)
     return trace
 
