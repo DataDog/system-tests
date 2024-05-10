@@ -7,11 +7,13 @@ from base64 import b64decode
 from io import BytesIO
 from typing import Any
 from typing import Dict
+from typing import Set
+from typing import List
 from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios, features
+from utils import rfc, context,scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -49,6 +51,27 @@ def _flare_log_level_order() -> Dict[str, Any]:
         ],
     }
 
+def _java_tracer_flare_filenames() -> Set:
+    return {
+    "classpath.txt",
+    "flare_info.txt",
+    "dynamic_config.txt",
+    "flare_info.txt",
+    "initial_config.txt",
+    "instrumenter_metrics.txt",
+    "instrumenter_state.txt",
+    "jvm_args.txt", 
+    "library_path.txt",
+    "span_metrics.txt",
+    "threads.txt",
+    "tracer_health.txt",
+    "tracer_version.txt"
+    }
+
+def _java_tracer_flare_xor_filenames() -> List:
+    return [
+        {"tracer.log"},{"tracer_begin.log","tracer_end.log" }
+    ]
 
 def _set_log_level(test_agent, log_level: str) -> None:
     """Helper to create the appropriate "flare-log-level" config in RC for a given log-level.
@@ -105,6 +128,12 @@ def assert_valid_zip(content):
     assert flare_file.testzip() is None, "tracer_file zip must not contain errors"
     assert flare_file.namelist(), "tracer_file zip must contain at least one entry"
 
+def assert_expected_files(content, min_files, xor_sets):
+    flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
+    s = set(flare_file.namelist())
+    assert len(min_files - s) == 0 and any((len(xor_set -s) == 0) for xor_set in xor_sets) , "tracer_file zip must contain a minimum list of files"
+
+
 
 @rfc("https://docs.google.com/document/d/1U9aaYM401mJPTM8YMVvym1zaBxFtS4TjbdpZxhX3c3E")
 @scenarios.parametric
@@ -128,6 +157,16 @@ class TestTracerFlareV1:
 
         assert_valid_zip(tracer_flare["flare_file"])
 
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_tracer_flare_content(self, library_env, test_agent, test_library):
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
+        if context.library == "java":
+            files = _java_tracer_flare_filenames()
+            xor_set = _java_tracer_flare_xor_filenames()
+        assert_expected_files(tracer_flare["flare_file"],files, xor_set)
+   
+            
+            
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
         _set_log_level(test_agent, "debug")
