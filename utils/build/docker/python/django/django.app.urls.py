@@ -434,6 +434,7 @@ def view_iast_source_parameter(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
 def view_iast_header_injection_insecure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
@@ -442,6 +443,7 @@ def view_iast_header_injection_insecure(request):
     return response
 
 
+@csrf_exempt
 def view_iast_header_injection_secure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
