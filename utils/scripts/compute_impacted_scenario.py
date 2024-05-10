@@ -100,7 +100,7 @@ def main():
                 # Legacy folder
                 pass
 
-            elif file.startswith("test/"):
+            elif file.startswith("tests/"):
                 if file == "tests/test_schemas.py":
                     # this file is tested in all end-to-end scenarios
                     scenarios_groups.add(ScenarioGroup.END_TO_END.value)
