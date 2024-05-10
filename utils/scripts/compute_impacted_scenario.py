@@ -81,23 +81,81 @@ def main():
             modified_files = [line.strip() for line in f.readlines()]
 
         for file in modified_files:
-            if file.startswith("utils/interfaces/schemas") or file == "tests/test_schemas.py":
-                scenarios_groups.add(ScenarioGroup.END_TO_END.value)
+            if file.startswith(".circleci") or file.startswith(".github") or file.startswith(".vscode"):
+                # nothing to do ?
+                pass
+
+            elif file.startswith("binaries/") or file.startswith("docs/"):
+                # noting to do
+                pass
+
             elif file.startswith("lib-injection/"):
                 scenarios_groups.add(ScenarioGroup.LIB_INJECTION.value)
 
+            elif file.startswith("manifests/"):
+                # already handled by the manifest comparison
+                pass
+
+            elif file.startswith("parametric/"):
+                # Legacy folder
+                pass
+
+            elif file.startswith("test/"):
+                if file == "tests/test_schemas.py":
+                    # this file is tested in all end-to-end scenarios
+                    scenarios_groups.add(ScenarioGroup.END_TO_END.value)
+
+                elif file.endswith("/utils.py") or file.endswith("/conftest.py"):
+                    # particular use case for modification in tests/ of a file utils.py or conftest.py
+                    # in that situation, takes all scenarios executed in tests/<path>/
+
+                    folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
+
+                    for sub_file in scenarios_by_files:
+                        if sub_file.startswith(folder):
+                            scenarios.update(scenarios_by_files[sub_file])
+
+            elif file.startswith("utils/"):
+                if file.startswith("utils/interfaces/schemas"):
+                    scenarios_groups.add(ScenarioGroup.END_TO_END.value)
+                else:
+                    scenarios_groups.add(ScenarioGroup.ALL.value)
+
+            elif file in (
+                ".dockerignore",
+                ".gitignore",
+                ".gitlab-ci.yml",
+                ".shellcheck",
+                ".shellcheckrc",
+                "CHANGELOG.md",
+            ):
+                # nothing to do
+                pass
+
+            elif file in ("LICENSE", "LICENSE-3rdparty.csv", "NOTICE", "Pulumi.yaml", "README.md", "build.sh"):
+                # nothing to do
+                pass
+
+            elif file == "conftest.py":
+                scenarios_groups.add(ScenarioGroup.ALL.value)
+
+            elif file in ("format.sh", "pyproject.toml"):
+                # nothing to do
+                pass
+
+            elif file in ("requirements.txt", "run.sh"):
+                scenarios_groups.add(ScenarioGroup.ALL.value)
+
+            elif file in ("scenario_groups.yml", "shell.nix"):
+                # nothing to do
+                pass
+
+            else:
+                raise ValueError(f"Unknown file: {file}. Please add it in this file, with the correct scenario group.")
+
+            # now get known scenarios executed in this file
             if file in scenarios_by_files:
                 scenarios.update(scenarios_by_files[file])
-
-            if file.startswith("tests/") and (file.endswith("/utils.py") or file.endswith("/conftest.py")):
-                # particular use case for modification in tests/ of a file utils.py or conftest.py
-                # in that situation, takes all scenarios executed in tests/<path>/
-
-                folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
-
-                for sub_file in scenarios_by_files:
-                    if sub_file.startswith(folder):
-                        scenarios.update(scenarios_by_files[sub_file])
 
     print("scenarios=" + ",".join(scenarios))
     print("scenarios_groups=" + ",".join(scenarios_groups))
