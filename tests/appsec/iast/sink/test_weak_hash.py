@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, context, bug, missing_feature, features
-from .._test_iast_fixtures import BaseSinkTest, assert_iast_vulnerability
+from ..utils import BaseSinkTest, assert_iast_vulnerability
 
 
 def _expected_location():

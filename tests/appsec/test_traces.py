@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
 

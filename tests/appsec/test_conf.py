@@ -2,10 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features, flaky
+from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features, flaky, waf_rules
 from utils.tools import nested_lookup
-from tests.constants import PYTHON_RELEASE_GA_1_1
-from .waf.utils import rules
+from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 
 
 @features.threats_configuration
@@ -51,7 +50,7 @@ class Test_RuleSet_1_3_1:
 
     def test_nosqli_keys(self):
         """Test a rule defined on this rules version: nosql on keys"""
-        interfaces.library.assert_waf_attack(self.r_keys, rules.nosql_injection)
+        interfaces.library.assert_waf_attack(self.r_keys, waf_rules.nosql_injection)
 
     def setup_nosqli_keys_with_brackets(self):
         self.r_keys2 = weblog.get("/waf/", params={"[$ne]": "value"})
@@ -60,7 +59,7 @@ class Test_RuleSet_1_3_1:
     @irrelevant(library="nodejs", reason="Node interprets brackets as arrays, so they're truncated")
     def test_nosqli_keys_with_brackets(self):
         """Test a rule defined on this rules version: nosql on keys with brackets"""
-        interfaces.library.assert_waf_attack(self.r_keys2, rules.nosql_injection.crs_942_290)
+        interfaces.library.assert_waf_attack(self.r_keys2, waf_rules.nosql_injection.crs_942_290)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
