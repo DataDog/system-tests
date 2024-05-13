@@ -381,8 +381,10 @@ tests/:
             vertx4: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_span_tags.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
+      test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
