@@ -65,6 +65,10 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
                 SpanContext context = this.tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(httpHeaders));
                 builder.asChildOf(context);
             }
+            // Extract span tags from request to add them to span.
+            for (ApmTestClient.HeaderTuple spanTag : request.getSpanTagsList()) {
+                builder.withTag(spanTag.getKey(), spanTag.getValue());
+            }
             Span span = builder.start();
             // Store span
             long spanId = DDSpanId.from(span.context().toSpanId());
