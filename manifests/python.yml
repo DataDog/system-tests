@@ -70,7 +70,10 @@ tests/:
           Test_HardcodedSecrets: missing_feature
           Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
-          TestHeaderInjection: missing_feature
+          TestHeaderInjection:
+            '*': v2.10.0dev
+            fastapi: missing_feature
+            python3.12: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_auth_protocol.py:
@@ -185,7 +188,10 @@ tests/:
             uds-flask: missing_feature
             uwsgi-poc: missing_feature
         test_parameter_value.py:
-          TestParameterValue: bug (should have been v1.18.0)
+          TestParameterValue:
+            '*': v2.9.0.dev
+            fastapi: missing_feature
+            python3.12: bug (should have been v1.18.0)
         test_path.py:
           TestPath: missing_feature
         test_uri.py:
@@ -413,8 +419,12 @@ tests/:
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
-      Test_UserLoginFailureEvent: v1.9.0
-      Test_UserLoginSuccessEvent: v1.9.0
+      Test_UserLoginFailureEvent:
+        '*': v1.9.0
+        python3.12: bug (APPSEC-53079)
+      Test_UserLoginSuccessEvent:
+        '*': v1.9.0
+        python3.12: bug (APPSEC-53079)
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:

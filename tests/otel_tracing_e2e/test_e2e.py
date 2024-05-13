@@ -4,9 +4,9 @@ import time
 
 from utils import context, weblog, interfaces, scenarios, irrelevant
 from utils.tools import logger, get_rid_from_request
-from ._test_validator_trace import validate_all_traces
-from ._test_validator_log import validate_log, validate_log_trace_correlation
-from ._test_validator_metric import validate_metrics
+from utils.otel_validators.validator_trace import validate_all_traces
+from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
+from utils.otel_validators.validator_metric import validate_metrics
 
 
 def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:

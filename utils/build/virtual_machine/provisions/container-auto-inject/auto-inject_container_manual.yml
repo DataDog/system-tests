@@ -9,6 +9,9 @@
     - name: copy-tracer-debug-config
       local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
   remote-command: |
+    #Sometimes we need to update the apt cache before installing the packages in order to get latest package version
+    sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-beta.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" || true
+    sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-stable.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" || true
     architecture=""
     case $(uname -m) in
         x86_64) architecture="amd64" ;;
@@ -21,7 +24,7 @@
         sudo apt install -y --reinstall ./datadog-apm-inject_*_$architecture.deb
     else
         echo "Instaling datadog-apm-inject from remote repository"
-        sudo apt install -y --reinstall -t $DD_deb_repo_name datadog-apm-inject
+        sudo apt-get install -y --reinstall -t $DD_deb_repo_name datadog-apm-inject
     fi
 
     if [ -e datadog-apm-library-$DD_LANG_*_$architecture.deb ]
@@ -30,7 +33,7 @@
         sudo apt install -y --reinstall ./datadog-apm-library-$DD_LANG_*_$architecture.deb
     else
         echo "Instaling datadog-apm-library-$DD_LANG from remote repository"
-        sudo apt install -y --reinstall -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
+        sudo apt-get install -y --reinstall -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
     fi
 
     dd-container-install
