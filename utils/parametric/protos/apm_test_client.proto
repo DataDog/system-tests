@@ -156,7 +156,7 @@ message SpanSetResourceReturn {}
 
 message SpanAddLinkArgs {
   uint64 span_id = 1;
-  repeated SpanLink links = 2;
+  SpanLink span_link = 2;
 }
 
 message SpanAddLinkReturn {}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _python_buddy
+from utils.buddies import python_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -246,7 +246,7 @@ class _Test_SNS:
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
-    buddy = _python_buddy
+    buddy = python_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy"
     WEBLOG_TO_BUDDY_TOPIC = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy_topic"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog"
