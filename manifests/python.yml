@@ -147,7 +147,7 @@ tests/:
             fastapi: missing_feature
         test_cookie_value.py:
           TestCookieValue:
-            '*': v1.18.0
+            '*': bug (v2.9.0dev disables Path Traversal vulnerability due to a bug with mock package)
             fastapi: missing_feature
         test_graphql_resolver.py:
           TestGraphqlResolverArgument: missing_feature
