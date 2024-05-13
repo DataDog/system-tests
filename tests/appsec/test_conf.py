@@ -7,6 +7,9 @@ from utils.tools import nested_lookup
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 
 
+TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
+
+
 @features.threats_configuration
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
@@ -101,13 +104,14 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(10_000)))
-        self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"})
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}" * (i + 1)) for i in range(255)))
+        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(254)}
+        long_headers["User-Agent"] = "Arachni/v1"
+        self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
     @missing_feature(context.library < "java@0.113.0")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
-    @flaky(context.weblog_variant == "fastapi", reason="APPSEC-53058")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
