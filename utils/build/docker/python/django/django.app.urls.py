@@ -250,7 +250,7 @@ def view_nosamesite_cookies_secure(request):
 
 def view_nosamesite_cookies_empty(request):
     res = HttpResponse("OK")
-    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    res.set_cookie("insecure", "", secure=True, httponly=True, samesite="None")
     return res
 
 

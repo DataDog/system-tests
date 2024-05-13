@@ -918,6 +918,13 @@ def test_nosamesite_secure_cookie():
     return resp
 
 
+@app.route("/iast/no-samesite-cookie/test_empty_cookie")
+def test_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "", secure=True, httponly=True, samesite="None")
+    return resp
+
+
 @app.route("/iast/weak_randomness/test_insecure")
 def test_weak_randomness_insecure():
     _ = random.randint(1, 100)
