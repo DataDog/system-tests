@@ -7,8 +7,7 @@ from typing import Any, Dict, List
 import pytest
 from ddapm_test_agent.trace import root_span
 
-from utils import (bug, context, features, irrelevant, missing_feature, rfc,
-                   scenarios)
+from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios
 from utils.parametric.spec.remoteconfig import Capabilities
 from utils.parametric.spec.trace import Span, assert_trace_has_tags
 
