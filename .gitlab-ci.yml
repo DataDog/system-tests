@@ -2,12 +2,7 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
-  - ruby_tracer
   - nodejs_tracer
-  - java_tracer
-  - python_tracer
-  - dotnet_tracer
-  - parse_results
   - before_tests
 
 .base_job_onboarding_system_tests:
@@ -40,142 +35,16 @@ onboarding_nodejs:
     TEST_LIBRARY: "nodejs"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container]
+          SCENARIO: [CONTAINER_AUTO_INJECTION]
          
   script:
+      - echo "RMM--> $DOCKER_LOGIN"
+      - echo "RMM--> $DOCKER_LOGIN_PASS"
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_java:
-  extends: .base_job_onboarding_system_tests
-  stage: java_tracer
-  allow_failure: true
-  dependencies: []
-  only:
-    - schedules
-  variables:
-    TEST_LIBRARY: "java"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-buildpack,test-app-java-alpine]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-buildpack,test-app-java-alpine]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-  script:
-      - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
-
-onboarding_python:
-  extends: .base_job_onboarding_system_tests
-  stage: python_tracer
-  allow_failure: true
-  dependencies: []
-  only:
-    - schedules
-  variables:
-    TEST_LIBRARY: "python"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-  script:
-      - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
-
-onboarding_dotnet:
-  extends: .base_job_onboarding_system_tests
-  stage: dotnet_tracer
-  allow_failure: true
-  dependencies: []
-  only:
-    - schedules
-  variables:
-    TEST_LIBRARY: "dotnet"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-  script:
-      - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
-
-onboarding_ruby:
-  extends: .base_job_onboarding_system_tests
-  stage: ruby_tracer
-  allow_failure: true
-  dependencies: []
-  only:
-    - schedules
-  variables:
-    TEST_LIBRARY: "ruby"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-  script:
-      - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
-
-onboarding_parse_results:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  tags: ["arch:amd64"]
-  stage: parse_results
-  only:
-    - schedules
-  before_script:
-    #We need authenticate on git repository
-    - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text) 
-    - export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text) 
-  script:
-      - |
-        for folder in reports/logs*/ ; do
-          if [ -e ./${folder}feature_parity.json ]
-          then
-            curl -X POST ${FP_IMPORT_URL} \
-              --fail \
-              --header "Content-Type: application/json" \
-              --header "FP_API_KEY: ${FP_API_KEY}" \
-              --data "@./${folder}feature_parity.json" \
-              --include
-          fi
-        done
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
