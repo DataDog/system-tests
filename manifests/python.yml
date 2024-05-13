@@ -94,7 +94,7 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
-            '*': v2.1.0
+            '*': bug (v2.9.0dev disables this test due to ab ug with mock package)
             fastapi: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
