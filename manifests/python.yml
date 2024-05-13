@@ -94,7 +94,7 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
-            '*': bug (v2.9.0dev disables this test due to ab ug with mock package)
+            '*': bug (v2.9.0dev disables this test due to a bug with mock package)
             fastapi: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
@@ -143,7 +143,7 @@ tests/:
             uwsgi-poc: v1.20.0
         test_cookie_name.py:
           TestCookieName:
-            '*': v1.18.0
+            '*': bug (v2.9.0dev disables Path Traversal vulnerability due to a bug with mock package)
             fastapi: missing_feature
         test_cookie_value.py:
           TestCookieValue:
