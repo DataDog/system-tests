@@ -412,7 +412,7 @@ tests/:
     test_otel_api_interoperability.py: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py:
-      Test_SpanLinks: v1.61.0
+      Test_Span_Links: v1.61.0
     test_telemetry.py:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
