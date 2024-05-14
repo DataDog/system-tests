@@ -10,7 +10,7 @@ from retry import retry
 
 @scenarios.lib_injection_validation
 @features.k8s_admission_controller
-class TestK8sInitImageValidator:
+class TestInitImageValidator:
     """ This test case validates the lib init image. It checks that the init image contains a correct package of the tracer.
     We can use the tracer for instrument the weblog application. We use the dev test agent to check if the weblog is instrumented."""
 

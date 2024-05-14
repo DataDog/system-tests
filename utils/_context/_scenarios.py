@@ -1892,6 +1892,16 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
 
+    lib_injection_validation_not_supported_lang = APMTestAgentScenario(
+        "LIB_INJECTION_VALIDATION_NOT_SUPPORTED_LANG",
+        doc="Validates the init images without kubernetes enviroment on not supported language versions",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+    installer_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
+    )
+
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
