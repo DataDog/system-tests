@@ -917,6 +917,7 @@ class Test_Headers_Tracecontext:
         [{"DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true", "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}],
     )
     @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
     def test_tracestate_w3c_p_phase_3_extract_inject_extract_first(self, test_agent, test_library):
         """
         Ensure the last parent id tag is set according to the W3C phase 3 spec
