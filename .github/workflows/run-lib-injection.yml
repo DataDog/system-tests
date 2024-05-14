@@ -86,7 +86,7 @@ jobs:
           repository: 'DataDog/system-tests'
 
       - uses: ./.github/actions/init-image-validator
-        name: 'Build and run lib init image validator scenarios'
+        name: 'Run lib init image validator '
         with:
           library: "${{inputs.library}}"
           weblog: "${{matrix.weblog}}"
@@ -94,6 +94,37 @@ jobs:
           gh_token: ${{ secrets.GITHUB_TOKEN }}
           is_lang_supported_version: 'true'
 
+
+  lib-injection-init-image-validator-not-supported-lang:
+    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
+    runs-on:
+      group: "APM Larger Runners"
+    permissions:
+      contents: read
+      packages: read
+    needs: 
+      - compute-matrix
+    strategy:
+      matrix:
+        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix_not_supported_langs) }}
+        version:      
+          - prod
+          - dev
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+
+      - uses: ./.github/actions/init-image-validator
+        name: 'Run lib init image validator for no supported lang versions'
+        with:
+          library: "${{inputs.library}}"
+          weblog: "${{matrix.weblog}}"
+          version: "${{matrix.version }}"
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          is_lang_supported_version: 'false'
 
   k8s-lib-injection-tests:
     if: 1==2 && inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
