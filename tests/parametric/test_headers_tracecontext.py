@@ -916,6 +916,7 @@ class Test_Headers_Tracecontext:
         "library_env",
         [{"DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true", "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}],
     )
+    @missing_feature(context.library == "cpp", reason="Not implemented")
     def test_tracestate_w3c_p_phase_3_extract_inject_extract_first(self, test_agent, test_library):
         """
         Ensure the last parent id tag is set according to the W3C phase 3 spec
@@ -941,7 +942,7 @@ class Test_Headers_Tracecontext:
 
         # 1) trace-id and span-id extracted from datadog headers, last datadog parent id is ignored
         assert case1["name"] == "same_trace_different_parent_ids"
-        assert case1["parent_id"] == "987654320"
+        assert case1["parent_id"] == 987654320
         assert "_dd.parent_id" not in case1["meta"]
 
     @temporary_enable_optin_tracecontext()
