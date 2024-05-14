@@ -860,10 +860,10 @@ class Test_Headers_Tracecontext:
 
             # 5) Parent ids do not match and p value does not match datadog headers
             with test_library.start_span(
-                name="non_matching_span_invalid_p_value",
+                name="non_matching_span_non_matching_p_value",
                 http_headers=[
                     ["traceparent", "00-00000000000000000000000000000005-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;p:ffffffffffffffff,foo=1"],
+                    ["tracestate", "dd=s:2;p:8fffffffffffffff,foo=1"],
                     ["x-datadog-parent-id", "10"],
                     ["x-datadog-trace-id", "5"],
                 ],
@@ -895,7 +895,7 @@ class Test_Headers_Tracecontext:
         assert "_dd.parent_id" not in case2["meta"]
 
         # 3) trace-id matches but parent ids do not
-        # Ensure parent_id is extracted from tracecontext and last datadog parent id tag is set using the datadog headers
+        # Ensure parent_id is extracted from tracecontext and last datadog parent id tag is set using the tracestate header
         assert case3["name"] == "same_trace_non_matching_parent_ids"
         assert case3["parent_id"] == 987654321
         assert case3["meta"]["_dd.parent_id"] == "000000000000000a"
@@ -907,10 +907,11 @@ class Test_Headers_Tracecontext:
         assert case4["meta"]["_dd.parent_id"] == "000000000000000a"
 
         # 5) parent ids do not match and p value does not match datadog headers
-        # Ensure parent_id is extracted from tracecontext and the last parent id tag is set using the datadog header
-        assert case5["name"] == "non_matching_span_invalid_p_value"
+        # Ensure parent_id is extracted from tracecontext and the last parent id tag is set using the tracestate header
+        # Traceparent and tracestate headers are used as the source of truth, Datadog headers are ignored
+        assert case5["name"] == "non_matching_span_non_matching_p_value"
         assert case5["parent_id"] == 987654321
-        assert case5["meta"]["_dd.parent_id"] == "000000000000000a"
+        assert case5["meta"]["_dd.parent_id"] == "8fffffffffffffff"
 
     # W3C Phase 3 to try adding the tag if the span id matches regardless of headers order(if tracecontext is accounted)
     @missing_feature(context.library == "python", reason="Not implemented")
