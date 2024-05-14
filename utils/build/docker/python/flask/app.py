@@ -877,7 +877,7 @@ def test_secure_cookie():
 
 
 @app.route("/iast/insecure-cookie/test_empty_cookie")
-def test_empty_cookie():
+def test_insecure_cookie_empty_cookie():
     resp = Response("OK")
     resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
     return resp
@@ -919,7 +919,7 @@ def test_nosamesite_secure_cookie():
 
 
 @app.route("/iast/no-samesite-cookie/test_empty_cookie")
-def test_empty_cookie():
+def test_no_samesite_empty_cookie():
     resp = Response("OK")
     resp.set_cookie("insecure", "", secure=True, httponly=True, samesite="None")
     return resp
