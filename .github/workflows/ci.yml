@@ -47,33 +47,37 @@ jobs:
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
-  test_the_test_platforms:
-    strategy:
-      matrix:
-        os:
-          - macos-latest
-    name: Test the test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install runner
-        uses: ./.github/actions/install_runner
-      # force /bin/bash in order to test against bash 3.2 on macOS
-      - name: Test the test (direct)
-        run: /bin/bash run.sh TEST_THE_TEST
-      - name: Test group parsing
-        run: |
-          /bin/bash run.sh ++dry APPSEC_SCENARIOS
-          /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
+  # commenting, as python 3.9 is not available anymore
+  # test_the_test_platforms:
+  #   strategy:
+  #     matrix:
+  #       os:
+  #         - macos-latest
+  #   name: Test the test (${{ matrix.os }})
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Install runner
+  #       uses: ./.github/actions/install_runner
+  #     # force /bin/bash in order to test against bash 3.2 on macOS
+  #     - name: Test the test (direct)
+  #       run: /bin/bash run.sh TEST_THE_TEST
+  #     - name: Test group parsing
+  #       run: |
+  #         /bin/bash run.sh ++dry APPSEC_SCENARIOS
+  #         /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
+    name: Get scenarios and groups
     uses: ./.github/workflows/compute-scenarios.yml
 
   impacted_libraries:
+    name: Get impacted libraries
     uses: ./.github/workflows/compute-impacted-libraries.yml
 
   system_tests:
+    name: System Tests
     needs:
     - lint
     - test_the_test
@@ -87,23 +91,15 @@ jobs:
     secrets: inherit
     with:
       library: ${{ matrix.library }}
-      run_all: ${{ needs.scenarios.outputs.run_all  == 'true' }}
-      run_replay: ${{ needs.scenarios.outputs.run_all  == 'true' }}
-      run_integration: ${{ needs.scenarios.outputs.run_integration  == 'true' }}
-      run_sampling: ${{ needs.scenarios.outputs.run_sampling  == 'true' }}
-      run_profiling: ${{ needs.scenarios.outputs.run_profiling  == 'true' }}
-      run_debugger: ${{ needs.scenarios.outputs.run_debugger  == 'true' }}
-      run_appsec: ${{ needs.scenarios.outputs.run_appsec  == 'true' }}
-      run_open_telemetry: ${{ needs.scenarios.outputs.run_open_telemetry  == 'true' }}
-      run_parametric: ${{ needs.scenarios.outputs.run_parametric  == 'true' }}
-      run_graphql:  ${{ needs.scenarios.outputs.run_graphql == 'true' }}
-      run_libinjection: ${{ needs.scenarios.outputs.run_libinjection == 'true' }}
+      scenarios: ${{ needs.scenarios.outputs.scenarios }}
+      scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
 
   system_tests_docker_mode:
+    name: Ruby Docker Mode
     needs:
     - lint
     - test_the_test
@@ -113,11 +109,13 @@ jobs:
     secrets: inherit
 
   exotics:
-    if: needs.scenarios.outputs.run_all  == 'true'
+    name: Exotics scenarios
+    if: contains(github.event.pull_request.labels.*.name, 'run-all-scenarios')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
   update-CI-visibility:
+    name: Update CI Visibility Dashboard
     runs-on: ubuntu-latest
     needs:
     - system_tests

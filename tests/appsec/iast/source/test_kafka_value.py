@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, scenarios
-from .._test_iast_fixtures import BaseSourceTest, get_all_iast_events, get_iast_sources
+from ..utils import BaseSourceTest, get_all_iast_events, get_iast_sources
 
 
 @features.iast_source_kafka_value

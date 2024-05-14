@@ -512,7 +512,6 @@ class WeblogContainer(TestedContainer):
             self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
         if self.weblog_variant == "python3.12":
-            self.environment["DD_IAST_ENABLED"] = "false"  # IAST is not working as now on python3.12
             if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
                 self.environment["DD_PROFILING_ENABLED"] = "false"
 
@@ -558,7 +557,7 @@ class PostgresContainer(SqlDbTestedContainer):
             db_user="system_tests_user",
             db_password="system_tests",
             db_host="postgres",
-            db_instance="system_tests",
+            db_instance="system_tests_dbname",
         )
 
 
@@ -650,7 +649,7 @@ class MySqlContainer(SqlDbTestedContainer):
             name="mysqldb",
             command="--default-authentication-plugin=mysql_native_password",
             environment={
-                "MYSQL_DATABASE": "world",
+                "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",
                 "MYSQL_ROOT_PASSWORD": "mysqldb",
                 "MYSQL_PASSWORD": "mysqldb",
@@ -662,7 +661,7 @@ class MySqlContainer(SqlDbTestedContainer):
             db_user="mysqldb",
             db_password="mysqldb",
             db_host="mysqldb",
-            db_instance="world",
+            db_instance="mysql_dbname",
         )
 
 
@@ -775,4 +774,28 @@ class LocalstackContainer(TestedContainer):
             host_log_folder=host_log_folder,
             ports={"4566": ("127.0.0.1", 4566)},
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+        )
+
+
+class APMTestAgentContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            name="ddapm-test-agent",
+            host_log_folder=host_log_folder,
+            environment={"SNAPSHOT_CI": "0",},
+            ports={"8126": ("127.0.0.1", 8126)},
+            allow_old_container=True,
+        )
+
+
+class WeblogInjectionInitContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="docker.io/library/weblog-injection-init:latest",
+            name="weblog-injection-init",
+            host_log_folder=host_log_folder,
+            environment={"DD_AGENT_HOST": "ddapm-test-agent"},  # , "DD_TRACE_AGENT_PORT": "8126"
+            ports={"18080": ("127.0.0.1", 8080)},
+            allow_old_container=True,
         )

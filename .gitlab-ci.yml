@@ -1,3 +1,6 @@
+include:
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
+
 stages:
   - ruby_tracer
   - nodejs_tracer
@@ -7,29 +10,8 @@ stages:
   - parse_results
   - before_tests
 
-.base_job_onboarding:
-  only:
-      - web
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  tags: ["arch:amd64"]
-  before_script:
-    # Setup AWS Credentials
-    - mkdir -p ~/.aws
-    - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
-    - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
-    - export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
-    - export ONBOARDING_AWS_INFRA_SUBNET_ID=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-subnet-id --with-decryption --query "Parameter.Value" --out text)
-    - export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-securiy-groups-id --with-decryption --query "Parameter.Value" --out text)
-    - export PULUMI_CONFIG_PASSPHRASE=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.pulumi-config-passphrase --with-decryption --query "Parameter.Value" --out text) 
-    #Install plugins for PULUMI you need connect to gh. Sometimes this problem arises: GitHub rate limit exceeded
-    - export GITHUB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
-    #Avoid dockerhub rate limits
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login --with-decryption --query "Parameter.Value" --out text) 
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
-    - export AWS_PROFILE=agent-qa-ci
-    - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
-    - pulumi plugin install resource command 0.7.2
-    - pulumi plugin install resource aws 5.41.0
+.base_job_onboarding_system_tests:
+  extends: .base_job_onboarding
   after_script:
     - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
     - REPORTS_PATH="reports/"
@@ -48,7 +30,7 @@ variables:
     TEST: 1
     
 onboarding_nodejs:
-  extends: .base_job_onboarding
+  extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
   dependencies: []
@@ -71,9 +53,9 @@ onboarding_nodejs:
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
-      
+
 onboarding_java:
-  extends: .base_job_onboarding
+  extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
   dependencies: []
@@ -92,12 +74,15 @@ onboarding_java:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-buildpack,test-app-java-alpine]
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-buildpack,test-app-java-alpine]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
 onboarding_python:
-  extends: .base_job_onboarding
+  extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
   dependencies: []
@@ -121,7 +106,7 @@ onboarding_python:
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
 onboarding_dotnet:
-  extends: .base_job_onboarding
+  extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
   dependencies: []
@@ -145,7 +130,7 @@ onboarding_dotnet:
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
 onboarding_ruby:
-  extends: .base_job_onboarding
+  extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
   dependencies: []

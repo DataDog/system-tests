@@ -46,7 +46,7 @@ class AWSPulumiProvider(VmProvider):
             )
             self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
-        except Exception as pulumi_exception:  #
+        except Exception as pulumi_exception:
             logger.error("Exception launching aws provision infraestructure")
             logger.exception(pulumi_exception)
 
@@ -63,7 +63,7 @@ class AWSPulumiProvider(VmProvider):
             subnet_id=vm.aws_config.aws_infra_config.subnet_id,
             key_name=self.pulumi_ssh.keypair_name,
             ami=vm.aws_config.ami_id if ami_id is None else ami_id,
-            tags={"Name": vm.name,},
+            tags={"Name": vm.name, "CI": "system-tests"},
             opts=self.pulumi_ssh.aws_key_resource,
             root_block_device={"volume_size": 16},
         )

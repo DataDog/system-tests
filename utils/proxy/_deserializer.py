@@ -178,6 +178,14 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
 
             decoded.append(item)
 
+        if path == "/debugger/v1/diagnostics":
+            for item in decoded:
+                if "content" in item:
+                    try:
+                        item["content"] = json.loads(item["content"])
+                    except:
+                        pass
+
         return decoded
 
     return content

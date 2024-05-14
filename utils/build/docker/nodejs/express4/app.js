@@ -3,6 +3,7 @@
 const tracer = require('dd-trace').init({
   debug: true
 })
+const { DsmPathwayCodec } = require('dd-trace/packages/dd-trace/src/datastreams/pathway')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -12,6 +13,10 @@ const passport = require('passport')
 
 const iast = require('./iast')
 const { spawnSync } = require('child_process')
+
+const pgsql = require('./integrations/db/postgres')
+const mysql = require('./integrations/db/mysql')
+const mssql = require('./integrations/db/mssql')
 
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
@@ -143,6 +148,24 @@ app.get('/users', (req, res) => {
   }
 })
 
+app.get('/stub_dbm', async (req, res) => {
+  const integration = req.query.integration
+  const operation = req.query.operation
+
+  if (integration === 'pg') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    const dbmComment = await pgsql.doOperation(operation)
+    res.send({ status: 'ok', dbm_comment: dbmComment })
+  } else if (integration === 'mysql2') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    const result = await mysql.doOperation(operation)
+    res.send({ status: 'ok', dbm_comment: result })
+  } else if (integration === 'mssql') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    res.send(await mssql.doOperation(operation))
+  }
+})
+
 app.get('/dsm', (req, res) => {
   const integration = req.query.integration
   const topic = req.query.topic
@@ -251,6 +274,32 @@ app.get('/dsm', (req, res) => {
       '[DSM] Wrong or missing integration, available integrations are [Kafka, RabbitMQ, SNS, SQS, Kinesis]'
     )
   }
+})
+
+app.get('/dsm/inject', (req, res) => {
+  const topic = req.query.topic
+  const integration = req.query.integration
+  const headers = {}
+
+  const dataStreamsContext = tracer._tracer.setCheckpoint(
+    ['direction:out', `topic:${topic}`, `type:${integration}`], null, null
+  )
+  DsmPathwayCodec.encode(dataStreamsContext, headers)
+
+  res.status(200).send(JSON.stringify(headers))
+})
+
+app.get('/dsm/extract', (req, res) => {
+  const topic = req.query.topic
+  const integration = req.query.integration
+  const ctx = req.query.ctx
+
+  tracer._tracer.decodeDataStreamsContext(JSON.parse(ctx))
+  tracer._tracer.setCheckpoint(
+    ['direction:in', `topic:${topic}`, `type:${integration}`], null, null
+  )
+
+  res.status(200).send('ok')
 })
 
 app.get('/kafka/produce', (req, res) => {
@@ -432,10 +481,6 @@ app.get('/read_file', (req, res) => {
 app.get('/db', async (req, res) => {
   console.log('Service: ' + req.query.service)
   console.log('Operation: ' + req.query.operation)
-
-  const pgsql = require('./integrations/db/postgres')
-  const mysql = require('./integrations/db/mysql')
-  const mssql = require('./integrations/db/mssql')
 
   if (req.query.service === 'postgresql') {
     res.send(await pgsql.doOperation(req.query.operation))

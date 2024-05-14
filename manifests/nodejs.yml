@@ -36,7 +36,7 @@ tests/:
             nextjs: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords:
-            '*': v5.11.0
+            '*': v5.13.0
             nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
@@ -161,6 +161,12 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_span_tags.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
+      test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -361,6 +367,12 @@ tests/:
         express4: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
+      Test_Dbm_Comment_NodeJS_mysql2: 
+        '*': missing_feature (Missing on weblog)
+        express4: v5.13.0
+      Test_Dbm_Comment_NodeJS_pg: 
+        '*': missing_feature (Missing on weblog)
+        express4: v5.13.0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
@@ -405,7 +417,7 @@ tests/:
       Test_Defaults: v5.6.0
       Test_Environment: v5.6.0
       Test_TelemetryInstallSignature: v4.23.0
-      Test_TelemetrySCAEnvVar: missing_feature
+      Test_TelemetrySCAEnvVar: v5.13.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
@@ -431,8 +443,8 @@ tests/:
     Test_DistributedHttp: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
-    Test_Propagate: missing_feature
-    Test_Propagate_Legacy: missing_feature
+    Test_Propagate: v3.2.0
+    Test_Propagate_Legacy: v3.2.0
   test_library_conf.py:
     Test_HeaderTags: v4.11.0
     Test_HeaderTags_Colon_Leading: v4.11.0
@@ -477,4 +489,5 @@ tests/:
       '*': v3.2.0
       nextjs: missing_feature
       uds-express4: v3.7.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: missing_feature
