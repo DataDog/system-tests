@@ -799,14 +799,14 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
-    def test_tracestate_w3c_p_extract_datadog_w3c(self, test_agent, test_library):
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,b3,tracecontext"}])
+    def test_tracestate_w3c_p_extract_w3c_not_primary(self, test_agent, test_library):
         """
         Ensure the last parent id tag is set according to the W3C phase 3 spec
         """
         with test_library:
 
-            # 1) Trace ids and parent ids in datadog and tracecontext headers match
+            # 1) Trace ids and parent ids in datadog and tracecontext headers match (no b3 headers)
             with test_library.start_span(
                 name="identical_trace_info",
                 http_headers=[
@@ -819,7 +819,7 @@ class Test_Headers_Tracecontext:
             ):
                 pass
 
-            # 2) Trace ids in datadog and tracecontext headers do not match
+            # 2) Trace ids in datadog and tracecontext headers do not match (no b3 headers)
             with test_library.start_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
@@ -832,7 +832,7 @@ class Test_Headers_Tracecontext:
             ):
                 pass
 
-            # 3) Parent ids in Datadog and tracecontext headers do not match
+            # 3) Parent ids in Datadog and tracecontext headers do not match (no b3 headers)
             with test_library.start_span(
                 name="same_trace_non_matching_parent_ids",
                 http_headers=[
@@ -845,7 +845,7 @@ class Test_Headers_Tracecontext:
             ):
                 pass
 
-            # 4) Parent ids do not match and p value is not present in tracestate
+            # 4) Parent ids do not match and p value is not present in tracestate (no b3 headers)
             with test_library.start_span(
                 name="non_matching_span_missing_p_value",
                 http_headers=[
@@ -857,7 +857,7 @@ class Test_Headers_Tracecontext:
             ):
                 pass
 
-            # 5) Parent ids do not match and p value does not match datadog headers
+            # 5) Parent ids do not match and p value does not match datadog headers (no b3 headers)
             with test_library.start_span(
                 name="non_matching_span_non_matching_p_value",
                 http_headers=[
@@ -869,15 +869,27 @@ class Test_Headers_Tracecontext:
             ):
                 pass
 
-        traces = test_agent.wait_for_num_traces(5)
+            # 6) b3 headers and tracecontext headers are present, parent ids do not match and p value is not set (no datadog headers)
+            with test_library.start_span(
+                name="non_matching_b3_span_non_matching_p_value",
+                http_headers=[
+                    ["traceparent", "00-00000000000000000000000000000006-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2,foo=1"],
+                    ["b3", "00000000000000000000000000000006-000000000000000a-1"],
+                ],
+            ):
+                pass
 
-        assert len(traces) == 5
-        case1, case2, case3, case4, case5 = (
+        traces = test_agent.wait_for_num_traces(6)
+
+        assert len(traces) == 6
+        case1, case2, case3, case4, case5, case6 = (
             traces[0][0],
             traces[1][0],
             traces[2][0],
             traces[3][0],
             traces[4][0],
+            traces[5][0],
         )
 
         # 1) Datadog and tracecontext headers, trace-id and span-id match
@@ -911,6 +923,12 @@ class Test_Headers_Tracecontext:
         assert case5["name"] == "non_matching_span_non_matching_p_value"
         assert case5["parent_id"] == 987654321
         assert case5["meta"]["_dd.parent_id"] == "8fffffffffffffff"
+
+        # 6) b3 and tracecontext headers are present, parent ids do not match and p value is not set in dd tracestate
+        # Ensure parent_id is set to 16 zeros, there is likely no upstream datadog span
+        assert case6["name"] == "non_matching_b3_span_non_matching_p_value"
+        assert case6["parent_id"] == 987654321
+        assert case6["meta"]["_dd.parent_id"] == "0000000000000000"
 
     @pytest.mark.parametrize(
         "library_env",
