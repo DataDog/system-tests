@@ -44,7 +44,7 @@ runs:
 
     - name: Build weblog init image validator
       shell: bash
-      run: docker buildx build  --build-arg="LIB_INIT_ENV=${{ inputs.version }}" -t weblog-injection-init:latest -f utils/build/ssi/${ inputs.library }}/${{ inputs.weblog }}/Dockerfile.lib-init-validator --load .
+      run: docker buildx build  --build-arg="LIB_INIT_ENV=${{ inputs.version }}" -t weblog-injection-init:latest -f utils/build/ssi/${{ inputs.library }}/${{ inputs.weblog }}/Dockerfile.lib-init-validator --load .
 
     - name: Install runner
       uses: ./.github/actions/install_runner       
