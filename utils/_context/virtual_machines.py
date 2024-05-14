@@ -24,6 +24,7 @@ class DataDogConfig:
         self.docker_login = os.getenv("DOCKER_LOGIN")
         self.docker_login_pass = os.getenv("DOCKER_LOGIN_PASS")
         self.installer_versions = {}
+        self.installer_versions["installer"] = os.getenv("DD_INSTALLER_INSTALLER_VERSION")
         self.installer_versions["library"] = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
         self.installer_versions["agent"] = os.getenv("DD_INSTALLER_AGENT_VERSION")
         self.installer_versions["injector"] = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
@@ -127,6 +128,8 @@ class _VirtualMachine:
             command_env["DD_API_KEY"] = self.datadog_config.dd_api_key
         if self.datadog_config.dd_app_key:
             command_env["DD_APP_KEY"] = self.datadog_config.dd_app_key
+        if self.datadog_config.installer_versions["installer"]:
+            command_env["DD_INSTALLER_INSTALLER_VERSION"] = self.datadog_config.installer_versions["installer"]
         if self.datadog_config.installer_versions["agent"]:
             command_env["DD_INSTALLER_AGENT_VERSION"] = self.datadog_config.installer_versions["agent"]
         if self.datadog_config.installer_versions["library"]:
