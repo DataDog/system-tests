@@ -91,6 +91,7 @@ jobs:
           library: "${{inputs.library}}"
           weblog: "${{matrix.weblog}}"
           version: "${{matrix.version }}"
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
           is_lang_supported_version: 'true'
 
 

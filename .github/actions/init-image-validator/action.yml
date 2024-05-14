@@ -14,6 +14,10 @@ inputs:
     description: 'Version of the library to be tested: dev for latest snapshot, prod for release version'
     required: true
 
+  gh_token:
+    description: 'GitHub token'
+    required: true
+
   is_lang_supported_version:
     description: 'We are testing weblogs that run with supported lang version or not'
     default: 'true'
@@ -36,7 +40,7 @@ runs:
       with:
         registry: ghcr.io/datadog
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ inputs.gh_token }}
 
     - name: Build weblog init image validator
       shell: bash
