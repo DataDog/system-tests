@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace weblog
 {
@@ -13,6 +14,8 @@ namespace weblog
         public string? Value1 { get; set; }
         public string? Value2 { get; set; }
         public string? Value5 { get; set; }
+        public string? File { get; set; }
+        public string? Domain { get; set; }
 
         public override string ToString() => $"value {Value}, value2 {Value2}";
     }
