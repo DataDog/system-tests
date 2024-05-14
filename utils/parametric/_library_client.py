@@ -2,19 +2,14 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator, Union
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import TypedDict
+from typing import Generator, List, Optional, Tuple, TypedDict, Union
 
 import grpc
 import requests
 
 from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
-from utils.parametric.spec.otel_trace import OtelSpanContext
-from utils.parametric.spec.otel_trace import convert_to_proto
+from utils.parametric.spec.otel_trace import OtelSpanContext, convert_to_proto
 
 
 class StartSpanResponse(TypedDict):
@@ -188,6 +183,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "origin": origin,
                 "http_headers": http_headers,
                 "links": links,
+                "span_tags": tags,
             },
         )
         resp_json = resp.json()
