@@ -1,0 +1,45 @@
+FROM amazonlinux:2 as single_step_instrumentation
+
+RUN yum install -y curl wget tar patch make procps
+RUN amazon-linux-extras install java-openjdk11
+
+#Mock the agent folder and user. Requirement for datadog-apm-inject
+RUN mkdir -p /etc/datadog-agent/inject
+RUN useradd -ms /bin/bash dd-agent
+
+#Configure datadog repositories
+COPY rpm/*.aarch64.repo /etc/yum.repos.d/
+RUN yum -y makecache
+
+#Manual install tests
+#COPY datadog-apm-library-dotnet-2.52.0.dev.bc12aaeb-1.aarch64.rpm .
+#RUN yum -y install --disablerepo="*" datadog-apm-inject-0.13.1-dev.b0d6e40.glci509607831.g602d0911-1.aarch64.rpm
+
+#Install autoinjection
+RUN yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject
+RUN yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-library-java
+
+#Send traces to the test agent
+ENV CI_USE_TEST_AGENT="true"
+ENV DD_TRACE_AGENT_URL=http://ddapm-test-agent:8126
+ENV DD_AGENT_PORT=8126
+
+#Enable debug
+ENV DD_TRACE_DEBUG=true
+ENV DD_APM_INSTRUMENTATION_DEBUG=true
+
+#It's going to fails because the agent is not running
+RUN dd-host-install || true 
+
+FROM alpine:latest as java_build
+RUN apk --no-cache add openjdk11 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+RUN apk add --no-cache bash
+COPY utils/build/ssi/java/dd-lib-java-init-test-app/ .
+RUN ./gradlew build
+
+FROM single_step_instrumentation
+COPY --from=java_build /build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar .
+ENV server.port=18080
+RUN echo "bash -c 'java -jar k8s-lib-injection-app-0.0.1-SNAPSHOT.jar'" > /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT sleep infinity

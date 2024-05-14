@@ -85,7 +85,7 @@ jobs:
         with:
           repository: 'DataDog/system-tests'
 
-      - uses: ./.github/actions/init-iamge-validator
+      - uses: ./.github/actions/init-image-validator
         name: 'Build and run lib init image validator scenarios'
         with:
           library: "${{inputs.library}}"
