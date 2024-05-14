@@ -721,7 +721,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
         """
         Ensure the last parent id tag is set according to the W3C Phase 2 spec
@@ -775,7 +775,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
         """
         Ensure the last parent id is propagated according to the W3C spec
@@ -791,14 +791,13 @@ class Test_Headers_Tracecontext:
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert "p:{:016x}".format(int(span.span_id)) in tracestate
 
-    # W3C Phase 3 to try adding the tag if the span id matches regardless of headers order(if tracecontext is accounted)
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    # @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
     def test_tracestate_w3c_p_extract_datadog_w3c(self, test_agent, test_library):
@@ -913,15 +912,6 @@ class Test_Headers_Tracecontext:
         assert case5["parent_id"] == 987654321
         assert case5["meta"]["_dd.parent_id"] == "8fffffffffffffff"
 
-    # W3C Phase 3 to try adding the tag if the span id matches regardless of headers order(if tracecontext is accounted)
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true", "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}],
