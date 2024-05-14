@@ -31,6 +31,12 @@ jobs:
         import os
 
         weblogs={
+          "cpp":[],
+          "python":[],
+          "nodejs":[],
+          "dotnet":[],
+          "ruby":[],
+          "php":[],
           "java": ["dd-lib-java-init-test-app"],
         }
 
@@ -42,7 +48,7 @@ jobs:
         print(json.dumps(result, indent=2))
 
   lib-injection-init-image-validator:
-    if: 1==2 || inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
+    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
     runs-on:
       group: "APM Larger Runners"
     permissions:
@@ -80,7 +86,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build weblog init image validator
-        run: lib-injection/build/build_lib_injection_image_validator.sh -w ${{ matrix.weblog }} -e ${{ matrix.version }}         
+        run: docker buildx build -t weblog-injection-init:latest -f utils/build/ssi/$TEST_LIBRARY/$WEBLOG_VARIANT/Dockerfile.lib-init-validator --load .
 
       - name: Install runner
         uses: ./.github/actions/install_runner       
@@ -156,10 +162,7 @@ jobs:
         env:
           DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
           APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.weblog }}
-        run: |
-          cd utils/build/ssi/$TEST_LIBRARY/$WEBLOG_VARIANT 
-          docker buildx build --platform linux/amd64 -t $APP_DOCKER_IMAGE_REPO:${{ github.sha }} --push .
-          cd ..
+        run: docker buildx build --platform linux/amd64 -t $APP_DOCKER_IMAGE_REPO:${{ github.sha }} -f utils/build/ssi/$TEST_LIBRARY/$WEBLOG_VARIANT/Dockerfile --push .
           
       - name: Build weblog latest base images
         #If we execute on system-tests-dashboard, we can't push the images because we don't have the permissions.
