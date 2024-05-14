@@ -31,6 +31,8 @@ def validate_stack_traces(request):
         assert "exploit" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
 
         stack_traces = span["meta_struct"]["_dd.stack"]["exploit"]
+        assert stack_traces, "No stack traces to validate"
+
         for stack in stack_traces:
             assert "language" in stack, "'language' not found in stack trace"
             assert stack["language"] in (
