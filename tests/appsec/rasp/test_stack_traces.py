@@ -5,38 +5,50 @@
 from utils import features, weblog, interfaces, scenarios, rfc, missing_feature
 
 
-def validate_stack_traces(span):
-    assert "_dd.appsec.json" in span["meta"], "'_dd.appsec.json' not found in 'meta'"
+def validate_stack_traces(request):
+    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
+    assert spans, "No spans to validate"
 
-    json = span["meta"]["_dd.appsec.json"]
-    assert "triggers" in json, "'triggers' not found in '_dd.appsec.json'"
+    for span in spans:
+        assert "_dd.appsec.json" in span["meta"], "'_dd.appsec.json' not found in 'meta'"
 
-    triggers = json["triggers"]
+        json = span["meta"]["_dd.appsec.json"]
+        assert "triggers" in json, "'triggers' not found in '_dd.appsec.json'"
 
-    # Find all stack IDs
-    stack_ids = []
-    for event in triggers:
-        if "stack_id" in event:
-            stack_ids.append(event["stack_id"])
+        triggers = json["triggers"]
 
-    # The absence of stack IDs can be considered a bug
-    assert len(stack_ids) > 0, "no 'stack_id's present in 'triggers'"
+        # Find all stack IDs
+        stack_ids = []
+        for event in triggers:
+            if "stack_id" in event:
+                stack_ids.append(event["stack_id"])
 
-    assert "meta_struct" in span, "'meta_struct' not found in span"
-    assert "_dd.stack" in span["meta_struct"], "'_dd.stack' not found in 'meta_struct'"
-    assert "exploit" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
+        # The absence of stack IDs can be considered a bug
+        assert len(stack_ids) > 0, "no 'stack_id's present in 'triggers'"
 
-    stack_traces = span["meta_struct"]["_dd.stack"]["exploit"]
-    for stack in stack_traces:
-        assert "language" in stack, "'language' not found in stack trace"
-        assert stack["language"] in ("php", "python", "nodejs", "java", "dotnet", "go", "ruby"), "unexpected language"
+        assert "meta_struct" in span, "'meta_struct' not found in span"
+        assert "_dd.stack" in span["meta_struct"], "'_dd.stack' not found in 'meta_struct'"
+        assert "exploit" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
 
-        # Ensure the stack ID corresponds to an appsec event
-        assert "id" in stack, "'id' not found in stack trace"
-        assert stack["id"] in stack_ids, "'id' doesn't correspond to an appsec event"
+        stack_traces = span["meta_struct"]["_dd.stack"]["exploit"]
+        for stack in stack_traces:
+            assert "language" in stack, "'language' not found in stack trace"
+            assert stack["language"] in (
+                "php",
+                "python",
+                "nodejs",
+                "java",
+                "dotnet",
+                "go",
+                "ruby",
+            ), "unexpected language"
 
-        assert "frames" in stack, "'frames' not found in stack trace"
-        assert len(stack["frames"]) <= 32, "stack trace above size limit (32 frames)"
+            # Ensure the stack ID corresponds to an appsec event
+            assert "id" in stack, "'id' not found in stack trace"
+            assert stack["id"] in stack_ids, "'id' doesn't correspond to an appsec event"
+
+            assert "frames" in stack, "'frames' not found in stack trace"
+            assert len(stack["frames"]) <= 32, "stack trace above size limit (32 frames)"
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")
@@ -50,18 +62,14 @@ class Test_StackTrace:
 
     def test_lfi_stack_trace(self):
         assert self.r.status_code == 403
-
-        for _, span in interfaces.library.get_root_spans(request=self.r):
-            validate_stack_traces(span)
+        validate_stack_traces(self.r)
 
     def setup_ssrf_stack_trace(self):
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_stack_trace(self):
         assert self.r.status_code == 403
-
-        for _, span in interfaces.library.get_root_spans(request=self.r):
-            validate_stack_traces(span)
+        validate_stack_traces(self.r)
 
     def setup_sqli_stack_trace(self):
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
@@ -70,6 +78,4 @@ class Test_StackTrace:
     @missing_feature(library="dotnet")
     def test_sqli_stack_trace(self):
         assert self.r.status_code == 403
-
-        for _, span in interfaces.library.get_root_spans(request=self.r):
-            validate_stack_traces(span)
+        validate_stack_traces(self.r)
