@@ -20,6 +20,7 @@
 # * Python: Direct from github source
 # * Ruby:   Direct from github source
 # * WAF:    Direct from github source, but not working, as this repo is now private
+# * nginx:  From circle ci
 ##########################################################################################
 
 set -eu
@@ -210,6 +211,10 @@ elif [ "$TARGET" = "cpp" ]; then
     # Not handled for now for system-tests. this handles artifact for parametric
     echo "Using https://github.com/DataDog/dd-trace-cpp@main"
     echo "https://github.com/DataDog/dd-trace-cpp@main" > cpp-load-from-git
+elif [ "$TARGET" = "nginx" ]; then
+    assert_version_is_dev
+    ARCH=$(arch | sed -e s/x86_64/amd64/ -e s/aarch64/arm64/)
+    get_circleci_artifact gh/DataDog/nginx-datadog build-and-test "build 1.25.4 on ${ARCH} WAF ON" ngx_http_datadog_module.so
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
     echo "datadog/agent-dev:master-py3" > agent-image

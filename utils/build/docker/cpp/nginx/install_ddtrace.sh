@@ -4,15 +4,30 @@ set -eu
 set -o pipefail
 set -x
 
+function fetch_version {
+  declare -r what=$1
+  strings /usr/lib/nginx/modules/ngx_http_datadog_module.so | \
+    grep -F "[${what} version" | \
+    sed 's/.* version \([^]]\+\).*/\1/'
+}
+
 function epilogue {
-  readonly module_version=$1
+  local module_version=$1
   if [[ -z $module_version ]]; then
     echo "ERROR: Missing module version."
     exit 1
   fi
 
+  if [[ $module_version = unknown_mod_version ]]; then
+    module_version=v$(fetch_version nginx_mod)
+    if [[ $module_version == v ]]; then
+      echo "ERROR: could not determine module version"
+      exit 1
+    fi
+  fi
+
   echo "DataDog/nginx-datadog version: ${module_version}"
-  echo "$module_version" > SYSTEM_TESTS_LIBRARY_VERSION
+  echo "$module_version" | tr -d v > SYSTEM_TESTS_LIBRARY_VERSION
 
   rm -f /etc/nginx/nginx.conf
   if version_first_is_greater "$module_version" "v1.1.0"; then
@@ -21,8 +36,8 @@ function epilogue {
     ln -s nginx.conf.no-waf /etc/nginx/nginx.conf
   fi
 
-  echo "1.7.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
-  echo "1.11.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+  fetch_version libddwaf > SYSTEM_TESTS_LIBDDWAF_VERSION
+  fetch_version waf_rules > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 }
 
 version_first_is_greater() {
@@ -42,7 +57,8 @@ version_first_is_greater() {
         fi
     done
 
-    echo 1 # equal
+    # equal (not greater)
+    return 1
 }
 
 if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 0 ]]; then
@@ -50,11 +66,6 @@ if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 0 ]
 
   if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 1 ]]; then
     echo "ERROR: Found several ngx_http_datadog_module-*.so.tgz files in binaries/, abort."
-    exit 1
-  fi
-
-  if [[ ! -f /binaries/SYSTEM_TESTS_LIBRARY_VERSION ]]; then
-    echo "ERROR: Missing binaries/SYSTEM_TESTS_LIBRARY_VERSION"
     exit 1
   fi
 
@@ -70,7 +81,17 @@ if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 0 ]
     tar -xzvf /binaries/ngx_http_datadog_module-*.so.debug.tgz -C /usr/lib/nginx/modules
   fi
 
-  epilogue "$(< /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
+  epilogue unknown_mod_version
+  exit 0
+fi
+
+if [[ -f /binaries/ngx_http_datadog_module.so ]]; then
+  cp -v /binaries/ngx_http_datadog_module.so /usr/lib/nginx/modules
+  if [[ -f /binaries/ngx_http_datadog_module.so.debug ]]; then
+    cp -v /binaries/ngx_http_datadog_module.so.debug /usr/lib/nginx/modules
+  fi
+
+  epilogue unknown_mod_version
   exit 0
 fi
 
@@ -99,8 +120,8 @@ fi
 readonly NGINX_DATADOG_VERSION="$(get_latest_release)"
 
 if version_first_is_greater "$NGINX_DATADOG_VERSION" "v1.1.0"; then
-  readonly TARBALLS=(
-    "ngx_http_datadog_module-WAF-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.tgz"
+  local readonly TARBALLS=(
+    "ngx_http_datadog_module-appsec-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.tgz"
     "ngx_http_datadog_module-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.debug.tgz"
   )
   for FILE in "${TARBALLS[@]}"; do

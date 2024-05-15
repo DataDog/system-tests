@@ -12,8 +12,8 @@ from utils._context.core import context
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator
 
-import pydevd_pycharm
-pydevd_pycharm.settrace('localhost', port=5555, stdoutToServer=True, stderrToServer=True)
+# import pydevd_pycharm
+# pydevd_pycharm.settrace('localhost', port=5555, stdoutToServer=True, stderrToServer=True)
 
 
 class _LogsInterfaceValidator(InterfaceValidator):
