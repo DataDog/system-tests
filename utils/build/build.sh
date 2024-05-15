@@ -129,7 +129,7 @@ build() {
     *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
     esac
 
-    if [ -n "$LIB_INJECTION_GROUP" ]; then
+    if [! -z ${LIB_INJECTION_GROUP+.} ]; then
         build_with_lib_injection_group
         exit 0
     fi
@@ -346,9 +346,6 @@ validate_lib_injection_group_data() {
     #Used specifically for host-injection group to set the machine that we are going to use
     WEBLOG_VARIANT_SUFIX=$(echo "${WEBLOG_VARIANT}"|grep -o "\..*$")||true
     WEBLOG_VARIANT="${WEBLOG_VARIANT%%.*}"
-    echo "WEBLOG_VARIANT: $WEBLOG_VARIANT"
-    echo "WEBLOG_VARIANT_SUFIX: $WEBLOG_VARIANT_SUFIX"
-    echo "----> ${SCRIPT_DIR}/ssi/${TEST_LIBRARY}/${WEBLOG_VARIANT}/Dockerfile${WEBLOG_VARIANT_SUFIX}.${LIB_INJECTION_GROUP}" 
     #Check if variant exists on this group
     if [ ! -f "${SCRIPT_DIR}/ssi/${TEST_LIBRARY}/${WEBLOG_VARIANT}/Dockerfile${WEBLOG_VARIANT_SUFIX}.${LIB_INJECTION_GROUP}" ]; then
         echo "Variant [${WEBLOG_VARIANT}] for group [${LIB_INJECTION_GROUP}] not found"

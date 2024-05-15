@@ -204,7 +204,7 @@ jobs:
       - name: Kubernetes lib-injection tests (using custom weblog image tag)
         if: inputs.build_lib_injection_app_images
         id: k8s-lib-injection-tests-custom-weblog-tag
-        run: DOCKER_IMAGE_WEBLOG_TAG=${{ github.sha }} ./run.sh K8S_LIB_INJECTION_BASIC
+        run: DOCKER_IMAGE_WEBLOG_TAG=${{ github.sha }} ./run.sh K8S_LIB_INJECTION_FULL
 
       - name: Kubernetes lib-injection tests
         if: inputs.build_lib_injection_app_images != true
