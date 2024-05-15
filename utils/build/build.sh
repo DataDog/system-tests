@@ -129,7 +129,7 @@ build() {
     *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
     esac
 
-    if [ -n $LIB_INJECTION_GROUP ]; then
+    if [ -n "$LIB_INJECTION_GROUP" ]; then
         build_with_lib_injection_group
         exit 0
     fi
@@ -285,7 +285,7 @@ build_with_lib_injection_group() {
         build_k8s_lib_injection_group
     else
 
-        docker buildx build  --build-arg="LIB_INIT_ENV=${LIB_ENV}" -t weblog-injection-host:latest -f "${WEBLOG_VARIANT_PATH}" --load .
+        docker buildx build  --build-arg="LIB_INIT_ENV=${LIB_ENV}" -t weblog-injection-init:latest -f "${WEBLOG_VARIANT_PATH}" --load .
     fi
 }
 build_k8s_lib_injection_group() {
@@ -318,7 +318,7 @@ build_k8s_lib_injection_group() {
         fi
 
         #Build weblog full tag
-        if [ $DOCKER_REGISTRY_IMAGES_PATH == "ghcr"* ]; then
+        if [[ "$DOCKER_REGISTRY_IMAGES_PATH"=~ ^ghcr.* ]]; then
             FULL_WEBLOG_PUSH_TAG="$DOCKER_REGISTRY_IMAGES_PATH/system-tests/${WEBLOG_VARIANT}:${DOCKER_IMAGE_WEBLOG_TAG}"
         else
             FULL_WEBLOG_PUSH_TAG="$DOCKER_REGISTRY_IMAGES_PATH/${WEBLOG_VARIANT}:${DOCKER_IMAGE_WEBLOG_TAG}"
