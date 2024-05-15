@@ -129,7 +129,7 @@ build() {
     *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
     esac
 
-    if [! -z ${LIB_INJECTION_GROUP+.} ]; then
+    if [[ ! -z ${LIB_INJECTION_GROUP+.} ]]; then
         build_with_lib_injection_group
         exit 0
     fi
