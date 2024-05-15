@@ -23,6 +23,10 @@ inputs:
     default: 'true'
     required: false
 
+  lib_injection_group:
+    description: 'Group of lib-injection tests'
+    default: 'lib-init'
+    required: true
 
 runs:
   using: "composite"
@@ -42,20 +46,20 @@ runs:
         username: ${{ github.actor }}
         password: ${{ inputs.gh_token }}
 
-    - name: Build weblog init image validator
+    - name: Build weblog image
       shell: bash
-      run: docker buildx build  --build-arg="LIB_INIT_ENV=${{ inputs.version }}" -t weblog-injection-init:latest -f utils/build/ssi/${{ inputs.library }}/${{ inputs.weblog }}/Dockerfile.lib-init-validator --load .
+      run: ./build.sh -w ${{ inputs.weblog }} -lg ${{ inputs.lib_injection_group }} 
 
     - name: Install runner
       uses: ./.github/actions/install_runner       
 
     - name: Validate supported lang init image
-      if: ${{ inputs.is_lang_supported_version == 'true' }}
+      if: ${{ inputs.is_lang_supported_version == 'true' && inputs.lib_injection_group=='lib-init'}}
       shell: bash
       run: ./run.sh LIB_INJECTION_VALIDATION
 
     - name: Validate NOT supported lang init image
-      if: ${{ inputs.is_lang_supported_version != 'true' }}
+      if: ${{ inputs.is_lang_supported_version != 'true' && inputs.lib_injection_group=='lib-init'}}
       shell: bash
       run: ./run.sh LIB_INJECTION_VALIDATION_NOT_SUPPORTED_LANG
 

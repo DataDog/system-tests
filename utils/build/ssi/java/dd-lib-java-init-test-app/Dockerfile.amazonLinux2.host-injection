@@ -8,7 +8,7 @@ RUN mkdir -p /etc/datadog-agent/inject
 RUN useradd -ms /bin/bash dd-agent
 
 #Configure datadog repositories
-COPY rpm/*.aarch64.repo /etc/yum.repos.d/
+COPY utils/build/ssi/all/linux_repositories/rpm/*.aarch64.repo /etc/yum.repos.d/
 RUN yum -y makecache
 
 #Manual install tests
@@ -28,7 +28,7 @@ ENV DD_AGENT_PORT=8126
 ENV DD_TRACE_DEBUG=true
 ENV DD_APM_INSTRUMENTATION_DEBUG=true
 
-#It's going to fails because the agent is not running
+#It's going to fail because the agent is not running
 RUN dd-host-install || true 
 
 FROM alpine:latest as java_build
@@ -40,6 +40,6 @@ RUN ./gradlew build
 FROM single_step_instrumentation
 COPY --from=java_build /build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar .
 ENV server.port=18080
-RUN echo "bash -c 'java -jar k8s-lib-injection-app-0.0.1-SNAPSHOT.jar'" > /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN echo "bash -c 'java -jar k8s-lib-injection-app-0.0.1-SNAPSHOT.jar > test-point.log 2>&1'" > /test-point.sh
+RUN chmod +x /test-point.sh
 ENTRYPOINT sleep infinity

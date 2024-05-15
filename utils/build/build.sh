@@ -52,6 +52,7 @@ print_usage() {
     echo -e "${WHITE_BOLD}OPTIONS${NC}"
     echo -e "  ${CYAN}--library <lib>${NC}            Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
     echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
+    echo -e "  ${CYAN}--lib-injection-group <var>${NC}       You can choose: 'k8s','lib-init' or 'host-injection' to work with lib injection group of weblogs different from the default system-tests."
     echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
     echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
     echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
@@ -73,6 +74,8 @@ print_usage() {
     echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""    
     echo -e "  Build default images for Dotnet with binary url:"
     echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
+    echo -e "  Build a weblog from 'host-injection' group:"
+    echo -e "    ${SCRIPT_NAME} --weblog-variant sample-app.amazonLinux2 --lib-injection-group host-injection"
     echo -e "  List libraries:"
     echo -e "    ${SCRIPT_NAME} --list-libraries"
     echo -e "  List weblogs for PHP:"
@@ -125,6 +128,11 @@ build() {
     arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
     *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
     esac
+
+    if [ -n $LIB_INJECTION_GROUP ]; then
+        build_with_lib_injection_group
+        exit 0
+    fi
 
     # Build images
     for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
@@ -266,6 +274,85 @@ build() {
     done
 }
 
+build_with_lib_injection_group() {
+    WEBLOG_VARIANT_PATH="${SCRIPT_DIR}/ssi/${TEST_LIBRARY}/${WEBLOG_VARIANT}/Dockerfile${WEBLOG_VARIANT_SUFIX}.${LIB_INJECTION_GROUP}"
+    echo "LIB_INJECTION_GROUP: $LIB_INJECTION_GROUP"
+    LIB_ENV=${ENV:-"prod"}
+    echo "ENV: $LIB_ENV"
+    echo "-----------------------"
+    echo Build $WEBLOG_VARIANT_PATH
+    if [[ $LIB_INJECTION_GROUP == "k8s" ]]; then
+        build_k8s_lib_injection_group
+    else
+
+        docker buildx build  --build-arg="LIB_INIT_ENV=${LIB_ENV}" -t weblog-injection-host:latest -f "${WEBLOG_VARIANT_PATH}" --load .
+    fi
+}
+build_k8s_lib_injection_group() {
+        #Validate the K8s environment before building the image
+        #Validate k8s: Check if DOCKER_REGISTRY_IMAGES_PATH is set
+        echo "Building image for k8s lib injection group"
+        if [ -z ${DOCKER_REGISTRY_IMAGES_PATH+x} ]; then
+            echo "You must provide a docker registry path"
+            echo "Example 1: export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_DOCKERHUB_USERNAME"
+            echo "Example 2: export DOCKER_REGISTRY_IMAGES_PATH=ghcr.io/datadog"
+            exit 1
+        fi
+        #Validate k8s: You must be logged to a docker registry/ghcr registry
+        docker login $DOCKER_REGISTRY_IMAGES_PATH
+        
+        #Validate K8s: check env. DOCKER_IMAGE_TAG is the tag for the lib init image
+        if [ ${ENV:-"prod"} == "prod" ]; then
+            export DOCKER_IMAGE_TAG="latest"
+        elif [ $ENV == "dev" ]; then
+            export DOCKER_IMAGE_TAG="latest_snapshot"
+        else
+            echo "Setting DOCKER_IMAGE_TAG to local"
+            export DOCKER_IMAGE_TAG="local"
+        fi
+
+        #Validate K8s: check if DOCKER_IMAGE_WEBLOG_TAG is set
+        if [ -z ${DOCKER_IMAGE_WEBLOG_TAG+x} ]; then
+            echo "Working with image weblog tag: latest"
+            export DOCKER_IMAGE_WEBLOG_TAG="latest"
+        fi
+
+        #Build weblog full tag
+        if [ $DOCKER_REGISTRY_IMAGES_PATH == ghcr.* ]; then
+            FULL_WEBLOG_PUSH_TAG="$DOCKER_REGISTRY_IMAGES_PATH/system-tests/${WEBLOG_VARIANT}:${DOCKER_IMAGE_WEBLOG_TAG}"
+        else
+            FULL_WEBLOG_PUSH_TAG="$DOCKER_REGISTRY_IMAGES_PATH/${WEBLOG_VARIANT}:${DOCKER_IMAGE_WEBLOG_TAG}"
+        fi
+        #Print the environment
+        echo "ENV: $LIB_ENV"
+        echo "DOCKER_REGISTRY_IMAGES_PATH: $DOCKER_REGISTRY_IMAGES_PATH"
+        echo "DOCKER_IMAGE_WEBLOG_TAG: $DOCKER_IMAGE_WEBLOG_TAG"
+        echo "DOCKER_IMAGE_TAG: $DOCKER_IMAGE_TAG"
+        echo "FULL_WEBLOG_PUSH_TAG: $FULL_WEBLOG_PUSH_TAG"
+        echo "-----------------------"
+        #Build and push the image
+        docker buildx build -t "${FULL_WEBLOG_PUSH_TAG}" -f "${WEBLOG_VARIANT_PATH}" --push .
+}
+
+validate_lib_injection_group_data() {
+    if [ "$LIB_INJECTION_GROUP" != "k8s" ] && [ "$LIB_INJECTION_GROUP" != "lib-init" ] && [ "$LIB_INJECTION_GROUP" != "host-injection" ]; then
+        echo "Invalid weblog group. You should choose: 'k8s','lib-init' or 'host-injection'"
+        exit 1
+    fi
+    if [ -z $WEBLOG_VARIANT ]; then
+        echo "You must provide a weblog variant"
+        exit 1
+    fi
+    #Used specifically for host-injection group to set the machine that we are going to use
+    WEBLOG_VARIANT_SUFIX=$(echo "${WEBLOG_VARIANT}"|grep -o "\..*$")||true
+    WEBLOG_VARIANT="${WEBLOG_VARIANT%%.*}"
+    #Check if variant exists on this group
+    if [ ! -f "${SCRIPT_DIR}/ssi/${TEST_LIBRARY}/${WEBLOG_VARIANT}/Dockerfile${WEBLOG_VARIANT_SUFIX}.${LIB_INJECTION_GROUP}" ]; then
+        echo "Variant [${WEBLOG_VARIANT}] for group [${LIB_INJECTION_GROUP}] not found"
+        exit 1
+    fi
+}
+
 # Main
 COMMAND=build
 
@@ -276,6 +363,7 @@ while [[ "$#" -gt 0 ]]; do
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
+        -lg|--lib-injection-group) LIB_INJECTION_GROUP="$2"; shift ;;
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
@@ -306,12 +394,16 @@ if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY
     exit 1
 fi
 
-WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
-    echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
-    echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
-    exit 1
+# Check if we are working with a different group of weblogs different from the default system-tests
+if [ -n $LIB_INJECTION_GROUP ]; then
+    validate_lib_injection_group_data
+else
+    #Default system-tests build
+    WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
+    if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
+        echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
+        echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
+        exit 1
+    fi
 fi
-
 "${COMMAND}"

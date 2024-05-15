@@ -1339,6 +1339,17 @@ class APMTestAgentScenario(_Scenario):
                 logger.exception(f"Failed to remove container {container}")
 
 
+class HostInjectMockedScenario(APMTestAgentScenario):
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+
+        self._required_containers = []
+        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(
+            WeblogInjectionInitContainer(host_log_folder=self.host_log_folder, test_point_cmd="sh -c './test-point.sh'")
+        )
+
+
 class scenarios:
     @staticmethod
     def all_endtoend_scenarios(test_object):
@@ -1898,6 +1909,14 @@ class scenarios:
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
+
+    host_injection_validation = HostInjectMockedScenario(
+        "HOST_INJECTION_VALIDATION",
+        doc="Validates the host injection inside a docker mocking the agent and using dev test agent",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )

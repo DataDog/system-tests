@@ -92,6 +92,7 @@ jobs:
           weblog: "${{matrix.weblog}}"
           version: "${{matrix.version }}"
           gh_token: ${{ secrets.GITHUB_TOKEN }}
+          lib_injection_group: 'lib-init'
           is_lang_supported_version: 'true'
 
 
@@ -125,6 +126,7 @@ jobs:
           version: "${{matrix.version }}"
           gh_token: ${{ secrets.GITHUB_TOKEN }}
           is_lang_supported_version: 'false'
+          lib_injection_group: 'lib-init'
 
   k8s-lib-injection-tests:
     if: 1==2 && inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
@@ -181,8 +183,7 @@ jobs:
         if: inputs.build_lib_injection_app_images
         env:
           DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
-          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.weblog }}
-        run: docker buildx build --platform linux/amd64 -t $APP_DOCKER_IMAGE_REPO:${{ github.sha }} -f utils/build/ssi/$TEST_LIBRARY/$WEBLOG_VARIANT/Dockerfile --push .
+        run: ./build.sh -w ${{ matrix.weblog }} -lg k8s 
           
       - name: Build weblog latest base images
         #If we execute on system-tests-dashboard, we can't push the images because we don't have the permissions.
