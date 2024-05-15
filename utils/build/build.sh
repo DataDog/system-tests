@@ -318,7 +318,7 @@ build_k8s_lib_injection_group() {
         fi
 
         #Build weblog full tag
-        if [ $DOCKER_REGISTRY_IMAGES_PATH == ghcr.* ]; then
+        if [ $DOCKER_REGISTRY_IMAGES_PATH == "ghcr"* ]; then
             FULL_WEBLOG_PUSH_TAG="$DOCKER_REGISTRY_IMAGES_PATH/system-tests/${WEBLOG_VARIANT}:${DOCKER_IMAGE_WEBLOG_TAG}"
         else
             FULL_WEBLOG_PUSH_TAG="$DOCKER_REGISTRY_IMAGES_PATH/${WEBLOG_VARIANT}:${DOCKER_IMAGE_WEBLOG_TAG}"
@@ -398,9 +398,7 @@ if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY
 fi
 
 # Check if we are working with a different group of weblogs different from the default system-tests
-if [ -n ${LIB_INJECTION_GROUP+x} ]; then
-    validate_lib_injection_group_data
-else
+if [ -z ${LIB_INJECTION_GROUP+x} ]; then
     #Default system-tests build
     WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
     if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
@@ -408,5 +406,7 @@ else
         echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
         exit 1
     fi
+else
+    validate_lib_injection_group_data
 fi
 "${COMMAND}"

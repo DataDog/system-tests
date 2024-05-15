@@ -48,7 +48,7 @@ runs:
 
     - name: Build weblog image
       shell: bash
-      run: ./build.sh -w ${{ inputs.weblog }} -lg ${{ inputs.lib_injection_group }} 
+      run: ./build.sh -l ${{ inputs.library }} -w ${{ inputs.weblog }} -lg ${{ inputs.lib_injection_group }} 
 
     - name: Install runner
       uses: ./.github/actions/install_runner       
