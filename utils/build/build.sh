@@ -318,7 +318,7 @@ build_k8s_lib_injection_group() {
         fi
 
         #Build weblog full tag
-        if [[ "$DOCKER_REGISTRY_IMAGES_PATH"=~ ^ghcr.* ]]; then
+        if [[ "$DOCKER_REGISTRY_IMAGES_PATH" =~ ^ghcr.* ]]; then
             FULL_WEBLOG_PUSH_TAG="$DOCKER_REGISTRY_IMAGES_PATH/system-tests/${WEBLOG_VARIANT}:${DOCKER_IMAGE_WEBLOG_TAG}"
         else
             FULL_WEBLOG_PUSH_TAG="$DOCKER_REGISTRY_IMAGES_PATH/${WEBLOG_VARIANT}:${DOCKER_IMAGE_WEBLOG_TAG}"
