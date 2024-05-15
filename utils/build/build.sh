@@ -346,6 +346,9 @@ validate_lib_injection_group_data() {
     #Used specifically for host-injection group to set the machine that we are going to use
     WEBLOG_VARIANT_SUFIX=$(echo "${WEBLOG_VARIANT}"|grep -o "\..*$")||true
     WEBLOG_VARIANT="${WEBLOG_VARIANT%%.*}"
+    echo "WEBLOG_VARIANT: $WEBLOG_VARIANT"
+    echo "WEBLOG_VARIANT_SUFIX: $WEBLOG_VARIANT_SUFIX"
+    echo "----> ${SCRIPT_DIR}/ssi/${TEST_LIBRARY}/${WEBLOG_VARIANT}/Dockerfile${WEBLOG_VARIANT_SUFIX}.${LIB_INJECTION_GROUP}" 
     #Check if variant exists on this group
     if [ ! -f "${SCRIPT_DIR}/ssi/${TEST_LIBRARY}/${WEBLOG_VARIANT}/Dockerfile${WEBLOG_VARIANT_SUFIX}.${LIB_INJECTION_GROUP}" ]; then
         echo "Variant [${WEBLOG_VARIANT}] for group [${LIB_INJECTION_GROUP}] not found"
@@ -395,7 +398,7 @@ if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY
 fi
 
 # Check if we are working with a different group of weblogs different from the default system-tests
-if [ -n $LIB_INJECTION_GROUP ]; then
+if [ -n ${LIB_INJECTION_GROUP+x} ]; then
     validate_lib_injection_group_data
 else
     #Default system-tests build
