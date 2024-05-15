@@ -715,16 +715,16 @@ class Test_Headers_Tracecontext:
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
         """
-        Ensure the last parent id tag is set according to the W3C spec
+        Ensure the last parent id tag is set according to the W3C Phase 2 spec
         """
         with test_library:
             with test_library.start_span(
@@ -746,17 +746,6 @@ class Test_Headers_Tracecontext:
                 pass
 
             with test_library.start_span(
-                name="datadog_headers_used_in_propagation",
-                http_headers=[
-                    ["traceparent", "00-12345678901234567890123456789014-1234567890123458-00"],
-                    ["tracestate", "key1=value1,dd=s:2;p:000000000000000b"],
-                    ["x-datadog-trace-id", "5"],
-                    ["x-datadog-parent-id", "11"],
-                ],
-            ):
-                pass
-
-            with test_library.start_span(
                 name="p_not_propagated",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
@@ -765,10 +754,10 @@ class Test_Headers_Tracecontext:
             ):
                 pass
 
-        traces = test_agent.wait_for_num_traces(4)
+        traces = test_agent.wait_for_num_traces(3)
 
-        assert len(traces) == 4
-        case1, case2, case3, case4 = traces[0][0], traces[1][0], traces[2][0], traces[3][0]
+        assert len(traces) == 3
+        case1, case2, case3 = traces[0][0], traces[1][0], traces[2][0]
 
         assert case1["name"] == "p_set"
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
@@ -776,22 +765,17 @@ class Test_Headers_Tracecontext:
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
 
-        assert case3["name"] == "datadog_headers_used_in_propagation"
-        assert case3["trace_id"] == 5
-        assert case3["parent_id"] == 11
-        assert "_dd.parent_id" not in case3["meta"]
-
-        assert case4["name"] == "p_not_propagated"
-        assert case4["meta"]["_dd.parent_id"] == "0000000000000000"
+        assert case3["name"] == "p_not_propagated"
+        assert case3["meta"]["_dd.parent_id"] == "0000000000000000"
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
         """
         Ensure the last parent id is propagated according to the W3C spec
@@ -806,6 +790,161 @@ class Test_Headers_Tracecontext:
             tracestate = tracestate_headers[0][1]
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert "p:{:016x}".format(int(span.span_id)) in tracestate
+
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
+    def test_tracestate_w3c_p_extract_datadog_w3c(self, test_agent, test_library):
+        """
+        Ensure the last parent id tag is set according to the W3C phase 3 spec
+        """
+        with test_library:
+
+            # 1) Trace ids and parent ids in datadog and tracecontext headers match
+            with test_library.start_span(
+                name="identical_trace_info",
+                http_headers=[
+                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:000000003ade68b1,foo=1"],
+                    ["x-datadog-trace-id", "1"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                    ["x-datadog-parent-id", "987654321"],
+                ],
+            ):
+                pass
+
+            # 2) Trace ids in datadog and tracecontext headers do not match
+            with test_library.start_span(
+                name="trace_ids_do_not_match",
+                http_headers=[
+                    ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:000000000000000a,foo=1"],
+                    ["x-datadog-parent-id", "10"],
+                    ["x-datadog-trace-id", "2"],
+                    ["x-datadog-tags", "_dd.p.tid=2222222222222222"],
+                ],
+            ):
+                pass
+
+            # 3) Parent ids in Datadog and tracecontext headers do not match
+            with test_library.start_span(
+                name="same_trace_non_matching_parent_ids",
+                http_headers=[
+                    ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:000000000000000a,foo=1"],
+                    ["x-datadog-trace-id", "3"],
+                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                    ["x-datadog-parent-id", "10"],
+                ],
+            ):
+                pass
+
+            # 4) Parent ids do not match and p value is not present in tracestate
+            with test_library.start_span(
+                name="non_matching_span_missing_p_value",
+                http_headers=[
+                    ["traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2,foo=1"],
+                    ["x-datadog-trace-id", "4"],
+                    ["x-datadog-parent-id", "10"],
+                ],
+            ):
+                pass
+
+            # 5) Parent ids do not match and p value does not match datadog headers
+            with test_library.start_span(
+                name="non_matching_span_non_matching_p_value",
+                http_headers=[
+                    ["traceparent", "00-00000000000000000000000000000005-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:8fffffffffffffff,foo=1"],
+                    ["x-datadog-parent-id", "10"],
+                    ["x-datadog-trace-id", "5"],
+                ],
+            ):
+                pass
+
+        traces = test_agent.wait_for_num_traces(5)
+
+        assert len(traces) == 5
+        case1, case2, case3, case4, case5 = (
+            traces[0][0],
+            traces[1][0],
+            traces[2][0],
+            traces[3][0],
+            traces[4][0],
+        )
+
+        # 1) Datadog and tracecontext headers, trace-id and span-id match
+        # There is no need to propagate _dd.parent_id
+        assert case1["name"] == "identical_trace_info"
+        assert case1["parent_id"] == 987654321
+        assert "_dd.parent_id" not in case1["meta"]
+
+        # 2) trace-ids do not match
+        # Datadog and tracecontext headers contain spans from different traces
+        # We can not reparent the trace, datadog headers are used (future work - span link is used to track tracecontext span)
+        assert case2["name"] == "trace_ids_do_not_match"
+        assert case2["parent_id"] == 10
+        assert "_dd.parent_id" not in case2["meta"]
+
+        # 3) trace-id matches but parent ids do not
+        # Ensure parent_id is extracted from tracecontext and last datadog parent id tag is set using the tracestate header
+        assert case3["name"] == "same_trace_non_matching_parent_ids"
+        assert case3["parent_id"] == 987654321
+        assert case3["meta"]["_dd.parent_id"] == "000000000000000a"
+
+        # 4) parent ids do not match and p value is not present in tracestate
+        # Ensure parent_id is extracted from tracecontext and the last parent id tag is set using the datadog header
+        assert case4["name"] == "non_matching_span_missing_p_value"
+        assert case4["parent_id"] == 987654321
+        assert case4["meta"]["_dd.parent_id"] == "000000000000000a"
+
+        # 5) parent ids do not match and p value does not match datadog headers
+        # Ensure parent_id is extracted from tracecontext and the last parent id tag is set using the tracestate header
+        # Traceparent and tracestate headers are used as the source of truth, Datadog headers are ignored
+        assert case5["name"] == "non_matching_span_non_matching_p_value"
+        assert case5["parent_id"] == 987654321
+        assert case5["meta"]["_dd.parent_id"] == "8fffffffffffffff"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{"DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true", "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}],
+    )
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_tracestate_w3c_p_phase_3_extract_inject_extract_first(self, test_agent, test_library):
+        """
+        Ensure the last parent id tag is set according to the W3C phase 3 spec
+        """
+
+        # 1) Datadog and tracecontext headers, parent ids do not match
+        with test_library.start_span(
+            name="same_trace_different_parent_ids",
+            http_headers=[
+                ["traceparent", "00-11111111111111110000000000000001-000000000000000f-01"],
+                ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
+                ["x-datadog-trace-id", "1"],
+                ["x-datadog-parent-id", "987654320"],
+                ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+            ],
+        ):
+            pass
+
+        traces = test_agent.wait_for_num_traces(1)
+
+        assert len(traces) == 1
+        case1 = traces[0][0]
+
+        # 1) trace-id and span-id extracted from datadog headers, last datadog parent id is ignored
+        assert case1["name"] == "same_trace_different_parent_ids"
+        assert case1["parent_id"] == 987654320
+        assert "_dd.parent_id" not in case1["meta"]
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
