@@ -362,10 +362,18 @@ def view_iast_ssrf_secure(request):
     return HttpResponse("OK")
 
 
-def _sink_point(table="user", id="1"):
+def _sink_point_sqli(table="user", id="1"):
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     with connection.cursor() as cursor:
         cursor.execute(sql)
+
+
+def _sink_point_path_traversal(tainted_str="user"):
+    try:
+        m = open(tainted_str)
+        _ = m.read()
+    except Exception:
+        pass
 
 
 @csrf_exempt
@@ -375,42 +383,42 @@ def view_iast_source_body(request):
 
     table = json.loads(request.body).get("name")
     user = json.loads(request.body).get("value")
-    _sink_point(table=table, id=user)
+    _sink_point_sqli(table=table, id=user)
     return HttpResponse("OK")
 
 
 def view_iast_source_cookie_name(request):
     param = [key for key in request.COOKIES.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_path_traversal(param[0])
     return HttpResponse("OK")
 
 
 def view_iast_source_cookie_value(request):
     table = request.COOKIES.get("table")
-    _sink_point(table=table)
+    _sink_point_path_traversal(table)
     return HttpResponse("OK")
 
 
 def view_iast_source_header_name(request):
     param = [key for key in request.headers.keys() if key == "User"]
     # param = [key for key in request.META.keys() if key == "HTTP_USER"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return HttpResponse("OK")
 
 
 def view_iast_source_header_value(request):
     table = request.META.get("HTTP_TABLE")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return HttpResponse("OK")
 
 
 def view_iast_source_parametername(request):
     if request.method == "GET":
         param = [key for key in request.GET.keys() if key == "user"]
-        _sink_point(id=param[0])
+        _sink_point_sqli(id=param[0])
     elif request.method == "POST":
         param = [key for key in request.POST.keys() if key == "user"]
-        _sink_point(id=param[0])
+        _sink_point_sqli(id=param[0])
     return HttpResponse("OK")
 
 
@@ -418,12 +426,30 @@ def view_iast_source_parametername(request):
 def view_iast_source_parameter(request):
     if request.method == "GET":
         table = request.GET.get("table")
-        _sink_point(table=table[0])
+        _sink_point_sqli(table=table[0])
     elif request.method == "POST":
         table = request.POST.get("table")
-        _sink_point(table=table[0])
+        _sink_point_sqli(table=table[0])
 
     return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_header_injection_insecure(request):
+    header = request.POST.get("test")
+    response = HttpResponse("OK", status=200)
+    # label iast_header_injection
+    response.headers["Header-Injection"] = header
+    return response
+
+
+@csrf_exempt
+def view_iast_header_injection_secure(request):
+    header = request.POST.get("test")
+    response = HttpResponse("OK", status=200)
+    # label iast_header_injection
+    response.headers["Vary"] = header
+    return response
 
 
 def make_distant_call(request):
@@ -556,6 +582,8 @@ urlpatterns = [
     path("iast/source/header/test", view_iast_source_header_value),
     path("iast/source/parametername/test", view_iast_source_parametername),
     path("iast/source/parameter/test", view_iast_source_parameter),
+    path("iast/header_injection/test_secure", view_iast_header_injection_secure),
+    path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),

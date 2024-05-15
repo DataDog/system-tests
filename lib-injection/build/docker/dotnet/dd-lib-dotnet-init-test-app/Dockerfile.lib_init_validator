@@ -1,0 +1,38 @@
+ARG RUNTIME="bullseye-slim"
+
+ARG LIB_INIT_ENV=prod
+
+FROM docker.io/datadog/dd-lib-dotnet-init:latest as dd-lib-init_prod
+
+FROM ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot as dd-lib-init_dev
+
+FROM dd-lib-init_${LIB_INIT_ENV} as dd-lib-dotnet-init
+
+# We only ship the published app in the image
+# so we only use ASPNET runtime as the base-image
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-$RUNTIME AS base
+WORKDIR /app
+
+FROM mcr.microsoft.com/dotnet/sdk:7.0.100-preview.2 AS build
+WORKDIR /app
+COPY MinimalWebApp.csproj .
+RUN dotnet restore
+COPY . .
+RUN dotnet build -c Release
+
+FROM build AS publish
+RUN dotnet publish -c Release -o /publish
+
+FROM base AS final
+WORKDIR /app
+EXPOSE 18080
+ENV ASPNETCORE_URLS=http://+:18080
+COPY --from=publish /publish .
+COPY --from=dd-lib-dotnet-init /datadog-init/monitoring-home/ /datadog-lib/
+
+ENV CORECLR_ENABLE_PROFILING="1"
+ENV CORECLR_PROFILER="{846F5F1C-F9AE-4B07-969E-05C26BC060D8}"
+ENV CORECLR_PROFILER_PATH="/datadog-lib/Datadog.Trace.ClrProfiler.Native.so"
+ENV DD_DOTNET_TRACER_HOME="/datadog-lib"
+ENV LD_PRELOAD="/datadog-lib/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so"
+ENTRYPOINT ["dotnet", "MinimalWebApp.dll"]

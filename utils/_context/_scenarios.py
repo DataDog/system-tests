@@ -33,6 +33,8 @@ from utils._context.containers import (
     create_network,
     # SqlDbTestedContainer,
     BuddyContainer,
+    APMTestAgentContainer,
+    WeblogInjectionInitContainer,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -499,7 +501,7 @@ class EndToEndScenario(_DockerScenario):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("python",):
-                self.library_interface_timeout = 25
+                self.library_interface_timeout = 5
             else:
                 self.library_interface_timeout = 40
 
@@ -1299,6 +1301,44 @@ class _KubernetesScenario(_Scenario):
         return self._weblog_variant
 
 
+class APMTestAgentScenario(_Scenario):
+    """Scenario that runs APM test agent """
+
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+
+        self._required_containers = []
+        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(WeblogInjectionInitContainer(host_log_folder=self.host_log_folder))
+
+    def configure(self, config):
+        super().configure(config)
+
+        for container in self._required_containers:
+            container.configure(self.replay)
+
+    def _get_warmups(self):
+        warmups = super()._get_warmups()
+
+        warmups.append(create_network)
+
+        for container in self._required_containers:
+            warmups.append(container.start)
+
+        return warmups
+
+    def pytest_sessionfinish(self, session):
+        self.close_targets()
+
+    def close_targets(self):
+        for container in reversed(self._required_containers):
+            try:
+                container.remove()
+                logger.info(f"Removing container {container}")
+            except:
+                logger.exception(f"Failed to remove container {container}")
+
+
 class scenarios:
     @staticmethod
     def all_endtoend_scenarios(test_object):
@@ -1840,6 +1880,14 @@ class scenarios:
     k8s_lib_injection_full = _KubernetesScenario(
         "K8S_LIB_INJECTION_FULL",
         doc=" Kubernetes Instrumentation complete scenario",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    lib_injection_validation = APMTestAgentScenario(
+        "LIB_INJECTION_VALIDATION",
+        # weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
+        doc="Validates the init images without kubernetes enviroment",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
