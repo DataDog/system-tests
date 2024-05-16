@@ -23,6 +23,10 @@ inputs:
     default: 'true'
     required: false
 
+  arch:
+    description: 'Images architecture to be tested' 
+    required: true
+
   lib_injection_group:
     description: 'Group of lib-injection tests'
     default: 'lib-init'
@@ -48,7 +52,9 @@ runs:
 
     - name: Build weblog image
       shell: bash
-      run: ./build.sh -l ${{ inputs.library }} -w ${{ inputs.weblog }} -lg ${{ inputs.lib_injection_group }} 
+      run: ./build.sh -l ${{ inputs.library }} -w ${{ inputs.weblog }} -lg ${{ inputs.lib_injection_group }} --docker-platform ${{ inputs.arch }}
+      env:
+        ENV: ${{ inputs.version }}
 
     - name: Install runner
       uses: ./.github/actions/install_runner       
@@ -57,6 +63,7 @@ runs:
       if: ${{ inputs.is_lang_supported_version == 'true' && inputs.lib_injection_group=='lib-init'}}
       shell: bash
       run: ./run.sh LIB_INJECTION_VALIDATION
+
 
     - name: Validate NOT supported lang init image
       if: ${{ inputs.is_lang_supported_version != 'true' && inputs.lib_injection_group=='lib-init'}}
@@ -73,5 +80,5 @@ runs:
       if: always() && steps.compress_logs.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_lib-injection_validation_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.version }}
+        name: logs_${{ inputs.lib_injection_group }}_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.version }}
         path: artifact.tar.gz
