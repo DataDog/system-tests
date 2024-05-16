@@ -1,4 +1,4 @@
-[datadog-stable]
+[datadog-prod]
 baseurl=https://yum.datadoghq.com/stable/7/aarch64/
 gpgcheck=1
 repo_gpgcheck=1

@@ -1,4 +1,4 @@
-[datadog-staging]
+[datadog-dev]
 baseurl=https://yum.datad0g.com/beta/apm/aarch64/
 gpgcheck=1
 repo_gpgcheck=1

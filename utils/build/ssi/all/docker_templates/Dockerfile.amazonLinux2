@@ -1,0 +1,53 @@
+FROM alpine as binaries_arm64
+RUN mkdir /binaries
+ONBUILD COPY binaries/*.aarch64.rpm binaries/README.md /binaries/
+
+FROM alpine as binaries_amd64
+RUN mkdir /binaries
+ONBUILD COPY binaries/*.x86_64.rpm binaries/README.md /binaries/
+
+ARG TARGETARCH
+FROM binaries_${TARGETARCH} as binaries
+
+FROM amazonlinux:2 as single_step_instrumentation
+ARG TARGETARCH
+ARG LIB_INIT_ENV=prod
+ARG LIB
+ENV LIB=$LIB
+RUN yum install -y curl wget tar patch make procps
+RUN if [ $LIB = "java" ]; then amazon-linux-extras install java-openjdk11 ; fi
+
+#Mock the agent folder and user. Requirement for datadog-apm-inject
+RUN mkdir -p /etc/datadog-agent/inject
+RUN useradd -ms /bin/bash dd-agent
+
+#Configure datadog repositories
+COPY utils/build/ssi/all/linux_repositories/rpm/*.repo /repo/
+RUN if [ $TARGETARCH = "arm64" ]; then cp /repo/*.aarch64.repo /etc/yum.repos.d/ ; fi
+RUN if [ $TARGETARCH = "amd64" ]; then cp /repo/*.x86_64.repo /etc/yum.repos.d/  ; fi
+RUN yum -y makecache
+
+#Manual install binaries if exist
+COPY --from=binaries /binaries/* /binaries/
+
+#Install autoinjection
+#RUN yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject
+#RUN yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-library-java
+
+RUN if ls /binaries/datadog-apm-inject-*.rpm 1> /dev/null 2>&1; then echo "Install datadog-apm-inject from folder" &&  yum -y --disablerepo="*" /binaries/install datadog-apm-inject-*.rpm; else echo "Install datadog-apm-inject from repo" &&  yum -y install --disablerepo="*" --enablerepo="datadog-${LIB_INIT_ENV}" datadog-apm-inject; fi
+RUN if ls /binaries/datadog-apm-library-*.rpm 1> /dev/null 2>&1; then echo "Install datadog-apm-library from folder" &&  yum -y --disablerepo="*" /binaries/install datadog-apm-library-$LIB-*.rpm; else echo "Install datadog-apm-library from repo" &&  yum -y install --disablerepo="*" --enablerepo="datadog-${LIB_INIT_ENV}" datadog-apm-library-$LIB; fi
+
+#Output version of the installed packages
+RUN echo "{'datadog-apm-inject':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)','datadog-apm-library-java': '$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$LIB)'}" > SYSTEM_TESTS_TESTED_COMPONENTS
+
+#Send traces to the test agent
+ENV CI_USE_TEST_AGENT="true"
+ENV DD_TRACE_AGENT_URL=http://ddapm-test-agent:8126
+ENV DD_AGENT_PORT=8126
+
+#Enable debug
+ENV DD_TRACE_DEBUG=true
+ENV DD_APM_INSTRUMENTATION_DEBUG=true
+
+#It's going to fail because the agent is not running
+RUN dd-host-install || true 

@@ -275,18 +275,40 @@ build() {
 }
 
 build_with_lib_injection_group() {
+    #Check platform
+    case $ARCH in
+    arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
+    *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
+    esac
+
+    #Echo the environment
     WEBLOG_VARIANT_PATH="${SCRIPT_DIR}/ssi/${TEST_LIBRARY}/${WEBLOG_VARIANT}/Dockerfile${WEBLOG_VARIANT_SUFIX}.${LIB_INJECTION_GROUP}"
     echo "LIB_INJECTION_GROUP: $LIB_INJECTION_GROUP"
     LIB_ENV=${ENV:-"prod"}
     echo "ENV: $LIB_ENV"
+    echo "DOCKER_PLATFORM_ARGS: ${DOCKER_PLATFORM_ARGS}"
     echo "-----------------------"
+
+    #Build the image
     echo Build $WEBLOG_VARIANT_PATH
     if [[ $LIB_INJECTION_GROUP == "k8s" ]]; then
         build_k8s_lib_injection_group
+    elif [[ $LIB_INJECTION_GROUP == "host-injection" ]]; then
+        build_host_injection_group
     else
-
-        docker buildx build  --build-arg="LIB_INIT_ENV=${LIB_ENV}" -t weblog-injection-init:latest -f "${WEBLOG_VARIANT_PATH}" --load .
+        docker buildx build ${DOCKER_PLATFORM_ARGS} --build-arg="LIB_INIT_ENV=${LIB_ENV}" -t weblog-injection-init:latest -f "${WEBLOG_VARIANT_PATH}" --load .
     fi
+}
+build_host_injection_group() {
+    SYSTEM_TESTS_TESTED_COMPONENTS=""
+    if [[ ! -z ${WEBLOG_VARIANT_SUFIX+.} ]]; then
+        #Weblog sufix should be the name of the machine that we are going to use
+        DOCKER_FILE_MACHINE="${SCRIPT_DIR}/ssi/all/docker_templates/Dockerfile.${WEBLOG_VARIANT_SUFIX:1}"
+        docker buildx build ${DOCKER_PLATFORM_ARGS} --build-arg="LIB_INIT_ENV=${LIB_ENV}" --build-arg="LIB=${TEST_LIBRARY}" -t single_step_instrumentation:${WEBLOG_VARIANT_SUFIX:1} -f "${DOCKER_FILE_MACHINE}" --load .
+        SYSTEM_TESTS_TESTED_COMPONENTS=$(docker run ${DOCKER_PLATFORM_ARGS} --rm single_step_instrumentation:${WEBLOG_VARIANT_SUFIX:1} cat SYSTEM_TESTS_TESTED_COMPONENTS)
+
+    fi
+    docker buildx build ${DOCKER_PLATFORM_ARGS} --build-arg="TESTED_COMPONENTS=${SYSTEM_TESTS_TESTED_COMPONENTS}" -t weblog-injection-init:latest -f "${WEBLOG_VARIANT_PATH}" --load .
 }
 build_k8s_lib_injection_group() {
         #Validate the K8s environment before building the image

@@ -1307,6 +1307,7 @@ class APMTestAgentScenario(_Scenario):
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
+        self._tested_components = {}
         self._required_containers = []
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(WeblogInjectionInitContainer(host_log_folder=self.host_log_folder))
@@ -1316,6 +1317,10 @@ class APMTestAgentScenario(_Scenario):
 
         for container in self._required_containers:
             container.configure(self.replay)
+            if isinstance(container, WeblogInjectionInitContainer) and container.tested_components:
+                for key, value in container.tested_components.items():
+                    logger.stdout(f"{key}:{value}")
+                    self._tested_components[key] = value
 
     def _get_warmups(self):
         warmups = super()._get_warmups()
@@ -1337,6 +1342,10 @@ class APMTestAgentScenario(_Scenario):
                 logger.info(f"Removing container {container}")
             except:
                 logger.exception(f"Failed to remove container {container}")
+
+    @property
+    def components(self):
+        return self._tested_components
 
 
 class HostInjectMockedScenario(APMTestAgentScenario):

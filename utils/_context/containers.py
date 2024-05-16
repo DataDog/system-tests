@@ -222,7 +222,6 @@ class TestedContainer:
         self._container.stop()
 
     def collect_logs(self):
-        logger.info("RMM Collecting logs for container")
         with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
             f.write(self._container.logs(stdout=True, stderr=False))
             if self.test_point_cmd is not None:
@@ -809,3 +808,10 @@ class WeblogInjectionInitContainer(TestedContainer):
             allow_old_container=True,
             test_point_cmd=test_point_cmd,
         )
+        self.tested_components = None
+
+    def configure(self, replay):
+        super().configure(replay)
+        tested_components = self.image.env.get("TESTED_COMPONENTS", None)
+        if tested_components:
+            self.tested_components = json.loads(tested_components.replace("'", '"'))
