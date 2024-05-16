@@ -167,7 +167,7 @@ app.get('/stub_dbm', async (req, res) => {
 })
 
 try {
-  dsm.initRoutes(app)
+  dsm.initRoutes(app, tracer)
 } catch (e) {
   console.error('DSM routes initialization has failed', e)
 }
