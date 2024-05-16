@@ -168,7 +168,9 @@ app.get('/stub_dbm', async (req, res) => {
 
 try {
   dsm.initRoutes(app)
-} catch (e) {}
+} catch (e) {
+  console.error('DSM routes initialization has failed', e)
+}
 
 app.get('/kafka/produce', (req, res) => {
   const topic = req.query.topic
