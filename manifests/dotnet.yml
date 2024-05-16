@@ -111,12 +111,14 @@ tests/:
         Test_Lfi_BodyUrlEncoded: v2.51.0
         Test_Lfi_BodyXml: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
+      test_span_tags.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.51.0
         Test_Ssrf_BodyUrlEncoded: v2.51.0
         Test_Ssrf_BodyXml: v2.51.0
         Test_Ssrf_UrlQuery: v2.51.0
+      test_stack_traces.py: missing_feature        
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
