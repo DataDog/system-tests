@@ -80,5 +80,5 @@ runs:
       if: always() && steps.compress_logs.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_${{ inputs.lib_injection_group }}_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.version }}
+        name: logs_${{ inputs.lib_injection_group }}_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.version }}_${{ inputs.arch }}
         path: artifact.tar.gz
