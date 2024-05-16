@@ -26,7 +26,7 @@ elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     #
     echo "Install prod version"
     # Support multiple versions of the gem
-    echo "gem 'datadog', '~> 2.0.0.beta2'" >> Gemfile
+    echo "gem 'datadog', '>= 2.0.0.beta2'" >> Gemfile
 
     export GEM_NAME=datadog
 else
