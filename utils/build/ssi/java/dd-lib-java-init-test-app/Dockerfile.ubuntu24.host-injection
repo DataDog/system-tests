@@ -4,12 +4,14 @@ RUN apk add --no-cache bash
 COPY utils/build/ssi/java/dd-lib-java-init-test-app/ .
 RUN ./gradlew build
 
-FROM single_step_instrumentation:amazonLinux2
+FROM single_step_instrumentation:ubuntu24
 ARG TESTED_COMPONENTS="{}"
 ENV TESTED_COMPONENTS=$TESTED_COMPONENTS
 
 COPY --from=java_build /build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar .
-ENV server.port=18080
-RUN echo "bash -c 'java -jar k8s-lib-injection-app-0.0.1-SNAPSHOT.jar > test-point.log 2>&1'" > /test-point.sh
+
+RUN echo "bash -c 'java -Dserver.port=18080 -jar k8s-lib-injection-app-0.0.1-SNAPSHOT.jar > test-point.log 2>&1'" > /test-point.sh
 RUN chmod +x /test-point.sh
 ENTRYPOINT sleep infinity
+
+

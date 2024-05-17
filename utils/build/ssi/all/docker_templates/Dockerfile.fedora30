@@ -9,19 +9,13 @@ ONBUILD COPY binaries/*.x86_64.rpm binaries/README.md /binaries/
 ARG TARGETARCH
 FROM binaries_${TARGETARCH} as binaries
 
-FROM amazonlinux:2 as single_step_instrumentation
+FROM fedora:30 as single_step_instrumentation
 ARG TARGETARCH
 ARG LIB_INIT_ENV=prod
 ARG LIB
 ENV LIB=$LIB
-RUN yum install -y curl wget tar patch make procps libicu60
-RUN if [ $LIB = "java" ]; then amazon-linux-extras install java-openjdk11 ; fi
-#https://gist.github.com/santoro-mariano/a0c1c8e23b728a5a80556d347edf10d7
-#RUN if [ $LIB = "dotnet" ]; then rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm && yum install -y aspnetcore-runtime-6.0 dotnet-sdk-6.0 ; fi
-#wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-#sudo dpkg -i packages-microsoft-prod.deb
-#rm packages-microso ft-prod.deb
-#sudo apt-get update
+RUN yum install -y curl wget tar patch make procps
+RUN if [ $LIB = "java" ]; then dnf -y install java-11-openjdk ; fi
 
 #Mock the agent folder and user. Requirement for datadog-apm-inject
 RUN mkdir -p /etc/datadog-agent/inject

@@ -17,7 +17,7 @@ class TestK8sInitImageValidator:
 
     @retry(delay=1, tries=10)
     def _get_dev_agent_traces(self):
-        logger.info(f"[Check traces] Checking traces:")
+        logger.info(f"[Check traces] Checking traces:::")
         response = requests.get(f"http://localhost:8126/test/traces")
         traces_json = response.json()
         return traces_json

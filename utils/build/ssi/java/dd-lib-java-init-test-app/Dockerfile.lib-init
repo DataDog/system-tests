@@ -4,7 +4,6 @@ FROM docker.io/datadog/dd-lib-java-init:latest as dd-lib-init_prod
 
 FROM ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot as dd-lib-init_dev
 
-
 FROM dd-lib-init_${LIB_INIT_ENV} as dd-lib-java-init
 
 FROM alpine:latest

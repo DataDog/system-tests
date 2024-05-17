@@ -4,7 +4,7 @@ RUN apk add --no-cache bash
 COPY utils/build/ssi/java/dd-lib-java-init-test-app/ .
 RUN ./gradlew build
 
-FROM single_step_instrumentation:amazonLinux2
+FROM single_step_instrumentation:fedora30
 ARG TESTED_COMPONENTS="{}"
 ENV TESTED_COMPONENTS=$TESTED_COMPONENTS
 

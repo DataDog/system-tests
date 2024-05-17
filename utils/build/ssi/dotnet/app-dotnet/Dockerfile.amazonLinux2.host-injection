@@ -1,0 +1,10 @@
+FROM single_step_instrumentation:amazonLinux2
+COPY utils/build/ssi/dotnet/app-dotnet /test
+RUN sed -i "s/net7.0/net6.0/g" /test/MinimalWebApp.csproj 
+
+EXPOSE 18080
+ENV ASPNETCORE_URLS=http://+:18080
+
+RUN echo "bash -c 'cd /test && dotnet restore && dotnet build -c Release && dotnet publish -c Release -o . && dotnet MinimalWebApp.dll > test-point.log 2>&1'"  > /test-point.sh
+RUN chmod +x /test-point.sh
+ENTRYPOINT sleep infinity

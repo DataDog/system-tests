@@ -1,0 +1,38 @@
+ARG RUNTIME="bullseye-slim"
+
+ARG LIB_INIT_ENV=prod
+
+FROM docker.io/datadog/dd-lib-dotnet-init:latest as dd-lib-init_prod
+
+FROM ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot as dd-lib-init_dev
+
+FROM dd-lib-init_${LIB_INIT_ENV} as dd-lib-dotnet-init
+
+
+FROM mcr.microsoft.com/dotnet/sdk:7.0.100-preview.2 AS build
+WORKDIR /app
+COPY MinimalWebApp.csproj .
+#RUN dotnet restore
+COPY . .
+#RUN ls && pwd && kfk
+#RUN dotnet build -c Release
+
+#RUN dotnet publish -c Release -o .
+
+EXPOSE 18080
+ENV ASPNETCORE_URLS=http://+:18080
+COPY --from=dd-lib-dotnet-init /datadog-init/monitoring-home/ /datadog-lib/
+ENV DD_TRACE_DEBUG=true
+ENV DD_APM_INSTRUMENTATION_DEBUG=TRUE
+ENV DOTNET_DbgEnableMiniDump=1
+ENV DOTNET_DbgMiniDumpType=4
+ENV DOTNET_CreateDumpDiagnostics=1
+ENV DOTNET_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.txt
+ENV CORECLR_ENABLE_PROFILING="1"
+ENV CORECLR_PROFILER="{846F5F1C-F9AE-4B07-969E-05C26BC060D8}"
+ENV CORECLR_PROFILER_PATH="/datadog-lib/Datadog.Trace.ClrProfiler.Native.so"
+ENV DD_DOTNET_TRACER_HOME="/datadog-lib"
+ENV LD_PRELOAD="/datadog-lib/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so"
+#RUN dos2unix /app/entry-point.sh
+ENTRYPOINT ["sh", "/app/entry-point.sh"]
+#CMD [ "sh /app/entry-point.sh" ]
