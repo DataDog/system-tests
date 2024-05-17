@@ -42,7 +42,7 @@ namespace weblog
 
         [HttpPost("lfi")]
         [Consumes("application/json")]
-        public IActionResult ssrfPostJson([FromBody] Model data)
+        public IActionResult lfiPostJson([FromBody] Model data)
         {
             var result = System.IO.File.ReadAllText(data.File);
             return Content(result);
