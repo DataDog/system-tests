@@ -11,14 +11,13 @@ FROM dd-lib-init_${LIB_INIT_ENV} as dd-lib-dotnet-init
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0.100-preview.2 AS build
 WORKDIR /app
-COPY MinimalWebApp.csproj .
+#COPY MinimalWebApp.csproj .
 #RUN dotnet restore
-COPY . .
+COPY utils/build/ssi/dotnet/app-dotnet/ .
 #RUN ls && pwd && kfk
 #RUN dotnet build -c Release
 
 #RUN dotnet publish -c Release -o .
-
 EXPOSE 18080
 ENV ASPNETCORE_URLS=http://+:18080
 COPY --from=dd-lib-dotnet-init /datadog-init/monitoring-home/ /datadog-lib/
