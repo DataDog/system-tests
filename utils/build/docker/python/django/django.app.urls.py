@@ -202,7 +202,7 @@ def view_weak_cipher_secure(request):
 
 def view_insecure_cookies_insecure(request):
     res = HttpResponse("OK")
-    res.set_cookie("insecure", "cookie", secure=False)
+    res.set_cookie("insecure", "cookie", secure=False, httponly=True, samesite="Strict")
     return res
 
 
@@ -214,7 +214,7 @@ def view_insecure_cookies_secure(request):
 
 def view_insecure_cookies_empty(request):
     res = HttpResponse("OK")
-    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    res.set_cookie("insecure", "", secure=False, httponly=True, samesite="Strict")
     return res
 
 
