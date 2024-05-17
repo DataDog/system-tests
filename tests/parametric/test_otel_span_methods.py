@@ -406,7 +406,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
     def test_otel_span_started_with_link_from_another_span(self, test_agent, test_library):
         """Test adding a span link created from another span.
