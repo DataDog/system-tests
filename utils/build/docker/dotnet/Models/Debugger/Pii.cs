@@ -102,5 +102,13 @@ namespace weblog.Models.Debugger
         public string? xrealip { get; set; } = PiiBase.Value;
         public string? xsrf { get; set; } = PiiBase.Value;
         public string? xsrftoken { get; set; } = PiiBase.Value;
+
+        public string? customidentifier { get; set; } = PiiBase.Value;
+        public string? CUSTOMIDENTIFIER { get; set; } = PiiBase.Value;
+    }
+
+    public class CustomPii : PiiBase
+    {
+        public string? customkey { get; set; } = PiiBase.Value;
     }
 }
