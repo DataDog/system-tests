@@ -55,7 +55,7 @@ namespace weblog
 
         [HttpGet("pii")]
         [Consumes("application/json", "application/xml")]
-        public async Task<IActionResult> Pii(int arg)
+        public async Task<IActionResult> Pii()
         {
             PiiBase? pii = await Task.FromResult<PiiBase>(new Pii());
             var value = pii?.TestValue;
