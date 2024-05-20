@@ -92,7 +92,6 @@ jobs:
           lang_suported: ["true"]
           include:
             - weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix_not_supported) }}
-              lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
               lang_suported: ["false"]
       fail-fast: false
     env:
