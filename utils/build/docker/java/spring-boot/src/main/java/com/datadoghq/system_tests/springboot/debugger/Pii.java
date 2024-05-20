@@ -6,6 +6,9 @@ public class Pii {
 
     public String _2fa = VALUE;
     public String accesstoken = VALUE;
+    public String access_token = VALUE;
+    public String accessToken = VALUE;
+    public String AccessToken = VALUE;
     public String address = VALUE;
     public String aiohttpsession = VALUE;
     public String apikey = VALUE;

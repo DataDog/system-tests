@@ -12,6 +12,9 @@ namespace weblog.Models.Debugger
     {
         public string? _2fa { get; set; } = PiiBase.Value;
         public string? accesstoken { get; set; } = PiiBase.Value;
+        public string? access_token { get; set; } = PiiBase.Value;
+        public string? accessToken { get; set; } = PiiBase.Value;
+        public string? AccessToken { get; set; } = PiiBase.Value;
         public string? address { get; set; } = PiiBase.Value;
         public string? aiohttpsession { get; set; } = PiiBase.Value;
         public string? apikey { get; set; } = PiiBase.Value;

@@ -9,6 +9,9 @@ from utils import scenarios, interfaces, weblog, features, bug, irrelevant, cont
 REDACTED_KEYS = [
     "_2fa",
     "accesstoken",
+    "access_token",
+    "accessToken",
+    "AccessToken",
     "address",
     "aiohttpsession",
     "apikey",
