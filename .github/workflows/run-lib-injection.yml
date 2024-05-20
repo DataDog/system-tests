@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.compute-matrix.outputs.matrix }}
-      repo_path: ${{ steps.compute-matrix.outputs.repo_path }}
+      init_image: ${{ steps.compute-matrix.outputs.init_image }}
     steps:
     - name: Compute matrix
       id: compute-matrix
@@ -41,22 +41,22 @@ jobs:
           "python": ["dd-lib-python-init-test-django", "dd-lib-python-init-test-django-gunicorn", "dd-lib-python-init-test-django-uvicorn"],
           "ruby": ["dd-lib-ruby-init-test-rails", "dd-lib-ruby-init-test-rails-explicit", "dd-lib-ruby-init-test-rails-gemsrb"]
         }
-        repo_path={
-          "cpp": "dd-trace-cpp/",
-          "dotnet": "dd-trace-dotnet/",
-          "golang": "dd-trace-go/",
-          "java": "dd-trace-java/",
-          "nodejs": "dd-trace-js/",
-          "php": "dd-trace-php/",
-          "python": "dd-trace-py/",
-          "ruby": "dd-trace-rb/"
+        init_images={
+          "cpp": {},
+          "dotnet": {"latest":"gcr.io/datadoghq/dd-lib-dotnet-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"},
+          "golang": {},
+          "java": {"latest":"gcr.io/datadoghq/dd-lib-java-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"},
+          "nodejs": {"latest":"gcr.io/datadoghq/dd-lib-js-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"},
+          "php": {},
+          "python": {"latest":"gcr.io/datadoghq/dd-lib-python-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"},
+          "ruby": {"latest":"gcr.io/datadoghq/dd-lib-ruby-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"},
         }
         result = weblogs["${{ inputs.library }}"]
-        result_repo_path = repo_path["${{ inputs.library }}"]
+        result_init_image = init_images["${{ inputs.library }}"]
 
         with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             print(f'matrix={json.dumps(result)}', file=fh)
-            print(f'repo_path={json.dumps(result_repo_path)}', file=fh)
+            print(f'init_image=json.dumps(result_init_image)', file=fh)
 
         print(json.dumps(result, indent=2))
 
@@ -78,7 +78,7 @@ jobs:
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
-      LIB_INIT_IMAGE:  ghcr.io/datadog/${{matrix.version == 'latest_snapshot' && fromJson(needs.compute-matrix.outputs.repo_path) || '' }}dd-lib-${{ inputs.library == 'nodejs' && 'js' ||  inputs.library }}-init:${{ matrix.version }}
+      LIB_INIT_IMAGE: "${{ fromJson(needs.compute-matrix.outputs.init_image)[matrix.version] }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
