@@ -42,14 +42,14 @@ jobs:
           "ruby": ["dd-lib-ruby-init-test-rails", "dd-lib-ruby-init-test-rails-explicit", "dd-lib-ruby-init-test-rails-gemsrb"]
         }
         repo_path={
-          "cpp": "dd-trace-cpp",
-          "dotnet": "dd-trace-dotnet",
-          "golang": "dd-trace-go",
-          "java": "dd-trace-java",
-          "nodejs": "dd-trace-js",
-          "php": "dd-trace-php",
-          "python": "dd-trace-py",
-          "ruby": "dd-trace-rb"
+          "cpp": "dd-trace-cpp/",
+          "dotnet": "dd-trace-dotnet/",
+          "golang": "dd-trace-go/",
+          "java": "dd-trace-java/",
+          "nodejs": "dd-trace-js/",
+          "php": "dd-trace-php/",
+          "python": "dd-trace-py/",
+          "ruby": "dd-trace-rb/"
         }
         result = weblogs["${{ inputs.library }}"]
         result_repo_path = repo_path["${{ inputs.library }}"]
@@ -74,11 +74,11 @@ jobs:
         weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
         version:      
           - latest
-          - latest_snashot
+          - latest_snapshot
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
-      LIB_INIT_IMAGE:  ghcr.io/datadog/${{matrix.version == 'latest_snapshot' && fromJson(needs.compute-matrix.outputs.repo_path) || '' }}/dd-lib-${{ inputs.library == 'nodejs' && 'js' ||  inputs.library }}-init:${{ matrix.version }}
+      LIB_INIT_IMAGE:  ghcr.io/datadog/${{matrix.version == 'latest_snapshot' && fromJson(needs.compute-matrix.outputs.repo_path) || '' }}dd-lib-${{ inputs.library == 'nodejs' && 'js' ||  inputs.library }}-init:${{ matrix.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
