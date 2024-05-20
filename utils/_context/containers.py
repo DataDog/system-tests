@@ -65,6 +65,7 @@ class TestedContainer:
         allow_old_container=False,
         healthcheck=None,
         stdout_interface=None,
+        test_point_cmd=None,
         **kwargs,
     ) -> None:
         self.name = name
@@ -78,6 +79,7 @@ class TestedContainer:
         self.kwargs = kwargs
         self._container = None
         self.stdout_interface = stdout_interface
+        self.test_point_cmd = test_point_cmd
 
     def configure(self, replay):
 
@@ -143,6 +145,10 @@ class TestedContainer:
             network=_NETWORK_NAME,
             **self.kwargs,
         )
+
+        if self.test_point_cmd is not None:
+            logger.info(f"[{self.container_name}] Running test point command [{self.test_point_cmd}] ")
+            self._container.exec_run(self.test_point_cmd, detach=True)
 
         self.wait_for_health()
         self.warmup()
@@ -218,6 +224,8 @@ class TestedContainer:
     def collect_logs(self):
         with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
             f.write(self._container.logs(stdout=True, stderr=False))
+            if self.test_point_cmd is not None:
+                f.write(self._container.exec_run("cat test-point.log").output)
 
         with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
             f.write(self._container.logs(stdout=False, stderr=True))
@@ -790,7 +798,7 @@ class APMTestAgentContainer(TestedContainer):
 
 
 class WeblogInjectionInitContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
+    def __init__(self, host_log_folder, test_point_cmd=None) -> None:
         super().__init__(
             image_name="docker.io/library/weblog-injection-init:latest",
             name="weblog-injection-init",
@@ -798,4 +806,12 @@ class WeblogInjectionInitContainer(TestedContainer):
             environment={"DD_AGENT_HOST": "ddapm-test-agent"},  # , "DD_TRACE_AGENT_PORT": "8126"
             ports={"18080": ("127.0.0.1", 8080)},
             allow_old_container=True,
+            test_point_cmd=test_point_cmd,
         )
+        self.tested_components = None
+
+    def configure(self, replay):
+        super().configure(replay)
+        tested_components = self.image.env.get("TESTED_COMPONENTS", None)
+        if tested_components:
+            self.tested_components = json.loads(tested_components.replace("'", '"'))

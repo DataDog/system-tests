@@ -1,0 +1,20 @@
+ARG LIB_INIT_ENV=prod
+
+FROM docker.io/datadog/dd-lib-java-init:latest as dd-lib-init_prod
+
+FROM ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot as dd-lib-init_dev
+
+FROM dd-lib-init_${LIB_INIT_ENV} as dd-lib-java-init
+
+FROM openjdk:7-alpine
+
+COPY utils/build/ssi/java/jdk7-app/ .
+RUN javac *.java
+
+#Copy injection folder from init image and set injection env variables
+COPY --from=dd-lib-java-init /datadog-init /datadog-lib/
+ENV JAVA_TOOL_OPTIONS="-javaagent:/datadog-lib/dd-java-agent.jar"
+ENV CI_USE_TEST_AGENT="true"
+
+#Run app
+ENTRYPOINT ["java", "-cp", ".", "sunhttpd"]
