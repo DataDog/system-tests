@@ -56,9 +56,10 @@ jobs:
 
         with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             print(f'matrix={json.dumps(result)}', file=fh)
-            print(f'init_image=json.dumps(result_init_image)', file=fh)
+            print(f'init_image={json.dumps(result_init_image)}', file=fh)
 
         print(json.dumps(result, indent=2))
+        print(json.dumps(result_init_image, indent=2))
 
   lib-injection-init-image-validator:
     if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
