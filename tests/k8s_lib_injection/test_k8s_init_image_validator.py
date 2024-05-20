@@ -4,7 +4,7 @@ import time
 import requests
 from utils import scenarios, features
 from utils.tools import logger
-from utils import scenarios, context, features
+from utils import scenarios, context, features, bug
 from retry import retry
 
 
@@ -45,7 +45,7 @@ class TestK8sInitImageValidator(_BaseTestK8sInitImageValidator):
 @features.k8s_admission_controller
 class TestK8sInitImageValidatorUnsupported(_BaseTestK8sInitImageValidator):
     """ Validate that if the weblog lang version is not supported we don't instrument the app but the app it's still working."""
-
+    @bug(library = "nodejs", reason="Not implemented yet. Tracer breaks the app")
     def test_invalid_weblog_not_instrumented(self):
-        logger.info("Launching test test_weblog_instrumented")
+        logger.info(f"Launching test test_invalid_weblog_not_instrumented {context.library}")
         self._check_weblog_running()

@@ -37,7 +37,7 @@ jobs:
           "dotnet": [{"name":"dd-lib-dotnet-init-test-app","supported":"true"}],
           "golang": [],
           "java": [{"name":"dd-lib-java-init-test-app","supported":"true"},{"name":"jdk7-app","supported":"false"}],
-          "nodejs": [{"name":"sample-app","supported":"true"}],
+          "nodejs": [{"name":"sample-app","supported":"true"},{"name":"sample-app-node13","supported":"false"}],
           "php": [],
           "python": [{"name":"dd-lib-python-init-test-django","supported":"true"}, {"name":"dd-lib-python-init-test-django-gunicorn", "supported":"true"}, {"name":"dd-lib-python-init-test-django-uvicorn","supported":"true"}],
           "ruby": [{"name":"dd-lib-ruby-init-test-rails","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-explicit","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-gemsrb","supported":"true"}]
