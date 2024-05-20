@@ -47,6 +47,11 @@ if [[ (! -f "${WEBLOG_FOLDER}/Dockerfile.lib_init_validator") ]]; then
     exit 1
 fi
 
+if [[ $TEST_LIBRARY == "ruby" ]]; then
+    cp -r $WEBLOG_FOLDER/../lib_injection_rails_app $WEBLOG_FOLDER/lib_injection_rails_app
+    cp $WEBLOG_FOLDER/../.dockerignore $WEBLOG_FOLDER/
+fi
+
 ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 
 case $ARCH in

@@ -806,15 +806,23 @@ class MountInjectionVolume(TestedContainer):
             name=name,
             host_log_folder=host_log_folder,
             command="/bin/true",
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "ro"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},},
         )
 
     def _lib_init_image(self, lib_init_image):
         self.image = ImageInfo(lib_init_image)
+        if "dd-lib-js-init" in lib_init_image:
+            self.kwargs["volumes"] = {
+                _VOLUME_INJECTOR_NAME: {"bind": "/operator-build", "mode": "rw"},
+            }
+        if "dd-lib-dotnet-init" in lib_init_image:
+            self.kwargs["volumes"] = {
+                _VOLUME_INJECTOR_NAME: {"bind": " /datadog-init/monitoring-home/", "mode": "rw"},
+            }
 
     def remove(self):
         super().remove()
-        _get_client().volumes.prune(filters={"name": _VOLUME_INJECTOR_NAME})
+        _get_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
 
 
 class WeblogInjectionInitContainer(TestedContainer):
@@ -826,7 +834,7 @@ class WeblogInjectionInitContainer(TestedContainer):
             host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 8080)},
             allow_old_container=True,
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "ro"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"},},
         )
 
     def set_environment_for_library(self, library):

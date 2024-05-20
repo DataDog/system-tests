@@ -22,7 +22,7 @@ class TestK8sInitImageValidator:
         assert traces_json is not None and len(traces_json) > 0, "No traces found"
         return traces_json
 
-    @retry(delay=2, tries=10)
+    @retry(delay=5, tries=20)
     def _check_weblog_running(self):
         logger.info(f"[Check traces] Checking traces:")
         response = requests.get(f"http://localhost:8080")
