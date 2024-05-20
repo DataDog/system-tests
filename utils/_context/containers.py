@@ -817,7 +817,7 @@ class MountInjectionVolume(TestedContainer):
             }
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {
-                _VOLUME_INJECTOR_NAME: {"bind": " /datadog-init/monitoring-home/", "mode": "rw"},
+                _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},
             }
 
     def remove(self):
