@@ -34,25 +34,15 @@ jobs:
 
         weblogs={
           "cpp": [],
-          "dotnet": ["dd-lib-dotnet-init-test-app"],
+          "dotnet": [{"name":"dd-lib-dotnet-init-test-app","supported":"true"},{"name":"jdk7-app","supported":"false"}],
           "golang": [],
-          "java": ["dd-lib-java-init-test-app"],
-          "nodejs": ["sample-app"],
+          "java": [{"name":"dd-lib-java-init-test-app","supported":"true"}],
+          "nodejs": [{"name":"sample-app","supported":"true"}],
           "php": [],
-          "python": ["dd-lib-python-init-test-django", "dd-lib-python-init-test-django-gunicorn", "dd-lib-python-init-test-django-uvicorn"],
-          "ruby": ["dd-lib-ruby-init-test-rails", "dd-lib-ruby-init-test-rails-explicit", "dd-lib-ruby-init-test-rails-gemsrb"]
+          "python": [{"name":"dd-lib-python-init-test-django","supported":"true"}, {"name":"dd-lib-python-init-test-django-gunicorn", "supported":"true"}, {"name":"dd-lib-python-init-test-django-uvicorn","supported":"true"}],
+          "ruby": [{"name":"dd-lib-ruby-init-test-rails","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-explicit","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-gemsrb","supported":"true"}]
         }
-        #Lang version not supported for these weblogs
-        not_supported_weblogs={
-          "cpp": [],
-          "dotnet": [],
-          "golang": [],
-          "java": ["jdk7-app"],
-          "nodejs": [],
-          "php": [],
-          "python": [],
-          "ruby": []
-        }
+
         init_images={
           "cpp": [],
           "dotnet": ["gcr.io/datadoghq/dd-lib-dotnet-init:latest","ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"],
@@ -64,17 +54,14 @@ jobs:
           "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest","ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
         }
         result = weblogs["${{ inputs.library }}"]
-        result_not_supported = not_supported_weblogs["${{ inputs.library }}"]
         result_init_image = init_images["${{ inputs.library }}"]
 
         with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             print(f'matrix={json.dumps(result)}', file=fh)
             print(f'init_image={json.dumps(result_init_image)}', file=fh)
-            print(f'matrix_not_supported={json.dumps(result_not_supported)}', file=fh)
 
         print(json.dumps(result, indent=2))
         print(json.dumps(result_init_image, indent=2))
-        print(json.dumps(result_not_supported, indent=2))
 
   lib-injection-init-image-validator:
     if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
@@ -90,9 +77,7 @@ jobs:
           weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
           lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
           lang_suported: ["true"]
-          include:
-            - weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix_not_supported) }}
-              lang_suported: ["false"]
+
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
@@ -118,23 +103,22 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build weblog init image validator
-        if: matrix.lang_suported == 'true'
-        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }}       
+        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog.name }} -l ${{ inputs.library }}       
 
       - name: Install runner
         uses: ./.github/actions/install_runner       
 
       - name: Perform lib injection
-        if: matrix.lang_suported == 'true'
+        if:  matrix.weblog.supported == 'true'
         run: |
           echo "Testing lib injection init image: $LIB_INIT_IMAGE"
           ./run.sh LIB_INJECTION_VALIDATION
 
       - name: Perform lib injection for not supported lang
-        if: matrix.lang_suported == 'false'
+        if:  matrix.weblog.supported == 'false'
         run: |
-            echo "Testing lib injection init image: $LIB_INIT_IMAGE"
-            echo "Weblog: ${{ matrix.weblog }}"
+          echo "Testing lib injection init image: $LIB_INIT_IMAGE"
+          ./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
 
       - name: Compress logs
         id: compress_logs
@@ -145,7 +129,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
+          name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog.name}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
           path: artifact.tar.gz
 
   k8s-lib-injection-tests:

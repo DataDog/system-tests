@@ -1916,6 +1916,13 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
 
+    lib_injection_validation_unsupported_lang = WeblogInjectionScenario(
+        "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
+        doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
