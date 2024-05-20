@@ -41,7 +41,7 @@ fi
 
 WEBLOG_FOLDER="${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}"
 
-if [[ (! -f "${WEBLOG_FOLDER}/Dockerfile.lib_init_validator") ]]; then
+if [[ (! -f "${WEBLOG_FOLDER}/Dockerfile") ]]; then
     echo "Variant [${WEBLOG_VARIANT}] for library [${TEST_LIBRARY}] not found or WEBLOG_VARIANT is not set"
     print_usage
     exit 1
