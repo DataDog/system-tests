@@ -87,12 +87,13 @@ jobs:
       - compute-matrix
     strategy:
       matrix:
-        - weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
-         lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
-         lang_suported: "true"
-        - weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix_not_supported) }}
-         lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
-         lang_suported: "false"
+          weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+          lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
+          lang_suported: ["true"]
+          include:
+            - weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix_not_supported) }}
+              lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
+              lang_suported: ["false"]
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
@@ -129,7 +130,7 @@ jobs:
         run: |
           echo "Testing lib injection init image: $LIB_INIT_IMAGE"
           ./run.sh LIB_INJECTION_VALIDATION
-          
+
       - name: Perform lib injection for not supported lang
         if: matrix.lang_suported == 'false'
         run: |
