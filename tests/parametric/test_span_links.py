@@ -123,7 +123,7 @@ class Test_Span_Links:
         # link has a sampling priority of 2, so it should be sampled
         assert link.get("flags", 1) == 1 | TRACECONTEXT_FLAGS_SET
         assert link["attributes"] == {"foo": "bar"}
-    
+
     def test_span_link_from_distributed_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
@@ -210,8 +210,9 @@ class Test_Span_Links:
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
 
-    @missing_feature(library="python", reason="links do not influence the sampling decsion of spans")
-    @missing_feature(library="ruby", reason="links do not influence the sampling decsion of spans")
+    @missing_feature(library="python", reason="links do not influence the sampling decision of spans")
+    @missing_feature(library="nodejs", reason="links do not influence the sampling decision of spans")
+    @missing_feature(library="ruby", reason="links do not influence the sampling decision of spans")
     def test_span_link_propagated_sampling_decisions(self, test_agent, test_library):
         """Sampling decisions made by an upstream span should be propagated via span links to
         downstream spans.
