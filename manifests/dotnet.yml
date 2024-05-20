@@ -105,7 +105,6 @@ tests/:
         test_uri.py:
           TestURI: irrelevant
     rasp/:
-    rasp/:
       test_lfi.py:
         Test_Lfi_BodyJson: v2.51.0
         Test_Lfi_BodyUrlEncoded: v2.51.0
