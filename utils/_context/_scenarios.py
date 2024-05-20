@@ -35,6 +35,8 @@ from utils._context.containers import (
     BuddyContainer,
     APMTestAgentContainer,
     WeblogInjectionInitContainer,
+    MountInjectionVolume,
+    create_inject_volume,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -1301,17 +1303,32 @@ class _KubernetesScenario(_Scenario):
         return self._weblog_variant
 
 
-class APMTestAgentScenario(_Scenario):
+class WeblogInjectionScenario(_Scenario):
     """Scenario that runs APM test agent """
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
+        self._mount_injection_volume = MountInjectionVolume(
+            host_log_folder=self.host_log_folder, name="volume-injector"
+        )
+        self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
+
         self._required_containers = []
+        self._required_containers.append(self._mount_injection_volume)
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
-        self._required_containers.append(WeblogInjectionInitContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(self._weblog_injection)
 
     def configure(self, config):
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
+        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+
+        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
+        self._lib_init_image = os.getenv("LIB_INIT_IMAGE")
+
+        self._mount_injection_volume._lib_init_image(self._lib_init_image)
+        self._weblog_injection.set_environment_for_library(self.library)
+
         super().configure(config)
 
         for container in self._required_containers:
@@ -1321,7 +1338,7 @@ class APMTestAgentScenario(_Scenario):
         warmups = super()._get_warmups()
 
         warmups.append(create_network)
-
+        warmups.append(create_inject_volume)
         for container in self._required_containers:
             warmups.append(container.start)
 
@@ -1337,6 +1354,14 @@ class APMTestAgentScenario(_Scenario):
                 logger.info(f"Removing container {container}")
             except:
                 logger.exception(f"Failed to remove container {container}")
+
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def lib_init_image(self):
+        return self._lib_init_image
 
 
 class scenarios:
@@ -1884,9 +1909,8 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
 
-    lib_injection_validation = APMTestAgentScenario(
+    lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
-        # weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
         doc="Validates the init images without kubernetes enviroment",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],

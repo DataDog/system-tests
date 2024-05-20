@@ -16,7 +16,6 @@ print_usage() {
     echo -e "  ${CYAN}--library <lib>${NC}            Language of the tracer (env: TEST_LIBRARY, Mandatory)"
     echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT). (Mandatory)"
     echo -e "  ${CYAN}--docker-platform <platform>${NC}      Target Docker platform."
-    echo -e "  ${CYAN}--lib-init-env <images>${NC}          Origin for the lib init image (dev or prod for latest snapshot and latest release)."  
     echo -e "  ${CYAN}-h, --help${NC}                Display this help message."
     echo -e ""
     echo -e ""
@@ -28,7 +27,6 @@ while [[ "$#" -gt 0 ]]; do
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
-        -e|--lib-init-env) LIB_INIT_ENV="$2"; shift ;;
         -h|--help) print_usage; exit 0 ;;
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
@@ -49,14 +47,16 @@ if [[ (! -f "${WEBLOG_FOLDER}/Dockerfile.lib_init_validator") ]]; then
     exit 1
 fi
 
-LIB_INIT_ENV="${LIB_INIT_ENV:-prod}"
+ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 
-echo "Building docker init image validator using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}] for [${LIB_INIT_ENV}] environment"
+case $ARCH in
+    arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
+    *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
+esac
+
+echo "Building docker weblog image using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}]"
 CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
 
-if test -f "pre_build_lib_init_validator.sh"; then
-    sh pre_build_lib_init_validator.sh
-fi
-docker build --build-arg="LIB_INIT_ENV=${LIB_INIT_ENV}" -t weblog-injection-init:latest -f Dockerfile.lib_init_validator .
+docker build ${DOCKER_PLATFORM} -t weblog-injection:latest .
 cd $CURRENT_DIR
