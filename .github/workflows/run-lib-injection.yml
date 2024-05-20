@@ -42,14 +42,14 @@ jobs:
           "ruby": ["dd-lib-ruby-init-test-rails", "dd-lib-ruby-init-test-rails-explicit", "dd-lib-ruby-init-test-rails-gemsrb"]
         }
         init_images={
-          "cpp": {},
-          "dotnet": {"latest":"gcr.io/datadoghq/dd-lib-dotnet-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"},
-          "golang": {},
-          "java": {"latest":"gcr.io/datadoghq/dd-lib-java-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"},
-          "nodejs": {"latest":"gcr.io/datadoghq/dd-lib-js-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"},
-          "php": {},
-          "python": {"latest":"gcr.io/datadoghq/dd-lib-python-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"},
-          "ruby": {"latest":"gcr.io/datadoghq/dd-lib-ruby-init:latest","latest_snapshot":"ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"},
+          "cpp": [],
+          "dotnet": ["gcr.io/datadoghq/dd-lib-dotnet-init:latest","ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"],
+          "golang": [],
+          "java": ["gcr.io/datadoghq/dd-lib-java-init:latest","ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
+          "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest","ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
+          "php": [],
+          "python": ["gcr.io/datadoghq/dd-lib-python-init:latest","ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
+          "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest","ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
         }
         result = weblogs["${{ inputs.library }}"]
         result_init_image = init_images["${{ inputs.library }}"]
@@ -73,13 +73,11 @@ jobs:
     strategy:
       matrix:
         weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
-        version:      
-          - latest
-          - latest_snapshot
+        lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }} 
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
-      LIB_INIT_IMAGE: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
+      LIB_INIT_IMAGE: ${{ matrix.lib_init_image }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -120,7 +118,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog}}_${{ matrix.version }}
+          name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
           path: artifact.tar.gz
 
   k8s-lib-injection-tests:
