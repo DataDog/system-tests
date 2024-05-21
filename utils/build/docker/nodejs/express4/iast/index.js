@@ -268,13 +268,43 @@ function initRoutes (app, tracer) {
   })
 
   app.get('/iast/hardcoded_secrets/test_insecure', (req, res) => {
-    const secret = 'A3TMAWZUKIWR6O0OGR7B'
-    res.send(`OK:${secret}`)
+    const s3cret = 'A3TMAWZUKIWR6O0OGR7B'
+    res.send(`OK:${s3cret}`)
   })
 
-  app.get('/iast/hardcoded_secrets/test_secure', (req, res) => {
-    const secret = 'unknown_secret'
-    res.send(`OK:${secret}`)
+  app.get('/iast/hardcoded_secrets_extended/test_insecure', (req, res) => {
+    const datadogS3cret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
+    res.send(`OK:${datadogS3cret}`)
+  })
+
+  app.get('/iast/hardcoded_passwords/test_insecure', (req, res) => {
+    const hashpwd = 'hpu0-ig=3o5slyr0rkqszidgxw-bc23tivq8e1-qvt.4191vlwm8ddk.ce64m4q0kga'
+    res.send(`OK:${hashpwd}`)
+  })
+
+  app.get('/iast/hardcoded_passwords/test_secure', (req, res) => {
+    const token = 'unknown_secret'
+    res.send(`OK:${token}`)
+  })
+
+  app.post('/iast/header_injection/test_insecure', (req, res) => {
+    res.setHeader('testheader', req.body.test)
+    res.send('OK')
+  })
+
+  app.post('/iast/header_injection/test_secure', (req, res) => {
+    res.setHeader('testheader', 'not_tainted_string')
+    res.send('OK')
+  })
+
+  app.get('/iast/weak_randomness/test_insecure', (req, res) => {
+    const randomNumber = Math.random()
+    res.send(`OK:${randomNumber}`)
+  })
+
+  app.get('/iast/weak_randomness/test_secure', (req, res) => {
+    const randomBytes = crypto.randomBytes(256).toString('hex')
+    res.send(`OK:${randomBytes}`)
   })
 
   require('./sources')(app, tracer)

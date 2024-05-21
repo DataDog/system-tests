@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, scenarios, bug
+from utils import weblog, context, interfaces, scenarios, bug, features
 
 
 # dd.rc.targets.key.id=TEST_KEY_ID
@@ -16,7 +16,7 @@ from utils import weblog, context, coverage, interfaces, scenarios, bug
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",
 )
 @bug(context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614")
-@coverage.basic
+@features.appsec_request_blocking
 class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""
 

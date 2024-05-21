@@ -1,339 +1,19 @@
 import os
 import json
-
 from utils.tools import logger
-from datetime import datetime, timedelta
 
-
-class TestedVirtualMachine:
-    def __init__(
-        self,
-        ec2_data,
-        agent_install_data,
-        language,
-        autoinjection_install_data,
-        autoinjection_uninstall_data,
-        language_variant_install_data,
-        weblog_install_data,
-        weblog_uninstall_data,
-        prepare_init_config_install,
-        prepare_repos_install,
-        prepare_docker_install,
-        installation_check_data,
-        provision_scenario,
-        uninstall,
-    ) -> None:
-        self.ec2_data = ec2_data
-        self.agent_install_data = agent_install_data
-        self.language = language
-        self.autoinjection_install_data = autoinjection_install_data
-        self.autoinjection_uninstall_data = autoinjection_uninstall_data
-        self.language_variant_install_data = language_variant_install_data
-        self.weblog_install_data = weblog_install_data
-        self.weblog_uninstall_data = weblog_uninstall_data
-        self.ip = None
-        self.datadog_config = None
-        self.aws_infra_config = None
-        self.prepare_init_config_install = prepare_init_config_install
-        self.prepare_repos_install = prepare_repos_install
-        self.prepare_docker_install = prepare_docker_install
-        self.installation_check_data = installation_check_data
-        self.provision_scenario = provision_scenario
-        self.name = self.ec2_data["name"] + "__lang-variant-" + self.language_variant_install_data["name"]
-        self.components = None
-        # Uninstall process after install all software requirements
-        self.uninstall = uninstall
-
-        self.ami_id = None
-        self.ami_name = None
-
-    def configure(self):
-        self.datadog_config = DataDogConfig()
-        self.aws_infra_config = AWSInfraConfig()
-        self._configure_ami()
-
-    def start(self):
-        import pulumi
-        import pulumi_aws as aws
-        from pulumi import Output
-        import pulumi_command as command
-        from utils.onboarding.pulumi_ssh import PulumiSSH
-        from utils.onboarding.pulumi_utils import remote_install, pulumi_logger, remote_docker_login
-
-        self.configure()
-        # Startup VM and prepare connection
-        server = aws.ec2.Instance(
-            self.name,
-            instance_type=self.aws_infra_config.instance_type,
-            vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
-            subnet_id=self.aws_infra_config.subnet_id,
-            key_name=PulumiSSH.keypair_name,
-            ami=self.ec2_data["ami_id"] if self.ami_id is None else self.ami_id,
-            tags={"Name": self.name,},
-            opts=PulumiSSH.aws_key_resource,
-        )
-
-        pulumi.export("privateIp_" + self.name, server.private_ip)
-        Output.all(server.private_ip).apply(lambda args: self.set_ip(args[0]))
-        Output.all(server.private_ip, self.name).apply(
-            lambda args: pulumi_logger(self.provision_scenario, "vms_desc").info(f"{args[0]}:{args[1]}")
-        )
-
-        connection = command.remote.ConnectionArgs(
-            host=server.private_ip,
-            user=self.ec2_data["user"],
-            private_key=PulumiSSH.private_key_pem,
-            dial_error_limit=-1,
-        )
-
-        # We apply initial configurations to the VM before starting with the installation proccess
-        prepare_init_config_installer = remote_install(
-            connection,
-            "prepare_init_config_installer_" + self.name,
-            self.prepare_init_config_install["install"],
-            server,
-            scenario_name=self.provision_scenario,
-        )
-
-        # To launch remote task in dependency order
-        main_task_dep = prepare_init_config_installer
-
-        if self.ami_id is None:
-            # Ok. The AMI doesn't exist we should create.
-            # We will configure respositories, install docker and lang variant.
-            # After that, we will register the new AMI to use it in the future executions
-
-            # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
-            if "install" in self.prepare_repos_install:
-                prepare_repos_installer = remote_install(
-                    connection,
-                    "prepare-repos-installer_" + self.name,
-                    self.prepare_repos_install["install"],
-                    prepare_init_config_installer,
-                    scenario_name=self.provision_scenario,
-                )
-            else:
-                prepare_repos_installer = prepare_init_config_installer
-
-            # Prepare docker installation if we need
-            prepare_docker_installer = remote_install(
-                connection,
-                "prepare-docker-installer_" + self.name,
-                self.prepare_docker_install["install"],
-                prepare_repos_installer,
-                scenario_name=self.provision_scenario,
-            )
-
-            # Install language variants (not mandatory)
-            if "install" in self.language_variant_install_data:
-                main_task_dep = remote_install(
-                    connection,
-                    "lang-variant-installer_" + self.name,
-                    self.language_variant_install_data["install"],
-                    prepare_docker_installer,
-                    scenario_name=self.provision_scenario,
-                )
-            else:
-                main_task_dep = prepare_docker_installer
-
-            # If the ami_name is None, we can not create the AMI (Probably because there another AMI is being generating)
-            if self.ami_name is not None:
-                # Ok. All third party software is installed, let's create the ami to reuse it in the future
-                logger.info(f"Creating AMI with name [{self.ami_name}] from instance ")
-                # Expiration date for the ami
-                # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-                main_task_dep = aws.ec2.AmiFromInstance(
-                    self.ami_name,
-                    # deprecation_time=expiration_date,
-                    source_instance_id=server.id,
-                    opts=pulumi.ResourceOptions(depends_on=[main_task_dep], retain_on_delete=True),
-                )
-
-        else:
-            logger.info("Using a previously existing AMI")
-
-        # Docker login if we need (avoid too many requests)
-        if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
-            main_task_dep = remote_docker_login(
-                "docker-login_" + self.name,
-                self.datadog_config.docker_login,
-                self.datadog_config.docker_login_pass,
-                connection,
-                main_task_dep,
-            )
-
-        # Install agent. If we are using agent autoinstall script, agent install info will be empty, due to we load the install process on auto injection node
-        if "install" in self.agent_install_data:
-            agent_installer = remote_install(
-                connection,
-                "agent-installer_" + self.name,
-                self.agent_install_data["install"],
-                main_task_dep,
-                add_dd_keys=True,
-                dd_api_key=self.datadog_config.dd_api_key,
-                dd_site=self.datadog_config.dd_site,
-                scenario_name=self.provision_scenario,
-            )
-        else:
-            agent_installer = main_task_dep
-
-        # Install autoinjection
-        autoinjection_installer = remote_install(
-            connection,
-            "autoinjection-installer_" + self.name,
-            self.autoinjection_install_data["install"],
-            agent_installer,
-            add_dd_keys=True,
-            dd_api_key=self.datadog_config.dd_api_key,
-            dd_site=self.datadog_config.dd_site,
-            scenario_name=self.provision_scenario,
-        )
-
-        # Extract installed component versions
-        remote_install(
-            connection,
-            "installation-check_" + self.name,
-            self.installation_check_data["install"],
-            autoinjection_installer,
-            logger_name="pulumi_installed_versions",
-            scenario_name=self.provision_scenario,
-            output_callback=lambda command_output: self.set_components(command_output),
-        )
-
-        # Build weblog app
-        weblog_runner = remote_install(
-            connection,
-            "run-weblog_" + self.name,
-            self.weblog_install_data["install"],
-            autoinjection_installer,
-            add_dd_keys=True,
-            dd_api_key=self.datadog_config.dd_api_key,
-            dd_site=self.datadog_config.dd_site,
-            scenario_name=self.provision_scenario,
-            docker_user=self.datadog_config.docker_login
-            if self.prepare_docker_install["install"] is not None
-            else None,
-            docker_pass=self.datadog_config.docker_login_pass
-            if self.prepare_docker_install["install"] is not None
-            else None,
-        )
-
-        # Uninstall process (stop app, uninstall autoinjection and rerun the app)
-        if self.uninstall:
-            logger.info(f"Uninstall the autoinjection software. Command: {self.weblog_uninstall_data['uninstall']} ")
-            weblog_uninstall = remote_install(
-                connection,
-                "uninstall-weblog_" + self.name,
-                self.weblog_uninstall_data["uninstall"],
-                weblog_runner,
-                scenario_name=self.provision_scenario,
-            )
-            autoinjection_uninstall = remote_install(
-                connection,
-                "uninstall-autoinjection_" + self.name,
-                self.autoinjection_uninstall_data["uninstall"],
-                weblog_uninstall,
-                scenario_name=self.provision_scenario,
-            )
-            # Rerun weblog app again, but without autoinstrumentation
-            weblog_rerunner = remote_install(
-                connection,
-                "rerun-weblog_" + self.name,
-                self.weblog_install_data["install"],
-                autoinjection_uninstall,
-                add_dd_keys=True,
-                dd_api_key=self.datadog_config.dd_api_key,
-                dd_site=self.datadog_config.dd_site,
-                scenario_name=self.provision_scenario,
-                docker_user=self.datadog_config.docker_login
-                if self.prepare_docker_install["install"] is not None
-                else None,
-                docker_pass=self.datadog_config.docker_login_pass
-                if self.prepare_docker_install["install"] is not None
-                else None,
-            )
-
-    def set_ip(self, instance_ip):
-        self.ip = instance_ip
-
-    def set_components(self, components_json):
-        """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
-        self.components = json.loads(components_json.replace("'", '"'))
-
-    def get_component(self, component_name):
-        raw_version = self.components[component_name]
-        # Workaround clean "Epoch" from debian packages.
-        # The format is: [epoch:]upstream_version[-debian_revision]
-        if ":" in raw_version:
-            raw_version = raw_version.split(":")[1]
-        return raw_version.strip()
-
-    def _configure_ami(self):
-        import pulumi_aws as aws
-
-        # import pulumi
-
-        # Configure name
-        self.ami_name = self.name
-
-        if "install" not in self.prepare_repos_install:
-            self.ami_name = self.ami_name + "__autoinstall"
-
-        if self.prepare_docker_install["install"] is not None:
-            self.ami_name = self.ami_name + "__container"
-        else:
-            self.ami_name = self.ami_name + "__host"
-
-        # Check for existing ami
-        ami_existing = aws.ec2.get_ami_ids(
-            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)], owners=["self"],
-        )
-
-        if len(ami_existing.ids) > 0:
-            # Latest ami details
-            ami_recent = aws.ec2.get_ami(
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[self.ami_name + "-*"],)],
-                owners=["self"],
-                most_recent=True,
-            )
-            logger.info(
-                f"We found an existing AMI with name {self.ami_name}: [{ami_recent.id}] and status:[{ami_recent.state}] and expiration: [{ami_recent.deprecation_time}]"
-            )
-            # The AMI exists. We don't need to create the AMI again
-            self.ami_id = ami_recent.id
-
-            if str(ami_recent.state) != "available":
-                logger.info(
-                    f"We found an existing AMI but we can no use it because the current status is {ami_recent.state}"
-                )
-                logger.info("We are not going to create a new AMI and we are not going to use it")
-                self.ami_id = None
-                self.ami_name = None
-
-            # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
-            if os.getenv("AMI_UPDATE") is not None:
-                # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
-                # aws.ec2.Ami( ami_existing.name,
-                #    name=ami_existing.name,
-                #    opts=pulumi.ResourceOptions(import_=ami_existing.id))
-                logger.info("We found an existing AMI but AMI_UPDATE is set. We are going to update the AMI")
-                self.ami_id = None
-
-        else:
-            logger.info(f"Not found an existing AMI with name {self.ami_name}")
+from utils._context.library_version import Version
+from utils import context
 
 
 class AWSInfraConfig:
     def __init__(self) -> None:
-
         # Mandatory parameters
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
-        self.instance_type = os.getenv("ONBOARDING_AWS_INFRA_INSTANCE_TYPE", "t2.medium")
 
-        if None in (self.subnet_id, self.vpc_security_group_ids):
-            logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
+        # if None in (self.subnet_id, self.vpc_security_group_ids):
+        #    logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
 
 
 class DataDogConfig:
@@ -342,6 +22,212 @@ class DataDogConfig:
         self.dd_app_key = os.getenv("DD_APP_KEY_ONBOARDING")
         self.docker_login = os.getenv("DOCKER_LOGIN")
         self.docker_login_pass = os.getenv("DOCKER_LOGIN_PASS")
-        self.dd_site = os.getenv("DD_SITE_ONBOARDING", "datadoghq.com")
-        if None in (self.dd_api_key, self.dd_app_key):
-            logger.warn("Datadog agent is not configured correctly for auto-injection testing")
+
+        # if None in (self.dd_api_key, self.dd_app_key):
+        #    logger.warn("Datadog agent is not configured correctly for auto-injection testing")
+
+
+class _VagrantConfig:
+    def __init__(self, box_name) -> None:
+        self.box_name = box_name
+
+
+class _AWSConfig:
+    def __init__(self, ami_id, ami_instance_type, user) -> None:
+        self.ami_id = ami_id
+        self.ami_instance_type = ami_instance_type
+        self.user = user
+        self.aws_infra_config = AWSInfraConfig()
+
+
+class _SSHConfig:
+    def __init__(self, hostname=None, port=22, username=None, key_filename=None, pkey=None) -> None:
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.key_filename = key_filename
+        self.pkey = pkey
+        self.pkey_path = pkey
+
+    def set_pkey(self, pkey):
+        self.pkey = pkey
+
+    def get_ssh_connection(self):
+        import paramiko
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        if self.pkey_path is not None:
+            if self.pkey is None:
+                self.pkey = paramiko.RSAKey.from_private_key_file(self.pkey_path)
+            ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey)
+        else:
+            ssh.connect(self.hostname, port=self.port, username=self.username, key_filename=self.key_filename)
+        return ssh
+
+
+class _VirtualMachine:
+    def __init__(self, name, aws_config, vagrant_config, os_type, os_distro, os_branch, os_cpu, **kwargs,) -> None:
+        self.name = name
+        self.datadog_config = DataDogConfig()
+        self.aws_config = aws_config
+        self.vagrant_config = vagrant_config
+        self.ssh_config = _SSHConfig()
+        self.os_type = os_type
+        self.os_distro = os_distro
+        self.os_branch = os_branch
+        self.os_cpu = os_cpu
+        self._vm_provision = None
+        self.tested_components = {}
+        self.deffault_open_port = 5985
+
+    def set_ip(self, ip):
+        self.ssh_config.hostname = ip
+
+    def get_log_folder(self):
+        vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
+        if not os.path.exists(vm_folder):
+            os.mkdir(vm_folder)
+        return vm_folder
+
+    def get_default_log_file(self):
+        return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
+
+    def add_provision(self, provision):
+        self._vm_provision = provision
+
+    def get_provision(self):
+        return self._vm_provision
+
+    def set_tested_components(self, components_json):
+        """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
+        self.tested_components = json.loads(components_json.replace("'", '"'))
+
+    def get_cache_name(self):
+        vm_cached_name = f"{self.name}_"
+        if self.get_provision().lang_variant_installation:
+            vm_cached_name += f"{self.get_provision().lang_variant_installation.id}_"
+        for installation in self.get_provision().installations:
+            if installation.cache:
+                vm_cached_name += f"{installation.id}_"
+        return vm_cached_name
+
+    def get_command_environment(self):
+        """ This environment will be injected as environment variables for all launched remote commands """
+        command_env = {}
+        for key, value in self.get_provision().env.items():
+            command_env["DD_" + key] = value
+        # DD
+        if self.datadog_config.dd_api_key:
+            command_env["DD_API_KEY"] = self.datadog_config.dd_api_key
+        if self.datadog_config.dd_app_key:
+            command_env["DD_APP_KEY"] = self.datadog_config.dd_app_key
+        # Docker
+        if self.datadog_config.docker_login:
+            command_env["DD_DOCKER_LOGIN"] = self.datadog_config.docker_login
+            command_env["DD_DOCKER_LOGIN_PASS"] = self.datadog_config.docker_login_pass
+        # Tested library
+        command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
+        # VM name
+        command_env["DD_VM_NAME"] = self.name
+        return command_env
+
+
+class Ubuntu22amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_22_amd64",
+            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=_VagrantConfig(box_name="bento/ubuntu-22.04"),
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu22_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class Ubuntu22arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_22_arm64",
+            aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64",),
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu22_arm64",
+            os_cpu="arm64",
+            **kwargs,
+        )
+
+
+class Ubuntu18amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_18_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0263e4deb427da90e", ami_instance_type="t2.medium", user="ubuntu"),
+            # vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
+            vagrant_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu18_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0dfcb1ef8550277af", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=_VagrantConfig(box_name="generic/centos7"),
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2DotNet6(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2_DotNet6",
+            aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2_dotnet6",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2023amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2023_amd64",
+            aws_config=_AWSConfig(ami_id="ami-06b09bfacae1453cb", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=_VagrantConfig(box_name="generic/centos9s"),
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2023_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2023arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2023_arm64",
+            aws_config=_AWSConfig(ami_id="ami-04c97e62cb19d53f1", ami_instance_type="t4g.small", user="ec2-user"),
+            # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
+            vagrant_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2023_arm64",
+            os_cpu="arm64",
+            **kwargs,
+        )

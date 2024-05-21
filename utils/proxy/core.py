@@ -96,8 +96,12 @@ class _RequestLogger:
                     flow.request.host = "system-tests-collector"
                     flow.request.port = 4318
                     flow.request.scheme = "http"
-                elif otlp_path == "intake":
+                elif otlp_path == "intake-traces":
                     flow.request.host = "trace.agent." + os.environ.get("DD_SITE", "datad0g.com")
+                    flow.request.port = 443
+                    flow.request.scheme = "https"
+                elif otlp_path == "intake-metrics":
+                    flow.request.host = "api." + os.environ.get("DD_SITE", "datad0g.com")
                     flow.request.port = 443
                     flow.request.scheme = "https"
                 else:
@@ -130,6 +134,14 @@ class _RequestLogger:
                     interface = "library"
                 elif port == 9001:
                     interface = "python_buddy"
+                elif port == 9002:
+                    interface = "nodejs_buddy"
+                elif port == 9003:
+                    interface = "java_buddy"
+                elif port == 9004:
+                    interface = "ruby_buddy"
+                elif port == 9005:
+                    interface = "golang_buddy"
                 else:
                     raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
             else:
@@ -221,6 +233,7 @@ class _RequestLogger:
                     "DEBUGGER_LINE_PROBES_SNAPSHOT",
                     "DEBUGGER_METHOD_PROBES_SNAPSHOT",
                     "DEBUGGER_MIX_LOG_PROBE",
+                    "DEBUGGER_PII_REDACTION",
                 ):
                     response = rc_debugger.create_rcm_probe_response(
                         request_content["client"]["client_tracer"]["language"],
@@ -242,6 +255,10 @@ def start_proxy() -> None:
     modes = [
         "regular@8126",  # base weblog
         "regular@9001",  # python_buddy
+        "regular@9002",  # nodejs_buddy
+        "regular@9003",  # java_buddy
+        "regular@9004",  # ruby_buddy
+        "regular@9005",  # golang_buddy
     ]
 
     loop = asyncio.new_event_loop()

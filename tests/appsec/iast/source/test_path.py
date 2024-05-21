@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage
-from .._test_iast_fixtures import BaseSourceTest
+from utils import features, missing_feature
+from ..utils import BaseSourceTest
 
 
-@coverage.basic
+@features.iast_source_path
 class TestPath(BaseSourceTest):
     """Verify that request path is tainted"""
 
@@ -15,3 +15,7 @@ class TestPath(BaseSourceTest):
     source_names = None
     source_value = "/iast/source/path/test"
     requests_kwargs = [{"method": "GET"}]
+
+    @missing_feature(library="dotnet", reason="Not implemented")
+    def test_telemetry_metric_instrumented_source(self):
+        super().test_telemetry_metric_instrumented_source()

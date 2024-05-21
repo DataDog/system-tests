@@ -6,12 +6,12 @@ using System.Threading;
 
 namespace weblog
 {
-    public class Helper
+    public static class Helper
     {
         private static Random random = new Random();
         private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-        public void GenerateSpan(int garbageTags)
+        public static void GenerateSpan(int garbageTags)
         {
             using (var childScope = Tracer.Instance.StartActive("spans.child"))
             {

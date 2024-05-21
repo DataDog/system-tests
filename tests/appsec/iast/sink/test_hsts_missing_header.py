@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, missing_feature
-from .._test_iast_fixtures import BaseSinkTest
+from utils import context, missing_feature, features
+from ..utils import BaseSinkTest
 
 
-@coverage.basic
+@features.iast_sink_hsts_missing_header
 class Test_HstsMissingHeader(BaseSinkTest):
     """Test HSTS missing header detection."""
 
@@ -18,6 +18,7 @@ class Test_HstsMissingHeader(BaseSinkTest):
     headers = {"X-Forwarded-Proto": "https"}
 
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

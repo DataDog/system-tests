@@ -89,7 +89,7 @@ AGENT_VERSION_PATTERN = r"""
             (?P<devel_n>.*)?
         )?
     )
-    (?:\+(?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
+    (?:[\+\-](?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
 """
 
 
@@ -116,6 +116,8 @@ class Version(version_module.Version):
             pattern = RUBY_VERSION_PATTERN
             if version.startswith("* ddtrace"):
                 version = re.sub(r"\* *ddtrace *\((.*)\)", r"\1", version)
+            if version.startswith("* datadog"):
+                version = re.sub(r"\* *datadog *\((.*)\)", r"\1", version)
 
         elif component == "libddwaf":
             if version.startswith("* libddwaf"):

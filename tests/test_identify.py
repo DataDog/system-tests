@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, bug, context, coverage, interfaces, rfc
+from utils import weblog, bug, context, interfaces, rfc, features, missing_feature
 
 
 def assertTagInSpanMeta(span, tag, expected):
@@ -27,7 +27,7 @@ def validate_identify_tags(tags):
     return inner_validate
 
 
-@coverage.basic
+@features.propagation_of_user_id_rfc
 class Test_Basic:
     """Basic tests for Identify SDK"""
 
@@ -60,7 +60,7 @@ class Test_Basic:
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@coverage.basic
+@features.propagation_of_user_id_rfc
 class Test_Propagate_Legacy:
     """Propagation tests for Identify SDK"""
 
@@ -68,6 +68,7 @@ class Test_Propagate_Legacy:
         # Send a request to the identify-propagate endpoint
         self.r_outgoing = weblog.get("/identify-propagate")
 
+    @missing_feature(library="nodejs", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
@@ -84,7 +85,7 @@ class Test_Propagate_Legacy:
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@coverage.basic
+@features.propagation_of_user_id_rfc
 class Test_Propagate:
     """Propagation tests for Identify SDK"""
 
@@ -92,6 +93,7 @@ class Test_Propagate:
         # Send a request to the identify-propagate endpoint
         self.r_outgoing = weblog.get("/identify-propagate")
 
+    @missing_feature(library="nodejs", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tagTable = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))

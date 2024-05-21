@@ -36,3 +36,7 @@ File permission on your `.docker` are not the good ones :
 ```bash
 sudo chown -R $(whoami) ~/.docker
 ```
+
+## NodeJs weblog experimenting segfaults on Mac/Intel
+
+In docker dashbaord, setting, general, untick `Use Virtualization Framework`. See this [Stack overflow thread](https://stackoverflow.com/questions/76735062/segmentation-fault-in-node-js-application-running-in-docker).

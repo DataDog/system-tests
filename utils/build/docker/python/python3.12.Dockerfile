@@ -1,11 +1,11 @@
-FROM datadog/system-tests:python3.12.base-v0
+FROM datadog/system-tests:python3.12.base-v2
 
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-COPY utils/build/docker/python/django/app.sh /app/app.sh
+COPY utils/build/docker/python/django/app_3.12.sh /app/app.sh
 COPY utils/build/docker/python/django/django.app.urls.py /app/app/urls.py
 COPY utils/build/docker/python/iast.py /app/iast.py
 

@@ -2,10 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, coverage, missing_feature
+from utils import context, interfaces, missing_feature, features
 
 
-@coverage.basic
+@features.appsec_miscs_internals
 class Test_Events:
     """AppSec events uses events in span"""
 
@@ -14,4 +14,4 @@ class Test_Events:
         """ AppSec sends event in traces"""
 
         for _ in interfaces.library.get_legacy_appsec_events():
-            raise Exception("You are using old AppSec communication")
+            raise ValueError("You are using old AppSec communication")

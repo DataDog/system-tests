@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+
 #nullable disable
 
 namespace weblog
@@ -82,7 +84,7 @@ namespace weblog
             try
             {
                 System.Diagnostics.Process.Start(data.table);
-                
+
                 return Content("Ok");
             }
             catch
@@ -97,7 +99,7 @@ namespace weblog
             try
             {
                 System.Diagnostics.Process.Start(table);
-                
+
                 return Content("Ok");
             }
             catch
@@ -135,6 +137,21 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
+        
+        [HttpGet("/iast/source/path/test")]
+        public IActionResult pathTest()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(Request.Path);
+                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
 
         [HttpGet("insecure_cipher/test_insecure_algorithm")]
         public IActionResult test_insecure_weakCipher()
@@ -158,11 +175,11 @@ namespace weblog
                 if (!string.IsNullOrEmpty(data.cmd))
                 {
                     var result = Process.Start(data.cmd);
-                    return Content($"Process launched: " + result.ProcessName);
+                    return Content("Process launched: " + result.ProcessName);
                 }
                 else
                 {
-                    return BadRequest($"No file was provided");
+                    return BadRequest("No file was provided");
                 }
             }
             catch
@@ -177,7 +194,7 @@ namespace weblog
             try
             {
                 var result = Process.Start("ls");
-                return Content($"Process launched: " + result.ProcessName);
+                return Content("Process launched: " + result.ProcessName);
             }
             catch
             {
@@ -197,6 +214,22 @@ namespace weblog
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
+        }        
+        
+        [HttpGet("hstsmissing/test_insecure")]
+        public IActionResult test_insecure_hstsmissing()
+        {
+            Response.Headers.Add("Strict-Transport-Security", "max-age=-3153");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
+        }
+
+        [HttpGet("hstsmissing/test_secure")]
+        public IActionResult test_secure_hstsmissing()
+        {
+            Response.Headers.Append("Strict-Transport-Security", "max-age=31536000");
+            Response.Headers.Append("X-Forwarded-Proto", "https");
+            return Content("Ok", "text/html");
         }
         
         [HttpGet("no-samesite-cookie/test_insecure")]
@@ -242,10 +275,16 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText(data.path);
-                return Content($"File content: " + result);
+                return Content("File content: " + result);
             }
-            catch
+            catch (UnauthorizedAccessException)
             {
+                // Normal Exception caught: The file in the test "/var/log" is not accessible
+                return StatusCode(200);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error reading file.");
             }
         }
@@ -256,10 +295,16 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText("file.txt");
-                return Content($"File content: " + result);
+                return Content("File content: " + result);
             }
-            catch
+            catch (System.IO.FileNotFoundException)
             {
+                // Normal Exception caught: The file "file.txt" hardcoded for the test does not exist
+                return StatusCode(200);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error reading file.");
             }
         }
@@ -273,7 +318,7 @@ namespace weblog
         [HttpPost("ssrf/test_secure")]
         public IActionResult TestSecureSSRF([FromForm] RequestData data)
         {
-            return MakeRequest("notAUrl");
+            return MakeRequest("https://www.datadoghq.com");
         }
         
         private IActionResult MakeRequest(string url)
@@ -281,7 +326,7 @@ namespace weblog
             try
             {
                 var result = new System.Net.Http.HttpClient().GetStringAsync(url).Result;
-                return Content($"Reponse: " + result);
+                return Content("Response: " + result);
             }
             catch
             {
@@ -296,11 +341,11 @@ namespace weblog
             {
                 string ldapPath = "LDAP://" + username + ":" + password + "@ldap.example.com/OU=Users,DC=example,DC=com";
                 _ = new System.DirectoryServices.DirectoryEntry(ldapPath);
-                return Content($"Conection created");
+                return Content("Connection created");
             }
             catch
             {
-                return Content($"Error creating connection");
+                return Content("Error creating connection");
             }
         }
         
@@ -310,13 +355,27 @@ namespace weblog
             try
             {        
                 _ = new System.DirectoryServices.DirectoryEntry("LDAP://ldap.example.com/OU=Users,DC=example,DC=com", username, password);
-                return Content($"Conection created");
+                return Content("Connection created");
             }
             catch
             {
-                return Content($"Error creating connection");
+                return Content("Error creating connection");
             }                
         }
+
+        [HttpPost("header_injection/test_insecure")]
+        public IActionResult test_insecure_header_injection([FromForm] string test)
+        {
+            Response.Headers.Add("returnedHeaderKey", test);
+            return Content("Ok");
+        }
+        
+        [HttpPost("header_injection/test_secure")]
+        public IActionResult test_secure_header_injection([FromForm] string test)
+        {
+            Response.Headers.Add("returnedHeaderKey", "notTainted");
+            return Content("Ok");
+        }        
         
         [HttpPost("sqli/test_insecure")]
         public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
@@ -335,18 +394,19 @@ namespace weblog
 
                     while (reader.Read())
                     {
-                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
+                        sb.AppendLine($"{reader["user"]}, {reader["pwd"]}");
                     }
 
                     return Content(sb.ToString());
                 }
                 else
                 {
-                    return BadRequest($"No params provided");
+                    return BadRequest("No params provided");
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error executing query.");
             }        
         }
@@ -363,39 +423,113 @@ namespace weblog
                     using var conn = Sql.GetSqliteConnection();
                     conn.Open();
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT * FROM data WHERE value = $user";
-                    cmd.Parameters.Add("$user");
-                    cmd.Parameters["$user"].Value = username;
+                    cmd.CommandText = "SELECT * FROM users WHERE user = $user";
+                    cmd.Parameters.Add(new SqliteParameter("$user", username));
+
                     using var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        sb.AppendLine(reader["value"]?.ToString());
+                        sb.AppendLine(reader["user"]?.ToString() + ", " + reader["pwd"]?.ToString());
                     }
 
                     return Content(sb.ToString());
                 }
                 else
                 {
-                    return BadRequest($"No params provided");
+                    return BadRequest("No params provided");
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return StatusCode(500, "Error executing query.");
             }
         }
 
         [HttpGet("weak_randomness/test_insecure")]
-        public IActionResult test_insecure_weakRandomness(string user)
+        public IActionResult test_insecure_weakRandomness()
         {
             return Content("Weak random number: " + (new Random()).Next().ToString(), "text/html");
         }
 
         [HttpGet("weak_randomness/test_secure")]
-        public IActionResult test_secure_weakRandomness(string user)
+        public IActionResult test_secure_weakRandomness()
         {
             return Content("Secure random number: " + RandomNumberGenerator.GetInt32(100).ToString(), "text/html");
         }
+
+        [HttpGet("trust-boundary-violation/test_insecure")]
+        public IActionResult test_insecure_trustBoundaryViolation([FromQuery]string username, [FromQuery]string password)
+        {
+            HttpContext.Session.SetString("UserData", username);
+            return Content("Parameter added to session. User : " + HttpContext.Session.GetString("UserData"));
+        }
+
+        [HttpGet("trust-boundary-violation/test_secure")]
+        public IActionResult test_secure_trustBoundaryViolation([FromQuery]string username, [FromQuery]string password)
+        {
+            return Content("Nothing added to session");
+        }
+        
+        [HttpPost("unvalidated_redirect/test_insecure_header")]
+        public IActionResult test_insecure_redirect_header([FromForm]string location)
+        {
+            Response.Headers["location"] = location;
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_secure_header")]
+        public IActionResult test_secure_redirect_header()
+        {
+            var location = "http://dummy.location.com";
+            Response.Headers["location"] = location;
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_insecure_redirect")]
+        public IActionResult test_insecure_redirect([FromForm]string location)
+        {
+            Response.Redirect(location);
+            return Content("Redirected to " + location);
+        }
+
+        [HttpPost("unvalidated_redirect/test_secure_redirect")]
+        public IActionResult test_secure_redirect()
+        {
+            var location = "http://dummy.location.com";
+            Response.Redirect(location);
+            return Content("Redirected to " + location);
+        }
+
+        [HttpGet("source/cookievalue/test")]
+        public IActionResult test_cookie_value()
+        {
+            var process = Request.Cookies["table"];
+            try
+            {
+                System.Diagnostics.Process.Start(process);                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }
+        
+        [HttpGet("source/cookiename/test")]
+        public IActionResult test_cookie_name()
+        {
+            var process = Request.Cookies.Keys.First();
+            try
+            {
+                System.Diagnostics.Process.Start(process);                
+                return Content("Ok");
+            }
+            catch
+            {
+                return StatusCode(500, "NotOk");
+            }
+        }                
 
         [HttpPost("source/body/test")]
         public IActionResult test_source_body([FromBody]BodyForIast body)
@@ -403,7 +537,7 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText(body.value);
-                return Content($"Executed injection");
+                return Content("Executed injection");
             }
             catch
             {
@@ -418,12 +552,95 @@ namespace weblog
             try
             {
                 var result = System.IO.File.ReadAllText(headerValue);
-                return Content($"Executed injection");
+                return Content("Executed injection");
             }
             catch
             {
                 return StatusCode(500, "Error executing query.");
             }               
+        }
+
+        [HttpPost("mongodb-nosql-injection/test_insecure")]
+        public IActionResult test_insecure_mongodb_injection([FromForm]string key)
+        {
+            try
+            {
+                var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
+                var filter = "{ \"user\": \"" + key + "\" }";
+                mongoDbHelper.Find("users", filter);
+                
+                return Content("Executed injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        [HttpPost("mongodb-nosql-injection/test_secure")]
+        public IActionResult test_secure_mongodb_injection([FromForm]string key)
+        {
+            try
+            {
+                var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
+                var filter = MongoDbHelper.CreateSimpleDocument("user", key);
+                mongoDbHelper.Find("users", filter);
+                
+                return Content("Executed secure injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing query.");
+            }
+        }
+        
+        private class ReflectionInjection { } // Class name passed as parameter in the reflection injection test
+        
+        [HttpPost("reflection_injection/test_insecure")]
+        public IActionResult test_insecure_reflection_injection([FromForm]string param)
+        {
+            
+            try
+            {
+                var type = Type.GetType(param);
+                Activator.CreateInstance(type!);
+            }
+            catch
+            {
+                return StatusCode(500, "Error executing reflection.");
+            }
+
+            return Content("Executed reflection injection");
+        }
+        
+        [HttpPost("reflection_injection/test_secure")]
+        public IActionResult test_secure_reflection_injection([FromForm]string param)
+        {
+            try
+            {
+                var type = Type.GetType("System.Text.StringBuilder")!;
+                Activator.CreateInstance(type);
+                return Content("Executed secure injection");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "Error executing safe reflection.");
+            }
+        }
+        
+        [HttpGet("insecure-auth-protocol/test")]
+        public IActionResult test_insecure_auth_protocol()
+        {
+            // Reset the deduplication of vulnerabilities using reflection
+            var type = Type.GetType("Datadog.Trace.Iast.HashBasedDeduplication, Datadog.Trace")!;
+            var instance = type.GetProperty("Instance")!.GetValue(null);
+            var field = type.GetField("_vulnerabilityHashes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            field!.SetValue(instance, new HashSet<int>());
+            
+            return StatusCode(200);
         }
     }
 }

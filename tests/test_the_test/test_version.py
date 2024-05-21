@@ -62,6 +62,9 @@ def test_version_serialization():
     v = Version("  * ddtrace (1.0.0.beta1)", "ruby")
     assert v == Version("1.0.0beta1", "ruby")
 
+    v = Version("  * datadog (2.0.0.beta1)", "ruby")
+    assert v == Version("2.0.0beta1", "ruby")
+
     v = Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
     assert v == Version("1.0.0beta1+de82857", "ruby")
 
@@ -80,6 +83,9 @@ def test_version_serialization():
 
     v = Version("7.43.1-beta-cache-hit-ratio", "agent")
     assert v == "7.43.1"
+
+    v = Version("7.50.0-dbm-oracle-0.1", "agent")
+    assert str(v) == "7.50.0+dbm.oracle.0.1"
 
 
 def test_agent_version():

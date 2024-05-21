@@ -2,15 +2,28 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, scenarios
+
+import json
+import re
+
+from utils import weblog, interfaces, context, scenarios, features, irrelevant
+from utils.tools import logger
 
 
-@scenarios.integrations
+def remove_traceparent(s):
+    return re.sub(r",traceparent='[^']*'", "", s)
+
+
+@features.database_monitoring_correlation
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
 
-    def setup_trace_payload(self):
+    META_TAG = "_dd.dbm_trace_injected"
+
+    # Helper Methods
+    def weblog_trace_payload(self):
         self.library_name = context.library
+        self.scenario_name = context.scenario.name
         self.requests = []
 
         if self.library_name == "python":
@@ -21,22 +34,285 @@ class Test_Dbm:
         elif self.library_name == "dotnet":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
-                weblog.get("/dbm", params={"integration": "mysql"}),
-                weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
+            if self.scenario_name == "INTEGRATIONS":
+                self.requests.extend(
+                    [
+                        weblog.get("/dbm", params={"integration": "mysql"}),
+                        weblog.get("/dbm", params={"integration": "sqlclient"}),
+                    ]
+                ),
         elif self.library_name == "php":
             self.requests = [
-                weblog.get("/dbm", params={"integration": "pdo-mysql"}),
                 weblog.get("/dbm", params={"integration": "pdo-pgsql"}),
-                weblog.get("/dbm", params={"integration": "mysqli"}),
             ]
+            if self.scenario_name == "INTEGRATIONS":
+                self.requests.extend(
+                    [
+                        weblog.get("/dbm", params={"integration": "mysqli"}),
+                        weblog.get("/dbm", params={"integration": "pdo-mysql"}),
+                    ]
+                ),
 
-    def test_trace_payload(self):
-        for r in self.requests:
-            assert r.status_code == 200, f"{r.request.url} is not successful"
-            for _, _, span in interfaces.library.get_spans(request=r):
-                if span.get("span_type") != "sql":
-                    return
+    def _get_db_span(self, response):
+        assert response.status_code == 200, f"Request: {context.scenario.name} wasn't successful."
 
-                meta = span.get("meta", {})
-                assert "_dd.dbm_trace_injected" in meta
+        spans = []
+        # we do not use get_spans: the span we look for is not directly the span that carry the request information
+        for data, trace in interfaces.library.get_traces(request=response):
+            spans += [(data, span) for span in trace if span.get("type") == "sql"]
+
+        if len(spans) == 0:
+            raise ValueError("No span found with meta.type == 'sql'")
+
+        # look for the span with the good resource
+        for data, span in spans:
+            if span.get("resource") == "SELECT version()" or span.get("resource") == "SELECT @@version":
+                logger.debug(f"A matching span in found in {data['log_filename']}")
+                return span
+
+        # log span.resource found to help to debug hen resource does not match
+        for _, span in spans:
+            logger.debug(
+                f"Found spans with meta.type=sql span, but the ressource does not match: {span.get('resource')}"
+            )
+
+        raise ValueError("No DB span with expected resource 'SELECT version()' nor 'SELECT @@version' found.")
+
+    def _assert_spans_are_untagged(self):
+        for request in self.requests:
+            self._assert_span_is_untagged(self._get_db_span(request))
+
+    def _assert_span_is_untagged(self, span):
+        meta = span.get("meta", {})
+        assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
+
+    def _assert_span_is_tagged(self, span):
+        meta = span.get("meta", {})
+        assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
+        tag_value = meta.get(self.META_TAG)
+        assert tag_value == "true", f"{self.META_TAG} value is not `true`."
+
+    # Setup Methods
+    setup_trace_payload_disabled = weblog_trace_payload
+
+    # Test Methods
+    @scenarios.appsec_disabled
+    def test_trace_payload_disabled(self):
+        assert self.requests, "No requests to validate"
+        self._assert_spans_are_untagged()
+
+    setup_trace_payload_service = weblog_trace_payload
+
+    @scenarios.default
+    def test_trace_payload_service(self):
+        assert self.requests, "No requests to validate"
+        self._assert_spans_are_untagged()
+
+    setup_trace_payload_full = weblog_trace_payload
+
+    @scenarios.integrations
+    def test_trace_payload_full(self):
+        assert self.requests, "No requests to validate"
+        for request in self.requests:
+            span = self._get_db_span(request)
+
+            if span.get("meta", {}).get("db.type") == "sql-server":
+                self._assert_span_is_untagged(span)
+            else:
+                self._assert_span_is_tagged(span)
+
+
+class _Test_Dbm_Comment:
+    """ Verify DBM comment for given integration """
+
+    integration = None
+    operation = None
+
+    # comment generic info
+    dde = "system-tests"  # DD_ENV
+    ddps = "weblog"  # DD_SERVICE
+    ddpv = "1.0.0"  # DD_VERSION
+
+    def setup_dbm_comment(self):
+        self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
+
+    def test_dbm_comment(self):
+        if self.r.text not in [None, ""]:
+            try:
+                self.r.text = json.loads(self.r.text)
+            except json.decoder.JSONDecodeError:
+                pass
+            self.expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
+
+        assert self.r.text["status"] == "ok"
+        assert "traceparent" in self.r.text["dbm_comment"]
+
+        self.r.text["dbm_comment"] = remove_traceparent(self.r.text["dbm_comment"])
+
+        assert self.r.text["dbm_comment"] == self.expected_dbm_comment
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
+    integration = "psycopg"
+    operation = "execute"
+
+    dddb = "system_tests_dbname"  # db name
+    dddbs = "system_tests_dbname"  # db name
+    ddh = "postgres"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Batch_Python_Psycopg(_Test_Dbm_Comment):
+    integration = "psycopg"
+    operation = "executemany"
+
+    dddb = "system_tests_dbname"  # db name
+    dddbs = "system_tests_dbname"  # db name
+    ddh = "postgres"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
+    integration = "asyncpg"
+    operation = "execute"
+
+    dddb = "system_tests_dbname"  # db name
+    dddbs = "system_tests_dbname"  # db name
+    ddh = "postgres"  # container name
+
+
+# no batching dbm comment injection for asyncpg
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
+    integration = "aiomysql"
+    operation = "execute"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Batch_Python_Aiomysql(_Test_Dbm_Comment):
+    integration = "aiomysql"
+    operation = "executemany"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
+    integration = "mysql-connector"
+    operation = "execute"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Batch_Python_MysqlConnector(_Test_Dbm_Comment):
+    integration = "mysql-connector"
+    operation = "executemany"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
+    integration = "mysqldb"
+    operation = "execute"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Batch_Python_Mysqldb(_Test_Dbm_Comment):
+    integration = "mysqldb"
+    operation = "executemany"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
+    integration = "pymysql"
+    operation = "execute"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "python", reason="These are python only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Batch_Python_Pymysql(_Test_Dbm_Comment):
+    integration = "pymysql"
+    operation = "executemany"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+@irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_NodeJS_mysql2(_Test_Dbm_Comment):
+    integration = "mysql2"
+    operation = "execute"
+
+    dddb = "mysql_dbname"  # db name
+    dddbs = "mysql_dbname"  # db name
+    ddh = "mysqldb"  # container name
+
+
+# no dbm batch comment injection for mysql2
+
+
+@irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_NodeJS_pg(_Test_Dbm_Comment):
+    integration = "pg"
+    operation = "execute"
+
+    dddb = "system_tests_dbname"  # db name
+    dddbs = "system_tests_dbname"  # db name
+    ddh = "postgres"  # container name
+
+
+# no dbm batch comment injection for mysql2

@@ -1,9 +1,26 @@
 'use strict'
+
+const { Kafka } = require('kafkajs')
 const { readFileSync } = require('fs')
+
+function getKafka () {
+  return new Kafka({
+    clientId: 'my-app-iast',
+    brokers: ['kafka:9092'],
+    retry: {
+      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+      retries: 20 // Number of retries before giving up
+    }
+  })
+}
 
 function init (app, tracer) {
   app.post('/iast/source/body/test', (req, res) => {
-    readFileSync(req.body.name)
+    try {
+      readFileSync(req.body.name)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -12,7 +29,11 @@ function init (app, tracer) {
     Object.keys(req.headers).forEach((key) => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -21,7 +42,11 @@ function init (app, tracer) {
     Object.keys(req.headers).forEach((key) => {
       vulnParam += req.headers[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -30,7 +55,11 @@ function init (app, tracer) {
     Object.keys(req.query).forEach((key) => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -39,7 +68,11 @@ function init (app, tracer) {
     Object.keys(req.body).forEach((key) => {
       vulnParam += req.body[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -48,7 +81,11 @@ function init (app, tracer) {
     Object.keys(req.query).forEach((key) => {
       vulnParam += req.query[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -57,7 +94,11 @@ function init (app, tracer) {
     Object.keys(req.cookies).forEach((key) => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -66,8 +107,136 @@ function init (app, tracer) {
     Object.keys(req.cookies).forEach((key) => {
       vulnParam += req.cookies[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
+  })
+
+  app.get('/iast/source/kafkavalue/test', (req, res) => {
+    const kafka = getKafka()
+    const topic = 'dsm-system-tests-queue'
+    const timeout = 60000
+
+    let consumer
+    const doKafkaOperations = async () => {
+      consumer = kafka.consumer({ groupId: 'testgroup2' })
+
+      await consumer.connect()
+      await consumer.subscribe({ topic, fromBeginning: false })
+
+      const deferred = {}
+      const promise = new Promise((resolve, reject) => {
+        deferred.resolve = resolve
+        deferred.reject = reject
+      })
+
+      await consumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+          const vulnValue = message.value.toString()
+          try {
+            readFileSync(vulnValue)
+          } catch {
+            // do nothing
+          }
+
+          // in some occasions we consume messages from dsm tests
+          if (vulnValue === 'hello value!') {
+            deferred.resolve()
+          }
+        }
+      })
+
+      setTimeout(() => {
+        deferred.reject(new Error('Message not received'))
+      }, timeout)
+
+      const producer = kafka.producer()
+      await producer.connect()
+      await producer.send({
+        topic,
+        messages: [{ value: 'hello value!' }]
+      })
+      await producer.disconnect()
+
+      return promise
+    }
+
+    doKafkaOperations()
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+
+        res.send('ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+      })
+  })
+
+  app.get('/iast/source/kafkakey/test', (req, res) => {
+    const kafka = getKafka()
+    const topic = 'dsm-system-tests-queue'
+    const timeout = 60000
+
+    let consumer
+    const doKafkaOperations = async () => {
+      consumer = kafka.consumer({ groupId: 'testgroup2' })
+
+      await consumer.connect()
+      await consumer.subscribe({ topic, fromBeginning: false })
+
+      const deferred = {}
+      const promise = new Promise((resolve, reject) => {
+        deferred.resolve = resolve
+        deferred.reject = reject
+      })
+
+      await consumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+          // in some occasions we consume messages from dsm tests
+          if (!message.key) return
+
+          const vulnKey = message.key.toString()
+          try {
+            readFileSync(vulnKey)
+          } catch {
+            // do nothing
+          }
+
+          deferred.resolve()
+        }
+      })
+
+      setTimeout(() => {
+        deferred.reject(new Error('Message not received'))
+      }, timeout)
+
+      const producer = kafka.producer()
+      await producer.connect()
+      await producer.send({
+        topic,
+        messages: [{ key: 'hello key!', value: 'value' }]
+      })
+      await producer.disconnect()
+
+      return promise
+    }
+
+    doKafkaOperations()
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+
+        res.send('ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+      })
   })
 }
 

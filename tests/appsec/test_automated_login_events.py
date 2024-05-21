@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios, coverage, rfc, bug
+from utils import weblog, interfaces, context, missing_feature, scenarios, rfc, bug, features
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
-@coverage.good
+@features.user_monitoring
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
@@ -253,9 +253,8 @@ class Test_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
-@coverage.good
 @scenarios.appsec_auto_events_extended
-@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
+@features.user_monitoring
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 
@@ -275,6 +274,27 @@ class Test_Login_Events_Extended:
 
     BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
     BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
+
+    HEADERS = {
+        "Accept": "text/html",
+        "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
+        "Accept-Language": "en-GB, *;q=0.5",
+        "Content-Language": "en-GB",
+        "Content-Length": "0",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Encoding": "deflate, gzip",
+        "Host": "127.0.0.1:1234",
+        "User-Agent": "Benign User Agent 1.0",
+        "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
+        "X-Client-IP": "42.42.42.42, 43.43.43.43",
+        "X-Real-IP": "42.42.42.42, 43.43.43.43",
+        "X-Forwarded": "42.42.42.42, 43.43.43.43",
+        "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
+        "Forwarded-For": "42.42.42.42, 43.43.43.43",
+        "Forwarded": "42.42.42.42, 43.43.43.43",
+        "Via": "42.42.42.42, 43.43.43.43",
+        "True-Client-IP": "42.42.42.42, 43.43.43.43",
+    }
 
     def setup_login_success_local(self):
         self.r_success = weblog.post(
@@ -507,6 +527,58 @@ class Test_Login_Events_Extended:
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
             assert_priority(span, meta)
+
+    def setup_login_success_headers(self):
+        self.r_hdr_success = weblog.post(
+            "/login?auth=local",
+            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+            headers=self.HEADERS,
+        )
+
+    @missing_feature(library="dotnet")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
+    def test_login_success_headers(self):
+        # Validate that all relevant headers are included on user login success on extended mode
+
+        def validate_login_success_headers(span):
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in self.HEADERS:
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r_hdr_success, validate_login_success_headers)
+
+    def setup_login_failure_headers(self):
+        self.r_hdr_failure = weblog.post(
+            "/login?auth=local",
+            data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
+            headers=self.HEADERS,
+        )
+
+    @missing_feature(library="dotnet")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
+    def test_login_failure_headers(self):
+        # Validate that all relevant headers are included on user login failure on extended mode
+
+        def validate_login_failure_headers(span):
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in self.HEADERS:
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r_hdr_failure, validate_login_failure_headers)
 
 
 def assert_priority(span, meta):

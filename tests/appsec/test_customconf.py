@@ -2,17 +2,21 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, bug, missing_feature, scenarios
+from utils import weblog, context, interfaces, bug, missing_feature, scenarios, features
 
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@coverage.basic
 @scenarios.appsec_corrupted_rules
+@features.threats_configuration
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
+
+    def setup_c05(self):
+        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
+        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
     @missing_feature(library="golang")
     @missing_feature(library="nodejs")
@@ -24,20 +28,19 @@ class Test_CorruptedRules:
         """Log C5: Rules file is corrupted"""
         stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
 
-    def setup_no_attack_detected(self):
-        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
-        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
-
-    def test_no_attack_detected(self):
-        """ Appsec does not catch any attack """
+        # Appsec does not catch any attack
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_no_appsec_event(self.r_2)
 
 
-@coverage.basic
 @scenarios.appsec_missing_rules
+@features.threats_configuration
 class Test_MissingRules:
     """AppSec do not report anything if rule file is missing"""
+
+    def setup_c04(self):
+        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
+        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
     @missing_feature(library="golang")
     @missing_feature(library="nodejs")
@@ -54,19 +57,14 @@ class Test_MissingRules:
             level="CRITICAL",
         )
 
-    def setup_no_attack_detected(self):
-        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
-        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
-
-    def test_no_attack_detected(self):
-        """ Appsec does not catch any attack """
+        # Appsec does not catch any attack
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_no_appsec_event(self.r_2)
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@coverage.good
 @scenarios.appsec_custom_rules
+@features.threats_configuration
 class Test_ConfRuleSet:
     """AppSec support env var DD_APPSEC_RULES"""
 
@@ -86,8 +84,9 @@ class Test_ConfRuleSet:
         stdout.assert_absence("WAF initialization failed")
 
 
-@coverage.basic
 @scenarios.appsec_custom_rules
+@features.threats_configuration
+@features.serialize_waf_rules_without_limiting_their_sizes
 class Test_NoLimitOnWafRules:
     """ Serialize WAF rules without limiting their sizes """
 

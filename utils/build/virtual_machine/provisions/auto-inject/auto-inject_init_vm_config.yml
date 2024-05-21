@@ -1,0 +1,47 @@
+ #Add initial configuration that it must do after start the machine 
+- os_type: linux
+  os_distro: deb
+  remote-command: |
+    #Disable auto updates. It could raise problems if the update proccess is launched just when we are trying to install de software 
+    sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
+    sudo sed -i 's/1/0/g'  /etc/apt/apt.conf.d/10periodic || true
+ 
+    echo "On VM boot the Apt service status::::"
+    sudo ps -fea|grep apt
+    echo "On VM boot the System service apt-daily.service  status"
+    sudo systemctl list-units --all apt-daily.service 
+
+    sudo rm -rf /etc/cron.daily/update-notifier-common || true
+    sudo rm -rf /etc/cron.weekly/update-notifier-common || true
+    sudo systemctl disable --now apt-daily.service
+    sudo systemctl disable --now apt-daily.timer
+    sudo systemctl disable --now apt-daily-upgrade.timer
+    sudo systemctl disable --now apt-daily-upgrade.service
+
+    echo "After stop updates. Apt service status::::"
+    sudo ps -fea|grep apt
+    echo "After stop updates. System service apt-daily.service  status"
+    sudo systemctl list-units --all apt-daily.service 
+
+    sudo apt-get -y update
+
+    echo "After update the Apt service status::::"
+    sudo ps -fea|grep apt
+
+    #Create a datadog user if it doesn't exists
+    sudo id -u datadog &>/dev/null || sudo useradd -m datadog
+
+    #Allow DD env variables from ssh
+    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
+    sudo systemctl restart sshd.service
+    echo "DONE"
+ 
+- os_type: linux
+  os_distro: rpm
+  remote-command: |
+    #Allow DD env variables from ssh
+    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
+    sudo id -u datadog &>/dev/null || sudo useradd -m datadog
+    sudo yum clean expire-cache
+    #sudo yum -y update
+    sudo systemctl restart sshd.service

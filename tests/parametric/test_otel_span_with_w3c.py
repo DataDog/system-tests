@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, irrelevant, context, scenarios
+from utils import missing_feature, irrelevant, context, scenarios, features
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -16,17 +16,15 @@ pytestmark = pytest.mark.parametrize(
 
 
 @scenarios.parametric
+@features.open_tracing_api
 class Test_Otel_Span_With_W3c:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     def test_otel_start_span_with_w3c(self, test_agent, test_library):
         """
-            - Start/end a span with start and end options
+        - Start/end a span with start and end options
         """
         with test_library:
             duration_us = int(2 * 1_000_000)
@@ -47,7 +45,6 @@ class Test_Otel_Span_With_W3c:
         assert root_span["duration"] == duration_ns
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_with_w3c_headers(self, test_agent, test_library):
         with test_library:
             with test_library.otel_start_span(

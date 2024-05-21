@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, bug, missing_feature, coverage
-from .._test_iast_fixtures import BaseSinkTest, assert_iast_vulnerability
+from utils import weblog, context, bug, missing_feature, features
+from ..utils import BaseSinkTest, assert_iast_vulnerability
 
 
 def _expected_location():
@@ -11,7 +11,10 @@ def _expected_location():
         return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
     if context.library.library == "nodejs":
-        return "iast/index.js"
+        if context.weblog_variant == "express4":
+            return "iast/index.js"
+        if context.weblog_variant == "express4-typescript":
+            return "iast.ts"
 
     if context.library.library == "python":
         if context.library.version >= "1.12.0":
@@ -31,7 +34,7 @@ def _expected_evidence():
         return "md5"
 
 
-@coverage.basic
+@features.weak_hash_vulnerability_detection
 class TestWeakHash(BaseSinkTest):
     """Verify weak hash detection."""
 
@@ -71,12 +74,12 @@ class TestWeakHash(BaseSinkTest):
             expected_location=self.expected_location,
         )
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
     @missing_feature(context.library < "dotnet@2.38.0", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()

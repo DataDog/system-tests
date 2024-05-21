@@ -1,4 +1,4 @@
-FROM datadog/system-tests:flask-poc.base-v2
+FROM datadog/system-tests:flask-poc.base-v4
 
 WORKDIR /app
 
@@ -12,6 +12,12 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV DD_DATA_STREAMS_ENABLED=True
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
+
+# Cross Tracer Integration Testing for Trace Context Propagation
+ENV DD_BOTOCORE_PROPAGATION_ENABLED=true
+ENV DD_KAFKA_PROPAGATION_ENABLED=true
+
+ENV LOG_LEVEL='DEBUG'
 
 # docker startup
 # FIXME: Ensure gevent patching occurs before ddtrace

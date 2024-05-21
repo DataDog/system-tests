@@ -1,6 +1,6 @@
-from utils import context, bug, flaky, irrelevant, missing_feature, scenarios
+from utils import context, bug, features, irrelevant, missing_feature, scenarios
 from utils.tools import logger
-from .sql_utils import BaseDbIntegrationsTestClass
+from .utils import BaseDbIntegrationsTestClass
 
 
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
@@ -45,6 +45,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     "db.name",
                     "peer.service",
                     "net.peer.name",
+                    "server.address",
                 ]:  # These fields hostname, user... are the same as password
                     assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
 
@@ -108,7 +109,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            if db_operation in ["update", "delete", "procedure", "select_error"]:
+            if db_operation in ["update", "delete", "procedure", "select_error", "select"]:
                 assert (
                     span["meta"]["db.statement"].count("?") == 2
                 ), f"The query is not properly obfuscated for operation {db_operation}"
@@ -132,6 +133,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             ), f"{db_operation}  not found in {span['meta']['db.statement']}"
 
 
+@features.otel_postgres_support
 @scenarios.otel_integrations
 class Test_Postgres(_BaseOtelDbIntegrationTestClass):
     """ OpenTelemetry/Postgres integration """
@@ -139,6 +141,7 @@ class Test_Postgres(_BaseOtelDbIntegrationTestClass):
     db_service = "postgresql"
 
 
+@features.otel_mysql_support
 @scenarios.otel_integrations
 class Test_MySql(_BaseOtelDbIntegrationTestClass):
     """ OpenTelemetry/MySql integration """
@@ -146,6 +149,7 @@ class Test_MySql(_BaseOtelDbIntegrationTestClass):
     db_service = "mysql"
 
 
+@features.otel_mssql_support
 @scenarios.otel_integrations
 class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     """ OpenTelemetry/MsSql integration """
@@ -199,6 +203,10 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
             if db_operation in ["insert", "select"]:
                 expected_obfuscation_count = 3
             else:
+                expected_obfuscation_count = 2
+
+            # Fix for Java otel 2.2.0
+            if db_operation == "select" and context.library == "java_otel":
                 expected_obfuscation_count = 2
 
             observed_obfuscation_count = span["meta"]["db.statement"].count("?")

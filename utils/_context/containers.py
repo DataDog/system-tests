@@ -3,12 +3,13 @@ import re
 import stat
 import json
 from pathlib import Path
+from subprocess import run
 import time
 from functools import lru_cache
 import platform
 
 import docker
-from docker.errors import APIError
+from docker.errors import APIError, DockerException
 from docker.models.containers import Container
 import pytest
 import requests
@@ -20,7 +21,24 @@ from utils import interfaces
 
 @lru_cache
 def _get_client():
-    return docker.DockerClient.from_env()
+    try:
+        return docker.DockerClient.from_env()
+    except DockerException as e:
+        # Failed to start the default Docker client... Let's see if we have
+        # better luck with docker contexts...
+        try:
+            ctx_name = run(["docker", "context", "show"], capture_output=True, check=True, text=True).stdout.strip()
+            endpoint = run(
+                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
+                capture_output=True,
+                check=True,
+                text=True,
+            ).stdout.strip()
+            return docker.DockerClient(base_url=endpoint)
+        except:
+            pass
+
+        raise e
 
 
 _NETWORK_NAME = "system-tests_default"
@@ -137,8 +155,8 @@ class TestedContainer:
             self.execute_command(**self.healthcheck)
 
     def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
-        """ 
-            Execute a command inside a container. Usefull for healthcheck and warmups. 
+        """
+            Execute a command inside a container. Usefull for healthcheck and warmups.
             test is a command to be executed, interval, timeout and start_period are in us (microseconds)
         """
 
@@ -197,18 +215,20 @@ class TestedContainer:
     def stop(self):
         self._container.stop()
 
+    def collect_logs(self):
+        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
+            f.write(self._container.logs(stdout=True, stderr=False))
+
+        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
+            f.write(self._container.logs(stdout=False, stderr=True))
+
     def remove(self):
         logger.debug(f"Removing container {self.name}")
 
         if self._container:
             try:
                 # collect logs before removing
-                with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-                    f.write(self._container.logs(stdout=True, stderr=False))
-
-                with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-                    f.write(self._container.logs(stdout=False, stderr=True))
-
+                self.collect_logs()
                 self._container.remove(force=True)
             except:
                 # Sometimes, the container does not exists.
@@ -384,7 +404,7 @@ class AgentContainer(TestedContainer):
 
 
 class BuddyContainer(TestedContainer):
-    def __init__(self, name, image_name, host_log_folder, proxy_port) -> None:
+    def __init__(self, name, image_name, host_log_folder, proxy_port, environment) -> None:
         super().__init__(
             name=name,
             image_name=image_name,
@@ -392,6 +412,7 @@ class BuddyContainer(TestedContainer):
             healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
             ports={"7777/tcp": proxy_port},  # not the proxy port
             environment={
+                **environment,
                 "DD_SERVICE": name,
                 "DD_ENV": "system-tests",
                 "DD_VERSION": "1.0.0",
@@ -418,6 +439,8 @@ class WeblogContainer(TestedContainer):
 
         from utils import weblog
 
+        self.port = weblog.port
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
@@ -427,8 +450,8 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail --silent --show-error localhost:{weblog.port}", "retries": 60},
-            ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
+            healthcheck={"test": f"curl --fail --silent --show-error localhost:{self.port}", "retries": 60},
+            ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
         )
 
@@ -437,7 +460,6 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self.php_appsec = None
         self.libddwaf_version = None
         self.appsec_rules_version = None
 
@@ -462,9 +484,6 @@ class WeblogContainer(TestedContainer):
         super().configure(replay)
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        if self.library == "php":
-            self.php_appsec = Version(self.image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
-
         if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
 
@@ -485,12 +504,12 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_TRACE_HEADER_TAGS"] = ""
 
         if len(self.additional_trace_header_tags) != 0:
-            self.environment["DD_TRACE_HEADER_TAGS"] += ",".join(self.additional_trace_header_tags)
+            self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
         if self.appsec_rules_file:
             self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
         else:
-            self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
+            self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
         if self.weblog_variant == "python3.12":
             if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
@@ -514,6 +533,10 @@ class WeblogContainer(TestedContainer):
     def telemetry_heartbeat_interval(self):
         return 2
 
+    def request(self, method, url, **kwargs):
+        """ perform an HTTP request on the weblog, must NOT be used for tests """
+        return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)
+
 
 class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
@@ -534,7 +557,7 @@ class PostgresContainer(SqlDbTestedContainer):
             db_user="system_tests_user",
             db_password="system_tests",
             db_host="postgres",
-            db_instance="system_tests",
+            db_instance="system_tests_dbname",
         )
 
 
@@ -615,6 +638,7 @@ class RabbitMqContainer(TestedContainer):
             name="rabbitmq",
             host_log_folder=host_log_folder,
             allow_old_container=True,
+            ports={"5672": ("127.0.0.1", 5672)},
         )
 
 
@@ -625,7 +649,7 @@ class MySqlContainer(SqlDbTestedContainer):
             name="mysqldb",
             command="--default-authentication-plugin=mysql_native_password",
             environment={
-                "MYSQL_DATABASE": "world",
+                "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",
                 "MYSQL_ROOT_PASSWORD": "mysqldb",
                 "MYSQL_PASSWORD": "mysqldb",
@@ -637,7 +661,7 @@ class MySqlContainer(SqlDbTestedContainer):
             db_user="mysqldb",
             db_password="mysqldb",
             db_host="mysqldb",
-            db_instance="world",
+            db_instance="mysql_dbname",
         )
 
 
@@ -718,3 +742,60 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         if prev_mode != new_mode:
             os.chmod(self._otel_config_host_path, new_mode)
         return super().start()
+
+
+class ElasticMQContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="softwaremill/elasticmq:latest",
+            name="elasticmq",
+            host_log_folder=host_log_folder,
+            environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
+            ports={9324: 9324},
+            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+            allow_old_container=True,
+        )
+
+
+class LocalstackContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="localstack/localstack:3.1.0",
+            name="localstack-main",
+            environment={
+                "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
+                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",
+                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid",
+                "AWS_DEFAULT_REGION": "us-east-1",
+                "FORCE_NONINTERACTIVE": "true",
+                "START_WEB": "0",
+                "DOCKER_HOST": "unix:///var/run/docker.sock",
+            },
+            host_log_folder=host_log_folder,
+            ports={"4566": ("127.0.0.1", 4566)},
+            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+        )
+
+
+class APMTestAgentContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            name="ddapm-test-agent",
+            host_log_folder=host_log_folder,
+            environment={"SNAPSHOT_CI": "0",},
+            ports={"8126": ("127.0.0.1", 8126)},
+            allow_old_container=True,
+        )
+
+
+class WeblogInjectionInitContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="docker.io/library/weblog-injection-init:latest",
+            name="weblog-injection-init",
+            host_log_folder=host_log_folder,
+            environment={"DD_AGENT_HOST": "ddapm-test-agent"},  # , "DD_TRACE_AGENT_PORT": "8126"
+            ports={"18080": ("127.0.0.1", 8080)},
+            allow_old_container=True,
+        )

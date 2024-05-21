@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:18
 
 RUN apt-get update && apt-get install -y jq
 
@@ -13,6 +13,12 @@ WORKDIR /usr/app
 
 
 EXPOSE 7777
+
+ENV PGUSER=system_tests_user
+ENV PGPASSWORD=system_tests
+ENV PGDATABASE=system_tests_dbname
+ENV PGHOST=postgres
+ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 

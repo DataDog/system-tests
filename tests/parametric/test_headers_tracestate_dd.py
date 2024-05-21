@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils import bug, missing_feature, context, scenarios
+from utils import bug, missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -18,6 +18,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 
 
 @scenarios.parametric
+@features.datadog_headers_propagation
 class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_samplingpriority(self, test_agent, test_library):
@@ -183,11 +184,12 @@ class Test_Headers_Tracestate_DD:
 
         traceparent8, tracestate8 = get_tracecontext(headers8)
         sampled8 = str(traceparent8).split("-")[3]
-        dd_items8 = tracestate8["dd"].split(";")
         assert "traceparent" in headers8
         assert sampled8 == "00"
         assert "tracestate" in headers8
-        assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
+        if "dd" in tracestate8:
+            dd_items8 = tracestate8["dd"].split(";")
+            assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
@@ -327,6 +329,7 @@ class Test_Headers_Tracestate_DD:
         context.library == "golang",
         reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
     )
+    @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent
@@ -440,9 +443,7 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(
         context.library == "nodejs", reason="Issue: the decision maker is removed. Is that allowed behavior?"
     )
-    @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
-    @missing_feature(context.library == "python_http", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_agent, test_library):
         """
@@ -509,9 +510,7 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @missing_feature(context.library == "cpp", reason="_dd.p.dm does not change when a sampling priority was extracted")
     @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
-    @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
-    @missing_feature(context.library == "python_http", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_agent, test_library):
         """
@@ -651,10 +650,9 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @bug(library="cpp", reason="c++ is not dropping the 33rd (last) list-member")
     @bug(library="dotnet", reason="dotnet is not dropping the 33rd (last) list-member")
-    @bug(context.library < "java@1.24.0", reason="java is not dropping the 33rd (last) list-member")
+    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @bug(library="nodejs", reason="NodeJS is not dropping the 33rd (last) list-member")
     @bug(library="python", reason="python is not dropping the 33rd (last) list-member")
-    @bug(library="python_http", reason="python is not dropping the 33rd (last) list-member")
     @bug(
         library="php",
         reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",

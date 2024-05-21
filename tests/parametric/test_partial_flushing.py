@@ -1,9 +1,10 @@
 import pytest
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
-from utils import missing_feature, bug, context, scenarios
+from utils import missing_feature, bug, features, context, scenarios
 
 
+@features.partial_flush
 @scenarios.parametric
 class Test_Partial_Flushing:
     @pytest.mark.parametrize(
@@ -31,6 +32,10 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
     @missing_feature(context.library == "golang", reason="partial flushing not enabled by default")
     @missing_feature(context.library == "dotnet", reason="partial flushing not enabled by default")
+    @bug(
+        context.library == "python",
+        reason="There is a problem with this tests when we execute python on multiple tests workers",
+    )
     def test_partial_flushing_one_span_default(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure

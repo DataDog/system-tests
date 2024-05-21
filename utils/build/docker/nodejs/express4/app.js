@@ -4,14 +4,25 @@ const tracer = require('dd-trace').init({
   debug: true
 })
 
+const { promisify } = require('util')
 const app = require('express')()
-const { Kafka } = require('kafkajs')
 const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
 
 const iast = require('./iast')
+const dsm = require('./dsm')
 const { spawnSync } = require('child_process')
+
+const pgsql = require('./integrations/db/postgres')
+const mysql = require('./integrations/db/mysql')
+const mssql = require('./integrations/db/mssql')
+
+const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
+const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
+const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
+const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
+const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 iast.initData().catch(() => {})
 
@@ -137,48 +148,169 @@ app.get('/users', (req, res) => {
   }
 })
 
-app.get('/dsm', (req, res) => {
-  const kafka = new Kafka({
-    clientId: 'my-app',
-    brokers: ['kafka:9092'],
-    retry: {
-      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
-      retries: 20 // Number of retries before giving up
-    }
-  })
-  const producer = kafka.producer()
-  const doKafkaOperations = async () => {
-    await producer.connect()
-    await producer.send({
-      topic: 'dsm-system-tests-queue',
-      messages: [
-        { value: 'hello world!' }
-      ]
-    })
-    await producer.disconnect()
+app.get('/stub_dbm', async (req, res) => {
+  const integration = req.query.integration
+  const operation = req.query.operation
 
-    const consumer = kafka.consumer({ groupId: 'testgroup1' })
-
-    await consumer.connect()
-    await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
-
-    await consumer.run({
-      eachMessage: async ({ topic, partition, message }) => {
-        console.log({
-          value: message.value.toString()
-        })
-        await consumer.stop()
-        await consumer.disconnect()
-      }
-    })
+  if (integration === 'pg') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    const dbmComment = await pgsql.doOperation(operation)
+    res.send({ status: 'ok', dbm_comment: dbmComment })
+  } else if (integration === 'mysql2') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    const result = await mysql.doOperation(operation)
+    res.send({ status: 'ok', dbm_comment: result })
+  } else if (integration === 'mssql') {
+    tracer.use(integration, { dbmPropagationMode: 'full' })
+    res.send(await mssql.doOperation(operation))
   }
-  doKafkaOperations()
+})
+
+try {
+  dsm.initRoutes(app, tracer)
+} catch (e) {
+  console.error('DSM routes initialization has failed', e)
+}
+
+app.get('/kafka/produce', (req, res) => {
+  const topic = req.query.topic
+
+  kafkaProduce(topic, 'Hello from Kafka JS')
     .then(() => {
-      res.send('ok')
+      res.status(200).send('[Kafka] produce ok')
     })
     .catch((error) => {
       console.error(error)
-      res.status(500).send('Internal Server Error')
+      res.status(500).send('Internal Server Error during Kafka produce')
+    })
+})
+
+app.get('/kafka/consume', (req, res) => {
+  const topic = req.query.topic
+  const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
+
+  kafkaConsume(topic, timeout)
+    .then(() => {
+      res.status(200).send('[Kafka] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('Internal Server Error during Kafka consume')
+    })
+})
+
+app.get('/sqs/produce', (req, res) => {
+  const queue = req.query.queue
+  console.log('sqs produce')
+
+  sqsProduce(queue)
+    .then(() => {
+      res.status(200).send('[SQS] produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[SQS] Internal Server Error during SQS produce')
+    })
+})
+
+app.get('/sqs/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+  console.log('sqs consume')
+
+  sqsConsume(queue, timeout * 1000)
+    .then(() => {
+      res.status(200).send('[SQS] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[SQS] Internal Server Error during SQS consume')
+    })
+})
+
+app.get('/sns/produce', (req, res) => {
+  const queue = req.query.queue
+  const topic = req.query.topic
+
+  snsPublish(queue, topic)
+    .then(() => {
+      res.status(200).send('[SNS] publish ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[SNS] Internal Server Error during SNS publish')
+    })
+})
+
+app.get('/sns/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  snsConsume(queue, timeout * 1000)
+    .then(() => {
+      res.status(200).send('[SNS->SQS] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[SNS->SQS] Internal Server Error during SQS consume from SNS')
+    })
+})
+
+app.get('/kinesis/produce', (req, res) => {
+  const stream = req.query.stream
+
+  kinesisProduce(stream, null, '1', null)
+    .then(() => {
+      res.status(200).send('[Kinesis] publish ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[Kinesis] Internal Server Error during Kinesis publish')
+    })
+})
+
+app.get('/kinesis/consume', (req, res) => {
+  const stream = req.query.stream
+  const timeout = parseInt(req.query.timeout) ?? 5
+
+  kinesisConsume(stream, timeout * 1000)
+    .then(() => {
+      res.status(200).send('[Kinesis] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[Kinesis] Internal Server Error during Kinesis consume')
+    })
+})
+
+app.get('/rabbitmq/produce', (req, res) => {
+  const queue = req.query.queue
+  const exchange = req.query.exchange
+  const routingKey = 'systemTestDirectRoutingKeyContextPropagation'
+  console.log('[RabbitMQ] produce')
+
+  rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
+    .then(() => {
+      res.status(200).send('[RabbitMQ] produce ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ produce')
+    })
+})
+
+app.get('/rabbitmq/consume', (req, res) => {
+  const queue = req.query.queue
+  const timeout = parseInt(req.query.timeout) ?? 5
+  console.log('[RabbitMQ] consume')
+
+  rabbitmqConsume(queue, timeout * 1000)
+    .then(() => {
+      res.status(200).send('[RabbitMQ] consume ok')
+    })
+    .catch((error) => {
+      console.error(error)
+      res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ consume')
     })
 })
 
@@ -196,7 +328,13 @@ app.all('/tag_value/:tag/:status', (req, res) => {
     res.set(k, v)
   }
 
-  res.status(req.params.status || 200).send('Value tagged')
+  res.status(req.params.status || 200)
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body })
+  } else {
+    res.send('Value tagged')
+  }
 })
 
 app.get('/read_file', (req, res) => {
@@ -214,10 +352,6 @@ app.get('/db', async (req, res) => {
   console.log('Service: ' + req.query.service)
   console.log('Operation: ' + req.query.operation)
 
-  const pgsql = require('./integrations/db/postgres')
-  const mysql = require('./integrations/db/mysql')
-  const mssql = require('./integrations/db/mssql')
-
   if (req.query.service === 'postgresql') {
     res.send(await pgsql.doOperation(req.query.operation))
   } else if (req.query.service === 'mysql') {
@@ -229,7 +363,14 @@ app.get('/db', async (req, res) => {
 
 app.post('/shell_execution', (req, res) => {
   const options = { shell: !!req?.body?.options?.shell }
-  const args = req?.body?.args.split(' ')
+  const reqArgs = req?.body?.args
+
+  let args
+  if (typeof reqArgs === 'string') {
+    args = reqArgs.split(' ')
+  } else {
+    args = reqArgs
+  }
 
   const response = spawnSync(req?.body?.command, args, options)
 
@@ -248,9 +389,40 @@ app.get('/createextraservice', (req, res) => {
 iast.initRoutes(app, tracer)
 
 require('./auth')(app, passport, tracer)
-require('./graphql')(app)
 
-app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => { })
-  console.log('listening')
+// try to flush as much stuff as possible from the library
+app.get('/flush', (req, res) => {
+  // doesn't have a callback :(
+  // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
+  tracer.dogstatsd?.flush?.()
+  tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+
+  // does have a callback :)
+  const promises = []
+
+  const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+  if (profiler?._collect) {
+    promises.push(profiler._collect('on_shutdown'))
+  }
+
+  if (tracer._tracer?._exporter?._writer?.flush) {
+    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
+  }
+
+  if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
+    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+  }
+
+  Promise.all(promises).then(() => {
+    res.status(200).send('OK')
+  }).catch((err) => {
+    res.status(500).send(err)
+  })
+})
+
+require('./graphql')(app).then(() => {
+  app.listen(7777, '0.0.0.0', () => {
+    tracer.trace('init.service', () => {})
+    console.log('listening')
+  })
 })

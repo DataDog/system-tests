@@ -1,7 +1,7 @@
-from utils import context, coverage, interfaces, scenarios, weblog, bug
+from utils import context, interfaces, scenarios, weblog, bug, features, missing_feature
 
 
-@coverage.basic
+@features.appsec_user_blocking
 @scenarios.appsec_blocking_full_denylist
 class Test_UserBlocking_FullDenylist:
     NOT_BLOCKED_USER = "regularUser"
@@ -43,6 +43,7 @@ class Test_UserBlocking_FullDenylist:
         ]
 
     @bug(context.library < "ruby@1.12.1", reason="not setting the tags on the service entry span")
+    @missing_feature(library="python")
     def test_blocking_test(self):
         """Test with a denylisted user"""
 

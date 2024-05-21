@@ -1,6 +1,0 @@
----
-config_sources: BASIC
-library_inject: true
-log_level: debug
-output_paths:
-- stderr

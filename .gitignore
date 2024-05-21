@@ -43,9 +43,11 @@ reportJunit.xml
 # Visual Studio
 .vs/
 .config/dotnet-tools.json
+/system-tests.sln
 
 # Node.js
 node_modules/
 
 # vim
 /*.vim
+*.swp

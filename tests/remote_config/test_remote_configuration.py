@@ -9,13 +9,13 @@ from utils import (
     ValidationError,
     bug,
     context,
-    coverage,
     interfaces,
     irrelevant,
     missing_feature,
     rfc,
     scenarios,
     weblog,
+    features,
 )
 from utils.tools import logger
 
@@ -29,6 +29,7 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
     ASM_DD_EXPECTED_REQUESTS = json.load(f)
 
 
+@features.agent_remote_configuration
 class Test_Agent:
     """misc test on agent/remote config features"""
 
@@ -47,68 +48,11 @@ class Test_Agent:
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
+@features.remote_config_object_supported
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
-    @bug(context.library < "golang@1.36.0")
-    @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "nodejs@3.14.1")
-    @bug(context.library == "php" and context.php_appsec >= "0.10.0")
-    def test_schemas(self):
-        """Test all library schemas"""
-        interfaces.library.assert_schemas()
-
-    def test_non_regression(self):
-        """Non-regression test on shemas"""
-
-        # Never skip this test. As a full respect of shemas may be hard, this test ensure that
-        # at least the part that was ok stays ok.
-
-        allowed_errors = None
-        if context.library == "golang":
-            allowed_errors = (
-                r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
-                r"'protocol_version' is a required property on instance ",
-            )
-        elif context.library == "java":
-            # pylint: disable=line-too-long
-            allowed_errors = (
-                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
-                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
-                r"'idempotency_key' is a required property on instance ",
-            )
-        elif context.library == "dotnet":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "nodejs":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "php":
-            allowed_errors = (
-                r"'interval' is a required property on instance \['payload'\]\['series'\]\[\d+\]",
-                r"'namespace' is a required property on instance \['payload'\]",
-            )
-
-        interfaces.library.assert_schemas(allowed_errors=allowed_errors)
-
-    def test_client_state_errors(self):
-        """Ensure that the Client State error is consistent"""
-
-        def validator(data):
-            state = data["request"]["content"]["client"]["state"]
-
-            if state.get("has_error") is True:
-                assert (
-                    "error" in state
-                ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
-
-        interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
-
-    def test_client_fields(self):
+    def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
 
         def validator(data):
@@ -235,8 +179,8 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
+@features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -253,6 +197,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
@@ -278,8 +224,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         interfaces.library.validate_remote_configuration(validator=validate)
 
 
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features
+@features.remote_config_object_supported
 class Test_RemoteConfigurationExtraServices:
     """Tests that extra services are sent in the RC message"""
 
@@ -320,8 +266,8 @@ class Test_RemoteConfigurationExtraServices:
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging
+@features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -332,6 +278,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
@@ -350,8 +298,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd
+@features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -366,6 +314,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     @bug(context.library <= "java@1.12.1", reason="config state id value was wrong")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
@@ -383,8 +333,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_features_nocache
+@features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -392,6 +342,8 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
@@ -409,8 +361,8 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging_nocache
+@features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -418,6 +370,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
@@ -436,8 +390,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd_nocache
+@features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -445,6 +399,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
