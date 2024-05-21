@@ -2,6 +2,7 @@
 Test the telemetry that should be emitted from the library.
 """
 import base64
+import copy
 import json
 import time
 import uuid
@@ -265,15 +266,32 @@ class Test_TelemetrySCAEnvVar:
     """
 
     @staticmethod
+    def flatten_message_batch(requests):
+        for request in requests:
+            body = json.loads(base64.b64decode(request["body"]))
+            if body["request_type"] == "message-batch":
+                for batch_payload in body["payload"]:
+                    # create a fresh copy of the request for each payload in the
+                    # message batch, as though they were all sent independently
+                    copied = copy.deepcopy(body)
+                    copied["request_type"] = batch_payload.get("request_type")
+                    copied["payload"] = batch_payload.get("payload")
+                    yield copied
+            else:
+                yield body
+
+    @staticmethod
     def get_app_started_configuration_by_name(test_agent, test_library):
         with test_library.start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+
         requests = test_agent.raw_telemetry(clear=True)
-        assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
-        for req in requests:
-            body = json.loads(base64.b64decode(req["body"]))
+        bodies = list(Test_TelemetrySCAEnvVar.flatten_message_batch(requests))
+
+        assert len(bodies) > 0, "There should be at least one telemetry event (app-started)"
+        for body in bodies:
             if body["request_type"] != "app-started":
                 continue
 

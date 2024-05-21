@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,16 +35,13 @@ export async function GET (request, { params }) {
 export const OPTIONS = GET
 export const POST = GET
 
-// this function only works when formData() is called before json()
-// because formData doesn't consume the body if it doesn't have form data headers
 async function getBody (request) {
-  try {
-    return Object.fromEntries(await request.formData())
-  } catch (err) {}
-
-  try {
+  const contentType = headers().get('content-type')
+  if (contentType?.toLowerCase() === 'application/json') {
     return await request.json()
-  } catch (err) {}
-
+  }
+  if (['multipart/form-data', 'application/x-www-form-urlencoded'].includes(contentType?.toLowerCase())) {
+    return Object.fromEntries(await request.formData())
+  }
   return null
 }
