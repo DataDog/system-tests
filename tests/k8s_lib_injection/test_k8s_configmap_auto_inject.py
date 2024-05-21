@@ -409,8 +409,8 @@ class TestConfigMapAutoInject:
 
     @irrelevant(
         condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
+        or context.scenario._library_init_image_tag != "",
+        reason="Test a discontinued feature",
     )
     def test_fileprovider_configmap_case6(self, test_k8s_instance):
         """  Inject-all case (for batch instrumentation)
