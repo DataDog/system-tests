@@ -4,7 +4,7 @@
 
 import test_debugger_base as base
 
-from utils import scenarios, interfaces, weblog, features, bug, irrelevant, context
+from utils import scenarios, interfaces, weblog, features, bug, mssing_feature, irrelevant, context
 
 REDACTED_KEYS = [
     "_2fa",
@@ -175,8 +175,8 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
     def setup_pii_redaction_full(self):
         self._setup()
 
-    @irrelevant(context.library < "java@1.34", reason="keywords are not fully redacted")
-    @irrelevant(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
+    @mssing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
+    @mssing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
     def test_pii_redaction_full(self):
         self._test(REDACTED_KEYS)
 
