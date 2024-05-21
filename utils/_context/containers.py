@@ -667,7 +667,13 @@ class MySqlContainer(SqlDbTestedContainer):
             },
             allow_old_container=True,
             host_log_folder=host_log_folder,
-            healthcheck={"test": "/healthcheck.sh", "retries": 60},
+            healthcheck={
+                "test": "/healthcheck.sh",
+                "interval": 1_000_000_000,  # 1 sec
+                "timeout": 5_000_000_000,
+                "start_period": 3_000_000_000,
+                "retries": 60,
+            },
             dd_integration_service="mysql",
             db_user="mysqldb",
             db_password="mysqldb",
