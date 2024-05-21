@@ -143,6 +143,10 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
+        # the whole thing is reimplemented in python...
+        if self.healthcheck is not None:
+            self.kwargs["healthcheck"] = {"test": ["NONE"]}
+
         self._container = _get_client().containers.run(
             image=self.image.name,
             name=self.container_name,
