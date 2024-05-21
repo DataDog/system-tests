@@ -15,6 +15,7 @@ weblog:
     excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64]
     install:
       - os_type: linux
+        local-command: rm lib-injection/build/docker/java/dd-lib-java-init-test-app/Dockerfile || true
         copy_files:
           - name: copy-run-weblog-script
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/test-app-java_docker_compose_run.sh
