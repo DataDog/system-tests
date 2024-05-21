@@ -200,8 +200,7 @@ class TestedContainer:
                     return
 
             except APIError as e:
-                logger.exception(f"Try #{i} failed")
-                pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
+                logger.debug(f"Try #{i} failed for {self._container.name}: {e.explanation}")
 
             except Exception as e:
                 logger.debug(f"Try #{i}: {e}")
