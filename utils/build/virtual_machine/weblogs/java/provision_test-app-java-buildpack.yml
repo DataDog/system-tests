@@ -4,12 +4,10 @@ lang_variant:
     install:
       - os_type: linux
         os_distro: deb
-        local-command: rm lib-injection/build/docker/java/dd-lib-java-init-test-app/Dockerfile || true #workaround to avoid conflicts with the Dockerfile
         remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
 
       - os_type: linux
         os_distro: rpm
-        local-command: rm lib-injection/build/docker/java/dd-lib-java-init-test-app/Dockerfile || true #workaround to avoid conflicts with the Dockerfile
         remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
 
 weblog:
