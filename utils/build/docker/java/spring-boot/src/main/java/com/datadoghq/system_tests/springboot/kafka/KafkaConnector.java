@@ -52,7 +52,7 @@ public class KafkaConnector {
         return new KafkaConsumer<String, String>(props);
     }
 
-    public void startProducingMessage(String message) throws Exception {
+    public Thread startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("KafkaProduce") {
             public void run() {
                 KafkaTemplate<String, String> kafkaTemplate = createKafkaTemplateForProducer();
@@ -67,7 +67,7 @@ public class KafkaConnector {
 
     // Ideally we should be able to use @Component and @KafkaListener to auto consume messages, but I wasn't able
     // to get it to work. Can look into this as a follow up.
-    public void startConsumingMessages(String topicName) throws Exception {
+    public Thread startConsumingMessages(String topicName) throws Exception {
         Thread thread = new Thread("KafkaConsume") {
             public void run() {
                 KafkaConsumer<String, String> consumer = createKafkaConsumer(topicName);
