@@ -1,4 +1,4 @@
-ARG RUNTIME
+ARG RUNTIME="bullseye-slim"
 
 # We only ship the published app in the image
 # so we only use ASPNET runtime as the base-image

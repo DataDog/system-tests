@@ -20,7 +20,8 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/test-app-java_docker_compose_run.sh
 
           - name: copy-docker-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/Dockerfile
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/Dockerfile.jdk11
+            remote_path: Dockerfile.template
 
           - name: copy-docker-compose-file
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/docker-compose.yml

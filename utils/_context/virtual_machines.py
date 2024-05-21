@@ -208,7 +208,7 @@ class AmazonLinux2023amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2023_amd64",
-            aws_config=_AWSConfig(ami_id="ami-06b09bfacae1453cb", ami_instance_type="t2.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-064ed2d3fc01d3ec1", ami_instance_type="t2.medium", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="generic/centos9s"),
             os_type="linux",
             os_distro="rpm",
@@ -222,7 +222,7 @@ class AmazonLinux2023arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2023_arm64",
-            aws_config=_AWSConfig(ami_id="ami-04c97e62cb19d53f1", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0a515c154e76934f7", ami_instance_type="t4g.small", user="ec2-user"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
             os_type="linux",

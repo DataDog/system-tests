@@ -30,13 +30,13 @@ class Test_Mandatory_SpanTags:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_span_tags(self):
-        validate_span_tags(self.r, expected_metrics=["appsec.rasp.duration"])
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration"])
 
     def setup_ssrf_span_tags(self):
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_span_tags(self):
-        validate_span_tags(self.r, expected_metrics=["appsec.rasp.duration"])
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration"])
 
     def setup_sqli_span_tags(self):
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
@@ -44,7 +44,7 @@ class Test_Mandatory_SpanTags:
     @missing_feature(library="python")
     @missing_feature(library="dotnet")
     def test_sqli_span_tags(self):
-        validate_span_tags(self.r, expected_metrics=["appsec.rasp.duration"])
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration"])
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
@@ -57,16 +57,18 @@ class Test_Optional_SpanTags:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_span_tags(self):
-        validate_span_tags(self.r, expected_metrics=["appsec.rasp.duration_ext", "appsec.rasp.rule.eval"])
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
     def setup_ssrf_span_tags(self):
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_span_tags(self):
-        validate_span_tags(self.r, expected_metrics=["appsec.rasp.duration_ext", "appsec.rasp.rule.eval"])
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
     def setup_sqli_span_tags(self):
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
+    @missing_feature(library="python")
+    @missing_feature(library="dotnet")
     def test_sqli_span_tags(self):
-        validate_span_tags(self.r, expected_metrics=["appsec.rasp.duration_ext", "appsec.rasp.rule.eval"])
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
