@@ -61,6 +61,8 @@ public class KafkaConnector {
             }
         };
         thread.start();
+
+        return thread;
     }
 
     // Ideally we should be able to use @Component and @KafkaListener to auto consume messages, but I wasn't able
@@ -78,6 +80,7 @@ public class KafkaConnector {
         };
         thread.start();
         System.out.println("Started Kafka consumer thread");
+        return thread;
     }
 
     public Thread startConsumingMessages(String groupName, long timeoutMs, Consumer<ConsumerRecords<String, String>> callback) throws Exception {

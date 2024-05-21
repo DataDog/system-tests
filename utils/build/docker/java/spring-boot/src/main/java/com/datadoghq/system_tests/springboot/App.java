@@ -463,7 +463,8 @@ public class App {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);
             try {
-                kafka.startProducingMessage("hello world!");
+                produce_thread = kafka.startProducingMessage("hello world!");
+                produce_thread.join(5000)
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start producing message...");
                 e.printStackTrace();
