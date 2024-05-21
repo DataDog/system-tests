@@ -6,7 +6,7 @@ sudo chmod -R 755 *
 
 echo "START RUN APP (debug active)"
 #If we are trying to inject the library on the "restore" or "build" command we should show the traces
-export DD_APM_INSTRUMENTATION_DEBUG=TRUE
+export DD_APM_INSTRUMENTATION_DEBUG=FALSE
 export DOTNET_DbgEnableMiniDump=1
 export DOTNET_DbgMiniDumpType=4
 export DOTNET_CreateDumpDiagnostics=1
@@ -17,7 +17,7 @@ dotnet restore
 dotnet build -c Release
 sudo dotnet publish -c Release -o /home/datadog/publish
 
-
+export DD_APM_INSTRUMENTATION_DEBUG=TRUE
 sudo cp test-app.service /etc/systemd/system/test-app.service
 sudo systemctl daemon-reload
 sudo systemctl enable test-app.service
