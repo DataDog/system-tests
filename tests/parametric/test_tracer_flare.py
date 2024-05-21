@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import pytest
 
-from utils import rfc, context,scenarios, features
+from utils import rfc, context, scenarios, features #, missing_feature
 
 parametrize = pytest.mark.parametrize
 
@@ -134,7 +134,6 @@ def assert_expected_files(content, min_files, xor_sets):
     assert len(min_files - s) == 0 and any((len(xor_set -s) == 0) for xor_set in xor_sets) , "tracer_file zip must contain a minimum list of files"
 
 
-
 @rfc("https://docs.google.com/document/d/1U9aaYM401mJPTM8YMVvym1zaBxFtS4TjbdpZxhX3c3E")
 @scenarios.parametric
 @features.tracer_flare
@@ -158,12 +157,13 @@ class TestTracerFlareV1:
         assert_valid_zip(tracer_flare["flare_file"])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+   # @missing_feature(context.library < "java@1.35.0", reason="tracer log in flare has been implemented at version 1.35.0")
     def test_tracer_flare_content(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
         if context.library == "java":
             files = _java_tracer_flare_filenames()
-            xor_set = _java_tracer_flare_xor_filenames()
-        assert_expected_files(tracer_flare["flare_file"],files, xor_set)
+            xor_sets = _java_tracer_flare_xor_filenames()
+        assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
    
             
             
