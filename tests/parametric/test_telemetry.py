@@ -2,6 +2,7 @@
 Test the telemetry that should be emitted from the library.
 """
 import base64
+import copy
 import json
 import time
 import uuid
@@ -49,7 +50,7 @@ class Test_Defaults:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started")
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
@@ -116,7 +117,7 @@ class Test_Environment:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started")
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
@@ -201,7 +202,7 @@ class Test_TelemetryInstallSignature:
         with test_library.start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started")
+        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
@@ -254,3 +255,108 @@ class Test_TelemetryInstallSignature:
                 assert (
                     "install_signature" not in body["payload"]
                 ), "The install signature should not be included in the telemetry event, got {}".format(body)
+
+
+@rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
+@scenarios.parametric
+@features.telemetry_app_started_event
+class Test_TelemetrySCAEnvVar:
+    """
+    This telemetry entry has the value of DD_APPSEC_SCA_ENABLED in the library.
+    """
+
+    @staticmethod
+    def flatten_message_batch(requests):
+        for request in requests:
+            body = json.loads(base64.b64decode(request["body"]))
+            if body["request_type"] == "message-batch":
+                for batch_payload in body["payload"]:
+                    # create a fresh copy of the request for each payload in the
+                    # message batch, as though they were all sent independently
+                    copied = copy.deepcopy(body)
+                    copied["request_type"] = batch_payload.get("request_type")
+                    copied["payload"] = batch_payload.get("payload")
+                    yield copied
+            else:
+                yield body
+
+    @staticmethod
+    def get_app_started_configuration_by_name(test_agent, test_library):
+        with test_library.start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+
+        requests = test_agent.raw_telemetry(clear=True)
+        bodies = list(Test_TelemetrySCAEnvVar.flatten_message_batch(requests))
+
+        assert len(bodies) > 0, "There should be at least one telemetry event (app-started)"
+        for body in bodies:
+            if body["request_type"] != "app-started":
+                continue
+
+            assert (
+                "configuration" in body["payload"]
+            ), "The configuration should be included in the telemetry event, got {}".format(body)
+
+            configuration = body["payload"]["configuration"]
+
+            configuration_by_name = {item["name"]: item for item in configuration}
+            return configuration_by_name
+
+        return None
+
+    @staticmethod
+    def get_dd_appsec_sca_enabled_str(library):
+        DD_APPSEC_SCA_ENABLED = "DD_APPSEC_SCA_ENABLED"
+        if library == "java":
+            DD_APPSEC_SCA_ENABLED = "appsec_sca_enabled"
+        elif library == "nodejs":
+            DD_APPSEC_SCA_ENABLED = "appsec.sca.enabled"
+        elif library in ("php", "ruby"):
+            DD_APPSEC_SCA_ENABLED = "appsec.sca_enabled"
+        return DD_APPSEC_SCA_ENABLED
+
+    @pytest.mark.parametrize(
+        "library_env, specific_libraries_support, outcome_value",
+        [
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, False, "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, ("python", "golang"), "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang"), "true"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, "false"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang"), "false"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), "false"),
+        ],
+    )
+    def test_telemetry_sca_enabled_propagated(
+        self, library_env, specific_libraries_support, outcome_value, test_agent, test_library
+    ):
+        if specific_libraries_support and context.library not in specific_libraries_support:
+            pytest.skip(f"unsupported value for {context.library}")
+
+        configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+
+        DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
+
+        cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
+        assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
+
+        if context.library in ("golang", "dotnet", "nodejs", "ruby"):
+            outcome_value = True if outcome_value == "true" else False
+
+        assert cfg_appsec_enabled.get("value") == outcome_value
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
+        configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+
+        DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
+
+        if context.library in ("java", "nodejs"):
+            cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
+            assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(
+                DD_APPSEC_SCA_ENABLED
+            )
+            assert cfg_appsec_enabled.get("value") is None
+        else:
+            assert DD_APPSEC_SCA_ENABLED not in configuration_by_name.keys()

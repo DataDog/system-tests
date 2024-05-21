@@ -3,46 +3,15 @@ name: End-to-end tests
 on:
   workflow_call:
     inputs:
-      run_all:
-        description: "Shall we run all scenarios"
-        default: false
+      library:
+        description: "Library to test"
+        required: true
+        type: string
+      scenarios: 
+        description: "JSON array of scenarios to run"
+        default: "[]"
         required: false
-        type: boolean
-      run_replay:
-        description: "Shall we run all scenarios in replay mode"
-        default: false
-        required: false
-        type: boolean
-      run_open_telemetry:
-        description: "Shall we run open-telemetry scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_sampling:
-        description: "Shall we run sampling scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_profiling:
-        description: "Shall we run profiling scenario"
-        default: false
-        required: false
-        type: boolean
-      run_debugger:
-        description: "Shall we run debugger scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_appsec:
-        description: "Shall we run AppSec scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_integration:
-        description: "Shall we run Integrations scenarios"
-        default: false
-        required: false
-        type: boolean
+        type: string
       build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
@@ -68,175 +37,77 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+
+  compute-matrix:
+    name: Get weblogs for end-to-end tests
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.compute-matrix.outputs.matrix }}
+    steps:
+    - name: Compute matrix
+      id: compute-matrix
+      shell: python
+      run: |
+        import json
+        import os
+
+        weblogs={
+          "cpp": ["nginx"],
+          "dotnet": ["poc", "uds"],
+          "golang": ["chi", "echo", "gin", "net-http", "uds-echo"],
+          "java": [
+            "akka-http", 
+            "jersey-grizzly2", 
+            "play",
+            "ratpack", 
+            "resteasy-netty3", 
+            "spring-boot-jetty", 
+            "spring-boot", 
+            "spring-boot-3-native", 
+            "spring-boot-openliberty", 
+            "spring-boot-wildfly", 
+            "spring-boot-undertow", 
+            "spring-boot-payara", 
+            "vertx3", 
+            "vertx4",
+            "uds-spring-boot", 
+          ],
+          "nodejs": ["express4", "uds-express4", "express4-typescript", "nextjs"],
+          "php": [
+            *[f"apache-mod-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
+            *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
+            *[f"php-fpm-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]]
+          ],
+          "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi"],
+          "ruby": [
+            "rack",
+            "uds-sinatra",
+            *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
+            *[f"rails{v}" for v in ["50", "51", "52", "60", "61", "70", "71"]]
+          ]
+        }
+
+        result = weblogs["${{ inputs.library }}"]
+
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f'matrix={json.dumps(result)}', file=fh)
+
+        print(json.dumps(result, indent=2))
+
   end-to-end:
     runs-on: ubuntu-latest
+    needs: 
+      - compute-matrix
     strategy:
       matrix:
-        variant:
-        - library: cpp
-          weblog: nginx
-        - library: dotnet
-          weblog: poc
-        - library: dotnet
-          weblog: uds
-        - library: golang
-          weblog: chi
-        - library: golang
-          weblog: echo
-        - library: golang
-          weblog: gin
-        - library: golang
-          weblog: net-http
-        - library: golang
-          weblog: uds-echo
-        - library: java
-          weblog: jersey-grizzly2
-        - library: java
-          weblog: ratpack
-        - library: java
-          weblog: resteasy-netty3
-        - library: java
-          weblog: vertx3
-        - library: java
-          weblog: vertx4
-        - library: java
-          weblog: spring-boot-jetty
-        - library: java
-          weblog: spring-boot
-        - library: java
-          weblog: spring-boot-3-native
-        - library: java
-          weblog: uds-spring-boot
-        - library: java
-          weblog: spring-boot-openliberty
-        - library: java
-          weblog: spring-boot-wildfly
-        - library: java
-          weblog: spring-boot-undertow
-        - library: java
-          weblog: spring-boot-payara
-        - library: java
-          weblog: akka-http
-        - library: java
-          weblog: play
-        - library: nodejs
-          weblog: express4
-        - library: nodejs
-          weblog: uds-express4
-        - library: nodejs
-          weblog: express4-typescript
-        - library: nodejs
-          weblog: nextjs
-        - library: php
-          weblog: apache-mod-7.0
-        - library: php
-          weblog: apache-mod-7.1
-        - library: php
-          weblog: apache-mod-7.2
-        - library: php
-          weblog: apache-mod-7.3
-        - library: php
-          weblog: apache-mod-7.4
-        - library: php
-          weblog: apache-mod-8.0
-        - library: php
-          weblog: apache-mod-8.1
-        - library: php
-          weblog: apache-mod-8.2
-        - library: php
-          weblog: apache-mod-7.0-zts
-        - library: php
-          weblog: apache-mod-7.1-zts
-        - library: php
-          weblog: apache-mod-7.2-zts
-        - library: php
-          weblog: apache-mod-7.3-zts
-        - library: php
-          weblog: apache-mod-7.4-zts
-        - library: php
-          weblog: apache-mod-8.0-zts
-        - library: php
-          weblog: apache-mod-8.1-zts
-        - library: php
-          weblog: apache-mod-8.2-zts
-        - library: php
-          weblog: php-fpm-7.0
-        - library: php
-          weblog: php-fpm-7.1
-        - library: php
-          weblog: php-fpm-7.2
-        - library: php
-          weblog: php-fpm-7.3
-        - library: php
-          weblog: php-fpm-7.4
-        - library: php
-          weblog: php-fpm-8.0
-        - library: php
-          weblog: php-fpm-8.1
-        - library: php
-          weblog: php-fpm-8.2
-        - library: python
-          weblog: flask-poc
-        - library: python
-          weblog: django-poc
-        - library: python
-          weblog: uwsgi-poc
-        - library: python
-          weblog: uds-flask
-        - library: python
-          weblog: python3.12
-        - library: python
-          weblog: fastapi
-        - library: ruby
-          weblog: rack
-        - library: ruby
-          weblog: sinatra14
-        - library: ruby
-          weblog: sinatra20
-        - library: ruby
-          weblog: sinatra21
-        - library: ruby
-          weblog: sinatra22
-        - library: ruby
-          weblog: sinatra30
-        - library: ruby
-          weblog: sinatra31
-        - library: ruby
-          weblog: sinatra32
-        - library: ruby
-          weblog: sinatra40
-        - library: ruby
-          weblog: uds-sinatra
-        - library: ruby
-          weblog: rails32
-        - library: ruby
-          weblog: rails40
-        - library: ruby
-          weblog: rails41
-        - library: ruby
-          weblog: rails42
-        - library: ruby
-          weblog: rails50
-        - library: ruby
-          weblog: rails51
-        - library: ruby
-          weblog: rails52
-        - library: ruby
-          weblog: rails60
-        - library: ruby
-          weblog: rails61
-        - library: ruby
-          weblog: rails70
-        - library: ruby
-          weblog: rails71
+        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
         version:
         - prod
         - dev
-
       fail-fast: false
     env:
-      TEST_LIBRARY: ${{ matrix.variant.library }}
-      WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
+      TEST_LIBRARY: ${{ inputs.library }}
+      WEBLOG_VARIANT: ${{ matrix.weblog }}
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ matrix.version }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
@@ -249,15 +120,11 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
-        pull-all: ${{ inputs.run_all || inputs.run_integration }}
+        pull-all: ${{ contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"') }}
     - name: Build python's weblog base images
-      if: matrix.variant.library == 'python' && inputs.build_python_base_images
+      if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
-        docker buildx build --load --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v0 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v1 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v2 .
-        docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v1 .
+        ./utils/build/build_python_base_images.sh
     - name: Build buddies weblog images
       if: inputs.build_buddies_images
       run: ./utils/build/build_tracer_buddies.sh
@@ -273,18 +140,16 @@ jobs:
     #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
       if: ${{ matrix.version == 'dev' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    
+      run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
       # quick and dirty fix, because we can't test for now the PHP released tracer
     - name: Load PHP library binary (skipping release tests, use snapshot instead)
-      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-
+      if: ${{ matrix.version == 'prod' && inputs.library == 'php'}}
+      run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
-      if: ${{ matrix.variant.library == 'ruby' }}
+      if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
@@ -297,218 +162,223 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run CROSSED_TRACING_LIBRARIES scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_integration || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
       run: ./run.sh CROSSED_TRACING_LIBRARIES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_profiling || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
-      if: always() && steps.build.outcome == 'success' && matrix.variant.library != 'python' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && inputs.library != 'python' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_integration || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_open_telemetry || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_RULES scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
       run: ./run.sh APPSEC_CUSTOM_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')
       run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING"')
       run: ./run.sh APPSEC_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_DISABLED"')
       run: ./run.sh APPSEC_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LOW_WAF_TIMEOUT"')
       run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_OBFUSCATION"')
       run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RATE_LIMITER scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RATE_LIMITER"')
       run: ./run.sh APPSEC_RATE_LIMITER
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING_FULL_DENYLIST"')
       run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_REQUEST_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_REQUEST_BLOCKING"')
       run: ./run.sh APPSEC_REQUEST_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_WAF_TELEMETRY scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_WAF_TELEMETRY"')
       run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY"')
       run: ./run.sh APPSEC_API_SECURITY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY_RC scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_RC"')
       run: ./run.sh APPSEC_API_SECURITY_RC
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
       run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
       run: |
         ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING
         cat ./logs_appsec_api_security_with_sampling/tests.log 2>/dev/null | grep "API SECURITY" || true
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_appsec || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_EXTENDED"')
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_RASP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
+      run: ./run.sh APPSEC_RASP
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_sampling || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_METRIC_GENERATION_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_ENABLED"')
       run: ./run.sh TELEMETRY_METRIC_GENERATION_ENABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && inputs.run_all
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_debugger || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_STATUS"')
       run: ./run.sh DEBUGGER_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_METHOD_PROBES_SNAPSHOT scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_debugger || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_METHOD_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_LINE_PROBES_SNAPSHOT scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_debugger || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_LINE_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_MIX_LOG_PROBE scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_debugger || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_MIX_LOG_PROBE"')
       run: ./run.sh DEBUGGER_MIX_LOG_PROBE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_PII_REDACTION scenario
-      if: always() && steps.build.outcome == 'success' && (inputs.run_debugger || inputs.run_all)
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -529,7 +399,7 @@ jobs:
       if: always() && steps.compress_logs.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_endtoend_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
+        name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblog }}_${{ matrix.version }}
         path: artifact.tar.gz
 
     - name: Push results to Feature Parity Dashboard

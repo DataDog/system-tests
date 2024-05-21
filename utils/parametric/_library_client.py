@@ -2,19 +2,14 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator, Union
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import TypedDict
+from typing import Generator, List, Optional, Tuple, TypedDict, Union
 
 import grpc
 import requests
 
 from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
-from utils.parametric.spec.otel_trace import OtelSpanContext
-from utils.parametric.spec.otel_trace import convert_to_proto
+from utils.parametric.spec.otel_trace import OtelSpanContext, convert_to_proto
 
 
 class StartSpanResponse(TypedDict):
@@ -188,6 +183,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "origin": origin,
                 "http_headers": http_headers,
                 "links": links,
+                "span_tags": tags,
             },
         )
         resp_json = resp.json()
@@ -447,18 +443,15 @@ class APMLibraryClientGRPC:
 
         pb_links = []
         for link in links:
-            pb_link = pb.SpanLink()
+            pb_link = pb.SpanLink(attributes=convert_to_proto(link.get("attributes")))
             if link.get("parent_id") and link.get("http_headers"):
                 raise ValueError("Link cannot have both parent_id and http_headers")
             if link.get("parent_id"):
                 pb_link.parent_id = link["parent_id"]
             else:
-                link_headers = pb.DistributedHTTPHeaders()
-                for key, value in link.http_headers:
-                    link_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
-                pb_link.http_headers = link_headers
+                for key, value in link["http_headers"]:
+                    pb_link.http_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
-            pb_link.attributes = convert_to_proto(link["attributes"])
             pb_links.append(pb_link)
 
         resp = self._client.StartSpan(
@@ -544,18 +537,16 @@ class APMLibraryClientGRPC:
     def span_add_link(
         self, span_id: int, parent_id: int, attributes: dict, http_headers: List[Tuple[str, str]]
     ) -> None:
-        distributed_message = pb.DistributedHTTPHeaders()
-        for key, value in http_headers:
-            distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
+        pb_link = pb.SpanLink(attributes=convert_to_proto(attributes))
+        if parent_id > 0:
+            pb_link.parent_id = parent_id
+        elif http_headers:
+            for key, value in http_headers:
+                pb_link.http_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
+        else:
+            raise ValueError("Link must have either parent_id or http_headers")
 
-        self._client.SpanAddLink(
-            pb.SpanAddLinkArgs(
-                span_id=span_id,
-                parent_id=parent_id,
-                attributes=convert_to_proto(attributes),
-                http_headers=distributed_message,
-            )
-        )
+        self._client.SpanAddLink(pb.SpanAddLinkArgs(span_id=span_id, span_link=pb_link,))
 
     def finish_span(self, span_id: int):
         self._client.FinishSpan(pb.FinishSpanArgs(id=span_id))

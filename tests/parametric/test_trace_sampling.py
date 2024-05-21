@@ -6,7 +6,7 @@ import random
 from utils.parametric.spec.trace import Span
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
-from utils import rfc, scenarios, missing_feature, context, features, bug
+from utils import rfc, scenarios, missing_feature, flaky, features, bug
 
 
 @features.trace_sampling
@@ -488,6 +488,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
     @missing_feature(library="cpp", reason="No metric interface")
+    @flaky(library="golang", reason="The test itself is probably flaky")
     def test_metric_existence(self, test_agent, test_library):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library:

@@ -34,6 +34,36 @@ Kubernetes admission controllers are plugins that govern and enforce how the clu
 
 The Datadog admission controller is a component of the Datadog Cluster Agent. It leverages the Kubernetes mutatingwebhookconfigurations.admissionregistration.k8s.io API.
 
+# Validating lib-injection images
+
+We have created some simple tests, able to auto inject the tracer library in any application running in a docker container. 
+On the test application container (weblog) the lib-init image will be attached as a docker volume and the environment variables, necessary for auto injection, will be attached.
+The only requirement of the weblog application is that it is listening on port 18080.
+The weblog will be deployed next to the APM Test Agent container, which will help us to perform the validations ([APM Test Agent](https://github.com/DataDog/dd-apm-test-agent)).
+
+Now we can test the auto instrumentation on any image in two simple steps:
+
+1. Build your app image and tag locally as "weblog-injection:latest". :
+``` docker build  -t weblog-injection:latest .```
+    b. You could use the existing weblog apps under _lib-injection/build/docker_ folder. Use the existing script to build them:
+``` lib-injection/build/build_lib_injection_weblog.sh -w [existing weblog] -l [java,nodejs,dotnet,ruby,python]  ```
+
+2. Run the scenario that checks if weblog app is auto instrumented and sending traces to the _Dev Test Agent_:
+``` 
+TEST_LIBRARY=dotnet 
+LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot 
+./run.sh LIB_INJECTION_VALIDATION
+```
+
+You can also validate weblog applications that the language version is not supported by the tracer. The scenario will check that the app is running although the app is not instrumented:
+``` 
+lib-injection/build/build_lib_injection_weblog.sh -w jdk7-app -l java
+TEST_LIBRARY=java 
+LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot 
+./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
+``` 
+
+
 # K8s lib-injection feature testing
 
 Lib injection testing is part of the "system-tests" test suite. 
@@ -229,14 +259,14 @@ If you are going to run the K8s lib injection tests on your CI pipeline, check t
           repository: 'DataDog/system-tests'
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
     
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
-          config-inline: |
+          buildkitd-config-inline: |
             [worker.oci]
               max-parallelism = 1
 

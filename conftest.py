@@ -32,6 +32,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
+    parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
@@ -196,16 +198,20 @@ def pytest_collection_modifyitems(session, config, items):
     selected = []
     deselected = []
 
+    declared_scenarios = {}
+
     for item in items:
         scenario_markers = list(item.iter_markers("scenario"))
         declared_scenario = scenario_markers[0].args[0] if len(scenario_markers) != 0 else "DEFAULT"
+
+        declared_scenarios[item.nodeid] = declared_scenario
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
             deselected.append(item)
             continue
 
-        if declared_scenario == context.scenario.name:
+        if context.scenario.is_part_of(declared_scenario):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
@@ -219,6 +225,10 @@ def pytest_collection_modifyitems(session, config, items):
             deselected.append(item)
     items[:] = selected
     config.hook.pytest_deselected(items=deselected)
+
+    if config.option.scenario_report:
+        with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
+            json.dump(declared_scenarios, f, indent=2)
 
 
 def pytest_deselected(items):

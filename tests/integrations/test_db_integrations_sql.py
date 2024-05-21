@@ -4,7 +4,7 @@
 from utils import context, bug, missing_feature, irrelevant, scenarios, features
 from utils.tools import logger
 
-from .sql_utils import BaseDbIntegrationsTestClass
+from .utils import BaseDbIntegrationsTestClass
 
 
 class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):

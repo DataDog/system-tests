@@ -1,8 +1,6 @@
-FROM datadog/system-tests:uwsgi-poc.base-v1
+FROM datadog/system-tests:uwsgi-poc.base-v2
 
 WORKDIR /app
-
-RUN pip install boto3 kombu
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -13,6 +11,7 @@ ENV FLASK_APP=app.py
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
+ENV DD_DATA_STREAMS_ENABLED=True
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 
 # docker startup

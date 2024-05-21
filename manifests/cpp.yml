@@ -12,6 +12,7 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
         test_header_injection.py: irrelevant (ASM is not implemented in C++)
         test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
@@ -48,6 +49,12 @@ tests/:
         test_parameter_value.py: irrelevant (ASM is not implemented in C++)
         test_path.py: irrelevant (ASM is not implemented in C++)
         test_uri.py: irrelevant (ASM is not implemented in C++)
+    rasp/:
+      test_lfi.py: irrelevant (ASM is not implemented in C++)
+      test_span_tags.py: irrelevant (ASM is not implemented in C++)
+      test_sqli.py: irrelevant (ASM is not implemented in C++)
+      test_ssrf.py: irrelevant (ASM is not implemented in C++)
+      test_stack_traces.py: irrelevant (ASM is not implemented in C++)
     waf/:
       test_addresses.py: irrelevant (ASM is not implemented in C++)
       test_blocking.py: irrelevant (ASM is not implemented in C++)
@@ -124,6 +131,7 @@ tests/:
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetrySCAEnvVar: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Globs_Feb2024_Revision: bug (implementation is case-sensitive)
     test_tracer.py:
@@ -153,3 +161,4 @@ tests/:
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
+    Test_TelemetrySCAEnvVar: missing_feature

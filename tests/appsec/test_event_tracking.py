@@ -1,7 +1,28 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, features
+from utils import weblog, interfaces, features, missing_feature, context
+
+HEADERS = {
+    "Accept": "text/html",
+    "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
+    "Accept-Language": "en-GB, *;q=0.5",
+    "Content-Language": "en-GB",
+    "Content-Length": "0",
+    "Content-Type": "text/html; charset=utf-8",
+    "Content-Encoding": "deflate, gzip",
+    "Host": "127.0.0.1:1234",
+    "User-Agent": "Benign User Agent 1.0",
+    "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
+    "X-Client-IP": "42.42.42.42, 43.43.43.43",
+    "X-Real-IP": "42.42.42.42, 43.43.43.43",
+    "X-Forwarded": "42.42.42.42, 43.43.43.43",
+    "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
+    "Forwarded-For": "42.42.42.42, 43.43.43.43",
+    "Forwarded": "42.42.42.42, 43.43.43.43",
+    "Via": "42.42.42.42, 43.43.43.43",
+    "True-Client-IP": "42.42.42.42, 43.43.43.43",
+}
 
 
 @features.user_monitoring
@@ -37,6 +58,30 @@ class Test_UserLoginSuccessEvent:
 
         interfaces.library.validate_spans(self.r, validate_user_login_success_tags)
 
+    def setup_user_login_success_header_collection(self):
+        self.r = weblog.get("/user_login_success_event", headers=HEADERS)
+
+    @missing_feature(library="dotnet")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(
+        context.library == "python" and context.weblog_variant in ["fastapi", "flask-poc", "uds-flask", "uwsgi-poc"]
+    )
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
+    def test_user_login_success_header_collection(self):
+        # Validate that all relevant headers are included on user login success
+
+        def validate_user_login_success_header_collection(span):
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in HEADERS:
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r, validate_user_login_success_header_collection)
+
 
 @features.user_monitoring
 class Test_UserLoginFailureEvent:
@@ -71,6 +116,30 @@ class Test_UserLoginFailureEvent:
             return True
 
         interfaces.library.validate_spans(self.r, validate_user_login_failure_tags)
+
+    def setup_user_login_failure_header_collection(self):
+        self.r = weblog.get("/user_login_failure_event", headers=HEADERS)
+
+    @missing_feature(library="dotnet")
+    @missing_feature(library="java")
+    @missing_feature(library="nodejs")
+    @missing_feature(
+        context.library == "python" and context.weblog_variant in ["fastapi", "flask-poc", "uds-flask", "uwsgi-poc"]
+    )
+    @missing_feature(library="php")
+    @missing_feature(library="ruby")
+    def test_user_login_failure_header_collection(self):
+        # Validate that all relevant headers are included on user login failure
+
+        def validate_user_login_failure_header_collection(span):
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in HEADERS:
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r, validate_user_login_failure_header_collection)
 
 
 @features.custom_business_logic_events

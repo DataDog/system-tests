@@ -3,6 +3,7 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.springboot.aws.KinesisConnector;
 import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
+import com.datadoghq.system_tests.springboot.Carrier;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
@@ -10,18 +11,22 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.trace.api.Trace;
+import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.context.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -58,6 +63,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
 import java.util.Scanner;
+import java.util.LinkedHashMap;
 
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -75,6 +81,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
@@ -569,6 +577,48 @@ public class App {
         } else {
             return "unknown integration: " + integration;
         }
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/inject")
+    String dsmInject(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = true, name = "topic") String topic
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        Span span = GlobalTracer.get().buildSpan("kafka.produce").ignoreActiveSpan().start();
+        GlobalTracer.get().activateSpan(span);
+
+        Map<String, Object> headers = new HashMap<String, Object>();
+        Carrier headersAdapter = new Carrier(headers);
+
+        DataStreamsCheckpointer.get().setProduceCheckpoint(integration, topic, headersAdapter);
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(headers);
+
+        span.finish();
+
+        return jsonString;
+    }
+
+    @RequestMapping("/dsm/extract")
+    String dsmExtract(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = true, name = "topic") String topic,
+        @RequestParam(required = true, name = "ctx") String ctx
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        Span span = GlobalTracer.get().buildSpan("kafka.consume").ignoreActiveSpan().start();
+        GlobalTracer.get().activateSpan(span);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> headers = mapper.readValue(ctx, new TypeReference<Map<String, Object>>(){});
+        Carrier headersAdapter = new Carrier(headers);
+
+        DataStreamsCheckpointer.get().setConsumeCheckpoint(integration, topic, headersAdapter);
+
+        span.finish();
+
         return "ok";
     }
 

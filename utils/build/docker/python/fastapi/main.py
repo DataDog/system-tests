@@ -1,8 +1,13 @@
+import json
+import http.client
 import logging
 import os
 import random
 import subprocess
+import sys
 import typing
+import xmltodict
+import requests
 
 import fastapi
 import psycopg2
@@ -32,7 +37,7 @@ except ImportError:
 app = FastAPI()
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
 )
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
@@ -94,6 +99,72 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
             {"payload": dict(await request.form())}, status_code=status_code, headers=request.query_params,
         )
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
+
+
+### BEGIN EXPLOIT PREVENTION
+
+
+@app.get("/rasp/lfi")
+@app.post("/rasp/lfi")
+async def rasp_lfi(request: Request):
+    file = None
+    if request.method == "GET":
+        file = request.query_params.get("file")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            file = ((await request.form()) or json.loads(body) or {}).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if file is None:
+                file = xmltodict.parse(body).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+    if file is None:
+        return PlainTextResponse("missing file parameter", status_code=400)
+    try:
+        with open(file, "rb") as f_in:
+            f_in.seek(0, os.SEEK_END)
+            return PlainTextResponse(f"{file} open with {f_in.tell()} bytes")
+    except OSError as e:
+        return PlainTextResponse(f"{file} could not be open: {e!r}")
+
+
+@app.get("/rasp/ssrf")
+@app.post("/rasp/ssrf")
+async def rasp_ssrf(request: Request):
+    print("rasp_ssrf", repr(request), file=sys.stderr)
+    domain = None
+    if request.method == "GET":
+        domain = request.query_params.get("domain")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            domain = ((await request.form()) or json.loads(body) or {}).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if domain is None:
+                domain = xmltodict.parse(body).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if domain is None:
+        return PlainTextResponse("missing domain parameter", status_code=400)
+    try:
+        print("rasp_ssrf", f"http://{domain}", file=sys.stderr)
+        # DEV: use requests here due to permission error with urllib
+        with requests.get(f"http://{domain}", timeout=1) as url_in:
+            return PlainTextResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
+    except Exception as e:
+        print(repr(e), file=sys.stderr)
+    return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
+
+
+### END EXPLOIT PREVENTION
 
 
 @app.get("/read_file", response_class=PlainTextResponse)

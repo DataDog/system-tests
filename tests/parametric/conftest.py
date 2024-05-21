@@ -219,6 +219,7 @@ COPY {dotnet_reldir} ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /app/out
 
+
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
@@ -329,9 +330,9 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_img=f"""
             FROM --platform=linux/amd64 ruby:3.2.1-bullseye
             WORKDIR /app
-            COPY {ruby_reldir} .           
+            COPY {ruby_reldir} .
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
-            RUN bundle install 
+            RUN bundle install
             RUN /binaries/install_ddtrace.sh
             COPY {ruby_reldir}/apm_test_client.proto /app/
             COPY {ruby_reldir}/generate_proto.sh /app/
@@ -654,6 +655,10 @@ class _TestAgentAPI:
                 if num_received == num:
                     if clear:
                         self.clear()
+                    for trace in traces:
+                        # Due to partial flushing the testagent may receive trace chunks out of order
+                        # so we must sort the spans by start time
+                        trace.sort(key=lambda x: x["start"])
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError(
