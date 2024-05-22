@@ -45,6 +45,7 @@ class Test_Agent:
             excluded_points=[
                 ("/api/v2/apmtelemetry", "$.payload.configuration[]"),
                 ("/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
+                ("/api/v2/apmtelemetry", "$"),  # the main payload sent by the agent may be an array i/o an object
             ]
         )
 
@@ -58,3 +59,7 @@ class Test_Agent:
     @irrelevant(context.scenario is scenarios.crossed_tracing_libraries, reason="APPSEC-52805")
     def test_agent_schema_telemetry_job_object(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload")
+
+    @bug(context.agent_version > "7.53.0", reason="Jira missing")
+    def test_agent_schema_telemetry_main_payload(self):
+        interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$")
