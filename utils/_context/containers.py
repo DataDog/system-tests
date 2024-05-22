@@ -200,7 +200,8 @@ class TestedContainer:
                     return
 
             except APIError as e:
-                logger.debug(f"Try #{i} failed for {self._container.name}: {e.explanation}")
+                logger.exception(f"Try #{i} failed for {self._container.name}: {e.explanation}")
+                break
 
             except Exception as e:
                 logger.debug(f"Try #{i}: {e}")
@@ -670,7 +671,8 @@ class MySqlContainer(SqlDbTestedContainer):
         super().__init__(
             image_name="mysql/mysql-server:latest",
             name="mysqldb",
-            command="--default-authentication-plugin=mysql_native_password",
+            command="--lc-messages-dir=/usr/share/mysql-8.0/english "
+            "--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",
