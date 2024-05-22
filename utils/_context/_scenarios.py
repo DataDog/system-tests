@@ -1942,9 +1942,9 @@ class scenarios:
     k8s_lib_injection_basic = _KubernetesScenario(
         "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario. DEPRECATED"
     )
-    k8s_lib_injection_full = _KubernetesScenario(
-        "K8S_LIB_INJECTION_FULL",
-        doc=" Kubernetes Instrumentation complete scenario. DEPRECATED",
+    k8s_library_injection_full = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_FULL",
+        doc=" Kubernetes Instrumentation complete scenario.",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
