@@ -94,6 +94,6 @@ public class Pii  extends PiiBase {
     public String xsrf = VALUE;
     public String xsrftoken = VALUE;
 
-    public String customidentifier = VALUE;
-    public String CUSTOMIDENTIFIER = VALUE;
+    public String customidentifier1 = VALUE;
+    public String customidentifier2 = VALUE;
 }

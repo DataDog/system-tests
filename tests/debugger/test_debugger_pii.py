@@ -99,13 +99,11 @@ REDACTED_KEYS = [
     "xrealip",
     "xsrf",
     "xsrftoken",
-    "customidentifier",
-    "CUSTOMIDENTIFIER"
+    "customidentifier1",
+    "customidentifier2",
 ]
 
-REDACTED_TYPES = [
-    "customPii"
-]
+REDACTED_TYPES = ["customPii"]
 
 
 def filter(keys_to_filter):
@@ -179,7 +177,6 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
         if error_message != "":
             raise ValueError(error_message)
 
-
     def _validate_pii_type_redaction(self, should_redact_types):
         agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
         not_redacted = []
@@ -231,8 +228,8 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
                     "secretkey",
                     "xsrf",
                 ]
-            ), 
-            REDACTED_TYPES
+            ),
+            REDACTED_TYPES,
         )
 
     def setup_pii_redaction_dotnet_2_50(self):
