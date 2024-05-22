@@ -669,7 +669,7 @@ class RabbitMqContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mysql/mysql-server:latest",
+            image_name="mysql/mysql-server@sha256:d6c8301b7834c5b9c2b733b10b7e630f441af7bc917c74dba379f24eeeb6a313",
             name="mysqldb",
             command="--lc-messages-dir=/usr/share/mysql-8.0/english "
             "--default-authentication-plugin=mysql_native_password",
