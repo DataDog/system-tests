@@ -467,7 +467,6 @@ public class App {
             try {
                 Thread produceThread = kafka.startProducingMessage("hello world!");
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
-                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start producing message...");
                 e.printStackTrace();
@@ -475,7 +474,6 @@ public class App {
             }
             try {
                 Thread consumeThread = kafka.startConsumingMessages("");
-                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
                 consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
@@ -487,7 +485,6 @@ public class App {
             try {
                 Thread produceThread = rabbitmq.startProducingMessages();
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
-                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start producing message...");
                 e.printStackTrace();
@@ -495,7 +492,6 @@ public class App {
             }
             try {
                 Thread consumeThread = rabbitmq.startConsumingMessages();
-                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
                 consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start consuming message...");
