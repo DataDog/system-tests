@@ -189,7 +189,7 @@ jobs:
 
       - name: Build weblog base images (PR)
         if: inputs.build_lib_injection_app_images
-        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog.name }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }}   
+        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }}   
 
       - name: Install runner
         uses: ./.github/actions/install_runner       
