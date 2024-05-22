@@ -61,7 +61,7 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection:
-            '*': v2.2.0
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
@@ -188,8 +188,8 @@ tests/:
         Test_Lfi_BodyXml: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
       test_span_tags.py:
-        Test_Mandatory_SpanTags: missing_feature
-        Test_Optional_SpanTags: missing_feature
+        Test_Mandatory_SpanTags: v2.10.0.dev
+        Test_Optional_SpanTags: v2.10.0.dev
       test_sqli.py: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0.dev
