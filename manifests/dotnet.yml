@@ -233,7 +233,7 @@ tests/:
       Test_Debugger_Mix_Log_Probe: bug (statuses are not reported well)
       Test_Debugger_Probe_Statuses: bug (statuses are not reported well)
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: bug (statuses are not reported well)
+      Test_Debugger_PII_Redaction: v2.50.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:

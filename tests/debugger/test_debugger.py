@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import test_debugger_base as base
+import tests.debugger.utils as base
 
 from utils import scenarios, interfaces, weblog, features
 
