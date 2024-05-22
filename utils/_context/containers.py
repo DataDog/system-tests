@@ -155,7 +155,6 @@ class TestedContainer:
             # auto_remove=True,
             detach=True,
             network=_NETWORK_NAME,
-            privileged=True,
             **self.kwargs,
         )
 
