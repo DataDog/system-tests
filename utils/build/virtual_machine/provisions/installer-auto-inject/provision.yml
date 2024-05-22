@@ -60,7 +60,7 @@ setup-testing-dependencies:
 setup-local-registry:
   install:
     - os_type: linux
-      # By default we use the latest prod images
+      # By default we use the latest staging images
       # Port 12345 is used to avoid conflict with the agent later on
       remote-command: |
         export PATH=$PATH:/usr/local/go/bin
@@ -72,28 +72,28 @@ setup-local-registry:
         if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
           export LIBRARY_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-library-${DD_LANG}-package:${DD_INSTALLER_LIBRARY_VERSION}"
         else
-          export LIBRARY_OCI_URL="gcr.io/datadoghq/apm-library-${DD_LANG}-package:latest"
+          export LIBRARY_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/apm-library-${DD_LANG}-package-dev:latest"
         fi
         crane copy "${LIBRARY_OCI_URL}" localhost:12345/datadog/apm-library-${DD_LANG}-package:latest
 
         if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
           export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INSTALLER_INJECTOR_VERSION}"
         else
-          export INJECTOR_OCI_URL="gcr.io/datadoghq/apm-inject-package:latest"
+          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/apm-inject-package-dev:latest"
         fi
         crane copy "${INJECTOR_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
 
         if [ -n "${DD_INSTALLER_AGENT_VERSION}" ]; then
           export AGENT_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/agent-package:${DD_INSTALLER_AGENT_VERSION}"
         else
-          export AGENT_OCI_URL="gcr.io/datadoghq/agent-package:latest"
+          export AGENT_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/agent-package-dev:latest"
         fi
         crane copy "${AGENT_OCI_URL}" localhost:12345/datadog/agent-package:latest
 
         if [ -n "${DD_INSTALLER_INSTALLER_VERSION}" ]; then
           export INSTALLER_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/installer-package:${DD_INSTALLER_INSTALLER_VERSION}"
         else
-          export INSTALLER_OCI_URL="gcr.io/datadoghq/installer-package:latest"
+          export INSTALLER_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/installer-package-dev:latest"
         fi
         crane copy "${INSTALLER_OCI_URL}" localhost:12345/datadog/installer-package:latest
 
