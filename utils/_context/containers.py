@@ -207,6 +207,15 @@ class TestedContainer:
 
             time.sleep(interval)
 
+        logs = "<cannot retrieve logs>"
+        try:
+            logs = self._container.logs(stdout=True, stderr=True)
+            logs = logs.decode("utf-8")
+        except:
+            pass
+
+        print(logs)
+
         pytest.exit(f"Command {cmd} failed for {self._container.name}", 1)
 
     def _fix_host_pwd_in_volumes(self):
