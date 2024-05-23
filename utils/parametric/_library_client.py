@@ -85,6 +85,9 @@ class APMLibraryClient:
     def otel_set_status(self, span_id: int, code: int, description: str) -> None:
         raise NotImplementedError
 
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict) -> None:
+        raise NotImplementedError
+
     def otel_is_recording(self, span_id: int) -> bool:
         raise NotImplementedError
 
@@ -307,6 +310,11 @@ class APMLibraryClientHTTP(APMLibraryClient):
             self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code, "description": description}
         )
 
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
+        self._session.post(
+            self._url("/trace/otel/add_event"), json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes}
+        )
+
     def otel_is_recording(self, span_id: int) -> bool:
         resp = self._session.post(self._url("/trace/otel/is_recording"), json={"span_id": span_id}).json()
         return resp["is_recording"]
@@ -389,6 +397,9 @@ class _TestOtelSpan:
 
     def set_status(self, code, description):
         self._client.otel_set_status(self.span_id, code, description)
+
+    def add_event(self, name: str, timestamp: int = 0, attributes: dict = None):
+        self._client.otel_add_event(self.span_id, name, timestamp, attributes)
 
     def end_span(self, timestamp: int = 0):
         self._client.otel_end_span(self.span_id, timestamp)
@@ -572,6 +583,11 @@ class APMLibraryClientGRPC:
     def otel_set_status(self, span_id: int, code: int, description: str):
         self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code, description=description))
 
+    def add_event(self, span_id: int, name: str, timestamp: int, attributes):
+        self._client.OtelAddEvent(
+            pb.OtelAddEventArgs(span_id=span_id, name=name, timestamp=timestamp, attributes=convert_to_proto(attributes))
+        )
+
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=span_id)).is_recording
 
@@ -678,6 +694,34 @@ class APMLibrary:
 
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
+
+    @contextlib.contextmanager
+    def otel_start_span(
+        self,
+        name: str,
+        timestamp: int = 0,
+        span_kind: int = 0,
+        parent_id: int = 0,
+        links: Optional[List[Link]] = None,
+        attributes: dict = None,
+        http_headers: Optional[List[Tuple[str, str]]] = None,
+    ) -> Generator[_TestOtelSpan, None, None]:
+        resp = self._client.otel_trace_start_span(
+            name=name,
+            timestamp=timestamp,
+            span_kind=span_kind,
+            parent_id=parent_id,
+            links=links if links is not None else [],
+            attributes=attributes,
+            http_headers=http_headers if http_headers is not None else [],
+        )
+        span = _TestOtelSpan(self._client, resp["span_id"])
+        yield span
+
+        return {
+            "span_id": resp["span_id"],
+            "trace_id": resp["trace_id"],
+        }
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)

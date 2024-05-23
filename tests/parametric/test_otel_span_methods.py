@@ -1,5 +1,6 @@
 import time
 
+import json
 import pytest
 
 from typing import Union
@@ -754,6 +755,53 @@ class Test_Otel_Span_Methods:
             test_library=test_library,
             test_agent=test_agent,
         )
+
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library <= "dotnet@2.52.0", reason="Implemented in 2.53.0")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    def test_otel_add_event_meta_serialization(self, test_agent, test_library):
+        """
+            Tests the Span.AddEvent API and its serialization into the meta tag 'events'
+        """
+        # Since timestamps may not be standardized across languages, use microseconds as the input
+        # and nanoseconds as the output (this is the format expected in the OTLP trace protocol)
+        event2_timestamp_microseconds = int(time.time_ns() / 1000)
+        event2_timestamp_ns = event2_timestamp_microseconds * 1000
+        with test_library:
+            with test_library.otel_start_span("operation") as span:
+                span.add_event(name="first_event")
+                span.add_event(name="second_event", timestamp=event2_timestamp_microseconds, attributes={"string_val": "value"})
+                span.add_event(name="third_event", timestamp=1, attributes={"int_val": 1, "string_val": "2", "int_array": [3, 4], "string_array": ["5", "6"]})
+                span.end_span()
+
+        root_span = get_span(test_agent)
+        assert "events" in root_span["meta"]
+
+        events = json.loads(root_span.get("meta", {}).get("events"))
+        assert len(events) == 3
+
+        event1 = events[0]
+        assert event1.get("name") == "first_event"
+        assert "attributes" not in event1
+
+        event2 = events[1]
+        assert event2.get("name") == "second_event"
+        assert event2.get("time_unix_nano") == event2_timestamp_ns
+        assert event2["attributes"].get("string_val") == "value"
+
+        event3 = events[2]
+        assert event3.get("name") == "third_event"
+        assert event3.get("time_unix_nano") == 1000
+        assert event3["attributes"].get("int_val") == 1
+        assert event3["attributes"].get("string_val") == "2"
+        assert event3["attributes"].get("int_array")[0] == 3
+        assert event3["attributes"].get("int_array")[1] == 4
+        assert event3["attributes"].get("string_array")[0] == "5"
+        assert event3["attributes"].get("string_array")[1] == "6"
 
 
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
