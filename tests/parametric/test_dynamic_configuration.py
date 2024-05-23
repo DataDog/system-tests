@@ -72,6 +72,7 @@ def _create_rc_config(config_overrides: Dict[str, Any]) -> Dict:
         rc_config["lib_config"][k] = v
     return rc_config
 
+
 def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
@@ -87,6 +88,7 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     )
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
 
+
 def set_and_wait_rc_telemetry(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     """Helper to create an RC configuration with the given settings and return associated telemetry event
 
@@ -96,9 +98,8 @@ def set_and_wait_rc_telemetry(test_agent, config_overrides: Dict[str, Any]) -> D
 
     _set_rc(test_agent, rc_config)
 
-    return test_agent.wait_for_telemetry_event(
-        "app-client-configuration-change", clear=True,
-    )
+    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True,)
+
 
 def assert_sampling_rate(trace: List[Dict], rate: float):
     """Asserts that a trace returned from the test agent is consistent with the given sample rate.
@@ -814,29 +815,39 @@ class TestDynamicConfigSamplingRules:
         event = set_and_wait_rc_telemetry(
             test_agent,
             config_overrides={
-                "tracing_sampling_rules": [{
-                    "service": "svc*", 
-                    "resource": "*abc", 
-                    "name":"op-??", 
-                    "tags": [
-                        {"key":"tag-a","value_glob":"ta-v*"},
-                        {"key":"tag-b","value_glob":"tb-v?"},
-                        {"key":"tag-c","value_glob":"tc-v"}
-                    ], 
-                    "sample_rate": 0.5,
-                    "provenance":"dynamic"
-                }],
+                "tracing_sampling_rules": [
+                    {
+                        "service": "svc*",
+                        "resource": "*abc",
+                        "name": "op-??",
+                        "tags": [
+                            {"key": "tag-a", "value_glob": "ta-v*"},
+                            {"key": "tag-b", "value_glob": "tb-v?"},
+                            {"key": "tag-c", "value_glob": "tc-v"},
+                        ],
+                        "sample_rate": 0.5,
+                        "provenance": "dynamic",
+                    }
+                ],
             },
         )
         configuration = event["payload"]["configuration"]
-        assert configuration == str([{"service":"svc*","resource":"*abc","name":"op-??","sample_rate":0.5,"provenance":"dynamic"}]) or str([{"service":"svc*","resource":"*abc","name":"op-??","tags":[{"tag-a":"ta-v*","tag-b":"tb-v?","tag-c":"tc-v"}],"sample_rate":0.5,"provenance":"dynamic"}])
-
-        event = set_and_wait_rc_telemetry(
-            test_agent,
-            config_overrides={
-                "tracing_sampling_rules": []
-            },
+        assert configuration == str(
+            [{"service": "svc*", "resource": "*abc", "name": "op-??", "sample_rate": 0.5, "provenance": "dynamic"}]
+        ) or str(
+            [
+                {
+                    "service": "svc*",
+                    "resource": "*abc",
+                    "name": "op-??",
+                    "tags": [{"tag-a": "ta-v*", "tag-b": "tb-v?", "tag-c": "tc-v"}],
+                    "sample_rate": 0.5,
+                    "provenance": "dynamic",
+                }
+            ]
         )
+
+        event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": []},)
         configuration = event["payload"]["configuration"]
         assert configuration == str([])
 
@@ -844,27 +855,15 @@ class TestDynamicConfigSamplingRules:
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""
         set_and_wait_rc(
-            test_agent,
-            config_overrides={
-                "tracing_sampling_rules": [{
-                    "service": "svc*", 
-                    "sample_rate": 0.5
-                }],
-            }
+            test_agent, config_overrides={"tracing_sampling_rules": [{"service": "svc*", "sample_rate": 0.5}],}
         )
 
         set_and_wait_rc(
-            test_agent,
-            config_overrides={
-                "tracing_sampling_rules": [{
-                    "service": "foo*", 
-                    "sample_rate": 0.1
-                }],
-            }
+            test_agent, config_overrides={"tracing_sampling_rules": [{"service": "foo*", "sample_rate": 0.1}],}
         )
 
-        trace = send_and_wait_trace(test_library, test_agent, name="test", service='foo')
+        trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
         assert_sampling_rate(trace, 0.1)
-        
-        trace = send_and_wait_trace(test_library, test_agent, name="test", service='svc')
+
+        trace = send_and_wait_trace(test_library, test_agent, name="test", service="svc")
         assert_sampling_rate(trace, 1)
