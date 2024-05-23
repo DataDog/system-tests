@@ -11,6 +11,16 @@ on:
         description: "Library to test"
         required: true
         type: string
+      binaries_artifact:
+        description: "Artifact name containing the binaries to test"
+        default: ''
+        required: false
+        type: string
+      ci_environment:
+        description: "Which CI environment is running the tests, used for FPD"
+        default: 'custom'
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -57,15 +67,12 @@ jobs:
     strategy:
       matrix:
         weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
-        version:
-          - prod
-          - dev
       fail-fast: false
 
     env:
       TEST_LIBRARY: ${{ inputs.library }}
       WEBLOG_VARIANT: ${{ matrix.weblog }}
-      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ matrix.version }}
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
     steps:
@@ -79,12 +86,12 @@ jobs:
       - name: Build proxy image
         if: inputs.build_proxy_image
         run: ./build.sh -i proxy
-      - name: Load library binary
-        if: matrix.version == 'dev'
-        run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
-      - name: Load agent binary
-        if: ${{ matrix.version == 'dev' }}
-        run: ./utils/scripts/load-binary.sh agent
+      - name: Get binaries artifact
+        if : ${{ inputs.binaries_artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.binaries_artifact }}
+          path: binaries/
       - name: Log in to the Container registry
         if: ${{ inputs.library == 'ruby' }}
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
@@ -109,7 +116,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_graphql_${{ inputs.library }}_${{ matrix.weblog }}_${{ matrix.version }}
+          name: logs_graphql_${{ inputs.library }}_${{ matrix.weblog }}_${{ inputs.ci_environment }}
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: always()

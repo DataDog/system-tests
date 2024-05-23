@@ -16,6 +16,16 @@ on:
         default: ''
         required: false
         type: string
+      binaries_artifact:
+        description: "Artifact name containing the binaries to test"
+        default: ''
+        required: false
+        type: string
+      ci_environment:
+        description: "Which CI environment is running the tests, used for FPD"
+        default: 'custom'
+        required: false
+        type: string
       build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
@@ -77,6 +87,8 @@ jobs:
     secrets: inherit
     with:
       library: ${{ inputs.library }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
 
   graphql:
     needs:
@@ -87,11 +99,13 @@ jobs:
     with:
       build_proxy_image: ${{ inputs.build_proxy_image }}
       library: ${{ inputs.library }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
 
   lib-injection:
     needs:
       - compute_scenarios
-    if: needs.compute_scenarios.outputs.libinjection_scenarios != '[]'
+    if: ${{ needs.compute_scenarios.outputs.libinjection_scenarios != '[]' && inputs.binaries_artifact == '' }}
     uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
     with:
@@ -109,11 +123,13 @@ jobs:
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
       scenarios: ${{ needs.compute_scenarios.outputs.endtoend_scenarios }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
 
   open-telemetry:
     needs:
       - compute_scenarios
-    if: needs.compute_scenarios.outputs.opentelemetry_scenarios != '[]'
+    if: ${{ needs.compute_scenarios.outputs.opentelemetry_scenarios != '[]' && inputs.binaries_artifact == '' }}
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:

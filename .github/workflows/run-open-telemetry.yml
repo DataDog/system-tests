@@ -118,8 +118,6 @@ jobs:
     strategy:
       matrix:
         weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
-        version:
-        - prod
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}_otel
@@ -158,6 +156,6 @@ jobs:
       if: always() && steps.build_otel.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_otelautomatic_${{ matrix.library }}_otel_${{ matrix.weblog }}_${{ matrix.version }}
+        name: logs_otelautomatic_${{ matrix.library }}_otel_${{ matrix.weblog }}_prod
         path: artifact.tar.gz
 
