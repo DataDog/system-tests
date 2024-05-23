@@ -9,7 +9,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v5.3.0
         Test_API_Security_RC_ASM_DD_scanners: v5.3.0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature
       test_apisec_sampling.py:
         Test_API_Security_sampling: v4.21.0
       test_schemas.py:
@@ -21,7 +21,8 @@ tests/:
           nextjs: v5.3.0
         Test_Schema_Request_Headers: v4.21.0
         Test_Schema_Request_Json_Body: v4.21.0
-        Test_Schema_Request_Path_Parameters: missing_feature (path_params not supported yet)
+        Test_Schema_Request_Path_Parameters: missing_feature (path_params not supported
+          yet)
         Test_Schema_Request_Query_Parameters: v4.21.0
         Test_Schema_Response_Body:
           '*': v5.3.0
@@ -134,7 +135,7 @@ tests/:
         test_graphql_resolver.py:
           TestGraphqlResolverArgument:
             '*': v5.4.0
-            nextjs: irrelevant # nextjs is not related with graphql
+            nextjs: irrelevant
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
@@ -144,11 +145,11 @@ tests/:
         test_kafka_key.py:
           TestKafkaKey:
             '*': v5.4.0
-            nextjs: irrelevant # nextjs is not related with kafka
+            nextjs: irrelevant
         test_kafka_value.py:
           TestKafkaValue:
             '*': v5.4.0
-            nextjs: irrelevant # nextjs is not related with kafka
+            nextjs: irrelevant
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -178,13 +179,13 @@ tests/:
           nextjs: v5.3.0
         Test_BodyXml:
           '*': v2.2.0
-          nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
+          nextjs: irrelevant
         Test_ClientIP: missing_feature
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
           '*': v4.22.0
-          nextjs: irrelevant # nextjs is not related with graphql
+          nextjs: irrelevant
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -210,7 +211,7 @@ tests/:
         Test_Exclusions: v3.19.0
       test_miscs.py:
         Test_404: v2.0.0
-        Test_CorrectOptionProcessing: v3.19.0  # probably sooner, but bugged
+        Test_CorrectOptionProcessing: v3.19.0
         Test_MultipleAttacks: v2.0.0
         Test_MultipleHighlight: v2.0.0
       test_reports.py:
@@ -245,8 +246,8 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingAddresses: v3.19.0
       Test_BlockingGraphqlResolvers:
-          '*': v4.22.0
-          nextjs: irrelevant # nextjs is not related with graphql
+        '*': v4.22.0
+        nextjs: irrelevant
       Test_Blocking_request_body:
         '*': v3.19.0
         nextjs: missing_feature
@@ -302,8 +303,8 @@ tests/:
       Test_StatusCode: v2.0.0
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
-          '*': v3.19.0
-          nextjs: missing_feature (can not block by query param in nextjs yet)
+        '*': v3.19.0
+        nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: v3.9.0
     test_shell_execution.py:
@@ -334,27 +335,27 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          "*": irrelevant
-          express4: v0.1 # real version not known
+          '*': irrelevant
+          express4: v0.1
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           express4: v5.3.0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": irrelevant
-          express4: v0.1 # real version not known
+          '*': irrelevant
+          express4: v0.1
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": irrelevant
-          express4: v0.1 # real version not known
+          '*': irrelevant
+          express4: v0.1
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": irrelevant
-          express4: v0.1 # real version not known
+          '*': irrelevant
+          express4: v0.1
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
-          express4: v0.1 # real version not known
+          '*': irrelevant
+          express4: v0.1
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
@@ -367,40 +368,40 @@ tests/:
         express4: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
-      Test_Dbm_Comment_NodeJS_mysql2: 
+      Test_Dbm_Comment_NodeJS_mysql2:
         '*': missing_feature (Missing on weblog)
         express4: v5.13.0
-      Test_Dbm_Comment_NodeJS_pg: 
+      Test_Dbm_Comment_NodeJS_pg:
         '*': missing_feature (Missing on weblog)
         express4: v5.13.0
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: 
-        "*": irrelevant
+      Test_DsmContext_Extraction_Base64:
+        '*': irrelevant
         express4: v5.6.0
-      Test_DsmContext_Injection_Base64: 
-        "*": irrelevant
+      Test_DsmContext_Injection_Base64:
+        '*': irrelevant
         express4: v5.6.0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': v4.4.0
         nextjs: missing_feature (missing endpoint)
       Test_DsmKinesis:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.2.0
       Test_DsmRabbitmq:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.3.0
       Test_DsmRabbitmq_FanoutExchange:
-        "*": irrelevant
+        '*': irrelevant
         express4: missing_feature
       Test_DsmRabbitmq_TopicExchange:
-        "*": irrelevant
+        '*': irrelevant
         express4: missing_feature
       Test_DsmSNS:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.2.0
       Test_DsmSQS:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.2.0
   parametric/:
     test_dynamic_configuration.py:
@@ -412,7 +413,7 @@ tests/:
       TestDynamicConfigV2: v4.23.0
     test_otel_api_interoperability.py: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
-    test_span_links.py: 
+    test_span_links.py:
       Test_Span_Links: v5.3.0
     test_telemetry.py:
       Test_Defaults: v5.6.0
@@ -437,9 +438,11 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is
+        implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache
+        is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -466,16 +469,16 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta:
       '*': v3.13.1
-      nextjs: missing_feature # nextjs makes some internal requests and we have different tag names
+      nextjs: missing_feature
     Test_MetricsStandardTags: v3.13.1
   test_standard_tags.py:
     Test_StandardTagsClientIp:
       '*': v3.6.0
-      nextjs: missing_feature # nextjs makes some internal requests, so we have more than 1 rootspans
+      nextjs: missing_feature
     Test_StandardTagsMethod: v2.11.0
     Test_StandardTagsRoute:
       '*': v2.11.0
-      nextjs: missing_feature # http.route not added in nextjs
+      nextjs: missing_feature
     Test_StandardTagsStatusCode: v2.11.0
     Test_StandardTagsUrl: v3.0.0
     Test_StandardTagsUserAgent: v2.9.0

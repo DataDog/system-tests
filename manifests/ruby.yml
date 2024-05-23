@@ -9,7 +9,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -150,32 +150,56 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events:
         '*': v1.13.0
-        rack: missing_feature (We do not support authentication framework for sinatra or rack)
-        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes)
-        sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra22: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra30: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra31: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
-        uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
+        rack: missing_feature (We do not support authentication framework for sinatra
+          or rack)
+        rails32: missing_feature (Not able to configure weblog variant properly. Issue
+          with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes)
+        sinatra14: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra20: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra21: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra22: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra30: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra31: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra32: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra40: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        uds-sinatra: missing_feature (We do not support authentication framework for
+          sinatra or rack)
       Test_Login_Events_Extended:
         '*': v1.14.0
-        rack: missing_feature (We do not support authentication framework for sinatra or rack)
-        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
-        rails40: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
-        rails41: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
-        sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra22: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra30: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra31: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
-        uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
+        rack: missing_feature (We do not support authentication framework for sinatra
+          or rack)
+        rails32: missing_feature (Not able to configure weblog variant properly. Issue
+          with SQLite and PRIMARY_KEY as String)
+        rails40: missing_feature (Not able to configure weblog variant properly. Issue
+          with SQLite and PRIMARY_KEY as String)
+        rails41: missing_feature (Not able to configure weblog variant properly. Issue
+          with SQLite and PRIMARY_KEY as String)
+        sinatra14: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra20: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra21: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra22: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra30: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra31: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra32: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        sinatra40: missing_feature (We do not support authentication framework for
+          sinatra or rack)
+        uds-sinatra: missing_feature (We do not support authentication framework for
+          sinatra or rack)
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.0.0
       Test_BlockingGraphqlResolvers: missing_feature
@@ -184,8 +208,8 @@ tests/:
       Test_Blocking_request_headers: v1.0.0
       Test_Blocking_request_method: v1.12.0
       Test_Blocking_request_path_params:
-          '*': v1.0.0
-          rack: irrelevant
+        '*': v1.0.0
+        rack: irrelevant
       Test_Blocking_request_query: v1.0.0
       Test_Blocking_request_uri: v1.0.0
       Test_Blocking_response_headers: v1.0.0
@@ -208,7 +232,8 @@ tests/:
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_AppSecIPBlockingFullDenylist: missing_feature (Ruby supported denylists
+        of 2500 entries but it fails to block this those 15000)
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
@@ -229,7 +254,8 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.22.0
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_UserBlocking_FullDenylist: missing_feature (Ruby supported denylists of
+        2500 entries but it fails to block this those 15000)
     test_versions.py:
       Test_Events: v0.54.2
   debugger/:
@@ -244,26 +270,26 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          "*": irrelevant
-          rails70: v0.1 # real version unknown
+          '*': irrelevant
+          rails70: v0.1
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
@@ -273,32 +299,32 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
-      Test_DsmContext_Injection_Base64: 
-        "*": irrelevant
+      Test_DsmContext_Injection_Base64:
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmKinesis:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmSNS:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
@@ -315,12 +341,10 @@ tests/:
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v1.17.0
     test_sampling_delegation.py:
-      Test_Decisionless_Extraction: >-
-        missing_feature
-        (The "_sampling_priority_v1" numeric tag is missing from the local
-        root span when the trace was extracted without a sampling decision.
-        See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782693568?pr=2005>.)
-    test_span_links.py: 
+      Test_Decisionless_Extraction: missing_feature (The "_sampling_priority_v1" numeric
+        tag is missing from the local root span when the trace was extracted without
+        a sampling decision. See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782693568?pr=2005>.)
+    test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
       Test_Defaults: missing_feature
@@ -328,7 +352,7 @@ tests/:
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v1.0.0
       Test_Trace_Sampling_Globs: v2.0.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.0.0
       Test_Trace_Sampling_Resource: v2.0.0
@@ -373,7 +397,8 @@ tests/:
     Test_UrlQuery: v1.0.0
   test_semantic_conventions.py:
     Test_Meta: v1.7.0
-    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
+    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need
+      a dedicated testing scenario)
     Test_MetricsStandardTags: v1.7.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1

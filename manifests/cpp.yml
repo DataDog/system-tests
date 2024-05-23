@@ -28,7 +28,8 @@ tests/:
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
         test_unvalidated_redirect.py: irrelevant (ASM is not implemented in C++)
-        test_unvalidated_redirect_forward.py: irrelevant (ASM is not implemented in C++)
+        test_unvalidated_redirect_forward.py: irrelevant (ASM is not implemented in
+          C++)
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
         test_weak_hash.py: irrelevant (ASM is not implemented in C++)
         test_weak_randomness.py: irrelevant (ASM is not implemented in C++)
@@ -103,9 +104,9 @@ tests/:
         Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (Endpoint not implemented)
+          '*': missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": missing_feature (Endpoint not implemented)
+          '*': missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -124,7 +125,8 @@ tests/:
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
-    test_dynamic_configuration.py: missing_feature (float DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS not supported)
+    test_dynamic_configuration.py: missing_feature (float DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS
+      not supported)
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_sdk_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)

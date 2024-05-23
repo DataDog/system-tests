@@ -9,7 +9,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v2.50.0
         Test_API_Security_RC_ASM_DD_scanners: v2.50.0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature
       test_apisec_sampling.py:
         Test_API_Security_sampling: v2.46.0
       test_schemas.py:
@@ -54,7 +54,7 @@ tests/:
           TestReflectionInjection: v2.48.0
         test_sql_injection.py:
           TestSqlInjection:
-             '*': v2.23.0
+            '*': v2.23.0
         test_ssrf.py:
           TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
@@ -89,7 +89,7 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue:
-             '*': v2.39.0
+            '*': v2.39.0
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -120,7 +120,7 @@ tests/:
         Test_Ssrf_BodyXml: v2.51.0
         Test_Ssrf_UrlQuery: v2.51.0
       test_stack_traces.py:
-        Test_StackTrace: v2.51.0     
+        Test_StackTrace: v2.51.0
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -184,7 +184,8 @@ tests/:
       Test_Blocking_request_uri: v2.32.0
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
-      Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
+      Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not
+        implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
     test_conf.py:
@@ -246,15 +247,15 @@ tests/:
         Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": v0.1  # version unknown
+          '*': v0.1
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": v2.48.0
+          '*': v2.48.0
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
       Test_Postgres: missing_feature
     test_dbm.py:
-      Test_Dbm: v0.1  # missing version
+      Test_Dbm: v0.1
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: missing_feature
       Test_DsmContext_Injection_Base64: missing_feature
@@ -295,9 +296,6 @@ tests/:
       Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
-      # The dotnet parametric app generates trace chunks in a way that differs from the other languages
-      # This causes the sci tests to fail. Before enabling these tests we must ensure that the first span in the
-      # trace chunk is always the local root span.
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
@@ -307,9 +305,11 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.15.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is
+        implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache
+        is implemented)
   test_data_integrity.py:
     Test_LibraryHeaders: v2.46.0
   test_distributed.py:

@@ -2,13 +2,14 @@
 set -eu
 
 readonly BLACK_VERSION=19.10b0
-readonly IMAGE=black:${BLACK_VERSION}
+readonly IMAGE=formatter-black-yaml:${BLACK_VERSION}
+#name of the image changed to take into account images built earlier
 
 if [[ -z "$(docker images -q "${IMAGE}")" ]]; then
   echo "Building ${IMAGE}"
   docker build -t "${IMAGE}" - <<EOF
 FROM python:3.10
-RUN pip install click==7.1.2 black==${BLACK_VERSION}
+RUN pip install click==7.1.2 black==${BLACK_VERSION} pyyaml==6.0.0 yamllint==1.26.3
 EOF
 fi
 
@@ -28,4 +29,4 @@ else
 fi
 
 # shellcheck disable=SC2086
-exec docker run -it --rm $user_arg --workdir "$(pwd)" -v "$(pwd):$(pwd)" "${IMAGE}" black "$@"
+exec docker run -it --rm $user_arg --workdir "$(pwd)" -v "$(pwd):$(pwd)" "${IMAGE}"  bash -c "echo 'test' && black $@ && ./format-yaml.sh"

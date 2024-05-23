@@ -31,3 +31,15 @@ black .
 
 Et voila, all your files are correctly formated :tada:
 
+## Manifest files
+### Using Docker
+As to the manifest files, it can be tedious to order the files/folders by hand. So here are some easy steps to format them:
+### Using a virtualenv
+
+Same steps as before for the setup, now, just run : 
+
+```bash
+./format-yaml.sh
+```
+
+All your manifests are correctly formated

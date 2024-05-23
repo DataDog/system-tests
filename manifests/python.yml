@@ -1,4 +1,3 @@
----
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -24,7 +23,7 @@ tests/:
           python3.12: v2.6.0dev
           uds-flask: v2.6.0dev
           uwsgi-poc: v2.6.0dev
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -393,7 +392,8 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
+      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not
+        implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
@@ -418,7 +418,7 @@ tests/:
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: v1.10.0 # partially missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_AppSecIPBlockingFullDenylist: v1.10.0
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
@@ -449,7 +449,7 @@ tests/:
       Test_ExternalWafRequestsIdentification: v2.9.0.dev1
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v1.10.0 # partially missing_feature missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_UserBlocking_FullDenylist: v1.10.0
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
@@ -473,7 +473,7 @@ tests/:
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
-          flask-poc: v0.1  # actual version unknown
+          flask-poc: v0.1
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           '*': irrelevant
@@ -481,7 +481,7 @@ tests/:
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
-          flask-poc: v0.1 # actual version unknown
+          flask-poc: v0.1
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           flask-poc: v2.6.0
@@ -501,49 +501,49 @@ tests/:
         flask-poc: v0.1
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Aiomysql: 
+      Test_Dbm_Comment_Batch_Python_Aiomysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_MysqlConnector: 
+      Test_Dbm_Comment_Batch_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Mysqldb: 
+      Test_Dbm_Comment_Batch_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Psycopg: 
+      Test_Dbm_Comment_Batch_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Pymysql: 
+      Test_Dbm_Comment_Batch_Python_Pymysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Aiomysql: 
+      Test_Dbm_Comment_Python_Aiomysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Asyncpg: 
+      Test_Dbm_Comment_Python_Asyncpg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_MysqlConnector: 
+      Test_Dbm_Comment_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Python_Mysqldb: 
+      Test_Dbm_Comment_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Python_Psycopg: 
+      Test_Dbm_Comment_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Pymysql: 
+      Test_Dbm_Comment_Python_Pymysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
@@ -629,7 +629,7 @@ tests/:
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0.dev
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
+      Test_Trace_Sampling_Basic: v1.9.0
       Test_Trace_Sampling_Globs: v2.8.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
       Test_Trace_Sampling_Resource: v2.8.0
@@ -648,7 +648,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0.dev
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is
+        implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   test_data_integrity.py:
@@ -656,14 +657,14 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
-      flask-poc: v1.5.0rc2.dev # actual version unknown
+      flask-poc: v1.5.0rc2.dev
   test_identify.py:
     Test_Basic: v1.5.0rc1.dev
     Test_Propagate: v1.9.0
     Test_Propagate_Legacy: v1.5.0rc1.dev
   test_library_conf.py:
     Test_HeaderTags: v0.53
-    Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
+    Test_HeaderTags_Colon_Leading: v1.2.1
     Test_HeaderTags_Colon_Trailing: v2.8.0.dev
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
@@ -673,7 +674,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
   test_profiling.py:
     Test_Profile:
-      '*': v0.1 # actual version unknown
+      '*': v0.1
       python3.12: v2.1.0.dev
   test_scrubbing.py:
     Test_UrlField:
@@ -682,7 +683,8 @@ tests/:
     Test_UrlQuery: v1.6.0rc1.dev
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
-    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
+    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need
+      a dedicated testing scenario)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0.dev
     Test_StandardTagsMethod: v1.2.1

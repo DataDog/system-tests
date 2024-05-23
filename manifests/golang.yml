@@ -3,17 +3,17 @@ tests/:
     test_otel.py:
       Test_Otel_Span:
         '*': missing_feature (missing /e2e_otel_span endpoint on weblog)
-        net-http: v0.1  # real version not known
+        net-http: v0.1
     test_single_span.py:
       Test_SingleSpan:
         '*': missing_feature (missing /e2e_otel_span endpoint on weblog)
-        chi: v0.1  # real version not known
+        chi: v0.1
   appsec/:
     api_security/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature
       test_apisec_sampling.py:
         Test_API_Security_sampling:
           '*': v1.60.0-dev
@@ -287,7 +287,7 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
-      Test_ExtraTagsFromRule: 
+      Test_ExtraTagsFromRule:
         '*': v1.62.0
       Test_HttpClientIP:
         '*': v1.34.0
@@ -347,26 +347,26 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          "*": irrelevant
-          net-http: v0.1 # real version not known
+          '*': irrelevant
+          net-http: v0.1
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature (Endpoint not implemented)
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature (Endpoint not implemented)
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
@@ -375,33 +375,33 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: 
-        "*": irrelevant
-        net-http: v0.1  # real version unknown
-      Test_DsmContext_Injection_Base64: 
-        "*": irrelevant
-        net-http: v0.1  # real version unknown
+      Test_DsmContext_Extraction_Base64:
+        '*': irrelevant
+        net-http: v0.1
+      Test_DsmContext_Injection_Base64:
+        '*': irrelevant
+        net-http: v0.1
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
-        "*": irrelevant
-        net-http: v0.1  # real version unknown
+        '*': irrelevant
+        net-http: v0.1
       Test_DsmKinesis:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
-      Test_DsmRabbitmq: 
-        "*": irrelevant
+      Test_DsmRabbitmq:
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmSNS:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
@@ -420,7 +420,7 @@ tests/:
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v1.37.0
       Test_Trace_Sampling_Globs: v1.60.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v1.64.0-dev
       Test_Trace_Sampling_Resource: v1.60.0
@@ -436,9 +436,11 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.44.1
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is
+        implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache
+        is implemented)
   test_data_integrity.py:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:

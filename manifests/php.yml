@@ -9,7 +9,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -111,7 +111,7 @@ tests/:
       test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
-        Test_BodyJson: v0.98.1 # TODO what is the earliest version?
+        Test_BodyJson: v0.98.1
         Test_BodyRaw: v0.68.3
         Test_BodyUrlEncoded: v0.68.3
         Test_BodyXml: missing_feature
@@ -125,7 +125,7 @@ tests/:
         Test_PathParams: v0.71.0
         Test_UrlQuery: v0.68.3
         Test_UrlQueryKey: v0.74.0
-        Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
+        Test_UrlRaw: v0.68.3
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v0.86.0
@@ -164,9 +164,12 @@ tests/:
       Test_Login_Events_Extended: v0.89.0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
-      Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
-      Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
-      Test_Blocking_response_status: irrelevant (On php it is not possible change the status code once its header is sent)
+      Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries
+        without key)
+      Test_Blocking_response_headers: irrelevant (On php it is not possible change
+        the status code once its header is sent)
+      Test_Blocking_response_status: irrelevant (On php it is not possible change
+        the status code once its header is sent)
       Test_Suspicious_Request_Blocking: missing_feature (v0.86.0 but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
@@ -176,7 +179,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
-      Test_Info: v0.68.3  # probably 0.68.2, but was flaky
+      Test_Info: v0.68.3
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_traces.py:
@@ -203,12 +206,12 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation: missing_feature
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": missing_feature
+          '*': missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (Endpoint not implemented)
+          '*': missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": missing_feature (Endpoint not implemented)
+          '*': missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -241,25 +244,23 @@ tests/:
     test_otel_sdk_interoperability.py:
       Test_Otel_SDK_Interoperability: v0.94.0
     test_otel_span_methods.py:
-        Test_Otel_Span_Methods: v0.94.0
+      Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_w3c.py:
-        Test_Otel_Span_With_W3c: v0.94.0
+      Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
-        Test_Otel_Tracer: v0.94.0
+      Test_Otel_Tracer: v0.94.0
     test_sampling_delegation.py:
-      Test_Decisionless_Extraction: >-
-        missing_feature
-        (The sampling priority chosen when the trace was extracted without a
-        sampling decision is not consistent with the tracer's configuration.
-        See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
+      Test_Decisionless_Extraction: missing_feature (The sampling priority chosen
+        when the trace was extracted without a sampling decision is not consistent
+        with the tracer's configuration. See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
-      Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
+      Test_TelemetrySCAEnvVar: missing_feature
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v0.68.3
       Test_Trace_Sampling_Globs: v0.96.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v0.96.0
       Test_Trace_Sampling_Resource: v0.96.0
@@ -274,7 +275,8 @@ tests/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is
+        implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   test_distributed.py:
