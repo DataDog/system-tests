@@ -918,7 +918,7 @@ class Test_Headers_Tracecontext:
     )
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    def test_tracestate_w3c_p_phase_3_extract_inject_extract_first(self, test_agent, test_library):
+    def test_tracestate_w3c_p_phase_3_extract_first(self, test_agent, test_library):
         """
         Ensure the last parent id tag is not set when only Datadog headers are extracted
         """
