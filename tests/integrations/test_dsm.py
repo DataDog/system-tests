@@ -23,6 +23,7 @@ DSM_STREAM = "dsm-system-tests-stream"
 DSM_QUEUE = "dsm-system-tests-queue"
 DSM_TOPIC = "dsm-system-tests-topic"
 
+# Queue requests can take a while, so give time for them to complete
 DSM_REQUEST_TIMEOUT = 61
 
 
@@ -78,7 +79,9 @@ class Test_DsmHttp:
     def setup_dsm_http(self):
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
         # and will be instrumented as such
-        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}", timeout=DSM_REQUEST_TIMEOUT)
+        self.r = weblog.get(
+            f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}", timeout=DSM_REQUEST_TIMEOUT
+        )
 
     def test_dsm_http(self):
         assert self.r.text == "ok"
@@ -96,7 +99,7 @@ class Test_DsmRabbitmq:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get(
             f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}",
-            timeout=DSM_REQUEST_TIMEOUT
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     @bug(
@@ -144,7 +147,7 @@ class Test_DsmRabbitmq:
     def setup_dsm_rabbitmq_dotnet_legacy(self):
         self.r = weblog.get(
             f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}",
-            timeout=DSM_REQUEST_TIMEOUT
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
@@ -277,7 +280,9 @@ class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
     def setup_dsm_sns(self):
-        self.r = weblog.get(f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,)
+        self.r = weblog.get(
+            f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_sns(self):
