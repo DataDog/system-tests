@@ -60,6 +60,7 @@ jobs:
       endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
       endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
       graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
+      graphql_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
       opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
@@ -99,10 +100,11 @@ jobs:
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
     with:
-      build_proxy_image: ${{ inputs.build_proxy_image }}
       library: ${{ inputs.library }}
+      weblogs: ${{ needs.compute_parameters.outputs.graphql_weblogs }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
+      build_proxy_image: ${{ inputs.build_proxy_image }}
 
   lib-injection:
     needs:

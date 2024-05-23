@@ -11,6 +11,11 @@ on:
         description: "Library to test"
         required: true
         type: string
+      weblogs: 
+        description: "JSON array of weblogs to run"
+        default: "[]"
+        required: false
+        type: string
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -26,47 +31,13 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-
-  compute-matrix:
-    name: Get weblogs for GraphQL tests
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.compute-matrix.outputs.matrix }}
-    steps:
-    - name: Compute matrix
-      id: compute-matrix
-      shell: python
-      run: |
-        import json
-        import os
-
-        weblogs={
-          "cpp": [],
-          "dotnet": [],
-          "golang": ["gqlgen", "graph-gophers", "graphql-go"],
-          "java": [],
-          "nodejs": ["express4", "uds-express4", "express4-typescript"],
-          "php": [],
-          "python": [],
-          "ruby": []
-        }
-
-        result = weblogs["${{ inputs.library }}"]
-
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f'matrix={json.dumps(result)}', file=fh)
-
-        print(json.dumps(result, indent=2))
-
   graphql:
     if: inputs.library == 'golang' || inputs.library == 'nodejs'
     runs-on:
       group: "APM Larger Runners"
-    needs: 
-      - compute-matrix
     strategy:
       matrix:
-        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+        weblog: ${{ fromJson(inputs.weblogs) }}
       fail-fast: false
 
     env:

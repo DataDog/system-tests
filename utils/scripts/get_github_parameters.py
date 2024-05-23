@@ -33,6 +33,21 @@ def get_github_workflow_map(scenarios, scenarios_groups):
     return result
 
 
+def get_graphql_weblogs(library):
+    weblogs = {
+        "cpp": [],
+        "dotnet": [],
+        "golang": ["gqlgen", "graph-gophers", "graphql-go"],
+        "java": [],
+        "nodejs": ["express4", "uds-express4", "express4-typescript"],
+        "php": [],
+        "python": [],
+        "ruby": [],
+    }
+
+    return weblogs[library]
+
+
 def get_endtoend_weblogs(library):
     weblogs = {
         "cpp": ["nginx"],
@@ -82,6 +97,9 @@ def main():
 
     endtoend_weblogs = get_endtoend_weblogs(os.environ["LIBRARY"])
     print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
+
+    graphql_weblogs = get_graphql_weblogs(os.environ["LIBRARY"])
+    print(f"graphql_weblogs={json.dumps(graphql_weblogs)}")
 
 
 if __name__ == "__main__":
