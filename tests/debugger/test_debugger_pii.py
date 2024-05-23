@@ -99,7 +99,11 @@ REDACTED_KEYS = [
     "xrealip",
     "xsrf",
     "xsrftoken",
+    "customidentifier1",
+    "customidentifier2",
 ]
+
+REDACTED_TYPES = ["customPii"]
 
 
 def filter(keys_to_filter):
@@ -120,7 +124,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.pii_responses = [weblog.get("/debugger/pii")]
 
-    def _test(self, redacted_keys):
+    def _test(self, redacted_keys, redacted_types):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
 
@@ -137,9 +141,10 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
             ["log170aa-acda-4453-9111-1478a6method",]
         )
 
-        self._validate_pii_redaction(redacted_keys)
+        self._validate_pii_keyword_redaction(redacted_keys)
+        self._validate_pii_type_redaction(redacted_types)
 
-    def _validate_pii_redaction(self, should_redact_field_names):
+    def _validate_pii_keyword_redaction(self, should_redact_field_names):
         agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
         not_redacted = []
         not_found = list(set(should_redact_field_names))
@@ -172,13 +177,39 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
         if error_message != "":
             raise ValueError(error_message)
 
+    def _validate_pii_type_redaction(self, should_redact_types):
+        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
+        not_redacted = []
+
+        for request in agent_logs_endpoint_requests:
+            content = request["request"]["content"]
+
+            if content is not None:
+                for content in content:
+                    debugger = content["debugger"]
+
+                    if "snapshot" in debugger:
+                        for type_name in should_redact_types:
+                            type_info = debugger["snapshot"]["captures"]["return"]["locals"][type_name]
+
+                            if "fields" in type_info:
+                                not_redacted.append(type_name)
+
+        error_message = ""
+        if not_redacted:
+            not_redacted.sort()
+            error_message = "Types not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
+
+        if error_message != "":
+            raise ValueError(error_message)
+
     def setup_pii_redaction_full(self):
         self._setup()
 
     @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
     @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
     def test_pii_redaction_full(self):
-        self._test(REDACTED_KEYS)
+        self._test(REDACTED_KEYS, REDACTED_TYPES)
 
     def setup_pii_redaction_java_1_33(self):
         self._setup()
@@ -197,7 +228,8 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
                     "secretkey",
                     "xsrf",
                 ]
-            )
+            ),
+            REDACTED_TYPES,
         )
 
     def setup_pii_redaction_dotnet_2_50(self):
@@ -208,4 +240,4 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
         weblog_variant="uds" and context.library == "dotnet@2.50.0", reason="bug with UDS protocol on this version",
     )
     def test_pii_redaction_dotnet_2_50(self):
-        self._test(filter(["applicationkey", "connectionstring"]))
+        self._test(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)

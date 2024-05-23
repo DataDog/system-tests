@@ -1858,7 +1858,12 @@ class scenarios:
     debugger_pii_redaction = EndToEndScenario(
         "DEBUGGER_PII_REDACTION",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
+        },
         library_interface_timeout=5,
         doc="Check pii redaction",
         scenario_groups=[ScenarioGroup.DEBUGGER],
