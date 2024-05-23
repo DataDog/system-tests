@@ -28,7 +28,6 @@ setup-testing-dependencies:
     - os_type: linux
       os_distro: deb
       remote-command: |
-        sudo docker pull registry:2
         sudo rm -rf /usr/local/go
         sudo curl https://dl.google.com/go/go1.22.1.linux-$(dpkg --print-architecture).tar.gz --output go.tar.gz
         sudo tar -C /usr/local -xzf go.tar.gz
@@ -66,7 +65,7 @@ setup-local-registry:
         export PATH=$PATH:/usr/local/go/bin
         export PATH=$PATH:$(go env GOPATH)/bin
         sudo systemctl start docker
-        sudo docker run -d -p 12345:5000 --restart=always --name registry registry:2
+        sudo docker run -d -p 12345:5000 --restart=always --name registry 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/registry:2
         sleep 10
 
         if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
