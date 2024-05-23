@@ -19,6 +19,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         app.MapPost("/trace/otel/set_status", OtelSetStatus);
         app.MapPost("/trace/otel/set_name", OtelSetName);
         app.MapPost("/trace/otel/set_attributes", OtelSetAttributes);
+        app.MapPost("/trace/otel/add_event", OtelAddEvent);
         app.MapPost("/trace/stats/flush", OtelFlushTraceStats);
     }
 
@@ -256,6 +257,35 @@ public abstract class ApmTestApiOtel : ApmTestApi
         _logger?.LogInformation("OtelSetAttributesReturn");
     }
 
+    private static async Task OtelAddEvent(HttpRequest request)
+    {
+        var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
+
+        _logger.LogInformation("AddEvent: {RequestBodyObject}", requestBodyObject);
+
+        var name = requestBodyObject["name"] as string;
+
+        DateTimeOffset timestamp = default;
+        const long TicksPerMicroseconds = 10;
+        if (requestBodyObject.TryGetValue("timestamp", out var timestampInMicrosecondsObject)
+            && Convert.ToInt64(timestampInMicrosecondsObject) is long timestampInMicroseconds
+            && timestampInMicroseconds != 0)
+        {
+            var timestampTicks = timestampInMicroseconds * TicksPerMicroseconds;
+            timestamp = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
+            timestamp = timestamp.AddTicks(timestampTicks);
+        }
+
+        ActivityTagsCollection? tags = default;
+        if (requestBodyObject.TryGetValue("attributes", out var attributes))
+        {
+            tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)attributes)?.ToObject<Dictionary<string, object>>());
+        }
+
+        var activity = FindActivity(requestBodyObject["span_id"]);
+        activity.AddEvent(new ActivityEvent(name, timestamp, tags));
+    }
+
     private static async Task<string> OtelFlushSpans(HttpRequest request)
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
@@ -329,5 +359,39 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 activity.SetTag(key, toAdd);
             }
         }
+    }
+
+    private static ActivityTagsCollection? ToActivityTagsCollection(Dictionary<string, object>? attributes)
+    {
+        if (attributes is null)
+        {
+            return default;
+        }
+
+        ActivityTagsCollection tags = new();
+
+        foreach ((string key, object values) in attributes)
+        {
+            if (values is string
+                || values is bool
+                || values is long
+                || values is double)
+            {
+                tags.Add(key, values);
+            }
+            else if (values is System.Collections.IEnumerable valuesList)
+            {
+                var toAdd = new List<object>();
+                foreach (var value in valuesList)
+                {
+                    var valueToAdd = ((Newtonsoft.Json.Linq.JValue)value).Value ?? throw new InvalidOperationException("Null value in attribute array");
+                    toAdd.Add(valueToAdd);
+                }
+
+                tags.Add(key, toAdd);
+            }
+        }
+
+        return tags;
     }
 }
