@@ -1212,7 +1212,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class _KubernetesScenario(_Scenario):
-    """Scenario that tests kubernetes lib injection"""
+    """ DEPRECATED: Replaced by Kubernetes Scenario. 
+        Scenario that tests kubernetes lib injection"""
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -1293,6 +1294,44 @@ class _KubernetesScenario(_Scenario):
 
         library_injection_init_image = f"{init_docker_image_repo}:{docker_image_tag}"
         return prefix_init_docker_image_repo, library_injection_init_image
+
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def weblog_variant(self):
+        return self._weblog_variant
+
+
+class KubernetesScenario(_Scenario):
+    """ Scenario that tests kubernetes lib injection """
+
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+
+    def configure(self, config):
+        super().configure(config)
+
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
+        assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
+        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE is not set. The init image to be tested is not set"
+        assert (
+            "LIBRARY_INJECTION_TEST_APP_IMAGE" in os.environ
+        ), "LIBRARY_INJECTION_TEST_APP_IMAGE is not set. The test app image to be tested is not set"
+
+        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
+        self._weblog_variant_image = os.getenv("LIBRARY_INJECTION_TEST_APP_IMAGE")
+        self._library_init_image = os.getenv("LIB_INIT_IMAGE")
+
+        logger.stdout("K8s Lib Injection environment:")
+        logger.stdout(f"Library: {self._library}")
+        logger.stdout(f"Weblog variant: {self._weblog_variant}")
+        logger.stdout(f"Weblog variant image: {self._weblog_variant_image}")
+        logger.stdout(f"Library init image: {self._library_init_image}")
+
+        logger.info("K8s Lib Injection environment configured")
 
     @property
     def library(self):
@@ -1906,13 +1945,17 @@ class scenarios:
         vm_provision="container-auto-inject-install-script",
     )
     k8s_lib_injection_basic = _KubernetesScenario(
-        "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+        "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario. DEPRECATED"
     )
-    k8s_lib_injection_full = _KubernetesScenario(
-        "K8S_LIB_INJECTION_FULL",
-        doc=" Kubernetes Instrumentation complete scenario",
+    k8s_library_injection_full = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_FULL",
+        doc=" Kubernetes Instrumentation complete scenario.",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    k8s_library_injection_basic = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
     )
 
     lib_injection_validation = WeblogInjectionScenario(
