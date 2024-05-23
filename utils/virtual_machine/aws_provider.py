@@ -66,6 +66,7 @@ class AWSPulumiProvider(VmProvider):
             tags={"Name": vm.name, "CI": "system-tests"},
             opts=self.pulumi_ssh.aws_key_resource,
             root_block_device={"volume_size": 16},
+            iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
         )
 
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
