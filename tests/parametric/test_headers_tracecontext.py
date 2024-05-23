@@ -746,7 +746,7 @@ class Test_Headers_Tracecontext:
                 pass
 
             with test_library.start_span(
-                name="p_not_propagated",
+                name="p_not_propagated_valid_dd_tracestate",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
                     ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
@@ -765,7 +765,7 @@ class Test_Headers_Tracecontext:
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
 
-        assert case3["name"] == "p_not_propagated"
+        assert case3["name"] == "p_not_propagated_valid_dd_tracestate"
         assert case3["meta"]["_dd.parent_id"] == "0000000000000000"
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
@@ -920,7 +920,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_tracestate_w3c_p_phase_3_extract_inject_extract_first(self, test_agent, test_library):
         """
-        Ensure the last parent id tag is set according to the W3C phase 3 spec
+        Ensure the last parent id tag is not set when only Datadog headers are extracted
         """
 
         # 1) Datadog and tracecontext headers, parent ids do not match
