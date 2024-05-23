@@ -191,4 +191,4 @@ check_merge_labels:
   script:
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "robertomonteromiguel/k8s_ignoretests_and_improvements"
