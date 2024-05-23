@@ -147,7 +147,9 @@ jobs:
       run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
     - name: Load dev nginx module
       if: ${{ matrix.version == 'dev' && inputs.library == 'cpp'}}
-      run: CIRCLECI_TOKEN= ./utils/scripts/load-binary.sh nginx
+      run: ./utils/scripts/load-binary.sh nginx
+      env:
+        CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -159,11 +161,6 @@ jobs:
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
-    - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
-      run: ./run.sh INTEGRATIONS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh DEFAULT
@@ -182,6 +179,11 @@ jobs:
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && inputs.library != 'python' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run INTEGRATIONS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
+      run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
