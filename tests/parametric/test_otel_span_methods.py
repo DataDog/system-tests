@@ -560,8 +560,7 @@ class Test_Otel_Span_Methods:
                             ["x-datadog-origin", "synthetics"],
                             ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
                         ],
-                        attributes={"foo": "bar", "array": ["a", "b", "c"],
-                                    "bools": [True, False], "nested": [1, 2]},
+                        attributes={"foo": "bar", "array": ["a", "b", "c"], "bools": [True, False], "nested": [1, 2]},
                     )
                 ],
             ) as span:
