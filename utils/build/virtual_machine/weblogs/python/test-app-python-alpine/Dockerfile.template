@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM public.ecr.aws/docker/library/alpine:latest
 
 # Install python/pip
 ENV PYTHONUNBUFFERED=1
