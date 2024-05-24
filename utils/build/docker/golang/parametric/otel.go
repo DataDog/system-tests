@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/gommon/log"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
@@ -168,7 +167,7 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 				if w3cCtx, ok := extractedContext.(ddtrace.SpanContextW3C); ok {
 					traceID = w3cCtx.TraceID128Bytes()
 				} else {
-					log.Debug("Non-W3C context found in span, unable to get full 128 bit trace id")
+					fmt.Printf("Non-W3C context found in span, unable to get full 128 bit trace id")
 					uint64ToByte(extractedContext.TraceID(), traceID[:])
 				}
 				uint64ToByte(extractedContext.SpanID(), spanID[:])
