@@ -8,6 +8,9 @@ set -e
 # shellcheck disable=SC2035
 sudo chmod -R 755 *
 
+rm -rf Dockerfile || true
+cp Dockerfile.template Dockerfile || true
+
 echo "Starting nodejs app deployment"
 sudo docker build --no-cache -t system-tests/local .
 sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog

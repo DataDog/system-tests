@@ -185,6 +185,15 @@ class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
+@features.container_auto_instrumentation
+@scenarios.container_not_supported_auto_injection
+class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
+    """ Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
+
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
+
+
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
 class TestHostAutoInjectChaos(_AutoInjectBaseTest):
