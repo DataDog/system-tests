@@ -99,18 +99,21 @@ class Test_Dbm:
     # Test Methods
     @scenarios.appsec_disabled
     def test_trace_payload_disabled(self):
+        assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()
 
     setup_trace_payload_service = weblog_trace_payload
 
     @scenarios.default
     def test_trace_payload_service(self):
+        assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()
 
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
     def test_trace_payload_full(self):
+        assert self.requests, "No requests to validate"
         for request in self.requests:
             span = self._get_db_span(request)
 
@@ -126,6 +129,11 @@ class _Test_Dbm_Comment:
     integration = None
     operation = None
 
+    # declared in child classes
+    dddb = None  # db name
+    dddbs = None  # db name
+    ddh = None  # container name
+
     # comment generic info
     dde = "system-tests"  # DD_ENV
     ddps = "weblog"  # DD_SERVICE
@@ -135,19 +143,18 @@ class _Test_Dbm_Comment:
         self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
 
     def test_dbm_comment(self):
-        if self.r.text not in [None, ""]:
-            try:
-                self.r.text = json.loads(self.r.text)
-            except json.decoder.JSONDecodeError:
-                pass
-            self.expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
+        assert self.r.status_code == 200, f"Request: {self.r.request.url} wasn't successful."
 
-        assert self.r.text["status"] == "ok"
-        assert "traceparent" in self.r.text["dbm_comment"]
+        try:
+            data = json.loads(self.r.text)
+        except json.decoder.JSONDecodeError as e:
+            raise ValueError(f"Response from {self.r.request.url} should have been JSON") from e
 
-        self.r.text["dbm_comment"] = remove_traceparent(self.r.text["dbm_comment"])
+        expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
 
-        assert self.r.text["dbm_comment"] == self.expected_dbm_comment
+        assert "status" in data and data["status"] == "ok"
+        assert "traceparent" in data["dbm_comment"]
+        assert remove_traceparent(data["dbm_comment"]) == expected_dbm_comment
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")

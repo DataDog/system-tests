@@ -25,7 +25,7 @@ markers =[
     "features: declare the feature id"
 ]
 
-python_files = "test_*.py _test_*.py"
+python_files = "test_*.py *utils.py"
 
 # migration tooling: list of folders where feature declarations are mandatory
 # once every test class got its feature declaration, we can remove this

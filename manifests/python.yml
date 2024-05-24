@@ -61,16 +61,17 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection:
-            '*': v2.2.0
+            '*': v2.10.0dev
             fastapi: missing_feature
-            python3.12: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
           Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
-          TestHeaderInjection: missing_feature
+          TestHeaderInjection:
+            '*': v2.10.0dev
+            fastapi: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_auth_protocol.py:
@@ -79,26 +80,22 @@ tests/:
           TestInsecureCookie:
             '*': v1.19.0
             fastapi: missing_feature
-            python3.12: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': v1.19.0
             fastapi: missing_feature
-            python3.12: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': v1.19.0
             fastapi: missing_feature
-            python3.12: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
-            '*': v2.1.0
+            '*': v2.10.0dev
             fastapi: missing_feature
-            python3.12: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
         test_sql_injection.py:
@@ -107,12 +104,11 @@ tests/:
             fastapi: missing_feature
             flask-poc: v1.18.0
             pylons: missing_feature
-            python3.12: missing_feature
+            python3.12: v1.18.0
         test_ssrf.py:
           TestSSRF:
             '*': v2.2.0
             fastapi: missing_feature
-            python3.12: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
@@ -124,15 +120,12 @@ tests/:
           TestWeakCipher:
             '*': v1.18.0
             fastapi: missing_feature
-            python3.12: missing_feature
         test_weak_hash.py:
           TestWeakHash:
             '*': v1.18.0
-            python3.12: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
-            python3.12: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
@@ -145,31 +138,27 @@ tests/:
             django-poc: v1.20.0
             fastapi: missing_feature
             flask-poc: v1.20.0
-            python3.12: missing_feature
+            python3.12: v1.20.0
             uds-flask: v1.20.0
             uwsgi-poc: v1.20.0
         test_cookie_name.py:
           TestCookieName:
-            '*': v1.18.0
+            '*': v2.10.0dev
             fastapi: missing_feature
-            python3.12: missing_feature
         test_cookie_value.py:
           TestCookieValue:
-            '*': v1.18.0
+            '*': v2.10.0dev
             fastapi: missing_feature
-            python3.12: missing_feature
         test_graphql_resolver.py:
           TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName:
             '*': v1.18.0
             fastapi: missing_feature
-            python3.12: missing_feature
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
             fastapi: missing_feature
-            python3.12: missing_feature
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -181,11 +170,13 @@ tests/:
             django-poc: v1.18.0
             fastapi: missing_feature
             flask-poc: missing_feature
-            python3.12: missing_feature
+            python3.12: v1.18.0
             uds-flask: missing_feature
             uwsgi-poc: missing_feature
         test_parameter_value.py:
-          TestParameterValue: bug (should have been v1.18.0)
+          TestParameterValue:
+            '*': v2.9.0.dev
+            fastapi: missing_feature
         test_path.py:
           TestPath: missing_feature
         test_uri.py:
@@ -196,12 +187,17 @@ tests/:
         Test_Lfi_BodyUrlEncoded: v2.10.0.dev
         Test_Lfi_BodyXml: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
+      test_span_tags.py:
+        Test_Mandatory_SpanTags: v2.10.0.dev
+        Test_Optional_SpanTags: v2.10.0.dev
       test_sqli.py: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0.dev
         Test_Ssrf_BodyUrlEncoded: v2.10.0.dev
         Test_Ssrf_BodyXml: v2.10.0.dev
         Test_Ssrf_UrlQuery: v2.10.0.dev
+      test_stack_traces.py:
+        Test_StackTrace: v2.10.0.dev
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -413,12 +409,16 @@ tests/:
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
-      Test_UserLoginFailureEvent: v1.9.0
-      Test_UserLoginSuccessEvent: v1.9.0
+      Test_UserLoginFailureEvent:
+        '*': v1.9.0
+        python3.12: bug (APPSEC-53079)
+      Test_UserLoginSuccessEvent:
+        '*': v1.9.0
+        python3.12: bug (APPSEC-53079)
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_AppSecIPBlockingFullDenylist: v1.10.0 # partially missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
@@ -449,10 +449,7 @@ tests/:
       Test_ExternalWafRequestsIdentification: v2.9.0.dev1
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist:
-        '*': missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
-        # django-poc: v1.10
-        # flask-poc: v1.10
+      Test_UserBlocking_FullDenylist: v1.10.0 # partially missing_feature missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:

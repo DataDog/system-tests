@@ -20,8 +20,8 @@ git_clone_latest_release (){
 
 get_version_from_binaries() {
     # shellcheck disable=SC2002
-    version_line=$(cat /binaries/dd-trace-cpp/src/datadog/version.cpp | grep '^#define VERSION *')
-    current_version=$(echo "$version_line" |  awk -F'VERSION' '{ print $2 }')
+    version_line=$(cat /binaries/dd-trace-cpp/src/datadog/version.cpp | grep '^#define DD_TRACE_VERSION *')
+    current_version=$(echo "$version_line" |  awk -F'DD_TRACE_VERSION' '{ print $2 }')
     echo "$current_version" | tr -d '"'> SYSTEM_TESTS_LIBRARY_VERSION
 }
 

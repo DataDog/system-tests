@@ -17,6 +17,7 @@ import requests
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 from utils import interfaces
+from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 
 
 @lru_cache
@@ -51,6 +52,15 @@ def create_network():
 
     logger.debug(f"Create network {_NETWORK_NAME}")
     _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+
+
+_VOLUME_INJECTOR_NAME = "volume-inject"
+
+
+def create_inject_volume():
+
+    logger.debug(f"Create volume {_VOLUME_INJECTOR_NAME}")
+    _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
 
 class TestedContainer:
@@ -512,7 +522,6 @@ class WeblogContainer(TestedContainer):
             self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
         if self.weblog_variant == "python3.12":
-            self.environment["DD_IAST_ENABLED"] = "false"  # IAST is not working as now on python3.12
             if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
                 self.environment["DD_PROFILING_ENABLED"] = "false"
 
@@ -790,13 +799,48 @@ class APMTestAgentContainer(TestedContainer):
         )
 
 
+class MountInjectionVolume(TestedContainer):
+    def __init__(self, host_log_folder, name) -> None:
+        super().__init__(
+            image_name=None,
+            name=name,
+            host_log_folder=host_log_folder,
+            command="/bin/true",
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},},
+        )
+
+    def _lib_init_image(self, lib_init_image):
+        self.image = ImageInfo(lib_init_image)
+        if "dd-lib-js-init" in lib_init_image:
+            self.kwargs["volumes"] = {
+                _VOLUME_INJECTOR_NAME: {"bind": "/operator-build", "mode": "rw"},
+            }
+        if "dd-lib-dotnet-init" in lib_init_image:
+            self.kwargs["volumes"] = {
+                _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},
+            }
+
+    def remove(self):
+        super().remove()
+        _get_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
+
+
 class WeblogInjectionInitContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
+
         super().__init__(
-            image_name="docker.io/library/weblog-injection-init:latest",
+            image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection-init",
             host_log_folder=host_log_folder,
-            environment={"DD_AGENT_HOST": "ddapm-test-agent"},  # , "DD_TRACE_AGENT_PORT": "8126"
             ports={"18080": ("127.0.0.1", 8080)},
             allow_old_container=True,
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"},},
         )
+
+    def set_environment_for_library(self, library):
+        lib_inject_props = {}
+        for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.library == "nodejs" else library.library]:
+            lib_inject_props[lang_env_vars["name"]] = lang_env_vars["value"]
+        lib_inject_props["DD_AGENT_HOST"] = "ddapm-test-agent"
+        lib_inject_props["DD_TRACE_DEBUG"] = "true"
+        self.environment = lib_inject_props
