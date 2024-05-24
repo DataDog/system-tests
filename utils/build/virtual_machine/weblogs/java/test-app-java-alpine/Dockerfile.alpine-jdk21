@@ -1,5 +1,4 @@
 FROM public.ecr.aws/docker/library/openjdk:21
-RUN apk add --no-cache bash
 COPY build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar /usr/local/app/
 
 COPY docker_entrypoint_docker.sh /usr/local/app/
