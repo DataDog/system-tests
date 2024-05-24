@@ -88,6 +88,9 @@ class APMLibraryClient:
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict) -> None:
         raise NotImplementedError
 
+    def otel_record_exception(self, span_id: int, message: str, attributes: dict) -> None:
+        raise NotImplementedError
+
     def otel_is_recording(self, span_id: int) -> bool:
         raise NotImplementedError
 
@@ -316,6 +319,12 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes},
         )
 
+    def otel_record_exception(self, span_id: int, message: str, attributes) -> None:
+        self._session.post(
+            self._url("/trace/otel/record_exception"),
+            json={"span_id": span_id, "message": message, "attributes": attributes},
+        )
+
     def otel_is_recording(self, span_id: int) -> bool:
         resp = self._session.post(self._url("/trace/otel/is_recording"), json={"span_id": span_id}).json()
         return resp["is_recording"]
@@ -401,6 +410,9 @@ class _TestOtelSpan:
 
     def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
         self._client.otel_add_event(self.span_id, name, timestamp, attributes)
+
+    def record_exception(self, message: str, attributes: Optional[dict] = None):
+        self._client.otel_record_exception(self.span_id, message, attributes)
 
     def end_span(self, timestamp: int = 0):
         self._client.otel_end_span(self.span_id, timestamp)
@@ -588,6 +600,13 @@ class APMLibraryClientGRPC:
         self._client.OtelAddEvent(
             pb.OtelAddEventArgs(
                 span_id=span_id, name=name, timestamp=timestamp, attributes=convert_to_proto(attributes)
+            )
+        )
+
+    def record_exception(self, span_id: int, message: str, attributes):
+        self._client.OtelRecordException(
+            pb.OtelRecordExceptionArgs(
+                span_id=span_id, message=message, attributes=convert_to_proto(attributes)
             )
         )
 

@@ -20,6 +20,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         app.MapPost("/trace/otel/set_name", OtelSetName);
         app.MapPost("/trace/otel/set_attributes", OtelSetAttributes);
         app.MapPost("/trace/otel/add_event", OtelAddEvent);
+        app.MapPost("/trace/otel/record_exception", OtelRecordException);
         app.MapPost("/trace/stats/flush", OtelFlushTraceStats);
     }
 
@@ -284,6 +285,34 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         var activity = FindActivity(requestBodyObject["span_id"]);
         activity.AddEvent(new ActivityEvent(name, timestamp, tags));
+    }
+
+    private static async Task OtelRecordException(HttpRequest request)
+    {
+        var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
+
+        _logger.LogInformation("OtelRecordException: {RequestBodyObject}", requestBodyObject);
+
+        var message = requestBodyObject["message"] as string;
+
+        ActivityTagsCollection? tags = default;
+        if (requestBodyObject.TryGetValue("attributes", out var attributes))
+        {
+            tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)attributes)?.ToObject<Dictionary<string, object>>());
+        }
+
+        // RecordException is not implemented on Activity, so we'll reproduce the behavior done by the .NET OpenTelemetry API package
+        // in the TelemetrySpan class.
+        // Further, the TelemetrySpan.RecordException does not accept attributes, so we'll piece together the additional attributes
+        // in this test app (even though the API spec this should be done by the library...)
+        if (message is not null && !tags.Any(s => s.Key == "exception.message"))
+        {
+            tags["exception.message"] = message;
+        }
+
+        const string name = "exception";
+        var activity = FindActivity(requestBodyObject["span_id"]);
+        activity.AddEvent(new ActivityEvent(name, default, tags));
     }
 
     private static async Task<string> OtelFlushSpans(HttpRequest request)

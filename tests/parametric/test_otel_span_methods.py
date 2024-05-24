@@ -808,6 +808,54 @@ class Test_Otel_Span_Methods:
         assert event3["attributes"].get("string_array")[0] == "5"
         assert event3["attributes"].get("string_array")[1] == "6"
 
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library <= "dotnet@2.52.0", reason="Implemented in 2.53.0")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
+        """
+            Tests the Span.RecordException API (requires Span.AddEvent API support)
+            and its serialization into the Datadog error tags and the 'events' tag
+        """
+        with test_library:
+            with test_library.otel_start_span("operation") as span:
+                span.set_status(OTEL_ERROR_CODE, "error_desc")
+                span.record_exception(message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"})
+                span.add_event(name="non_exception_event", attributes={"exception.stacktrace": "non-error"})
+                span.record_exception(message="woof3", attributes={"exception.message": "message override"})
+                span.end_span()
+
+        root_span = get_span(test_agent)
+        assert "events" in root_span["meta"]
+
+        events = json.loads(root_span.get("meta", {}).get("events"))
+        assert len(events) == 3
+
+        event1 = events[0]
+        assert event1.get("name") == "exception"
+        assert event1["attributes"].get("string_val") == "value"
+        assert event1["attributes"].get("exception.message") == "woof1"
+        assert event1["attributes"].get("exception.stacktrace") == "stacktrace1"
+        assert event1.get("time_unix_nano") > 0
+
+        event2 = events[1]
+        assert event2.get("name") == "non_exception_event"
+        assert event2["attributes"].get("exception.stacktrace") == "non-error"
+        assert event2.get("time_unix_nano") > event1.get("time_unix_nano")
+
+        event3 = events[2]
+        assert event3.get("name") == "exception"
+        assert event3["attributes"].get("exception.message") == "message override"
+        assert event3.get("time_unix_nano") > event2.get("time_unix_nano")
+
+        assert root_span["error"] == 1
+        assert root_span["meta"]["error.msg"] == "message override"
+        assert "error.type" not in root_span["meta"]
+        assert "error.stack" not in root_span["meta"]
+
 
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
     with test_library:
