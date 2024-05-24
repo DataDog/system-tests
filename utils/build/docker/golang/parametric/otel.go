@@ -2,17 +2,58 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/labstack/gommon/log"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
+
+func ConvertKeyValsToAttributes(keyVals map[string]*ListVal) []attribute.KeyValue {
+	attributes := make([]attribute.KeyValue, 0, len(keyVals))
+	for k, lv := range keyVals {
+		n := len(lv.GetVal())
+		if n == 0 {
+			continue
+		}
+		first := lv.GetVal()[0]
+		switch first.Val.(type) {
+		case *AttrVal_StringVal:
+			inp := make([]string, n)
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetStringVal()
+			}
+			attributes = append(attributes, attribute.String(k, "["+strings.Join(inp, ", ")+"]"))
+		case *AttrVal_BoolVal:
+			inp := make([]string, n)
+			for i, v := range lv.GetVal() {
+				inp[i] = strconv.FormatBool(v.GetBoolVal())
+			}
+			attributes = append(attributes, attribute.String(k, "["+strings.Join(inp, ", ")+"]"))
+		case *AttrVal_DoubleVal:
+			inp := make([]string, n)
+			for i, v := range lv.GetVal() {
+				inp[i] = strconv.FormatFloat(v.GetDoubleVal(), 'f', -1, 64)
+			}
+			attributes = append(attributes, attribute.String(k, "["+strings.Join(inp, ", ")+"]"))
+		case *AttrVal_IntegerVal:
+			inp := make([]string, n)
+			for i, v := range lv.GetVal() {
+				inp[i] = strconv.FormatInt(v.GetIntegerVal(), 10)
+			}
+			attributes = append(attributes, attribute.String(k, "["+strings.Join(inp, ", ")+"]"))
+		}
+	}
+	return attributes
+}
 
 func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
 	if s.tracer == nil {
@@ -102,16 +143,65 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 			ddOpts = append(ddOpts, tracer.ChildOf(sctx))
 		}
 	}
+
+	if links := args.GetSpanLinks(); links != nil {
+		for _, link := range links {
+			switch from := link.From.(type) {
+			case *SpanLink_ParentId:
+				if _, ok := s.otelSpans[from.ParentId]; ok {
+					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[from.ParentId].span.SpanContext(), Attributes: ConvertKeyValsToAttributes(link.GetAttributes().KeyVals)}))
+				}
+			case *SpanLink_HttpHeaders:
+				headers := map[string]string{}
+				for _, headerTuple := range from.HttpHeaders.HttpHeaders {
+					k := headerTuple.GetKey()
+					v := headerTuple.GetValue()
+					if k != "" && v != "" {
+						headers[k] = v
+					}
+				}
+				extractedContext, _ := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
+				state, _ := otel_trace.ParseTraceState(headers["tracestate"])
+
+				var traceID otel_trace.TraceID
+				var spanID otel_trace.SpanID
+				if w3cCtx, ok := extractedContext.(ddtrace.SpanContextW3C); ok {
+					traceID = w3cCtx.TraceID128Bytes()
+				} else {
+					log.Debug("Non-W3C context found in span, unable to get full 128 bit trace id")
+					uint64ToByte(extractedContext.TraceID(), traceID[:])
+				}
+				uint64ToByte(extractedContext.SpanID(), spanID[:])
+				config := otel_trace.SpanContextConfig{
+					TraceID:    traceID,
+					SpanID:     spanID,
+					TraceState: state,
+				}
+				var newCtx = otel_trace.NewSpanContext(config)
+				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{
+					SpanContext: newCtx,
+					Attributes:  ConvertKeyValsToAttributes(link.GetAttributes().KeyVals),
+				}))
+			}
+
+		}
+	}
+
 	ctx, span := s.tracer.Start(ddotel.ContextWithStartOptions(pCtx, ddOpts...), args.Name, otelOpts...)
 	hexSpanId := hex2int(span.SpanContext().SpanID().String())
 	s.otelSpans[hexSpanId] = spanContext{
 		span: span,
 		ctx:  ctx,
 	}
+
 	return &OtelStartSpanReturn{
 		SpanId:  hexSpanId,
 		TraceId: hex2int(span.SpanContext().TraceID().String()),
 	}, nil
+}
+
+func uint64ToByte(n uint64, b []byte) {
+	binary.BigEndian.PutUint64(b, n)
 }
 
 func (s *apmClientServer) OtelEndSpan(ctx context.Context, args *OtelEndSpanArgs) (*OtelEndSpanReturn, error) {
