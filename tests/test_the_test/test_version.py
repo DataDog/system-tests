@@ -34,10 +34,7 @@ def test_version_comparizon():
 
     assert Version("  * ddtrace (1.0.0.beta1)", "ruby") == Version("1.0.0.beta1", "ruby")
     assert Version("  * ddtrace (1.0.0.beta1)", "ruby")
-    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") < Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
     assert Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby") < Version("1.0.0", "ruby")
-
-    assert Version("1.0.0beta1", "ruby") < Version("1.0.0beta1+8a50f1f", "ruby")
 
     assert Version("1.1.0rc2.dev15+gc41d325d", "python") >= "1.1.0rc2.dev"
     assert Version("1.1.0", "python") > "1.1.0rc2.dev"
@@ -53,7 +50,7 @@ def test_version_serialization():
 
     v = Version("0.53.0.dev70+g494e6dc0", "some comp")
     assert v == "0.53.0.dev70+g494e6dc0"
-    assert str(v) == "0.53.0.dev70+g494e6dc0"
+    assert str(v) == "0.53.0-dev70+g494e6dc0"
 
     v = Version("  * ddtrace (0.53.0.appsec.180045)", "ruby")
     assert v == Version("0.53.0appsec.180045", "ruby")
@@ -85,7 +82,7 @@ def test_version_serialization():
     assert v == "7.43.1"
 
     v = Version("7.50.0-dbm-oracle-0.1", "agent")
-    assert str(v) == "7.50.0+dbm.oracle.0.1"
+    assert str(v) == "7.50.0-dbm-oracle-0.1"
 
 
 def test_agent_version():

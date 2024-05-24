@@ -4,105 +4,22 @@
 
 from collections import defaultdict
 import re
-from packaging import version as version_module
-
-# some monkey patching
-def _parse_letter_version(letter, number):
-
-    if letter:
-        if number is None:
-            number = 0
-
-        return letter, int(number)
-    if not letter and number:
-        letter = "post"
-
-        return letter, int(number)
-
-    return None
+import semantic_version as version_module
 
 
-version_module._parse_letter_version = _parse_letter_version  # pylint: disable=protected-access
+def _build(version, component):
+    if isinstance(version, str):
+        return Version(version, component)
 
-RUBY_VERSION_PATTERN = r"""
-    v?
-    (?:
-        (?:(?P<epoch>[0-9]+)!)?                           # epoch
-        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
-        (?P<pre>                                          # pre-release
-            [-_\.]?
-            (?P<pre_l>(a|b|c|rc|alpha|beta|pre|preview|appsec))
-            [-_\.]?
-            (?P<pre_n>[0-9]+)?
-        )?
-        (?P<post>                                         # post release
-            (?:-(?P<post_n1>[0-9]+))
-            |
-            (?:
-                [-_\.]?
-                (?P<post_l>post|rev|r)
-                [-_\.]?
-                (?P<post_n2>[0-9]+)?
-            )
-        )?
-        (?P<dev>                                          # dev release
-            [-_\.]?
-            (?P<dev_l>dev)
-            [-_\.]?
-            (?P<dev_n>[0-9]+)?
-        )?
-    )
-    (?:[+ ](?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
-"""
+    if isinstance(version, Version):
+        return version
 
-AGENT_VERSION_PATTERN = r"""
-    v?
-    (?:
-        (?:(?P<epoch>[0-9]+)!)?                           # epoch
-        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
-        (?P<pre>                                          # pre-release
-            [-_\.]?
-            (?P<pre_l>(a|b|c|rc|alpha|beta|pre|preview))
-            [-_\.]?
-            (?P<pre_n>[0-9]+)?
-        )?
-        (?P<post>                                         # post release
-            (?:-(?P<post_n1>[0-9]+))
-            |
-            (?:
-                [-_\.]?
-                (?P<post_l>post|rev|r)
-                [-_\.]?
-                (?P<post_n2>[0-9]+)?
-            )
-        )?
-        (?P<dev>                                          # dev release
-            [-_\.]?
-            (?P<dev_l>dev)
-            [-_\.]?
-            (?P<dev_n>[0-9]+)?
-        )?
-        (?P<devel>                                          # dev release
-            -
-            (?P<devel_l>devel)
-            [ ]?
-            (?P<devel_n>.*)?
-        )?
-    )
-    (?:[\+\-](?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
-"""
+    raise TypeError(version)
 
 
 class Version(version_module.Version):
-    @classmethod
-    def build(cls, version, component):
-        if isinstance(version, str):
-            return cls(version, component)
 
-        if isinstance(version, cls):
-            return version
-
-        raise TypeError(version)
+    version_re = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:[-\.]?([0-9a-zA-Z.-]+))?(?:[\+ ]([0-9a-zA-Z.-]+))?$")
 
     def __init__(self, version, component):
 
@@ -110,10 +27,7 @@ class Version(version_module.Version):
 
         version = version.strip()
 
-        pattern = version_module.VERSION_PATTERN
-
         if component == "ruby":
-            pattern = RUBY_VERSION_PATTERN
             if version.startswith("* ddtrace"):
                 version = re.sub(r"\* *ddtrace *\((.*)\)", r"\1", version)
             if version.startswith("* datadog"):
@@ -130,8 +44,6 @@ class Version(version_module.Version):
             version = re.sub("\x1b\\[\\d+m", "", version)  # remove color pattern from terminal
             version = re.sub(r"[a-zA-Z\-]*$", "", version)  # remove any lable post version
 
-            pattern = AGENT_VERSION_PATTERN
-
         elif component == "java":
             version = version.split("~")[0]
             version = version.replace("-SNAPSHOT", "")
@@ -142,24 +54,28 @@ class Version(version_module.Version):
         elif component == "php":
             version = version.replace("-nightly", "")
 
-        self._regex = re.compile(r"^\s*" + pattern + r"\s*$", re.VERBOSE | re.IGNORECASE)
+        if version.startswith("v"):
+            version = version[1:]
+            
+        if re.match(r"^\d+\.\d+$", version):
+            version = f"{version}.0"
 
         super().__init__(version)
 
     def __eq__(self, other):
-        return super().__eq__(self.build(other, self._component))
+        return super().__eq__(_build(other, self._component))
 
     def __lt__(self, other):
-        return super().__lt__(self.build(other, self._component))
+        return super().__lt__(_build(other, self._component))
 
     def __le__(self, other):
-        return super().__le__(self.build(other, self._component))
+        return super().__le__(_build(other, self._component))
 
     def __gt__(self, other):
-        return super().__gt__(self.build(other, self._component))
+        return super().__gt__(_build(other, self._component))
 
     def __ge__(self, other):
-        return super().__ge__(self.build(other, self._component))
+        return super().__ge__(_build(other, self._component))
 
 
 class LibraryVersion:
