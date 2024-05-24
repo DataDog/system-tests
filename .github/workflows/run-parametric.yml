@@ -37,6 +37,11 @@ jobs:
       - name: Load Ruby library binary (skipping release tests, use snapshot instead)
         if: ${{ matrix.version == 'prod' && inputs.library == 'ruby'}}
         run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
+
+      - name: Load C++ library binary (skipping release tests, use snapshot instead)
+        if: ${{ matrix.version == 'prod' && inputs.library == 'cpp'}}
+        run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
+
       - name: Run parametric tests (with timeout)
         if: ${{ inputs.library == 'java' }}
         run: |
