@@ -312,7 +312,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
         self._session.post(
-            self._url("/trace/otel/add_event"), json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes}
+            self._url("/trace/otel/add_event"),
+            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes},
         )
 
     def otel_is_recording(self, span_id: int) -> bool:
@@ -398,7 +399,7 @@ class _TestOtelSpan:
     def set_status(self, code, description):
         self._client.otel_set_status(self.span_id, code, description)
 
-    def add_event(self, name: str, timestamp: int = 0, attributes: dict = None):
+    def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
         self._client.otel_add_event(self.span_id, name, timestamp, attributes)
 
     def end_span(self, timestamp: int = 0):
@@ -585,7 +586,9 @@ class APMLibraryClientGRPC:
 
     def add_event(self, span_id: int, name: str, timestamp: int, attributes):
         self._client.OtelAddEvent(
-            pb.OtelAddEventArgs(span_id=span_id, name=name, timestamp=timestamp, attributes=convert_to_proto(attributes))
+            pb.OtelAddEventArgs(
+                span_id=span_id, name=name, timestamp=timestamp, attributes=convert_to_proto(attributes)
+            )
         )
 
     def otel_is_recording(self, span_id: int) -> bool:

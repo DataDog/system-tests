@@ -762,7 +762,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.52.0", reason="Implemented in 2.53.0")
-    @missing_feature(context.library == "python", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
         """
             Tests the Span.AddEvent API and its serialization into the meta tag 'events'
@@ -774,8 +773,14 @@ class Test_Otel_Span_Methods:
         with test_library:
             with test_library.otel_start_span("operation") as span:
                 span.add_event(name="first_event")
-                span.add_event(name="second_event", timestamp=event2_timestamp_microseconds, attributes={"string_val": "value"})
-                span.add_event(name="third_event", timestamp=1, attributes={"int_val": 1, "string_val": "2", "int_array": [3, 4], "string_array": ["5", "6"]})
+                span.add_event(
+                    name="second_event", timestamp=event2_timestamp_microseconds, attributes={"string_val": "value"}
+                )
+                span.add_event(
+                    name="third_event",
+                    timestamp=1,
+                    attributes={"int_val": 1, "string_val": "2", "int_array": [3, 4], "string_array": ["5", "6"]},
+                )
                 span.end_span()
 
         root_span = get_span(test_agent)

@@ -1,5 +1,6 @@
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Union
 
@@ -347,6 +348,24 @@ def otel_start_span(args: OtelStartSpanArgs):
     ctx = otel_span.get_span_context()
     otel_spans[ctx.span_id] = otel_span
     return OtelStartSpanReturn(span_id=ctx.span_id, trace_id=ctx.trace_id)
+
+
+class OtelAddEventReturn(BaseModel):
+    pass
+
+
+class OtelAddEventArgs(BaseModel):
+    span_id: int
+    name: str
+    timestamp: Optional[int] = None
+    attributes: Optional[dict] = None
+
+
+@app.post("/trace/otel/add_event")
+def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
+    span = otel_spans[args.span_id]
+    span.add_event(args.name, args.attributes, args.timestamp)
+    return OtelAddEventReturn()
 
 
 class OtelEndSpanArgs(BaseModel):
