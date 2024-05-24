@@ -76,7 +76,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
-    def test_otel_set_attribute_remapping_statuscode(self, test_agent, test_library):
+    def test_otel_set_attribute_remapping_httpresponsestatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
               OTEL Span attribute 'http.response.status_code' to DD Span tag 'http.status_code'.
@@ -90,7 +90,7 @@ class Test_Otel_Span_Methods:
         test_span = get_span(test_agent)
 
         assert "http.response.status_code" not in test_span["meta"]
-        assert test_span["meta"]["http.status_code"] == 200
+        assert test_span["meta"]["http.status_code"] == "200"
 
     @irrelevant(
         context.library == "java",
