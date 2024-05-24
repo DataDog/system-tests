@@ -87,9 +87,10 @@ def get_endtoend_weblogs(library):
 
     return weblogs[library]
 
+
 def get_opentelemetry_weblogs(library):
 
-    weblogs={
+    weblogs = {
         "cpp": [],
         "dotnet": [],
         "golang": [],
@@ -97,11 +98,10 @@ def get_opentelemetry_weblogs(library):
         "nodejs": ["express4-otel"],
         "php": [],
         "python": ["flask-poc-otel"],
-        "ruby": []
+        "ruby": [],
     }
 
     return weblogs[library]
-
 
 
 def main():
