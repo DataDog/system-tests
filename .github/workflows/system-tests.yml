@@ -63,6 +63,7 @@ jobs:
       graphql_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
       opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
+      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
     steps:
     - name: Checkout
@@ -138,5 +139,6 @@ jobs:
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:
-      build_proxy_image: ${{ inputs.build_proxy_image }}
       library: ${{ inputs.library }}
+      weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
+      build_proxy_image: ${{ inputs.build_proxy_image }}

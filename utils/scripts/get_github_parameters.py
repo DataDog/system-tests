@@ -87,6 +87,22 @@ def get_endtoend_weblogs(library):
 
     return weblogs[library]
 
+def get_opentelemetry_weblogs(library):
+
+    weblogs={
+        "cpp": [],
+        "dotnet": [],
+        "golang": [],
+        "java": ["spring-boot-otel"],
+        "nodejs": ["express4-otel"],
+        "php": [],
+        "python": ["flask-poc-otel"],
+        "ruby": []
+    }
+
+    return weblogs[library]
+
+
 
 def main():
     scenario_map = get_github_workflow_map(
@@ -100,6 +116,9 @@ def main():
 
     graphql_weblogs = get_graphql_weblogs(os.environ["LIBRARY"])
     print(f"graphql_weblogs={json.dumps(graphql_weblogs)}")
+
+    opentelemetry_weblogs = get_opentelemetry_weblogs(os.environ["LIBRARY"])
+    print(f"opentelemetry_weblogs={json.dumps(opentelemetry_weblogs)}")
 
 
 if __name__ == "__main__":
