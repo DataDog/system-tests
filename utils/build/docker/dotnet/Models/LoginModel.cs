@@ -1,4 +1,3 @@
-#nullable enable
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,11 +7,11 @@ public class LoginModel
 {
     [Required]
     [Display(Name = "Username")]
-    public string UserName { get; set; }
+    public string? UserName { get; set; }
 
     [Required]
     [DataType(DataType.Password)]
-    public string Password { get; set; }
+    public string? Password { get; set; }
 
     public string? Auth { get; set; }
     

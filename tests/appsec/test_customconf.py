@@ -14,6 +14,10 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
 
+    def setup_c05(self):
+        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
+        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
+
     @missing_feature(library="golang")
     @missing_feature(library="nodejs")
     @missing_feature(library="python")
@@ -24,12 +28,7 @@ class Test_CorruptedRules:
         """Log C5: Rules file is corrupted"""
         stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
 
-    def setup_no_attack_detected(self):
-        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
-        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
-
-    def test_no_attack_detected(self):
-        """ Appsec does not catch any attack """
+        # Appsec does not catch any attack
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_no_appsec_event(self.r_2)
 
@@ -38,6 +37,10 @@ class Test_CorruptedRules:
 @features.threats_configuration
 class Test_MissingRules:
     """AppSec do not report anything if rule file is missing"""
+
+    def setup_c04(self):
+        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
+        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
     @missing_feature(library="golang")
     @missing_feature(library="nodejs")
@@ -54,12 +57,7 @@ class Test_MissingRules:
             level="CRITICAL",
         )
 
-    def setup_no_attack_detected(self):
-        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
-        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
-
-    def test_no_attack_detected(self):
-        """ Appsec does not catch any attack """
+        # Appsec does not catch any attack
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_no_appsec_event(self.r_2)
 

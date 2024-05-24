@@ -11,6 +11,7 @@ class AWSInfraConfig:
         # Mandatory parameters
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
+        self.iam_instance_profile = os.getenv("ONBOARDING_AWS_INFRA_IAM_INSTANCE_PROFILE")
 
         # if None in (self.subnet_id, self.vpc_security_group_ids):
         #    logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
@@ -22,6 +23,11 @@ class DataDogConfig:
         self.dd_app_key = os.getenv("DD_APP_KEY_ONBOARDING")
         self.docker_login = os.getenv("DOCKER_LOGIN")
         self.docker_login_pass = os.getenv("DOCKER_LOGIN_PASS")
+        self.installer_versions = {}
+        self.installer_versions["installer"] = os.getenv("DD_INSTALLER_INSTALLER_VERSION")
+        self.installer_versions["library"] = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
+        self.installer_versions["agent"] = os.getenv("DD_INSTALLER_AGENT_VERSION")
+        self.installer_versions["injector"] = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
 
         # if None in (self.dd_api_key, self.dd_app_key):
         #    logger.warn("Datadog agent is not configured correctly for auto-injection testing")
@@ -122,6 +128,14 @@ class _VirtualMachine:
             command_env["DD_API_KEY"] = self.datadog_config.dd_api_key
         if self.datadog_config.dd_app_key:
             command_env["DD_APP_KEY"] = self.datadog_config.dd_app_key
+        if self.datadog_config.installer_versions["installer"]:
+            command_env["DD_INSTALLER_INSTALLER_VERSION"] = self.datadog_config.installer_versions["installer"]
+        if self.datadog_config.installer_versions["agent"]:
+            command_env["DD_INSTALLER_AGENT_VERSION"] = self.datadog_config.installer_versions["agent"]
+        if self.datadog_config.installer_versions["library"]:
+            command_env["DD_INSTALLER_LIBRARY_VERSION"] = self.datadog_config.installer_versions["library"]
+        if self.datadog_config.installer_versions["injector"]:
+            command_env["DD_INSTALLER_INJECTOR_VERSION"] = self.datadog_config.installer_versions["injector"]
         # Docker
         if self.datadog_config.docker_login:
             command_env["DD_DOCKER_LOGIN"] = self.datadog_config.docker_login
@@ -208,7 +222,7 @@ class AmazonLinux2023amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2023_amd64",
-            aws_config=_AWSConfig(ami_id="ami-06b09bfacae1453cb", ami_instance_type="t2.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-064ed2d3fc01d3ec1", ami_instance_type="t2.medium", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="generic/centos9s"),
             os_type="linux",
             os_distro="rpm",
@@ -222,7 +236,7 @@ class AmazonLinux2023arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2023_arm64",
-            aws_config=_AWSConfig(ami_id="ami-04c97e62cb19d53f1", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0a515c154e76934f7", ami_instance_type="t4g.small", user="ec2-user"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
             os_type="linux",

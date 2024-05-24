@@ -100,6 +100,8 @@ cd dd-trace-java
   * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
   * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
 
+Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
+
 3. Run Parametric tests from the `system-tests/parametric` folder:
 
 ```bash

@@ -4,17 +4,18 @@
 
 """ This file contains base class used to validate interfaces """
 
-import threading
 import json
 from os import listdir
 from os.path import isfile, join
 import re
+import threading
 import time
 
 import pytest
 
 from utils._context.core import context
 from utils.tools import logger
+from utils.interfaces._schemas_validators import SchemaValidator, SchemaError
 
 
 class InterfaceValidator:
@@ -50,6 +51,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._lock = threading.RLock()
         self._data_list = []
         self._ingested_files = set()
+        self._schema_errors = None
 
     @property
     def _log_folder(self):
@@ -165,6 +167,39 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             logger.error(f"Wait for {wait_for_function} finished in error")
 
         self._wait_for_function = None
+
+    def get_schemas_errors(self) -> list[SchemaError]:
+        if self._schema_errors is None:
+            self._schema_errors = []
+            validator = SchemaValidator(self.name)
+
+            for data in self.get_data():
+                self._schema_errors.extend(validator.get_errors(data))
+
+        return self._schema_errors
+
+    def assert_schema_point(self, endpoint, data_path):
+        has_error = False
+
+        for error in self.get_schemas_errors():
+            if error.endpoint == endpoint and error.data_path == data_path:
+                has_error = True
+                logger.error(f"* {error.message}")
+
+        assert not has_error, f"Schema is invalid for endpoint {endpoint} on data path {data_path}"
+
+    def assert_schema_points(self, excluded_points=None):
+        has_error = False
+        excluded_points = excluded_points or []
+
+        for error in self.get_schemas_errors():
+            if (error.endpoint, error.data_path) in excluded_points:
+                continue
+
+            has_error = True
+            logger.error(f"* {error.message}")
+
+        assert not has_error, f"Schema validation failed for {self.name}"
 
 
 class ValidationError(Exception):

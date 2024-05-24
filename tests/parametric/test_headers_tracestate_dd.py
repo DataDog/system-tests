@@ -329,7 +329,7 @@ class Test_Headers_Tracestate_DD:
         context.library == "golang",
         reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
     )
-    @bug(context.library == "python@2.7.2", reason="AIT-9945")
+    @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent
@@ -443,7 +443,6 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(
         context.library == "nodejs", reason="Issue: the decision maker is removed. Is that allowed behavior?"
     )
-    @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_agent, test_library):
@@ -511,7 +510,6 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @missing_feature(context.library == "cpp", reason="_dd.p.dm does not change when a sampling priority was extracted")
     @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
-    @missing_feature(context.library == "php", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_agent, test_library):

@@ -1,32 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-	<PropertyGroup>
-		<TargetFramework>netcoreapp6.0</TargetFramework>
-		<RootNamespace>weblog</RootNamespace>
-		<GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.7.0'">
-		<DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.23.0'">
-		<DefineConstants>$(DefineConstants);DDTRACE_2_23_0_OR_GREATER</DefineConstants>
-	</PropertyGroup>
-	<ItemGroup>
-		<PackageReference Include="AWSSDK.SQS" Version="3.7.300.52" />
-		<PackageReference Include="MySql.Data" Version="8.0.30" />
-		<PackageReference Include="Npgsql" Version="4.0.10" />
-		<PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="7.0.15" />
-		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.8" />
-		<PackageReference Include="System.DirectoryServices" Version="6.0.0" />
-		<PackageReference Include="NodaTime" Version="3.1.6"/>
-                <PackageReference Include="Confluent.Kafka" Version="1.9.3" />
-                <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
-		<Reference Include="Datadog.Trace">
-			<HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
-		</Reference>
-		<PackageReference Include="MongoDB.Driver" Version="2.23.1" />
-	</ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>weblog</RootNamespace>
+        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <Nullable>enable</Nullable>
+
+        <!--
+          Ignore the following warnings:
+            NU1902: Package 'System.Data.SqlClient' 4.6.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-8g2p-5pqh-5jmc
+            NU1903: Package 'System.Data.SqlClient' 4.6.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-98g6-xh36-x2p7
+            CA1416: This call site is reachable on all platforms. 'DirectoryEntry' is only supported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416)
+        -->
+        <NoWarn>NU1902;NU1903;CA1416</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.7.0'">
+        <DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.23.0'">
+        <DefineConstants>$(DefineConstants);DDTRACE_2_23_0_OR_GREATER</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="AWSSDK.SQS" Version="3.7.300.52"/>
+        <PackageReference Include="MySql.Data" Version="8.0.30"/>
+        <PackageReference Include="Npgsql" Version="4.0.10"/>
+        <PackageReference Include="System.Data.SqlClient" Version="4.6.1"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="7.0.15"/>
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.8"/>
+        <PackageReference Include="System.DirectoryServices" Version="6.0.0"/>
+        <PackageReference Include="NodaTime" Version="3.1.6"/>
+        <PackageReference Include="Confluent.Kafka" Version="1.9.3"/>
+        <PackageReference Include="RabbitMQ.Client" Version="6.4.0"/>
+        <Reference Include="Datadog.Trace">
+            <HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
+        </Reference>
+        <PackageReference Include="MongoDB.Driver" Version="2.23.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- exclude "parametric" folder from build -->
+        <Compile Remove="parametric/**"/>
+        <EmbeddedResource Remove="parametric/**"/>
+        <Content Remove="parametric/**"/>
+        <None Remove="parametric/**"/>
+    </ItemGroup>
 </Project>

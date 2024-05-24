@@ -1309,6 +1309,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_sink_hardcoded_passwords(test_object):
+        """
+        IAST sink: Hardcoded passwords detection
+
+        https://feature-parity.us1.prod.dog/#/?feature=290
+        """
+        pytest.mark.features(feature_id=290)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_hardcoded_secrets(test_object):
         """
         IAST sink: Hardcoded secrets detection
@@ -2085,4 +2095,94 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=288
         """
         pytest.mark.features(feature_id=288)(test_object)
+        return test_object
+
+    @staticmethod
+    def f_otel_interoperability(test_object):
+        """
+        OTel Interoperability
+
+        https://feature-parity.us1.prod.dog/#/?feature=289
+        """
+        pytest.mark.features(feature_id=289)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_pii_redaction(test_object):
+        """
+        PII Redaction
+
+        https://feature-parity.us1.prod.dog/#/?feature=291
+        """
+        pytest.mark.features(feature_id=291)(test_object)
+        return test_object
+
+    @staticmethod
+    def installer_auto_instrumentation(test_object):
+        """
+        Installer auto-instrumentation
+
+        https://feature-parity.us1.prod.dog/#/?feature=292
+        """
+        pytest.mark.features(feature_id=292)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_local_file_inclusion(test_object):
+        """
+        Appsec RASP rule : local file inclusion
+
+        https://feature-parity.us1.prod.dog/#/?feature=293
+        """
+        pytest.mark.features(feature_id=293)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_server_side_request_forgery(test_object):
+        """
+        Appsec RASP rule : server-side request forgery
+
+        https://feature-parity.us1.prod.dog/#/?feature=294
+        """
+        pytest.mark.features(feature_id=294)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_sql_injection(test_object):
+        """
+        Appsec RASP rule : SQL injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=295
+        """
+        pytest.mark.features(feature_id=295)(test_object)
+        return test_object
+
+    @staticmethod
+    def database_monitoring_support(test_object):
+        """
+        DBM: Database Monitoring is supported by an integration
+
+        https://feature-parity.us1.prod.dog/#/?feature=296
+        """
+        pytest.mark.features(feature_id=296)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_stack_trace(test_object):
+        """
+        Appsec RASP: Stack Trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=297
+        """
+        pytest.mark.features(feature_id=297)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_span_tags(test_object):
+        """
+        Appsec RASP: Span Tags
+
+        https://feature-parity.us1.prod.dog/#/?feature=298
+        """
+        pytest.mark.features(feature_id=298)(test_object)
         return test_object

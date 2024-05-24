@@ -114,6 +114,7 @@ public class MessagingEndpoints : ISystemTestEndpoint
     {
         Console.WriteLine("consuming one message from queue " + queue);
         using var helper = new RabbitMQHelper();
+        helper.CreateQueue(queue); // ensure the queue exist in case this starts before the producer
         var completion = new AutoResetEvent(false);
         var received = new List<string>();
         helper.AddListener(queue, msg =>

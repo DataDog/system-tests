@@ -13,10 +13,14 @@ tests/:
       Test_FeatureB: flaky # skip a class with bug, flaky, irrelevant ...
 
       Test_FeatureC: # declare a version for a class, depending on weblog
-        '*'': missing_feature # All other weblogs: not yet available
+        '*': missing_feature # All other weblogs: not yet available
         django: v1.2
         flask: v1.3
         uwsgi: bug (jira ticket) # For a weblog, skip it with bug, or flaky
+      
+      # declare compatibility for multiple release lines
+      # the caret character locks the major version (ie: `(>=1.3.0 && <2.0.0) || >= 2.3.0`)
+      Test_FeatureD: ^1.3.0 || >=2.3.0
 ```
 
 ### Implementation
@@ -32,6 +36,7 @@ tests/:
 - declaring released version (or a skip reason) for a class
 - declaring released version (or a skip reason) for a class, with details for weblog variants
 - The wildcard `*` is supported for weblog declarations
+- Supports the full npm syntax for SemVer specification. See more at: https://github.com/npm/node-semver#ranges
 
 ## Will never be supported:
 

@@ -11,6 +11,15 @@ from utils import context
 
 
 def ensure_cluster():
+    try:
+        return _ensure_cluster()
+    except Exception as e:
+        # It's difficult, but sometimes the cluster is not created correctly, releated to the ports conflicts
+        logger.error(f"Error ensuring cluster: {e}. trying again.")
+        return _ensure_cluster()
+
+
+def _ensure_cluster():
     k8s_kind_cluster = K8sKindCluster()
     k8s_kind_cluster.confiure_ports()
 

@@ -10,7 +10,7 @@ from utils import irrelevant
 
 
 @features.k8s_admission_controller
-@scenarios.k8s_lib_injection
+@scenarios.k8s_library_injection_full
 class TestConfigMapAutoInject:
     """ Datadog Agent Auto-injection tests using ConfigMap
         Check: https://datadoghq.atlassian.net/wiki/spaces/AO/pages/2983035648/Cluster+Agent+Development
@@ -61,7 +61,7 @@ class TestConfigMapAutoInject:
                 "action": "enable",
                 "lib_config": {
                     "library_language": "all",
-                    "library_version": "latest",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
                     "service_name": "test-service",
                     "env": "dev",
                     "tracing_enabled": True,
@@ -81,7 +81,7 @@ class TestConfigMapAutoInject:
                 "action": "enable",
                 "lib_config": {
                     "library_language": "all",
-                    "library_version": "latest",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
                     "service_name": "test-service",
                     "env": "dev",
                     "tracing_enabled": True,
@@ -101,7 +101,7 @@ class TestConfigMapAutoInject:
                 "action": "enable",
                 "lib_config": {
                     "library_language": "all",
-                    "library_version": "latest",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
                     "service_name": "test-service",
                     "env": "dev",
                     "tracing_enabled": True,
@@ -114,17 +114,53 @@ class TestConfigMapAutoInject:
                     "namespace": "default",
                 },
             },
+            {
+                "id": "11777398274940883092",
+                "revision": 0,
+                "schema_version": "v1.0.0",
+                "action": "enable",
+                "lib_config": {
+                    "library_language": "all",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
+                    "service_name": "test-service",
+                    "env": "dev",
+                    "tracing_enabled": True,
+                    "tracing_sampling_rate": 0.90,
+                },
+                "k8s_target": {
+                    "cluster": test_k8s_instance.k8s_kind_cluster.cluster_name,
+                    "kind": "deployment",
+                    "name": "test-ruby-deployment",
+                    "namespace": "default",
+                },
+            },
+            {
+                "id": "11777398274940883092",
+                "revision": 0,
+                "schema_version": "v1.0.0",
+                "action": "enable",
+                "lib_config": {
+                    "library_language": "all",
+                    "library_version": f"{test_k8s_instance.library_init_image_tag}",
+                    "service_name": "test-service",
+                    "env": "dev",
+                    "tracing_enabled": True,
+                    "tracing_sampling_rate": 0.90,
+                },
+                "k8s_target": {
+                    "cluster": test_k8s_instance.k8s_kind_cluster.cluster_name,
+                    "kind": "deployment",
+                    "name": "test-dotnet-deployment",
+                    "namespace": "default",
+                },
+            },
         ]
 
     def _check_for_env_vars(self, test_k8s_instance, expected_env_vars):
         """ evaluates whether the expected tracer config is reflected in the env vars of the targeted pod. """
-
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        pods = test_k8s_instance.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
+        assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         for expected_env_var in expected_env_vars:
             env_var_found = False
@@ -139,13 +175,10 @@ class TestConfigMapAutoInject:
 
     def _check_for_pod_metadata(self, test_k8s_instance):
         """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        pods = test_k8s_instance.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
+        assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         assert (
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "true"
@@ -160,12 +193,9 @@ class TestConfigMapAutoInject:
 
     def _check_for_pod_metadata_all_libraries(self, test_k8s_instance):
         """evaluates whether the expected admission labels and annotations are applied to the targeted pod."""
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
         library_version = test_k8s_instance.library_init_image_tag
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
+        pods = test_k8s_instance.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
         assert len(pods.items) == 1, f"No pods found for app {app_name}"
 
         assert (
@@ -183,12 +213,7 @@ class TestConfigMapAutoInject:
 
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
         rc_id = "11777398274940883092"
-
-        api = client.AppsV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
-        deployment = api.read_namespaced_deployment(deployment_name, "default")
-        logger.info("Deployment description: %s", deployment)
+        deployment = test_k8s_instance.k8s_wrapper.read_namespaced_deployment(deployment_name)
         assert (
             deployment.metadata.annotations["admission.datadoghq.com/rc.id"] == rc_id
         ), f"Deployment annotation 'admission.datadoghq.com/rc.id' not equal [{rc_id}]. Deployment description: {deployment}"
@@ -201,26 +226,20 @@ class TestConfigMapAutoInject:
           It returns when the deployment is available and the rollout is finished. 
         """
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
-        api = client.AppsV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
-        deploy_data = api.read_namespaced_deployment(deployment_name, "default")
+        deploy_data = test_k8s_instance.k8s_wrapper.read_namespaced_deployment(deployment_name)
         # get envs from deployment's first container
         dep_envs = deploy_data.spec.template.spec.containers[0].env
         dep_envs.append(client.V1EnvVar(name="ENV_FOO", value="ENV_BAR"))
         deploy_data.spec.template.spec.containers[0].env = dep_envs
-        api.patch_namespaced_deployment(deployment_name, "default", deploy_data)
+        test_k8s_instance.k8s_wrapper.patch_namespaced_deployment(deployment_name, "default", deploy_data)
         time.sleep(30)
         test_k8s_instance.test_weblog.wait_for_weblog_after_apply_configmap(f"{test_k8s_instance.library}-app")
 
     def _check_for_no_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        pods = test_k8s_instance.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
+        assert len(pods.items) != 0, f"No pods found for app {app_name}"
 
         assert (
             "admission.datadoghq.com/enabled" not in pods.items[0].metadata.labels
@@ -228,21 +247,14 @@ class TestConfigMapAutoInject:
 
     def _check_for_disabled_pod_metadata(self, test_k8s_instance):
         """ Ensures the targeted pod doesn't have admission labels. """
-        v1 = client.CoreV1Api(
-            api_client=config.new_client_from_config(context=test_k8s_instance.k8s_kind_cluster.context_name)
-        )
+
         app_name = f"{test_k8s_instance.library}-app"
-        pods = v1.list_namespaced_pod(namespace="default", label_selector=f"app={app_name}")
-        assert len(pods.items) == 1, f"No pods found for app {app_name}"
+        pods = test_k8s_instance.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
+        assert len(pods.items) != 0, f"No pods found for app {app_name}"
         assert (
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
     def test_fileprovider_configmap_case1(self, test_k8s_instance):
         """ Nominal case:
            - deploy app & agent
@@ -271,11 +283,6 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case1 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
     def test_fileprovider_configmap_case2(self, test_k8s_instance):
         """ Config change:
                - deploy app & agent
@@ -296,7 +303,7 @@ class TestConfigMapAutoInject:
         default_config_data[0]["lib_config"]["tracing_sampling_rate"] = 0.50
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.50"}]
 
-        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data), rev=1)
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
 
         logger.debug(f"Traces: {traces_json}")
@@ -308,11 +315,6 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case2 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
     def test_fileprovider_configmap_case3(self, test_k8s_instance):
         """  Config persistence:
                - deploy app & agent
@@ -355,11 +357,6 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case3 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
     def test_fileprovider_configmap_case4(self, test_k8s_instance):
         """  Mismatching config:
                - deploy app & agent
@@ -374,16 +371,14 @@ class TestConfigMapAutoInject:
         test_agent.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
         default_config_data[0]["k8s_target"]["cluster"] = "lib-injection-testing-no-match"
-        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        try:
+            test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        except TimeoutError as e:
+            pass  # DD agent cluster will not read this config map becausr the cluster name is not matching.
         self._check_for_no_pod_metadata(test_k8s_instance)
 
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
 
-    @irrelevant(
-        condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
-    )
     def test_fileprovider_configmap_case5(self, test_k8s_instance):
         """ Config change to action:disable
                 - deploy app & agent
@@ -408,14 +403,14 @@ class TestConfigMapAutoInject:
         logger.debug("Apply disabled config")
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance, rc_rev=2)
         default_config_data[0]["action"] = "disable"
-        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
+        test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data), rev=2)
         self._check_for_disabled_pod_metadata(test_k8s_instance)
         logger.info(f"Test _test_fileprovider_configmap_case5 finished")
 
     @irrelevant(
         condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
+        or context.scenario._library_init_image_tag != "",
+        reason="Test a discontinued feature",
     )
     def test_fileprovider_configmap_case6(self, test_k8s_instance):
         """  Inject-all case (for batch instrumentation)

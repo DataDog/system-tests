@@ -33,7 +33,7 @@ def _load_file(file):
 
 
 @lru_cache
-def load():
+def load(base_dir="manifests/"):
     """
     Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
@@ -63,7 +63,7 @@ def load():
         "python_otel",
         "ruby",
     ):
-        data = _load_file(f"manifests/{component}.yml")
+        data = _load_file(f"{base_dir}{component}.yml")
 
         for nodeid, value in data.items():
             result[nodeid][component] = value

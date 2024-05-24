@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import missing_feature, features
-from .._test_iast_fixtures import BaseSinkTest
+from ..utils import BaseSinkTest
 
 
 @features.iast_sink_reflection_injection
@@ -17,11 +17,12 @@ class TestReflectionInjection(BaseSinkTest):
     data = {"param": "ReflectionInjection"}
     location_map = {"java": "com.datadoghq.system_tests.iast.utils.ReflectionExamples"}
 
-    @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(library="java", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+    def test_secure(self):
+        super().test_secure()

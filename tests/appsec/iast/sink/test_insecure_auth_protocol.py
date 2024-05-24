@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, features
-from .._test_iast_fixtures import BaseSinkTest
+from ..utils import BaseSinkTest
 
 
 @features.iast_sink_insecure_auth_protocol
@@ -18,6 +18,7 @@ class Test_InsecureAuthProtocol(BaseSinkTest):
     insecure_headers = {"Authorization": "Basic dGVzd"}
 
     @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

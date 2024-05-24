@@ -22,8 +22,8 @@ class Test_TraceUniqueness:
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
+    @missing_feature(library="cpp")
     @bug(context.library <= "golang@1.37.0")
-    @bug(library="cpp")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 
@@ -140,10 +140,10 @@ class Test_LibraryHeaders:
         interfaces.library.validate(validator, success_by_default=True)
 
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="golang", reason="not implemented yet")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 

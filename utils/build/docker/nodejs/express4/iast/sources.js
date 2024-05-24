@@ -142,7 +142,10 @@ function init (app, tracer) {
             // do nothing
           }
 
-          deferred.resolve()
+          // in some occasions we consume messages from dsm tests
+          if (vulnValue === 'hello value!') {
+            deferred.resolve()
+          }
         }
       })
 
@@ -194,6 +197,9 @@ function init (app, tracer) {
 
       await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
+          // in some occasions we consume messages from dsm tests
+          if (!message.key) return
+
           const vulnKey = message.key.toString()
           try {
             readFileSync(vulnKey)

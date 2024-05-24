@@ -8,9 +8,15 @@ option csharp_namespace = "ApmTestClient";
 service APMClient {
   rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}
   rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
+  rpc SpanGetCurrent(SpanGetCurrentArgs) returns (SpanGetCurrentReturn) {}
+  rpc SpanGetName(SpanGetNameArgs) returns (SpanGetNameReturn) {}
+  rpc SpanGetResource(SpanGetResourceArgs) returns (SpanGetResourceReturn) {}
+  rpc SpanGetMeta(SpanGetMetaArgs) returns (SpanGetMetaReturn) {}
+  rpc SpanGetMetric(SpanGetMetricArgs) returns (SpanGetMetricReturn) {}
   rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
   rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
   rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
+  rpc SpanSetResource(SpanSetResourceArgs) returns (SpanSetResourceReturn) {}
   rpc SpanAddLink(SpanAddLinkArgs) returns (SpanAddLinkReturn) {}
   rpc HTTPClientRequest(HTTPRequestArgs) returns (HTTPRequestReturn) {}
   rpc HTTPServerRequest(HTTPRequestArgs) returns (HTTPRequestReturn) {}
@@ -22,11 +28,15 @@ service APMClient {
   rpc OtelEndSpan(OtelEndSpanArgs) returns (OtelEndSpanReturn) {}
   rpc OtelIsRecording(OtelIsRecordingArgs) returns (OtelIsRecordingReturn) {}
   rpc OtelSpanContext(OtelSpanContextArgs) returns (OtelSpanContextReturn) {}
+  rpc OtelSpanGetCurrent(OtelSpanGetCurrentArgs) returns (OtelSpanGetCurrentReturn) {}
   rpc OtelSetStatus(OtelSetStatusArgs) returns (OtelSetStatusReturn) {}
   rpc OtelSetName(OtelSetNameArgs) returns (OtelSetNameReturn) {}
   rpc OtelSetAttributes(OtelSetAttributesArgs) returns (OtelSetAttributesReturn) {}
   rpc OtelFlushSpans(OtelFlushSpansArgs) returns (OtelFlushSpansReturn) {}
   rpc OtelFlushTraceStats(OtelFlushTraceStatsArgs) returns (OtelFlushTraceStatsReturn) {}
+  rpc OtelGetAttribute(OtelGetAttributeArgs) returns (OtelGetAttributeReturn) {}
+  rpc OtelGetName(OtelGetNameArgs) returns (OtelGetNameReturn) {}
+  rpc OtelGetLinks(OtelGetLinksArgs) returns (OtelGetLinksReturn) {}
 
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
@@ -78,6 +88,41 @@ message FinishSpanArgs {
 }
 message FinishSpanReturn {}
 
+message SpanGetCurrentArgs {}
+message SpanGetCurrentReturn {
+  uint64 span_id = 1;
+  uint64 trace_id = 2;
+}
+
+message SpanGetNameArgs {
+  uint64 span_id = 1;
+}
+message SpanGetNameReturn {
+  string name = 1;
+}
+
+message SpanGetResourceArgs {
+  uint64 span_id = 1;
+}
+message SpanGetResourceReturn {
+  string resource = 1;
+}
+
+message SpanGetMetaArgs {
+  uint64 span_id = 1;
+  string key = 2;
+}
+message SpanGetMetaReturn {
+  AttrVal value = 1;
+}
+
+message SpanGetMetricArgs {
+  uint64 span_id = 1;
+  string key = 2;
+}
+message SpanGetMetricReturn {
+  float value = 1;
+}
 
 message SpanSetMetaArgs {
   uint64 span_id = 1;
@@ -103,10 +148,15 @@ message SpanSetErrorArgs {
 }
 message SpanSetErrorReturn {}
 
+message SpanSetResourceArgs {
+  uint64 span_id = 1;
+  string resource = 2;
+}
+message SpanSetResourceReturn {}
 
 message SpanAddLinkArgs {
   uint64 span_id = 1;
-  repeated SpanLink links = 2;
+  SpanLink span_link = 2;
 }
 
 message SpanAddLinkReturn {}
@@ -192,6 +242,12 @@ message OtelSpanContextReturn {
   bool remote = 5;
 }
 
+message OtelSpanGetCurrentArgs {}
+message OtelSpanGetCurrentReturn {
+  string span_id = 1;
+  string trace_id = 2;
+}
+
 message OtelSetStatusArgs {
   uint64 span_id = 1;
   string code = 2;
@@ -210,6 +266,28 @@ message OtelSetAttributesArgs {
   Attributes attributes = 2;
 }
 message OtelSetAttributesReturn {}
+
+message OtelGetAttributeArgs {
+  uint64 span_id = 1;
+  string key = 2;
+}
+message OtelGetAttributeReturn {
+  ListVal value = 1;
+}
+
+message OtelGetNameArgs {
+  uint64 span_id = 1;
+}
+message OtelGetNameReturn {
+  string name = 1;
+}
+
+message OtelGetLinksArgs {
+  uint64 span_id = 1;
+}
+message OtelGetLinksReturn {
+  repeated SpanLink links = 1;
+}
 
 message Attributes {
   map<string, ListVal> key_vals = 3;

@@ -44,7 +44,7 @@ public class RabbitMQHelper : IDisposable
 
     public void CreateQueue(string queue)
     {
-        _channel.QueueDeclare(queue, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, null);
+        _channel.QueueDeclare(queue, durable: true, exclusive: false, autoDelete: false, arguments: null);
         Console.WriteLine($"[rabbitmq] Created queue {queue}");
     }
 

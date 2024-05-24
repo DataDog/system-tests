@@ -405,7 +405,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_another_span(self, test_agent, test_library):
@@ -448,8 +448,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links.
@@ -499,8 +499,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
@@ -547,8 +547,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
         """Test adding a span link from a span to another span.

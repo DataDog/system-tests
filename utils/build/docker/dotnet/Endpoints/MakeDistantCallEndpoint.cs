@@ -9,10 +9,10 @@ namespace weblog
     {
         private class EndpointParameters
         {
-            public string Url { get; set; }
+            public string? Url { get; private init; }
             public static EndpointParameters Bind(HttpContext context)
             {
-                string url = context.Request.Query["url"];
+                string? url = context.Request.Query["url"];
                 var result = new EndpointParameters
                 {
                     Url = url,
@@ -24,13 +24,13 @@ namespace weblog
         private class EndpointResponse
         {
             [JsonPropertyName("url")]
-            public string Url { get; set; }
+            public string? Url { get; set; }
             [JsonPropertyName("status_code")]
             public int StatusCode { get; set; }
             [JsonPropertyName("request_headers")]
-            public IEnumerable<KeyValuePair<string, IEnumerable<string>>> RequestHeaders { get; set; }
+            public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? RequestHeaders { get; set; }
             [JsonPropertyName("response_headers")]
-            public IEnumerable<KeyValuePair<string, IEnumerable<string>>> ResponseHeaders { get; set; }
+            public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? ResponseHeaders { get; set; }
         }
 
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
@@ -53,7 +53,7 @@ namespace weblog
                 {
                     Url = parameters.Url,
                     StatusCode = (int)response.StatusCode,
-                    RequestHeaders = response.RequestMessage.Headers,
+                    RequestHeaders = response.RequestMessage?.Headers,
                     ResponseHeaders = response.Headers,
                 };
 
