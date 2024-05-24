@@ -60,7 +60,7 @@ jobs:
       endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
       endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
       graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
-      graphql_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
+      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
       opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
       opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
