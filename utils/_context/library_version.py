@@ -56,7 +56,7 @@ class Version(version_module.Version):
 
         if version.startswith("v"):
             version = version[1:]
-            
+
         if re.match(r"^\d+\.\d+$", version):
             version = f"{version}.0"
 
