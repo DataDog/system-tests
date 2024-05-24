@@ -26,6 +26,7 @@ service APMClient {
 
   rpc OtelStartSpan(OtelStartSpanArgs) returns (OtelStartSpanReturn) {}
   rpc OtelEndSpan(OtelEndSpanArgs) returns (OtelEndSpanReturn) {}
+  rpc OtelAddEvent(OtelAddEventArgs) returns (OtelAddEventReturn) {}
   rpc OtelIsRecording(OtelIsRecordingArgs) returns (OtelIsRecordingReturn) {}
   rpc OtelSpanContext(OtelSpanContextArgs) returns (OtelSpanContextReturn) {}
   rpc OtelSpanGetCurrent(OtelSpanGetCurrentArgs) returns (OtelSpanGetCurrentReturn) {}
@@ -266,6 +267,14 @@ message OtelSetAttributesArgs {
   Attributes attributes = 2;
 }
 message OtelSetAttributesReturn {}
+
+message OtelAddEventArgs {
+  uint64 span_id = 1;
+  string name = 2;
+  optional int64 timestamp = 3;
+  Attributes attributes = 4;
+}
+message OtelAddEventReturn {}
 
 message OtelGetAttributeArgs {
   uint64 span_id = 1;
