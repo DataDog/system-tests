@@ -234,10 +234,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
-      run: |
-        # nginx does not start with missing rules file, thereby stalling the job
-        if [[ $WEBLOG_VARIANT != nginx ]]; then ./run.sh APPSEC_MISSING_RULES; fi
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && matrix.weblog != 'nginx'
+      run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_RULES scenario
@@ -246,10 +244,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
-      run: |
-        # nginx does not start with corrupted rules file, thereby stalling the job
-        if [[ $WEBLOG_VARIANT != nginx ]]; then ./run.sh APPSEC_CORRUPTED_RULES; fi
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && matrix.weblog != 'nginx'
+      run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario

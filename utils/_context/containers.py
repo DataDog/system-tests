@@ -214,7 +214,7 @@ class TestedContainer:
         except:
             pass
 
-        print(logs)
+        logger.info("Container logs: %s", logs)
 
         pytest.exit(f"Command {cmd} failed for {self._container.name}", 1)
 
